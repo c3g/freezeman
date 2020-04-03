@@ -39,8 +39,7 @@ class Sample(models.Model):
     experimental_group = JSONField(blank=True, null=True)
     # redundant ?
     container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT,
-                                          limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
-                                          related_name='container_samples')
+                                          limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
     location_barcode = models.CharField(max_length=200)
     # TODO list of choices ?
     location_coordinates = models.CharField(max_length=10)
@@ -53,10 +52,6 @@ class Sample(models.Model):
     # fields only for extracted samples
     extracted_from = models.ForeignKey('self', blank=True, null=True)
     volume_used = models.CharField(max_length=200)
-    nucleic_acid_container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT,
-                                                       related_name='nucleic_acid_container_samples')
-    # TODO Only 96 positions rack values
-    nucleic_acid_location_coordinates = models.CharField(max_length=10)
     # if source sample was depleted
     source_depleted = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
