@@ -83,11 +83,6 @@ class Individual(models.Model):
         ('Mus Musculus', 'Mus Musculus')
     )
     GENDER = (
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Unknown', 'Unknown')
-    )
-    SEX = (
         ('M', 'M'),
         ('F', 'F'),
         ('Unknown', 'Unknown')
@@ -99,7 +94,6 @@ class Individual(models.Model):
     taxon = models.CharField(choices=TAXON)
     # TODO both gender and sex ?
     gender = models.CharField(choices=GENDER)
-    sex = models.CharField(choices=SEX)
     pedigree = models.CharField(max_length=200, blank=True)
     mother_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
     father_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
