@@ -1,22 +1,18 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
+from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KIND_CHOICES
 
-class ContainerKind(models.Model):
-    name = models.CharField(max_length=200)
-    # TODO parent to itself
-
-    def __str__(self):
-        return self.name
 
 class Container(models.Model):
     """ Class to store information about a sample. """
     # TODO class for choices
-    kind = models.CharField(max_length=200)
+    kind = models.CharField(max_length=20, choices=CONTAINER_KIND_CHOICES)
+    # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(unique=True)
     barcode = models.CharField(primary_key=True, max_length=200)
     location_barcode = models.ForeignKey('self', on_delete=models.PROTECT)
-    coordinates = models.CharField(max_length=200, blank=True)
+    coordinates = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return self.barcode
@@ -31,13 +27,9 @@ class Sample(models.Model):
         ('BLOOD', 'BLOOD'),
         ('SALIVA', 'SALIVA')
     )
-    CONTAINER_KIND = (
-        ('Tube', 'Tube'),
-        ('Plate96', 'Plate96'),
-        ('Plate384', 'Plate384'),
-    )
 
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
+    # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(primary_key=True, max_length=200)
     alias = models.CharField(max_length=200, blank=True)
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
@@ -47,7 +39,7 @@ class Sample(models.Model):
     experimental_group = JSONField(blank=True, null=True)
     # only three types
     # redundant ?
-    container_kind = models.CharField(choices=CONTAINER_KIND)
+    container_kind = models.CharField(max_length=20, choices=SAMPLE_CONTAINER_KIND_CHOICES)
     container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT)
     location_barcode = models.CharField(max_length=200)
     # TODO list of choices ?
@@ -64,7 +56,7 @@ class Sample(models.Model):
         return self.name
 
     def clean(self):
-        if self.biospecimen_type in ['DNA', 'RNA']:
+        if self.biospecimen_type in ('DNA', 'RNA'):
             self.concentration.blank = False
 
 
@@ -75,6 +67,7 @@ class Extraction(models.Model):
         ('DNA', 'DNA'),
         ('RNA', 'RNA')
     )
+
     # TODO primary key ???
     extraction_type = models.CharField(choices=EXTRACTION_TYPE)
     # 'This new sample is linked to the blood sample as a derivative'

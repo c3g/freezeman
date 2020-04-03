@@ -1,22 +1,19 @@
 from django.contrib import admin
-from .models import *
+from reversion.admin import VersionAdmin
+
+from .models import Container, Sample, Individual
 
 
 @admin.register(Container)
-class ContainerAdmin(admin.ModelAdmin):
+class ContainerAdmin(VersionAdmin):
     pass
 
 
 @admin.register(Sample)
-class SampleAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Extraction)
-class ExtractionAdmin(admin.ModelAdmin):
+class SampleAdmin(VersionAdmin):
     pass
 
 
 @admin.register(Individual)
-class IndividualAdmin(admin.ModelAdmin):
+class IndividualAdmin(VersionAdmin):
     pass
