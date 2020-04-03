@@ -12,7 +12,7 @@ class Container(models.Model):
     name = models.CharField(unique=True)
     barcode = models.CharField(primary_key=True, max_length=200)
     location_barcode = models.ForeignKey('self', on_delete=models.PROTECT)
-    coordinates = models.CharField(max_length=200, blank=True)
+    coordinates = models.CharField(max_length=20, blank=True)
 
     def __str__(self):
         return self.barcode
