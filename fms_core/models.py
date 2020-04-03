@@ -50,10 +50,8 @@ class Sample(models.Model):
     depletion = models.BooleanField(default=False)
     phenotype = models.CharField(max_length=200, blank=True)
     # fields only for extracted samples
-    extracted_from = models.ForeignKey('self', blank=True, null=True)
+    extracted_from = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
     volume_used = models.CharField(max_length=200)
-    # if source sample was depleted
-    source_depleted = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
 
     def __str__(self):
