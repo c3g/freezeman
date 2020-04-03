@@ -27,7 +27,7 @@ class Sample(models.Model):
         ('BLOOD', 'BLOOD'),
         ('SALIVA', 'SALIVA')
     )
-
+    # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(primary_key=True, max_length=200)
@@ -37,10 +37,10 @@ class Sample(models.Model):
     volume = models.CharField(max_length=200)
     concentration = models.CharField(max_length=200, blank=True)
     experimental_group = JSONField(blank=True, null=True)
-    # only three types
     # redundant ?
     container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT,
-                                          limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
+                                          limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
+                                          related_name='container_samples')
     location_barcode = models.CharField(max_length=200)
     # TODO list of choices ?
     location_coordinates = models.CharField(max_length=10)
@@ -50,6 +50,15 @@ class Sample(models.Model):
     reception_date = models.DateField()
     depletion = models.BooleanField(default=False)
     phenotype = models.CharField(max_length=200, blank=True)
+    # fields only for extracted samples
+    extracted_from = models.ForeignKey('self', blank=True, null=True)
+    volume_used = models.CharField(max_length=200)
+    nucleic_acid_container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT,
+                                                       related_name='nucleic_acid_container_samples')
+    # TODO Only 96 positions rack values
+    nucleic_acid_location_coordinates = models.CharField(max_length=10)
+    # if source sample was depleted
+    source_depleted = models.BooleanField(default=False)
     comment = models.TextField(blank=True)
 
     def __str__(self):
@@ -58,35 +67,6 @@ class Sample(models.Model):
     def clean(self):
         if self.biospecimen_type in ('DNA', 'RNA'):
             self.concentration.blank = False
-
-
-class Extraction(models.Model):
-    """ Class to store information about Extraction from Sample. """
-
-    EXTRACTION_TYPE = (
-        ('DNA', 'DNA'),
-        ('RNA', 'RNA')
-    )
-
-    # TODO primary key ???
-    extraction_type = models.CharField(choices=EXTRACTION_TYPE)
-    # 'This new sample is linked to the blood sample as a derivative'
-    sample = models.ForeignKey(Sample, on_delete=models.PROTECT)
-    volume_used = models.CharField(max_length=200)
-    container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT)
-    # TODO Only 96 positions rack values
-    location_coordinates = models.CharField(max_length=10)
-    nucleic_acid_container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT)
-    # redundant field because we have FK
-    # nucleic_acid_location_barcode
-    # TODO Only 96 positions rack values
-    nucleic_acid_location_coordinates = models.CharField(max_length=10)
-    concentration = models.CharField(max_length=200, blank=True)
-    source_depleted = models.BooleanField(default=False)
-    comment = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.id
 
 
 class Individual(models.Model):
