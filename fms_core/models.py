@@ -1,9 +1,11 @@
 from django.db import models
+import reversion
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
+@reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
     # TODO class for choices
@@ -18,6 +20,7 @@ class Container(models.Model):
         return self.barcode
 
 
+@reversion.register()
 class Sample(models.Model):
     """ Class to store information about a sample. """
 
@@ -71,6 +74,7 @@ class Sample(models.Model):
             raise ValidationError('Tissue source can only be specified for an extracted sample.')
 
 
+@reversion.register()
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
