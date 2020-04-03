@@ -105,3 +105,10 @@ class Individual(models.Model):
     def __str__(self):
         return self.participant_id
 
+    def clean(self):
+        if self.mother_id == self.father_id:
+            raise ValidationError('Mother and father IDs can\'t be the same.')
+        if self.mother_id == self.participant_id:
+            raise ValidationError('Mother ID can\'t be the same as participant ID.')
+        if self.father_id == self.participant_id:
+            raise ValidationError('Father ID can\'t be the same as participant ID.')
