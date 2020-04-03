@@ -1,4 +1,4 @@
-# C3G Freezer Management Systemfms
+# C3G Freezer Management System
 
 ## Dependencies:
 
