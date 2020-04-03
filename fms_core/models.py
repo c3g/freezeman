@@ -54,6 +54,10 @@ class Sample(models.Model):
     volume_used = models.CharField(max_length=200)
     comment = models.TextField(blank=True)
 
+    @property
+    def is_depleted(self) -> str:
+        return "yes" if self.depletion else "no"
+
     def __str__(self):
         return self.name
 

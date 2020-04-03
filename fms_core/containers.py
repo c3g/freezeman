@@ -119,7 +119,7 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
     container_kind_id="room",
     coordinate_spec=(),
     coordinate_overlap_allowed=True,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_FREEZER),
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_FREEZER, CONTAINER_SPEC_FREEZER_RACK),
 )
 
 CONTAINER_SPEC_BOX = ContainerSpec(
