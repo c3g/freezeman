@@ -134,8 +134,4 @@ CONTAINER_KIND_CHOICES = tuple(
     for c in ContainerSpec.container_specs
 )
 
-SAMPLE_CONTAINER_KIND_CHOICES = tuple(
-    (c.container_kind_id, c.container_kind_id)
-    for c in ContainerSpec.container_specs
-    if c.sample_holding
-)
+SAMPLE_CONTAINER_KINDS = tuple(c.container_kind_id for c in ContainerSpec.container_specs if c.sample_holding)
