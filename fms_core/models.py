@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
-from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KIND_CHOICES
+from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
 class Container(models.Model):
@@ -39,8 +39,8 @@ class Sample(models.Model):
     experimental_group = JSONField(blank=True, null=True)
     # only three types
     # redundant ?
-    container_kind = models.CharField(max_length=20, choices=SAMPLE_CONTAINER_KIND_CHOICES)
-    container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT)
+    container_barcode = models.ForeignKey(Container, on_delete=models.PROTECT,
+                                          limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
     location_barcode = models.CharField(max_length=200)
     # TODO list of choices ?
     location_coordinates = models.CharField(max_length=10)
