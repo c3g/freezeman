@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
-
+from django.core.exceptions import ValidationError
 from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
@@ -58,8 +58,17 @@ class Sample(models.Model):
         return self.name
 
     def clean(self):
+        if self.extracted_from:
+            self.biospecimen_type.choices = (
+                ('DNA', 'DNA'),
+                ('RNA', 'RNA'),
+            )
+
         if self.biospecimen_type in ('DNA', 'RNA'):
             self.concentration.blank = False
+
+        if self.tissue_source and not self.extracted_from:
+            raise ValidationError('Tissue source can only be specified for an extracted sample.')
 
 
 class Individual(models.Model):
