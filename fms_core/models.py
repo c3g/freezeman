@@ -11,7 +11,7 @@ class Container(models.Model):
     # TODO class for choices
     kind = models.CharField(max_length=20, choices=CONTAINER_KIND_CHOICES)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(unique=True)
+    name = models.CharField(unique=True, max_length=200)
     barcode = models.CharField(primary_key=True, max_length=200)
     location_barcode = models.ForeignKey('self', on_delete=models.PROTECT)
     coordinates = models.CharField(max_length=20, blank=True)
@@ -91,12 +91,14 @@ class Individual(models.Model):
     participant_id = models.CharField(primary_key=True, max_length=200)
     # required ?
     name = models.CharField(max_length=200, blank=True)
-    taxon = models.CharField(choices=TAXON)
+    taxon = models.CharField(choices=TAXON, max_length=20)
     # TODO both gender and sex ?
-    gender = models.CharField(choices=GENDER)
+    gender = models.CharField(choices=GENDER, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
-    mother_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
-    father_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
+    mother_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT,
+                                  related_name='mother')
+    father_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT,
+                                  related_name='father')
     # required ?
     cohort = models.CharField(max_length=200, blank=True)
 
