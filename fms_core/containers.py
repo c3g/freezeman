@@ -102,16 +102,22 @@ COMMON_CHILDREN = (
 
 CONTAINER_SPEC_DRAWER = ContainerSpec(
     container_kind_id="drawer",
+    coordinate_spec=(),
+    coordinate_overlap_allowed=True,
     children=COMMON_CHILDREN,
 )  # TODO
 
 CONTAINER_SPEC_FREEZER_RACK = ContainerSpec(
     container_kind_id="freezer rack",
+    coordinate_spec=(),
+    coordinate_overlap_allowed=True,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
 )
 
 CONTAINER_SPEC_FREEZER = ContainerSpec(
     container_kind_id="freezer",
+    coordinate_spec=(),
+    coordinate_overlap_allowed=True,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_FREEZER_RACK),
 )
 

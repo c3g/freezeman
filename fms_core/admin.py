@@ -1,11 +1,12 @@
 from django.contrib import admin
 from reversion.admin import VersionAdmin
+from .utils_admin import AggregatedAdmin
 
 from .models import Container, Sample, Individual
 
 
 @admin.register(Container)
-class ContainerAdmin(VersionAdmin):
+class ContainerAdmin(AggregatedAdmin):
     list_display = (
         "barcode",
         "name",
@@ -20,14 +21,16 @@ class ContainerAdmin(VersionAdmin):
 
 
 @admin.register(Sample)
-class SampleAdmin(VersionAdmin):
+class SampleAdmin(AggregatedAdmin):
     list_display = (
         "biospecimen_type",
         "name",
         "alias",
-        "individual__name",
-        "container__name",
-        "container__barcode",
+        # "individual__name",
+        # "container__name",
+        # "container__barcode",
+        "individual",
+        "container",
         "coordinates",
         "volume",
         "concentration",
@@ -41,7 +44,7 @@ class SampleAdmin(VersionAdmin):
 
 
 @admin.register(Individual)
-class IndividualAdmin(VersionAdmin):
+class IndividualAdmin(AggregatedAdmin):
     list_display = (
         "participant_id",
         "name",
