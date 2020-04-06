@@ -1,12 +1,13 @@
 from django.contrib import admin
-from reversion.admin import VersionAdmin
 from .utils_admin import AggregatedAdmin
+from .resources import *
 
 from .models import Container, Sample, Individual
 
 
 @admin.register(Container)
 class ContainerAdmin(AggregatedAdmin):
+    resource_class = ContainerResource
     list_display = (
         "barcode",
         "name",
@@ -22,6 +23,7 @@ class ContainerAdmin(AggregatedAdmin):
 
 @admin.register(Sample)
 class SampleAdmin(AggregatedAdmin):
+    resource_class = SampleResource
     list_display = (
         "biospecimen_type",
         "name",
@@ -45,6 +47,7 @@ class SampleAdmin(AggregatedAdmin):
 
 @admin.register(Individual)
 class IndividualAdmin(AggregatedAdmin):
+    resource_class = IndividualResource
     list_display = (
         "participant_id",
         "name",
