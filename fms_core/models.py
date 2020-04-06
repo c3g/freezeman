@@ -9,6 +9,9 @@ from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CON
 from .coordinates import CoordinateError, check_coordinate_overlap
 
 
+__all__ = ["Container", "Sample", "Individual"]
+
+
 def str_normalize(s: str):
     return unicodedata.normalize("NFC", s.strip())
 
