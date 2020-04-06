@@ -129,6 +129,8 @@ CONTAINER_SPEC_BOX = ContainerSpec(
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_TUBE),
 )
 
+CONTAINER_KIND_SPECS = {c.container_kind_id: c for c in ContainerSpec.container_specs}
+
 CONTAINER_KIND_CHOICES = tuple(
     (c.container_kind_id, c.container_kind_id)
     for c in ContainerSpec.container_specs

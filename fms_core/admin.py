@@ -10,7 +10,7 @@ class ContainerAdmin(VersionAdmin):
         "barcode",
         "name",
         "kind",
-        "location_barcode",
+        "location",
         "coordinates"
     )
 
@@ -26,9 +26,9 @@ class SampleAdmin(VersionAdmin):
         "name",
         "alias",
         "individual__name",
-        "container_barcode__name",
-        "container_barcode__barcode",
-        "location_coordinates",
+        "container__name",
+        "container__barcode",
+        "coordinates",
         "volume",
         "concentration",
         "is_depleted",
@@ -36,7 +36,7 @@ class SampleAdmin(VersionAdmin):
 
     list_filter = (
         "biospecimen_type",
-        "depletion",
+        "depleted",
     )
 
 
@@ -48,8 +48,8 @@ class IndividualAdmin(VersionAdmin):
         "taxon",
         "sex",
         "pedigree",
-        "mother_id",
-        "father_id",
+        "mother",
+        "father",
         "cohort",
     )
 
