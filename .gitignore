@@ -1,5 +1,8 @@
 env/
 
+# Should be collected at a server-specific level
+staticfiles/
+
 # Byte-compiled
 __pycache__/
 *.pyc

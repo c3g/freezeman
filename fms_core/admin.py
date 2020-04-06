@@ -20,6 +20,11 @@ class ContainerAdmin(AggregatedAdmin):
         "kind",
     )
 
+    fieldsets = (
+        (None, {"fields": ("kind", "name", "barcode")}),
+        ("Parent Container", {"fields": ("location", "coordinates")}),
+    )
+
 
 @admin.register(Sample)
 class SampleAdmin(AggregatedAdmin):
@@ -42,6 +47,14 @@ class SampleAdmin(AggregatedAdmin):
     list_filter = (
         "biospecimen_type",
         "depleted",
+    )
+
+    fieldsets = (
+        (None, {"fields": ("biospecimen_type", "name", "alias", "individual", "reception_date", "collection_site")}),
+        ("Quantity Information", {"fields": ("volume", "concentration", "depleted")}),
+        ("For Extracted Samples Only", {"fields": ("extracted_from", "volume_used")}),
+        ("Location", {"fields": ("container", "coordinates")}),
+        ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
     )
 
 
