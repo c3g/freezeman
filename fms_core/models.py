@@ -32,7 +32,7 @@ class Container(models.Model):
     barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.")
 
     # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey("self", null=True, on_delete=models.PROTECT, related_name="children",
+    location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
                                  help_text="An existing (parent) container this container is located inside of.")
 
     # Where in the parent container is this container located, if relevant?
