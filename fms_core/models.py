@@ -1,14 +1,27 @@
-from django.db import models
 import reversion
 import unicodedata
+
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from django.db import models
+
 from .coordinates import CoordinateError
 from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
 def str_normalize(s: str):
     return unicodedata.normalize(s.strip(), "NFC")
+
+
+def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
+    # Check for coordinate overlap with existing child containers/samples of the parent
+    try:
+        existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
+        raise ValidationError(f"Parent container {parent} already contains {obj_type} {existing} at "
+                              f"coordinates {obj.coordinates}")
+    except Container.DoesNotExist:
+        # We're good; nothing exists at those coordinates
+        pass
 
 
 @reversion.register()
@@ -21,7 +34,7 @@ class Container(models.Model):
     barcode = models.CharField(primary_key=True, max_length=200)
 
     # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey('self', null=True, on_delete=models.PROTECT)
+    location = models.ForeignKey('self', null=True, on_delete=models.PROTECT, related_name="children")
 
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True)
@@ -50,7 +63,10 @@ class Container(models.Model):
         except CoordinateError as e:
             raise ValidationError(str(e))
 
-        # TODO: Check for coordinate overlap if not allowed
+        # TODO: This isn't performant for bulk ingestion
+        if not parent_spec.coordinate_overlap_allowed:
+            # Check for coordinate overlap with existing child containers of the parent
+            check_coordinate_overlap(self.location.children, self, self.location)
 
 
 @reversion.register()
@@ -91,7 +107,7 @@ class Sample(models.Model):
 
     # In what container is this sample located?
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy
-    container = models.ForeignKey(Container, on_delete=models.PROTECT,
+    container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples",
                                   limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
     # Location within the container, specified by coordinates
     # TODO list of choices ?
@@ -142,7 +158,10 @@ class Sample(models.Model):
         except CoordinateError as e:
             raise ValidationError(str(e))
 
-        # TODO: Check for coordinate overlap if not allowed
+        # TODO: This isn't performant for bulk ingestion
+        if not parent_spec.coordinate_overlap_allowed:
+            # Check for coordinate overlap with existing child containers of the parent
+            check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
