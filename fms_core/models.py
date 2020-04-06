@@ -3,6 +3,7 @@ import reversion
 import unicodedata
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from .coordinates import CoordinateError
 from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
@@ -38,8 +39,11 @@ class Container(models.Model):
 
         parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
 
-        if self.coordinates == "" and len(parent_spec.coordinate_spec) > 0:
-            raise ValidationError(f"Must specify coordinates for parent container type {parent_spec.container_kind_id}")
+        # Validate coordinates against parent container spec
+        try:
+            self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+        except CoordinateError as e:
+            raise ValidationError(str(e))
 
         # TODO: Check for coordinate overlap if not allowed
 
@@ -119,9 +123,13 @@ class Sample(models.Model):
 
         parent_spec = CONTAINER_KIND_SPECS[self.container.kind]
 
-        if self.coordinates == "" and len(parent_spec.coordinate_spec) > 0:
-            raise ValidationError(f"Must specify coordinates for sample in container type "
-                                  f"{parent_spec.container_kind_id}")
+        # Validate coordinates against parent container spec
+        try:
+            self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+        except CoordinateError as e:
+            raise ValidationError(str(e))
+
+        # TODO: Check for coordinate overlap if not allowed
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
