@@ -105,9 +105,11 @@ class Sample(models.Model):
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
 
-    # Volume and specimen are REQUIRED if biospecimen_type in {DNA, RNA}. Otherwise, they CANNOT BE SET.
-    volume = models.CharField(max_length=200, blank=True, help_text="Volume, µL")
-    concentration = models.CharField(max_length=200, blank=True, help_text="Concentration, ng/µL")
+    volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Volume, µL")
+
+    # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
+    concentration = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
+                                        help_text="Concentration, ng/µL")
 
     depleted = models.BooleanField(default=False)
 
@@ -129,8 +131,9 @@ class Sample(models.Model):
     # TODO Collection site (Optional but for big study, a choice list will be included in the Submission file) ?
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT)
-    volume_used = models.CharField(max_length=200)
+    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
+                                       related_name="extractions")
+    volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True)
 
     @property
     def is_depleted(self) -> str:
@@ -153,43 +156,28 @@ class Sample(models.Model):
                                 f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
             )
 
-        if self.extracted_from and self.extracted_from.biospecimen_type in na_biospecimen_types:
-            add_error(
-                errors,
-                "extracted_from",
-                ValidationError(f"Extraction process cannot be run on sample of type "
-                                f"{self.extracted_from.biospecimen_type}")
-            )
+        if self.extracted_from:
+            if self.extracted_from.biospecimen_type in na_biospecimen_types:
+                add_error(
+                    errors,
+                    "extracted_from",
+                    ValidationError(f"Extraction process cannot be run on sample of type "
+                                    f"{self.extracted_from.biospecimen_type}")
+                )
+
+            if self.volume_used is None:
+                add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))
+
+        if self.volume_used is not None and not self.extracted_from:
+            add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
 
         # Check volume and concentration fields given biospecimen_type
 
-        if self.biospecimen_type in na_biospecimen_types:
-            if self.volume == "":
-                add_error(
-                    errors,
-                    "volume",
-                    ValidationError("Volume must be specified if the biospecimen_type is DNA or RNA")
-                )
-
-            if self.concentration == "":
-                add_error(
-                    errors,
-                    "concentration",
-                    ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
-                )
-
-        elif self.volume != "":
-            add_error(
-                errors,
-                "volume",
-                ValidationError("Volume cannot be specified if the biospecimen_type is not DNA or RNA")
-            )
-
-        elif self.concentration != "":
+        if self.biospecimen_type in na_biospecimen_types and self.concentration is None:
             add_error(
                 errors,
                 "concentration",
-                ValidationError("Concentration cannot be specified if the biospecimen_type is not DNA or RNA")
+                ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
             )
 
         if self.tissue_source and not self.extracted_from:
