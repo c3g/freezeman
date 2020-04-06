@@ -35,6 +35,9 @@ class ContainerSpec:
     def sample_holding(self) -> bool:
         return len(self._children) == 0
 
+    def can_hold_kind(self, kind_id: str):
+        return next((c for c in self._children if c.container_kind_id == kind_id), None) is not None
+
     def validate_and_normalize_coordinates(self, coordinates: str) -> str:
         return validate_and_normalize_coordinates(coordinates, self._coordinate_spec)
 

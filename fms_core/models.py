@@ -39,6 +39,11 @@ class Container(models.Model):
 
         parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
 
+        # Validate that this container is allowed to be located in the parent container specified
+        if not parent_spec.can_hold_kind(self.kind):
+            raise ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind "
+                                  f"{self.kind}")
+
         # Validate coordinates against parent container spec
         try:
             self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
@@ -108,6 +113,8 @@ class Sample(models.Model):
     def clean(self):
         self.biospecimen_type.choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
 
+        # Check volume and concentration fields given biospecimen_type
+
         if self.biospecimen_type in ('DNA', 'RNA'):
             self.volume.blank = False
             self.concentration.blank = False
@@ -121,9 +128,15 @@ class Sample(models.Model):
         if self.tissue_source and not self.extracted_from:
             raise ValidationError("Tissue source can only be specified for an extracted sample.")
 
+        # Validate container consistency
+
         parent_spec = CONTAINER_KIND_SPECS[self.container.kind]
 
-        # Validate coordinates against parent container spec
+        #  - Validate that parent can hold samples
+        if not parent_spec.sample_holding:
+            raise ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+
+        #  - Validate coordinates against parent container spec
         try:
             self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
         except CoordinateError as e:
