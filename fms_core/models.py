@@ -10,7 +10,7 @@ from .coordinates import CoordinateError, check_coordinate_overlap
 
 
 def str_normalize(s: str):
-    return unicodedata.normalize(s.strip(), "NFC")
+    return unicodedata.normalize("NFC", s.strip())
 
 
 def add_error(errors: dict, field: str, error: ValidationError):

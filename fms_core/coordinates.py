@@ -23,13 +23,19 @@ class CoordinateError(Exception):
 
 
 def alphas(end: int) -> CoordinateAxis:
+    if end < 0:
+        raise ValueError
+
     if end > 26:
         raise ValueError
 
-    return tuple(chr(a) for a in range(65, end + 1))
+    return tuple(chr(a) for a in range(65, 65 + end))
 
 
 def ints(end: int) -> CoordinateAxis:
+    if end < 0:
+        raise ValueError
+
     return tuple(str(i) for i in range(1, end + 1))
 
 
@@ -40,10 +46,7 @@ def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str
 
     # TODO: Handle padded 0s?
 
-    c = unicodedata.normalize(coords.strip(), "NFC")
-
-    if coords != "" and len(spec) == 0:
-        raise CoordinateError("Cannot specify coordinates for coordinate-less container")
+    c = unicodedata.normalize("NFC", coords.strip())
 
     coordinate_regex_str = "^" + "".join(f"({'|'.join(s)})" for s in spec) + "$"
     coordinate_regex = re.compile(coordinate_regex_str)
