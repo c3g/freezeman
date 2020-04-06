@@ -13,6 +13,10 @@ def str_normalize(s: str):
     return unicodedata.normalize(s.strip(), "NFC")
 
 
+def add_error(errors: dict, field: str, error: ValidationError):
+    errors[field] = [*errors.get(field, []), error]
+
+
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
@@ -39,36 +43,43 @@ class Container(models.Model):
         return self.barcode
 
     def clean(self):
+        errors = {}
+
         if self.coordinates != "" and self.location is None:
-            raise ValidationError("Cannot specify coordinates in non-specified container")
+            add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
 
-        if self.location is None:
-            # No more validation to do for parent containers
-            return
+        if self.location is not None:
+            parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
 
-        parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
+            # Validate that this container is allowed to be located in the parent container specified
+            if not parent_spec.can_hold_kind(self.kind):
+                add_error(
+                    errors,
+                    "location",
+                    ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container "
+                                    f"kind {self.kind}")
+                )
 
-        # Validate that this container is allowed to be located in the parent container specified
-        if not parent_spec.can_hold_kind(self.kind):
-            raise ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind "
-                                  f"{self.kind}")
+            if not errors.get("coordinates", None) and not errors.get("location", None):
+                # Validate coordinates against parent container spec
+                try:
+                    self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+                except CoordinateError as e:
+                    add_error(errors, "coordinates", ValidationError(str(e)))
 
-        # Validate coordinates against parent container spec
-        try:
-            self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-        except CoordinateError as e:
-            raise ValidationError(str(e))
+            if not errors.get("coordinates", None) and not errors.get("location", None) \
+                    and not parent_spec.coordinate_overlap_allowed:
+                # Check for coordinate overlap with existing child containers of the parent
+                try:
+                    check_coordinate_overlap(self.location.children, self, self.location)
+                except CoordinateError as e:
+                    add_error(errors, "coordinates", ValidationError(str(e)))
+                except Container.DoesNotExist:
+                    # Fine, the coordinates are free to use.
+                    pass
 
-        # TODO: This isn't performant for bulk ingestion
-        if not parent_spec.coordinate_overlap_allowed:
-            # Check for coordinate overlap with existing child containers of the parent
-            try:
-                check_coordinate_overlap(self.location.children, self, self.location)
-            except CoordinateError as e:
-                raise ValidationError(str(e))
-            except Container.DoesNotExist:
-                # Fine, the coordinates are free to use.
-                pass
+        if errors:
+            raise ValidationError(errors)
 
 
 @reversion.register()
@@ -129,25 +140,51 @@ class Sample(models.Model):
         return self.name
 
     def clean(self):
+        errors = {}
+
         self.biospecimen_type.choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+
+        if self.extracted_from:
+            # TODO: Check choices properly
+            pass
 
         # Check volume and concentration fields given biospecimen_type
 
         if self.biospecimen_type in ('DNA', 'RNA'):
             if self.volume == "":
-                raise ValidationError("Volume must be specified if the biospecimen_type is DNA or RNA")
+                add_error(
+                    errors,
+                    "volume",
+                    ValidationError("Volume must be specified if the biospecimen_type is DNA or RNA")
+                )
 
             if self.concentration == "":
-                raise ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
+                add_error(
+                    errors,
+                    "concentration",
+                    ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
+                )
 
         elif self.volume != "":
-            raise ValidationError("Volume cannot be specified if the biospecimen_type is not DNA or RNA")
+            add_error(
+                errors,
+                "volume",
+                ValidationError("Volume cannot be specified if the biospecimen_type is not DNA or RNA")
+            )
 
         elif self.concentration != "":
-            raise ValidationError("Concentration cannot be specified if the biospecimen_type is not DNA or RNA")
+            add_error(
+                errors,
+                "concentration",
+                ValidationError("Concentration cannot be specified if the biospecimen_type is not DNA or RNA")
+            )
 
         if self.tissue_source and not self.extracted_from:
-            raise ValidationError("Tissue source can only be specified for an extracted sample.")
+            add_error(
+                errors,
+                "tissue_source",
+                ValidationError("Tissue source can only be specified for an extracted sample.")
+            )
 
         # Validate container consistency
 
@@ -155,24 +192,32 @@ class Sample(models.Model):
 
         #  - Validate that parent can hold samples
         if not parent_spec.sample_holding:
-            raise ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+            add_error(
+                errors,
+                "container",
+                ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+            )
 
         #  - Validate coordinates against parent container spec
-        try:
-            self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-        except CoordinateError as e:
-            raise ValidationError(str(e))
+        if not errors.get("container", None):
+            try:
+                self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+            except CoordinateError as e:
+                add_error(errors, "container", ValidationError(str(e)))
 
         # TODO: This isn't performant for bulk ingestion
-        if not parent_spec.coordinate_overlap_allowed:
-            # Check for coordinate overlap with existing child containers of the parent
+        # - Check for coordinate overlap with existing child containers of the parent
+        if not errors.get("container", None) and not parent_spec.coordinate_overlap_allowed:
             try:
                 check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
             except CoordinateError as e:
-                raise ValidationError(str(e))
+                add_error(errors, "container", ValidationError(str(e)))
             except Sample.DoesNotExist:
                 # Fine, the coordinates are free to use.
                 pass
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
@@ -217,12 +262,21 @@ class Individual(models.Model):
         return self.participant_id
 
     def clean(self):
+        errors = {}
+
         if self.mother is not None and self.father is not None and self.mother == self.father:
-            raise ValidationError('Mother and father IDs can\'t be the same.')
+            e = ValidationError('Mother and father IDs can\'t be the same.')
+            add_error(errors, "mother", e)
+            add_error(errors, "father", e)
+
         if self.mother == self.participant_id:
-            raise ValidationError('Mother ID can\'t be the same as participant ID.')
+            add_error(errors, "mother", ValidationError("Mother ID can't be the same as participant ID."))
+
         if self.father == self.participant_id:
-            raise ValidationError('Father ID can\'t be the same as participant ID.')
+            add_error(errors, "father", ValidationError("Father ID can't be the same as participant ID."))
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
