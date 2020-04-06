@@ -8,6 +8,7 @@ from .models import Container, Sample, Individual
 @admin.register(Container)
 class ContainerAdmin(AggregatedAdmin):
     resource_class = ContainerResource
+
     list_display = (
         "barcode",
         "name",
@@ -20,6 +21,11 @@ class ContainerAdmin(AggregatedAdmin):
         "kind",
     )
 
+    search_fields = (
+        "name",
+        "barcode",
+    )
+
     fieldsets = (
         (None, {"fields": ("kind", "name", "barcode")}),
         ("Parent Container", {"fields": ("location", "coordinates")}),
@@ -29,6 +35,7 @@ class ContainerAdmin(AggregatedAdmin):
 @admin.register(Sample)
 class SampleAdmin(AggregatedAdmin):
     resource_class = SampleResource
+
     list_display = (
         "biospecimen_type",
         "name",
@@ -49,6 +56,11 @@ class SampleAdmin(AggregatedAdmin):
         "depleted",
     )
 
+    search_fields = (
+        "name",
+        "alias",
+    )
+
     fieldsets = (
         (None, {"fields": ("biospecimen_type", "name", "alias", "individual", "reception_date", "collection_site")}),
         ("Quantity Information", {"fields": ("volume", "concentration", "depleted")}),
@@ -61,6 +73,7 @@ class SampleAdmin(AggregatedAdmin):
 @admin.register(Individual)
 class IndividualAdmin(AggregatedAdmin):
     resource_class = IndividualResource
+
     list_display = (
         "participant_id",
         "name",
@@ -75,4 +88,11 @@ class IndividualAdmin(AggregatedAdmin):
     list_filter = (
         "taxon",
         "sex",
+    )
+
+    search_fields = (
+        "participant_id",
+        "name",
+        "pedigree",
+        "cohort",
     )
