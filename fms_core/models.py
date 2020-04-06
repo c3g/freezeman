@@ -1,15 +1,17 @@
 from django.db import models
+import reversion
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from .containers import CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
 
 
+@reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
     # TODO class for choices
     kind = models.CharField(max_length=20, choices=CONTAINER_KIND_CHOICES)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(unique=True)
+    name = models.CharField(unique=True, max_length=200)
     barcode = models.CharField(primary_key=True, max_length=200)
     location_barcode = models.ForeignKey('self', on_delete=models.PROTECT)
     coordinates = models.CharField(max_length=20, blank=True)
@@ -18,6 +20,7 @@ class Container(models.Model):
         return self.barcode
 
 
+@reversion.register()
 class Sample(models.Model):
     """ Class to store information about a sample. """
 
@@ -75,6 +78,7 @@ class Sample(models.Model):
             raise ValidationError('Tissue source can only be specified for an extracted sample.')
 
 
+@reversion.register()
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
@@ -83,11 +87,6 @@ class Individual(models.Model):
         ('Mus Musculus', 'Mus Musculus')
     )
     GENDER = (
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Unknown', 'Unknown')
-    )
-    SEX = (
         ('M', 'M'),
         ('F', 'F'),
         ('Unknown', 'Unknown')
@@ -96,13 +95,14 @@ class Individual(models.Model):
     participant_id = models.CharField(primary_key=True, max_length=200)
     # required ?
     name = models.CharField(max_length=200, blank=True)
-    taxon = models.CharField(choices=TAXON)
+    taxon = models.CharField(choices=TAXON, max_length=20)
     # TODO both gender and sex ?
-    gender = models.CharField(choices=GENDER)
-    sex = models.CharField(choices=SEX)
+    gender = models.CharField(choices=GENDER, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
-    mother_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
-    father_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
+    mother_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT,
+                                  related_name='mother')
+    father_id = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT,
+                                  related_name='father')
     # required ?
     cohort = models.CharField(max_length=200, blank=True)
 
@@ -110,7 +110,7 @@ class Individual(models.Model):
         return self.participant_id
 
     def clean(self):
-        if self.mother_id == self.father_id:
+        if self.mother_id and self.father_id and self.mother_id == self.father_id:
             raise ValidationError('Mother and father IDs can\'t be the same.')
         if self.mother_id == self.participant_id:
             raise ValidationError('Mother ID can\'t be the same as participant ID.')
