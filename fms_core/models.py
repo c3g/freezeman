@@ -87,14 +87,14 @@ class Sample(models.Model):
     """ Class to store information about a sample. """
 
     NA_BIOSPECIMEN_TYPE = (
-        ('DNA', 'DNA'),
-        ('RNA', 'RNA'),
+        ("DNA", "DNA"),
+        ("RNA", "RNA"),
     )
 
     BIOSPECIMEN_TYPE = (
         *NA_BIOSPECIMEN_TYPE,
-        ('BLOOD', 'BLOOD'),
-        ('SALIVA', 'SALIVA')
+        ("BLOOD", "BLOOD"),
+        ("SALIVA", "SALIVA")
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
@@ -129,7 +129,7 @@ class Sample(models.Model):
     # TODO Collection site (Optional but for big study, a choice list will be included in the Submission file) ?
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
+    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT)
     volume_used = models.CharField(max_length=200)
 
     @property
@@ -142,15 +142,28 @@ class Sample(models.Model):
     def clean(self):
         errors = {}
 
-        self.biospecimen_type.choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE)
 
-        if self.extracted_from:
-            # TODO: Check choices properly
-            pass
+        biospecimen_type_choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
+            add_error(
+                errors,
+                "biospecimen_type",
+                ValidationError(f"Biospecimen type {self.biospecimen_type} not valid for"
+                                f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
+            )
+
+        if self.extracted_from and self.extracted_from.biospecimen_type in na_biospecimen_types:
+            add_error(
+                errors,
+                "extracted_from",
+                ValidationError(f"Extraction process cannot be run on sample of type "
+                                f"{self.extracted_from.biospecimen_type}")
+            )
 
         # Check volume and concentration fields given biospecimen_type
 
-        if self.biospecimen_type in ('DNA', 'RNA'):
+        if self.biospecimen_type in na_biospecimen_types:
             if self.volume == "":
                 add_error(
                     errors,
@@ -253,8 +266,8 @@ class Individual(models.Model):
     taxon = models.CharField(choices=TAXON, max_length=20)
     sex = models.CharField(choices=SEX, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
-    mother = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
-    father = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
+    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
+    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
     # required ?
     cohort = models.CharField(max_length=200, blank=True)
 
@@ -265,7 +278,7 @@ class Individual(models.Model):
         errors = {}
 
         if self.mother is not None and self.father is not None and self.mother == self.father:
-            e = ValidationError('Mother and father IDs can\'t be the same.')
+            e = ValidationError("Mother and father IDs can't be the same.")
             add_error(errors, "mother", e)
             add_error(errors, "father", e)
 

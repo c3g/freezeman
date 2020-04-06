@@ -7,7 +7,7 @@ class ContainerResource(resources.ModelResource):
     class Meta:
         model = Container
         import_id_fields = ('barcode',)
-        fields = ('kind', 'name', 'barcode', 'location','coordinates',)
+        fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
 
 
 class SampleResource(resources.ModelResource):
