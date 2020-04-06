@@ -5,23 +5,12 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .coordinates import CoordinateError
 from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
+from .coordinates import CoordinateError, check_coordinate_overlap
 
 
 def str_normalize(s: str):
     return unicodedata.normalize(s.strip(), "NFC")
-
-
-def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
-    # Check for coordinate overlap with existing child containers/samples of the parent
-    try:
-        existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
-        raise ValidationError(f"Parent container {parent} already contains {obj_type} {existing} at "
-                              f"coordinates {obj.coordinates}")
-    except Container.DoesNotExist:
-        # We're good; nothing exists at those coordinates
-        pass
 
 
 @reversion.register()
@@ -73,7 +62,13 @@ class Container(models.Model):
         # TODO: This isn't performant for bulk ingestion
         if not parent_spec.coordinate_overlap_allowed:
             # Check for coordinate overlap with existing child containers of the parent
-            check_coordinate_overlap(self.location.children, self, self.location)
+            try:
+                check_coordinate_overlap(self.location.children, self, self.location)
+            except CoordinateError as e:
+                raise ValidationError(str(e))
+            except Container.DoesNotExist:
+                # Fine, the coordinates are free to use.
+                pass
 
 
 @reversion.register()
@@ -139,8 +134,11 @@ class Sample(models.Model):
         # Check volume and concentration fields given biospecimen_type
 
         if self.biospecimen_type in ('DNA', 'RNA'):
-            self.volume.blank = False
-            self.concentration.blank = False
+            if self.volume == "":
+                raise ValidationError("Volume must be specified if the biospecimen_type is DNA or RNA")
+
+            if self.concentration == "":
+                raise ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
 
         elif self.volume != "":
             raise ValidationError("Volume cannot be specified if the biospecimen_type is not DNA or RNA")
@@ -168,7 +166,13 @@ class Sample(models.Model):
         # TODO: This isn't performant for bulk ingestion
         if not parent_spec.coordinate_overlap_allowed:
             # Check for coordinate overlap with existing child containers of the parent
-            check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
+            try:
+                check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
+            except CoordinateError as e:
+                raise ValidationError(str(e))
+            except Sample.DoesNotExist:
+                # Fine, the coordinates are free to use.
+                pass
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
