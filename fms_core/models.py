@@ -28,16 +28,23 @@ def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container")
 class Container(models.Model):
     """ Class to store information about a sample. """
     # TODO class for choices
-    kind = models.CharField(max_length=20, choices=CONTAINER_KIND_CHOICES)
+    kind = models.CharField(
+        max_length=20,
+        choices=CONTAINER_KIND_CHOICES,
+        help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
+                  "properties."
+    )
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(unique=True, max_length=200)
-    barcode = models.CharField(primary_key=True, max_length=200)
+    name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.")
+    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.")
 
     # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey('self', null=True, on_delete=models.PROTECT, related_name="children")
+    location = models.ForeignKey("self", null=True, on_delete=models.PROTECT, related_name="children",
+                                 help_text="An existing (parent) container this container is located inside of.")
 
     # Where in the parent container is this container located, if relevant?
-    coordinates = models.CharField(max_length=20, blank=True)
+    coordinates = models.CharField(max_length=20, blank=True,
+                                   help_text="Coordinates of this container within the parent container.")
 
     def __str__(self):
         return self.barcode
@@ -94,7 +101,7 @@ class Sample(models.Model):
 
     # Volume and specimen are REQUIRED if biospecimen_type in {DNA, RNA}. Otherwise, they CANNOT BE SET.
     volume = models.CharField(max_length=200, blank=True, help_text="Volume, µL")
-    concentration = models.CharField(max_length=200, blank=True, help_text="Concentration, ")
+    concentration = models.CharField(max_length=200, blank=True, help_text="Concentration, ng/µL")
 
     depleted = models.BooleanField(default=False)
 
