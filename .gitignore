@@ -6,3 +6,6 @@ __pycache__/
 
 # IDE related (intelliJ, vim files)
 .idea/
+
+# static files
+staticfiles/

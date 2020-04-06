@@ -12,7 +12,7 @@ class ContainerResource(resources.ModelResource):
         clean_model_instances = True
         skip_unchanged = True
 
-    def after_save_instance(self, instance, dry_run, using_transactions=False):
+    def after_save_instance(self, instance, using_transactions, dry_run):
         if not dry_run:
             reversion.set_comment("Imported from template.")
 
