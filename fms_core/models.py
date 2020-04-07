@@ -33,7 +33,7 @@ def add_error(errors: dict, field: str, error: ValidationError):
     errors[field] = [*errors.get(field, []), error]
 
 
-barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]*$"))
+barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]+$"))
 
 
 @reversion.register()
