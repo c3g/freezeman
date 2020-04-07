@@ -6,6 +6,15 @@ from import_export.fields import Field
 from import_export.widgets import *
 from .widgets import CreateForeignKeyWidget
 
+
+__all__ = [
+    "GenericResource",
+    "ContainerResource",
+    "SampleResource",
+    "IndividualResource",
+]
+
+
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True
@@ -30,7 +39,7 @@ class ContainerResource(GenericResource):
     class Meta:
         model = Container
         import_id_fields = ('barcode',)
-        fields = ('kind', 'name', 'barcode', 'location','coordinates',)
+        fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
 
 
 class SampleResource(GenericResource):

@@ -9,3 +9,7 @@ __pycache__/
 
 # static files
 staticfiles/
+
+# coverage-related
+.coverage
+htmlcov/
