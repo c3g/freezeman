@@ -56,7 +56,7 @@ class SampleResource(GenericResource):
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='tissue_source', column_name='Phenotype')
-    comment = Field(attribute='reception_date', column_name='Comment')
+    comment = Field(attribute='comment', column_name='Comment')
     # FK fields
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, 'barcode'))
