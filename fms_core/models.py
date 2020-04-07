@@ -20,7 +20,7 @@ class Container(models.Model):
     barcode = models.CharField(primary_key=True, max_length=200)
 
     # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey('self', null=True, on_delete=models.PROTECT)
+    location = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
 
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True)

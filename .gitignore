@@ -1,1 +1,11 @@
 env/
+
+# Byte-compiled
+__pycache__/
+*.pyc
+
+# IDE related (intelliJ, vim files)
+.idea/
+
+# static files
+staticfiles/
