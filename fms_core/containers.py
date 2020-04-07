@@ -64,6 +64,12 @@ class ContainerSpec:
     def validate_and_normalize_coordinates(self, coordinates: str) -> str:
         return validate_and_normalize_coordinates(coordinates, self._coordinate_spec)
 
+    def __eq__(self, other):
+        return isinstance(other, ContainerSpec) and other.container_kind_id == self.container_kind_id
+
+    def __str__(self):
+        return self.container_kind_id
+
 
 CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
     container_kind_id="96-well plate",
