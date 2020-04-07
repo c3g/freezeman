@@ -1,11 +1,20 @@
+import re
 import reversion
 import unicodedata
 
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 
-from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS, PARENT_CONTAINER_KINDS
+from .containers import (
+    CONTAINER_SPEC_TUBE,
+    CONTAINER_SPEC_TUBE_RACK_8X12,
+    CONTAINER_KIND_SPECS,
+    CONTAINER_KIND_CHOICES,
+    SAMPLE_CONTAINER_KINDS,
+    PARENT_CONTAINER_KINDS,
+)
 from .coordinates import CoordinateError, check_coordinate_overlap
 
 
@@ -24,6 +33,9 @@ def add_error(errors: dict, field: str, error: ValidationError):
     errors[field] = [*errors.get(field, []), error]
 
 
+barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]$"))
+
+
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
@@ -35,8 +47,10 @@ class Container(models.Model):
                   "properties."
     )
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.")
-    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.")
+    name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.",
+                            validators=[barcode_name_validator])
+    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.",
+                               validators=[barcode_name_validator])
 
     # In which container is this container located? i.e. its parent.
     location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
@@ -112,7 +126,7 @@ class Sample(models.Model):
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(primary_key=True, max_length=200)
+    name = models.CharField(primary_key=True, max_length=200, validators=[barcode_name_validator])
     alias = models.CharField(max_length=200, blank=True)
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
@@ -209,6 +223,18 @@ class Sample(models.Model):
                 errors,
                 "container",
                 ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+            )
+
+        #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
+        if self.extracted_from is not None and any((
+                parent_spec != CONTAINER_SPEC_TUBE,
+                self.container.location is None,
+                CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
+        )):
+            add_error(
+                errors,
+                "container",
+                ValidationError("Extractions currently must be conducted on a tube in an 8x12 tube rack")
             )
 
         #  - Validate coordinates against parent container spec
