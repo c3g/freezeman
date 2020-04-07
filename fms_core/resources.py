@@ -1,6 +1,7 @@
 from import_export import resources
 from .models import Container, Sample, Individual
 import reversion
+from reversion.models import Version
 
 
 class ContainerResource(resources.ModelResource):
@@ -14,7 +15,11 @@ class ContainerResource(resources.ModelResource):
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         if not dry_run:
-            reversion.set_comment("Imported from template.")
+            versions = Version.objects.get_for_object(instance)
+            if len(versions) >= 1:
+                reversion.set_comment("Updated from template.")
+            else:
+                reversion.set_comment("Imported from template.")
 
 
 class SampleResource(resources.ModelResource):
