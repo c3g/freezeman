@@ -136,3 +136,6 @@ CONTAINER_KIND_CHOICES: Tuple[Tuple[str, str], ...] = tuple(
 
 SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                 if c.sample_holding)
+
+PARENT_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                if c.children)

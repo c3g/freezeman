@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
+from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS, PARENT_CONTAINER_KINDS
 from .coordinates import CoordinateError, check_coordinate_overlap
 
 
@@ -36,7 +36,8 @@ class Container(models.Model):
 
     # In which container is this container located? i.e. its parent.
     location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
-                                 help_text="An existing (parent) container this container is located inside of.")
+                                 help_text="An existing (parent) container this container is located inside of.",
+                                 limit_choices_to={"kind__in": PARENT_CONTAINER_KINDS})
 
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True,
@@ -52,34 +53,38 @@ class Container(models.Model):
             add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
 
         if self.location is not None:
-            parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
+            if self.location.barcode == self.barcode:
+                add_error(errors, "location", ValidationError("Container cannot contain itself"))
 
-            # Validate that this container is allowed to be located in the parent container specified
-            if not parent_spec.can_hold_kind(self.kind):
-                add_error(
-                    errors,
-                    "location",
-                    ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container "
-                                    f"kind {self.kind}")
-                )
+            else:
+                parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
 
-            if not errors.get("coordinates", None) and not errors.get("location", None):
-                # Validate coordinates against parent container spec
-                try:
-                    self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-                except CoordinateError as e:
-                    add_error(errors, "coordinates", ValidationError(str(e)))
+                # Validate that this container is allowed to be located in the parent container specified
+                if not parent_spec.can_hold_kind(self.kind):
+                    add_error(
+                        errors,
+                        "location",
+                        ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container "
+                                        f"kind {self.kind}")
+                    )
 
-            if not errors.get("coordinates", None) and not errors.get("location", None) \
-                    and not parent_spec.coordinate_overlap_allowed:
-                # Check for coordinate overlap with existing child containers of the parent
-                try:
-                    check_coordinate_overlap(self.location.children, self, self.location)
-                except CoordinateError as e:
-                    add_error(errors, "coordinates", ValidationError(str(e)))
-                except Container.DoesNotExist:
-                    # Fine, the coordinates are free to use.
-                    pass
+                if not errors.get("coordinates", None) and not errors.get("location", None):
+                    # Validate coordinates against parent container spec
+                    try:
+                        self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+                    except CoordinateError as e:
+                        add_error(errors, "coordinates", ValidationError(str(e)))
+
+                if not errors.get("coordinates", None) and not errors.get("location", None) \
+                        and not parent_spec.coordinate_overlap_allowed:
+                    # Check for coordinate overlap with existing child containers of the parent
+                    try:
+                        check_coordinate_overlap(self.location.children, self, self.location)
+                    except CoordinateError as e:
+                        add_error(errors, "coordinates", ValidationError(str(e)))
+                    except Container.DoesNotExist:
+                        # Fine, the coordinates are free to use.
+                        pass
 
         if errors:
             raise ValidationError(errors)
