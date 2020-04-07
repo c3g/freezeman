@@ -17,6 +17,7 @@ import {
 
 import SignInForm from "./SignInForm";
 
+import ContainersPage from "./ContainersPage";
 import DashboardPage from "./DashboardPage";
 
 const App = () => (
@@ -72,7 +73,8 @@ const App = () => (
                 {/*}} bodyStyle={{paddingBottom: 0}}>*/}
                 {/*    <SignInForm />*/}
                 {/*</Card>*/}
-                <DashboardPage />
+                {/*<DashboardPage />*/}
+                <ContainersPage />
             </Layout.Content>
         </Layout>
     </Layout>
