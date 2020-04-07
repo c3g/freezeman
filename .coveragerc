@@ -1,8 +1,6 @@
 [run]
-include=*
+include=fms_core/*
 omit=
     */migrations/*
     */tests/*
-    fms/asgi.py
-    fms/settings.py
 branch=True
