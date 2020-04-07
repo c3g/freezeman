@@ -73,6 +73,16 @@ class SampleAdmin(AggregatedAdmin):
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
     )
 
+    # def individual_participant_id(self, obj):
+    #     return obj.individual.participant_id
+    #
+    # individual_participant_id.admin_order_field = 'individual__participant_id'
+    #
+    # def container_barcode(self, obj):
+    #     return obj.container.barcode
+    #
+    # container_barcode.admin_order_field = 'container__barcode'
+
 
 @admin.register(Individual)
 class IndividualAdmin(AggregatedAdmin):
