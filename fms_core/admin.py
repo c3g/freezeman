@@ -1,8 +1,9 @@
 from django.contrib import admin
+from import_export.admin import ImportMixin
 from .utils_admin import AggregatedAdmin
 from .resources import *
 
-from .models import Container, Sample, Individual
+from .models import Container, Sample, ExtractedSample, Individual
 
 
 # Set site header to the actual name of the application
@@ -69,6 +70,19 @@ class SampleAdmin(AggregatedAdmin):
         ("Location", {"fields": ("container", "coordinates")}),
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
     )
+
+
+@admin.register(ExtractedSample)
+class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
+    actions = None
+    list_display_links = None
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {"title": "Import extracted samples"}
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(Individual)

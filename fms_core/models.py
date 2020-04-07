@@ -21,6 +21,7 @@ from .coordinates import CoordinateError, check_coordinate_overlap
 __all__ = [
     "Container",
     "Sample",
+    "ExtractedSample",
     "Individual",
 ]
 
@@ -270,6 +271,19 @@ class Sample(models.Model):
 
         # Save the object
         super().save(*args, **kwargs)
+
+
+class ExtractedSampleManager(models.Manager):
+    # noinspection PyMethodMayBeStatic
+    def get_queryset(self):
+        return Sample.objects.filter(extracted_from__isnull=False)
+
+
+class ExtractedSample(Sample):
+    class Meta:
+        proxy = True
+
+    manager = ExtractedSampleManager()
 
 
 @reversion.register()
