@@ -1,0 +1,19 @@
+dist: bionic
+language: python
+python:
+  - "3.6"
+  - "3.8"
+addons:
+  postgresql: "11"
+  apt:
+    packages:
+      - postgresql-11
+      - postgresql-contrib-11
+before_install:
+  - sudo -u postgres psql -U postgres -p 5432 -d postgres -c "alter user postgres with password 'hj38f3Ntr';"
+install:
+  - pip install -r requirements.txt
+script:
+  - export PG_USER="postgres" && export PG_PASSWORD="hj38f3Ntr" && export PG_PORT=5432
+  - python3 -m coverage run ./manage.py test
+  - codecov
