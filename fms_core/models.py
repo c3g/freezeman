@@ -1,47 +1,111 @@
-from django.db import models
+import re
 import reversion
 import unicodedata
+
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
-from .containers import CONTAINER_KIND_SPECS, CONTAINER_KIND_CHOICES, SAMPLE_CONTAINER_KINDS
+from django.core.validators import RegexValidator
+from django.db import models
+
+from .containers import (
+    CONTAINER_SPEC_TUBE,
+    CONTAINER_SPEC_TUBE_RACK_8X12,
+    CONTAINER_KIND_SPECS,
+    CONTAINER_KIND_CHOICES,
+    SAMPLE_CONTAINER_KINDS,
+    PARENT_CONTAINER_KINDS,
+)
+from .coordinates import CoordinateError, check_coordinate_overlap
+
+
+__all__ = [
+    "Container",
+    "Sample",
+    "Individual",
+]
 
 
 def str_normalize(s: str):
-    return unicodedata.normalize(s.strip(), "NFC")
+    return unicodedata.normalize("NFC", s.strip())
+
+
+def add_error(errors: dict, field: str, error: ValidationError):
+    errors[field] = [*errors.get(field, []), error]
+
+
+barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]$"))
 
 
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
     # TODO class for choices
-    kind = models.CharField(max_length=20, choices=CONTAINER_KIND_CHOICES)
+    kind = models.CharField(
+        max_length=20,
+        choices=CONTAINER_KIND_CHOICES,
+        help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
+                  "properties."
+    )
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(unique=True, max_length=200)
-    barcode = models.CharField(primary_key=True, max_length=200)
+    name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.",
+                            validators=[barcode_name_validator])
+    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.",
+                               validators=[barcode_name_validator])
 
     # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
+    location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
+                                 help_text="An existing (parent) container this container is located inside of.",
+                                 limit_choices_to={"kind__in": PARENT_CONTAINER_KINDS})
 
     # Where in the parent container is this container located, if relevant?
-    coordinates = models.CharField(max_length=20, blank=True)
+    coordinates = models.CharField(max_length=20, blank=True,
+                                   help_text="Coordinates of this container within the parent container.")
 
     def __str__(self):
         return self.barcode
 
     def clean(self):
+        errors = {}
+
         if self.coordinates != "" and self.location is None:
-            raise ValidationError("Cannot specify coordinates in non-specified container")
+            add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
 
-        if self.location is None:
-            # No more validation to do for parent containers
-            return
+        if self.location is not None:
+            if self.location.barcode == self.barcode:
+                add_error(errors, "location", ValidationError("Container cannot contain itself"))
 
-        parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
+            else:
+                parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
 
-        if self.coordinates == "" and len(parent_spec.coordinate_spec) > 0:
-            raise ValidationError(f"Must specify coordinates for parent container type {parent_spec.container_kind_id}")
+                # Validate that this container is allowed to be located in the parent container specified
+                if not parent_spec.can_hold_kind(self.kind):
+                    add_error(
+                        errors,
+                        "location",
+                        ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container "
+                                        f"kind {self.kind}")
+                    )
 
-        # TODO: Check for coordinate overlap if not allowed
+                if not errors.get("coordinates", None) and not errors.get("location", None):
+                    # Validate coordinates against parent container spec
+                    try:
+                        self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+                    except CoordinateError as e:
+                        add_error(errors, "coordinates", ValidationError(str(e)))
+
+                if not errors.get("coordinates", None) and not errors.get("location", None) \
+                        and not parent_spec.coordinate_overlap_allowed:
+                    # Check for coordinate overlap with existing child containers of the parent
+                    try:
+                        check_coordinate_overlap(self.location.children, self, self.location)
+                    except CoordinateError as e:
+                        add_error(errors, "coordinates", ValidationError(str(e)))
+                    except Container.DoesNotExist:
+                        # Fine, the coordinates are free to use.
+                        pass
+
+        if errors:
+            raise ValidationError(errors)
 
 
 @reversion.register()
@@ -49,27 +113,29 @@ class Sample(models.Model):
     """ Class to store information about a sample. """
 
     NA_BIOSPECIMEN_TYPE = (
-        ('DNA', 'DNA'),
-        ('RNA', 'RNA'),
+        ("DNA", "DNA"),
+        ("RNA", "RNA"),
     )
 
     BIOSPECIMEN_TYPE = (
         *NA_BIOSPECIMEN_TYPE,
-        ('BLOOD', 'BLOOD'),
-        ('SALIVA', 'SALIVA')
+        ("BLOOD", "BLOOD"),
+        ("SALIVA", "SALIVA")
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(primary_key=True, max_length=200)
+    name = models.CharField(primary_key=True, max_length=200, validators=[barcode_name_validator])
     alias = models.CharField(max_length=200, blank=True)
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
 
-    # Volume and specimen are REQUIRED if biospecimen_type in {DNA, RNA}. Otherwise, they CANNOT BE SET.
-    volume = models.CharField(max_length=200, blank=True, help_text="Volume, µL")
-    concentration = models.CharField(max_length=200, blank=True, help_text="Concentration, ")
+    volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Volume, µL")
+
+    # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
+    concentration = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
+                                        help_text="Concentration, ng/µL")
 
     depleted = models.BooleanField(default=False)
 
@@ -82,7 +148,7 @@ class Sample(models.Model):
 
     # In what container is this sample located?
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy
-    container = models.ForeignKey(Container, on_delete=models.PROTECT,
+    container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples",
                                   limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
     # Location within the container, specified by coordinates
     # TODO list of choices ?
@@ -91,8 +157,9 @@ class Sample(models.Model):
     # TODO Collection site (Optional but for big study, a choice list will be included in the Submission file) ?
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT)
-    volume_used = models.CharField(max_length=200)
+    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
+                                       related_name="extractions")
+    volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True)
 
     @property
     def is_depleted(self) -> str:
@@ -102,26 +169,94 @@ class Sample(models.Model):
         return self.name
 
     def clean(self):
-        self.biospecimen_type.choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        errors = {}
 
-        if self.biospecimen_type in ('DNA', 'RNA'):
-            self.volume.blank = False
-            self.concentration.blank = False
+        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE)
 
-        elif self.volume != "":
-            raise ValidationError("Volume cannot be specified if the biospecimen_type is not DNA or RNA")
+        biospecimen_type_choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
+            add_error(
+                errors,
+                "biospecimen_type",
+                ValidationError(f"Biospecimen type {self.biospecimen_type} not valid for"
+                                f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
+            )
 
-        elif self.concentration != "":
-            raise ValidationError("Concentration cannot be specified if the biospecimen_type is not DNA or RNA")
+        if self.extracted_from:
+            if self.extracted_from.biospecimen_type in na_biospecimen_types:
+                add_error(
+                    errors,
+                    "extracted_from",
+                    ValidationError(f"Extraction process cannot be run on sample of type "
+                                    f"{self.extracted_from.biospecimen_type}")
+                )
+
+            if self.volume_used is None:
+                add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))
+
+        if self.volume_used is not None and not self.extracted_from:
+            add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
+
+        # Check volume and concentration fields given biospecimen_type
+
+        if self.biospecimen_type in na_biospecimen_types and self.concentration is None:
+            add_error(
+                errors,
+                "concentration",
+                ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
+            )
 
         if self.tissue_source and not self.extracted_from:
-            raise ValidationError("Tissue source can only be specified for an extracted sample.")
+            add_error(
+                errors,
+                "tissue_source",
+                ValidationError("Tissue source can only be specified for an extracted sample.")
+            )
+
+        # Validate container consistency
 
         parent_spec = CONTAINER_KIND_SPECS[self.container.kind]
 
-        if self.coordinates == "" and len(parent_spec.coordinate_spec) > 0:
-            raise ValidationError(f"Must specify coordinates for sample in container type "
-                                  f"{parent_spec.container_kind_id}")
+        #  - Validate that parent can hold samples
+        if not parent_spec.sample_holding:
+            add_error(
+                errors,
+                "container",
+                ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+            )
+
+        #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
+        if self.extracted_from is not None and any((
+                parent_spec != CONTAINER_SPEC_TUBE,
+                self.container.location is None,
+                CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
+        )):
+            add_error(
+                errors,
+                "container",
+                ValidationError("Extractions currently must be conducted on a tube in an 8x12 tube rack")
+            )
+
+        #  - Validate coordinates against parent container spec
+        if not errors.get("container", None):
+            try:
+                self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+            except CoordinateError as e:
+                add_error(errors, "container", ValidationError(str(e)))
+
+        # TODO: This isn't performant for bulk ingestion
+        # - Check for coordinate overlap with existing child containers of the parent
+        if not errors.get("container", None) and not parent_spec.coordinate_overlap_allowed:
+            try:
+                check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
+            except CoordinateError as e:
+                add_error(errors, "container", ValidationError(str(e)))
+            except Sample.DoesNotExist:
+                # Fine, the coordinates are free to use.
+                pass
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
@@ -157,8 +292,8 @@ class Individual(models.Model):
     taxon = models.CharField(choices=TAXON, max_length=20)
     sex = models.CharField(choices=SEX, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
-    mother = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
-    father = models.ForeignKey('self', blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
+    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
+    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
     # required ?
     cohort = models.CharField(max_length=200, blank=True)
 
@@ -166,12 +301,21 @@ class Individual(models.Model):
         return self.participant_id
 
     def clean(self):
+        errors = {}
+
         if self.mother is not None and self.father is not None and self.mother == self.father:
-            raise ValidationError('Mother and father IDs can\'t be the same.')
+            e = ValidationError("Mother and father IDs can't be the same.")
+            add_error(errors, "mother", e)
+            add_error(errors, "father", e)
+
         if self.mother == self.participant_id:
-            raise ValidationError('Mother ID can\'t be the same as participant ID.')
+            add_error(errors, "mother", ValidationError("Mother ID can't be the same as participant ID."))
+
         if self.father == self.participant_id:
-            raise ValidationError('Father ID can\'t be the same as participant ID.')
+            add_error(errors, "father", ValidationError("Father ID can't be the same as participant ID."))
+
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier

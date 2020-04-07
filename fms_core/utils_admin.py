@@ -2,6 +2,9 @@ from import_export.admin import ImportMixin, ExportMixin
 from reversion.admin import VersionAdmin
 
 
+__all__ = ["AggregatedAdmin"]
+
+
 class AggregatedAdmin(ImportMixin, ExportMixin, VersionAdmin):
     """
     Import, Export and Version admin.

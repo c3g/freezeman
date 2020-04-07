@@ -1,19 +1,28 @@
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple
+from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_coordinates
 
 
-CoordinateAxis = Tuple[str, ...]
-CoordinateSpec = Union[Tuple[()], Tuple[CoordinateAxis], Tuple[CoordinateAxis, CoordinateAxis]]
+__all__ = [
+    "ContainerSpec",
 
+    "CONTAINER_SPEC_96_WELL_PLATE",
+    "CONTAINER_SPEC_384_WELL_PLATE",
+    "CONTAINER_SPEC_TUBE",
+    "CONTAINER_SPEC_TUBE_BOX_9X9",
+    "CONTAINER_SPEC_TUBE_BOX_10X10",
+    "CONTAINER_SPEC_TUBE_RACK_8X12",
+    "CONTAINER_SPEC_DRAWER",
+    "CONTAINER_SPEC_FREEZER_RACK",
+    "CONTAINER_SPEC_FREEZER",
+    "CONTAINER_SPEC_ROOM",
+    "CONTAINER_SPEC_BOX",
 
-def alphas(end: int) -> CoordinateAxis:
-    if end > 26:
-        raise ValueError
+    "CONTAINER_KIND_SPECS",
+    "CONTAINER_KIND_CHOICES",
 
-    return tuple(chr(a) for a in range(65, end + 1))
-
-
-def ints(end: int) -> CoordinateAxis:
-    return tuple(str(i) for i in range(1, end + 1))
+    "SAMPLE_CONTAINER_KINDS",
+    "PARENT_CONTAINER_KINDS",
+]
 
 
 # TODO: Python 3.7: dataclass
@@ -30,24 +39,36 @@ class ContainerSpec:
         ContainerSpec.container_specs.append(self)
 
     @property
-    def container_kind_id(self):
+    def container_kind_id(self) -> str:
         return self._container_kind_id
 
     @property
-    def coordinate_spec(self):
+    def coordinate_spec(self) -> CoordinateSpec:
         return self._coordinate_spec
 
     @property
-    def coordinate_overlap_allowed(self):
+    def coordinate_overlap_allowed(self) -> bool:
         return self._coordinate_overlap_allowed
 
     @property
-    def children(self):
+    def children(self) -> Tuple["ContainerSpec", ...]:
         return self._children
 
     @property
-    def sample_holding(self):
+    def sample_holding(self) -> bool:
         return len(self._children) == 0
+
+    def can_hold_kind(self, kind_id: str):
+        return next((c for c in self._children if c.container_kind_id == kind_id), None) is not None
+
+    def validate_and_normalize_coordinates(self, coordinates: str) -> str:
+        return validate_and_normalize_coordinates(coordinates, self._coordinate_spec)
+
+    def __eq__(self, other):
+        return isinstance(other, ContainerSpec) and other.container_kind_id == self.container_kind_id
+
+    def __str__(self):
+        return self.container_kind_id
 
 
 CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
@@ -135,11 +156,15 @@ CONTAINER_SPEC_BOX = ContainerSpec(
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_TUBE),
 )
 
-CONTAINER_KIND_SPECS = {c.container_kind_id: c for c in ContainerSpec.container_specs}
+CONTAINER_KIND_SPECS: Dict[str, ContainerSpec] = {c.container_kind_id: c for c in ContainerSpec.container_specs}
 
-CONTAINER_KIND_CHOICES = tuple(
+CONTAINER_KIND_CHOICES: Tuple[Tuple[str, str], ...] = tuple(
     (c.container_kind_id, c.container_kind_id)
     for c in ContainerSpec.container_specs
 )
 
-SAMPLE_CONTAINER_KINDS = tuple(c.container_kind_id for c in ContainerSpec.container_specs if c.sample_holding)
+SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                if c.sample_holding)
+
+PARENT_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                if c.children)

@@ -1,0 +1,6 @@
+[run]
+include=fms_core/*
+omit=
+    */migrations/*
+    */tests/*
+branch=True
