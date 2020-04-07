@@ -7,6 +7,8 @@ import "antd/es/table/style/css";
 
 import {BarcodeOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
+import TemplateFlow from "./TemplateFlow";
+
 const TABLE_COLUMNS = [
     {
         title: <><BarcodeOutlined style={{marginRight: "0.7em"}} />Barcode</>,
@@ -46,6 +48,7 @@ const ContainersPage = () => (
                         <Button key="move" icon={<ExportOutlined />}>Move Containers</Button>,
                     ]} />
         <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
+            <TemplateFlow nOfItems={100} itemPluralName="containers" />
             <Table size="small" style={{minWidth: "700px"}} bordered={true} columns={TABLE_COLUMNS} />
         </div>
     </div>
