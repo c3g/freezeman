@@ -1,0 +1,46 @@
+{
+  "name": "fms_web",
+  "version": "0.1.0",
+  "description": "React-based front-end for FreezeMan",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npx webpack --watch --mode development",
+    "build": "npx webpack --mode production",
+    "build-dev": "npx webpack --mode development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c3g/fms_web.git"
+  },
+  "author": "David Lougheed <david.lougheed@mail.mcgill.ca>",
+  "license": "LGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/c3g/fms_web/issues"
+  },
+  "homepage": "https://github.com/c3g/fms_web#readme",
+  "dependencies": {
+    "@ant-design/icons": "^4.0.5",
+    "antd": "^4.1.1",
+    "cross-fetch": "^3.0.4",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.1.2",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/preset-react": "^7.9.4",
+    "babel-loader": "^8.1.0",
+    "babel-polyfill": "^6.26.0",
+    "css-loader": "^3.5.1",
+    "html-webpack-plugin": "^4.0.4",
+    "style-loader": "^1.1.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
+}
