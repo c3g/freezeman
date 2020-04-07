@@ -9,13 +9,15 @@ import {
     AuditOutlined,
     DashboardOutlined,
     ExperimentOutlined,
-    ImportOutlined,
+    LoginOutlined,
     SearchOutlined,
     TableOutlined,
     TeamOutlined,
 } from "@ant-design/icons";
 
 import SignInForm from "./SignInForm";
+
+import DashboardPage from "./DashboardPage";
 
 const App = () => (
     <Layout style={{height: "100vh"}}>
@@ -24,7 +26,7 @@ const App = () => (
             <div style={{flex: 1}} />
             <Menu theme="dark" mode="horizontal">
                 <Menu.Item key="sign-in">
-                    <ImportOutlined />
+                    <LoginOutlined />
                     Sign In
                 </Menu.Item>
             </Menu>
@@ -58,18 +60,19 @@ const App = () => (
                     </Menu.Item>
                 </Menu>
             </Layout.Sider>
-            <Layout.Content style={{padding: "0 24px", position: "relative"}}>
-                <Card style={{
-                    boxSizing: "border-box",
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    maxWidth: "396px",
-                    width: "100%",
-                }} bodyStyle={{paddingBottom: 0}}>
-                    <SignInForm />
-                </Card>
+            <Layout.Content style={{position: "relative"}}>
+                {/*<Card style={{*/}
+                {/*    boxSizing: "border-box",*/}
+                {/*    position: "absolute",*/}
+                {/*    top: "50%",*/}
+                {/*    left: "50%",*/}
+                {/*    transform: "translate(-50%, -50%)",*/}
+                {/*    maxWidth: "396px",*/}
+                {/*    width: "100%",*/}
+                {/*}} bodyStyle={{paddingBottom: 0}}>*/}
+                {/*    <SignInForm />*/}
+                {/*</Card>*/}
+                <DashboardPage />
             </Layout.Content>
         </Layout>
     </Layout>
