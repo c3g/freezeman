@@ -33,7 +33,7 @@ def add_error(errors: dict, field: str, error: ValidationError):
     errors[field] = [*errors.get(field, []), error]
 
 
-barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]$"))
+barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.-_]*$"))
 
 
 @reversion.register()
@@ -60,6 +60,7 @@ class Container(models.Model):
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True,
                                    help_text="Coordinates of this container within the parent container.")
+    comment = models.TextField(blank=True)
 
     def __str__(self):
         return self.barcode

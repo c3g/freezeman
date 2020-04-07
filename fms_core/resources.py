@@ -35,6 +35,7 @@ class ContainerResource(GenericResource):
     location = Field(attribute='location', column_name='Location Barcode',
                      widget=ForeignKeyWidget(Container, 'barcode'))
     coordinates = Field(attribute='coordinates', column_name='Location Coordinate')
+    comment = Field(attribute='comment', column_name='Comment')
 
     class Meta:
         model = Container
@@ -47,13 +48,13 @@ class SampleResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
-    volume = Field(attribute='volume', column_name='Volume (uL)')
-    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)')
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group')
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
-    # reception_date = Field(attribute='reception_date', column_name='Reception Data')
+    reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='tissue_source', column_name='Phenotype')
     comment = Field(attribute='reception_date', column_name='Comment')
     # FK fields
@@ -61,7 +62,6 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, 'barcode'))
     individual = Field(attribute='individual', column_name='Individual Name',
                        widget=CreateForeignKeyWidget(Individual, field='participant_id'))
-
 
     class Meta:
         model = Sample
