@@ -5,6 +5,10 @@ from .resources import *
 from .models import Container, Sample, Individual
 
 
+# Set site header to the actual name of the application
+admin.site.site_header = "FreezeMan"
+
+
 @admin.register(Container)
 class ContainerAdmin(AggregatedAdmin):
     resource_class = ContainerResource
