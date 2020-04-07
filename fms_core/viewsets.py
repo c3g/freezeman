@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
@@ -7,7 +7,12 @@ from .models import Container, Sample, Individual
 from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer
 
 
-__all__ = ["ContainerViewSet", "SampleViewSet", "IndividualViewSet", "VersionViewSet"]
+__all__ = [
+    "ContainerViewSet",
+    "SampleViewSet",
+    "IndividualViewSet",
+    "VersionViewSet",
+]
 
 
 def versions_detail(obj):

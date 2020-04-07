@@ -6,9 +6,12 @@ from typing import Tuple, Union
 __all__ = [
     "CoordinateAxis",
     "CoordinateSpec",
+
     "CoordinateError",
+
     "alphas",
     "ints",
+
     "validate_and_normalize_coordinates",
     "check_coordinate_overlap",
 ]

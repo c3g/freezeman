@@ -4,6 +4,14 @@ import reversion
 from reversion.models import Version
 
 
+__all__ = [
+    "GenericResource",
+    "ContainerResource",
+    "SampleResource",
+    "IndividualResource",
+]
+
+
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True

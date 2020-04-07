@@ -4,7 +4,12 @@ from reversion.models import Version
 from .models import Container, Sample, Individual
 
 
-__all__ = ["ContainerSerializer", "SampleSerializer", "IndividualSerializer", "VersionSerializer"]
+__all__ = [
+    "ContainerSerializer",
+    "SampleSerializer",
+    "IndividualSerializer",
+    "VersionSerializer",
+]
 
 
 class ContainerSerializer(serializers.ModelSerializer):

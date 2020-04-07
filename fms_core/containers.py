@@ -2,6 +2,29 @@ from typing import Dict, List, Tuple
 from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_coordinates
 
 
+__all__ = [
+    "ContainerSpec",
+
+    "CONTAINER_SPEC_96_WELL_PLATE",
+    "CONTAINER_SPEC_384_WELL_PLATE",
+    "CONTAINER_SPEC_TUBE",
+    "CONTAINER_SPEC_TUBE_BOX_9X9",
+    "CONTAINER_SPEC_TUBE_BOX_10X10",
+    "CONTAINER_SPEC_TUBE_RACK_8X12",
+    "CONTAINER_SPEC_DRAWER",
+    "CONTAINER_SPEC_FREEZER_RACK",
+    "CONTAINER_SPEC_FREEZER",
+    "CONTAINER_SPEC_ROOM",
+    "CONTAINER_SPEC_BOX",
+
+    "CONTAINER_KIND_SPECS",
+    "CONTAINER_KIND_CHOICES",
+
+    "SAMPLE_CONTAINER_KINDS",
+    "PARENT_CONTAINER_KINDS",
+]
+
+
 # TODO: Python 3.7: dataclass
 class ContainerSpec:
     container_specs: List["ContainerSpec"] = []
