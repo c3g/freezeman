@@ -2,6 +2,8 @@ from import_export import resources
 from .models import Container, Sample, Individual
 import reversion
 from reversion.models import Version
+from import_export.fields import Field
+from import_export.widgets import *
 
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
@@ -17,6 +19,12 @@ class GenericResource(resources.ModelResource):
 
 
 class ContainerResource(GenericResource):
+    kind = Field(attribute='kind', column_name='Container Kind')
+    name = Field(attribute='name', column_name='Container Name')
+    barcode = Field(attribute='barcode', column_name='Container Barcode')
+    location = Field(attribute='location', column_name='Location Barcode',
+                     widget=ForeignKeyWidget(Container, 'barcode'))
+    coordinates = Field(attribute='coordinates', column_name='Location Coordinate')
 
     class Meta:
         model = Container
