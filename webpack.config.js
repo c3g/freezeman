@@ -39,5 +39,11 @@ module.exports = {
         new webpack.EnvironmentPlugin({
             CHORD_URL: null,
         })
-    ]
+    ],
+    devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 9000,
+        historyApiFallback: true,
+    }
 };
