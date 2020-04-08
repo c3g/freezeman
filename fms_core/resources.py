@@ -4,7 +4,7 @@ import reversion
 from reversion.models import Version
 from import_export.fields import Field
 from import_export.widgets import *
-from .widgets import CreateForeignKeyWidget
+from .widgets import *
 
 
 __all__ = [
@@ -60,9 +60,9 @@ class SampleResource(GenericResource):
     comment = Field(attribute='comment', column_name='Comment')
     # FK fields
     container = Field(attribute='container', column_name='Container Barcode',
-                      widget=ForeignKeyWidget(Container, 'barcode'))
+                      widget=ForeignKeyWidget(Container, field='barcode'))
     individual = Field(attribute='individual', column_name='Individual Name',
-                       widget=CreateForeignKeyWidget(Individual, field='participant_id'))
+                       widget=CreateIndividualForeignKeyWidget(Individual, field='participant_id'))
 
     class Meta:
         model = Sample
@@ -81,10 +81,10 @@ class ExtractionResource(GenericResource):
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
     # FK fields
     container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
-                      widget=ForeignKeyWidget(Container, 'barcode'))
+                      widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
     individual = Field(attribute='individual', column_name='Individual',
-                       widget=CreateForeignKeyWidget(Individual, field='participant_id'))
+                       widget=CreateIndividualForeignKeyWidget(Individual, field='participant_id'))
 
     class Meta:
         model = Sample
