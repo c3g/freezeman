@@ -74,11 +74,11 @@ class SampleResource(GenericResource):
 class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
     name = Field(attribute='name', column_name='Sample Name')
-    reception_date = Field()
+    reception_date = Field(attribute='reception_date')
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
-    volume_used = Field(attribute='volume', column_name='Volume Used (uL)', widget=DecimalWidget())
+    volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
     # FK fields
     container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
                       widget=ForeignKeyWidget(Container, 'barcode'))

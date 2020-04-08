@@ -1,6 +1,7 @@
 import re
 import reversion
 import unicodedata
+from django.utils import timezone
 
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
@@ -144,7 +145,7 @@ class Sample(models.Model):
     experimental_group = JSONField(blank=True, null=True)
     collection_site = models.CharField(max_length=200)
     tissue_source = models.CharField(max_length=200, blank=True)
-    reception_date = models.DateField()
+    reception_date = models.DateField(default=timezone.now())
     phenotype = models.CharField(max_length=200, blank=True)
     comment = models.TextField(blank=True)
 
