@@ -2,6 +2,9 @@ from import_export import resources
 from .models import Container, Sample, Individual
 import reversion
 from reversion.models import Version
+from import_export.fields import Field
+from import_export.widgets import *
+from .widgets import CreateForeignKeyWidget
 
 
 __all__ = [
@@ -26,6 +29,13 @@ class GenericResource(resources.ModelResource):
 
 
 class ContainerResource(GenericResource):
+    kind = Field(attribute='kind', column_name='Container Kind')
+    name = Field(attribute='name', column_name='Container Name')
+    barcode = Field(attribute='barcode', column_name='Container Barcode')
+    location = Field(attribute='location', column_name='Location Barcode',
+                     widget=ForeignKeyWidget(Container, 'barcode'))
+    coordinates = Field(attribute='coordinates', column_name='Location Coordinate')
+    comment = Field(attribute='comment', column_name='Comment')
 
     class Meta:
         model = Container
@@ -34,10 +44,30 @@ class ContainerResource(GenericResource):
 
 
 class SampleResource(GenericResource):
+    # simple model fields
+    biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
+    name = Field(attribute='name', column_name='Sample Name')
+    alias = Field(attribute='alias', column_name='Alias')
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
+    depleted = Field(attribute='depleted', column_name='Source Depleted')
+    experimental_group = Field(attribute='experimental_group', column_name='Experimental Group')
+    collection_site = Field(attribute='collection_site', column_name='Collection Site')
+    tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
+    reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
+    phenotype = Field(attribute='tissue_source', column_name='Phenotype')
+    comment = Field(attribute='comment', column_name='Comment')
+    # FK fields
+    container = Field(attribute='container', column_name='Container Barcode',
+                      widget=ForeignKeyWidget(Container, 'barcode'))
+    individual = Field(attribute='individual', column_name='Individual Name',
+                       widget=CreateForeignKeyWidget(Individual, field='participant_id'))
 
     class Meta:
         model = Sample
         import_id_fields = ('name',)
+        fields = ('biospecimen_type', 'name', 'alias', 'volume', 'concentration', 'collection_site',
+                  'container', 'individual')
 
 
 class IndividualResource(GenericResource):
