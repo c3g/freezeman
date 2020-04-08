@@ -1,14 +1,15 @@
 import React from "react";
 
-import {Button, Card, Col, PageHeader, Row, Statistic} from "antd";
+import {Button, Card, Col, Row, Statistic} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/card/style/css";
 import "antd/es/col/style/css";
-import "antd/es/page-header/style/css";
 import "antd/es/row/style/css";
 import "antd/es/statistic/style/css";
 
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, UserOutlined} from "@ant-design/icons";
+
+import AppPageHeader from "./AppPageHeader";
 
 const COL_LAYOUT = {
     lg: 8,
@@ -33,7 +34,7 @@ const WIDE_BUTTON_COL_PROPS = {
 
 const DashboardPage = () => (
     <div style={{height: "100%", backgroundColor: "white", overflowY: "auto"}}>
-        <PageHeader title="Dashboard" ghost={false} style={{borderBottom: "1px solid #f0f0f0", marginBottom: "8px"}} />
+        <AppPageHeader title="Dashboard" />
         <div style={{padding: "0 24px 24px 24px"}}>
             <Row gutter={16}>
                 <Col {...COL_LAYOUT}>

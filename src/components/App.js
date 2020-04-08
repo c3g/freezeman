@@ -18,9 +18,9 @@ import {
 
 import SignInForm from "./SignInForm";
 
-import ContainersPage from "./ContainersPage";
+import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
-import SamplesExtractionsPage from "./SamplesExtractionsPage";
+import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
 import IndividualsPage from "./IndividualsPage";
 import ReportingPage from "./ReportingPage";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";

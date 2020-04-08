@@ -1,11 +1,12 @@
 import React from "react";
+import {Link} from "react-router-dom";
 
-import {Button, PageHeader, Table} from "antd";
+import {Button, Table} from "antd";
 import "antd/es/button/style/css";
-import "antd/es/page-header/style/css";
 import "antd/es/table/style/css";
-
 import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
+
+import AppPageHeader from "../AppPageHeader";
 
 const TABLE_COLUMNS = [
     {
@@ -50,19 +51,22 @@ const TABLE_COLUMNS = [
     }
 ];
 
-const SamplesExtractionsPage = () => (
-    <div style={{height: "100%", backgroundColor: "white", overflowY: "auto"}}>
-        <PageHeader title="Samples & Extractions"
-                    ghost={false}
-                    style={{borderBottom: "1px solid #f0f0f0", marginBottom: "8px"}}
-                    extra={[
-                        <Button key="add" icon={<PlusOutlined />}>Add Samples</Button>,
-                        <Button key="update" icon={<EditOutlined />}>Update Samples</Button>,
-                        <Button key="process" icon={<ExperimentOutlined />}>Process Extractions</Button>,
-                    ]} />
-        <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
-            <Table bordered={true} columns={TABLE_COLUMNS} size="small" />
-        </div>
+const SamplesListContent = () => <>
+    <AppPageHeader title="Samples & Extractions"
+                   extra={[
+                       <Link key="add" to="/samples/add">
+                           <Button icon={<PlusOutlined />}>Add Samples</Button>
+                       </Link>,
+                       <Link key="update" to="/samples/update">
+                           <Button icon={<EditOutlined />}>Update Samples</Button>
+                       </Link>,
+                       <Link key="process" to="/samples/extract">
+                           <Button icon={<ExperimentOutlined />}>Process Extractions</Button>
+                       </Link>,
+                   ]} />
+    <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
+        <Table bordered={true} columns={TABLE_COLUMNS} size="small" />
     </div>
-);
-export default SamplesExtractionsPage;
+</>;
+
+export default SamplesListContent;

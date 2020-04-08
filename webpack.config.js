@@ -22,6 +22,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, "dist"),
+        publicPath: "/",
         filename: "bundle.js",
         chunkFilename: "[name].bundle.js"
     },
@@ -35,9 +36,6 @@ module.exports = {
             title: "FreezeMan",
             template: path.resolve(__dirname, "./src/template.html"),
             hash: true,
-        }),
-        new webpack.EnvironmentPlugin({
-            CHORD_URL: null,
         })
     ],
     devServer: {
