@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom";
 
 import {Button, Card, Col, Row, Statistic} from "antd";
 import "antd/es/button/style/css";
@@ -7,7 +8,14 @@ import "antd/es/col/style/css";
 import "antd/es/row/style/css";
 import "antd/es/statistic/style/css";
 
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, UserOutlined} from "@ant-design/icons";
+import {
+    EditOutlined,
+    ExperimentOutlined,
+    ExportOutlined,
+    PlusOutlined,
+    ProfileOutlined,
+    SolutionOutlined,
+} from "@ant-design/icons";
 
 import AppPageHeader from "./AppPageHeader";
 
@@ -42,10 +50,14 @@ const DashboardPage = () => (
                         <Statistic title="Total Containers" value={234} />
                         <Row gutter={16}>
                             <Col {...BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<PlusOutlined />}>Add</Button>
+                                <Link to="/containers/add">
+                                    <Button block={true} icon={<PlusOutlined />}>Add</Button>
+                                </Link>
                             </Col>
                             <Col {...BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<ExportOutlined />}>Move</Button>
+                                <Link to="/containers/move">
+                                    <Button block={true} icon={<ExportOutlined />}>Move</Button>
+                                </Link>
                             </Col>
                         </Row>
                     </Card>
@@ -56,13 +68,19 @@ const DashboardPage = () => (
                         <Statistic title="Extracted Samples" value={322} />
                         <Row gutter={16}>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<PlusOutlined />}>Add Samples</Button>
+                                <Link to="/samples/add">
+                                    <Button block={true} icon={<PlusOutlined />}>Add Samples</Button>
+                                </Link>
                             </Col>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<ExperimentOutlined />}>Process Extractions</Button>
+                                <Link to="/samples/extract">
+                                    <Button block={true} icon={<ExperimentOutlined />}>Process Extractions</Button>
+                                </Link>
                             </Col>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<EditOutlined />}>Update Samples</Button>
+                                <Link to="/samples/update">
+                                    <Button block={true} icon={<EditOutlined />}>Update Samples</Button>
+                                </Link>
                             </Col>
                         </Row>
                     </Card>
@@ -71,13 +89,13 @@ const DashboardPage = () => (
                     <Card title="Reporting" {...CARD_PROPS}>
                         <Row gutter={16}>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
-                                <Button block={true} icon={<UserOutlined />}>User Reports</Button>
+                                <Button block={true} icon={<SolutionOutlined />}>User Reports</Button>
                             </Col>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
                                 <Button block={true} icon={<ExperimentOutlined />}>Sample Reports</Button>
                             </Col>
                             <Col {...WIDE_BUTTON_COL_PROPS}>
-                                <Button block={true}>Action Log</Button>
+                                <Button block={true} icon={<ProfileOutlined />}>Action Log</Button>
                             </Col>
                         </Row>
                     </Card>
