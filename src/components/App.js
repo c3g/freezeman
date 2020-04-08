@@ -1,5 +1,7 @@
 import React from "react";
 
+import {Route, Switch, withRouter} from "react-router-dom";
+
 import {Card, Layout, Menu} from "antd";
 import "antd/es/card/style/css";
 import "antd/es/layout/style/css";
@@ -10,7 +12,6 @@ import {
     DashboardOutlined,
     ExperimentOutlined,
     LoginOutlined,
-    SearchOutlined,
     TableOutlined,
     TeamOutlined,
 } from "@ant-design/icons";
@@ -19,6 +20,38 @@ import SignInForm from "./SignInForm";
 
 import ContainersPage from "./ContainersPage";
 import DashboardPage from "./DashboardPage";
+import SamplesExtractionsPage from "./SamplesExtractionsPage";
+import IndividualsPage from "./IndividualsPage";
+import ReportingPage from "./ReportingPage";
+import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
+
+const MENU_ITEMS = [
+    {
+        url: "/dashboard",
+        icon: <DashboardOutlined />,
+        text: "Dashboard",
+    },
+    {
+        url: "/containers",
+        icon: <TableOutlined />,
+        text: "Containers",
+    },
+    {
+        url: "/samples",
+        icon: <ExperimentOutlined />,
+        text: "Samples & Extractions",
+    },
+    {
+        url: "/individuals",
+        icon: <TeamOutlined />,
+        text: "Individuals",
+    },
+    {
+        url: "/reporting",
+        icon: <AuditOutlined />,
+        text: "Reporting",
+    },
+]
 
 const App = () => (
     <Layout style={{height: "100vh"}}>
@@ -34,50 +67,44 @@ const App = () => (
         </Layout.Header>
         <Layout>
             <Layout.Sider style={{overflowY: "auto"}} width={256}>
-                <Menu theme="dark" mode="inline">
-                    <Menu.Item key="dashboard">
-                        <DashboardOutlined />
-                        Dashboard
-                    </Menu.Item>
-                    <Menu.Item key="search">
-                        <SearchOutlined />
-                        Search
-                    </Menu.Item>
-                    <Menu.Item key="containers">
-                        <TableOutlined />
-                        Containers
-                    </Menu.Item>
-                    <Menu.Item key="samples-extractions">
-                        <ExperimentOutlined />
-                        Samples &amp; Extractions
-                    </Menu.Item>
-                    <Menu.Item key="individuals">
-                        <TeamOutlined />
-                        Individuals
-                    </Menu.Item>
-                    <Menu.Item key="reporting">
-                        <AuditOutlined />
-                        Reporting
-                    </Menu.Item>
+                <Menu theme="dark" mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
+                    {MENU_ITEMS.map(renderMenuItem)}
                 </Menu>
             </Layout.Sider>
             <Layout.Content style={{position: "relative"}}>
-                {/*<Card style={{*/}
-                {/*    boxSizing: "border-box",*/}
-                {/*    position: "absolute",*/}
-                {/*    top: "50%",*/}
-                {/*    left: "50%",*/}
-                {/*    transform: "translate(-50%, -50%)",*/}
-                {/*    maxWidth: "396px",*/}
-                {/*    width: "100%",*/}
-                {/*}} bodyStyle={{paddingBottom: 0}}>*/}
-                {/*    <SignInForm />*/}
-                {/*</Card>*/}
-                {/*<DashboardPage />*/}
-                <ContainersPage />
+                <Switch>
+                    <Route path="/sign-in">
+                        <Card style={{
+                            boxSizing: "border-box",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            maxWidth: "396px",
+                            width: "100%",
+                        }} bodyStyle={{paddingBottom: 0}}>
+                            <SignInForm />
+                        </Card>
+                    </Route>
+                    <Route path="/dashboard">
+                        <DashboardPage />
+                    </Route>
+                    <Route path="/containers">
+                        <ContainersPage />
+                    </Route>
+                    <Route path="/samples">
+                        <SamplesExtractionsPage />
+                    </Route>
+                    <Route path="/individuals">
+                        <IndividualsPage />
+                    </Route>
+                    <Route path="/reporting">
+                        <ReportingPage />
+                    </Route>
+                </Switch>
             </Layout.Content>
         </Layout>
     </Layout>
 );
 
-export default App;
+export default withRouter(App);
