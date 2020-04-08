@@ -5,7 +5,7 @@ import "antd/es/button/style/css";
 import "antd/es/page-header/style/css";
 import "antd/es/table/style/css";
 
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
 
 const TABLE_COLUMNS = [
     {
