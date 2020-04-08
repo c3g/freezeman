@@ -5,6 +5,7 @@ from reversion.models import Version
 from import_export.fields import Field
 from import_export.widgets import *
 from .widgets import *
+from django.db.models import Q
 
 
 __all__ = [
@@ -85,10 +86,26 @@ class ExtractionResource(GenericResource):
     coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
     individual = Field(attribute='individual', column_name='Individual',
                        widget=CreateIndividualForeignKeyWidget(Individual, field='participant_id'))
+    extracted_from = Field(widget=ForeignKeyWidget(Sample, field='name'))
+    sample_container = Field(column_name='Container Barcode')
+    sample_container_coordinates = Field(column_name='Location Coord')
 
     class Meta:
         model = Sample
         import_id_fields = ('name',)
+        fields = ('biospecimen_type', 'name', 'reception_date', 'volume', 'concentration', 'depleted',
+                  'volume_used', 'container', 'coordinates', 'individual', 'sample_container',
+                  'sample_container_coordinates')
+        exclude = ('extracted_from')
+
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        # this should work
+        # instance.extracted_from = Sample.objects.get(
+        #     Q(container=instance.sample_container) & Q(coordinates=instance.sample_container_coordinates)
+        # )
+        # this works
+        # instance.extracted_from = Sample.objects.get(name='sample01')
+        return instance
 
 
 class IndividualResource(GenericResource):
