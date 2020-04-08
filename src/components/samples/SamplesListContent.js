@@ -7,6 +7,7 @@ import "antd/es/table/style/css";
 import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
+import PageContent from "../PageContent";
 
 const TABLE_COLUMNS = [
     {
@@ -64,9 +65,9 @@ const SamplesListContent = () => <>
                            <Button icon={<ExperimentOutlined />}>Process Extractions</Button>
                        </Link>,
                    ]} />
-    <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
+    <PageContent>
         <Table bordered={true} columns={TABLE_COLUMNS} size="small" />
-    </div>
+    </PageContent>
 </>;
 
 export default SamplesListContent;

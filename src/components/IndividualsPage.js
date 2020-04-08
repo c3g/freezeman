@@ -4,6 +4,7 @@ import {Table} from "antd";
 import "antd/es/table/style/css";
 
 import AppPageHeader from "./AppPageHeader";
+import PageContainer from "./PageContainer";
 
 const TABLE_COLUMNS = [
     {
@@ -32,12 +33,11 @@ const TABLE_COLUMNS = [
     }
 ];
 
-const IndividualsPage = () => (
-    <div style={{height: "100%", backgroundColor: "white", overflowY: "auto"}}>
-        <AppPageHeader title="Individuals" />
-        <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
-            <Table size="small" bordered={true} columns={TABLE_COLUMNS} />
-        </div>
+const IndividualsPage = () => <PageContainer>
+    <AppPageHeader title="Individuals" />
+    <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
+        <Table size="small" bordered={true} columns={TABLE_COLUMNS} />
     </div>
-);
+</PageContainer>;
+
 export default IndividualsPage;

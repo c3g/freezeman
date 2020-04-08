@@ -7,6 +7,7 @@ import "antd/es/table/style/css";
 import {BarcodeOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
+import PageContent from "../PageContent";
 
 const TABLE_COLUMNS = [
     {
@@ -47,9 +48,9 @@ const ContainersListContent = () => <>
                            <Button icon={<ExportOutlined />}>Move Containers</Button>
                        </Link>,
                    ]} />
-    <div style={{padding: "16px 24px 8px 24px", overflowX: "auto"}}>
+    <PageContent>
         <Table size="small" style={{minWidth: "700px"}} bordered={true} columns={TABLE_COLUMNS} />
-    </div>
+    </PageContent>
 </>;
 
 export default ContainersListContent;
