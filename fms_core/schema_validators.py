@@ -15,16 +15,36 @@ class JsonSchemaValidator(object):
             raise ValidationError("Not valid JSON schema for this field.")
         return value
 
+    def deconstruct(self):
+        return (
+            'fms_core.schema_validators.JsonSchemaValidator',
+            [self.schema],
+            {}
+        )
+
+
 VOLUME_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "fms:volume",
     "title": "Volume schema",
     "description": "Schema used to define volume and its updates.",
-    "type": "object",
-    "properties": {
-        "update_type": {"type": "string", "enum": ["extraction", "update"], "description": "todo"},
-        "volume_value": {"type": "string", "description": "todo"}
-    },
-    "additionalProperties": False,
-    "required": ["update_type", "volume_value"]
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "update_type": {"type": "string", "enum": ["extraction", "update"]},
+            "volume_value": {"type": "string"},
+            "date": {"type": "string", "format": "date"},
+            "extracted_sample_id": {"type": "string"}
+        },
+        "additionalProperties": False,
+        "if": {
+            "properties": {
+                "update_type": {
+                    "const": ["extraction"]}
+            },
+            "required": ["extracted_sample_id"]
+        },
+        "required": ["update_type", "volume_value", "date"]
+    }
 }

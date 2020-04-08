@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA
 from django.db import models
 
 from .containers import (
@@ -129,11 +130,11 @@ class Sample(models.Model):
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(primary_key=True, max_length=200, validators=[barcode_name_validator])
+    name = models.CharField(max_length=200, validators=[barcode_name_validator])
     alias = models.CharField(max_length=200, blank=True)
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
-
+    volume_history = JSONField(blank=True, null=True, validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Volume, µL")
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
@@ -145,7 +146,7 @@ class Sample(models.Model):
     experimental_group = JSONField(blank=True, null=True)
     collection_site = models.CharField(max_length=200)
     tissue_source = models.CharField(max_length=200, blank=True)
-    reception_date = models.DateField(default=timezone.now())
+    reception_date = models.DateField(default=timezone.now)
     phenotype = models.CharField(max_length=200, blank=True)
     comment = models.TextField(blank=True)
 
@@ -163,6 +164,9 @@ class Sample(models.Model):
     extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
                                        related_name="extractions")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True)
+
+    class Meta:
+        unique_together = ['container', 'coordinates']
 
     @property
     def is_depleted(self) -> str:
@@ -269,6 +273,7 @@ class Sample(models.Model):
         self.tissue_source = str_normalize(self.tissue_source)
         self.phenotype = str_normalize(self.phenotype)
         self.comment = str_normalize(self.comment)
+        self.full_clean()
 
         # Save the object
         super().save(*args, **kwargs)
@@ -339,6 +344,6 @@ class Individual(models.Model):
         self.name = str_normalize(self.participant_id)
         self.pedigree = str_normalize(self.pedigree)
         self.cohort = str_normalize(self.cohort)
-
+        self.full_clean()
         # Save the object
         super().save(*args, **kwargs)
