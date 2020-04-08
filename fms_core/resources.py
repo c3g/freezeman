@@ -12,6 +12,7 @@ __all__ = [
     "ContainerResource",
     "SampleResource",
     "IndividualResource",
+    "ExtractionResource",
 ]
 
 
@@ -68,6 +69,26 @@ class SampleResource(GenericResource):
         import_id_fields = ('name',)
         fields = ('biospecimen_type', 'name', 'alias', 'volume', 'concentration', 'collection_site',
                   'container', 'individual')
+
+
+class ExtractionResource(GenericResource):
+    biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
+    name = Field(attribute='name', column_name='Sample Name')
+    reception_date = Field()
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
+    depleted = Field(attribute='depleted', column_name='Source Depleted')
+    volume_used = Field(attribute='volume', column_name='Volume Used (uL)', widget=DecimalWidget())
+    # FK fields
+    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
+                      widget=ForeignKeyWidget(Container, 'barcode'))
+    coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
+    individual = Field(attribute='individual', column_name='Individual',
+                       widget=CreateForeignKeyWidget(Individual, field='participant_id'))
+
+    class Meta:
+        model = Sample
+        import_id_fields = ('name',)
 
 
 class IndividualResource(GenericResource):

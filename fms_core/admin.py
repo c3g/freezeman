@@ -74,6 +74,7 @@ class SampleAdmin(AggregatedAdmin):
 
 @admin.register(ExtractedSample)
 class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
+    resource_class = ExtractionResource
     actions = None
     list_display_links = None
 
