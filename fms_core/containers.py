@@ -88,7 +88,7 @@ CONTAINER_SPEC_384_WELL_PLATE = ContainerSpec(
 CONTAINER_SPEC_TUBE = ContainerSpec(
     container_kind_id="tube",
     coordinate_spec=(),
-    coordinate_overlap_allowed=True,  # No coordinate system - everything is in the same tube
+    coordinate_overlap_allowed=False,  # Only one sample can be in the tube at a time
     children=(),  # Leaf node; sample-holding
 )
 
