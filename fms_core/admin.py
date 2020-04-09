@@ -71,6 +71,9 @@ class SampleAdmin(AggregatedAdmin):
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
     )
 
+    def has_delete_permission(self, request, obj=None):
+        return not (obj and obj.extracted_from)
+
 
 @admin.register(ExtractedSample)
 class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
@@ -83,6 +86,9 @@ class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
 
 
