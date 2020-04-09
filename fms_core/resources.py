@@ -25,14 +25,19 @@ __all__ = [
 ]
 
 
-def skip_rows(dataset, num_rows=0):
+def skip_rows(dataset, num_rows=0, col_skip=1):
     if num_rows <= 0:
         return
     dataset_headers = dataset[num_rows - 1]
     dataset_data = dataset[num_rows:]
     dataset.wipe()
     dataset.headers = dataset_headers
-    dataset.extend(dataset_data)
+    for r in dataset_data:
+        vals = set(r[col_skip:])
+        print(vals)
+        if len(vals) == 1 and "" in vals:
+            continue
+        dataset.append(r)
 
 
 class GenericResource(resources.ModelResource):
@@ -112,7 +117,7 @@ class SampleResource(GenericResource):
         fields = (
             'biospecimen_type',
             'name',
-            'alias', 
+            'alias',
             'concentration',
             'collection_site',
             'container',
@@ -203,6 +208,9 @@ class ExtractionResource(GenericResource):
             'extracted_from',
             'volume_history',
         )
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 7)  # Skip preamble
 
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
