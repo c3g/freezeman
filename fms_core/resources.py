@@ -8,8 +8,11 @@ from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, J
 from reversion.models import Version
 
 from .containers import (
-    CONTAINER_SPEC_TUBE, CONTAINER_SPEC_TUBE_RACK_8X12,
-    CONTAINER_SPEC_96_WELL_PLATE, CONTAINER_SPEC_384_WELL_PLATE)
+    CONTAINER_SPEC_TUBE,
+    CONTAINER_SPEC_TUBE_RACK_8X12,
+    CONTAINER_SPEC_96_WELL_PLATE,
+    CONTAINER_SPEC_384_WELL_PLATE,
+)
 from .models import create_volume_history, Container, Sample, Individual
 
 
@@ -114,35 +117,30 @@ class SampleResource(GenericResource):
         # Ugly hacks lie below
 
         if field.attribute == 'individual':
-            ind_data = dict(
+            individual, _ = Individual.objects.get_or_create(
                 participant_id=data["Individual Name"],  # TODO
                 name=data["Individual Name"],
                 sex=data["Sex"],
                 taxon=data["Taxon"]
             )
-
-            try:
-                individual = Individual.objects.get(**ind_data)
-                obj.individual = individual
-            except Individual.DoesNotExist:
-                obj.individual = Individual(**ind_data)
+            obj.individual = individual
 
         elif field.attribute == 'volume_history':
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
-        # if sample is in tube
+
         elif field.attribute == 'container':
-            if data['Container Kind'] in (CONTAINER_SPEC_TUBE.container_kind_id,
-                                          CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
-                                          CONTAINER_SPEC_384_WELL_PLATE.container_kind_id
-                                          ):
-                tube_container_data = dict(
+            if data['Container Kind'] in (
+                CONTAINER_SPEC_TUBE.container_kind_id,
+                CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
+                CONTAINER_SPEC_384_WELL_PLATE.container_kind_id,
+            ):
+                container, _ = Container.objects.get_or_create(
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
                     location=Container.objects.get(barcode=data['Location Barcode']),
                     coordinates=data['Location Coord']
                 )
-                container, _ = Container.objects.get_or_create(**tube_container_data)
                 obj.container = container
 
         else:
