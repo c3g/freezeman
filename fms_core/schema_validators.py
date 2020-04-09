@@ -34,7 +34,7 @@ VOLUME_SCHEMA = {
         "properties": {
             "update_type": {"type": "string", "enum": ["extraction", "update"]},
             "volume_value": {"type": "string"},
-            "date": {"type": "string", "format": "date"},
+            "date": {"type": "string", "format": "date-time"},
             "extracted_sample_id": {"type": "string"}
         },
         "additionalProperties": False,
@@ -46,5 +46,6 @@ VOLUME_SCHEMA = {
             "required": ["extracted_sample_id"]
         },
         "required": ["update_type", "volume_value", "date"]
-    }
+    },
+    "minItems": 1
 }

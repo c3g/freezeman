@@ -1,13 +1,16 @@
 import re
 import reversion
 import unicodedata
-from django.utils import timezone
 
+from datetime import datetime
+from decimal import Decimal
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA
 from django.db import models
+from django.utils import timezone
+
+from typing import Optional
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -18,14 +21,32 @@ from .containers import (
     PARENT_CONTAINER_KINDS,
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
+from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA
 
 
 __all__ = [
+    "create_volume_history",
+
     "Container",
     "Sample",
     "ExtractedSample",
     "Individual",
 ]
+
+
+def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[str] = None):
+    if update_type not in ("extraction", "update"):
+        raise ValueError(f"Invalid update type {update_type}")
+
+    if update_type == "extraction" and not extracted_sample_id:
+        raise ValueError("Must specify sample ID for extraction")
+
+    return {
+        "update_type": update_type,
+        "volume_value": str(Decimal(volume_value)),
+        "date": datetime.utcnow().isoformat().replace("+00:00", "Z"),
+        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
+    }
 
 
 def str_normalize(s: str):
@@ -134,8 +155,8 @@ class Sample(models.Model):
     alias = models.CharField(max_length=200, blank=True)
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
-    volume_history = JSONField(blank=True, null=True, validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
-    volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Volume, µL")
+
+    volume_history = JSONField(validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
     concentration = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
@@ -172,6 +193,10 @@ class Sample(models.Model):
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
 
+    @property
+    def volume(self) -> Decimal:
+        return Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"])))
+
     def __str__(self):
         return self.name
 
@@ -204,7 +229,7 @@ class Sample(models.Model):
         if self.volume_used is not None and not self.extracted_from:
             add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
 
-        # Check volume and concentration fields given biospecimen_type
+        # Check concentration fields given biospecimen_type
 
         if self.biospecimen_type in na_biospecimen_types and self.concentration is None:
             add_error(
@@ -213,11 +238,13 @@ class Sample(models.Model):
                 ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
             )
 
-        if self.tissue_source and not self.extracted_from:
+        # Check tissue source given extracted_from
+
+        if self.tissue_source and self.biospecimen_type not in na_biospecimen_types:
             add_error(
                 errors,
                 "tissue_source",
-                ValidationError("Tissue source can only be specified for an extracted sample.")
+                ValidationError("Tissue source can only be specified for a nucleic acid sample.")
             )
 
         # Validate container consistency
