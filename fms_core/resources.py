@@ -93,13 +93,16 @@ class SampleResource(GenericResource):
                 sex=data["Sex"],
                 taxon=data["Taxon"]
             )
+
             try:
                 individual = Individual.objects.get(**ind_data)
                 obj.individual = individual
             except Individual.DoesNotExist:
                 obj.individual = Individual(**ind_data)
+
         elif field.attribute == 'volume_history':
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+
         else:
             super().import_field(field, obj, data, is_m2m)
 
@@ -124,9 +127,11 @@ class ExtractionResource(GenericResource):
 
     # Computed fields
     name = Field(attribute='name')
-    container = Field(column_name='Nucleic Acid Container Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
+    collection_site = Field(attribute='collection_site')
+    container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
+    volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
     class Meta:
         model = ExtractedSample
@@ -136,14 +141,23 @@ class ExtractionResource(GenericResource):
             'volume',
             'concentration',
             'volume_used',
-            'container',
         )
-        excluded = ('name', 'individual', 'extracted_from')
+        excluded = (
+            'name',
+            'collection_site',
+            'container',
+            'individual',
+            'extracted_from',
+            'volume_history',
+        )
 
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
 
-        if field.attribute == 'extracted_from':
+        if field.attribute == 'volume_history':
+            obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+
+        elif field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
                 Q(container=data['Container Barcode']) &
                 Q(coordinates=data['Location Coord'])
@@ -170,12 +184,14 @@ class ExtractionResource(GenericResource):
                     name=data['Nucleic Acid Container Barcode'],
                     comment=f'Automatically generated via extraction template import on {datetime.utcnow().isoformat()}'
                 )
+                obj.container.save()
 
         else:
             super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
+        instance.collection_site = instance.extracted_from.collection_site  # TODO: Check with Alex
         instance.individual = instance.extracted_from.individual
 
         # Update volume and depletion status of original
@@ -186,9 +202,6 @@ class ExtractionResource(GenericResource):
         ))
 
         instance.extracted_from.save()
-
-        # Save container (with any possible changes made)
-        instance.container.save()
 
 
 class IndividualResource(GenericResource):
