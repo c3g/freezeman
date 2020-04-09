@@ -7,7 +7,7 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
 from reversion.models import Version
 
-from .containers import CONTAINER_SPEC_TUBE
+from .containers import CONTAINER_SPEC_TUBE, CONTAINER_SPEC_TUBE_RACK_8X12
 from .models import create_volume_history, Container, Sample, ExtractedSample, Individual
 
 
@@ -165,8 +165,30 @@ class ExtractionResource(GenericResource):
             obj.extracted_from.depleted = data['Source Depleted'].upper() in ('YES', 'Y', 'TRUE', 'T')
 
         elif field.attribute == 'container':
-            parent = Container.objects.get(barcode=data['Nucleic Acid Location Barcode'])
+            # Per Alex: We can make new tube racks (8x12) if needed for extractions
 
+            shared_parent_info = dict(
+                barcode=data['Nucleic Acid Location Barcode'],
+                # TODO: Currently can only extract into tube racks 8x12 - otherwise this logic will fall apart
+                kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
+            )
+
+            try:
+                parent = Container.objects.get(**shared_parent_info)
+            except Container.DoesNotExist:
+                parent = Container(
+                    **shared_parent_info,
+                    # Below is creation-specific data
+                    # Leave coordinates blank if creating
+                    # Per Alex: Container name = container barcode if we auto-generate the container
+                    name=shared_parent_info["barcode"],
+                    comment=f'Automatically generated via extraction template import on '
+                            f'{datetime.utcnow().isoformat()}Z'
+                )
+
+            # Per Alex: We can make new tubes if needed for extractions
+
+            # Information that can be used to either retrieve or create a new tube container
             shared_container_info = dict(
                 barcode=data['Nucleic Acid Container Barcode'],
                 # TODO: Currently can only extract into tubes - otherwise this logic will fall apart
@@ -180,9 +202,11 @@ class ExtractionResource(GenericResource):
             except Container.DoesNotExist:
                 obj.container = Container(
                     **shared_container_info,
+                    # Below is creation-specific data
                     # Per Alex: Container name = container barcode if we auto-generate the container
-                    name=data['Nucleic Acid Container Barcode'],
-                    comment=f'Automatically generated via extraction template import on {datetime.utcnow().isoformat()}'
+                    name=shared_container_info["barcode"],
+                    comment=f'Automatically generated via extraction template import on '
+                            f'{datetime.utcnow().isoformat()}Z'
                 )
                 obj.container.save()
 
