@@ -109,8 +109,14 @@ class SampleResource(GenericResource):
     class Meta:
         model = Sample
         import_id_fields = ('name',)
-        fields = ('biospecimen_type', 'name', 'alias', 'concentration', 'collection_site',
-                  'container')
+        fields = (
+            'biospecimen_type',
+            'name',
+            'alias', 
+            'concentration',
+            'collection_site',
+            'container',
+        )
         excluded = ('volume_history', 'individual')
 
     def import_field(self, field, obj, data, is_m2m=False):
