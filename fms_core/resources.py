@@ -6,8 +6,7 @@ from import_export.fields import Field
 from import_export.widgets import *
 from reversion.models import Version
 
-from .models import create_volume_history, Container, Sample, Individual
-from .widgets import CreateIndividualForeignKeyWidget
+from .models import create_volume_history, Container, Sample, ExtractedSample, Individual
 
 
 __all__ = [
@@ -66,9 +65,10 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
-    # volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    # sex = Field(column_name='Sex')
-    # taxon = Field(column_name='Taxon')
+    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
+    individual_name = Field(column_name='Individual Name')
+    sex = Field(column_name='Sex')
+    taxon = Field(column_name='Taxon')
 
     # Computed fields
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
@@ -78,8 +78,8 @@ class SampleResource(GenericResource):
         model = Sample
         import_id_fields = ('name',)
         fields = ('biospecimen_type', 'name', 'alias', 'concentration', 'collection_site',
-                  'container', 'individual')
-        excluded = ('volume_history',)
+                  'container')
+        excluded = ('volume_history', 'individual')
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
@@ -97,7 +97,6 @@ class SampleResource(GenericResource):
             except Individual.DoesNotExist:
                 obj.individual = Individual(**ind_data)
         elif field.attribute == 'volume_history':
-            print(create_volume_history("update", data["Volume (uL)"]))
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
         else:
             super().import_field(field, obj, data, is_m2m)
@@ -110,53 +109,62 @@ class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
 
     reception_date = Field(attribute='reception_date')
-    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
-    depleted = Field(attribute='depleted', column_name='Source Depleted')
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
+
     # FK fields
     container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
 
+    # Non-attribute fields
+    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     sample_container = Field(column_name='Container Barcode')
     sample_container_coordinates = Field(column_name='Location Coord')
+    source_depleted = Field(column_name='Source Depleted')
 
     # Computed fields
-
     name = Field(attribute='name')
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
-    extracted_from = Field(widget=ForeignKeyWidget(Sample, field='name'))
+    extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
 
     class Meta:
-        model = Sample
-        # import_id_fields = ('sample_container', 'sample_container_coordinates')
+        model = ExtractedSample
         fields = (
             'biospecimen_type',
             'reception_date',
             'volume',
             'concentration',
-            'depleted',
             'volume_used',
             'container',
             'coordinates',
-            'sample_container',
-            'sample_container_coordinates',
         )
-        exclude = ('individual', 'extracted_from')
+        excluded = ('name', 'individual', 'extracted_from')
+
+    def import_field(self, field, obj, data, is_m2m=False):
+        # More!! ugly hacks
+
+        if field.attribute == 'extracted_from':
+            obj.extracted_from = Sample.objects.get(
+                Q(container=data['Container Barcode']) &
+                Q(coordinates=data['Location Coord'])
+            )
+            obj.extracted_from.depleted = data['Source Depleted'].upper() in ('YES', 'Y', 'TRUE', 'T')
+        else:
+            super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        original_sample = Sample.objects.get(
-            Q(container=instance.sample_container) &
-            Q(coordinates=instance.sample_container_coordinates)
-        )
+        instance.name = instance.extracted_from.name
+        instance.individual = instance.extracted_from.individual
 
-        instance.name = original_sample.name
-        instance.individual = original_sample.individual
-        instance.extracted_from = original_sample
+        # Update volume and depletion status of original
+        instance.extracted_from.volume_history.append(create_volume_history(
+            "extraction",
+            instance.extracted_from.volume - instance.volume_used,
+            instance.extracted_from.id
+        ))
 
-        # this works
-        # instance.extracted_from = Sample.objects.get(name='sample01')
+        instance.extracted_from.save()
 
     # TODO: Update original
 
