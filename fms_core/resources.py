@@ -8,7 +8,7 @@ from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, J
 from reversion.models import Version
 
 from .containers import CONTAINER_SPEC_TUBE, CONTAINER_SPEC_TUBE_RACK_8X12
-from .models import create_volume_history, Container, Sample, ExtractedSample, Individual
+from .models import create_volume_history, Container, Sample, Individual
 
 
 __all__ = [
@@ -23,6 +23,14 @@ __all__ = [
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True
+
+    def save_instance(self, instance, using_transactions=True, dry_run=False):
+        if dry_run:
+            with reversion.create_revision(manage_manually=True):
+                # Prevent reversion from saving on dry runs by manually overriding the current revision
+                super().save_instance(instance, using_transactions, dry_run)
+        else:
+            super().save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         if not dry_run:
@@ -46,6 +54,10 @@ class ContainerResource(GenericResource):
         model = Container
         import_id_fields = ('barcode',)
         fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Imported containers from template.")
 
 
 class SampleResource(GenericResource):
@@ -108,6 +120,11 @@ class SampleResource(GenericResource):
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.individual.save()
+        super().before_save_instance(instance, using_transactions, dry_run)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Imported samples from template.")
 
 
 class ExtractionResource(GenericResource):
@@ -127,6 +144,7 @@ class ExtractionResource(GenericResource):
 
     # Computed fields
     name = Field(attribute='name')
+    alias = Field(attribute='alias')
     collection_site = Field(attribute='collection_site')
     container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
@@ -134,7 +152,7 @@ class ExtractionResource(GenericResource):
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
     class Meta:
-        model = ExtractedSample
+        model = Sample
         fields = (
             'biospecimen_type',
             'reception_date',
@@ -144,6 +162,7 @@ class ExtractionResource(GenericResource):
         )
         excluded = (
             'name',
+            'alias',
             'collection_site',
             'container',
             'individual',
@@ -215,6 +234,7 @@ class ExtractionResource(GenericResource):
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
+        instance.alias = instance.extracted_from.alias
         instance.collection_site = instance.extracted_from.collection_site  # TODO: Check with Alex
         instance.individual = instance.extracted_from.individual
 
@@ -226,6 +246,12 @@ class ExtractionResource(GenericResource):
         ))
 
         instance.extracted_from.save()
+
+        super().before_save_instance(instance, using_transactions, dry_run)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Imported extracted samples from template.")
 
 
 class IndividualResource(GenericResource):
