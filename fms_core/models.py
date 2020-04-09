@@ -44,7 +44,7 @@ def create_volume_history(update_type: str, volume_value: str, extracted_sample_
     return {
         "update_type": update_type,
         "volume_value": str(Decimal(volume_value)),
-        "date": datetime.utcnow().isoformat().replace("+00:00", "Z"),
+        "date": datetime.utcnow().isoformat() + "Z",
         **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
     }
 
