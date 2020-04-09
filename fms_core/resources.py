@@ -114,6 +114,20 @@ class SampleResource(GenericResource):
 
         elif field.attribute == 'volume_history':
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+        # if sample is in tube
+        elif field.attribute == 'container':
+            tube_container_data = dict(
+                kind=data['Container Kind'],
+                name=data['Container Name'],
+                barcode=data['Container Barcode'],
+                location=Container.objects.get(barcode=data['Location Barcode']),
+                coordinates=data['Location Coord']
+            )
+            try:
+                container = Container.objects.get(**tube_container_data)
+                obj.container = container
+            except Container.DoesNotExist:
+                obj.container = Container.objects.create(**tube_container_data)
 
         else:
             super().import_field(field, obj, data, is_m2m)
