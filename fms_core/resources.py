@@ -1,11 +1,13 @@
 import reversion
 
+from datetime import datetime
 from django.db.models import Q
 from import_export import resources
 from import_export.fields import Field
-from import_export.widgets import *
+from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
 from reversion.models import Version
 
+from .containers import CONTAINER_SPEC_TUBE
 from .models import create_volume_history, Container, Sample, ExtractedSample, Individual
 
 
@@ -112,12 +114,9 @@ class ExtractionResource(GenericResource):
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
 
-    # FK fields
-    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
-                      widget=ForeignKeyWidget(Container, field='barcode'))
-    coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
-
     # Non-attribute fields
+    location = Field(column_name='Nucleic Acid Location Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
+    coordinates = Field(column_name='Nucleic Acid Location Coord')
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     sample_container = Field(column_name='Container Barcode')
     sample_container_coordinates = Field(column_name='Location Coord')
@@ -125,6 +124,7 @@ class ExtractionResource(GenericResource):
 
     # Computed fields
     name = Field(attribute='name')
+    container = Field(column_name='Nucleic Acid Container Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
 
@@ -137,7 +137,6 @@ class ExtractionResource(GenericResource):
             'concentration',
             'volume_used',
             'container',
-            'coordinates',
         )
         excluded = ('name', 'individual', 'extracted_from')
 
@@ -150,6 +149,16 @@ class ExtractionResource(GenericResource):
                 Q(coordinates=data['Location Coord'])
             )
             obj.extracted_from.depleted = data['Source Depleted'].upper() in ('YES', 'Y', 'TRUE', 'T')
+        elif field.attribute == 'container':
+            parent = Container.objects.get(barcode=data['Nucleic Acid Location Barcode'])
+            obj.container, _ = Container.objects.get_or_create(
+                barcode=data['Nucleic Acid Container Barcode'],
+                name='',  # TODO
+                kind=CONTAINER_SPEC_TUBE.container_kind_id,  # TODO: Currently can only extract into tubes
+                location=parent,
+                coordinates=data['Nucleic Acid Location Coord'],
+                comment=f'Automatically generated via extraction template import on {datetime.utcnow().isoformat()}'
+            )
         else:
             super().import_field(field, obj, data, is_m2m)
 
@@ -170,7 +179,6 @@ class ExtractionResource(GenericResource):
 
 
 class IndividualResource(GenericResource):
-
     class Meta:
         model = Individual
         import_id_fields = ('participant_id',)
