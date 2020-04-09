@@ -149,16 +149,28 @@ class ExtractionResource(GenericResource):
                 Q(coordinates=data['Location Coord'])
             )
             obj.extracted_from.depleted = data['Source Depleted'].upper() in ('YES', 'Y', 'TRUE', 'T')
+
         elif field.attribute == 'container':
             parent = Container.objects.get(barcode=data['Nucleic Acid Location Barcode'])
-            obj.container, _ = Container.objects.get_or_create(
+
+            shared_container_info = dict(
                 barcode=data['Nucleic Acid Container Barcode'],
-                name='',  # TODO
-                kind=CONTAINER_SPEC_TUBE.container_kind_id,  # TODO: Currently can only extract into tubes
+                # TODO: Currently can only extract into tubes - otherwise this logic will fall apart
+                kind=CONTAINER_SPEC_TUBE.container_kind_id,
                 location=parent,
-                coordinates=data['Nucleic Acid Location Coord'],
-                comment=f'Automatically generated via extraction template import on {datetime.utcnow().isoformat()}'
+                coordinates=data['Nucleic Acid Location Coord']
             )
+
+            try:
+                obj.container = Container.objects.get(**shared_container_info)
+            except Container.DoesNotExist:
+                obj.container = Container(
+                    **shared_container_info,
+                    # Per Alex: Container name = container barcode if we auto-generate the container
+                    name=data['Nucleic Acid Container Barcode'],
+                    comment=f'Automatically generated via extraction template import on {datetime.utcnow().isoformat()}'
+                )
+
         else:
             super().import_field(field, obj, data, is_m2m)
 
@@ -175,7 +187,8 @@ class ExtractionResource(GenericResource):
 
         instance.extracted_from.save()
 
-    # TODO: Update original
+        # Save container (with any possible changes made)
+        instance.container.save()
 
 
 class IndividualResource(GenericResource):
