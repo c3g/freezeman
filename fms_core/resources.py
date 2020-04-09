@@ -20,6 +20,16 @@ __all__ = [
 ]
 
 
+def skip_rows(dataset, num_rows=0):
+    if num_rows <= 0:
+        return
+    dataset_headers = dataset[num_rows - 1]
+    dataset_data = dataset[num_rows:]
+    dataset.wipe()
+    dataset.headers = dataset_headers
+    dataset.extend(dataset_data)
+
+
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True
@@ -54,6 +64,9 @@ class ContainerResource(GenericResource):
         model = Container
         import_id_fields = ('barcode',)
         fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 0)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
