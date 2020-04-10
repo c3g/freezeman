@@ -331,6 +331,7 @@ class IndividualResource(GenericResource):
 
 
 # Update resources
+
 class ContainerMoveResource(GenericResource):
     barcode = Field(attribute='barcode', column_name='Container Barcode to move')
     location = Field(attribute='location', column_name='Dest. Location Barcode',
@@ -347,6 +348,9 @@ class ContainerMoveResource(GenericResource):
             'coordinates',
             'comment',
         )
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 6)  # Skip preamble
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'barcode':

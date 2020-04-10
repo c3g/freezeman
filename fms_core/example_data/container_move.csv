@@ -1,2 +1,11 @@
-Container Barcode to move,Dest. Location Barcode,Dest. Location Coord,Comment
-tube001,rack001,,extracted sample moved
+Move Container,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+#,Container Barcode to move,Dest. Location Barcode,Dest. Location Coord,Comment
+1,tube001,rack001,,extracted sample moved
+2,,,,
+3,,,,
+4,,,,
