@@ -1,5 +1,6 @@
-from jsonschema import Draft7Validator, FormatChecker
+import sys
 from django.core.exceptions import ValidationError
+from jsonschema import Draft7Validator, FormatChecker
 
 
 class JsonSchemaValidator(object):
@@ -12,6 +13,7 @@ class JsonSchemaValidator(object):
 
     def __call__(self, value):
         if not self.validator.is_valid(value):
+            print(tuple(self.validator.iter_errors(value)), file=sys.stderr)
             raise ValidationError("Not valid JSON schema for this field.")
         return value
 
@@ -34,8 +36,8 @@ VOLUME_SCHEMA = {
         "properties": {
             "update_type": {"type": "string", "enum": ["extraction", "update"]},
             "volume_value": {"type": "string"},
-            "date": {"type": "string", "format": "date"},
-            "extracted_sample_id": {"type": "string"}
+            "date": {"type": "string", "format": "date-time"},
+            "extracted_sample_id": {"type": "integer"}
         },
         "additionalProperties": False,
         "if": {
@@ -46,5 +48,6 @@ VOLUME_SCHEMA = {
             "required": ["extracted_sample_id"]
         },
         "required": ["update_type", "volume_value", "date"]
-    }
+    },
+    "minItems": 1
 }
