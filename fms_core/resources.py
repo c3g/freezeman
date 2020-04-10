@@ -35,7 +35,6 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
     dataset.headers = dataset_headers
     for r in dataset_data:
         vals = set(r[col_skip:])
-        print(vals)
         if len(vals) == 1 and "" in vals:
             continue
         dataset.append(r)
@@ -124,6 +123,9 @@ class SampleResource(GenericResource):
             'container',
         )
         excluded = ('volume_history', 'individual')
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 6)
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
@@ -314,13 +316,14 @@ class ContainerMoveResource(GenericResource):
     class Meta:
         model = Container
         import_id_fields = ('barcode',)
-        fields = ('barcode',
-                  'location',
-                  'coordinates',
-                  'comment',)
+        fields = (
+            'barcode',
+            'location',
+            'coordinates',
+            'comment',
+        )
 
     def import_field(self, field, obj, data, is_m2m=False):
-
         if field.attribute == 'barcode':
             container_to_move = Container.objects.get(barcode=data["Container Barcode to move"])
             obj.barcode = container_to_move.barcode
@@ -338,4 +341,3 @@ class ContainerMoveResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Moved containers from template.")
-

@@ -1,3 +1,11 @@
-Biospecimen Type,Sample Name,Alias,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual Name,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Phenotype,Comment,Reception Data
-BLOOD,sample1,first sample,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,,,10,4,site1,,phenotype1,some comment here,2020-03-03
-BLOOD,sample2,second sample,cohort1,group1,Homo sapiens,tube,sample2_tube,tube002,box001,,Ksenia Zaytseva,F,pedigree2,,,15,6,site2,,phenotype2,some othercomment here,2020-04-03
+Sample Submission Template,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,
+Naming Rules,,,,,,,,,,,,,,,,,,,,,,,
+"- Only use the follwin caracters for Sample name and Barcode: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,
+#,Biospecimen Type,Sample Name,Alias,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual Name,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Reception Data,Phenotype,Comment
+1,BLOOD,sample1,first sample,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,,,10,4,site1,,2020-03-03,phenotype1,some comment here
+2,BLOOD,sample2,second sample,cohort1,group1,Homo sapiens,tube,sample2_tube,tube002,box001,,Ksenia Zaytseva,F,pedigree2,,,15,6,site2,,2020-04-03,phenotype2,some other comment here
+3,,,,,,,,,,,,,,,,,,,,,,,
+4,,,,,,,,,,,,,,,,,,,,,,,
