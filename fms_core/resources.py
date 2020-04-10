@@ -23,6 +23,7 @@ __all__ = [
     "IndividualResource",
     "ExtractionResource",
     "ContainerMoveResource",
+    "SampleUpdateResource",
 ]
 
 
@@ -338,4 +339,44 @@ class ContainerMoveResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Moved containers from template.")
+
+
+class SampleUpdateResource(GenericResource):
+    container = Field(attribute='container', column_name='Container Barcode',
+                      widget=ForeignKeyWidget(Container, field='barcode'))
+    coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
+    # volume_history
+    new_volume = Field(attribute='new_volume', column_name='New Volume (uL)')
+    # concentration
+    new_concentration = Field(attribute='new_concentration', column_name='New Conc. (ng/uL)')
+    depleted = Field(attribute="depleted", column_name="Depleted")
+    comment = Field(attribute="comment", column_name="Comment")
+
+    class Meta:
+        model = Sample
+        # TODO no PK field in import template ?
+        # import_id_fields = ('barcode',)
+        fields = ('container',
+                  'coordinates',
+                  'new_volume',
+                  'new_concentration',
+                  'depleted',
+                  'comment')
+
+    def import_field(self, field, obj, data, is_m2m=False):
+
+        if field.attribute == 'container':
+            sample_to_update = Sample.objects.get(
+                Q(container=data['Container Barcode']) &
+                Q(coordinates=data['Coord (if plate)'])
+            )
+            print(sample_to_update)
+            # update logic here
+
+        else:
+            super().import_field(field, obj, data, is_m2m)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Updated samples from template.")
 
