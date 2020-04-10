@@ -394,8 +394,10 @@ class SampleUpdateResource(GenericResource):
                   'depleted',
                   'comment')
 
-    def import_field(self, field, obj, data, is_m2m=False):
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 6)  # Skip preamble
 
+    def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'container':
             sample_to_update = Sample.objects.get(
                 Q(container=data['Container Barcode']) &
@@ -405,6 +407,9 @@ class SampleUpdateResource(GenericResource):
             # update logic here
 
         else:
+            if field.attribute == 'depleted':
+                # Normalize boolean attribute
+                data["Depleted"] = check_truth_like(data["Depleted"])
             super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):

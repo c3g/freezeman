@@ -1,2 +1,11 @@
-Container Barcode,Coord (if plate),New Volume (uL),New Conc. (ng/uL),Depleted,Comment
-tube001,,0.001,0.001,False,sample moved
+Sample Update,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+#,Container Barcode,Coord (if plate),New Volume (uL),New Conc. (ng/uL),Depleted,Comment
+1,tube001,,0.001,0.001,False,sample moved
+2,
+3,
+4,
