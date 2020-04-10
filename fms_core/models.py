@@ -362,9 +362,7 @@ class Individual(models.Model):
         ('Unknown', 'Unknown'),
     )
 
-    participant_id = models.CharField(primary_key=True, max_length=200)
-    # required ?
-    name = models.CharField(max_length=200, blank=True)
+    name = models.CharField(primary_key=True, max_length=200)
     taxon = models.CharField(choices=TAXON, max_length=20)
     sex = models.CharField(choices=SEX, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
@@ -374,7 +372,7 @@ class Individual(models.Model):
     cohort = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.participant_id
+        return self.name
 
     def clean(self):
         errors = {}
@@ -384,19 +382,18 @@ class Individual(models.Model):
             add_error(errors, "mother", e)
             add_error(errors, "father", e)
 
-        if self.mother == self.participant_id:
-            add_error(errors, "mother", ValidationError("Mother ID can't be the same as participant ID."))
+        if self.mother and self.mother.name == self.name:
+            add_error(errors, "mother", ValidationError("Mother can't be same as self."))
 
-        if self.father == self.participant_id:
-            add_error(errors, "father", ValidationError("Father ID can't be the same as participant ID."))
+        if self.father and self.father.name == self.name:
+            add_error(errors, "father", ValidationError("Father can't be same as self."))
 
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize any string values to make searching / data manipulation easier
-        self.participant_id = str_normalize(self.participant_id)
-        self.name = str_normalize(self.participant_id)
+        self.name = str_normalize(self.name)
         self.pedigree = str_normalize(self.pedigree)
         self.cohort = str_normalize(self.cohort)
         self.full_clean()

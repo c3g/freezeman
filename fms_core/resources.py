@@ -155,7 +155,6 @@ class SampleResource(GenericResource):
 
         if field.attribute == 'individual':
             individual, _ = Individual.objects.get_or_create(
-                participant_id=data["Individual Name"],  # TODO
                 name=data["Individual Name"],
                 sex=data["Sex"],
                 taxon=data["Taxon"]
@@ -328,7 +327,7 @@ class ExtractionResource(GenericResource):
 class IndividualResource(GenericResource):
     class Meta:
         model = Individual
-        import_id_fields = ('participant_id',)
+        import_id_fields = ('name',)
 
 
 # Update resources

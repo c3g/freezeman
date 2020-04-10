@@ -97,7 +97,6 @@ class IndividualAdmin(AggregatedAdmin):
     resource_class = IndividualResource
 
     list_display = (
-        "participant_id",
         "name",
         "taxon",
         "sex",
@@ -113,7 +112,6 @@ class IndividualAdmin(AggregatedAdmin):
     )
 
     search_fields = (
-        "participant_id",
         "name",
         "pedigree",
         "cohort",
