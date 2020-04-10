@@ -3,7 +3,7 @@ from import_export.admin import ImportMixin
 from .utils_admin import AggregatedAdmin
 from .resources import *
 
-from .models import Container, Sample, ExtractedSample, Individual
+from .models import Container, Sample, ExtractedSample, Individual, ContainerMove
 
 
 # Set site header to the actual name of the application
@@ -118,3 +118,17 @@ class IndividualAdmin(AggregatedAdmin):
         "pedigree",
         "cohort",
     )
+
+
+@admin.register(ContainerMove)
+class ContainerMoveAdmin(ImportMixin, admin.ModelAdmin):
+    resource_class = ContainerMoveResource
+    actions = None
+    list_display_links = None
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {"title": "Move Containers"}
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def has_add_permission(self, request):
+        return False
