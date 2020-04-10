@@ -28,6 +28,7 @@ __all__ = [
     "create_volume_history",
 
     "Container",
+    "ContainerMove",
     "Sample",
     "ExtractedSample",
     "Individual",
@@ -131,6 +132,19 @@ class Container(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class ContainerMoveManager(models.Manager):
+    # noinspection PyMethodMayBeStatic
+    def get_queryset(self):
+        return Container.objects.all()
+
+
+class ContainerMove(Container):
+    class Meta:
+        proxy = True
+
+    manager = ContainerMoveManager()
 
 
 @reversion.register()
