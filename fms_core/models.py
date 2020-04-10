@@ -31,6 +31,7 @@ __all__ = [
     "ContainerMove",
     "Sample",
     "ExtractedSample",
+    "SampleUpdate",
     "Individual",
 ]
 
@@ -331,6 +332,19 @@ class ExtractedSample(Sample):
         proxy = True
 
     manager = ExtractedSampleManager()
+
+
+class SampleUpdateManager(models.Manager):
+    # noinspection PyMethodMayBeStatic
+    def get_queryset(self):
+        return Sample.objects.all()
+
+
+class SampleUpdate(Sample):
+    class Meta:
+        proxy = True
+
+    manager = SampleUpdateManager()
 
 
 @reversion.register()

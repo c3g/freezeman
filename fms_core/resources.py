@@ -1,3 +1,4 @@
+import re
 import reversion
 
 from datetime import datetime
@@ -23,7 +24,23 @@ __all__ = [
     "IndividualResource",
     "ExtractionResource",
     "ContainerMoveResource",
+    "SampleUpdateResource",
 ]
+
+
+RE_WHITESPACE = re.compile(r"\s+")
+
+
+def check_truth_like(string: str) -> bool:
+    """
+    Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
+    """
+    return string.strip().upper() in ("TRUE", "T", "YES", "Y")
+
+
+def normalize_scientific_name(name: str) -> str:
+    # Converts (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
+    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
 
 
 def skip_rows(dataset, num_rows=0, col_skip=1):
@@ -76,7 +93,13 @@ class ContainerResource(GenericResource):
         fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
-        skip_rows(dataset, 0)
+        skip_rows(dataset, 6)
+
+    def import_field(self, field, obj, data, is_m2m=False):
+        if field.attribute == 'kind':
+            # Normalize kind attribute to be lowercase
+            data["Container Kind"] = data["Container Kind"].lower().strip()
+        super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
@@ -158,6 +181,9 @@ class SampleResource(GenericResource):
                 obj.container = container
 
         else:
+            if field.attribute == 'taxon':
+                # Normalize scientific names
+                data['Taxon'] = normalize_scientific_name(data['Taxon'])
             super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
@@ -226,7 +252,7 @@ class ExtractionResource(GenericResource):
                 Q(container=data['Container Barcode']) &
                 Q(coordinates=data['Location Coord'])
             )
-            obj.extracted_from.depleted = data['Source Depleted'].upper() in ('YES', 'Y', 'TRUE', 'T')
+            obj.extracted_from.depleted = check_truth_like(data['Source Depleted'])
 
         elif field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
@@ -341,3 +367,43 @@ class ContainerMoveResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Moved containers from template.")
+
+
+class SampleUpdateResource(GenericResource):
+    container = Field(attribute='container', column_name='Container Barcode',
+                      widget=ForeignKeyWidget(Container, field='barcode'))
+    coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
+    # volume_history
+    new_volume = Field(attribute='new_volume', column_name='New Volume (uL)')
+    # concentration
+    new_concentration = Field(attribute='new_concentration', column_name='New Conc. (ng/uL)')
+    depleted = Field(attribute="depleted", column_name="Depleted")
+    comment = Field(attribute="comment", column_name="Comment")
+
+    class Meta:
+        model = Sample
+        # TODO no PK field in import template ?
+        # import_id_fields = ('barcode',)
+        fields = ('container',
+                  'coordinates',
+                  'new_volume',
+                  'new_concentration',
+                  'depleted',
+                  'comment')
+
+    def import_field(self, field, obj, data, is_m2m=False):
+
+        if field.attribute == 'container':
+            sample_to_update = Sample.objects.get(
+                Q(container=data['Container Barcode']) &
+                Q(coordinates=data['Coord (if plate)'])
+            )
+            print(sample_to_update)
+            # update logic here
+
+        else:
+            super().import_field(field, obj, data, is_m2m)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Updated samples from template.")
