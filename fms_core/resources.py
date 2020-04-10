@@ -8,8 +8,11 @@ from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, J
 from reversion.models import Version
 
 from .containers import (
-    CONTAINER_SPEC_TUBE, CONTAINER_SPEC_TUBE_RACK_8X12,
-    CONTAINER_SPEC_96_WELL_PLATE, CONTAINER_SPEC_384_WELL_PLATE)
+    CONTAINER_SPEC_TUBE,
+    CONTAINER_SPEC_TUBE_RACK_8X12,
+    CONTAINER_SPEC_96_WELL_PLATE,
+    CONTAINER_SPEC_384_WELL_PLATE,
+)
 from .models import create_volume_history, Container, Sample, Individual
 
 
@@ -21,6 +24,21 @@ __all__ = [
     "ExtractionResource",
     "ContainerMoveResource",
 ]
+
+
+def skip_rows(dataset, num_rows=0, col_skip=1):
+    if num_rows <= 0:
+        return
+    dataset_headers = dataset[num_rows - 1]
+    dataset_data = dataset[num_rows:]
+    dataset.wipe()
+    dataset.headers = dataset_headers
+    for r in dataset_data:
+        vals = set(r[col_skip:])
+        print(vals)
+        if len(vals) == 1 and "" in vals:
+            continue
+        dataset.append(r)
 
 
 class GenericResource(resources.ModelResource):
@@ -58,6 +76,9 @@ class ContainerResource(GenericResource):
         import_id_fields = ('barcode',)
         fields = ('kind', 'name', 'barcode', 'location', 'coordinates',)
 
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 0)
+
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported containers from template.")
@@ -94,43 +115,44 @@ class SampleResource(GenericResource):
     class Meta:
         model = Sample
         import_id_fields = ('name',)
-        fields = ('biospecimen_type', 'name', 'alias', 'concentration', 'collection_site',
-                  'container')
+        fields = (
+            'biospecimen_type',
+            'name',
+            'alias',
+            'concentration',
+            'collection_site',
+            'container',
+        )
         excluded = ('volume_history', 'individual')
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
 
         if field.attribute == 'individual':
-            ind_data = dict(
+            individual, _ = Individual.objects.get_or_create(
                 participant_id=data["Individual Name"],  # TODO
                 name=data["Individual Name"],
                 sex=data["Sex"],
                 taxon=data["Taxon"]
             )
-
-            try:
-                individual = Individual.objects.get(**ind_data)
-                obj.individual = individual
-            except Individual.DoesNotExist:
-                obj.individual = Individual(**ind_data)
+            obj.individual = individual
 
         elif field.attribute == 'volume_history':
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
-        # if sample is in tube
+
         elif field.attribute == 'container':
-            if data['Container Kind'] in (CONTAINER_SPEC_TUBE.container_kind_id,
-                                          CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
-                                          CONTAINER_SPEC_384_WELL_PLATE.container_kind_id
-                                          ):
-                tube_container_data = dict(
+            if data['Container Kind'] in (
+                CONTAINER_SPEC_TUBE.container_kind_id,
+                CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
+                CONTAINER_SPEC_384_WELL_PLATE.container_kind_id,
+            ):
+                container, _ = Container.objects.get_or_create(
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
                     location=Container.objects.get(barcode=data['Location Barcode']),
                     coordinates=data['Location Coord']
                 )
-                container, _ = Container.objects.get_or_create(**tube_container_data)
                 obj.container = container
 
         else:
@@ -187,6 +209,9 @@ class ExtractionResource(GenericResource):
             'extracted_from',
             'volume_history',
         )
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 7)  # Skip preamble
 
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
