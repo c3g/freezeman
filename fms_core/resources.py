@@ -111,13 +111,18 @@ class SampleResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
+
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
+
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group')
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
+
+    coordinates = Field(attribute='coordinates', column_name='Location Coord')
+
     comment = Field(attribute='comment', column_name='Comment')
 
     # FK fields
@@ -136,7 +141,7 @@ class SampleResource(GenericResource):
 
     class Meta:
         model = Sample
-        import_id_fields = ('name',)
+        import_id_fields = ('container', 'coordinates')
         fields = (
             'biospecimen_type',
             'name',
@@ -174,8 +179,7 @@ class SampleResource(GenericResource):
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
-                    location=Container.objects.get(barcode=data['Location Barcode']),
-                    coordinates=data['Location Coord']
+                    location=Container.objects.get(barcode=data['Location Barcode'])
                 )
                 obj.container = container
 
