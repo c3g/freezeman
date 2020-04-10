@@ -121,8 +121,6 @@ class SampleResource(GenericResource):
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
 
-    coordinates = Field(attribute='coordinates', column_name='Location Coord')
-
     comment = Field(attribute='comment', column_name='Comment')
 
     # FK fields
@@ -141,7 +139,7 @@ class SampleResource(GenericResource):
 
     class Meta:
         model = Sample
-        import_id_fields = ('container', 'coordinates')
+        import_id_fields = ('container',)  # TODO: Should include coordinates too, but missing field???
         fields = (
             'biospecimen_type',
             'name',
@@ -179,7 +177,8 @@ class SampleResource(GenericResource):
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
-                    location=Container.objects.get(barcode=data['Location Barcode'])
+                    location=Container.objects.get(barcode=data['Location Barcode']),
+                    coordinates=data['Location Coord']
                 )
                 obj.container = container
 
