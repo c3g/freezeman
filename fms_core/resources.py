@@ -356,7 +356,8 @@ class IndividualResource(GenericResource):
 # Update resources
 
 class ContainerMoveResource(GenericResource):
-    barcode = Field(attribute='barcode', column_name='Container Barcode to move')
+    id = Field(attribute='barcode', column_name='Container Barcode to move')
+    # fields that can be updated on container move
     location = Field(attribute='location', column_name='Dest. Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Dest. Location Coord')
@@ -364,28 +365,32 @@ class ContainerMoveResource(GenericResource):
 
     class Meta:
         model = Container
-        import_id_fields = ('barcode',)
+        import_id_fields = ('id',)
         fields = (
-            'barcode',
             'location',
             'coordinates',
             'comment',
         )
+        exclude = ('id',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
+        # diff fields on Update show up only if the pk is 'id' field ???
+        ids = []
+        for d in dataset.dict:
+            single_id = Container.objects.get(barcode=d["Container Barcode to move"])
+            ids.append(single_id.pk)
+        dataset.append_col(ids, header='id')
+
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'barcode':
-            container_to_move = Container.objects.get(barcode=data["Container Barcode to move"])
-            obj.barcode = container_to_move.barcode
-            obj.kind = container_to_move.kind
-            obj.name = container_to_move.name
+
+        if field.attribute == 'id':
+            obj = Container.objects.get(pk=data["Container Barcode to move"])
             obj.location = Container.objects.get(barcode=data["Dest. Location Barcode"])
             obj.coordinates = data.get("Dest. Location Coord", "")
             # comment if empty does that mean that comment was removed? or not just not added
-            obj.comment = data.get("Comment", container_to_move.comment)
-
+            obj.comment = data.get("Comment", "")
         else:
             super().import_field(field, obj, data, is_m2m)
 
