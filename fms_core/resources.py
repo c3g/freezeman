@@ -129,13 +129,15 @@ class SampleResource(GenericResource):
 
     # Non-attribute fields
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    individual_name = Field(column_name='Individual Name')
-    sex = Field(column_name='Sex')
-    taxon = Field(column_name='Taxon')
+    # TODO don't really need it ?
+    # individual_name = Field(column_name='Individual Name')
+    sex = Field(attribute='sex', column_name='Sex')
+    taxon = Field(attribute='taxon', column_name='Taxon')
 
     # Computed fields
     coordinates = Field(attribute='coordinates')
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
+    individual = Field(attribute='individual', column_name="Individual Name",
+                       widget=ForeignKeyWidget(Individual, field='name'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
     class Meta:
@@ -234,7 +236,7 @@ class ExtractionResource(GenericResource):
     alias = Field(attribute='alias')
     collection_site = Field(attribute='collection_site')
     container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
+    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
