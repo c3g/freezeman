@@ -158,6 +158,8 @@ class SampleResource(GenericResource):
         # Ugly hacks lie below
 
         if field.attribute == 'individual':
+            # Sample import can optionally create new individuals in the system; or re-use existing ones.
+            # TODO: This should throw a warning if the individual already exists
             individual, _ = Individual.objects.get_or_create(
                 name=data["Individual Name"],
                 sex=data["Sex"],
@@ -166,6 +168,7 @@ class SampleResource(GenericResource):
             obj.individual = individual
 
         elif field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'container':
@@ -188,16 +191,21 @@ class SampleResource(GenericResource):
                     # Case where the container gets coordinates within the parent.
                     container_data["coordinates"] = data['Location Coord']
 
+                # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
+                # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
+                # barcode record in the database, which serves as an ad-hoc additional validation step.
+
                 container, _ = Container.objects.get_or_create(**container_data)
                 obj.container = container
 
         else:
             if field.attribute == 'taxon':
-                # Normalize scientific names
+                # Normalize scientific names to have the correct capitalization
                 data['Taxon'] = normalize_scientific_name(data['Taxon'])
             super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
+        # TODO: Don't think this is needed
         instance.individual.save()
         super().before_save_instance(instance, using_transactions, dry_run)
 
@@ -256,6 +264,8 @@ class ExtractionResource(GenericResource):
         # More!! ugly hacks
 
         if field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
+            # In this case we are initializing the volume history of the EXTRACTED sample.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'extracted_from':
@@ -263,7 +273,8 @@ class ExtractionResource(GenericResource):
                 Q(container=data['Container Barcode']) &
                 Q(coordinates=data['Location Coord'])
             )
-            obj.extracted_from.depleted = check_truth_like(data['Source Depleted'])
+            # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
+            obj.extracted_from.depleted = obj.extracted_from.depleted or check_truth_like(data['Source Depleted'])
 
         elif field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
