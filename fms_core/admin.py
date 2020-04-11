@@ -128,6 +128,10 @@ class ContainerMoveAdmin(ImportMixin, admin.ModelAdmin):
         extra_context = {"title": "Move Containers"}
         return super().changelist_view(request, extra_context=extra_context)
 
+    def get_queryset(self, request):
+        # TODO: Return subset of samples which have been moved or something
+        return super().get_queryset(request).filter(barcode__isnull=True)  # empty
+
     def has_add_permission(self, request):
         return False
 
@@ -142,5 +146,12 @@ class SampleUpdateAdmin(ImportMixin, admin.ModelAdmin):
         extra_context = {"title": "Update Samples"}
         return super().changelist_view(request, extra_context=extra_context)
 
+    def get_queryset(self, request):
+        # TODO: Return subset of samples which have updates or something
+        return super().get_queryset(request).filter(container__isnull=True)  # empty
+
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False
