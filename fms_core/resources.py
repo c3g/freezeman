@@ -365,7 +365,7 @@ class ContainerMoveResource(GenericResource):
             obj.coordinates = data.get("Dest. Location Coord", "")
             # comment if empty does that mean that comment was removed? or not just not added
             obj.comment = data.get("Comment", container_to_move.comment)
-            obj.save()
+            #obj.save()
 
         else:
             super().import_field(field, obj, data, is_m2m)
@@ -376,44 +376,72 @@ class ContainerMoveResource(GenericResource):
 
 
 class SampleUpdateResource(GenericResource):
+    # fields to retrieve a sample
+    id = Field(attribute='id', column_name='id')
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
-    # volume_history
+    # fields that can be updated on sample update
+    # new volume
     new_volume = Field(attribute='new_volume', column_name='New Volume (uL)')
-    # concentration
-    new_concentration = Field(attribute='new_concentration', column_name='New Conc. (ng/uL)')
+    # new concentration
+    concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
     comment = Field(attribute="comment", column_name="Comment")
 
     class Meta:
         model = Sample
         # TODO no PK field in import template ?
-        # import_id_fields = ('barcode',)
-        fields = ('container',
-                  'coordinates',
-                  'new_volume',
-                  'new_concentration',
+        import_id_fields = ('id',)
+        fields = ('new_volume',
+                  'concentration',
                   'depleted',
-                  'comment')
+                  'comment',
+                  'id',
+                  )
+        exclude = ('container', 'coordinates', )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
-    def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'container':
-            sample_to_update = Sample.objects.get(
-                Q(container=data['Container Barcode']) &
-                Q(coordinates=data['Coord (if plate)'])
-            )
-            print(sample_to_update)
-            # update logic here
 
+        ids = []
+        for d in dataset.dict:
+            single_id = Sample.objects.get(
+                    Q(container=d['Container Barcode']) &
+                    Q(coordinates=d['Coord (if plate)'])
+                )
+            ids.append(single_id.pk)
+
+        dataset.append_col(ids, header='id')
+
+        super().before_import(dataset, using_transactions, dry_run, **kwargs)
+
+    def import_field(self, field, obj, data, is_m2m=False):
+        if field.attribute == 'id':
+            obj = Sample.objects.get(pk=data['id'])
+            obj.volume_history.append(
+                create_volume_history("update", data["New Volume (uL)"])
+            )
+            obj.concentration = data["New Conc. (ng/uL)"]
+            obj.depleted = check_truth_like(data["Depleted"])
+            obj.comment = data["Comment"]
         else:
             if field.attribute == 'depleted':
                 # Normalize boolean attribute
                 data["Depleted"] = check_truth_like(data["Depleted"])
+
             super().import_field(field, obj, data, is_m2m)
+
+    # def import_obj(self, obj, data, dry_run):
+    #
+    #     obj = Sample.objects.get(
+    #             Q(container=data['Container Barcode']) &
+    #             Q(coordinates=data['Coord (if plate)'])
+    #         )
+    #     data['id'] = obj.pk
+    #     super().import_obj(obj, data, dry_run)
+
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
