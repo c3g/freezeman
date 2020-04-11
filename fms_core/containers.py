@@ -21,6 +21,7 @@ __all__ = [
     "CONTAINER_KIND_CHOICES",
 
     "SAMPLE_CONTAINER_KINDS",
+    "SAMPLE_CONTAINER_KINDS_WITH_COORDS",
     "PARENT_CONTAINER_KINDS",
 ]
 
@@ -165,6 +166,9 @@ CONTAINER_KIND_CHOICES: Tuple[Tuple[str, str], ...] = tuple(
 
 SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                 if c.sample_holding)
+
+SAMPLE_CONTAINER_KINDS_WITH_COORDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                            if c.sample_holding and len(c.coordinate_spec) > 0)
 
 PARENT_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                 if c.children)

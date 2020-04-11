@@ -11,8 +11,8 @@ from reversion.models import Version
 from .containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
-    CONTAINER_SPEC_96_WELL_PLATE,
-    CONTAINER_SPEC_384_WELL_PLATE,
+    SAMPLE_CONTAINER_KINDS,
+    SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import create_volume_history, Container, Sample, Individual
 
@@ -134,6 +134,7 @@ class SampleResource(GenericResource):
     taxon = Field(column_name='Taxon')
 
     # Computed fields
+    coordinates = Field(attribute='coordinates')
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
@@ -168,18 +169,26 @@ class SampleResource(GenericResource):
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'container':
-            if data['Container Kind'] in (
-                CONTAINER_SPEC_TUBE.container_kind_id,
-                CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
-                CONTAINER_SPEC_384_WELL_PLATE.container_kind_id,
-            ):
-                container, _ = Container.objects.get_or_create(
+            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
+                # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+                # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+                # the container within the parent container.
+
+                container_data = dict(
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
                     location=Container.objects.get(barcode=data['Location Barcode']),
-                    coordinates=data['Location Coord']
                 )
+
+                if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
+                    # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
+                    obj.coordinates = data['Location Coord']
+                else:
+                    # Case where the container gets coordinates within the parent.
+                    container_data["coordinates"] = data['Location Coord']
+
+                container, _ = Container.objects.get_or_create(**container_data)
                 obj.container = container
 
         else:
