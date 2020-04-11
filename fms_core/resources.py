@@ -385,7 +385,6 @@ class ContainerMoveResource(GenericResource):
             obj.coordinates = data.get("Dest. Location Coord", "")
             # comment if empty does that mean that comment was removed? or not just not added
             obj.comment = data.get("Comment", container_to_move.comment)
-            #obj.save()
 
         else:
             super().import_field(field, obj, data, is_m2m)
