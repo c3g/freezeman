@@ -11,8 +11,8 @@ from reversion.models import Version
 from .containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
-    CONTAINER_SPEC_96_WELL_PLATE,
-    CONTAINER_SPEC_384_WELL_PLATE,
+    SAMPLE_CONTAINER_KINDS,
+    SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import create_volume_history, Container, Sample, Individual
 
@@ -134,6 +134,7 @@ class SampleResource(GenericResource):
     taxon = Field(column_name='Taxon')
 
     # Computed fields
+    coordinates = Field(attribute='coordinates')
     individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
@@ -157,6 +158,8 @@ class SampleResource(GenericResource):
         # Ugly hacks lie below
 
         if field.attribute == 'individual':
+            # Sample import can optionally create new individuals in the system; or re-use existing ones.
+            # TODO: This should throw a warning if the individual already exists
             individual, _ = Individual.objects.get_or_create(
                 name=data["Individual Name"],
                 sex=data["Sex"],
@@ -165,30 +168,44 @@ class SampleResource(GenericResource):
             obj.individual = individual
 
         elif field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'container':
-            if data['Container Kind'] in (
-                CONTAINER_SPEC_TUBE.container_kind_id,
-                CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
-                CONTAINER_SPEC_384_WELL_PLATE.container_kind_id,
-            ):
-                container, _ = Container.objects.get_or_create(
+            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
+                # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+                # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+                # the container within the parent container.
+
+                container_data = dict(
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
                     location=Container.objects.get(barcode=data['Location Barcode']),
-                    coordinates=data['Location Coord']
                 )
+
+                if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
+                    # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
+                    obj.coordinates = data['Location Coord']
+                else:
+                    # Case where the container gets coordinates within the parent.
+                    container_data["coordinates"] = data['Location Coord']
+
+                # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
+                # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
+                # barcode record in the database, which serves as an ad-hoc additional validation step.
+
+                container, _ = Container.objects.get_or_create(**container_data)
                 obj.container = container
 
         else:
             if field.attribute == 'taxon':
-                # Normalize scientific names
+                # Normalize scientific names to have the correct capitalization
                 data['Taxon'] = normalize_scientific_name(data['Taxon'])
             super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
+        # TODO: Don't think this is needed
         instance.individual.save()
         super().before_save_instance(instance, using_transactions, dry_run)
 
@@ -247,6 +264,8 @@ class ExtractionResource(GenericResource):
         # More!! ugly hacks
 
         if field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
+            # In this case we are initializing the volume history of the EXTRACTED sample.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'extracted_from':
@@ -254,7 +273,8 @@ class ExtractionResource(GenericResource):
                 Q(container=data['Container Barcode']) &
                 Q(coordinates=data['Location Coord'])
             )
-            obj.extracted_from.depleted = check_truth_like(data['Source Depleted'])
+            # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
+            obj.extracted_from.depleted = obj.extracted_from.depleted or check_truth_like(data['Source Depleted'])
 
         elif field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
