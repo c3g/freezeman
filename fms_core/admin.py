@@ -34,6 +34,7 @@ class ContainerAdmin(AggregatedAdmin):
     fieldsets = (
         (None, {"fields": ("kind", "name", "barcode")}),
         ("Parent Container", {"fields": ("location", "coordinates")}),
+        ("Additional information", {"fields": ("comment",)}),
     )
 
 
