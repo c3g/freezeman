@@ -403,7 +403,7 @@ class SampleUpdateResource(GenericResource):
     coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
     # fields that can be updated on sample update
     # new volume
-    new_volume = Field(attribute='new_volume', column_name='New Volume (uL)')
+    volume_history = Field(attribute='volume_history', column_name='New Volume (uL)')
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
@@ -411,20 +411,18 @@ class SampleUpdateResource(GenericResource):
 
     class Meta:
         model = Sample
-        # TODO no PK field in import template ?
         import_id_fields = ('id',)
-        fields = ('new_volume',
+        fields = ('volume_history',
                   'concentration',
                   'depleted',
                   'comment',
-                  'id',
                   )
         exclude = ('container', 'coordinates', )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
-
+        # add column 'id' with pk
         ids = []
         for d in dataset.dict:
             single_id = Sample.objects.get(
@@ -432,7 +430,6 @@ class SampleUpdateResource(GenericResource):
                     Q(coordinates=d['Coord (if plate)'])
                 )
             ids.append(single_id.pk)
-
         dataset.append_col(ids, header='id')
 
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
@@ -440,28 +437,19 @@ class SampleUpdateResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'id':
             obj = Sample.objects.get(pk=data['id'])
+            obj.concentration = data["New Conc. (ng/uL)"]
+            obj.comment = data["Comment"]
+        elif field.attribute == 'volume_history':
             obj.volume_history.append(
                 create_volume_history("update", data["New Volume (uL)"])
             )
-            obj.concentration = data["New Conc. (ng/uL)"]
-            obj.depleted = check_truth_like(data["Depleted"])
-            obj.comment = data["Comment"]
+
         else:
             if field.attribute == 'depleted':
                 # Normalize boolean attribute
                 data["Depleted"] = check_truth_like(data["Depleted"])
 
             super().import_field(field, obj, data, is_m2m)
-
-    # def import_obj(self, obj, data, dry_run):
-    #
-    #     obj = Sample.objects.get(
-    #             Q(container=data['Container Barcode']) &
-    #             Q(coordinates=data['Coord (if plate)'])
-    #         )
-    #     data['id'] = obj.pk
-    #     super().import_obj(obj, data, dry_run)
-
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
