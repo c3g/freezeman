@@ -11,8 +11,8 @@ from reversion.models import Version
 from .containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
-    CONTAINER_SPEC_96_WELL_PLATE,
-    CONTAINER_SPEC_384_WELL_PLATE,
+    SAMPLE_CONTAINER_KINDS,
+    SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import create_volume_history, Container, Sample, Individual
 
@@ -129,12 +129,15 @@ class SampleResource(GenericResource):
 
     # Non-attribute fields
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    individual_name = Field(column_name='Individual Name')
-    sex = Field(column_name='Sex')
-    taxon = Field(column_name='Taxon')
+    # TODO don't really need it ?
+    # individual_name = Field(column_name='Individual Name')
+    sex = Field(attribute='sex', column_name='Sex')
+    taxon = Field(attribute='taxon', column_name='Taxon')
 
     # Computed fields
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
+    coordinates = Field(attribute='coordinates')
+    individual = Field(attribute='individual', column_name="Individual Name",
+                       widget=ForeignKeyWidget(Individual, field='name'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
     class Meta:
@@ -157,6 +160,8 @@ class SampleResource(GenericResource):
         # Ugly hacks lie below
 
         if field.attribute == 'individual':
+            # Sample import can optionally create new individuals in the system; or re-use existing ones.
+            # TODO: This should throw a warning if the individual already exists
             individual, _ = Individual.objects.get_or_create(
                 name=data["Individual Name"],
                 sex=data["Sex"],
@@ -165,30 +170,44 @@ class SampleResource(GenericResource):
             obj.individual = individual
 
         elif field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'container':
-            if data['Container Kind'] in (
-                CONTAINER_SPEC_TUBE.container_kind_id,
-                CONTAINER_SPEC_96_WELL_PLATE.container_kind_id,
-                CONTAINER_SPEC_384_WELL_PLATE.container_kind_id,
-            ):
-                container, _ = Container.objects.get_or_create(
+            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
+                # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+                # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+                # the container within the parent container.
+
+                container_data = dict(
                     kind=data['Container Kind'],
                     name=data['Container Name'],
                     barcode=data['Container Barcode'],
                     location=Container.objects.get(barcode=data['Location Barcode']),
-                    coordinates=data['Location Coord']
                 )
+
+                if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
+                    # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
+                    obj.coordinates = data['Location Coord']
+                else:
+                    # Case where the container gets coordinates within the parent.
+                    container_data["coordinates"] = data['Location Coord']
+
+                # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
+                # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
+                # barcode record in the database, which serves as an ad-hoc additional validation step.
+
+                container, _ = Container.objects.get_or_create(**container_data)
                 obj.container = container
 
         else:
             if field.attribute == 'taxon':
-                # Normalize scientific names
+                # Normalize scientific names to have the correct capitalization
                 data['Taxon'] = normalize_scientific_name(data['Taxon'])
             super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
+        # TODO: Don't think this is needed
         instance.individual.save()
         super().before_save_instance(instance, using_transactions, dry_run)
 
@@ -217,7 +236,7 @@ class ExtractionResource(GenericResource):
     alias = Field(attribute='alias')
     collection_site = Field(attribute='collection_site')
     container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='participant_id'))
+    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
@@ -247,6 +266,8 @@ class ExtractionResource(GenericResource):
         # More!! ugly hacks
 
         if field.attribute == 'volume_history':
+            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
+            # In this case we are initializing the volume history of the EXTRACTED sample.
             obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
 
         elif field.attribute == 'extracted_from':
@@ -254,7 +275,8 @@ class ExtractionResource(GenericResource):
                 Q(container=data['Container Barcode']) &
                 Q(coordinates=data['Location Coord'])
             )
-            obj.extracted_from.depleted = check_truth_like(data['Source Depleted'])
+            # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
+            obj.extracted_from.depleted = obj.extracted_from.depleted or check_truth_like(data['Source Depleted'])
 
         elif field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
@@ -336,7 +358,8 @@ class IndividualResource(GenericResource):
 # Update resources
 
 class ContainerMoveResource(GenericResource):
-    barcode = Field(attribute='barcode', column_name='Container Barcode to move')
+    id = Field(attribute='barcode', column_name='Container Barcode to move')
+    # fields that can be updated on container move
     location = Field(attribute='location', column_name='Dest. Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Dest. Location Coord')
@@ -344,29 +367,32 @@ class ContainerMoveResource(GenericResource):
 
     class Meta:
         model = Container
-        import_id_fields = ('barcode',)
+        import_id_fields = ('id',)
         fields = (
-            'barcode',
             'location',
             'coordinates',
             'comment',
         )
+        exclude = ('id',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
+        # diff fields on Update show up only if the pk is 'id' field ???
+        ids = []
+        for d in dataset.dict:
+            single_id = Container.objects.get(barcode=d["Container Barcode to move"])
+            ids.append(single_id.pk)
+        dataset.append_col(ids, header='id')
+
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'barcode':
-            container_to_move = Container.objects.get(barcode=data["Container Barcode to move"])
-            obj.barcode = container_to_move.barcode
-            obj.kind = container_to_move.kind
-            obj.name = container_to_move.name
+
+        if field.attribute == 'id':
+            obj = Container.objects.get(pk=data["Container Barcode to move"])
             obj.location = Container.objects.get(barcode=data["Dest. Location Barcode"])
             obj.coordinates = data.get("Dest. Location Coord", "")
             # comment if empty does that mean that comment was removed? or not just not added
-            obj.comment = data.get("Comment", container_to_move.comment)
-            obj.save()
-
+            obj.comment = data.get("Comment", "")
         else:
             super().import_field(field, obj, data, is_m2m)
 
@@ -376,43 +402,59 @@ class ContainerMoveResource(GenericResource):
 
 
 class SampleUpdateResource(GenericResource):
+    # fields to retrieve a sample
+    id = Field(attribute='id', column_name='id')
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
-    # volume_history
-    new_volume = Field(attribute='new_volume', column_name='New Volume (uL)')
-    # concentration
-    new_concentration = Field(attribute='new_concentration', column_name='New Conc. (ng/uL)')
+    # fields that can be updated on sample update
+    # new volume
+    volume_history = Field(attribute='volume_history', column_name='New Volume (uL)')
+    # new concentration
+    concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
     comment = Field(attribute="comment", column_name="Comment")
 
     class Meta:
         model = Sample
-        # TODO no PK field in import template ?
-        # import_id_fields = ('barcode',)
-        fields = ('container',
-                  'coordinates',
-                  'new_volume',
-                  'new_concentration',
+        import_id_fields = ('id',)
+        fields = ('volume_history',
+                  'concentration',
                   'depleted',
-                  'comment')
+                  'comment',
+                  )
+        exclude = ('container', 'coordinates', )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
+        # add column 'id' with pk
+        ids = []
+        for d in dataset.dict:
+            single_id = Sample.objects.get(
+                    Q(container=d['Container Barcode']) &
+                    Q(coordinates=d['Coord (if plate)'])
+                )
+            ids.append(single_id.pk)
+        dataset.append_col(ids, header='id')
+
+        super().before_import(dataset, using_transactions, dry_run, **kwargs)
+
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'container':
-            sample_to_update = Sample.objects.get(
-                Q(container=data['Container Barcode']) &
-                Q(coordinates=data['Coord (if plate)'])
+        if field.attribute == 'id':
+            obj = Sample.objects.get(pk=data['id'])
+            obj.concentration = data["New Conc. (ng/uL)"]
+            obj.comment = data["Comment"]
+        elif field.attribute == 'volume_history':
+            obj.volume_history.append(
+                create_volume_history("update", data["New Volume (uL)"])
             )
-            print(sample_to_update)
-            # update logic here
 
         else:
             if field.attribute == 'depleted':
                 # Normalize boolean attribute
                 data["Depleted"] = check_truth_like(data["Depleted"])
+
             super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
