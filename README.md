@@ -45,9 +45,9 @@ Python package dependencies are listed in `requirements.txt`.
      
   4. Run any outstanding migrations:
   
-    ```bash
-    python ./manage.py migrate
-    ```
+     ```bash
+     python ./manage.py migrate
+     ```
     
   5. Run the development server:
   
