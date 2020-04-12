@@ -1,6 +1,7 @@
 [run]
 include=fms_core/*
 omit=
+    */admin.py
     */migrations/*
     */tests/*
 branch=True

@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.templatetags.static import static
 from import_export.admin import ImportMixin
 from .utils_admin import AggregatedAdmin
 from .resources import *
@@ -38,8 +40,27 @@ class ContainerAdmin(AggregatedAdmin):
     )
 
 
+class VolumeHistoryWidget(forms.widgets.HiddenInput):
+    class Media:
+        js = (static("fms_core/volume_history_widget.js"),)
+
+    def __init__(self, attrs=None):
+        super().__init__({
+            **(attrs or {}),
+            "data-volume-history": "true",
+        })
+
+
+class SampleForm(forms.ModelForm):
+    class Meta:
+        model = Sample
+        exclude = ()
+        widgets = {"volume_history": VolumeHistoryWidget()}
+
+
 @admin.register(Sample)
 class SampleAdmin(AggregatedAdmin):
+    form = SampleForm
     resource_class = SampleResource
 
     list_display = (
