@@ -183,7 +183,7 @@ class Sample(models.Model):
         help_text="Concentration in ng/µL. Required for nucleic acid samples."
     )
 
-    depleted = models.BooleanField(default=False)
+    depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
     experimental_group = JSONField(blank=True, null=True)
     collection_site = models.CharField(max_length=200)
@@ -198,16 +198,20 @@ class Sample(models.Model):
                                   limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
     # Location within the container, specified by coordinates
     # TODO list of choices ?
-    coordinates = models.CharField(max_length=10, blank=True)
+    coordinates = models.CharField(max_length=10, blank=True,
+                                   help_text="Coordinates of the sample in a parent container. Only applicable for "
+                                             "containers that directly store samples with coordinates, e.g. plates.")
 
     # TODO Collection site (Optional but for big study, a choice list will be included in the Submission file) ?
 
     # fields only for extracted samples
     extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
                                        related_name="extractions",
-                                       help_text="The sample this sample was extracted from.")
+                                       help_text="The sample this sample was extracted from. Can only be specified for "
+                                                 "extracted nucleic acid samples.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
-                                      help_text="Volume of the original sample used for the extraction, in µL.")
+                                      help_text="Volume of the original sample used for the extraction, in µL. Must "
+                                                "be specified only for extracted nucleic acid samples.")
 
     class Meta:
         unique_together = ['container', 'coordinates']
