@@ -131,14 +131,10 @@ class SampleResource(GenericResource):
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     # TODO don't really need it ?
     # individual_name = Field(column_name='Individual Name')
-    sex = Field(attribute='sex', column_name='Sex')
-    taxon = Field(attribute='taxon', column_name='Taxon')
-
-    # Computed fields
-    coordinates = Field(attribute='coordinates')
-    individual = Field(attribute='individual', column_name="Individual Name",
-                       widget=ForeignKeyWidget(Individual, field='name'))
-    volume_history = Field(attribute='volume_history', widget=JSONWidget())
+    sex = Field(column_name='Sex')
+    taxon = Field(column_name='Taxon')
+    mother_id = Field(column_name='Mother ID')
+    father_id = Field(column_name='Father ID')
 
     class Meta:
         model = Sample
@@ -156,55 +152,77 @@ class SampleResource(GenericResource):
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)
 
+    def import_obj(self, obj, data, dry_run):
+        super().import_obj(obj, data, dry_run)
+
+        # Sample import can optionally create new individuals in the system; or re-use existing ones.
+
+        mother = None
+        father = None
+
+        if data["Mother ID"]:
+            mother, _ = Individual.objects.get_or_create(
+                name=data["Mother ID"].strip(),
+                sex="F",
+                taxon=data["Taxon"],  # Mother has same taxon as offspring
+            )
+
+        if data["Father ID"]:
+            father, _ = Individual.objects.get_or_create(
+                name=data["Father ID"].strip(),
+                sex="M",
+                taxon=data["Taxon"],  # Father has same taxon as offspring
+            )
+
+        # TODO: This should throw a warning if the individual already exists
+        individual, _ = Individual.objects.get_or_create(
+            name=data["Individual Name"].strip(),  # TODO: Normalize properly
+            sex=data["Sex"],
+            taxon=data["Taxon"],
+            mother=mother,
+            father=father,
+        )
+        obj.individual = individual
+
+        # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
+        obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
 
-        if field.attribute == 'individual':
-            # Sample import can optionally create new individuals in the system; or re-use existing ones.
-            # TODO: This should throw a warning if the individual already exists
-            individual, _ = Individual.objects.get_or_create(
-                name=data["Individual Name"],
-                sex=data["Sex"],
-                taxon=data["Taxon"]
+        if field.attribute == 'container' and data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
+            # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+            # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+            # the container within the parent container.
+
+            container_data = dict(
+                kind=data['Container Kind'],
+                name=data['Container Name'],
+                barcode=data['Container Barcode'],
+                location=Container.objects.get(barcode=data['Location Barcode']),
             )
-            obj.individual = individual
 
-        elif field.attribute == 'volume_history':
-            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-            obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
+                # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
+                obj.coordinates = data['Location Coord']
+            else:
+                # Case where the container gets coordinates within the parent.
+                container_data["coordinates"] = data['Location Coord']
 
-        elif field.attribute == 'container':
-            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
-                # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
-                # specifies the sample's location within the container itself. Otherwise, it specifies the location of
-                # the container within the parent container.
+            # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
+            # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
+            # barcode record in the database, which serves as an ad-hoc additional validation step.
 
-                container_data = dict(
-                    kind=data['Container Kind'],
-                    name=data['Container Name'],
-                    barcode=data['Container Barcode'],
-                    location=Container.objects.get(barcode=data['Location Barcode']),
-                )
+            container, _ = Container.objects.get_or_create(**container_data)
+            obj.container = container
 
-                if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
-                    # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
-                    obj.coordinates = data['Location Coord']
-                else:
-                    # Case where the container gets coordinates within the parent.
-                    container_data["coordinates"] = data['Location Coord']
+            return
 
-                # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
-                # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
-                # barcode record in the database, which serves as an ad-hoc additional validation step.
+        elif field.attribute == 'taxon':
+            # Normalize scientific names to have the correct capitalization
+            data['Taxon'] = normalize_scientific_name(data['Taxon'])
 
-                container, _ = Container.objects.get_or_create(**container_data)
-                obj.container = container
-
-        else:
-            if field.attribute == 'taxon':
-                # Normalize scientific names to have the correct capitalization
-                data['Taxon'] = normalize_scientific_name(data['Taxon'])
-            super().import_field(field, obj, data, is_m2m)
+        super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         # TODO: Don't think this is needed
