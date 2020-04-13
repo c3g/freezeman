@@ -171,11 +171,17 @@ class Sample(models.Model):
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
 
-    volume_history = JSONField(validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
+    volume_history = JSONField("volume history in µL", validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
-    concentration = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
-                                        help_text="Concentration, ng/µL")
+    concentration = models.DecimalField(
+        "concentration in ng/µL",
+        max_digits=20,
+        decimal_places=3,
+        null=True,
+        blank=True,
+        help_text="Concentration in ng/µL. Required for nucleic acid samples."
+    )
 
     depleted = models.BooleanField(default=False)
 
@@ -198,8 +204,10 @@ class Sample(models.Model):
 
     # fields only for extracted samples
     extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
-                                       related_name="extractions")
-    volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True)
+                                       related_name="extractions",
+                                       help_text="The sample this sample was extracted from.")
+    volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
+                                      help_text="Volume of the original sample used for the extraction, in µL.")
 
     class Meta:
         unique_together = ['container', 'coordinates']
