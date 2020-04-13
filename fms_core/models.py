@@ -264,45 +264,46 @@ class Sample(models.Model):
 
         # Validate container consistency
 
-        parent_spec = CONTAINER_KIND_SPECS[self.container.kind]
+        if self.container_id is not None:
+            parent_spec = CONTAINER_KIND_SPECS[self.container.kind]
 
-        #  - Validate that parent can hold samples
-        if not parent_spec.sample_holding:
-            add_error(
-                errors,
-                "container",
-                ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
-            )
+            #  - Validate that parent can hold samples
+            if not parent_spec.sample_holding:
+                add_error(
+                    errors,
+                    "container",
+                    ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
+                )
 
-        #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
-        if self.extracted_from is not None and any((
-                parent_spec != CONTAINER_SPEC_TUBE,
-                self.container.location is None,
-                CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
-        )):
-            add_error(
-                errors,
-                "container",
-                ValidationError("Extractions currently must be conducted on a tube in an 8x12 tube rack")
-            )
+            #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
+            if self.extracted_from is not None and any((
+                    parent_spec != CONTAINER_SPEC_TUBE,
+                    self.container.location is None,
+                    CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
+            )):
+                add_error(
+                    errors,
+                    "container",
+                    ValidationError("Extractions currently must be conducted on a tube in an 8x12 tube rack")
+                )
 
-        #  - Validate coordinates against parent container spec
-        if not errors.get("container", None):
-            try:
-                self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-            except CoordinateError as e:
-                add_error(errors, "container", ValidationError(str(e)))
+            #  - Validate coordinates against parent container spec
+            if not errors.get("container"):
+                try:
+                    self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
+                except CoordinateError as e:
+                    add_error(errors, "container", ValidationError(str(e)))
 
-        # TODO: This isn't performant for bulk ingestion
-        # - Check for coordinate overlap with existing child containers of the parent
-        if not errors.get("container", None) and not parent_spec.coordinate_overlap_allowed:
-            try:
-                check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
-            except CoordinateError as e:
-                add_error(errors, "container", ValidationError(str(e)))
-            except Sample.DoesNotExist:
-                # Fine, the coordinates are free to use.
-                pass
+            # TODO: This isn't performant for bulk ingestion
+            # - Check for coordinate overlap with existing child containers of the parent
+            if not errors.get("container", None) and not parent_spec.coordinate_overlap_allowed:
+                try:
+                    check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
+                except CoordinateError as e:
+                    add_error(errors, "container", ValidationError(str(e)))
+                except Sample.DoesNotExist:
+                    # Fine, the coordinates are free to use.
+                    pass
 
         if errors:
             raise ValidationError(errors)
