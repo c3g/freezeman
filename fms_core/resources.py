@@ -15,6 +15,7 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import create_volume_history, Container, Sample, Individual
+from .utils import str_normalize
 
 
 __all__ = [
@@ -35,12 +36,13 @@ def check_truth_like(string: str) -> bool:
     """
     Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
     """
-    return string.strip().upper() in ("TRUE", "T", "YES", "Y")
+    return str_normalize(string).upper() in ("TRUE", "T", "YES", "Y")
 
 
 def normalize_scientific_name(name: str) -> str:
     # Converts (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
-    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
+    return str_normalize(" ".join((a.title() if i == 0 else a.lower())
+                                  for i, a in enumerate(RE_WHITESPACE.split(name))))
 
 
 def skip_rows(dataset, num_rows=0, col_skip=1):
@@ -51,10 +53,10 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
     dataset.wipe()
     dataset.headers = dataset_headers
     for r in dataset_data:
-        vals = set(r[col_skip:])
+        vals = set(("" if not c else c) for c in r[col_skip:])
         if len(vals) == 1 and "" in vals:
             continue
-        dataset.append(r)
+        dataset.append(tuple(str_normalize(c) if isinstance(c, str) else c for c in r))
 
 
 class GenericResource(resources.ModelResource):
@@ -96,9 +98,15 @@ class ContainerResource(GenericResource):
         skip_rows(dataset, 6)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'kind':
+        if field.attribute == "kind":
             # Normalize kind attribute to be lowercase
-            data["Container Kind"] = data["Container Kind"].lower().strip()
+            data["Container Kind"] = str(data.get("Container Kind") or "").lower()
+        elif field.attribute == "coordinates":
+            # Normalize None coordinates to empty strings
+            data["Location Coordinate"] = str(data.get("Location Coordinate") or "").upper()
+        elif field.attribute == "comment":
+            # Normalize None comments to empty strings
+            data["Comment"] = str(data.get("Comment") or "")
         super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
@@ -162,52 +170,54 @@ class SampleResource(GenericResource):
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
-                name=data["Mother ID"].strip(),
+                name=str(data.get("Mother ID") or ""),
                 sex="F",
-                taxon=data["Taxon"],  # Mother has same taxon as offspring
+                taxon=str(data.get("Taxon") or ""),  # Mother has same taxon as offspring
             )
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
-                name=data["Father ID"].strip(),
+                name=str(data.get("Father ID") or ""),
                 sex="M",
-                taxon=data["Taxon"],  # Father has same taxon as offspring
+                taxon=str(data.get("Taxon") or ""),  # Father has same taxon as offspring
             )
 
         # TODO: This should throw a warning if the individual already exists
         individual, _ = Individual.objects.get_or_create(
-            name=data["Individual Name"].strip(),  # TODO: Normalize properly
-            sex=data["Sex"],
-            taxon=data["Taxon"],
+            name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
+            sex=str(data.get("Sex") or "Unknown"),  # TODO: Don't hard-code unknown value
+            taxon=str(data.get("Taxon") or ""),
             mother=mother,
             father=father,
         )
         obj.individual = individual
 
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-        obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+        obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
 
-        if field.attribute == 'container' and data['Container Kind'] in SAMPLE_CONTAINER_KINDS:
+        normalized_container_kind = str(data.get('Container Kind') or "").lower()
+
+        if field.attribute == 'container' and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
             # specifies the sample's location within the container itself. Otherwise, it specifies the location of
             # the container within the parent container.
 
             container_data = dict(
-                kind=data['Container Kind'],
-                name=data['Container Name'],
-                barcode=data['Container Barcode'],
-                location=Container.objects.get(barcode=data['Location Barcode']),
+                kind=normalized_container_kind,
+                name=str(data.get("Container Name") or ""),
+                barcode=str(data.get("Container Barcode") or ""),
+                location=Container.objects.get(barcode=str(data.get("Location Barcode") or "")),
             )
 
-            if data['Container Kind'] in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
+            if normalized_container_kind in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
                 # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
-                obj.coordinates = data['Location Coord']
+                obj.coordinates = str(data.get("Location Coord") or "")
             else:
                 # Case where the container gets coordinates within the parent.
-                container_data["coordinates"] = data['Location Coord']
+                container_data["coordinates"] = str(data.get("Location Coord") or "")
 
             # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
             # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
@@ -220,7 +230,11 @@ class SampleResource(GenericResource):
 
         elif field.attribute == 'taxon':
             # Normalize scientific names to have the correct capitalization
-            data['Taxon'] = normalize_scientific_name(data['Taxon'])
+            data["Taxon"] = normalize_scientific_name(str(data.get("Taxon") or ""))
+
+        elif field.attribute == "comment":
+            # Normalize None comments to empty strings
+            data["Comment"] = str(data.get("Comment") or "")
 
         super().import_field(field, obj, data, is_m2m)
 
@@ -286,21 +300,22 @@ class ExtractionResource(GenericResource):
         if field.attribute == 'volume_history':
             # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             # In this case we are initializing the volume history of the EXTRACTED sample.
-            obj.volume_history = [create_volume_history("update", data["Volume (uL)"])]
+            obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
 
         elif field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
-                Q(container=data['Container Barcode']) &
-                Q(coordinates=data['Location Coord'])
+                Q(container=str(data.get('Container Barcode') or "")) &
+                Q(coordinates=str(data.get('Location Coord') or ""))
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
-            obj.extracted_from.depleted = obj.extracted_from.depleted or check_truth_like(data['Source Depleted'])
+            obj.extracted_from.depleted = (obj.extracted_from.depleted or
+                                           check_truth_like(str(data.get("Source Depleted") or "")))
 
         elif field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
 
             shared_parent_info = dict(
-                barcode=data['Nucleic Acid Location Barcode'],
+                barcode=str(data.get('Nucleic Acid Location Barcode') or ""),
                 # TODO: Currently can only extract into tube racks 8x12 - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
             )
@@ -322,11 +337,11 @@ class ExtractionResource(GenericResource):
 
             # Information that can be used to either retrieve or create a new tube container
             shared_container_info = dict(
-                barcode=data['Nucleic Acid Container Barcode'],
+                barcode=str(data.get('Nucleic Acid Container Barcode') or ""),
                 # TODO: Currently can only extract into tubes - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE.container_kind_id,
                 location=parent,
-                coordinates=data['Nucleic Acid Location Coord']
+                coordinates=str(data.get("Nucleic Acid Location Coord") or "")
             )
 
             try:
@@ -394,23 +409,23 @@ class ContainerMoveResource(GenericResource):
         exclude = ('id',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
-        skip_rows(dataset, 6)  # Skip preamble
+        skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
         # diff fields on Update show up only if the pk is 'id' field ???
         ids = []
         for d in dataset.dict:
-            single_id = Container.objects.get(barcode=d["Container Barcode to move"])
+            single_id = Container.objects.get(barcode=str(d.get("Container Barcode to move") or ""))
             ids.append(single_id.pk)
         dataset.append_col(ids, header='id')
 
     def import_field(self, field, obj, data, is_m2m=False):
 
         if field.attribute == 'id':
-            obj = Container.objects.get(pk=data["Container Barcode to move"])
-            obj.location = Container.objects.get(barcode=data["Dest. Location Barcode"])
-            obj.coordinates = data.get("Dest. Location Coord", "")
+            obj = Container.objects.get(pk=str(data.get("Container Barcode to move") or ""))
+            obj.location = Container.objects.get(barcode=str(data.get("Dest. Location Barcode") or ""))
+            obj.coordinates = str(data.get("Dest. Location Coord") or "")
             # comment if empty does that mean that comment was removed? or not just not added
-            obj.comment = data.get("Comment", "")
+            obj.comment = str(data.get("Comment") or "")
         else:
             super().import_field(field, obj, data, is_m2m)
 
@@ -436,12 +451,13 @@ class SampleUpdateResource(GenericResource):
     class Meta:
         model = Sample
         import_id_fields = ('id',)
-        fields = ('volume_history',
-                  'concentration',
-                  'depleted',
-                  'comment',
-                  )
-        exclude = ('container', 'coordinates', )
+        fields = (
+            'volume_history',
+            'concentration',
+            'depleted',
+            'comment',
+        )
+        exclude = ('container', 'coordinates')
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
@@ -450,9 +466,9 @@ class SampleUpdateResource(GenericResource):
         ids = []
         for d in dataset.dict:
             single_id = Sample.objects.get(
-                    Q(container=d['Container Barcode']) &
-                    Q(coordinates=d['Coord (if plate)'])
-                )
+                Q(container=d.get('Container Barcode') or "") &
+                Q(coordinates=d.get('Coord (if plate)') or "")
+            )
             ids.append(single_id.pk)
         dataset.append_col(ids, header='id')
 
@@ -460,18 +476,19 @@ class SampleUpdateResource(GenericResource):
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'id':
-            obj = Sample.objects.get(pk=data['id'])
-            obj.concentration = data["New Conc. (ng/uL)"]
-            obj.comment = data["Comment"]
+            obj = Sample.objects.get(pk=str(data.get("id") or ""))
+            obj.concentration = str(data.get("New Conc. (ng/uL)") or "")
+            obj.comment = str(data.get("Comment") or "")
+
         elif field.attribute == 'volume_history':
             obj.volume_history.append(
-                create_volume_history("update", data["New Volume (uL)"])
+                create_volume_history("update", str(data.get("New Volume (uL)") or ""))
             )
 
         else:
             if field.attribute == 'depleted':
                 # Normalize boolean attribute
-                data["Depleted"] = check_truth_like(data["Depleted"])
+                data["Depleted"] = check_truth_like(str(data.get("Depleted") or ""))
 
             super().import_field(field, obj, data, is_m2m)
 

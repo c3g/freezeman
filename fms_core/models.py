@@ -1,6 +1,5 @@
 import re
 import reversion
-import unicodedata
 
 from datetime import datetime
 from decimal import Decimal
@@ -22,6 +21,7 @@ from .containers import (
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
 from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA
+from .utils import str_normalize
 
 
 __all__ = [
@@ -49,10 +49,6 @@ def create_volume_history(update_type: str, volume_value: str, extracted_sample_
         "date": datetime.utcnow().isoformat() + "Z",
         **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
     }
-
-
-def str_normalize(s: str):
-    return unicodedata.normalize("NFC", s.strip())
 
 
 def add_error(errors: dict, field: str, error: ValidationError):
