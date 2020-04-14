@@ -13,6 +13,6 @@ const _fetchContainers = networkAction(FETCH_CONTAINERS, "/");  // TODO: URL
 export const fetchContainers = () => async (dispatch, getState) => {
     if (getState().containers.isFetching) return;
     // TODO: Account for pagination
-    if (!getState().containers.didInvalidate) return;
+    if (!getState().containers.didInvalidate && getState().containers.items.length > 0) return;
     await dispatch(_fetchContainers());
 };
