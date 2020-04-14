@@ -1,6 +1,7 @@
 from django.http.response import HttpResponseNotFound
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from reversion.models import Version
 
@@ -26,6 +27,8 @@ def versions_detail(obj):
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class ContainerKindViewSet(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
     def list(self, request):
         return Response(data=[s.serialize() for s in ContainerSpec.container_specs])
 
