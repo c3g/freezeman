@@ -23,9 +23,21 @@ import DashboardPage from "./DashboardPage";
 import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
 import IndividualsPage from "./IndividualsPage";
 import ReportingPage from "./ReportingPage";
+
+import PrivateRoute from "./PrivateRoute";
+
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchContainerKinds} from "../modules/containers/actions";
 
+const HORIZONTAL_MENU_ITEMS = [
+    {
+        url: "/sign-in",
+        icon: <LoginOutlined />,
+        text: "Sign In",
+    }
+]
+
+// TODO: Disabled if not authenticated
 const MENU_ITEMS = [
     {
         url: "/dashboard",
@@ -63,11 +75,8 @@ const App = ({fetchContainerKinds}) => {
         <Layout.Header style={{display: "flex"}}>
             <div style={{color: "white", width: 156, textAlign: "center", fontSize: "20px"}}>FreezeMan</div>
             <div style={{flex: 1}}/>
-            <Menu theme="dark" mode="horizontal">
-                <Menu.Item key="sign-in">
-                    <LoginOutlined/>
-                    Sign In
-                </Menu.Item>
+            <Menu theme="dark" mode="horizontal" selectedKeys={matchingMenuKeys(HORIZONTAL_MENU_ITEMS)}>
+                {HORIZONTAL_MENU_ITEMS.map(renderMenuItem)}
             </Menu>
         </Layout.Header>
         <Layout>
@@ -91,21 +100,21 @@ const App = ({fetchContainerKinds}) => {
                             <SignInForm/>
                         </Card>
                     </Route>
-                    <Route path="/dashboard">
+                    <PrivateRoute path="/dashboard">
                         <DashboardPage/>
-                    </Route>
-                    <Route path="/containers">
+                    </PrivateRoute>
+                    <PrivateRoute path="/containers">
                         <ContainersPage/>
-                    </Route>
-                    <Route path="/samples">
+                    </PrivateRoute>
+                    <PrivateRoute path="/samples">
                         <SamplesExtractionsPage/>
-                    </Route>
-                    <Route path="/individuals">
+                    </PrivateRoute>
+                    <PrivateRoute path="/individuals">
                         <IndividualsPage/>
-                    </Route>
-                    <Route path="/reporting">
+                    </PrivateRoute>
+                    <PrivateRoute path="/reporting">
                         <ReportingPage/>
-                    </Route>
+                    </PrivateRoute>
                 </Switch>
             </Layout.Content>
         </Layout>
