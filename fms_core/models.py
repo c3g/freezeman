@@ -20,7 +20,7 @@ from .containers import (
     PARENT_CONTAINER_KINDS,
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
-from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA
+from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP
 from .utils import str_normalize
 
 
@@ -181,7 +181,7 @@ class Sample(models.Model):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = JSONField(blank=True, null=True)
+    experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)])
     collection_site = models.CharField(max_length=200)
     tissue_source = models.CharField(max_length=200, blank=True)
     reception_date = models.DateField(default=timezone.now)
