@@ -1,13 +1,16 @@
+from django.http.response import HttpResponseNotFound
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
 
+from .containers import ContainerSpec, CONTAINER_KIND_SPECS
 from .models import Container, Sample, Individual
 from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer
 
 
 __all__ = [
+    "ContainerKindViewSet",
     "ContainerViewSet",
     "SampleViewSet",
     "IndividualViewSet",
@@ -19,6 +22,17 @@ def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
     serializer = VersionSerializer(versions, many=True)
     return Response(serializer.data)
+
+
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
+class ContainerKindViewSet(viewsets.ViewSet):
+    def list(self, request):
+        return Response(data=[s.serialize() for s in ContainerSpec.container_specs])
+
+    def retrieve(self, request, pk=None):
+        if pk in CONTAINER_KIND_SPECS:
+            return Response(data=CONTAINER_KIND_SPECS[pk].serialize())
+        return HttpResponseNotFound()
 
 
 class ContainerViewSet(viewsets.ModelViewSet):

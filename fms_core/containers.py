@@ -36,8 +36,19 @@ class ContainerSpec:
         self._coordinate_spec = coordinate_spec
         self._coordinate_overlap_allowed = coordinate_overlap_allowed
         self._children = children
+        for c in children:
+            c.register_parent(self)
+
+        self._is_child_of = []
 
         ContainerSpec.container_specs.append(self)
+
+    def register_parent(self, parent: "ContainerSpec"):
+        self._is_child_of.append(parent)
+
+    @property
+    def is_source(self) -> bool:
+        return not self._is_child_of
 
     @property
     def container_kind_id(self) -> str:
@@ -64,6 +75,15 @@ class ContainerSpec:
 
     def validate_and_normalize_coordinates(self, coordinates: str) -> str:
         return validate_and_normalize_coordinates(coordinates, self._coordinate_spec)
+
+    def serialize(self) -> dict:
+        return {
+            "id": self._container_kind_id,
+            "coordinate_spec": self._coordinate_spec,
+            "coordinate_overlap_allowed": self._coordinate_overlap_allowed,
+            "children_ids": [c.container_kind_id for c in self._children],
+            "is_source": self.is_source,
+        }
 
     def __eq__(self, other):
         return isinstance(other, ContainerSpec) and other.container_kind_id == self.container_kind_id
