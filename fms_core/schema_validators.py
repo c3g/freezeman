@@ -51,3 +51,16 @@ VOLUME_SCHEMA = {
     },
     "minItems": 1
 }
+
+
+EXPERIMENTAL_GROUP = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:experimental_group",
+    "title": "Experimental group schema",
+    "description": "Schema used to define experimental groups for a sample.",
+    "type": "array",
+    "items": {
+        "type": "string"
+    },
+    "uniqueItems": True
+}

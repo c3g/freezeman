@@ -123,7 +123,8 @@ class SampleResource(GenericResource):
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
 
-    experimental_group = Field(attribute='experimental_group', column_name='Experimental Group')
+    experimental_group = Field(attribute='experimental_group', column_name='Experimental Group',
+                               widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
