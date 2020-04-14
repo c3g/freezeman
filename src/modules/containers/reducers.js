@@ -1,3 +1,17 @@
+export const containerKinds = (
+    state = {
+        items: [],
+        itemsByID: {},
+        isFetching: false
+    },
+    action
+) => {
+    switch (action.type) {
+        default:
+            return state;
+    }
+}
+
 export const containers = (
     state = {
         items: [],
