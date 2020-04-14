@@ -1,5 +1,5 @@
-import React from "react";
-
+import React, {useEffect} from "react";
+import {connect} from "react-redux";
 import {Route, Switch, withRouter} from "react-router-dom";
 
 import {Card, Layout, Menu} from "antd";
@@ -24,6 +24,7 @@ import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
 import IndividualsPage from "./IndividualsPage";
 import ReportingPage from "./ReportingPage";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
+import {fetchContainerKinds} from "../modules/containers/actions";
 
 const MENU_ITEMS = [
     {
@@ -53,14 +54,18 @@ const MENU_ITEMS = [
     },
 ]
 
-const App = () => (
-    <Layout style={{height: "100vh"}}>
+const App = ({fetchContainerKinds}) => {
+    useEffect(() => {
+        fetchContainerKinds();
+    });
+
+    return <Layout style={{height: "100vh"}}>
         <Layout.Header style={{display: "flex"}}>
             <div style={{color: "white", width: 156, textAlign: "center", fontSize: "20px"}}>FreezeMan</div>
-            <div style={{flex: 1}} />
+            <div style={{flex: 1}}/>
             <Menu theme="dark" mode="horizontal">
                 <Menu.Item key="sign-in">
-                    <LoginOutlined />
+                    <LoginOutlined/>
                     Sign In
                 </Menu.Item>
             </Menu>
@@ -83,28 +88,33 @@ const App = () => (
                             maxWidth: "396px",
                             width: "100%",
                         }} bodyStyle={{paddingBottom: 0}}>
-                            <SignInForm />
+                            <SignInForm/>
                         </Card>
                     </Route>
                     <Route path="/dashboard">
-                        <DashboardPage />
+                        <DashboardPage/>
                     </Route>
                     <Route path="/containers">
-                        <ContainersPage />
+                        <ContainersPage/>
                     </Route>
                     <Route path="/samples">
-                        <SamplesExtractionsPage />
+                        <SamplesExtractionsPage/>
                     </Route>
                     <Route path="/individuals">
-                        <IndividualsPage />
+                        <IndividualsPage/>
                     </Route>
                     <Route path="/reporting">
-                        <ReportingPage />
+                        <ReportingPage/>
                     </Route>
                 </Switch>
             </Layout.Content>
         </Layout>
-    </Layout>
-);
+    </Layout>;
+};
 
-export default withRouter(App);
+// noinspection JSUnusedGlobalSymbols
+export const mapDispatchToProps = dispatch => ({
+    fetchContainerKinds: () => dispatch(fetchContainerKinds()),
+});
+
+export default withRouter(connect(null, mapDispatchToProps)(App));

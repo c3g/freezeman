@@ -1,5 +1,7 @@
 import fetch from "cross-fetch";
 
+import {API_BASE_PATH} from "../config";
+
 export const createNetworkActionTypes = name => ({
     REQUEST: `${name}.REQUEST`,
     RECEIVE: `${name}.RECEIVE`,
@@ -12,7 +14,7 @@ export const networkAction = (types, url, method="GET") =>
 
         try {
             // TODO: Auth
-            const response = await fetch(url, {
+            const response = await fetch(`${API_BASE_PATH}${url}`, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
