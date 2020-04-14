@@ -7,7 +7,7 @@ import TemplateFlow from "../TemplateFlow";
 const ExtractionsProcessContent = () => <>
     <AppPageHeader title="Process Extractions" onBack={() => {}} />
     <PageContent>
-        <TemplateFlow uploadText="Upload the provided template with up to 384 extractions." />
+        <TemplateFlow uploadText="Upload the provided template with up to 96 extractions." />
     </PageContent>
 </>;
 
