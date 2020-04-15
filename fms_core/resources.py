@@ -59,6 +59,16 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
         dataset.append(tuple(str_normalize(c) if isinstance(c, str) else c for c in r))
 
 
+def normalize_experimental_group(string):
+    experimental_group_obj = list()
+    if ',' in string:
+        for s in string.split(','):
+            experimental_group_obj.append(s.strip())
+    else:
+        experimental_group_obj.append(string)
+    return str(experimental_group_obj)
+
+
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True
@@ -141,7 +151,7 @@ class SampleResource(GenericResource):
     # TODO don't really need it ?
     # individual_name = Field(column_name='Individual Name')
     sex = Field(column_name='Sex')
-    taxon = Field(column_name='Taxon')
+    taxon = Field(attribute='taxon', column_name='Taxon')
     mother_id = Field(column_name='Mother ID')
     father_id = Field(column_name='Father ID')
 
@@ -236,6 +246,9 @@ class SampleResource(GenericResource):
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
             data["Comment"] = str(data.get("Comment") or "")
+
+        elif field.attribute == "experimental_group":
+            data["Experimental Group"] = normalize_experimental_group(str(data.get("Experimental Group") or ""))
 
         super().import_field(field, obj, data, is_m2m)
 
