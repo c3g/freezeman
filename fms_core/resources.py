@@ -29,6 +29,7 @@ __all__ = [
 ]
 
 
+RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
 
 
@@ -41,8 +42,7 @@ def check_truth_like(string: str) -> bool:
 
 def normalize_scientific_name(name: str) -> str:
     # Converts (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
-    return str_normalize(" ".join((a.title() if i == 0 else a.lower())
-                                  for i, a in enumerate(RE_WHITESPACE.split(name))))
+    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
 
 
 def skip_rows(dataset, num_rows=0, col_skip=1):
@@ -56,7 +56,7 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
         vals = set(("" if c is None else c) for c in r[col_skip:])
         if len(vals) == 1 and "" in vals:
             continue
-        dataset.append(tuple(str_normalize(c) if isinstance(c, str) else c for c in r))
+        dataset.append(tuple(str_normalize(c) if isinstance(c, str) else ("" if c is None else c) for c in r))
 
 
 class GenericResource(resources.ModelResource):
@@ -123,8 +123,6 @@ class SampleResource(GenericResource):
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
 
-    experimental_group = Field(attribute='experimental_group', column_name='Experimental Group',
-                               widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
@@ -137,6 +135,7 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
+    experimental_group = Field(column_name='Experimental Group', widget=JSONWidget())
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     # TODO don't really need it ?
     # individual_name = Field(column_name='Individual Name')
@@ -169,29 +168,34 @@ class SampleResource(GenericResource):
         mother = None
         father = None
 
+        taxon = normalize_scientific_name(str(data.get("Taxon") or ""))
+
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
                 name=str(data.get("Mother ID") or ""),
                 sex="F",
-                taxon=str(data.get("Taxon") or ""),  # Mother has same taxon as offspring
+                taxon=taxon,  # Mother has same taxon as offspring
             )
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
                 name=str(data.get("Father ID") or ""),
                 sex="M",
-                taxon=str(data.get("Taxon") or ""),  # Father has same taxon as offspring
+                taxon=taxon,  # Father has same taxon as offspring
             )
 
         # TODO: This should throw a warning if the individual already exists
         individual, _ = Individual.objects.get_or_create(
             name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
             sex=str(data.get("Sex") or "Unknown"),  # TODO: Don't hard-code unknown value
-            taxon=str(data.get("Taxon") or ""),
+            taxon=taxon,
             mother=mother,
             father=father,
         )
         obj.individual = individual
+
+        # Experimental group is stored as a JSON array, so parse out what's going on
+        obj.experimental_group = RE_SEPARATOR.split(str(data.get("Experimental Group") or ""))
 
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
         obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
@@ -228,10 +232,6 @@ class SampleResource(GenericResource):
             obj.container = container
 
             return
-
-        elif field.attribute == 'taxon':
-            # Normalize scientific names to have the correct capitalization
-            data["Taxon"] = normalize_scientific_name(str(data.get("Taxon") or ""))
 
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
