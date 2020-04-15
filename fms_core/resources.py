@@ -1,3 +1,4 @@
+import json
 import re
 import reversion
 
@@ -57,16 +58,6 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
         if len(vals) == 1 and "" in vals:
             continue
         dataset.append(tuple(str_normalize(c) if isinstance(c, str) else ("" if c is None else c) for c in r))
-
-
-def normalize_experimental_group(string):
-    experimental_group_obj = list()
-    if ',' in string:
-        for s in string.split(','):
-            experimental_group_obj.append(s.strip())
-    else:
-        experimental_group_obj.append(string.strip())
-    return str(experimental_group_obj)
 
 
 class GenericResource(resources.ModelResource):
@@ -133,6 +124,7 @@ class SampleResource(GenericResource):
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
 
+    experimental_group = Field(attribute='experimental_group', column_name='Experimental Group', widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
@@ -145,7 +137,6 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
-    experimental_group = Field(column_name='Experimental Group', widget=JSONWidget())
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     # TODO don't really need it ?
     # individual_name = Field(column_name='Individual Name')
@@ -204,9 +195,6 @@ class SampleResource(GenericResource):
         )
         obj.individual = individual
 
-        # Experimental group is stored as a JSON array, so parse out what's going on
-        obj.experimental_group = RE_SEPARATOR.split(str(data.get("Experimental Group") or ""))
-
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
         obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
 
@@ -243,12 +231,13 @@ class SampleResource(GenericResource):
 
             return
 
+        elif field.attribute == "experimental_group":
+            # Experimental group is stored as a JSON array, so parse out what's going on
+            data["Experimental Group"] = json.dumps(RE_SEPARATOR.split(str(data.get("Experimental Group") or "")))
+
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
             data["Comment"] = str(data.get("Comment") or "")
-
-        elif field.attribute == "experimental_group":
-            data["Experimental Group"] = normalize_experimental_group(str(data.get("Experimental Group") or ""))
 
         super().import_field(field, obj, data, is_m2m)
 
