@@ -1,6 +1,6 @@
 from django.test import TestCase
 from ..models import *
-from . constants import *
+from .constants import *
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 
@@ -45,3 +45,35 @@ class ContainerTest(TestCase):
         self.assertEqual(Container.objects.all()[0].barcode, 'ParentBarcode01')
 
     # coordinates tested in a separate file
+
+class SampleTest(TestCase):
+    """ Test module for Sample model """
+
+    def setUp(self) -> None:
+        self.valid_individual = Individual.objects.create(**individual(name='jdoe'))
+        self.valid_container = Container.objects.create(**sample_container(kind='tube', name='TestTube01',
+                                                                           barcode='T123456'))
+        self.wrong_container = Container.objects.create(**container(barcode='R123456'))
+
+    def test_sample(self):
+        Sample.objects.create(**sample(self.valid_individual, self.valid_container))
+        self.assertEqual(Sample.objects.count(), 1)
+
+    def test_plates_with_coordinates(self):
+        for i, container_kind in enumerate(['96-well plate', '384-well plate']):
+            plate_container = Container.objects.create(**sample_container(container_kind,
+                    name='Test_name_'+ str(i),
+                    barcode='Barcode_'+ str(i)))
+            sample_in_plate_container = Sample(**sample(self.valid_individual, plate_container, coordinates='A11'))
+            sample_in_plate_container.save()
+        self.assertEqual(Sample.objects.count(), 2)
+
+    def test_wrong_container_kind(self):
+        for i, container_kind in enumerate(['box', 'room', 'freezer', 'freezer rack', 'drawer',
+                                            'tube rack 8x12', 'tube box 10x10', 'tube box 9x9']):
+            invalid_container_kind = Container.objects.create(**sample_container(container_kind,
+                                                                          name='Test_name_' + str(i),
+                                                                          barcode='Barcode_' + str(i)))
+            sample_in_invalid_container_kind = Sample(**sample(self.valid_individual, invalid_container_kind))
+            self.assertRaises(ValidationError, sample_in_invalid_container_kind.full_clean)
+
