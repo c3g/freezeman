@@ -1,6 +1,7 @@
 import jwtDecode from "jwt-decode";
 
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import {fetchAuthorizedData} from "../shared/actions";
 
 export const INVALIDATE_AUTH = "INVALIDATE_AUTH";
 
@@ -15,7 +16,8 @@ export const performAuth = (username, password) => async (dispatch, getState) =>
 
     // TODO: Check if we have a valid auth state already
 
-    return await dispatch(_performAuth({username, password}));
+    const authResult = await dispatch(_performAuth({username, password}));
+    if (authResult) await dispatch(fetchAuthorizedData());
 }
 
 const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, "/token/refresh/", "POST");
