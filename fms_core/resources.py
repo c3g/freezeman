@@ -239,6 +239,10 @@ class SampleResource(GenericResource):
             # Normalize None comments to empty strings
             data["Comment"] = str(data.get("Comment") or "")
 
+        elif field.attribute == "alias":
+            # if numeric value entered as alias make sure it's a string
+            data["Alias"] = str(data.get("Alias") or "")
+
         super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
