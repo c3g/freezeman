@@ -65,7 +65,7 @@ def normalize_experimental_group(string):
         for s in string.split(','):
             experimental_group_obj.append(s.strip())
     else:
-        experimental_group_obj.append(string)
+        experimental_group_obj.append(string.strip())
     return str(experimental_group_obj)
 
 
