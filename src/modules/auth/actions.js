@@ -9,18 +9,18 @@ export const REFRESH_AUTH_TOKEN = createNetworkActionTypes("REFRESH_AUTH_TOKEN")
 
 export const invalidateAuth = () => ({type: INVALIDATE_AUTH});
 
-const _performAuth = networkAction(PERFORM_AUTH, "/", "POST");  // TODO: URL
+const _performAuth = networkAction(PERFORM_AUTH, "/token/", "POST");
 export const performAuth = (username, password) => async (dispatch, getState) => {
-    if (getState().auth.isFetching) return;
+    if (getState().auth.isFetching) return false;
 
     // TODO: Check if we have a valid auth state already
 
-    await dispatch(_performAuth({username, password}));
+    return await dispatch(_performAuth({username, password}));
 }
 
-const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, "/", "POST");  // TODO: URL
+const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, "/token/refresh/", "POST");
 export const refreshAuthToken = () => async (dispatch, getState) => {
-    if (getState().auth.isFetching) return;
+    if (getState().auth.isFetching) return false;
 
     // Check token validity
     const tokens = getState().auth.tokens;
@@ -28,7 +28,7 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
     if (!tokens.access || !tokens.refresh) {
         // Missing token, should perform auth instead
         await dispatch(invalidateAuth());
-        return;
+        return false;
     }
 
     try {
@@ -39,19 +39,21 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
 
         if (access.exp < now - 30) {  // 30 second buffer for access token refreshing
             // Access token is still valid for another while, don't refresh yet.
-            return;
+            return false;
         }
 
         if (refresh.exp >= now) {
             // Cannot renew access token, since refresh token is expired.
             await dispatch(invalidateAuth());
-            return;
+            return false;
         }
 
-        await dispatch(_refreshAuthToken());
+        return await dispatch(_refreshAuthToken());
     } catch (e) {
         // Invalid token, should perform auth instead
         console.error(e);
         await dispatch(invalidateAuth());
     }
+
+    return false;
 }

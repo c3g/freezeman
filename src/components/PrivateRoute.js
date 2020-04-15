@@ -10,7 +10,7 @@ const PrivateRoute = ({isAuthenticated, children, ...rest}) => (
 );
 
 const mapStateToProps = state => ({
-    isAuthenticated: !!(state.auth.token && !state.auth.didInvalidate)
+    isAuthenticated: !!(state.auth.tokens.access && !state.auth.didInvalidate)
 });
 
 export default connect(mapStateToProps)(PrivateRoute);

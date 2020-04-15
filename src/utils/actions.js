@@ -10,6 +10,8 @@ export const createNetworkActionTypes = name => ({
 
 export const networkAction = (types, url, method="GET") =>
     (body=undefined) => async (dispatch, getState) => {
+        let result = false;
+
         await dispatch({type: types.REQUEST});
 
         try {
@@ -27,6 +29,7 @@ export const networkAction = (types, url, method="GET") =>
 
             if (response.ok) {
                 await dispatch({type: types.RECEIVE, data: await response.json(), receivedAt: Date.now()});
+                result = true;
             } else {
                 console.error(response);
             }
@@ -35,4 +38,6 @@ export const networkAction = (types, url, method="GET") =>
         }
 
         await dispatch({type: types.FINISH});
+
+        return result;
     };
