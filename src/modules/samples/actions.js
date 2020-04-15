@@ -2,7 +2,7 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 
 export const FETCH_SAMPLES = createNetworkActionTypes("FETCH_SAMPLES");
 
-const _fetchSamples = networkAction(FETCH_SAMPLES, "/");  // TODO: URL
+const _fetchSamples = networkAction(FETCH_SAMPLES, "/samples/");
 export const fetchSamples = () => async (dispatch, getState) => {
     if (getState().samples.isFetching) return;
     // TODO: Account for pagination

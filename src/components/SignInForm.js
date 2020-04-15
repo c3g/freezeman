@@ -6,6 +6,7 @@ import {Button, Form, Input} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
+
 import {performAuth} from "../modules/auth/actions";
 
 const SignInForm = ({isFetching, isAuthenticated, onFinish}) => {
