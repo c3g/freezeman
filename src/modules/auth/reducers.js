@@ -8,6 +8,7 @@ export const auth = (
         },
         isFetching: false,
         didInvalidate: false,
+        lastUpdated: null,
     },
     action
 ) => {
@@ -28,6 +29,7 @@ export const auth = (
                 ...state,
                 tokens: action.data,
                 didInvalidate: false,
+                lastUpdated: action.receivedAt,
             };
         case PERFORM_AUTH.FINISH:
             return {
@@ -47,7 +49,8 @@ export const auth = (
                     ...state.tokens,
                     ...action.data,
                 },
-                didInvalidate: false,
+                didInvalidate: false,  // TODO: Should this be reset here?
+                lastUpdated: action.receivedAt,
             };
         case REFRESH_AUTH_TOKEN.FINISH:
             return {
