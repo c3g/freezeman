@@ -1,4 +1,5 @@
 import React from "react";
+import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
 import {Button, Card, Col, Row, Statistic} from "antd";
@@ -42,13 +43,13 @@ const WIDE_BUTTON_COL_PROPS = {
     style: {marginTop: "8px"},
 };
 
-const DashboardPage = () => <PageContainer>
+const DashboardPage = ({containerCount, sampleCount, extractedSampleCount}) => <PageContainer>
     <AppPageHeader title="Dashboard" />
     <PageContent style={{padding: "0 24px 24px 24px"}}>
         <Row gutter={16}>
             <Col {...COL_LAYOUT}>
                 <Card title="Containers" {...CARD_PROPS}>
-                    <Statistic title="Total Containers" value={234} />
+                    <Statistic title="Total Containers" value={containerCount || "—"} />
                     <Row gutter={16}>
                         <Col {...BUTTON_COL_PROPS}>
                             <Link to="/containers/add">
@@ -65,8 +66,8 @@ const DashboardPage = () => <PageContainer>
             </Col>
             <Col {...COL_LAYOUT}>
                 <Card title="Samples" {...CARD_PROPS}>
-                    <Statistic title="Total Samples" value={1450} />
-                    <Statistic title="Extracted Samples" value={322} />
+                    <Statistic title="Total Samples" value={sampleCount || "—"} />
+                    <Statistic title="Extracted Samples" value={extractedSampleCount || "—"} />
                     <Row gutter={16}>
                         <Col {...WIDE_BUTTON_COL_PROPS}>
                             <Link to="/samples/add">
@@ -105,4 +106,11 @@ const DashboardPage = () => <PageContainer>
     </PageContent>
 </PageContainer>;
 
-export default DashboardPage;
+const mapStateToProps = state => ({
+    containerCount: state.containers.serverCount,
+    sampleCount: state.samples.serverCount,
+    // TODO: Server count for pagination
+    extractedSampleCount: state.samples.items.filter(s => s.extracted_from !== null).length,
+})
+
+export default connect(mapStateToProps)(DashboardPage);
