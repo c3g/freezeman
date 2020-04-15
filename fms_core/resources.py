@@ -53,7 +53,7 @@ def skip_rows(dataset, num_rows=0, col_skip=1):
     dataset.wipe()
     dataset.headers = dataset_headers
     for r in dataset_data:
-        vals = set(("" if not c else c) for c in r[col_skip:])
+        vals = set(("" if c is None else c) for c in r[col_skip:])
         if len(vals) == 1 and "" in vals:
             continue
         dataset.append(tuple(str_normalize(c) if isinstance(c, str) else c for c in r))
