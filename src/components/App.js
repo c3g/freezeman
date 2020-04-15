@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {Route, Switch, withRouter} from "react-router-dom";
+import {Redirect, Route, Switch, withRouter} from "react-router-dom";
 
 import {Card, Layout, Menu} from "antd";
 import "antd/es/card/style/css";
@@ -115,6 +115,7 @@ const App = ({fetchContainerKinds}) => {
                     <PrivateRoute path="/reporting">
                         <ReportingPage/>
                     </PrivateRoute>
+                    <Redirect from="/" to="/dashboard" />
                 </Switch>
             </Layout.Content>
         </Layout>
