@@ -94,14 +94,14 @@ class ContainerSpec:
 
 CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
     container_kind_id="96-well plate",
-    coordinate_spec=(alphas(8), ints(12)),
+    coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
 )
 
 CONTAINER_SPEC_384_WELL_PLATE = ContainerSpec(
     container_kind_id="384-well plate",
-    coordinate_spec=(alphas(16), ints(24)),
+    coordinate_spec=(alphas(16), ints(24, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
 )
@@ -115,21 +115,21 @@ CONTAINER_SPEC_TUBE = ContainerSpec(
 
 CONTAINER_SPEC_TUBE_BOX_9X9 = ContainerSpec(
     container_kind_id="tube box 9x9",
-    coordinate_spec=(alphas(9), ints(9)),
+    coordinate_spec=(alphas(9), ints(9, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
 )
 
 CONTAINER_SPEC_TUBE_BOX_10X10 = ContainerSpec(
     container_kind_id="tube box 10x10",
-    coordinate_spec=(alphas(10), ints(10)),
+    coordinate_spec=(alphas(10), ints(10, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
 )
 
 CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
     container_kind_id="tube rack 8x12",
-    coordinate_spec=(alphas(8), ints(12)),
+    coordinate_spec=(alphas(8), ints(12, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
 )

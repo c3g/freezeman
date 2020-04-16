@@ -67,6 +67,7 @@ class SampleTest(TestCase):
                     barcode='Barcode_'+ str(i)))
             sample_in_plate_container = Sample(**create_sample(self.valid_individual, plate_container,
                                                                coordinates='A11'))
+            sample_in_plate_container.full_clean()
             sample_in_plate_container.save()
         self.assertEqual(Sample.objects.count(), 2)
 
@@ -91,7 +92,7 @@ class ExtractedSampleTest(TestCase):
         self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01',
                                                                                  barcode='T123456',
                                                                                  location=self.parent_tube_rack,
-                                                                                 coordinates='C3'))
+                                                                                 coordinates='C03'))
         ####### parent sample data ########
         # individual
         self.valid_individual = Individual.objects.create(**create_individual(name='jdoe'))

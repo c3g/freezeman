@@ -2,10 +2,18 @@ from django import forms
 from django.contrib import admin
 from django.templatetags.static import static
 from import_export.admin import ImportMixin
-from .utils_admin import AggregatedAdmin
-from .resources import *
 
+from .containers import ContainerSpec, PARENT_CONTAINER_KINDS
 from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate
+from .resources import (
+    ContainerResource,
+    SampleResource,
+    ExtractionResource,
+    IndividualResource,
+    ContainerMoveResource,
+    SampleUpdateResource,
+)
+from .utils_admin import AggregatedAdmin
 
 
 # Set site header to the actual name of the application
@@ -19,6 +27,21 @@ class ContainerForm(forms.ModelForm):
 
     class Media:
         js = ('fms_core/hide_field.js',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            self.fields["location"].queryset = Container.objects.filter(
+                kind__in=tuple(
+                    c.container_kind_id for c in ContainerSpec.container_specs
+                    if c.can_hold_kind(self.instance.kind)
+                )
+            )
+            return
+
+        self.fields["location"].queryset = Container.objects.filter(kind__in=PARENT_CONTAINER_KINDS)
 
 
 @admin.register(Container)
@@ -67,6 +90,12 @@ class SampleForm(forms.ModelForm):
         model = Sample
         exclude = ()
         widgets = {"volume_history": VolumeHistoryWidget()}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            self.fields["extracted_from"].queryset = Sample.objects.exclude(id=self.instance.id)
 
 
 @admin.register(Sample)
@@ -125,8 +154,23 @@ class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
         return False
 
 
+class IndividualForm(forms.ModelForm):
+    class Meta:
+        model = Individual
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(name=self.instance.name)
+            self.fields["mother"].queryset = parent_queryset
+            self.fields["father"].queryset = parent_queryset
+
+
 @admin.register(Individual)
 class IndividualAdmin(AggregatedAdmin):
+    form = IndividualForm
     resource_class = IndividualResource
 
     list_display = (
