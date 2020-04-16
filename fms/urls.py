@@ -14,6 +14,7 @@ schema_view = get_schema_view(
         title="FreezeMan API",
         default_version="v1",
         description="API documentation for the FreezeMan API",
+        contact=openapi.Contact(email="info@computationalgenomics.ca"),
         license=openapi.License(name="LGPL-3.0-only"),
     ),
     public=True,
