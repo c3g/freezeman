@@ -12,8 +12,18 @@ from .models import Container, Sample, ExtractedSample, Individual, ContainerMov
 admin.site.site_header = "FreezeMan"
 
 
+class ContainerForm(forms.ModelForm):
+    class Meta:
+        model = Container
+        exclude = ()
+
+    class Media:
+        js = ('fms_core/hide_field.js',)
+
+
 @admin.register(Container)
 class ContainerAdmin(AggregatedAdmin):
+    form = ContainerForm
     resource_class = ContainerResource
 
     list_display = (
@@ -35,7 +45,8 @@ class ContainerAdmin(AggregatedAdmin):
 
     fieldsets = (
         (None, {"fields": ("kind", "name", "barcode")}),
-        ("Parent Container", {"fields": ("location", "coordinates")}),
+        ("Parent Container", {"fields": ("location", "coordinates"),
+                              'classes': ('parent_fieldset', ),}),
         ("Additional information", {"fields": ("comment",)}),
     )
 
