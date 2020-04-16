@@ -121,12 +121,13 @@ class SampleResource(GenericResource):
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
 
-    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
-    depleted = Field(attribute='depleted', column_name='Source Depleted')
-
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group', widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
+
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
+    depleted = Field(attribute='depleted', column_name='Source Depleted')
+
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
 
@@ -137,11 +138,13 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
+    cohort = Field(column_name='Cohort')
+    pedigree = Field(column_name='Pedigree')
+    taxon = Field(column_name='Taxon')
     volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
     # TODO don't really need it ?
     # individual_name = Field(column_name='Individual Name')
     sex = Field(column_name='Sex')
-    taxon = Field(attribute='taxon', column_name='Taxon')
     mother_id = Field(column_name='Mother ID')
     father_id = Field(column_name='Father ID')
 
@@ -170,12 +173,16 @@ class SampleResource(GenericResource):
         father = None
 
         taxon = normalize_scientific_name(str(data.get("Taxon") or ""))
+        pedigree = str(data.get("Pedigree") or "")
+        cohort = str(data.get("Cohort") or "")
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
                 name=str(data.get("Mother ID") or ""),
                 sex="F",
                 taxon=taxon,  # Mother has same taxon as offspring
+                **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
+                **({"cohort": cohort} if cohort else {}),  # Mother has same cohort as offspring TODO: Confirm
             )
 
         if data["Father ID"]:
@@ -183,6 +190,8 @@ class SampleResource(GenericResource):
                 name=str(data.get("Father ID") or ""),
                 sex="M",
                 taxon=taxon,  # Father has same taxon as offspring
+                **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
+                **({"cohort": cohort} if cohort else {}),  # Father has same cohort as offspring TODO: Confirm
             )
 
         # TODO: This should throw a warning if the individual already exists
@@ -190,8 +199,10 @@ class SampleResource(GenericResource):
             name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
             sex=str(data.get("Sex") or "Unknown"),  # TODO: Don't hard-code unknown value
             taxon=taxon,
-            mother=mother,
-            father=father,
+            **({"pedigree": pedigree} if pedigree else {}),
+            **({"cohort": cohort} if cohort else {}),
+            **({"mother": mother} if mother else {}),
+            **({"father": father} if father else {}),
         )
         obj.individual = individual
 

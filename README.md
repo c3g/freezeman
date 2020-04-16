@@ -1,5 +1,7 @@
 # C3G FreezeMan
 
+![Travis Build Status](https://api.travis-ci.com/c3g/fms.svg?branch=master)
+
 &copy; 2020 the Canadian Centre for Computational Genomics. Licensed under the
 GNU Lesser General Public License version 3.
 
