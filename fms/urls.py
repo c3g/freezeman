@@ -10,14 +10,14 @@ from rest_framework_simplejwt import views as jwt_views
 from fms_core.router import router
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="FreezeMan API",
-      default_version="v1",
-      description="API documentation for the FreezeMan API",
-      license=openapi.License(name="LGPL-3.0-only"),
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="FreezeMan API",
+        default_version="v1",
+        description="API documentation for the FreezeMan API",
+        license=openapi.License(name="LGPL-3.0-only"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 # noinspection PyUnresolvedReferences
