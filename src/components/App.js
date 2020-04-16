@@ -28,6 +28,7 @@ import PrivateRoute from "./PrivateRoute";
 
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchContainerKinds} from "../modules/containers/actions";
+import {fetchAuthorizedData} from "../modules/shared/actions";
 
 const HORIZONTAL_MENU_ITEMS = [
     {
@@ -66,9 +67,11 @@ const MENU_ITEMS = [
     },
 ]
 
-const App = ({fetchContainerKinds}) => {
+const App = ({fetchContainerKinds, fetchAuthorizedData}) => {
     useEffect(() => {
         fetchContainerKinds();
+        // Attempt to fetch authenticated stuff
+        fetchAuthorizedData();
     });
 
     return <Layout style={{height: "100vh"}}>
@@ -125,6 +128,7 @@ const App = ({fetchContainerKinds}) => {
 // noinspection JSUnusedGlobalSymbols
 export const mapDispatchToProps = dispatch => ({
     fetchContainerKinds: () => dispatch(fetchContainerKinds()),
+    fetchAuthorizedData: () => dispatch(fetchAuthorizedData()),
 });
 
 export default withRouter(connect(null, mapDispatchToProps)(App));
