@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.http.response import HttpResponseNotFound
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -7,14 +8,15 @@ from reversion.models import Version
 
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS
 from .models import Container, Sample, Individual
-from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer
+from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer, UserSerializer
 
 
 __all__ = [
     "ContainerKindViewSet",
     "ContainerViewSet",
-    "SampleViewSet",
     "IndividualViewSet",
+    "SampleViewSet",
+    "UserViewSet",
     "VersionViewSet",
 ]
 
@@ -71,3 +73,8 @@ class IndividualViewSet(viewsets.ModelViewSet):
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Version.objects.all()
     serializer_class = VersionSerializer
+
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
