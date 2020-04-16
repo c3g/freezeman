@@ -60,6 +60,7 @@ class SampleTest(TestCase):
         self.assertEqual(Sample.objects.count(), 1)
 
     def test_plates_with_coordinates(self):
+        # sample can be in plates and tube only
         for i, container_kind in enumerate(['96-well plate', '384-well plate']):
             plate_container = Container.objects.create(**create_sample_container(container_kind,
                     name='Test_name_'+ str(i),
@@ -70,6 +71,7 @@ class SampleTest(TestCase):
         self.assertEqual(Sample.objects.count(), 2)
 
     def test_wrong_container_kind(self):
+        # sample cannot be in containers of those types
         for i, container_kind in enumerate(['box', 'room', 'freezer', 'freezer rack', 'drawer',
                                             'tube rack 8x12', 'tube box 10x10', 'tube box 9x9']):
             invalid_container_kind = Container.objects.create(**create_sample_container(container_kind,
@@ -107,7 +109,8 @@ class ExtractedSampleTest(TestCase):
                                                             **self.constants))
         self.assertEqual(Sample.objects.count(), 2)
 
-    def test_biospecimne_type(self):
+    def test_biospecimen_type(self):
+        # extracted sample can be only of type DNA or RNA
         invalid_biospecimen = Sample(**create_extracted_sample(biospecimen_type='BLOOD', volume_used=Decimal('0.01'),
                                                                **self.constants))
         try:
@@ -149,3 +152,35 @@ class ExtractedSampleTest(TestCase):
             invalid_tissue_source.full_clean()
         except ValidationError as e:
             self.assertTrue('tissue_source' in e.message_dict)
+
+
+class IndividualTest(TestCase):
+
+    def setUp(self) -> None:
+        pass
+
+    def test_individual(self):
+        Individual.objects.create(**create_individual(name='jdoe'))
+        self.assertEqual(Individual.objects.count(), 1)
+
+    def test_mother_father(self):
+        # individual name can't be mother name and can't be father name
+        mother = Individual.objects.create(**create_individual(name='janedoe'))
+        father = Individual.objects.create(**create_individual(name='johndoe'))
+        individual = Individual(**create_individual(name='janedoe', mother=mother))
+        try:
+            individual.full_clean()
+        except ValidationError as e:
+            self.assertTrue('mother' in e.message_dict)
+        individual = Individual(**create_individual(name='johndoe', father=father))
+        try:
+            individual.full_clean()
+        except ValidationError as e:
+            self.assertTrue('father' in e.message_dict)
+        # mother and father can't be the same individual
+        individual = Individual(**create_individual(name='jdoe', mother=mother, father=mother))
+        try:
+            individual.full_clean()
+        except ValidationError as e:
+            for mf in ('mother', 'father'):
+                self.assertTrue(mf in e.message_dict.keys())
