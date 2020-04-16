@@ -2,18 +2,42 @@ from django import forms
 from django.contrib import admin
 from django.templatetags.static import static
 from import_export.admin import ImportMixin
-from .utils_admin import AggregatedAdmin
-from .resources import *
 
+from .containers import ContainerSpec
 from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate
+from .resources import (
+    ContainerResource,
+    SampleResource,
+    ExtractionResource,
+    IndividualResource,
+    ContainerMoveResource,
+    SampleUpdateResource,
+)
+from .utils_admin import AggregatedAdmin
 
 
 # Set site header to the actual name of the application
 admin.site.site_header = "FreezeMan"
 
 
+class ContainerForm(forms.ModelForm):
+    class Meta:
+        model = Container
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["location"].queryset = Container.objects.filter(
+            kind__in=tuple(
+                c.container_kind_id for c in ContainerSpec.container_specs
+                if c.can_hold_kind(self.instance.kind)
+            )
+        )
+
+
 @admin.register(Container)
 class ContainerAdmin(AggregatedAdmin):
+    form = ContainerForm
     resource_class = ContainerResource
 
     list_display = (
