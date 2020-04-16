@@ -52,5 +52,5 @@ class AggregatedAdmin(CustomImportMixin, ExportMixin, VersionAdmin):
     """
     Import, Export and Version admin.
     """
-    # template for change_list view
-    change_list_template = 'change_list_import_export_version.html'
+    change_list_template = "admin/fms_core/change_list_import_export_version.html"
+    import_template_name = "admin/fms_core/import.html"
