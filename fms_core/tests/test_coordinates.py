@@ -9,6 +9,7 @@ class CoordinateTestCase(TestCase):
         self.assertIn("A", a)
         self.assertIn("Z", a)
 
+    def test_alphas_errors(self):
         with self.assertRaises(ValueError):
             alphas(27)
 
@@ -21,6 +22,16 @@ class CoordinateTestCase(TestCase):
         self.assertIn("1", i)
         self.assertIn("100", i)
 
+    def test_ints_padded(self):
+        i = ints(100, pad_to=5)
+        self.assertEqual(len(i), 100)
+        self.assertIn("00001", i)
+        self.assertNotIn("1", i)
+        self.assertNotIn("01", i)
+        self.assertIn("00100", i)
+        self.assertNotIn("0100", i)
+
+    def test_ints_errors(self):
         with self.assertRaises(ValueError):
             ints(-1)
 

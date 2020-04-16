@@ -35,11 +35,11 @@ def alphas(end: int) -> CoordinateAxis:
     return tuple(chr(a) for a in range(65, 65 + end))
 
 
-def ints(end: int) -> CoordinateAxis:
+def ints(end: int, pad_to: int = 0) -> CoordinateAxis:
     if end < 0:
         raise ValueError
 
-    return tuple(str(i) for i in range(1, end + 1))
+    return tuple(str(i).zfill(pad_to) for i in range(1, end + 1))
 
 
 def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str:
