@@ -91,7 +91,7 @@ class ExtractedSampleTest(TestCase):
         self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01',
                                                                                  barcode='T123456',
                                                                                  location=self.parent_tube_rack,
-                                                                                 coordinates='C3'))
+                                                                                 coordinates='C03'))
         ####### parent sample data ########
         # individual
         self.valid_individual = Individual.objects.create(**create_individual(name='jdoe'))
