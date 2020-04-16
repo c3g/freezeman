@@ -27,7 +27,7 @@ class ContainerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         if kwargs.get("instance"):
             # If we're in edit mode
             self.fields["location"].queryset = Container.objects.filter(
@@ -86,6 +86,12 @@ class SampleForm(forms.ModelForm):
         model = Sample
         exclude = ()
         widgets = {"volume_history": VolumeHistoryWidget()}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            self.fields["extracted_from"].queryset = Sample.objects.exclude(id=self.instance.id)
 
 
 @admin.register(Sample)

@@ -221,7 +221,8 @@ class Sample(models.Model):
         return Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"])))
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
+               f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
 
     def clean(self):
         errors = {}
