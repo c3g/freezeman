@@ -159,14 +159,9 @@ class IndividualForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if kwargs.get("instance"):
-            self.fields["mother"].queryset = Individual.objects.exclude(
-                name=self.instance.name,
-                taxon=self.instance.taxon,
-            )
-            self.fields["father"].queryset = Individual.objects.exclude(
-                name=self.instance.name,
-                taxon=self.instance.taxon,
-            )
+            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(name=self.instance.name)
+            self.fields["mother"].queryset = parent_queryset
+            self.fields["father"].queryset = parent_queryset
 
 
 @admin.register(Individual)
