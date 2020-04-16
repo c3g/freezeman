@@ -210,7 +210,7 @@ class Sample(models.Model):
                                                 "be specified only for extracted nucleic acid samples.")
 
     class Meta:
-        unique_together = ['container', 'coordinates']
+        unique_together = ('container', 'coordinates')
 
     @property
     def is_depleted(self) -> str:
