@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from reversion.models import Version
 
@@ -9,6 +10,7 @@ __all__ = [
     "SampleSerializer",
     "IndividualSerializer",
     "VersionSerializer",
+    "UserSerializer",
 ]
 
 
@@ -34,4 +36,11 @@ class VersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Version
         fields = "__all__"
+        depth = 1
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "groups", "is_staff", "is_superuser", "date_joined")
         depth = 1
