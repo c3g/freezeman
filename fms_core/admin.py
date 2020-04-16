@@ -150,8 +150,28 @@ class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
         return False
 
 
+class IndividualForm(forms.ModelForm):
+    class Meta:
+        model = Individual
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            self.fields["mother"].queryset = Individual.objects.exclude(
+                name=self.instance.name,
+                taxon=self.instance.taxon,
+            )
+            self.fields["father"].queryset = Individual.objects.exclude(
+                name=self.instance.name,
+                taxon=self.instance.taxon,
+            )
+
+
 @admin.register(Individual)
 class IndividualAdmin(AggregatedAdmin):
+    form = IndividualForm
     resource_class = IndividualResource
 
     list_display = (
