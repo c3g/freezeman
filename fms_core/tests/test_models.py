@@ -67,6 +67,7 @@ class SampleTest(TestCase):
                     barcode='Barcode_'+ str(i)))
             sample_in_plate_container = Sample(**create_sample(self.valid_individual, plate_container,
                                                                coordinates='A11'))
+            sample_in_plate_container.full_clean()
             sample_in_plate_container.save()
         self.assertEqual(Sample.objects.count(), 2)
 
