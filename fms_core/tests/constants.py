@@ -23,7 +23,7 @@ def create_sample_container(kind, name, barcode, coordinates='', location=None):
     )
 
 
-def create_sample(individual, container, coordinates=''):
+def create_sample(individual, container, coordinates='', **kwargs):
     return dict(
         biospecimen_type='BLOOD',
         name='test_sample_01',
@@ -36,11 +36,12 @@ def create_sample(individual, container, coordinates=''):
                 "volume_value": "5000"
             }
         ],
-        concentration=Decimal('0.02'),
+        # concentration=Decimal('0.02'),
         experimental_group=['EG01', 'EG02'],
         collection_site='Site1',
         container=container,
-        coordinates=coordinates
+        coordinates=coordinates,
+        **kwargs
     )
 
 

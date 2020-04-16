@@ -79,7 +79,7 @@ class SampleTest(TestCase):
                                                                       invalid_container_kind))
             self.assertRaises(ValidationError, sample_in_invalid_container_kind.full_clean)
 
-from django.core.exceptions import NON_FIELD_ERRORS
+
 class ExtractedSampleTest(TestCase):
 
     def setUp(self) -> None:
@@ -105,13 +105,47 @@ class ExtractedSampleTest(TestCase):
     def test_extracted_sample(self):
         s = Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
                                                             **self.constants))
-        print(s.__dict__)
         self.assertEqual(Sample.objects.count(), 2)
 
-    def test_validation(self):
+    def test_biospecimne_type(self):
         invalid_biospecimen = Sample(**create_extracted_sample(biospecimen_type='BLOOD', volume_used=Decimal('0.01'),
                                                                **self.constants))
         try:
             invalid_biospecimen.full_clean()
         except ValidationError as e:
             self.assertTrue('biospecimen_type' in e.message_dict)
+
+    def test_volume_used(self):
+        # volume_used cannot be None for an extracted_sample
+        invalid_volume_used = Sample(**create_extracted_sample(biospecimen_type='DNA', volume_used=None,
+                                                               **self.constants))
+        try:
+            invalid_volume_used.full_clean()
+        except ValidationError as e:
+            self.assertTrue('volume_used' in e.message_dict)
+
+        # the volume_used is not allowed with non-extracted sample + this container already has a sample inside
+        invalid_volume_used = Sample(**create_sample(self.valid_individual, self.valid_container,
+                                                     volume_used=Decimal('0.01')))
+        try:
+            invalid_volume_used.full_clean()
+        except ValidationError as e:
+            for error in ('volume_used', 'container'):
+                self.assertTrue(error in e.message_dict.keys())
+
+    def test_concentration(self):
+        # for DNA or RNA samples concentration cannot be None
+        invalid_concentration = Sample(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
+                                                                 **self.constants))
+        invalid_concentration.concentration = None
+        self.assertRaises(ValidationError, invalid_concentration.full_clean)
+        self.assertEqual(Sample.objects.count(), 1)
+
+    def test_tissue_source(self):
+        # tissue_source can only be specified for DNA and RNA
+        invalid_tissue_source = Sample(**create_sample(self.valid_individual, self.tube_container,
+                                                       tissue_source='Blood'))
+        try:
+            invalid_tissue_source.full_clean()
+        except ValidationError as e:
+            self.assertTrue('tissue_source' in e.message_dict)
