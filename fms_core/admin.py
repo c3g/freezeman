@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.templatetags.static import static
 from import_export.admin import ImportMixin
 
-from .containers import ContainerSpec
+from .containers import ContainerSpec, PARENT_CONTAINER_KINDS
 from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate
 from .resources import (
     ContainerResource,
@@ -27,12 +27,18 @@ class ContainerForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["location"].queryset = Container.objects.filter(
-            kind__in=tuple(
-                c.container_kind_id for c in ContainerSpec.container_specs
-                if c.can_hold_kind(self.instance.kind)
+        
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            self.fields["location"].queryset = Container.objects.filter(
+                kind__in=tuple(
+                    c.container_kind_id for c in ContainerSpec.container_specs
+                    if c.can_hold_kind(self.instance.kind)
+                )
             )
-        )
+            return
+
+        self.fields["location"].queryset = Container.objects.filter(kind__in=PARENT_CONTAINER_KINDS)
 
 
 @admin.register(Container)
