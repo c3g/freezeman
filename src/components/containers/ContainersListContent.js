@@ -1,4 +1,5 @@
 import React from "react";
+import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
 import {Button, Table} from "antd";
@@ -11,9 +12,10 @@ import PageContent from "../PageContent";
 
 const TABLE_COLUMNS = [
     {
-        title: <><BarcodeOutlined style={{marginRight: "0.7em"}} />Barcode</>,
+        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Barcode</>,
         dataIndex: "barcode",
-        render: barcode => <a href="#">{barcode}</a>,  // TODO
+        render: barcode => <a href="#">{barcode}</a>,
+        // TODO: Link to some interesting display with location hierarchy, children if relevant (or sample[s])
     },
     {
         title: "Name",
@@ -24,8 +26,9 @@ const TABLE_COLUMNS = [
         dataIndex: "kind",
     },
     {
-        title: "Location",
+        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Barcode</>,
         dataIndex: "location",
+        render: barcode => <a href="#">{barcode}</a>,  // TODO: Same display, highlighting current as child?
     },
     {
         title: "Co-ords.",
@@ -38,7 +41,7 @@ const TABLE_COLUMNS = [
     },
 ];
 
-const ContainersListContent = () => <>
+const ContainersListContent = ({containers, isFetching}) => <>
     <AppPageHeader title="Containers"
                    extra={[
                        <Link key="add" to="/containers/add">
@@ -49,8 +52,18 @@ const ContainersListContent = () => <>
                        </Link>,
                    ]} />
     <PageContent>
-        <Table size="small" style={{minWidth: "700px"}} bordered={true} columns={TABLE_COLUMNS} />
+        <Table size="small"
+               style={{minWidth: "700px"}}
+               bordered={true}
+               columns={TABLE_COLUMNS}
+               dataSource={containers}
+               loading={isFetching} />
     </PageContent>
 </>;
 
-export default ContainersListContent;
+const mapStateToProps = state => ({
+    containers: state.containers.items,
+    isFetching: state.containers.isFetching,
+});
+
+export default connect(mapStateToProps)(ContainersListContent);
