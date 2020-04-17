@@ -16,7 +16,11 @@ export const auth = (
         case INVALIDATE_AUTH:
             return {
                 ...state,
-                didInvalidate: true,  // TODO: Just set access/refresh to null?
+                tokens: {
+                    access: null,
+                    refresh: null,
+                },
+                lastUpdated: Date.now(),
             };
 
         case PERFORM_AUTH.REQUEST:
@@ -28,7 +32,6 @@ export const auth = (
             return {
                 ...state,
                 tokens: action.data,
-                didInvalidate: false,
                 lastUpdated: action.receivedAt,
             };
         case PERFORM_AUTH.FINISH:
@@ -49,7 +52,6 @@ export const auth = (
                     ...state.tokens,
                     ...action.data,
                 },
-                didInvalidate: false,  // TODO: Should this be reset here?
                 lastUpdated: action.receivedAt,
             };
         case REFRESH_AUTH_TOKEN.FINISH:

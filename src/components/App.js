@@ -2,6 +2,8 @@ import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Redirect, Route, Switch, withRouter} from "react-router-dom";
 
+import jwtDecode from "jwt-decode";
+
 import {Card, Layout, Menu} from "antd";
 import "antd/es/card/style/css";
 import "antd/es/layout/style/css";
@@ -12,8 +14,10 @@ import {
     DashboardOutlined,
     ExperimentOutlined,
     LoginOutlined,
+    LogoutOutlined,
     TableOutlined,
     TeamOutlined,
+    UserOutlined,
 } from "@ant-design/icons";
 
 import SignInForm from "./SignInForm";
@@ -29,8 +33,23 @@ import PrivateRoute from "./PrivateRoute";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchContainerKinds} from "../modules/containers/actions";
 import {fetchAuthorizedData} from "../modules/shared/actions";
+import {invalidateAuth, refreshAuthToken} from "../modules/auth/actions";
 
-const HORIZONTAL_MENU_ITEMS = [
+const horizontalMenuItems = (user, invalidateAuth) => user ? [
+    {
+        key: "user-menu",
+        icon: <UserOutlined />,
+        text: user,  // TODO
+        children: [
+            {
+                key: "sign-out-link",
+                icon: <LogoutOutlined />,
+                text: "Sign Out",
+                onClick: () => invalidateAuth(),
+            },
+        ],
+    }
+] : [
     {
         url: "/sign-in",
         icon: <LoginOutlined />,
@@ -67,19 +86,29 @@ const MENU_ITEMS = [
     },
 ]
 
-const App = ({fetchContainerKinds, fetchAuthorizedData}) => {
+const App = ({user, fetchContainerKinds, fetchAuthorizedData, refreshAuthToken, invalidateAuth}) => {
     useEffect(() => {
-        fetchContainerKinds();
-        // Attempt to fetch authenticated stuff
-        fetchAuthorizedData();
+        const refreshData = async () => {
+            await refreshAuthToken();
+            fetchContainerKinds();
+            // Attempt to fetch authenticated stuff
+            fetchAuthorizedData();
+        };
+
+        refreshData().catch(err => console.error(err));
+
+        const interval = setInterval(() => refreshData(), 30000);
+        return () => clearInterval(interval);
     });
 
     return <Layout style={{height: "100vh"}}>
         <Layout.Header style={{display: "flex"}}>
             <div style={{color: "white", width: 124, textAlign: "center", fontSize: "20px"}}>FreezeMan</div>
             <div style={{flex: 1}}/>
-            <Menu theme="dark" mode="horizontal" selectedKeys={matchingMenuKeys(HORIZONTAL_MENU_ITEMS)}>
-                {HORIZONTAL_MENU_ITEMS.map(renderMenuItem)}
+            <Menu theme="dark"
+                  mode="horizontal"
+                  selectedKeys={matchingMenuKeys(horizontalMenuItems(user, null))}>
+                {horizontalMenuItems(user, invalidateAuth).map(renderMenuItem)}
             </Menu>
         </Layout.Header>
         <Layout>
@@ -125,10 +154,18 @@ const App = ({fetchContainerKinds, fetchAuthorizedData}) => {
     </Layout>;
 };
 
+export const mapStateToProps = state => ({
+    user: state.auth.tokens.access
+        ? (state.users.itemsByID[jwtDecode(state.auth.tokens.access).user_id] || {username: "Loading..."}).username
+        : null,
+});
+
 // noinspection JSUnusedGlobalSymbols
 export const mapDispatchToProps = dispatch => ({
     fetchContainerKinds: () => dispatch(fetchContainerKinds()),
     fetchAuthorizedData: () => dispatch(fetchAuthorizedData()),
+    refreshAuthToken: async () => await dispatch(refreshAuthToken()),
+    invalidateAuth: () => dispatch(invalidateAuth()),
 });
 
-export default withRouter(connect(null, mapDispatchToProps)(App));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
