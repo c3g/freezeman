@@ -76,14 +76,14 @@ const App = ({fetchContainerKinds, fetchAuthorizedData}) => {
 
     return <Layout style={{height: "100vh"}}>
         <Layout.Header style={{display: "flex"}}>
-            <div style={{color: "white", width: 156, textAlign: "center", fontSize: "20px"}}>FreezeMan</div>
+            <div style={{color: "white", width: 124, textAlign: "center", fontSize: "20px"}}>FreezeMan</div>
             <div style={{flex: 1}}/>
             <Menu theme="dark" mode="horizontal" selectedKeys={matchingMenuKeys(HORIZONTAL_MENU_ITEMS)}>
                 {HORIZONTAL_MENU_ITEMS.map(renderMenuItem)}
             </Menu>
         </Layout.Header>
         <Layout>
-            <Layout.Sider style={{overflowY: "auto"}} width={256}>
+            <Layout.Sider style={{overflowY: "auto"}} width={224}>
                 <Menu theme="dark" mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
                     {MENU_ITEMS.map(renderMenuItem)}
                 </Menu>
