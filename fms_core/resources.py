@@ -120,33 +120,29 @@ class SampleResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
-
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group', widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
-
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
-
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
-
     comment = Field(attribute='comment', column_name='Comment')
-
     # FK fields
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
-    cohort = Field(column_name='Cohort')
-    pedigree = Field(column_name='Pedigree')
-    taxon = Field(column_name='Taxon')
-    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    # TODO don't really need it ?
-    # individual_name = Field(column_name='Individual Name')
-    sex = Field(column_name='Sex')
-    mother_id = Field(column_name='Mother ID')
-    father_id = Field(column_name='Father ID')
+    cohort = Field(attribute='cohort', column_name='Cohort')
+    pedigree = Field(attribute='get_pedigree_display', column_name='Pedigree')
+    taxon = Field(attribute='get_taxon_display', column_name='Taxon')
+    volume = Field(attribute='get_volume_display', column_name='Volume (uL)', widget=DecimalWidget())
+    # need it to display on import
+    individual_name = Field(attribute='get_name_display', column_name='Individual Name')
+    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
+    sex = Field(attribute='get_sex_display', column_name='Sex')
+    mother_id = Field(attribute='get_mother_display', column_name='Mother ID')
+    father_id = Field(attribute='get_father_display', column_name='Father ID')
 
     class Meta:
         model = Sample
@@ -159,7 +155,10 @@ class SampleResource(GenericResource):
             'collection_site',
             'container',
         )
-        excluded = ('volume_history', 'individual')
+        excluded = ('volume_history', 'individual', 'depleted', )
+        export_order = ('biospecimen_type', 'name', 'alias', 'cohort', 'experimental_group', 'taxon', 'container_kind',
+                        'container', 'individual_name', 'sex', 'pedigree', 'mother_id', 'father_id', 'volume',
+                        'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype', 'comment',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)
@@ -269,45 +268,42 @@ class SampleResource(GenericResource):
 class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
 
-    reception_date = Field(attribute='reception_date')
-    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
-
-    # Non-attribute fields
-    location = Field(column_name='Nucleic Acid Location Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
-    coordinates = Field(column_name='Nucleic Acid Location Coord')
-    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    sample_container = Field(column_name='Container Barcode')
-    sample_container_coordinates = Field(column_name='Location Coord')
-    source_depleted = Field(column_name='Source Depleted')
-
+    # parent sample container
+    sample_container = Field(attribute='get_container_display', column_name='Container Barcode')
+    sample_container_coordinates = Field(attribute='get_coordinates_display', column_name='Location Coord')
     # Computed fields
-    name = Field(attribute='name')
-    alias = Field(attribute='alias')
-    collection_site = Field(attribute='collection_site')
-    container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
-    extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
+    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
+                      widget=ForeignKeyWidget(Container, field='barcode'))
+    # Non-attribute fields
+    location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
+                     widget=ForeignKeyWidget(Container, field='barcode'))
+    # TODO throws a coordinates system error
+    # coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
+    source_depleted = Field(column_name='Source Depleted')
+    # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
+    extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
+    comment = Field(attribute='comment', column_name='Comment')
 
     class Meta:
         model = Sample
         fields = (
             'biospecimen_type',
-            'reception_date',
-            'volume',
-            'concentration',
             'volume_used',
+            'concentration',
+            'source_depleted',
+            'comment',
         )
         excluded = (
-            'name',
-            'alias',
-            'collection_site',
             'container',
             'individual',
             'extracted_from',
             'volume_history',
         )
+        export_order = ('biospecimen_type', 'volume_used', 'sample_container', 'sample_container_coordinates',
+                        'container', 'location', 'volume_history', 'concentration', 'source_depleted', 'comment',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble

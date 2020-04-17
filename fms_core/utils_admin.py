@@ -46,6 +46,7 @@ class PaddedXLSX(TablibFormat):
 
 class CustomImportMixin(ImportMixin):
     formats = [CSV, PaddedXLSX]
+    change_list_template = "admin/fms_core/download_import.html"
 
 
 class AggregatedAdmin(CustomImportMixin, ExportMixin, VersionAdmin):
