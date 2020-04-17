@@ -120,19 +120,14 @@ class SampleResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
-
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group', widget=JSONWidget())
     collection_site = Field(attribute='collection_site', column_name='Collection Site')
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
-
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
-
     reception_date = Field(attribute='reception_date', column_name='Reception Data', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
-
     comment = Field(attribute='comment', column_name='Comment')
-
     # FK fields
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
@@ -160,7 +155,10 @@ class SampleResource(GenericResource):
             'collection_site',
             'container',
         )
-        excluded = ('volume_history', 'individual')
+        excluded = ('volume_history', 'individual', 'depleted', )
+        export_order = ('biospecimen_type', 'name', 'alias', 'cohort', 'experimental_group', 'taxon', 'container_kind',
+                        'container', 'individual_name', 'sex', 'pedigree', 'mother_id', 'father_id', 'volume',
+                        'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype', 'comment',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)
@@ -304,6 +302,8 @@ class ExtractionResource(GenericResource):
             'extracted_from',
             'volume_history',
         )
+        export_order = ('biospecimen_type', 'volume_used', 'sample_container', 'sample_container_coordinates',
+                        'container', 'location', 'volume_history', 'concentration', 'source_depleted', 'comment',)
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
