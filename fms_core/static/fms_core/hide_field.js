@@ -1,23 +1,23 @@
 $(document).ready(function() {
-        (function($) {
+(function($) {
     $(function() {
         var selectField = $('#id_kind'),
-            verified = $('.parent_fieldset');
+            dependentField = $('.parent_fieldset');
 
-        function toggleVerified(value) {
+        function toggleDependentField(value) {
             if (value =='room') {
-                verified.hide();
+                dependentField.hide();
             } else {
-                verified.show();
+                dependentField.show();
             }
         }
 
         // show/hide based on selected value
-        toggleVerified(selectField.val());
+        toggleDependentField(selectField.val());
 
         // show/hide on change
         selectField.change(function() {
-            toggleVerified($(this).val());
+            toggleDependentField($(this).val());
         });
     });
 })(django.jQuery);
