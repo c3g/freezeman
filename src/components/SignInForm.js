@@ -21,7 +21,7 @@ const SignInForm = ({isFetching, isAuthenticated, onFinish}) => {
 
     return <Form layout="vertical" name="sign-in" onFinish={onFinish}>
         <Form.Item label="Username" name="username" rules={[{required: true}]}>
-            <Input/>
+            <Input autoComplete="username" />
         </Form.Item>
         <Form.Item label="Password" name="password" rules={[{required: true}]}>
             <Input.Password autoComplete="current-password" />
