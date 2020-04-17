@@ -269,26 +269,25 @@ class SampleResource(GenericResource):
 
 class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
-    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
-    volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
-    comment = Field(attribute='comment', column_name='Comment')
 
+    volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
+    # parent sample container
+    sample_container = Field(attribute='get_container_display', column_name='Container Barcode')
+    sample_container_coordinates = Field(attribute='get_coordinates_display', column_name='Location Coord')
+    # Computed fields
+    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
+                      widget=ForeignKeyWidget(Container, field='barcode'))
     # Non-attribute fields
-    # new nucleic asid container fields
     location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     # TODO throws a coordinates system error
     # coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
-    sample_container = Field(attribute='get_container_display', column_name='Container Barcode')
-    sample_container_coordinates = Field(attribute='get_coordinates_display', column_name='Location Coord')
+    volume_history = Field(attribute='volume_history', widget=JSONWidget())
+    concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(column_name='Source Depleted')
-
-    # Computed fields
-    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
-                      widget=ForeignKeyWidget(Container, field='barcode'))
     # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
-    volume_history = Field(attribute='volume_history', widget=JSONWidget())
+    comment = Field(attribute='comment', column_name='Comment')
 
     class Meta:
         model = Sample
