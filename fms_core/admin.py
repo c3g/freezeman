@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib import admin
 from django.templatetags.static import static
-from import_export.admin import ImportMixin
 
 from .containers import ContainerSpec, PARENT_CONTAINER_KINDS
 from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate
@@ -73,6 +72,11 @@ class ContainerAdmin(AggregatedAdmin):
         ("Additional information", {"fields": ("comment",)}),
     )
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['submission_template'] = static("submission_templates/Container_creation.xlsx")
+        return super().changelist_view(request, extra_context=extra_context,)
+
 
 class VolumeHistoryWidget(forms.widgets.HiddenInput):
     class Media:
@@ -136,6 +140,11 @@ class SampleAdmin(AggregatedAdmin):
     def has_delete_permission(self, request, obj=None):
         return not (obj and obj.extracted_from)
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['submission_template'] = static("submission_templates/Sample_submission.xlsx")
+        return super().changelist_view(request, extra_context=extra_context,)
+
 
 @admin.register(ExtractedSample)
 class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
@@ -145,6 +154,7 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {"title": "Import extracted samples"}
+        extra_context['submission_template'] = static("submission_templates/Extraction.xlsx")
         return super().changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request):
@@ -196,13 +206,14 @@ class IndividualAdmin(AggregatedAdmin):
 
 
 @admin.register(ContainerMove)
-class ContainerMoveAdmin(ImportMixin, admin.ModelAdmin):
+class ContainerMoveAdmin(CustomImportMixin, admin.ModelAdmin):
     resource_class = ContainerMoveResource
     actions = None
     list_display_links = None
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {"title": "Move Containers"}
+        extra_context['submission_template'] = static("submission_templates/Container_move.xlsx")
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_queryset(self, request):
@@ -214,13 +225,14 @@ class ContainerMoveAdmin(ImportMixin, admin.ModelAdmin):
 
 
 @admin.register(SampleUpdate)
-class SampleUpdateAdmin(ImportMixin, admin.ModelAdmin):
+class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
     resource_class = SampleUpdateResource
     actions = None
     list_display_links = None
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {"title": "Update Samples"}
+        extra_context['submission_template'] = static("submission_templates/Sample_update.xlsx")
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_queryset(self, request):
