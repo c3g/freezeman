@@ -54,6 +54,8 @@ const TABLE_COLUMNS = [
         title: "Cohort",
         dataIndex: "cohort"
     }
+
+    // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
 ];
 
 const IndividualsPage = ({individuals, isFetching}) => <PageContainer>
