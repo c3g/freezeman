@@ -36,7 +36,7 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
         const refresh = jwtDecode(tokens.refresh);
 
         const now = Date.now() / 1000;
-        
+
         if (access.exp > now + 30) {  // 30 second buffer for access token refreshing
             // Access token is still valid for another while, don't refresh yet.
             return false;
