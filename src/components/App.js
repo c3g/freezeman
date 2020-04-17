@@ -83,7 +83,7 @@ const App = ({fetchContainerKinds, fetchAuthorizedData}) => {
             </Menu>
         </Layout.Header>
         <Layout>
-            <Layout.Sider style={{overflowY: "auto"}} width={224}>
+            <Layout.Sider style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
                 <Menu theme="dark" mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
                     {MENU_ITEMS.map(renderMenuItem)}
                 </Menu>

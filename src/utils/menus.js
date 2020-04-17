@@ -26,10 +26,10 @@ export const renderMenuItem = i => {
         {i.url && !i.onClick ?
             <Link to={i.url}>
                 {i.icon || null}
-                {i.text || null}
+                <span className="freezeman-menu-text">{i.text || null}</span>
             </Link> : <span>
                 {i.icon || null}
-                {i.text || null}
+                <span className="freezeman-menu-text">{i.text || null}</span>
             </span>}
     </Menu.Item>;
 };
