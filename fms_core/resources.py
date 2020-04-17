@@ -138,15 +138,16 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
-    cohort = Field(column_name='Cohort')
-    pedigree = Field(column_name='Pedigree')
-    taxon = Field(column_name='Taxon')
-    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    # TODO don't really need it ?
-    # individual_name = Field(column_name='Individual Name')
-    sex = Field(column_name='Sex')
-    mother_id = Field(column_name='Mother ID')
-    father_id = Field(column_name='Father ID')
+    cohort = Field(attribute='cohort', column_name='Cohort')
+    pedigree = Field(attribute='get_pedigree_display', column_name='Pedigree')
+    taxon = Field(attribute='get_taxon_display', column_name='Taxon')
+    volume = Field(attribute='get_volume_display', column_name='Volume (uL)', widget=DecimalWidget())
+    # need it to display on import
+    individual_name = Field(attribute='get_name_display', column_name='Individual Name')
+    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
+    sex = Field(attribute='get_sex_display', column_name='Sex')
+    mother_id = Field(attribute='get_mother_display', column_name='Mother ID')
+    father_id = Field(attribute='get_father_display', column_name='Father ID')
 
     class Meta:
         model = Sample
@@ -268,25 +269,24 @@ class SampleResource(GenericResource):
 
 class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
-
-    reception_date = Field(attribute='reception_date')
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
+    comment = Field(attribute='comment', column_name='Comment')
 
     # Non-attribute fields
-    location = Field(column_name='Nucleic Acid Location Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
-    coordinates = Field(column_name='Nucleic Acid Location Coord')
-    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
-    sample_container = Field(column_name='Container Barcode')
-    sample_container_coordinates = Field(column_name='Location Coord')
+    # new nucleic asid container fields
+    location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
+                     widget=ForeignKeyWidget(Container, field='barcode'))
+    # TODO throws a coordinates system error
+    # coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
+    sample_container = Field(attribute='get_container_display', column_name='Container Barcode')
+    sample_container_coordinates = Field(attribute='get_coordinates_display', column_name='Location Coord')
     source_depleted = Field(column_name='Source Depleted')
 
     # Computed fields
-    name = Field(attribute='name')
-    alias = Field(attribute='alias')
-    collection_site = Field(attribute='collection_site')
-    container = Field(attribute='container', widget=ForeignKeyWidget(Container, field='barcode'))
-    individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
+    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
+                      widget=ForeignKeyWidget(Container, field='barcode'))
+    # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
 
@@ -294,15 +294,12 @@ class ExtractionResource(GenericResource):
         model = Sample
         fields = (
             'biospecimen_type',
-            'reception_date',
-            'volume',
-            'concentration',
             'volume_used',
+            'concentration',
+            'source_depleted',
+            'comment',
         )
         excluded = (
-            'name',
-            'alias',
-            'collection_site',
             'container',
             'individual',
             'extracted_from',

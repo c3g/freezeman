@@ -13,7 +13,7 @@ from .resources import (
     ContainerMoveResource,
     SampleUpdateResource,
 )
-from .utils_admin import AggregatedAdmin
+from .utils_admin import AggregatedAdmin, CustomImportMixin
 
 
 # Set site header to the actual name of the application
@@ -138,7 +138,7 @@ class SampleAdmin(AggregatedAdmin):
 
 
 @admin.register(ExtractedSample)
-class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
+class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
     resource_class = ExtractionResource
     actions = None
     list_display_links = None
