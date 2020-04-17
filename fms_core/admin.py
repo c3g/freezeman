@@ -13,7 +13,7 @@ from .resources import (
     ContainerMoveResource,
     SampleUpdateResource,
 )
-from .utils_admin import AggregatedAdmin
+from .utils_admin import AggregatedAdmin, CustomImportMixin
 
 
 # Set site header to the actual name of the application
@@ -24,6 +24,9 @@ class ContainerForm(forms.ModelForm):
     class Meta:
         model = Container
         exclude = ()
+
+    class Media:
+        js = ('fms_core/hide_field.js',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,7 +68,8 @@ class ContainerAdmin(AggregatedAdmin):
 
     fieldsets = (
         (None, {"fields": ("kind", "name", "barcode")}),
-        ("Parent Container", {"fields": ("location", "coordinates")}),
+        ("Parent Container", {"fields": ("location", "coordinates"),
+                              'classes': ('parent_fieldset', ),}),
         ("Additional information", {"fields": ("comment",)}),
     )
 
@@ -134,7 +138,7 @@ class SampleAdmin(AggregatedAdmin):
 
 
 @admin.register(ExtractedSample)
-class ExtractedSampleAdmin(ImportMixin, admin.ModelAdmin):
+class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
     resource_class = ExtractionResource
     actions = None
     list_display_links = None
