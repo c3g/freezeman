@@ -42,9 +42,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'reversion',
+    'drf_yasg',
     'import_export',
     'rest_framework',
+    'reversion',
 
     'fms_core.apps.FmsCoreConfig',
 ]
