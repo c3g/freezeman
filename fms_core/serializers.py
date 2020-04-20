@@ -15,6 +15,9 @@ __all__ = [
 
 
 class ContainerSerializer(serializers.ModelSerializer):
+    children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
     class Meta:
         model = Container
         fields = "__all__"
