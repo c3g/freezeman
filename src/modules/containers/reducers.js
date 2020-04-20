@@ -1,6 +1,6 @@
 import {objectsByProperty} from "../../utils/objects";
 
-import {FETCH_CONTAINER_KINDS, FETCH_CONTAINERS} from "./actions";
+import {FETCH_CONTAINER, FETCH_CONTAINER_KINDS, FETCH_CONTAINERS} from "./actions";
 
 export const containerKinds = (
     state = {
@@ -40,6 +40,7 @@ export const containers = (
         itemsByBarcode: {},
         serverCount: 0,  // For pagination
         isFetching: false,
+        isFetchingBarcodes: [],
         didInvalidate: false,
         lastUpdated: null,
     },
@@ -65,6 +66,31 @@ export const containers = (
                 ...state,
                 isFetching: false,
             };
+
+        case FETCH_CONTAINER.REQUEST:
+            return {
+                ...state,
+                isFetchingBarcodes: [...state.isFetchingBarcodes, action.params.barcode],
+            };
+        case FETCH_CONTAINER.RECEIVE: {
+            const items = [...state.items.filter(c => c.barcode !== action.params.barcode), action.data];
+            return {
+                ...state,
+                items,
+                itemsByBarcode: {
+                    ...state.itemsByBarcode,
+                    [action.params.barcode]: action.data,
+                },
+                serverCount: items.length
+            };
+        }
+        case FETCH_CONTAINER.FINISH:
+            return {
+                ...state,
+                // TODO: Update server count here instead?
+                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
+            };
+
         default:
             return state;
     }

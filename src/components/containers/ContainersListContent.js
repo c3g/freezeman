@@ -26,7 +26,7 @@ const TABLE_COLUMNS = [
         dataIndex: "kind",
     },
     {
-        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Barcode</>,
+        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Location</>,
         dataIndex: "location",
         render: barcode => <a href="#">{barcode}</a>,  // TODO: Same display, highlighting current as child?
     },
@@ -57,6 +57,7 @@ const ContainersListContent = ({containers, isFetching}) => <>
                bordered={true}
                columns={TABLE_COLUMNS}
                dataSource={containers}
+               rowKey="barcode"
                loading={isFetching} />
     </PageContent>
 </>;

@@ -2,6 +2,7 @@ import jwtDecode from "jwt-decode";
 
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import {fetchAuthorizedData} from "../shared/actions";
+import {constVal} from "../../utils/functions";
 
 export const INVALIDATE_AUTH = "INVALIDATE_AUTH";
 
@@ -10,14 +11,14 @@ export const REFRESH_AUTH_TOKEN = createNetworkActionTypes("REFRESH_AUTH_TOKEN")
 
 export const invalidateAuth = () => ({type: INVALIDATE_AUTH});
 
-const _performAuth = networkAction(PERFORM_AUTH, "/token/", "POST");
+const _performAuth = networkAction(PERFORM_AUTH, constVal("/token/"), "POST");
 export const performAuth = (username, password) => async (dispatch, getState) => {
     if (getState().auth.isFetching) return false;
     const authResult = await dispatch(_performAuth({username, password}));
     if (authResult) await dispatch(fetchAuthorizedData());
 }
 
-const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, "/token/refresh/", "POST");
+const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, constVal("/token/refresh/"), "POST");
 export const refreshAuthToken = () => async (dispatch, getState) => {
     if (getState().auth.isFetching) return false;
 

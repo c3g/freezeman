@@ -9,14 +9,14 @@ export const createNetworkActionTypes = name => ({
 });
 
 export const networkAction = (types, url, method="GET") =>
-    (body=undefined) => async (dispatch, getState) => {
+    (body=undefined, params={}) => async (dispatch, getState) => {
         let result = false;
 
-        await dispatch({type: types.REQUEST});
+        await dispatch({type: types.REQUEST, params});
 
         try {
             // TODO: Auth
-            const response = await fetch(`${API_BASE_PATH}${url}`, {
+            const response = await fetch(`${API_BASE_PATH}${url(params)}`, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export const networkAction = (types, url, method="GET") =>
             });
 
             if (response.ok) {
-                await dispatch({type: types.RECEIVE, data: await response.json(), receivedAt: Date.now()});
+                await dispatch({type: types.RECEIVE, data: await response.json(), params, receivedAt: Date.now()});
                 result = true;
             } else {
                 console.error(response);
@@ -37,7 +37,7 @@ export const networkAction = (types, url, method="GET") =>
             console.error(e);
         }
 
-        await dispatch({type: types.FINISH});
+        await dispatch({type: types.FINISH, params});
 
         return result;
     };
