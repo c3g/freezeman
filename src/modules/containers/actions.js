@@ -5,7 +5,8 @@ export const FETCH_CONTAINERS = createNetworkActionTypes("FETCH_CONTAINERS");  /
 
 const _fetchContainerKinds = networkAction(FETCH_CONTAINER_KINDS, "/container-kinds/");
 export const fetchContainerKinds = () => async (dispatch, getState) => {
-    if (getState().containerKinds.isFetching) return;
+    // Check if we're already fetching or have fetched container kinds first (they won't change dynamically.)
+    if (getState().containerKinds.isFetching || getState().containerKinds.items.length > 0) return;
     await dispatch(_fetchContainerKinds());
 }
 

@@ -13,7 +13,6 @@ export const invalidateAuth = () => ({type: INVALIDATE_AUTH});
 const _performAuth = networkAction(PERFORM_AUTH, "/token/", "POST");
 export const performAuth = (username, password) => async (dispatch, getState) => {
     if (getState().auth.isFetching) return false;
-
     const authResult = await dispatch(_performAuth({username, password}));
     if (authResult) await dispatch(fetchAuthorizedData());
 }
