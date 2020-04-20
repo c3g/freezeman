@@ -158,6 +158,15 @@ class Sample(models.Model):
         ("BLOOD", "BLOOD"),
         ("SALIVA", "SALIVA")
     )
+    TISSUE_SOURCE = (
+        ("Blood", "Blood"),
+        ("Saliva", "Saliva"),
+        ("Tumor", "Tumor"),
+        ("Plasma", "Plasma"),
+        ("Buffy coat", "Buffy coat"),
+        ("Tail", "Tail"),
+        ("Cells", "Cells"),
+    )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
@@ -183,7 +192,7 @@ class Sample(models.Model):
 
     experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)])
     collection_site = models.CharField(max_length=200)
-    tissue_source = models.CharField(max_length=200, blank=True)
+    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE)
     reception_date = models.DateField(default=timezone.now)
     phenotype = models.CharField(max_length=200, blank=True)
     comment = models.TextField(blank=True)
