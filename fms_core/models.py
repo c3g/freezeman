@@ -87,8 +87,18 @@ class Container(models.Model):
     def __str__(self):
         return self.barcode
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.kind = str_normalize(self.kind)
+        self.name = str_normalize(self.name)
+        self.barcode = str_normalize(self.barcode)
+        self.coordinates = str_normalize(self.coordinates)
+        self.comment = str_normalize(self.comment)
+
     def clean(self):
         errors = {}
+
+        self.normalize()
 
         if self.coordinates != "" and self.location is None:
             add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
@@ -129,6 +139,10 @@ class Container(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Normalize and validate before saving, always!
+        super().save(*args, **kwargs)  # Save the object
 
 
 class ContainerMoveManager(models.Manager):
@@ -239,7 +253,18 @@ class Sample(models.Model):
         return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
                f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.name = str_normalize(self.name)
+        self.alias = str_normalize(self.alias)
+        self.collection_site = str_normalize(self.collection_site)
+        self.tissue_source = str_normalize(self.tissue_source)
+        self.phenotype = str_normalize(self.phenotype)
+        self.comment = str_normalize(self.comment)
+
     def clean(self):
+        self.normalize()
+
         errors = {}
 
         na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE_CHOICES)
@@ -334,17 +359,8 @@ class Sample(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
-        self.alias = str_normalize(self.alias)
-        self.collection_site = str_normalize(self.collection_site)
-        self.tissue_source = str_normalize(self.tissue_source)
-        self.phenotype = str_normalize(self.phenotype)
-        self.comment = str_normalize(self.comment)
-        self.full_clean()
-
-        # Save the object
-        super().save(*args, **kwargs)
+        self.full_clean()  # Normalize and validate before saving, always!
+        super().save(*args, **kwargs)  # Save the object
 
 
 class ExtractedSampleManager(models.Manager):
