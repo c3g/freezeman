@@ -2,11 +2,29 @@
 
 ![Travis Build Status](https://api.travis-ci.com/c3g/fms.svg?branch=master)
 
-&copy; 2020 the Canadian Centre for Computational Genomics. Licensed under the
-GNU Lesser General Public License version 3.
-
 FreezeMan is a freezer management system designed to manage the storage and 
 tracking of biological samples in a laboratory environment.
+
+## License
+
+Copyright &copy; 2020 the Canadian Centre for Computational Genomics. All
+rights reserved. Licensed under the GNU Lesser General Public License version 
+3. See project license in `/LICENSE`.
+
+Portions copyright &copy; Django Software Foundation and individual 
+contributors to the Django project.
+
+See relevant license in the following files:
+
+  * `/templates/admin/base_site.html`
+
+Portions copyright &copy; Bojan Mihelac and individual contributors to the 
+`django-import-export` project.
+
+See relevant license in the following files:
+
+  * `/fms_core/templates/admin/fms_core/change_list_import_export.html`
+  * `/fms_core/templates/admin/fms_core/download_import.html`
 
 ## Dependencies:
 
