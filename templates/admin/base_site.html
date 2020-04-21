@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+<div style="border-top: 1px solid #eee; margin: 0 15px 15px 15px; padding: 10px; color: #666;">
+    <p>
+        <a href="{{ fm_repository }}" target="_blank" rel="noreferrer noopener">FreezeMan</a> v{{ fm_version }} is
+        copyright &copy; the <a href="http://www.computationalgenomics.ca/" target="_blank" rel="noreferrer noopener">
+            Canadian Centre for Computational Genomics</a> {{ fm_copyright_years }}. This software is licensed under the
+        <a href="https://www.gnu.org/licenses/lgpl-3.0.txt" target="_blank" rel="noreferrer noopener">GNU Lesser General
+            Public License version 3.0</a>.<br>
+        <small>
+            <strong>Commit Date:</strong> {{ fm_commit_date }}
+            <strong style="margin-left: 16px;">Commit Hash:</strong> {{ fm_commit_hash }}
+            <strong style="margin-left: 16px;">Tagged Version:</strong> {{ fm_commit_tagged_version }}
+        </small>
+    </p>
+</div>
+{% endblock %}

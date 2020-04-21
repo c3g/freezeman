@@ -35,7 +35,7 @@ INTERNAL_IPS = (
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'fms.admin.AdminConfig',  # Overrides default Django admin
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -67,7 +67,7 @@ ROOT_URLCONF = 'fms.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
