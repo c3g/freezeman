@@ -16,7 +16,7 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import create_volume_history, Container, Sample, Individual
-from .utils import str_normalize
+from .utils import RE_SEPARATOR, check_truth_like, normalize_scientific_name, str_normalize
 
 
 __all__ = [
@@ -28,22 +28,6 @@ __all__ = [
     "ContainerMoveResource",
     "SampleUpdateResource",
 ]
-
-
-RE_SEPARATOR = re.compile(r"[,;]\s*")
-RE_WHITESPACE = re.compile(r"\s+")
-
-
-def check_truth_like(string: str) -> bool:
-    """
-    Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
-    """
-    return str_normalize(string).upper() in ("TRUE", "T", "YES", "Y")
-
-
-def normalize_scientific_name(name: str) -> str:
-    # Converts (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
-    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
 
 
 def skip_rows(dataset, num_rows=0, col_skip=1):
