@@ -67,6 +67,14 @@ Then, run the following command:
 coverage run ./manage.py test
 ```
 
+## Creating releases:
+
+  1. Update the `VERSION` file in the repository to represent the current
+     version number, according to semantic versioning.
+     
+  2. Tag a new release on GitHub, following the format `vX.Y.Z` where `X` is
+     the major version, `Y` is the minor version, and `Z` is the patch version.
+
 ## Deploying to production:
 
 TODO
