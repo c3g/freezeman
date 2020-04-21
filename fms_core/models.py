@@ -148,18 +148,23 @@ class ContainerMove(Container):
 class Sample(models.Model):
     """ Class to store information about a sample. """
 
-    NA_BIOSPECIMEN_TYPE = (
-        ("DNA", "DNA"),
-        ("RNA", "RNA"),
+    BIOSPECIMEN_TYPE_DNA = "DNA"
+    BIOSPECIMEN_TYPE_RNA = "RNA"
+    BIOSPECIMEN_TYPE_BLOOD = "BLOOD"
+    BIOSPECIMEN_TYPE_SALIVA = "SALIVA"
+
+    NA_BIOSPECIMEN_TYPE_CHOICES = (
+        (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_DNA),
+        (BIOSPECIMEN_TYPE_RNA, BIOSPECIMEN_TYPE_RNA),
     )
 
-    BIOSPECIMEN_TYPE = (
-        *NA_BIOSPECIMEN_TYPE,
-        ("BLOOD", "BLOOD"),
-        ("SALIVA", "SALIVA")
+    BIOSPECIMEN_TYPE_CHOICES = (
+        *NA_BIOSPECIMEN_TYPE_CHOICES,
+        (BIOSPECIMEN_TYPE_BLOOD, BIOSPECIMEN_TYPE_BLOOD),
+        (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA)
     )
 
-    TISSUE_SOURCE = (
+    TISSUE_SOURCE_CHOICES = (
         ("Blood", "Blood"),
         ("Saliva", "Saliva"),
         ("Tumor", "Tumor"),
@@ -170,7 +175,7 @@ class Sample(models.Model):
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
-    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
+    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(max_length=200, validators=[barcode_name_validator])
     alias = models.CharField(max_length=200, blank=True)
@@ -193,7 +198,7 @@ class Sample(models.Model):
 
     experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)])
     collection_site = models.CharField(max_length=200)
-    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE)
+    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES)
     reception_date = models.DateField(default=timezone.now)
     phenotype = models.CharField(max_length=200, blank=True)
     comment = models.TextField(blank=True)
@@ -237,9 +242,10 @@ class Sample(models.Model):
     def clean(self):
         errors = {}
 
-        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE)
+        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE_CHOICES)
 
-        biospecimen_type_choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        biospecimen_type_choices = (Sample.NA_BIOSPECIMEN_TYPE_CHOICES if self.extracted_from
+                                    else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
             add_error(
                 errors,
