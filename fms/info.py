@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 COMMIT_DATE, COMMIT_HASH = subprocess.run(
-    'git show --format="format:%cI %h"',
+    'git show --quiet --format="format:%cI %h"',
     shell=True,
     stdout=subprocess.PIPE,
     encoding="UTF-8",
