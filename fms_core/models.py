@@ -396,7 +396,7 @@ class SampleUpdate(Sample):
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
-    TAXON = (
+    TAXON_CHOICES = (
         ('Homo sapiens', 'Homo sapiens'),
         ('Mus musculus', 'Mus musculus'),
     )
@@ -405,15 +405,15 @@ class Individual(models.Model):
     SEX_FEMALE = "F"
     SEX_UNKNOWN = "Unknown"
 
-    SEX = (
+    SEX_CHOICES = (
         (SEX_MALE, SEX_MALE),
         (SEX_FEMALE, SEX_FEMALE),
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
     name = models.CharField(primary_key=True, max_length=200)
-    taxon = models.CharField(choices=TAXON, max_length=20)
-    sex = models.CharField(choices=SEX, max_length=10)
+    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20)
+    sex = models.CharField(choices=SEX_CHOICES, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
     mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
     father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
