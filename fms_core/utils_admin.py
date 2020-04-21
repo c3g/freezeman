@@ -4,7 +4,10 @@ from import_export.formats.base_formats import CSV, TablibFormat
 from reversion.admin import VersionAdmin
 
 
-__all__ = ["AggregatedAdmin"]
+__all__ = [
+    "CustomImportMixin",
+    "AggregatedAdmin",
+]
 
 
 def padded_nones(list_to_pad: list, padded_length: int) -> list:
