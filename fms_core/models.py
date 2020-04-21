@@ -376,10 +376,14 @@ class Individual(models.Model):
         ('Mus musculus', 'Mus musculus'),
     )
 
+    SEX_MALE = "M"
+    SEX_FEMALE = "F"
+    SEX_UNKNOWN = "Unknown"
+
     SEX = (
-        ('M', 'M'),
-        ('F', 'F'),
-        ('Unknown', 'Unknown'),
+        (SEX_MALE, SEX_MALE),
+        (SEX_FEMALE, SEX_FEMALE),
+        (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
     name = models.CharField(primary_key=True, max_length=200)

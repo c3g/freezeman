@@ -178,7 +178,7 @@ class SampleResource(GenericResource):
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
                 name=str(data.get("Mother ID") or ""),
-                sex="F",
+                sex=Individual.SEX_FEMALE,
                 taxon=taxon,  # Mother has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
                 **({"cohort": cohort} if cohort else {}),  # Mother has same cohort as offspring TODO: Confirm
@@ -187,7 +187,7 @@ class SampleResource(GenericResource):
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
                 name=str(data.get("Father ID") or ""),
-                sex="M",
+                sex=Individual.SEX_MALE,
                 taxon=taxon,  # Father has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
                 **({"cohort": cohort} if cohort else {}),  # Father has same cohort as offspring TODO: Confirm
@@ -196,7 +196,7 @@ class SampleResource(GenericResource):
         # TODO: This should throw a warning if the individual already exists
         individual, _ = Individual.objects.get_or_create(
             name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
-            sex=str(data.get("Sex") or "Unknown"),  # TODO: Don't hard-code unknown value
+            sex=str(data.get("Sex") or Individual.SEX_UNKNOWN),
             taxon=taxon,
             **({"pedigree": pedigree} if pedigree else {}),
             **({"cohort": cohort} if cohort else {}),
