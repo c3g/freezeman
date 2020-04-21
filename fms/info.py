@@ -14,14 +14,14 @@ __all__ = [
 COMMIT_DATE, COMMIT_HASH = subprocess.run(
     'git show --format="format:%cI %h"',
     shell=True,
-    capture_output=True,
+    stdout=subprocess.PIPE,
     encoding="UTF-8",
 ).stdout.split(" ")
 
 COMMIT_TAGGED_VERSION = subprocess.run(
     'git describe --tags',
     shell=True,
-    capture_output=True,
+    stdout=subprocess.PIPE,
     encoding="UTF-8",
 ).stdout
 
