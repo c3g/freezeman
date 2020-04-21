@@ -69,16 +69,14 @@ class GenericResource(resources.ModelResource):
             with reversion.create_revision(manage_manually=True):
                 # Prevent reversion from saving on dry runs by manually overriding the current revision
                 super().save_instance(instance, using_transactions, dry_run)
-        else:
-            super().save_instance(instance, using_transactions, dry_run)
+                return
+
+        super().save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         if not dry_run:
             versions = Version.objects.get_for_object(instance)
-            if len(versions) >= 1:
-                reversion.set_comment("Updated from template.")
-            else:
-                reversion.set_comment("Imported from template.")
+            reversion.set_comment("Updated from template." if len(versions) >= 1 else "Imported from template.")
 
 
 class ContainerResource(GenericResource):
@@ -156,9 +154,28 @@ class SampleResource(GenericResource):
             'container',
         )
         excluded = ('volume_history', 'individual', 'depleted', )
-        export_order = ('biospecimen_type', 'name', 'alias', 'cohort', 'experimental_group', 'taxon', 'container_kind',
-                        'container', 'individual_name', 'sex', 'pedigree', 'mother_id', 'father_id', 'volume',
-                        'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype', 'comment',)
+        export_order = (
+            'biospecimen_type',
+            'name',
+            'alias',
+            'cohort',
+            'experimental_group',
+            'taxon',
+            'container_kind',
+            'container',
+            'individual_name',
+            'sex',
+            'pedigree',
+            'mother_id',
+            'father_id',
+            'volume',
+            'concentration',
+            'collection_site',
+            'tissue_source',
+            'reception_date',
+            'phenotype',
+            'comment',
+        )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)
@@ -433,15 +450,15 @@ class ContainerMoveResource(GenericResource):
         dataset.append_col(ids, header='id')
 
     def import_field(self, field, obj, data, is_m2m=False):
-
         if field.attribute == 'id':
             obj = Container.objects.get(pk=str(data.get("Container Barcode to move") or ""))
             obj.location = Container.objects.get(barcode=str(data.get("Dest. Location Barcode") or ""))
             obj.coordinates = str(data.get("Dest. Location Coord") or "")
             # comment if empty does that mean that comment was removed? or not just not added
             obj.comment = str(data.get("Comment") or "")
-        else:
-            super().import_field(field, obj, data, is_m2m)
+            return
+
+        super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
@@ -490,21 +507,22 @@ class SampleUpdateResource(GenericResource):
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'id':
+            # Manually process sample ID and don't call superclass method
             obj = Sample.objects.get(pk=str(data.get("id") or ""))
             obj.concentration = str(data.get("New Conc. (ng/uL)") or "")
             obj.comment = str(data.get("Comment") or "")
+            return
 
-        elif field.attribute == 'volume_history':
-            obj.volume_history.append(
-                create_volume_history("update", str(data.get("New Volume (uL)") or ""))
-            )
+        if field.attribute == 'volume_history':
+            # Manually process volume history and don't call superclass method
+            obj.volume_history.append(create_volume_history("update", str(data.get("New Volume (uL)") or "")))
+            return
 
-        else:
-            if field.attribute == 'depleted':
-                # Normalize boolean attribute
-                data["Depleted"] = check_truth_like(str(data.get("Depleted") or ""))
+        if field.attribute == 'depleted':
+            # Normalize boolean attribute then proceed normally
+            data["Depleted"] = check_truth_like(str(data.get("Depleted") or ""))
 
-            super().import_field(field, obj, data, is_m2m)
+        super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
