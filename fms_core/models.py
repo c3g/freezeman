@@ -89,7 +89,7 @@ class Container(models.Model):
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.kind = str_normalize(self.kind)
+        self.kind = str_normalize(self.kind).lower()
         self.name = str_normalize(self.name)
         self.barcode = str_normalize(self.barcode)
         self.coordinates = str_normalize(self.coordinates)
@@ -141,7 +141,9 @@ class Container(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Normalize and validate before saving, always!
+        # Normalize and validate before saving, always!
+        self.normalize()
+        self.full_clean()
         super().save(*args, **kwargs)  # Save the object
 
 
@@ -358,7 +360,9 @@ class Sample(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Normalize and validate before saving, always!
+        # Normalize and validate before saving, always!
+        self.normalize()
+        self.full_clean()
         super().save(*args, **kwargs)  # Save the object
 
 
@@ -445,5 +449,7 @@ class Individual(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Normalize and validate before saving, always!
+        # Normalize and validate before saving, always!
+        self.normalize()
+        self.full_clean()
         super().save(*args, **kwargs)  # Save the object
