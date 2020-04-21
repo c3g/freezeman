@@ -67,8 +67,10 @@ class ContainerAdmin(AggregatedAdmin):
 
     fieldsets = (
         (None, {"fields": ("kind", "name", "barcode")}),
-        ("Parent Container", {"fields": ("location", "coordinates"),
-                              'classes': ('parent_fieldset', ),}),
+        ("Parent container", {
+            "fields": ("location", "coordinates"),
+            "classes": ("parent_fieldset",),
+        }),
         ("Additional information", {"fields": ("comment",)}),
     )
 
@@ -153,9 +155,10 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
     list_display_links = None
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = {"title": "Import extracted samples"}
-        extra_context['submission_template'] = static("submission_templates/Extraction.xlsx")
-        return super().changelist_view(request, extra_context=extra_context)
+        return super().changelist_view(request, extra_context={
+            "title": "Import extracted samples",
+            "submission_template": static("submission_templates/Extraction.xlsx"),
+        })
 
     def has_add_permission(self, request):
         return False
@@ -212,9 +215,10 @@ class ContainerMoveAdmin(CustomImportMixin, admin.ModelAdmin):
     list_display_links = None
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = {"title": "Move Containers"}
-        extra_context['submission_template'] = static("submission_templates/Container_move.xlsx")
-        return super().changelist_view(request, extra_context=extra_context)
+        return super().changelist_view(request, extra_context={
+            "title": "Move Containers",
+            "submission_template": static("submission_templates/Container_move.xlsx"),
+        })
 
     def get_queryset(self, request):
         # TODO: Return subset of samples which have been moved or something
@@ -231,9 +235,10 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
     list_display_links = None
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = {"title": "Update Samples"}
-        extra_context['submission_template'] = static("submission_templates/Sample_update.xlsx")
-        return super().changelist_view(request, extra_context=extra_context)
+        return super().changelist_view(request, extra_context={
+            "title": "Update Samples",
+            "submission_template": static("submission_templates/Sample_update.xlsx"),
+        })
 
     def get_queryset(self, request):
         # TODO: Return subset of samples which have updates or something

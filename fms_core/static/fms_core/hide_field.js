@@ -1,24 +1,20 @@
-$(document).ready(function() {
-(function($) {
-    $(function() {
-        var selectField = $('#id_kind'),
-            dependentField = $('.parent_fieldset');
+const ROOT_CONTAINER_TYPES = ["room"];
 
-        function toggleDependentField(value) {
-            if (value =='room') {
-                dependentField.hide();
-            } else {
-                dependentField.show();
-            }
-        }
+const hideElement = e => e.setAttribute("style", "display: none");
+const showElement = e => e.removeAttribute("style");
 
-        // show/hide based on selected value
-        toggleDependentField(selectField.val());
+document.addEventListener("DOMContentLoaded", () => {
+    const selectField = document.getElementById("id_kind");
+    const dependentFieldsets = document.querySelectorAll(".parent_fieldset");
 
-        // show/hide on change
-        selectField.change(function() {
-            toggleDependentField($(this).val());
-        });
-    });
-})(django.jQuery);
+    const toggleDependentField = () =>
+        dependentFieldsets.forEach(ROOT_CONTAINER_TYPES.includes(selectField.value)
+            ? hideElement
+            : showElement);
+
+    // show/hide based on selected value
+    toggleDependentField();
+
+    // show/hide on change
+    selectField.addEventListener("change", () => toggleDependentField());
 });

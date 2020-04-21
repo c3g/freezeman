@@ -87,8 +87,18 @@ class Container(models.Model):
     def __str__(self):
         return self.barcode
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.kind = str_normalize(self.kind).lower()
+        self.name = str_normalize(self.name)
+        self.barcode = str_normalize(self.barcode)
+        self.coordinates = str_normalize(self.coordinates)
+        self.comment = str_normalize(self.comment)
+
     def clean(self):
         errors = {}
+
+        self.normalize()
 
         if self.coordinates != "" and self.location is None:
             add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
@@ -130,6 +140,12 @@ class Container(models.Model):
         if errors:
             raise ValidationError(errors)
 
+    def save(self, *args, **kwargs):
+        # Normalize and validate before saving, always!
+        self.normalize()
+        self.full_clean()
+        super().save(*args, **kwargs)  # Save the object
+
 
 class ContainerMoveManager(models.Manager):
     # noinspection PyMethodMayBeStatic
@@ -148,18 +164,24 @@ class ContainerMove(Container):
 class Sample(models.Model):
     """ Class to store information about a sample. """
 
-    NA_BIOSPECIMEN_TYPE = (
-        ("DNA", "DNA"),
-        ("RNA", "RNA"),
+    BIOSPECIMEN_TYPE_DNA = "DNA"
+    BIOSPECIMEN_TYPE_RNA = "RNA"
+    BIOSPECIMEN_TYPE_BLOOD = "BLOOD"
+    BIOSPECIMEN_TYPE_SALIVA = "SALIVA"
+
+    NA_BIOSPECIMEN_TYPES = (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_RNA)
+    NA_BIOSPECIMEN_TYPE_CHOICES = (
+        (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_DNA),
+        (BIOSPECIMEN_TYPE_RNA, BIOSPECIMEN_TYPE_RNA),
     )
 
-    BIOSPECIMEN_TYPE = (
-        *NA_BIOSPECIMEN_TYPE,
-        ("BLOOD", "BLOOD"),
-        ("SALIVA", "SALIVA")
+    BIOSPECIMEN_TYPE_CHOICES = (
+        *NA_BIOSPECIMEN_TYPE_CHOICES,
+        (BIOSPECIMEN_TYPE_BLOOD, BIOSPECIMEN_TYPE_BLOOD),
+        (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA)
     )
 
-    TISSUE_SOURCE = (
+    TISSUE_SOURCE_CHOICES = (
         ("Blood", "Blood"),
         ("Saliva", "Saliva"),
         ("Tumor", "Tumor"),
@@ -170,7 +192,7 @@ class Sample(models.Model):
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
-    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE)
+    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES)
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(max_length=200, validators=[barcode_name_validator])
     alias = models.CharField(max_length=200, blank=True)
@@ -193,7 +215,7 @@ class Sample(models.Model):
 
     experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)])
     collection_site = models.CharField(max_length=200)
-    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE)
+    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES)
     reception_date = models.DateField(default=timezone.now)
     phenotype = models.CharField(max_length=200, blank=True)
     comment = models.TextField(blank=True)
@@ -234,12 +256,22 @@ class Sample(models.Model):
         return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
                f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.name = str_normalize(self.name)
+        self.alias = str_normalize(self.alias)
+        self.collection_site = str_normalize(self.collection_site)
+        self.tissue_source = str_normalize(self.tissue_source)
+        self.phenotype = str_normalize(self.phenotype)
+        self.comment = str_normalize(self.comment)
+
     def clean(self):
         errors = {}
 
-        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE)
+        self.normalize()
 
-        biospecimen_type_choices = self.NA_BIOSPECIMEN_TYPE if self.extracted_from else self.BIOSPECIMEN_TYPE
+        biospecimen_type_choices = (Sample.NA_BIOSPECIMEN_TYPE_CHOICES if self.extracted_from
+                                    else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
             add_error(
                 errors,
@@ -249,7 +281,7 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if self.extracted_from.biospecimen_type in na_biospecimen_types:
+            if self.extracted_from.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES:
                 add_error(
                     errors,
                     "extracted_from",
@@ -265,7 +297,7 @@ class Sample(models.Model):
 
         # Check concentration fields given biospecimen_type
 
-        if self.biospecimen_type in na_biospecimen_types and self.concentration is None:
+        if self.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES and self.concentration is None:
             add_error(
                 errors,
                 "concentration",
@@ -274,7 +306,7 @@ class Sample(models.Model):
 
         # Check tissue source given extracted_from
 
-        if self.tissue_source and self.biospecimen_type not in na_biospecimen_types:
+        if self.tissue_source and self.biospecimen_type not in Sample.NA_BIOSPECIMEN_TYPES:
             add_error(
                 errors,
                 "tissue_source",
@@ -328,17 +360,10 @@ class Sample(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
-        self.alias = str_normalize(self.alias)
-        self.collection_site = str_normalize(self.collection_site)
-        self.tissue_source = str_normalize(self.tissue_source)
-        self.phenotype = str_normalize(self.phenotype)
-        self.comment = str_normalize(self.comment)
+        # Normalize and validate before saving, always!
+        self.normalize()
         self.full_clean()
-
-        # Save the object
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)  # Save the object
 
 
 class ExtractedSampleManager(models.Manager):
@@ -371,20 +396,24 @@ class SampleUpdate(Sample):
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
-    TAXON = (
+    TAXON_CHOICES = (
         ('Homo sapiens', 'Homo sapiens'),
         ('Mus musculus', 'Mus musculus'),
     )
 
-    SEX = (
-        ('M', 'M'),
-        ('F', 'F'),
-        ('Unknown', 'Unknown'),
+    SEX_MALE = "M"
+    SEX_FEMALE = "F"
+    SEX_UNKNOWN = "Unknown"
+
+    SEX_CHOICES = (
+        (SEX_MALE, SEX_MALE),
+        (SEX_FEMALE, SEX_FEMALE),
+        (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
     name = models.CharField(primary_key=True, max_length=200)
-    taxon = models.CharField(choices=TAXON, max_length=20)
-    sex = models.CharField(choices=SEX, max_length=10)
+    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20)
+    sex = models.CharField(choices=SEX_CHOICES, max_length=10)
     pedigree = models.CharField(max_length=200, blank=True)
     mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
     father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
@@ -394,8 +423,16 @@ class Individual(models.Model):
     def __str__(self):
         return self.name
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.name = str_normalize(self.name)
+        self.pedigree = str_normalize(self.pedigree)
+        self.cohort = str_normalize(self.cohort)
+
     def clean(self):
         errors = {}
+
+        self.normalize()
 
         if self.mother is not None and self.father is not None and self.mother == self.father:
             e = ValidationError("Mother and father IDs can't be the same.")
@@ -412,10 +449,7 @@ class Individual(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
-        self.pedigree = str_normalize(self.pedigree)
-        self.cohort = str_normalize(self.cohort)
+        # Normalize and validate before saving, always!
+        self.normalize()
         self.full_clean()
-        # Save the object
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)  # Save the object
