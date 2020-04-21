@@ -1,5 +1,4 @@
 import json
-import re
 import reversion
 
 from datetime import datetime
