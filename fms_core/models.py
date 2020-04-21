@@ -419,8 +419,16 @@ class Individual(models.Model):
     def __str__(self):
         return self.name
 
+    def normalize(self):
+        # Normalize any string values to make searching / data manipulation easier
+        self.name = str_normalize(self.name)
+        self.pedigree = str_normalize(self.pedigree)
+        self.cohort = str_normalize(self.cohort)
+
     def clean(self):
         errors = {}
+
+        self.normalize()
 
         if self.mother is not None and self.father is not None and self.mother == self.father:
             e = ValidationError("Mother and father IDs can't be the same.")
@@ -437,10 +445,5 @@ class Individual(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
-        # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
-        self.pedigree = str_normalize(self.pedigree)
-        self.cohort = str_normalize(self.cohort)
-        self.full_clean()
-        # Save the object
-        super().save(*args, **kwargs)
+        self.full_clean()  # Normalize and validate before saving, always!
+        super().save(*args, **kwargs)  # Save the object
