@@ -167,6 +167,7 @@ class Sample(models.Model):
     BIOSPECIMEN_TYPE_BLOOD = "BLOOD"
     BIOSPECIMEN_TYPE_SALIVA = "SALIVA"
 
+    NA_BIOSPECIMEN_TYPES = (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_RNA)
     NA_BIOSPECIMEN_TYPE_CHOICES = (
         (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_DNA),
         (BIOSPECIMEN_TYPE_RNA, BIOSPECIMEN_TYPE_RNA),
@@ -263,11 +264,9 @@ class Sample(models.Model):
         self.comment = str_normalize(self.comment)
 
     def clean(self):
-        self.normalize()
-
         errors = {}
 
-        na_biospecimen_types = frozenset(c[0] for c in self.NA_BIOSPECIMEN_TYPE_CHOICES)
+        self.normalize()
 
         biospecimen_type_choices = (Sample.NA_BIOSPECIMEN_TYPE_CHOICES if self.extracted_from
                                     else Sample.BIOSPECIMEN_TYPE_CHOICES)
@@ -280,7 +279,7 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if self.extracted_from.biospecimen_type in na_biospecimen_types:
+            if self.extracted_from.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES:
                 add_error(
                     errors,
                     "extracted_from",
@@ -296,7 +295,7 @@ class Sample(models.Model):
 
         # Check concentration fields given biospecimen_type
 
-        if self.biospecimen_type in na_biospecimen_types and self.concentration is None:
+        if self.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES and self.concentration is None:
             add_error(
                 errors,
                 "concentration",
@@ -305,7 +304,7 @@ class Sample(models.Model):
 
         # Check tissue source given extracted_from
 
-        if self.tissue_source and self.biospecimen_type not in na_biospecimen_types:
+        if self.tissue_source and self.biospecimen_type not in Sample.NA_BIOSPECIMEN_TYPES:
             add_error(
                 errors,
                 "tissue_source",
