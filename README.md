@@ -7,11 +7,14 @@ tracking of biological samples in a laboratory environment.
 
 ## License
 
-Copyright &copy; 2020 the Canadian Centre for Computational Genomics. All
-rights reserved. Licensed under the GNU Lesser General Public License version 
-3. See project license in `/LICENSE`.
+Copyright &copy; the Royal Institution for the Advancement of Learning / McGill
+University 2020. All rights reserved. FreezeMan is licensed under the GNU 
+Lesser General Public License version 3. See project license in `/LICENSE`.
 
-Portions copyright &copy; Django Software Foundation and individual 
+FreezeMan was developed by the 
+[Canadian Centre for Computational Genomics](http://www.computationalgenomics.ca/). 
+
+Portions copyright &copy; Django Software Foundation and individual
 contributors to the Django project.
 
 See relevant license in the following files:
