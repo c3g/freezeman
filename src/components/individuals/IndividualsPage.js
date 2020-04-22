@@ -4,8 +4,8 @@ import {connect} from "react-redux";
 import {Table} from "antd";
 import "antd/es/table/style/css";
 
-import AppPageHeader from "./AppPageHeader";
-import PageContainer from "./PageContainer";
+import AppPageHeader from "../AppPageHeader";
+import PageContainer from "../PageContainer";
 
 const TABLE_COLUMNS = [
     {

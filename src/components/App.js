@@ -25,7 +25,7 @@ import SignInForm from "./SignInForm";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
-import IndividualsPage from "./IndividualsPage";
+import IndividualsPage from "./individuals/IndividualsPage";
 import ReportingPage from "./ReportingPage";
 
 import PrivateRoute from "./PrivateRoute";
