@@ -377,7 +377,7 @@ class ExtractionResource(GenericResource):
             try:
                 obj.container = Container.objects.get(**shared_container_info)
             except Container.DoesNotExist:
-                obj.container = Container(
+                obj.container = Container.objects.create(
                     **shared_container_info,
                     # Below is creation-specific data
                     # Per Alex: Container name = container barcode if we auto-generate the container
@@ -385,7 +385,6 @@ class ExtractionResource(GenericResource):
                     comment=f'Automatically generated via extraction template import on '
                             f'{datetime.utcnow().isoformat()}Z'
                 )
-                obj.container.save()
 
         else:
             super().import_field(field, obj, data, is_m2m)
@@ -393,7 +392,8 @@ class ExtractionResource(GenericResource):
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
         instance.alias = instance.extracted_from.alias
-        instance.collection_site = instance.extracted_from.collection_site  # TODO: Check with Alex
+        instance.collection_site = instance.extracted_from.collection_site
+        instance.experimental_group = instance.extracted_from.experimental_group
         instance.individual = instance.extracted_from.individual
 
         # Update volume and depletion status of original
