@@ -1,5 +1,5 @@
 import tablib
-from import_export.admin import ImportMixin, ExportMixin
+from import_export.admin import ImportMixin, ExportActionMixin, ExportMixin
 from import_export.formats.base_formats import CSV, TablibFormat
 from reversion.admin import VersionAdmin
 
@@ -52,7 +52,7 @@ class CustomImportMixin(ImportMixin):
     change_list_template = "admin/fms_core/download_import.html"
 
 
-class AggregatedAdmin(CustomImportMixin, ExportMixin, VersionAdmin):
+class AggregatedAdmin(CustomImportMixin, ExportActionMixin, ExportMixin, VersionAdmin):
     """
     Import, Export and Version admin.
     """
