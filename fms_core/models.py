@@ -257,12 +257,32 @@ class Sample(models.Model):
     # Computed properties for individuals
 
     @property
+    def individual_name(self) -> str:
+        return self.individual.name if self.individual else ""
+
+    @property
+    def individual_sex(self):
+        return self.individual.sex if self.individual else ""
+
+    @property
+    def individual_taxon(self):
+        return self.individual.taxon if self.individual else ""
+
+    @property
     def individual_cohort(self) -> str:
         return self.individual.cohort if self.individual else ""
 
     @property
     def individual_pedigree(self):
         return self.individual.pedigree if self.individual else ""
+
+    @property
+    def individual_mother(self):
+        return self.individual.mother if self.individual else None
+
+    @property
+    def individual_father(self):
+        return self.individual.father if self.individual else None
 
     # Representations
 

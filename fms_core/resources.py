@@ -113,17 +113,29 @@ class SampleResource(GenericResource):
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
-    # Non-attribute fields
+    # Computed fields to include in export / display on import
+
+    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+
+    individual_name = Field(attribute='individual_name', column_name='Individual Name')
+    sex = Field(attribute='individual_sex', column_name='Sex')
+    taxon = Field(attribute='individual_taxon', column_name='Taxon')
     cohort = Field(attribute='individual_cohort', column_name='Cohort')
     pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
-    taxon = Field(attribute='individual_taxon', column_name='Taxon')
-    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
-    # need it to display on import
-    individual_name = Field(attribute='get_name_display', column_name='Individual Name')
-    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
-    sex = Field(attribute='get_sex_display', column_name='Sex')
-    mother_id = Field(attribute='get_mother_display', column_name='Mother ID')
-    father_id = Field(attribute='get_father_display', column_name='Father ID')
+    mother_id = Field(attribute='individual_mother', column_name='Mother ID')
+    father_id = Field(attribute='individual_father', column_name='Father ID')
+
+    COMPUTED_FIELDS = frozenset((
+        "volume",
+        "individual_name",
+        "individual_sex",
+        "individual_taxon",
+        "individual_cohort",
+        "individual_pedigree",
+        "individual_mother",
+        "individual_father",
+    ))
 
     class Meta:
         model = Sample
@@ -245,7 +257,7 @@ class SampleResource(GenericResource):
             # Experimental group is stored as a JSON array, so parse out what's going on
             data["Experimental Group"] = json.dumps(RE_SEPARATOR.split(str(data.get("Experimental Group") or "")))
 
-        elif field.attribute in ("volume", "individual_cohort", "individual_pedigree"):
+        elif field.attribute in self.COMPUTED_FIELDS:
             # Ignore importing this, since it's a computed property.
             return
 
