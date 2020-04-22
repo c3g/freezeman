@@ -5,10 +5,11 @@ import {Link} from "react-router-dom";
 import {Button, Table} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/table/style/css";
-import {EditOutlined, ExperimentFilled, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import {SampleDepletion} from "./SampleDepletion";
 
 const TABLE_COLUMNS = [
     {
@@ -50,20 +51,19 @@ const TABLE_COLUMNS = [
     {
         title: "Vol. (µL)",
         dataIndex: "volume_history",
-        render: vh => vh[vh.length - 1].volume_value,
+        render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
         width: 100,
     },
     {
         title: "Conc. (ng/µL)",
         dataIndex: "concentration",
+        render: conc => parseFloat(conc).toFixed(3),
         width: 115,
     },
     {
         title: "Depleted",
         dataIndex: "depleted",
-        render: depleted => depleted
-            ? <span style={{color: "#f5222d"}}><ExperimentOutlined style={{marginRight: "8px"}} />Yes</span>
-            : <span style={{color: "#a0d911"}}><ExperimentFilled style={{marginRight: "8px"}} />No</span>,
+        render: depleted => <SampleDepletion depleted={depleted} />,
         width: 85,
     }
 ];

@@ -8,6 +8,7 @@ import "antd/es/tag/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import {SampleDepletion} from "./SampleDepletion";
 
 const SamplesDetailContent = ({samplesByID}) => {
     const history = useHistory();
@@ -37,7 +38,7 @@ const SamplesDetailContent = ({samplesByID}) => {
                 <Descriptions.Item label="Biospecimen Type">{sample.biospecimen_type}</Descriptions.Item>
                 <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
                 <Descriptions.Item label="Concentration">{sample.concentration} ng/µL</Descriptions.Item>
-                <Descriptions.Item label="Depleted">{sample.depleted ? "Yes" : "No"}</Descriptions.Item>
+                <Descriptions.Item label="Depleted"><SampleDepletion depleted={sample.depleted} /></Descriptions.Item>
             </Descriptions>
             <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
                 <Descriptions.Item label="Individual">
