@@ -28,7 +28,8 @@ const TABLE_COLUMNS = [
     {
         title: <><BarcodeOutlined style={{marginRight: "8px"}} />Location</>,
         dataIndex: "location",
-        render: barcode => <a href="#">{barcode}</a>,  // TODO: Same display, highlighting current as child?
+        // TODO: Same display, highlighting current as child?
+        render: barcode => <Link to={`/containers/${barcode}`}>{barcode}</Link>,
     },
     {
         title: "Co-ords.",

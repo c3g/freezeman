@@ -26,7 +26,7 @@ const TABLE_COLUMNS = [
     {
         title: "Name",
         dataIndex: "name",
-        render: name => <a href="#">{name}</a>,  // TODO: Nice sample display
+        render: (name, sample) => <Link to={`/samples/${sample.id}`}>{name}</Link>,
     },
     {
         title: "Alias",
@@ -35,12 +35,12 @@ const TABLE_COLUMNS = [
     {
         title: "Individual",
         dataIndex: "individual",
-        render: individual => <a href="#">{individual}</a>,  // TODO
+        render: individual => <Link to={`/individuals/${individual}`}>{individual}</Link>,
     },
     {
         title: "Container",
         dataIndex: "container",
-        render: container => <a href="#">{container}</a>,  // TODO
+        render: container => <Link to={`/containers/${container}`}>{container}</Link>,
     },
     {
         title: "Coords",

@@ -40,7 +40,9 @@ const SamplesDetailContent = ({samplesByID}) => {
                 <Descriptions.Item label="Depleted">{sample.depleted ? "Yes" : "No"}</Descriptions.Item>
             </Descriptions>
             <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
-                <Descriptions.Item label="Individual">{sample.individual}</Descriptions.Item>
+                <Descriptions.Item label="Individual">
+                    <Link to={`/individuals/${sample.individual}`}>{sample.individual}</Link>
+                </Descriptions.Item>
                 <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
                 <Descriptions.Item label="Tissue Source">{sample.tissue_source}</Descriptions.Item>
                 <Descriptions.Item label="Experimental Groups" span={2}>
