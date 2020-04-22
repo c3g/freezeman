@@ -12,7 +12,8 @@ const buildContainerTreeFromPath = (containersByBarcode, path) => {
     const container = containersByBarcode[path[0]];
     // TODO: Click behaviour?
     return [{
-        title: `${container.name} (Kind: ${container.kind}, Barcode: ${container.barcode})`,
+        title: `${container.name} (Kind: ${container.kind}, Barcode: ${container.barcode}${
+            container.coordinates ? `, Coordinates: ${container.coordinates}` : ""})`,
         key: container.barcode,
         children: buildContainerTreeFromPath(containersByBarcode, path.slice(1)),
     }];
@@ -36,7 +37,7 @@ const ContainerHierarchy = ({container, containersByBarcode, isFetching, isFetch
 
     barcodePath.reverse();
 
-    // TODO: Render siblings? or something like "And 432 others..."
+    // TODO: Render siblings? or something like "And 432 others..." which expands on click
 
     const tree = loading ? [{
         title: "Loading...",
@@ -44,7 +45,10 @@ const ContainerHierarchy = ({container, containersByBarcode, isFetching, isFetch
         icon: <LoadingOutlined />,
     }] : buildContainerTreeFromPath(containersByBarcode, barcodePath);
 
-    return <Tree defaultExpandAll defaultSelectedKeys={[barcodePath[0]]} expandedKeys={barcodePath} treeData={tree} />;
+    return <Tree defaultExpandAll
+                 selectedKeys={[barcodePath[barcodePath.length - 1]]}
+                 expandedKeys={barcodePath}
+                 treeData={tree} />;
 };
 
 const mapStateToProps = state => ({

@@ -14,7 +14,7 @@ const TABLE_COLUMNS = [
     {
         title: <><BarcodeOutlined style={{marginRight: "8px"}} />Barcode</>,
         dataIndex: "barcode",
-        render: barcode => <a href="#">{barcode}</a>,
+        render: barcode => <Link to={`/containers/${barcode}`}>{barcode}</Link>,
         // TODO: Link to some interesting display with location hierarchy, children if relevant (or sample[s])
     },
     {
