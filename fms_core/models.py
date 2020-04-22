@@ -248,13 +248,29 @@ class Sample(models.Model):
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
 
+    # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
-        return Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"])))
+        return (Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"]))) if self.volume_history
+                else Decimal("0.000"))
+
+    # Computed properties for individuals
+
+    @property
+    def individual_cohort(self) -> str:
+        return self.individual.cohort if self.individual else ""
+
+    @property
+    def individual_pedigree(self):
+        return self.individual.pedigree if self.individual else ""
+
+    # Representations
 
     def __str__(self):
         return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
                f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
+
+    # ORM Methods
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier

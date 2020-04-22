@@ -114,10 +114,10 @@ class SampleResource(GenericResource):
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Non-attribute fields
-    cohort = Field(attribute='cohort', column_name='Cohort')
-    pedigree = Field(attribute='get_pedigree_display', column_name='Pedigree')
-    taxon = Field(attribute='get_taxon_display', column_name='Taxon')
-    volume = Field(attribute='get_volume_display', column_name='Volume (uL)', widget=DecimalWidget())
+    cohort = Field(attribute='individual_cohort', column_name='Cohort')
+    pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
+    taxon = Field(attribute='individual_taxon', column_name='Taxon')
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     # need it to display on import
     individual_name = Field(attribute='get_name_display', column_name='Individual Name')
     container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
@@ -244,6 +244,10 @@ class SampleResource(GenericResource):
         elif field.attribute == "experimental_group":
             # Experimental group is stored as a JSON array, so parse out what's going on
             data["Experimental Group"] = json.dumps(RE_SEPARATOR.split(str(data.get("Experimental Group") or "")))
+
+        elif field.attribute in ("volume", "individual_cohort", "individual_pedigree"):
+            # Ignore importing this, since it's a computed property.
+            return
 
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
