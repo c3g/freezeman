@@ -28,6 +28,7 @@ const TABLE_COLUMNS = [
             },
         ],
         onFilter: (value, record) => record.taxon === value,
+        render: taxon => <em>{taxon}</em>,
     },
     {
         title: "Sex",
