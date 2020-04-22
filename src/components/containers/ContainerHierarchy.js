@@ -10,12 +10,27 @@ import {fetchContainer} from "../../modules/containers/actions";
 const buildContainerTreeFromPath = (containersByBarcode, path) => {
     if (path.length === 0) return [];
     const container = containersByBarcode[path[0]];
+    const otherChildren = container.children.length - (path.length === 1 ? 0 : 1);
+    const samples = container.samples.length;
     // TODO: Click behaviour?
     return [{
         title: `${container.name} (Kind: ${container.kind}, Barcode: ${container.barcode}${
             container.coordinates ? `, Coordinates: ${container.coordinates}` : ""})`,
         key: container.barcode,
-        children: buildContainerTreeFromPath(containersByBarcode, path.slice(1)),
+        children: [
+            ...buildContainerTreeFromPath(containersByBarcode, path.slice(1)),
+            ...(otherChildren ? [{
+                // TODO: Expandable / replaceable
+                title: `${otherChildren}${path.length === 1 ? '' : ' other'} container${
+                    otherChildren === 1 ? '' : 's'}`,
+                key: `${container.barcode}$children`,
+            }] : []),
+            ...(samples ? [{
+                // TODO: Expandable / replaceable
+                title: `${samples} sample${samples === 1 ? '' : 's'}`,
+                key: `${container.barcode}$samples`,
+            }] : []),
+        ],
     }];
 };
 
