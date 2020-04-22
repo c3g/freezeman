@@ -4,6 +4,7 @@ import {Redirect, Route, Switch} from "react-router-dom";
 
 import ExtractionsProcessContent from "./ExtractionsProcessContent";
 import SamplesAddContent from "./SamplesAddContent";
+import SamplesDetailContent from "./SamplesDetailContent";
 import SamplesListContent from "./SamplesListContent";
 import SamplesUpdateContent from "./SamplesUpdateContent";
 import PageContainer from "../PageContainer";
@@ -14,6 +15,7 @@ const SamplesExtractionsPage = () => <PageContainer>
         <Route path="/samples/update"><SamplesUpdateContent /></Route>
         <Route path="/samples/extract"><ExtractionsProcessContent /></Route>
         <Route path="/samples/list"><SamplesListContent /></Route>
+        <Route path="/samples/:id"><SamplesDetailContent /></Route>
         <Redirect to="/samples/list" />
     </Switch>
 </PageContainer>;
