@@ -175,10 +175,17 @@ class ExtractedSampleTest(TestCase):
         # tissue_source can only be specified for DNA and RNA
         invalid_tissue_source = Sample(**create_sample(self.valid_individual, self.tube_container,
                                                        tissue_source='Blood'))
-        try:
-            invalid_tissue_source.full_clean()
-        except ValidationError as e:
-            self.assertTrue('tissue_source' in e.message_dict)
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_tissue_source.full_clean()
+            except ValidationError as e:
+                self.assertTrue('tissue_source' in e.message_dict)
+                raise e
+
+    def test_negative_volume(self):
+        with self.assertRaises(ValidationError):
+            Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('-0.01'),
+                                                            **self.constants))
 
 
 class IndividualTest(TestCase):
