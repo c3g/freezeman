@@ -115,8 +115,8 @@ class SampleResource(GenericResource):
 
     # Computed fields to include in export / display on import
 
-    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
-    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+    container_kind = Field(attribute='container_kind', column_name='Container Kind')
+    container_name = Field(attribute='container_name', column_name='Container Name')
 
     individual_name = Field(attribute='individual_name', column_name='Individual Name')
     sex = Field(attribute='individual_sex', column_name='Sex')
@@ -125,6 +125,8 @@ class SampleResource(GenericResource):
     pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
     mother_id = Field(attribute='individual_mother', column_name='Mother ID')
     father_id = Field(attribute='individual_father', column_name='Father ID')
+
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 
     COMPUTED_FIELDS = frozenset((
         "volume",
@@ -135,6 +137,8 @@ class SampleResource(GenericResource):
         "individual_pedigree",
         "individual_mother",
         "individual_father",
+        "container_kind",
+        "container_name",
     ))
 
     class Meta:
@@ -157,6 +161,7 @@ class SampleResource(GenericResource):
             'experimental_group',
             'taxon',
             'container_kind',
+            'container_name',
             'container',
             'individual_name',
             'sex',

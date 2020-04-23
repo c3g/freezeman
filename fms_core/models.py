@@ -284,6 +284,16 @@ class Sample(models.Model):
     def individual_father(self):
         return self.individual.father if self.individual else None
 
+    # Computed properties for containers
+
+    @property
+    def container_kind(self):
+        return self.container.kind if self.container else None
+
+    @property
+    def container_name(self):
+        return self.container.name if self.container else None
+
     # Representations
 
     def __str__(self):
