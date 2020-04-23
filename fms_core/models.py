@@ -432,9 +432,12 @@ class SampleUpdate(Sample):
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
+    TAXON_HOMO_SAPIENS = "Homo sapiens"
+    TAXON_MUS_MUSCULUS = "Mus musculus"
+
     TAXON_CHOICES = (
-        ('Homo sapiens', 'Homo sapiens'),
-        ('Mus musculus', 'Mus musculus'),
+        (TAXON_HOMO_SAPIENS, TAXON_HOMO_SAPIENS),
+        (TAXON_MUS_MUSCULUS, TAXON_MUS_MUSCULUS),
     )
 
     SEX_MALE = "M"
