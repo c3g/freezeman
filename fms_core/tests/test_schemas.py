@@ -54,6 +54,11 @@ INVALID_VOLUMES = (
         "date": "not-a-date",
         "extracted_sample_id": 1,
     },
+    {
+        "update_type": "update",
+        "volume_value": "-3.000",
+        "date": "2020-04-23T17:37:30.449Z",
+    },
 )
 
 VALID_EXPERIMENTAL_GROUPS = (
@@ -88,7 +93,7 @@ class AdminUtilsTestCase(TestCase):
 
         for g in VALID_EXPERIMENTAL_GROUPS:
             validator(g)
-            
+
         for g in INVALID_EXPERIMENTAL_GROUPS:
             with self.assertRaises(ValidationError):
                 validator([g])

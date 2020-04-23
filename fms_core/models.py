@@ -356,6 +356,9 @@ class Sample(models.Model):
             if self.volume_used is None:
                 add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))
 
+            elif self.volume_used <= Decimal("0"):
+                add_error(errors, "volume_used", ValidationError("volume_used must be positive"))
+
         if self.volume_used is not None and not self.extracted_from:
             add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
 
