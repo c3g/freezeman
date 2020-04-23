@@ -20,7 +20,7 @@ from .containers import (
     PARENT_CONTAINER_KINDS,
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
-from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP
+from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP_SCHEMA
 from .utils import str_normalize
 
 
@@ -217,7 +217,8 @@ class Sample(models.Model):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)],
+    experimental_group = JSONField(blank=True, default=list,
+                                   validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA, formats=["date-time"])],
                                    help_text="Sample group having some common characteristics. "
                                              "It is the way to designate a subgroup within a study.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "

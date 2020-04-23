@@ -1,6 +1,5 @@
 from django.test import TestCase
 
-# noinspection PyProtectedMember
 from ..utils import check_truth_like, normalize_scientific_name
 
 
