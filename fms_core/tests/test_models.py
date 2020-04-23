@@ -16,6 +16,14 @@ class ContainerTest(TestCase):
         created_valid_container = Container.objects.get(name='TestRack001')
         self.assertEqual(created_valid_container.barcode, 'R123456')
 
+    def test_same_coordinates(self):
+        rack = Container.objects.create(**create_container(barcode='R123456'))
+        Container.objects.create(**create_container(location=rack, barcode='R123457', coordinates="A01", kind="tube",
+                                                    name="tube01"))
+        with self.assertRaises(ValidationError):
+            Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
+                                                        kind="tube", name="tube02"))
+
     def test_non_existent_parent(self):
         with self.assertRaises(ObjectDoesNotExist):
             Container.objects.create(**create_container(
@@ -90,14 +98,20 @@ class SampleTest(TestCase):
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only
-        for i, container_kind in enumerate(['96-well plate', '384-well plate']):
+        for i, container_kind in enumerate(('96-well plate', '384-well plate')):
             plate_container = Container.objects.create(**create_sample_container(container_kind,
                                                                                  name=f'Test_name_{i}',
                                                                                  barcode=f'Barcode_{i}'))
             sample_in_plate_container = Sample(**create_sample(self.valid_individual, plate_container,
-                                                               coordinates='A11'))
+                                                               coordinates="A11"))
             sample_in_plate_container.full_clean()
             sample_in_plate_container.save()
+
+            with self.assertRaises(ValidationError):
+                # Should not be able to create a sample in the sample place
+                Sample.objects.create(**create_sample(self.valid_individual, plate_container,
+                                                      coordinates="A11", name="test_sample_02"))
+
         self.assertEqual(Sample.objects.count(), 2)
 
     def test_wrong_container_kind(self):

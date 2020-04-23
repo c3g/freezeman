@@ -2,10 +2,10 @@ from decimal import Decimal
 from ..models import Individual
 
 
-def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12"):
+def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12", name='TestRack001'):
     return dict(
         kind=kind,
-        name='TestRack001',
+        name=name,
         barcode=barcode,
         coordinates=coordinates,
         location=location,
@@ -25,12 +25,12 @@ def create_sample_container(kind, name, barcode, coordinates='', location=None):
 
 
 def create_sample(individual, container, coordinates='', **kwargs):
-    return dict(
-        biospecimen_type='BLOOD',
-        name='test_sample_01',
-        alias='53',
-        individual=individual,
-        volume_history=[
+    return {
+        "biospecimen_type": 'BLOOD',
+        "name": 'test_sample_01',
+        "alias": '53',
+        "individual": individual,
+        "volume_history": [
             {
                 "date": "2020-04-15T03:50:45.127218Z",
                 "update_type": "update",
@@ -38,12 +38,12 @@ def create_sample(individual, container, coordinates='', **kwargs):
             }
         ],
         # concentration=Decimal('0.02'),
-        experimental_group=['EG01', 'EG02'],
-        collection_site='Site1',
-        container=container,
-        coordinates=coordinates,
+        "experimental_group": ['EG01', 'EG02'],
+        "collection_site": 'Site1',
+        "container": container,
+        "coordinates": coordinates,
         **kwargs
-    )
+    }
 
 
 def create_extracted_sample(biospecimen_type, individual, container, extracted_from, volume_used, coordinates=''):
