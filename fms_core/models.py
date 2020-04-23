@@ -82,7 +82,7 @@ class Container(models.Model):
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True,
                                    help_text="Coordinates of this container within the parent container.")
-    comment = models.TextField(blank=True)
+    comment = models.TextField(blank=True, help_text="Other relevant information about the container.")
 
     def __str__(self):
         return self.barcode
@@ -192,14 +192,18 @@ class Sample(models.Model):
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
-    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES)
+    biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES,
+                                        help_text="Biological material collected from study subject "
+                                                  "during the conduct of a genomic study project.")
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(max_length=200, validators=[barcode_name_validator])
-    alias = models.CharField(max_length=200, blank=True)
+    name = models.CharField(max_length=200, validators=[barcode_name_validator], help_text="Sample name.")
+    alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
+                                                                   "collaborator or customer.")
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
-    individual = models.ForeignKey('Individual', on_delete=models.PROTECT)
-
-    volume_history = JSONField("volume history in µL", validators=[JsonSchemaValidator(VOLUME_SCHEMA)])
+    individual = models.ForeignKey('Individual', on_delete=models.PROTECT, help_text="Individual associated "
+                                                                                     "with the sample.")
+    volume_history = JSONField("volume history in µL", validators=[JsonSchemaValidator(VOLUME_SCHEMA)],
+                               help_text="Volume of the sample in µL.")
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
     concentration = models.DecimalField(
@@ -213,17 +217,22 @@ class Sample(models.Model):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)])
-    collection_site = models.CharField(max_length=200)
-    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES)
-    reception_date = models.DateField(default=timezone.now)
-    phenotype = models.CharField(max_length=200, blank=True)
-    comment = models.TextField(blank=True)
+    experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)],
+                                   help_text="Sample group having some common characteristics. "
+                                             "It is the way to designate a subgroup within a study.")
+    collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
+                                                                 "of samples.")
+    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
+                                     help_text="Can only be specified if the biospecimen type is DNA or RNA.")
+    reception_date = models.DateField(default=timezone.now, help_text="Date of the sample reception.")
+    phenotype = models.CharField(max_length=200, blank=True, help_text="Sample phenotype.")
+    comment = models.TextField(blank=True, help_text="Other relevant information about the sample.")
 
     # In what container is this sample located?
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples",
-                                  limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS})
+                                  limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
+                                  help_text="Designated location of the sample.")
     # Location within the container, specified by coordinates
     # TODO list of choices ?
     coordinates = models.CharField(max_length=10, blank=True,
@@ -468,14 +477,17 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    name = models.CharField(primary_key=True, max_length=200)
-    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20)
-    sex = models.CharField(choices=SEX_CHOICES, max_length=10)
-    pedigree = models.CharField(max_length=200, blank=True)
-    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='mother_of')
-    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name='father_of')
+    name = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
+    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
+    sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
+    pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
+    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="mother_of",
+                               help_text="Mother of the individual.")
+    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
+                               help_text="Father of the individual.")
     # required ?
-    cohort = models.CharField(max_length=200, blank=True)
+    cohort = models.CharField(max_length=200, blank=True, help_text="Label to group some individuals in "
+                                                                    "a specific study.")
 
     def __str__(self):
         return self.name
