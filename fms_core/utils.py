@@ -21,12 +21,12 @@ RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
 
 
-def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[str] = None):
+def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[int] = None):
     return {
         "update_type": update_type,
         "volume_value": str(Decimal(volume_value)),
         "date": datetime.utcnow().isoformat() + "Z",
-        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
+        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id is not None else {})
     }
 
 
