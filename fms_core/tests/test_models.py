@@ -81,6 +81,8 @@ class SampleTest(TestCase):
         self.assertEqual(sample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
         self.assertEqual(sample.individual_cohort, "covid-19")
         self.assertEqual(sample.individual_pedigree, "")
+        self.assertIsNone(sample.individual_mother)
+        self.assertIsNone(sample.individual_father)
         self.assertEqual(sample.container_kind, "tube")
         self.assertEqual(sample.container_name, "TestTube01")
         self.assertIsNone(sample.container_location)
