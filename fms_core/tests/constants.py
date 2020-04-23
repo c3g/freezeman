@@ -1,12 +1,13 @@
 from decimal import Decimal
+from ..models import Individual
 
 
-def create_container(barcode, location=None):
+def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12"):
     return dict(
-        kind='tube rack 8x12',
+        kind=kind,
         name='TestRack001',
         barcode=barcode,
-        coordinates='',
+        coordinates=coordinates,
         location=location,
         comment=''
     )
@@ -71,8 +72,8 @@ def create_extracted_sample(biospecimen_type, individual, container, extracted_f
 def create_individual(name, mother=None, father=None):
     return dict(
         name=name,
-        taxon='Homo sapiens',
-        sex='Unknown',
+        taxon=Individual.TAXON_HOMO_SAPIENS,
+        sex=Individual.SEX_UNKNOWN,
         mother=mother,
         father=father,
         cohort='covid-19'

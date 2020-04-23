@@ -23,6 +23,22 @@ class ContainerTest(TestCase):
                 location=Container.objects.get(barcode='RandomNonExistentBarcode')
             ))
 
+    def test_coordinates_without_location(self):
+        with self.assertRaises(ValidationError):
+            c = create_container(barcode="Barcode001")
+            c["coordinates"] = "A01"
+            Container.objects.create(**c)
+
+    def test_invalid_parent_coordiantes(self):
+        parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
+        with self.assertRaises(ValidationError):
+            Container.objects.create(**create_container(
+                barcode="Barcode002",
+                location=parent_container,
+                coordinates="Z99",
+                kind="tube",
+            ))
+
     def test_location_equal_barcode(self):
         parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
         invalid_container = Container(**create_container(barcode='ParentBarcode01',
@@ -167,8 +183,9 @@ class IndividualTest(TestCase):
         pass
 
     def test_individual(self):
-        Individual.objects.create(**create_individual(name='jdoe'))
+        individual = Individual.objects.create(**create_individual(name="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
+        self.assertEqual(str(individual), "jdoe")
 
     def test_mother_father(self):
         # individual name can't be mother name and can't be father name
