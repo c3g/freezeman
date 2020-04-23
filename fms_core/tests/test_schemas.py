@@ -2,20 +2,12 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ..schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP_SCHEMA
+from ..utils import create_volume_history
 
 
 VALID_VOLUMES = (
-    {
-        "update_type": "update",
-        "volume_value": "0.000",
-        "date": "2020-04-23T17:37:30.449Z",
-    },
-    {
-        "update_type": "extraction",
-        "volume_value": "3.000",
-        "date": "2020-04-23T17:37:30.449Z",
-        "extracted_sample_id": 1,
-    },
+    create_volume_history("update", "0.000"),
+    create_volume_history("extraction", "3.000", 1),
 )
 
 INVALID_VOLUMES = (

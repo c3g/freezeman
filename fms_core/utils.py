@@ -1,11 +1,16 @@
 import re
 import unicodedata
 
+from datetime import datetime
+from decimal import Decimal
+from typing import Optional
+
 
 __all__ = [
     "RE_SEPARATOR",
     "RE_WHITESPACE",
 
+    "create_volume_history",
     "check_truth_like",
     "normalize_scientific_name",
     "str_normalize",
@@ -14,6 +19,15 @@ __all__ = [
 
 RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
+
+
+def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[str] = None):
+    return {
+        "update_type": update_type,
+        "volume_value": str(Decimal(volume_value)),
+        "date": datetime.utcnow().isoformat() + "Z",
+        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
+    }
 
 
 def check_truth_like(string: str) -> bool:

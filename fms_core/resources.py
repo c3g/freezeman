@@ -14,8 +14,8 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from .models import create_volume_history, Container, Sample, Individual
-from .utils import RE_SEPARATOR, check_truth_like, normalize_scientific_name, str_normalize
+from .models import Container, Sample, Individual
+from .utils import RE_SEPARATOR, create_volume_history, check_truth_like, normalize_scientific_name, str_normalize
 
 
 __all__ = [

@@ -6,6 +6,7 @@ from jsonschema import Draft7Validator, FormatChecker
 __all__ = [
     "JsonSchemaValidator",
     "VOLUME_SCHEMA",
+    "VOLUME_VALIDATOR",
     "EXPERIMENTAL_GROUP_SCHEMA",
 ]
 
@@ -67,6 +68,8 @@ VOLUME_SCHEMA = {
     },
     "minItems": 1
 }
+
+VOLUME_VALIDATOR = JsonSchemaValidator(VOLUME_SCHEMA, formats=["date-time"])
 
 
 EXPERIMENTAL_GROUP_SCHEMA = {

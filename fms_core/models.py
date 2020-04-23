@@ -1,15 +1,12 @@
 import re
 import reversion
 
-from datetime import datetime
 from decimal import Decimal
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
-
-from typing import Optional
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -20,13 +17,11 @@ from .containers import (
     PARENT_CONTAINER_KINDS,
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
-from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP_SCHEMA
+from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from .utils import str_normalize
 
 
 __all__ = [
-    "create_volume_history",
-
     "Container",
     "ContainerMove",
     "Sample",
@@ -34,21 +29,6 @@ __all__ = [
     "SampleUpdate",
     "Individual",
 ]
-
-
-def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[str] = None):
-    if update_type not in ("extraction", "update"):
-        raise ValueError(f"Invalid update type {update_type}")
-
-    if update_type == "extraction" and not extracted_sample_id:
-        raise ValueError("Must specify sample ID for extraction")
-
-    return {
-        "update_type": update_type,
-        "volume_value": str(Decimal(volume_value)),
-        "date": datetime.utcnow().isoformat() + "Z",
-        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
-    }
 
 
 def add_error(errors: dict, field: str, error: ValidationError):
@@ -202,7 +182,7 @@ class Sample(models.Model):
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT, help_text="Individual associated "
                                                                                      "with the sample.")
-    volume_history = JSONField("volume history in µL", validators=[JsonSchemaValidator(VOLUME_SCHEMA)],
+    volume_history = JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
                                help_text="Volume of the sample in µL.")
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
@@ -218,7 +198,7 @@ class Sample(models.Model):
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
     experimental_group = JSONField(blank=True, default=list,
-                                   validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA, formats=["date-time"])],
+                                   validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
                                    help_text="Sample group having some common characteristics. "
                                              "It is the way to designate a subgroup within a study.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
