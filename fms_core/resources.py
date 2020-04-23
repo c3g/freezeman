@@ -245,11 +245,16 @@ class SampleResource(GenericResource):
             # specifies the sample's location within the container itself. Otherwise, it specifies the location of
             # the container within the parent container. TODO: Ideally this should be tweaked
 
+            try:
+                container_parent = Container.objects.get(barcode=str(data.get("Location Barcode") or ""))
+            except Container.DoesNotExist:
+                container_parent = None
+
             container_data = dict(
                 kind=normalized_container_kind,
                 name=str(data.get("Container Name") or ""),
                 barcode=str(data.get("Container Barcode") or ""),
-                location=Container.objects.get(barcode=str(data.get("Location Barcode") or "")),
+                **(dict(location=container_parent) if container_parent else dict(location__isnull=True)),
             )
 
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
