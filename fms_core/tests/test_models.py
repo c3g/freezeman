@@ -1,7 +1,8 @@
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.test import TestCase
+from ..containers import NON_SAMPLE_CONTAINER_KINDS
 from ..models import *
 from .constants import *
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 
 class ContainerTest(TestCase):
@@ -15,11 +16,35 @@ class ContainerTest(TestCase):
         created_valid_container = Container.objects.get(name='TestRack001')
         self.assertEqual(created_valid_container.barcode, 'R123456')
 
+    def test_same_coordinates(self):
+        rack = Container.objects.create(**create_container(barcode='R123456'))
+        Container.objects.create(**create_container(location=rack, barcode='R123457', coordinates="A01", kind="tube",
+                                                    name="tube01"))
+        with self.assertRaises(ValidationError):
+            Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
+                                                        kind="tube", name="tube02"))
+
     def test_non_existent_parent(self):
         with self.assertRaises(ObjectDoesNotExist):
             Container.objects.create(**create_container(
                 barcode='R123456',
                 location=Container.objects.get(barcode='RandomNonExistentBarcode')
+            ))
+
+    def test_coordinates_without_location(self):
+        with self.assertRaises(ValidationError):
+            c = create_container(barcode="Barcode001")
+            c["coordinates"] = "A01"
+            Container.objects.create(**c)
+
+    def test_invalid_parent_coordiantes(self):
+        parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
+        with self.assertRaises(ValidationError):
+            Container.objects.create(**create_container(
+                barcode="Barcode002",
+                location=parent_container,
+                coordinates="Z99",
+                kind="tube",
             ))
 
     def test_location_equal_barcode(self):
@@ -55,28 +80,46 @@ class SampleTest(TestCase):
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
 
     def test_sample(self):
-        Sample.objects.create(**create_sample(self.valid_individual, self.valid_container))
+        sample = Sample.objects.create(**create_sample(self.valid_individual, self.valid_container))
         self.assertEqual(Sample.objects.count(), 1)
+        self.assertEqual(sample.is_depleted, "no")
+        self.assertEqual(sample.volume, Decimal("5000.000"))
+        self.assertEqual(sample.individual_name, "jdoe")
+        self.assertEqual(sample.individual_sex, Individual.SEX_UNKNOWN)
+        self.assertEqual(sample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
+        self.assertEqual(sample.individual_cohort, "covid-19")
+        self.assertEqual(sample.individual_pedigree, "")
+        self.assertIsNone(sample.individual_mother)
+        self.assertIsNone(sample.individual_father)
+        self.assertEqual(sample.container_kind, "tube")
+        self.assertEqual(sample.container_name, "TestTube01")
+        self.assertIsNone(sample.container_location)
+        self.assertEqual(sample.context_sensitive_coordinates, "")
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only
-        for i, container_kind in enumerate(['96-well plate', '384-well plate']):
+        for i, container_kind in enumerate(('96-well plate', '384-well plate')):
             plate_container = Container.objects.create(**create_sample_container(container_kind,
-                                                                                 name='Test_name_' + str(i),
-                                                                                 barcode='Barcode_' + str(i)))
+                                                                                 name=f'Test_name_{i}',
+                                                                                 barcode=f'Barcode_{i}'))
             sample_in_plate_container = Sample(**create_sample(self.valid_individual, plate_container,
-                                                               coordinates='A11'))
+                                                               coordinates="A11"))
             sample_in_plate_container.full_clean()
             sample_in_plate_container.save()
+
+            with self.assertRaises(ValidationError):
+                # Should not be able to create a sample in the sample place
+                Sample.objects.create(**create_sample(self.valid_individual, plate_container,
+                                                      coordinates="A11", name="test_sample_02"))
+
         self.assertEqual(Sample.objects.count(), 2)
 
     def test_wrong_container_kind(self):
         # sample cannot be in containers of those types
-        for i, container_kind in enumerate(['box', 'room', 'freezer', 'freezer rack', 'drawer',
-                                            'tube rack 8x12', 'tube box 10x10', 'tube box 9x9']):
+        for i, container_kind in enumerate(NON_SAMPLE_CONTAINER_KINDS):
             invalid_container_kind = Container.objects.create(**create_sample_container(container_kind,
-                                                                                        name='Test_name_' + str(i),
-                                                                                        barcode='Barcode_' + str(i)))
+                                                                                        name=f'Test_name_{i}',
+                                                                                        barcode=f'Barcode_{i}'))
             sample_in_invalid_container_kind = Sample(**create_sample(self.valid_individual,
                                                                       invalid_container_kind))
             self.assertRaises(ValidationError, sample_in_invalid_container_kind.full_clean)
@@ -92,7 +135,7 @@ class ExtractedSampleTest(TestCase):
                                                                                  barcode='T123456',
                                                                                  location=self.parent_tube_rack,
                                                                                  coordinates='C03'))
-        ####### parent sample data ########
+        # ====== parent sample data ======
         # individual
         self.valid_individual = Individual.objects.create(**create_individual(name='jdoe'))
         # parent sample container
@@ -148,10 +191,17 @@ class ExtractedSampleTest(TestCase):
         # tissue_source can only be specified for DNA and RNA
         invalid_tissue_source = Sample(**create_sample(self.valid_individual, self.tube_container,
                                                        tissue_source='Blood'))
-        try:
-            invalid_tissue_source.full_clean()
-        except ValidationError as e:
-            self.assertTrue('tissue_source' in e.message_dict)
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_tissue_source.full_clean()
+            except ValidationError as e:
+                self.assertTrue('tissue_source' in e.message_dict)
+                raise e
+
+    def test_negative_volume(self):
+        with self.assertRaises(ValidationError):
+            Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('-0.01'),
+                                                            **self.constants))
 
 
 class IndividualTest(TestCase):
@@ -160,8 +210,9 @@ class IndividualTest(TestCase):
         pass
 
     def test_individual(self):
-        Individual.objects.create(**create_individual(name='jdoe'))
+        individual = Individual.objects.create(**create_individual(name="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
+        self.assertEqual(str(individual), "jdoe")
 
     def test_mother_father(self):
         # individual name can't be mother name and can't be father name

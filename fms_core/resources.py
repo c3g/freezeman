@@ -14,8 +14,8 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from .models import create_volume_history, Container, Sample, Individual
-from .utils import RE_SEPARATOR, check_truth_like, normalize_scientific_name, str_normalize
+from .models import Container, Sample, Individual
+from .utils import RE_SEPARATOR, create_volume_history, check_truth_like, normalize_scientific_name, str_normalize
 
 
 __all__ = [
@@ -113,17 +113,41 @@ class SampleResource(GenericResource):
     container = Field(attribute='container', column_name='Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
 
-    # Non-attribute fields
-    cohort = Field(attribute='cohort', column_name='Cohort')
-    pedigree = Field(attribute='get_pedigree_display', column_name='Pedigree')
-    taxon = Field(attribute='get_taxon_display', column_name='Taxon')
-    volume = Field(attribute='get_volume_display', column_name='Volume (uL)', widget=DecimalWidget())
-    # need it to display on import
-    individual_name = Field(attribute='get_name_display', column_name='Individual Name')
-    container_kind = Field(attribute='get_kind_display', column_name='Container Kind')
-    sex = Field(attribute='get_sex_display', column_name='Sex')
-    mother_id = Field(attribute='get_mother_display', column_name='Mother ID')
-    father_id = Field(attribute='get_father_display', column_name='Father ID')
+    # Computed fields to include in export / display on import
+
+    container_kind = Field(attribute='container_kind', column_name='Container Kind')
+    container_name = Field(attribute='container_name', column_name='Container Name')
+    container_location = Field(attribute='container_location', column_name='Location Barcode')
+
+    # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+    # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+    # the container within the parent container. TODO: Ideally this should be tweaked
+    context_sensitive_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Location Coord')
+
+    individual_name = Field(attribute='individual_name', column_name='Individual Name')
+    sex = Field(attribute='individual_sex', column_name='Sex')
+    taxon = Field(attribute='individual_taxon', column_name='Taxon')
+    cohort = Field(attribute='individual_cohort', column_name='Cohort')
+    pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
+    mother_id = Field(attribute='individual_mother', column_name='Mother ID')
+    father_id = Field(attribute='individual_father', column_name='Father ID')
+
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+
+    COMPUTED_FIELDS = frozenset((
+        "volume",
+        "individual_name",
+        "individual_sex",
+        "individual_taxon",
+        "individual_cohort",
+        "individual_pedigree",
+        "individual_mother",
+        "individual_father",
+        "container_kind",
+        "container_name",
+        "container_location",
+        "context_sensitive_coordinates",
+    ))
 
     class Meta:
         model = Sample
@@ -145,7 +169,10 @@ class SampleResource(GenericResource):
             'experimental_group',
             'taxon',
             'container_kind',
+            'container_name',
             'container',
+            'container_location',
+            'context_sensitive_coordinates',
             'individual_name',
             'sex',
             'pedigree',
@@ -216,13 +243,18 @@ class SampleResource(GenericResource):
         if field.attribute == 'container' and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
             # specifies the sample's location within the container itself. Otherwise, it specifies the location of
-            # the container within the parent container.
+            # the container within the parent container. TODO: Ideally this should be tweaked
+
+            try:
+                container_parent = Container.objects.get(barcode=str(data.get("Location Barcode") or ""))
+            except Container.DoesNotExist:
+                container_parent = None
 
             container_data = dict(
                 kind=normalized_container_kind,
                 name=str(data.get("Container Name") or ""),
                 barcode=str(data.get("Container Barcode") or ""),
-                location=Container.objects.get(barcode=str(data.get("Location Barcode") or "")),
+                **(dict(location=container_parent) if container_parent else dict(location__isnull=True)),
             )
 
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
@@ -244,6 +276,10 @@ class SampleResource(GenericResource):
         elif field.attribute == "experimental_group":
             # Experimental group is stored as a JSON array, so parse out what's going on
             data["Experimental Group"] = json.dumps(RE_SEPARATOR.split(str(data.get("Experimental Group") or "")))
+
+        elif field.attribute in self.COMPUTED_FIELDS:
+            # Ignore importing this, since it's a computed property.
+            return
 
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
@@ -361,7 +397,7 @@ class ExtractionResource(GenericResource):
             try:
                 obj.container = Container.objects.get(**shared_container_info)
             except Container.DoesNotExist:
-                obj.container = Container(
+                obj.container = Container.objects.create(
                     **shared_container_info,
                     # Below is creation-specific data
                     # Per Alex: Container name = container barcode if we auto-generate the container
@@ -369,7 +405,6 @@ class ExtractionResource(GenericResource):
                     comment=f'Automatically generated via extraction template import on '
                             f'{datetime.utcnow().isoformat()}Z'
                 )
-                obj.container.save()
 
         else:
             super().import_field(field, obj, data, is_m2m)
@@ -377,7 +412,8 @@ class ExtractionResource(GenericResource):
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
         instance.alias = instance.extracted_from.alias
-        instance.collection_site = instance.extracted_from.collection_site  # TODO: Check with Alex
+        instance.collection_site = instance.extracted_from.collection_site
+        instance.experimental_group = instance.extracted_from.experimental_group
         instance.individual = instance.extracted_from.individual
 
         # Update volume and depletion status of original

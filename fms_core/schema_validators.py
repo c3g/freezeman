@@ -3,13 +3,21 @@ from django.core.exceptions import ValidationError
 from jsonschema import Draft7Validator, FormatChecker
 
 
+__all__ = [
+    "JsonSchemaValidator",
+    "VOLUME_SCHEMA",
+    "VOLUME_VALIDATOR",
+    "EXPERIMENTAL_GROUP_SCHEMA",
+]
+
+
 class JsonSchemaValidator(object):
     """ Custom class based validator to validate against Json schema for JSONField """
 
-    def __init__(self, schema, format_checker=None):
+    def __init__(self, schema, formats=None):
         self.schema = schema
-        self.format_checker = format_checker
-        self.validator = Draft7Validator(self.schema, format_checker=FormatChecker(formats=self.format_checker))
+        self.formats = formats
+        self.validator = Draft7Validator(self.schema, format_checker=FormatChecker(formats=self.formats))
 
     def __call__(self, value):
         if not self.validator.is_valid(value):
@@ -21,7 +29,7 @@ class JsonSchemaValidator(object):
         return (
             'fms_core.schema_validators.JsonSchemaValidator',
             [self.schema],
-            {}
+            {"formats": self.formats}
         )
 
 
@@ -35,25 +43,36 @@ VOLUME_SCHEMA = {
         "type": "object",
         "properties": {
             "update_type": {"type": "string", "enum": ["extraction", "update"]},
-            "volume_value": {"type": "string"},
+            "volume_value": {
+                "type": "string",
+                # Any of 0.0, .0, 0, 0.
+                # Don't accept just .
+                "pattern": r"^(\d*\.\d+|\d+(\.\d*)?)$"
+            },
             "date": {"type": "string", "format": "date-time"},
-            "extracted_sample_id": {"type": "integer"}
+            "extracted_sample_id": {"type": "integer"},
         },
-        "additionalProperties": False,
         "if": {
             "properties": {
-                "update_type": {
-                    "const": ["extraction"]}
+                "update_type": {"const": "extraction"},
             },
-            "required": ["extracted_sample_id"]
         },
+        "then": {
+            "required": ["extracted_sample_id"],
+        },
+        "else": {
+            "not": {"required": ["extracted_sample_id"]},
+        },
+        "additionalProperties": False,
         "required": ["update_type", "volume_value", "date"]
     },
     "minItems": 1
 }
 
+VOLUME_VALIDATOR = JsonSchemaValidator(VOLUME_SCHEMA, formats=["date-time"])
 
-EXPERIMENTAL_GROUP = {
+
+EXPERIMENTAL_GROUP_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "fms:experimental_group",
     "title": "Experimental group schema",

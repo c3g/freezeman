@@ -1,0 +1,3 @@
+#changelist .actions label:not(:first-of-type) {
+    margin-left: 15px;
+}

@@ -8,12 +8,16 @@ __all__ = [
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
+    "CONTAINER_SPEC_TUBE_BOX_8X8",
     "CONTAINER_SPEC_TUBE_BOX_9X9",
     "CONTAINER_SPEC_TUBE_BOX_10X10",
     "CONTAINER_SPEC_TUBE_RACK_8X12",
     "CONTAINER_SPEC_DRAWER",
-    "CONTAINER_SPEC_FREEZER_RACK",
-    "CONTAINER_SPEC_FREEZER",
+    "CONTAINER_SPEC_FREEZER_RACK_4X4",
+    "CONTAINER_SPEC_FREEZER_RACK_7X4",
+    "CONTAINER_SPEC_FREEZER_RACK_8X6",
+    "CONTAINER_SPEC_FREEZER_3_SHELVES",
+    "CONTAINER_SPEC_FREEZER_5_SHELVES",
     "CONTAINER_SPEC_ROOM",
     "CONTAINER_SPEC_BOX",
 
@@ -21,6 +25,7 @@ __all__ = [
     "CONTAINER_KIND_CHOICES",
 
     "SAMPLE_CONTAINER_KINDS",
+    "NON_SAMPLE_CONTAINER_KINDS",
     "SAMPLE_CONTAINER_KINDS_WITH_COORDS",
     "PARENT_CONTAINER_KINDS",
 ]
@@ -113,6 +118,13 @@ CONTAINER_SPEC_TUBE = ContainerSpec(
     children=(),  # Leaf node; sample-holding
 )
 
+CONTAINER_SPEC_TUBE_BOX_8X8 = ContainerSpec(
+    container_kind_id="tube box 8x8",
+    coordinate_spec=(alphas(8), ints(8, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
+)
+
 CONTAINER_SPEC_TUBE_BOX_9X9 = ContainerSpec(
     container_kind_id="tube box 9x9",
     coordinate_spec=(alphas(9), ints(9, pad_to=2)),
@@ -147,27 +159,63 @@ CONTAINER_SPEC_DRAWER = ContainerSpec(
     coordinate_spec=(),
     coordinate_overlap_allowed=True,
     children=COMMON_CHILDREN,
-)  # TODO
+)
 
-CONTAINER_SPEC_FREEZER_RACK = ContainerSpec(
-    container_kind_id="freezer rack",
-    coordinate_spec=(),
-    coordinate_overlap_allowed=True,
+CONTAINER_SPEC_FREEZER_RACK_4X4 = ContainerSpec(
+    container_kind_id="freezer rack 4x4",
+    coordinate_spec=(alphas(4), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
 )
 
-CONTAINER_SPEC_FREEZER = ContainerSpec(
-    container_kind_id="freezer",
-    coordinate_spec=(),
+CONTAINER_SPEC_FREEZER_RACK_7X4 = ContainerSpec(
+    container_kind_id="freezer rack 7x4",
+    coordinate_spec=(alphas(7), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+)
+
+CONTAINER_SPEC_FREEZER_RACK_8X6 = ContainerSpec(
+    container_kind_id="freezer rack 8x6",
+    coordinate_spec=(alphas(8), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+)
+
+FREEZER_CHILDREN = (
+    *COMMON_CHILDREN,
+    CONTAINER_SPEC_FREEZER_RACK_4X4,
+    CONTAINER_SPEC_FREEZER_RACK_7X4,
+    CONTAINER_SPEC_FREEZER_RACK_8X6,
+)
+
+CONTAINER_SPEC_FREEZER_3_SHELVES = ContainerSpec(
+    container_kind_id="freezer 3 shelves",
+    coordinate_spec=(alphas(3), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
     coordinate_overlap_allowed=True,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_FREEZER_RACK),
+    children=FREEZER_CHILDREN,
+)
+
+CONTAINER_SPEC_FREEZER_5_SHELVES = ContainerSpec(
+    container_kind_id="freezer 5 shelves",
+    coordinate_spec=(alphas(3), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
+    coordinate_overlap_allowed=True,
+    children=FREEZER_CHILDREN,
 )
 
 CONTAINER_SPEC_ROOM = ContainerSpec(
     container_kind_id="room",
     coordinate_spec=(),
     coordinate_overlap_allowed=True,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_FREEZER, CONTAINER_SPEC_FREEZER_RACK),
+    children=(
+        *COMMON_CHILDREN,
+        CONTAINER_SPEC_TUBE,
+        CONTAINER_SPEC_FREEZER_3_SHELVES,
+        CONTAINER_SPEC_FREEZER_5_SHELVES,
+        CONTAINER_SPEC_FREEZER_RACK_4X4,
+        CONTAINER_SPEC_FREEZER_RACK_7X4,
+        CONTAINER_SPEC_FREEZER_RACK_8X6,
+    ),
 )
 
 CONTAINER_SPEC_BOX = ContainerSpec(
@@ -186,6 +234,9 @@ CONTAINER_KIND_CHOICES: Tuple[Tuple[str, str], ...] = tuple(
 
 SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                 if c.sample_holding)
+
+NON_SAMPLE_CONTAINER_KINDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
+                                                    if not c.sample_holding)
 
 SAMPLE_CONTAINER_KINDS_WITH_COORDS: Tuple[str, ...] = tuple(c.container_kind_id for c in ContainerSpec.container_specs
                                                             if c.sample_holding and len(c.coordinate_spec) > 0)

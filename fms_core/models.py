@@ -1,15 +1,12 @@
 import re
 import reversion
 
-from datetime import datetime
 from decimal import Decimal
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
-
-from typing import Optional
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -20,13 +17,11 @@ from .containers import (
     PARENT_CONTAINER_KINDS,
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
-from .schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP
+from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from .utils import str_normalize
 
 
 __all__ = [
-    "create_volume_history",
-
     "Container",
     "ContainerMove",
     "Sample",
@@ -34,21 +29,6 @@ __all__ = [
     "SampleUpdate",
     "Individual",
 ]
-
-
-def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[str] = None):
-    if update_type not in ("extraction", "update"):
-        raise ValueError(f"Invalid update type {update_type}")
-
-    if update_type == "extraction" and not extracted_sample_id:
-        raise ValueError("Must specify sample ID for extraction")
-
-    return {
-        "update_type": update_type,
-        "volume_value": str(Decimal(volume_value)),
-        "date": datetime.utcnow().isoformat() + "Z",
-        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id else {})
-    }
 
 
 def add_error(errors: dict, field: str, error: ValidationError):
@@ -202,7 +182,7 @@ class Sample(models.Model):
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT, help_text="Individual associated "
                                                                                      "with the sample.")
-    volume_history = JSONField("volume history in µL", validators=[JsonSchemaValidator(VOLUME_SCHEMA)],
+    volume_history = JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
                                help_text="Volume of the sample in µL.")
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
@@ -217,7 +197,8 @@ class Sample(models.Model):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP)],
+    experimental_group = JSONField(blank=True, default=list,
+                                   validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
                                    help_text="Sample group having some common characteristics. "
                                              "It is the way to designate a subgroup within a study.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
@@ -257,13 +238,67 @@ class Sample(models.Model):
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
 
+    # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
-        return Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"])))
+        return (Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"]))) if self.volume_history
+                else Decimal("0.000"))
+
+    # Computed properties for individuals
+
+    @property
+    def individual_name(self) -> str:
+        return self.individual.name if self.individual else ""
+
+    @property
+    def individual_sex(self):
+        return self.individual.sex if self.individual else ""
+
+    @property
+    def individual_taxon(self):
+        return self.individual.taxon if self.individual else ""
+
+    @property
+    def individual_cohort(self) -> str:
+        return self.individual.cohort if self.individual else ""
+
+    @property
+    def individual_pedigree(self):
+        return self.individual.pedigree if self.individual else ""
+
+    @property
+    def individual_mother(self):
+        return self.individual.mother if self.individual else None
+
+    @property
+    def individual_father(self):
+        return self.individual.father if self.individual else None
+
+    # Computed properties for containers
+
+    @property
+    def container_kind(self):
+        return self.container.kind if self.container else None
+
+    @property
+    def container_name(self):
+        return self.container.name if self.container else None
+
+    @property
+    def container_location(self):
+        return self.container.location if self.container else None
+
+    @property
+    def context_sensitive_coordinates(self):
+        return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
+
+    # Representations
 
     def __str__(self):
         return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
                f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
+
+    # ORM Methods
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
@@ -300,6 +335,9 @@ class Sample(models.Model):
 
             if self.volume_used is None:
                 add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))
+
+            elif self.volume_used <= Decimal("0"):
+                add_error(errors, "volume_used", ValidationError("volume_used must be positive"))
 
         if self.volume_used is not None and not self.extracted_from:
             add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
@@ -405,9 +443,12 @@ class SampleUpdate(Sample):
 class Individual(models.Model):
     """ Class to store information about an Individual. """
 
+    TAXON_HOMO_SAPIENS = "Homo sapiens"
+    TAXON_MUS_MUSCULUS = "Mus musculus"
+
     TAXON_CHOICES = (
-        ('Homo sapiens', 'Homo sapiens'),
-        ('Mus musculus', 'Mus musculus'),
+        (TAXON_HOMO_SAPIENS, TAXON_HOMO_SAPIENS),
+        (TAXON_MUS_MUSCULUS, TAXON_MUS_MUSCULUS),
     )
 
     SEX_MALE = "M"
