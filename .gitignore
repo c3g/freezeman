@@ -13,3 +13,6 @@ staticfiles/
 # coverage-related
 .coverage
 htmlcov/
+
+# Office temporary files
+~$*
