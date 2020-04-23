@@ -29,7 +29,7 @@ class JsonSchemaValidator(object):
         return (
             'fms_core.schema_validators.JsonSchemaValidator',
             [self.schema],
-            {}
+            {"formats": self.formats}
         )
 
 
