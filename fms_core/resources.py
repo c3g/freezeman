@@ -117,6 +117,12 @@ class SampleResource(GenericResource):
 
     container_kind = Field(attribute='container_kind', column_name='Container Kind')
     container_name = Field(attribute='container_name', column_name='Container Name')
+    container_location = Field(attribute='container_location', column_name='Location Barcode')
+
+    # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
+    # specifies the sample's location within the container itself. Otherwise, it specifies the location of
+    # the container within the parent container. TODO: Ideally this should be tweaked
+    context_sensitive_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Location Coord')
 
     individual_name = Field(attribute='individual_name', column_name='Individual Name')
     sex = Field(attribute='individual_sex', column_name='Sex')
@@ -139,6 +145,8 @@ class SampleResource(GenericResource):
         "individual_father",
         "container_kind",
         "container_name",
+        "container_location",
+        "context_sensitive_coordinates",
     ))
 
     class Meta:
@@ -163,6 +171,8 @@ class SampleResource(GenericResource):
             'container_kind',
             'container_name',
             'container',
+            'container_location',
+            'context_sensitive_coordinates',
             'individual_name',
             'sex',
             'pedigree',
@@ -233,7 +243,7 @@ class SampleResource(GenericResource):
         if field.attribute == 'container' and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
             # specifies the sample's location within the container itself. Otherwise, it specifies the location of
-            # the container within the parent container.
+            # the container within the parent container. TODO: Ideally this should be tweaked
 
             container_data = dict(
                 kind=normalized_container_kind,

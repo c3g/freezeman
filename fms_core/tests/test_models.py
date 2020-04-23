@@ -83,6 +83,8 @@ class SampleTest(TestCase):
         self.assertEqual(sample.individual_pedigree, "")
         self.assertEqual(sample.container_kind, "tube")
         self.assertEqual(sample.container_name, "TestTube01")
+        self.assertIsNone(sample.container_location)
+        self.assertEqual(sample.context_sensitive_coordinates, "")
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only

@@ -294,6 +294,14 @@ class Sample(models.Model):
     def container_name(self):
         return self.container.name if self.container else None
 
+    @property
+    def container_location(self):
+        return self.container.location if self.container else None
+
+    @property
+    def context_sensitive_coordinates(self):
+        return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
+
     # Representations
 
     def __str__(self):
