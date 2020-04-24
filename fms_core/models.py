@@ -18,7 +18,7 @@ from .containers import (
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
 from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
-from .utils import str_normalize
+from .utils import float_to_decimal, str_normalize
 
 
 __all__ = [
@@ -241,8 +241,7 @@ class Sample(models.Model):
     # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
-        return (Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"]))) if self.volume_history
-                else Decimal("0.000"))
+        return float_to_decimal(self.volume_history[-1]["volume_value"] if self.volume_history else 0.0)
 
     # Computed properties for individuals
 

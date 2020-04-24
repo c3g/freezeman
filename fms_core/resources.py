@@ -15,7 +15,15 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import Container, Sample, Individual
-from .utils import RE_SEPARATOR, create_volume_history, check_truth_like, normalize_scientific_name, str_normalize
+from .utils import (
+    RE_SEPARATOR,
+    blank_str_to_none,
+    create_volume_history,
+    check_truth_like,
+    float_to_decimal,
+    normalize_scientific_name,
+    str_normalize,
+)
 
 
 __all__ = [
@@ -232,8 +240,10 @@ class SampleResource(GenericResource):
         )
         obj.individual = individual
 
+        vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-        obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
+        obj.volume_history = [create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")]
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
@@ -360,7 +370,11 @@ class ExtractionResource(GenericResource):
         if field.attribute == 'volume_history':
             # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             # In this case we are initializing the volume history of the EXTRACTED sample.
-            obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
+            vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+            obj.volume_history = [
+                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else ""),
+            ]
+            return
 
         if field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
@@ -418,6 +432,14 @@ class ExtractionResource(GenericResource):
                 )
 
             return
+
+        if field.attribute == "volume_used":
+            vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
+            data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
+
+        elif field.attribute == "concentration":
+            conc = blank_str_to_none(data.get("Conc. (ng/uL)"))  # "" -> None for CSVs
+            data["Conc. (ng/uL)"] = float_to_decimal(conc) if conc is not None else None
 
         super().import_field(field, obj, data, is_m2m)
 
@@ -543,7 +565,10 @@ class SampleUpdateResource(GenericResource):
 
         if field.attribute == 'volume_history':
             # Manually process volume history and don't call superclass method
-            obj.volume_history.append(create_volume_history("update", str(data.get("New Volume (uL)") or "")))
+            vol = blank_str_to_none(data.get("New Volume (uL)"))    # "" -> None for CSVs
+            obj.volume_history.append(
+                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")
+            )
             return
 
         if field.attribute == 'depleted':
