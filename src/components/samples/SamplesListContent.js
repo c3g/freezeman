@@ -57,7 +57,7 @@ const TABLE_COLUMNS = [
     {
         title: "Conc. (ng/µL)",
         dataIndex: "concentration",
-        render: conc => parseFloat(conc).toFixed(3),
+        render: conc => conc === null ? "—" : parseFloat(conc).toFixed(3),
         width: 115,
     },
     {

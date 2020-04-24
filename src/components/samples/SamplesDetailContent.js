@@ -37,7 +37,11 @@ const SamplesDetailContent = ({samplesByID}) => {
                 <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
                 <Descriptions.Item label="Biospecimen Type">{sample.biospecimen_type}</Descriptions.Item>
                 <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
-                <Descriptions.Item label="Concentration">{sample.concentration} ng/µL</Descriptions.Item>
+                <Descriptions.Item label="Concentration">
+                    {sample.concentration === null
+                        ? "—"
+                        : `${parseFloat(sample.concentration).toFixed(3)} ng/uL`}
+                </Descriptions.Item>
                 <Descriptions.Item label="Depleted"><SampleDepletion depleted={sample.depleted} /></Descriptions.Item>
             </Descriptions>
             <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
