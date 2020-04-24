@@ -338,8 +338,18 @@ class ExtractionResource(GenericResource):
             'extracted_from',
             'volume_history',
         )
-        export_order = ('biospecimen_type', 'volume_used', 'sample_container', 'sample_container_coordinates',
-                        'container', 'location', 'volume_history', 'concentration', 'source_depleted', 'comment',)
+        export_order = (
+            'biospecimen_type',
+            'volume_used',
+            'sample_container',
+            'sample_container_coordinates',
+            'container',
+            'location',
+            'volume_history',
+            'concentration',
+            'source_depleted',
+            'comment',
+        )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
@@ -352,7 +362,7 @@ class ExtractionResource(GenericResource):
             # In this case we are initializing the volume history of the EXTRACTED sample.
             obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
 
-        elif field.attribute == 'extracted_from':
+        if field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
                 Q(container=str(data.get('Container Barcode') or "")) &
                 Q(coordinates=str(data.get('Location Coord') or ""))
@@ -360,8 +370,9 @@ class ExtractionResource(GenericResource):
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
                                            check_truth_like(str(data.get("Source Depleted") or "")))
+            return
 
-        elif field.attribute == 'container':
+        if field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
 
             shared_parent_info = dict(
@@ -406,8 +417,9 @@ class ExtractionResource(GenericResource):
                             f'{datetime.utcnow().isoformat()}Z'
                 )
 
-        else:
-            super().import_field(field, obj, data, is_m2m)
+            return
+
+        super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
@@ -462,11 +474,10 @@ class ContainerMoveResource(GenericResource):
         skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
         # diff fields on Update show up only if the pk is 'id' field ???
-        ids = []
-        for d in dataset.dict:
-            single_id = Container.objects.get(barcode=str(d.get("Container Barcode to move") or ""))
-            ids.append(single_id.pk)
-        dataset.append_col(ids, header='id')
+        dataset.append_col([
+            Container.objects.get(barcode=str(d.get("Container Barcode to move") or "")).pk
+            for d in dataset.dict
+        ], header='id')
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'id':
@@ -513,14 +524,12 @@ class SampleUpdateResource(GenericResource):
         skip_rows(dataset, 6)  # Skip preamble
 
         # add column 'id' with pk
-        ids = []
-        for d in dataset.dict:
-            single_id = Sample.objects.get(
-                Q(container=d.get('Container Barcode') or "") &
-                Q(coordinates=d.get('Coord (if plate)') or "")
-            )
-            ids.append(single_id.pk)
-        dataset.append_col(ids, header='id')
+        dataset.append_col([
+            Sample.objects.get(
+                container=d.get('Container Barcode') or "",
+                coordinates=d.get('Coord (if plate)') or "",
+            ).pk for d in dataset.dict
+        ], header='id')
 
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
 
