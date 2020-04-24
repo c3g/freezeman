@@ -30,6 +30,14 @@ const SamplesDetailContent = ({samplesByID}) => {
             <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
                 <Tag>{sample.biospecimen_type}</Tag>
             </div>,
+            <div key="depleted" style={{
+                display: "inline-block",
+                verticalAlign: "top",
+                marginTop: "4px",
+                marginLeft: "4px",
+            }}>
+                <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+            </div>,
         ]} />
         <PageContent>
             <Descriptions bordered={true} size="small" title="Overview">
