@@ -147,7 +147,7 @@ class SampleAdmin(AggregatedAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             **(extra_context or {}),
-            "submission_template": static("submission_templates/Sample_submission_v0.5.xlsx"),
+            "submission_template": static("submission_templates/Sample_submission_v0.6.xlsx"),
         })
 
 
