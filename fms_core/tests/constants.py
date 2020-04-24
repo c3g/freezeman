@@ -69,9 +69,9 @@ def create_extracted_sample(biospecimen_type, individual, container, extracted_f
     )
 
 
-def create_individual(name, mother=None, father=None):
+def create_individual(individual_id, mother=None, father=None):
     return dict(
-        name=name,
+        id=individual_id,
         taxon=Individual.TAXON_HOMO_SAPIENS,
         sex=Individual.SEX_UNKNOWN,
         mother=mother,

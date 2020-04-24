@@ -74,7 +74,7 @@ class SampleTest(TestCase):
     """ Test module for Sample model """
 
     def setUp(self) -> None:
-        self.valid_individual = Individual.objects.create(**create_individual(name='jdoe'))
+        self.valid_individual = Individual.objects.create(**create_individual(individual_id='jdoe'))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01',
                                                                                   barcode='T123456'))
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
@@ -84,7 +84,7 @@ class SampleTest(TestCase):
         self.assertEqual(Sample.objects.count(), 1)
         self.assertEqual(sample.is_depleted, "no")
         self.assertEqual(sample.volume, Decimal("5000.000"))
-        self.assertEqual(sample.individual_name, "jdoe")
+        self.assertEqual(sample.individual_id, "jdoe")
         self.assertEqual(sample.individual_sex, Individual.SEX_UNKNOWN)
         self.assertEqual(sample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
         self.assertEqual(sample.individual_cohort, "covid-19")
@@ -137,7 +137,7 @@ class ExtractedSampleTest(TestCase):
                                                                                  coordinates='C03'))
         # ====== parent sample data ======
         # individual
-        self.valid_individual = Individual.objects.create(**create_individual(name='jdoe'))
+        self.valid_individual = Individual.objects.create(**create_individual(individual_id='jdoe'))
         # parent sample container
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube02',
                                                                                   barcode='TParent01'))
@@ -210,26 +210,26 @@ class IndividualTest(TestCase):
         pass
 
     def test_individual(self):
-        individual = Individual.objects.create(**create_individual(name="jdoe"))
+        individual = Individual.objects.create(**create_individual(individual_id="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
         self.assertEqual(str(individual), "jdoe")
 
     def test_mother_father(self):
-        # individual name can't be mother name and can't be father name
-        mother = Individual.objects.create(**create_individual(name='janedoe'))
-        father = Individual.objects.create(**create_individual(name='johndoe'))
-        individual = Individual(**create_individual(name='janedoe', mother=mother))
+        # individual id can't be mother id and can't be father id
+        mother = Individual.objects.create(**create_individual(individual_id='janedoe'))
+        father = Individual.objects.create(**create_individual(individual_id='johndoe'))
+        individual = Individual(**create_individual(individual_id='janedoe', mother=mother))
         try:
             individual.full_clean()
         except ValidationError as e:
             self.assertTrue('mother' in e.message_dict)
-        individual = Individual(**create_individual(name='johndoe', father=father))
+        individual = Individual(**create_individual(individual_id='johndoe', father=father))
         try:
             individual.full_clean()
         except ValidationError as e:
             self.assertTrue('father' in e.message_dict)
         # mother and father can't be the same individual
-        individual = Individual(**create_individual(name='jdoe', mother=mother, father=mother))
+        individual = Individual(**create_individual(individual_id='jdoe', mother=mother, father=mother))
         try:
             individual.full_clean()
         except ValidationError as e:

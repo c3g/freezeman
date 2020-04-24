@@ -132,7 +132,7 @@ class SampleResource(GenericResource):
     # the container within the parent container. TODO: Ideally this should be tweaked
     context_sensitive_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Location Coord')
 
-    individual_name = Field(attribute='individual_name', column_name='Individual Name')
+    individual_id = Field(attribute='individual_id', column_name='Individual ID')
     sex = Field(attribute='individual_sex', column_name='Sex')
     taxon = Field(attribute='individual_taxon', column_name='Taxon')
     cohort = Field(attribute='individual_cohort', column_name='Cohort')
@@ -144,7 +144,7 @@ class SampleResource(GenericResource):
 
     COMPUTED_FIELDS = frozenset((
         "volume",
-        "individual_name",
+        "individual_id",
         "individual_sex",
         "individual_taxon",
         "individual_cohort",
@@ -181,7 +181,7 @@ class SampleResource(GenericResource):
             'container',
             'container_location',
             'context_sensitive_coordinates',
-            'individual_name',
+            'individual_id',
             'sex',
             'pedigree',
             'mother_id',
@@ -212,7 +212,7 @@ class SampleResource(GenericResource):
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
-                name=str(data.get("Mother ID") or ""),
+                id=str(data.get("Mother ID") or ""),
                 sex=Individual.SEX_FEMALE,
                 taxon=taxon,  # Mother has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
@@ -221,7 +221,7 @@ class SampleResource(GenericResource):
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
-                name=str(data.get("Father ID") or ""),
+                id=str(data.get("Father ID") or ""),
                 sex=Individual.SEX_MALE,
                 taxon=taxon,  # Father has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
@@ -230,7 +230,7 @@ class SampleResource(GenericResource):
 
         # TODO: This should throw a warning if the individual already exists
         individual, _ = Individual.objects.get_or_create(
-            name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
+            id=str(data.get("Individual ID") or ""),  # TODO: Normalize properly
             sex=str(data.get("Sex") or Individual.SEX_UNKNOWN),
             taxon=taxon,
             **({"pedigree": pedigree} if pedigree else {}),
@@ -469,7 +469,7 @@ class ExtractionResource(GenericResource):
 class IndividualResource(GenericResource):
     class Meta:
         model = Individual
-        import_id_fields = ('name',)
+        import_id_fields = ('id',)
 
 
 # Update resources
