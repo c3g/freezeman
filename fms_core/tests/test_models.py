@@ -163,6 +163,22 @@ class ExtractedSampleTest(TestCase):
                                                         **self.constants))
         self.assertEqual(Sample.objects.count(), 3)
 
+    def test_wrong_container_extracted_sample(self):
+        pc = Container.objects.create(**create_container("BOX001", kind="tube box 8x8", name="Box001"))
+        tc = Container.objects.create(**create_sample_container(kind="tube", name="TestTube04", barcode="TUBE004",
+                                                                location=pc, coordinates="A01"))
+
+        with self.assertRaises(ValidationError):
+            try:
+                Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA',
+                                                                volume_used=Decimal('0.01'),
+                                                                extracted_from=self.parent_sample,
+                                                                individual=self.valid_individual,
+                                                                container=tc))
+            except ValidationError as e:
+                self.assertIn("container", e.message_dict)
+                raise e
+
     def test_original_sample(self):
         with self.assertRaises(ValidationError):
             try:
@@ -174,6 +190,16 @@ class ExtractedSampleTest(TestCase):
                                                                 name="test_extracted_sample_11"))
             except ValidationError as e:
                 self.assertIn("extracted_from", e.message_dict)
+                raise e
+
+    def test_no_container(self):
+        with self.assertRaises(ValidationError):
+            try:
+                s = Sample(biospecimen_type='DNA', volume_used=Decimal('0.01'), concentration=Decimal('1.0'),
+                           individual=self.valid_individual)
+                s.full_clean()
+            except ValidationError as e:
+                self.assertIn("container", e.message_dict)
                 raise e
 
     def test_biospecimen_type(self):
