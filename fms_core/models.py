@@ -501,3 +501,15 @@ class Individual(models.Model):
         self.normalize()
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
+
+
+class ImportedFile(models.Model):
+    """ Model to store original imported file. """
+
+    imported_file = models.FileField(upload_to='uploads/')
+    filename = models.CharField(max_length=100, blank=True)
+    added = models.DateTimeField(auto_now_add=True)
+    # imported_by = models.ForeignKey(User)
+
+    def __str__(self):
+        return str(self.id)

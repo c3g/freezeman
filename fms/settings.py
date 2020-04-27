@@ -153,6 +153,11 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 
+# uploaded files will be saved here
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+MEDIA_URL = '/media/'
+
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
 
 TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
