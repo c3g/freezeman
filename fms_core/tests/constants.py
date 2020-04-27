@@ -46,27 +46,29 @@ def create_sample(individual, container, coordinates='', **kwargs):
     }
 
 
-def create_extracted_sample(biospecimen_type, individual, container, extracted_from, volume_used, coordinates=''):
-    return dict(
-        biospecimen_type=biospecimen_type,
-        name='test_extracted_sample_01',
-        alias='12',
-        individual=individual,
-        volume_history=[
+def create_extracted_sample(biospecimen_type, individual, container, extracted_from, volume_used, coordinates='',
+                            **kwargs):
+    return {
+        'biospecimen_type': biospecimen_type,
+        'name': 'test_extracted_sample_01',
+        'alias': '12',
+        'individual': individual,
+        'volume_history': [
             {
                 "date": "2020-04-15T03:50:45.127218Z",
                 "update_type": "update",
                 "volume_value": "0"
             }
         ],
-        concentration=Decimal('0.01'),
-        experimental_group=['EG01'],
-        collection_site='Site1',
-        container=container,
-        coordinates=coordinates,
-        extracted_from=extracted_from,
-        volume_used=volume_used
-    )
+        'concentration': Decimal('0.01'),
+        'experimental_group': ['EG01'],
+        'collection_site': 'Site1',
+        'container': container,
+        'coordinates': coordinates,
+        'extracted_from': extracted_from,
+        'volume_used': volume_used,
+        **kwargs
+    }
 
 
 def create_individual(individual_id, mother=None, father=None):
