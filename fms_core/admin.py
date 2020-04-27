@@ -13,7 +13,6 @@ from .resources import (
     SampleUpdateResource,
 )
 from .utils_admin import AggregatedAdmin, CustomImportMixin
-import glob
 
 
 # Set site header to the actual name of the application
@@ -146,9 +145,10 @@ class SampleAdmin(AggregatedAdmin):
         return not (obj and obj.extracted_from)
 
     def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        extra_context['submission_template'] = static("submission_templates/Sample_submission_v0.5.xlsx")
-        return super().changelist_view(request, extra_context=extra_context,)
+        return super().changelist_view(request, extra_context={
+            **(extra_context or {}),
+            "submission_template": static("submission_templates/Sample_submission_v0.6.xlsx"),
+        })
 
 
 @admin.register(ExtractedSample)
@@ -179,7 +179,7 @@ class IndividualForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if kwargs.get("instance"):
-            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(name=self.instance.name)
+            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(id=self.instance.id)
             self.fields["mother"].queryset = parent_queryset
             self.fields["father"].queryset = parent_queryset
 
@@ -190,7 +190,7 @@ class IndividualAdmin(AggregatedAdmin):
     resource_class = IndividualResource
 
     list_display = (
-        "name",
+        "id",
         "taxon",
         "sex",
         "pedigree",
@@ -205,7 +205,7 @@ class IndividualAdmin(AggregatedAdmin):
     )
 
     search_fields = (
-        "name",
+        "id",
         "pedigree",
         "cohort",
     )

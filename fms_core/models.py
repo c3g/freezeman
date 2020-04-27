@@ -18,7 +18,7 @@ from .containers import (
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
 from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
-from .utils import str_normalize
+from .utils import float_to_decimal, str_normalize
 
 
 __all__ = [
@@ -241,14 +241,9 @@ class Sample(models.Model):
     # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
-        return (Decimal("{:.3f}".format(Decimal(self.volume_history[-1]["volume_value"]))) if self.volume_history
-                else Decimal("0.000"))
+        return float_to_decimal(self.volume_history[-1]["volume_value"] if self.volume_history else 0.0)
 
     # Computed properties for individuals
-
-    @property
-    def individual_name(self) -> str:
-        return self.individual.name if self.individual else ""
 
     @property
     def individual_sex(self):
@@ -461,7 +456,7 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    name = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
+    id = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
     taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
@@ -474,11 +469,11 @@ class Individual(models.Model):
                                                                     "a specific study.")
 
     def __str__(self):
-        return self.name
+        return self.id
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
+        self.id = str_normalize(self.id)
         self.pedigree = str_normalize(self.pedigree)
         self.cohort = str_normalize(self.cohort)
 
@@ -487,15 +482,15 @@ class Individual(models.Model):
 
         self.normalize()
 
-        if self.mother is not None and self.father is not None and self.mother == self.father:
+        if self.mother_id is not None and self.father_id is not None and self.mother_id == self.father_id:
             e = ValidationError("Mother and father IDs can't be the same.")
             add_error(errors, "mother", e)
             add_error(errors, "father", e)
 
-        if self.mother and self.mother.name == self.name:
+        if self.mother_id is not None and self.mother_id == self.id:
             add_error(errors, "mother", ValidationError("Mother can't be same as self."))
 
-        if self.father and self.father.name == self.name:
+        if self.father_id is not None and self.father_id == self.id:
             add_error(errors, "father", ValidationError("Father can't be same as self."))
 
         if errors:

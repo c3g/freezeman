@@ -2,11 +2,11 @@ import json
 import reversion
 
 from datetime import datetime
-from django.db.models import Q
 from import_export import resources
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
 from reversion.models import Version
+from tablib import Dataset
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -15,10 +15,19 @@ from .containers import (
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
 from .models import Container, Sample, Individual
-from .utils import RE_SEPARATOR, create_volume_history, check_truth_like, normalize_scientific_name, str_normalize
+from .utils import (
+    RE_SEPARATOR,
+    blank_str_to_none,
+    create_volume_history,
+    check_truth_like,
+    float_to_decimal,
+    normalize_scientific_name,
+    str_normalize,
+)
 
 
 __all__ = [
+    "skip_rows",
     "GenericResource",
     "ContainerResource",
     "SampleResource",
@@ -29,7 +38,7 @@ __all__ = [
 ]
 
 
-def skip_rows(dataset, num_rows=0, col_skip=1):
+def skip_rows(dataset: Dataset, num_rows: int = 0, col_skip: int = 1) -> None:
     if num_rows <= 0:
         return
     dataset_headers = dataset[num_rows - 1]
@@ -124,7 +133,7 @@ class SampleResource(GenericResource):
     # the container within the parent container. TODO: Ideally this should be tweaked
     context_sensitive_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Location Coord')
 
-    individual_name = Field(attribute='individual_name', column_name='Individual Name')
+    individual_id = Field(attribute='individual_id', column_name='Individual ID')
     sex = Field(attribute='individual_sex', column_name='Sex')
     taxon = Field(attribute='individual_taxon', column_name='Taxon')
     cohort = Field(attribute='individual_cohort', column_name='Cohort')
@@ -136,7 +145,7 @@ class SampleResource(GenericResource):
 
     COMPUTED_FIELDS = frozenset((
         "volume",
-        "individual_name",
+        "individual_id",
         "individual_sex",
         "individual_taxon",
         "individual_cohort",
@@ -173,7 +182,7 @@ class SampleResource(GenericResource):
             'container',
             'container_location',
             'context_sensitive_coordinates',
-            'individual_name',
+            'individual_id',
             'sex',
             'pedigree',
             'mother_id',
@@ -204,7 +213,7 @@ class SampleResource(GenericResource):
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
-                name=str(data.get("Mother ID") or ""),
+                id=str(data.get("Mother ID") or ""),
                 sex=Individual.SEX_FEMALE,
                 taxon=taxon,  # Mother has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
@@ -213,7 +222,7 @@ class SampleResource(GenericResource):
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
-                name=str(data.get("Father ID") or ""),
+                id=str(data.get("Father ID") or ""),
                 sex=Individual.SEX_MALE,
                 taxon=taxon,  # Father has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
@@ -222,7 +231,7 @@ class SampleResource(GenericResource):
 
         # TODO: This should throw a warning if the individual already exists
         individual, _ = Individual.objects.get_or_create(
-            name=str(data.get("Individual Name") or ""),  # TODO: Normalize properly
+            id=str(data.get("Individual ID") or ""),  # TODO: Normalize properly
             sex=str(data.get("Sex") or Individual.SEX_UNKNOWN),
             taxon=taxon,
             **({"pedigree": pedigree} if pedigree else {}),
@@ -232,8 +241,10 @@ class SampleResource(GenericResource):
         )
         obj.individual = individual
 
+        vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-        obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
+        obj.volume_history = [create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")]
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
@@ -338,8 +349,18 @@ class ExtractionResource(GenericResource):
             'extracted_from',
             'volume_history',
         )
-        export_order = ('biospecimen_type', 'volume_used', 'sample_container', 'sample_container_coordinates',
-                        'container', 'location', 'volume_history', 'concentration', 'source_depleted', 'comment',)
+        export_order = (
+            'biospecimen_type',
+            'volume_used',
+            'sample_container',
+            'sample_container_coordinates',
+            'container',
+            'location',
+            'volume_history',
+            'concentration',
+            'source_depleted',
+            'comment',
+        )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
@@ -350,18 +371,23 @@ class ExtractionResource(GenericResource):
         if field.attribute == 'volume_history':
             # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             # In this case we are initializing the volume history of the EXTRACTED sample.
-            obj.volume_history = [create_volume_history("update", str(data.get("Volume (uL)") or ""))]
+            vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+            obj.volume_history = [
+                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else ""),
+            ]
+            return
 
-        elif field.attribute == 'extracted_from':
+        if field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
-                Q(container=str(data.get('Container Barcode') or "")) &
-                Q(coordinates=str(data.get('Location Coord') or ""))
+                container=str(data.get('Container Barcode') or ""),
+                coordinates=str(data.get('Location Coord') or "")
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
                                            check_truth_like(str(data.get("Source Depleted") or "")))
+            return
 
-        elif field.attribute == 'container':
+        if field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
 
             shared_parent_info = dict(
@@ -373,7 +399,7 @@ class ExtractionResource(GenericResource):
             try:
                 parent = Container.objects.get(**shared_parent_info)
             except Container.DoesNotExist:
-                parent = Container(
+                parent = Container.objects.create(
                     **shared_parent_info,
                     # Below is creation-specific data
                     # Leave coordinates blank if creating
@@ -406,8 +432,17 @@ class ExtractionResource(GenericResource):
                             f'{datetime.utcnow().isoformat()}Z'
                 )
 
-        else:
-            super().import_field(field, obj, data, is_m2m)
+            return
+
+        if field.attribute == "volume_used":
+            vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
+            data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
+
+        elif field.attribute == "concentration":
+            conc = blank_str_to_none(data.get("Conc. (ng/uL)"))  # "" -> None for CSVs
+            data["Conc. (ng/uL)"] = float_to_decimal(conc) if conc is not None else None
+
+        super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = instance.extracted_from.name
@@ -435,7 +470,7 @@ class ExtractionResource(GenericResource):
 class IndividualResource(GenericResource):
     class Meta:
         model = Individual
-        import_id_fields = ('name',)
+        import_id_fields = ('id',)
 
 
 # Update resources
@@ -462,11 +497,10 @@ class ContainerMoveResource(GenericResource):
         skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
         # diff fields on Update show up only if the pk is 'id' field ???
-        ids = []
-        for d in dataset.dict:
-            single_id = Container.objects.get(barcode=str(d.get("Container Barcode to move") or ""))
-            ids.append(single_id.pk)
-        dataset.append_col(ids, header='id')
+        dataset.append_col([
+            Container.objects.get(barcode=str(d.get("Container Barcode to move") or "")).pk
+            for d in dataset.dict
+        ], header='id')
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == 'id':
@@ -513,14 +547,12 @@ class SampleUpdateResource(GenericResource):
         skip_rows(dataset, 6)  # Skip preamble
 
         # add column 'id' with pk
-        ids = []
-        for d in dataset.dict:
-            single_id = Sample.objects.get(
-                Q(container=d.get('Container Barcode') or "") &
-                Q(coordinates=d.get('Coord (if plate)') or "")
-            )
-            ids.append(single_id.pk)
-        dataset.append_col(ids, header='id')
+        dataset.append_col([
+            Sample.objects.get(
+                container=d.get('Container Barcode') or "",
+                coordinates=d.get('Coord (if plate)') or "",
+            ).pk for d in dataset.dict
+        ], header='id')
 
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
 
@@ -534,7 +566,10 @@ class SampleUpdateResource(GenericResource):
 
         if field.attribute == 'volume_history':
             # Manually process volume history and don't call superclass method
-            obj.volume_history.append(create_volume_history("update", str(data.get("New Volume (uL)") or "")))
+            vol = blank_str_to_none(data.get("New Volume (uL)"))    # "" -> None for CSVs
+            obj.volume_history.append(
+                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")
+            )
             return
 
         if field.attribute == 'depleted':
