@@ -2,7 +2,6 @@ import json
 import reversion
 
 from datetime import datetime
-from django.db.models import Q
 from import_export import resources
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
@@ -378,8 +377,8 @@ class ExtractionResource(GenericResource):
 
         if field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
-                Q(container=str(data.get('Container Barcode') or "")) &
-                Q(coordinates=str(data.get('Location Coord') or ""))
+                container=str(data.get('Container Barcode') or ""),
+                coordinates=str(data.get('Location Coord') or "")
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
@@ -398,7 +397,7 @@ class ExtractionResource(GenericResource):
             try:
                 parent = Container.objects.get(**shared_parent_info)
             except Container.DoesNotExist:
-                parent = Container(
+                parent = Container.objects.create(
                     **shared_parent_info,
                     # Below is creation-specific data
                     # Leave coordinates blank if creating
