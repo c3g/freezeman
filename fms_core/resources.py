@@ -6,6 +6,7 @@ from import_export import resources
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
 from reversion.models import Version
+from tablib import Dataset
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -26,6 +27,7 @@ from .utils import (
 
 
 __all__ = [
+    "skip_rows",
     "GenericResource",
     "ContainerResource",
     "SampleResource",
@@ -36,7 +38,7 @@ __all__ = [
 ]
 
 
-def skip_rows(dataset, num_rows=0, col_skip=1):
+def skip_rows(dataset: Dataset, num_rows: int = 0, col_skip: int = 1) -> None:
     if num_rows <= 0:
         return
     dataset_headers = dataset[num_rows - 1]
