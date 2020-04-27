@@ -1,11 +1,18 @@
 from django.test import TestCase
 
-from ..utils import check_truth_like, normalize_scientific_name
+from ..utils import blank_str_to_none, check_truth_like, normalize_scientific_name
 
 
 class AdminUtilsTestCase(TestCase):
     def setUp(self) -> None:
         pass
+
+    def test_blank_str_to_none(self):
+        self.assertIs(blank_str_to_none(""), None)
+        self.assertIs(blank_str_to_none(None), None)
+        self.assertEqual(blank_str_to_none(" "), " ")
+        self.assertEqual(blank_str_to_none(5), 5)
+        self.assertEqual(blank_str_to_none(" 5"), " 5")
 
     def test_check_truth_like(self):
         self.assertEqual(check_truth_like("true"), True)
