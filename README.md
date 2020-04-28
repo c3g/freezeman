@@ -7,7 +7,7 @@ tracking of biological samples in a laboratory environment.
 
 ## License
 
-Copyright &copy; the Royal Institution for the Advancement of Learning / McGill
+Copyright &copy; the Canadian Centre for Computational Genomics / McGill
 University 2020. All rights reserved. FreezeMan is licensed under the GNU 
 Lesser General Public License version 3. See project license in `/LICENSE`.
 
