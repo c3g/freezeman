@@ -29,6 +29,7 @@ __all__ = [
     "ExtractedSample",
     "SampleUpdate",
     "Individual",
+    "ImportedFile",
 ]
 
 
