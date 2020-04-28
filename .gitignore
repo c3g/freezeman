@@ -10,6 +10,9 @@ __pycache__/
 # static files
 staticfiles/
 
+# local media uploads
+media/uploads/*
+
 # coverage-related
 .coverage
 htmlcov/
