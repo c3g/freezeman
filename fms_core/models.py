@@ -2,6 +2,7 @@ import re
 import reversion
 
 from decimal import Decimal
+from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -504,12 +505,12 @@ class Individual(models.Model):
 
 
 class ImportedFile(models.Model):
-    """ Model to store original imported file. """
+    """ Model to store metadata about the imported file. """
 
-    imported_file = models.FileField(upload_to='uploads/')
-    filename = models.CharField(max_length=100, blank=True)
+    filename = models.CharField(max_length=100)
+    location = models.CharField(max_length=200)
     added = models.DateTimeField(auto_now_add=True)
-    # imported_by = models.ForeignKey(User)
+    imported_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return str(self.id)

@@ -75,19 +75,20 @@ class CustomImportMixin(ImportMixin):
             data = tmp_storage.read(input_format.get_read_mode())
             if not input_format.is_binary() and self.from_encoding:
                 data = force_str(data, self.from_encoding)
-            new_path = os.path.join(settings.MEDIA_ROOT, 'uploads/')
             dataset = input_format.create_dataset(data)
+            result = self.process_dataset(dataset, confirm_form, request, *args, **kwargs)
+
+            # save imported file to a folder
+            uploads_path = os.path.join(settings.MEDIA_ROOT, 'uploads/')
             time_string = time.strftime("%Y%m%d-%H%M%S")
             get_user_name = request.user.username
-            new_file_name = confirm_form.cleaned_data['original_file_name'].split('.xlsx')[0]\
-                            + time_string +f"_{get_user_name}" + '.xlsx'
-            file_path = os.path.join(new_path, new_file_name)
+            new_file_name = confirm_form.cleaned_data['original_file_name'].split(".xlsx")[0] \
+                            + f"_{time_string}" + f"_{get_user_name}" + ".xlsx"
+            file_path = os.path.join(uploads_path, new_file_name)
             with open(file_path, 'wb') as f_output:
                 f_output.write(dataset.xlsx)
-                imf = ImportedFile.objects.create(filename=new_file_name)
-                print(imf.__dict__)
-
-            result = self.process_dataset(dataset, confirm_form, request, *args, **kwargs)
+                # save record about file to db
+                ImportedFile.objects.create(filename=new_file_name, location=file_path, imported_by=request.user)
 
             tmp_storage.remove()
 
