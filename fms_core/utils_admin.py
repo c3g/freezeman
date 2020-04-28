@@ -1,5 +1,5 @@
 # Copyright (c) Bojan Mihelac and individual contributors.
-# Portions copyright (c) the Royal Institution for the Advancement of Learning /
+# Portions copyright (c) the Canadian Centre for Computational Genomics /
 # McGill University 2020.
 # All rights reserved.
 #
