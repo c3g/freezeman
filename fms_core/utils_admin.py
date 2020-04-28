@@ -76,8 +76,7 @@ class CustomImportMixin(ImportMixin):
             if not input_format.is_binary() and self.from_encoding:
                 data = force_str(data, self.from_encoding)
             dataset = input_format.create_dataset(data)
-            result = self.process_dataset(dataset, confirm_form, request, *args, **kwargs)
-
+            
             # save imported file to a folder
             uploads_path = os.path.join(settings.MEDIA_ROOT, 'uploads/')
             time_string = time.strftime("%Y%m%d-%H%M%S")
@@ -90,6 +89,7 @@ class CustomImportMixin(ImportMixin):
                 # save record about file to db
                 ImportedFile.objects.create(filename=new_file_name, location=file_path, imported_by=request.user)
 
+            result = self.process_dataset(dataset, confirm_form, request, *args, **kwargs)
             tmp_storage.remove()
 
             return self.process_result(result, request)
