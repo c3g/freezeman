@@ -1,9 +1,11 @@
 from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.templatetags.static import static
+from django.utils.html import format_html
 
 from .containers import ContainerSpec, PARENT_CONTAINER_KINDS
-from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate
+from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate, ImportedFile
 from .resources import (
     ContainerResource,
     SampleResource,
@@ -246,6 +248,28 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         # TODO: Return subset of samples which have updates or something
         return super().get_queryset(request).filter(container__isnull=True)  # empty
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ImportedFile)
+class ImportedFileAdmin(admin.ModelAdmin):
+    actions = None
+    list_display_links = None
+
+    list_display = (
+        "file",
+        "added",
+        "imported_by",
+    )
+
+    # noinspection PyMethodMayBeStatic
+    def file(self, obj):
+        return format_html('<a href="{}">{}</a>', f"{settings.MEDIA_URL}uploads/{obj.filename}", obj.filename)
 
     def has_add_permission(self, request):
         return False
