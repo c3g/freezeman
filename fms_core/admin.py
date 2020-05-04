@@ -12,7 +12,7 @@ from .resources import (
     ContainerMoveResource,
     SampleUpdateResource,
 )
-from .utils_admin import AggregatedAdmin, CustomImportMixin
+from .utils_admin import AggregatedAdmin, CustomImportMixin, ExportVersionAdmin
 
 
 # Set site header to the actual name of the application
@@ -185,7 +185,7 @@ class IndividualForm(forms.ModelForm):
 
 
 @admin.register(Individual)
-class IndividualAdmin(AggregatedAdmin):
+class IndividualAdmin(ExportVersionAdmin):
     form = IndividualForm
     resource_class = IndividualResource
 
