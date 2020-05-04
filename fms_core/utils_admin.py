@@ -41,6 +41,7 @@ from .models import ImportedFile
 __all__ = [
     "CustomImportMixin",
     "AggregatedAdmin",
+    "ExportVersionAdmin",
 ]
 
 
@@ -141,4 +142,13 @@ class AggregatedAdmin(CustomImportMixin, ExportActionMixin, ExportMixin, Version
     Import, Export and Version admin.
     """
     change_list_template = "admin/fms_core/change_list_import_export_version.html"
+    import_template_name = "admin/fms_core/import.html"
+
+
+class ExportVersionAdmin(ExportActionMixin, ExportMixin, VersionAdmin):
+    """
+    Export and Version admin.
+    """
+    formats = [CSV, PaddedXLSX]
+    change_list_template = "admin/fms_core/change_list_export_version.html"
     import_template_name = "admin/fms_core/import.html"
