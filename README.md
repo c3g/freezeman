@@ -24,7 +24,8 @@ Portions copyright &copy; Bojan Mihelac and individual contributors to the
 
 See relevant license in the following files:
 
-  * `/fms_core/templates/admin/fms_core/change_list_import_export.html`
+  * `/fms_core/templates/admin/fms_core/change_list_export_version.html`
+  * `/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
   * `/fms_core/templates/admin/fms_core/download_import.html`
 
 ## Dependencies:
