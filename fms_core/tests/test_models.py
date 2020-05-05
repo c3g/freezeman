@@ -21,8 +21,12 @@ class ContainerTest(TestCase):
         Container.objects.create(**create_container(location=rack, barcode='R123457', coordinates="A01", kind="tube",
                                                     name="tube01"))
         with self.assertRaises(ValidationError):
-            Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
-                                                        kind="tube", name="tube02"))
+            try:
+                Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
+                                                            kind="tube", name="tube02"))
+            except ValidationError as e:
+                self.assertIn("coordinates", e.message_dict)
+                raise e
 
     def test_non_existent_parent(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -33,9 +37,13 @@ class ContainerTest(TestCase):
 
     def test_coordinates_without_location(self):
         with self.assertRaises(ValidationError):
-            c = create_container(barcode="Barcode001")
-            c["coordinates"] = "A01"
-            Container.objects.create(**c)
+            try:
+                c = create_container(barcode="Barcode001")
+                c["coordinates"] = "A01"
+                Container.objects.create(**c)
+            except ValidationError as e:
+                self.assertIn("coordinates", e.message_dict)
+                raise e
 
     def test_invalid_parent_coordiantes(self):
         parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
@@ -108,9 +116,13 @@ class SampleTest(TestCase):
             sample_in_plate_container.save()
 
             with self.assertRaises(ValidationError):
-                # Should not be able to create a sample in the sample place
-                Sample.objects.create(**create_sample(self.valid_individual, plate_container,
-                                                      coordinates="A11", name="test_sample_02"))
+                try:
+                    # Should not be able to create a sample in the same place
+                    Sample.objects.create(**create_sample(self.valid_individual, plate_container,
+                                                          coordinates="A11", name="test_sample_02"))
+                except ValidationError as e:
+                    self.assertIn("container", e.message_dict)
+                    raise e
 
         self.assertEqual(Sample.objects.count(), 2)
 
