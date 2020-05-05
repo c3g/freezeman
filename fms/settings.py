@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
+    'crequest.middleware.CrequestMiddleware',
     'reversion.middleware.RevisionMiddleware',
 ]
 

@@ -33,7 +33,7 @@ __all__ = [
 ]
 
 
-def add_error(errors: dict, field: str, error: ValidationError):
+def _add_error(errors: dict, field: str, error: ValidationError):
     errors[field] = [*errors.get(field, []), error]
 
 
@@ -80,14 +80,17 @@ class Container(models.Model):
     def clean(self):
         errors = {}
 
+        def add_error(field: str, error: str):
+            _add_error(errors, field, ValidationError(error))
+
         self.normalize()
 
         if self.coordinates != "" and self.location is None:
-            add_error(errors, "coordinates", ValidationError("Cannot specify coordinates in non-specified container"))
+            add_error("coordinates", "Cannot specify coordinates in non-specified container")
 
         if self.location is not None:
             if self.location.barcode == self.barcode:
-                add_error(errors, "location", ValidationError("Container cannot contain itself"))
+                add_error("location", "Container cannot contain itself")
 
             else:
                 parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
@@ -95,10 +98,8 @@ class Container(models.Model):
                 # Validate that this container is allowed to be located in the parent container specified
                 if not parent_spec.can_hold_kind(self.kind):
                     add_error(
-                        errors,
                         "location",
-                        ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold container "
-                                        f"kind {self.kind}")
+                        f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}"
                     )
 
                 if not errors.get("coordinates", None) and not errors.get("location", None):
@@ -106,7 +107,7 @@ class Container(models.Model):
                     try:
                         self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
                     except CoordinateError as e:
-                        add_error(errors, "coordinates", ValidationError(str(e)))
+                        add_error("coordinates", str(e))
 
                 if not errors.get("coordinates", None) and not errors.get("location", None) \
                         and not parent_spec.coordinate_overlap_allowed:
@@ -114,7 +115,7 @@ class Container(models.Model):
                     try:
                         check_coordinate_overlap(self.location.children, self, self.location)
                     except CoordinateError as e:
-                        add_error(errors, "coordinates", ValidationError(str(e)))
+                        add_error("coordinates", str(e))
                     except Container.DoesNotExist:
                         # Fine, the coordinates are free to use.
                         pass
@@ -163,15 +164,28 @@ class Sample(models.Model):
         (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA)
     )
 
+    TISSUE_SOURCE_BLOOD = "Blood"
+    TISSUE_SOURCE_SALIVA = "Saliva"
+    TISSUE_SOURCE_TUMOR = "Tumor"
+    TISSUE_SOURCE_PLASMA = "Plasma"
+    TISSUE_SOURCE_BUFFY_COAT = "Buffy coat"
+    TISSUE_SOURCE_TAIL = "Tail"
+    TISSUE_SOURCE_CELLS = "Cells"
+
     TISSUE_SOURCE_CHOICES = (
-        ("Blood", "Blood"),
-        ("Saliva", "Saliva"),
-        ("Tumor", "Tumor"),
-        ("Plasma", "Plasma"),
-        ("Buffy coat", "Buffy coat"),
-        ("Tail", "Tail"),
-        ("Cells", "Cells"),
+        (TISSUE_SOURCE_BLOOD, TISSUE_SOURCE_BLOOD),
+        (TISSUE_SOURCE_SALIVA, TISSUE_SOURCE_SALIVA),
+        (TISSUE_SOURCE_TUMOR, TISSUE_SOURCE_TUMOR),
+        (TISSUE_SOURCE_PLASMA, TISSUE_SOURCE_PLASMA),
+        (TISSUE_SOURCE_BUFFY_COAT, TISSUE_SOURCE_BUFFY_COAT),
+        (TISSUE_SOURCE_TAIL, TISSUE_SOURCE_TAIL),
+        (TISSUE_SOURCE_CELLS, TISSUE_SOURCE_CELLS),
     )
+
+    BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE = {
+        BIOSPECIMEN_TYPE_BLOOD: TISSUE_SOURCE_BLOOD,
+        BIOSPECIMEN_TYPE_SALIVA: TISSUE_SOURCE_SALIVA,
+    }
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES,
@@ -309,53 +323,55 @@ class Sample(models.Model):
     def clean(self):
         errors = {}
 
+        def add_error(field: str, error: str):
+            _add_error(errors, field, ValidationError(error))
+
         self.normalize()
 
         biospecimen_type_choices = (Sample.NA_BIOSPECIMEN_TYPE_CHOICES if self.extracted_from
                                     else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
             add_error(
-                errors,
                 "biospecimen_type",
-                ValidationError(f"Biospecimen type {self.biospecimen_type} not valid for"
-                                f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
+                (f"Biospecimen type {self.biospecimen_type} not valid for "
+                 f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
             )
 
         if self.extracted_from:
             if self.extracted_from.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES:
                 add_error(
-                    errors,
                     "extracted_from",
-                    ValidationError(f"Extraction process cannot be run on sample of type "
-                                    f"{self.extracted_from.biospecimen_type}")
+                    f"Extraction process cannot be run on sample of type {self.extracted_from.biospecimen_type}"
                 )
 
+            else:
+                original_biospecimen_type = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[
+                    self.extracted_from.biospecimen_type]
+                if self.tissue_source != original_biospecimen_type:
+                    add_error(
+                        "tissue_source",
+                        (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
+                         f"{original_biospecimen_type}")
+                    )
+
             if self.volume_used is None:
-                add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))
+                add_error("volume_used", "Extracted samples must specify volume_used")
 
             elif self.volume_used <= Decimal("0"):
-                add_error(errors, "volume_used", ValidationError("volume_used must be positive"))
+                add_error("volume_used", "volume_used must be positive")
 
         if self.volume_used is not None and not self.extracted_from:
-            add_error(errors, "volume_used", ValidationError("Non-extracted samples cannot specify volume_used"))
+            add_error("volume_used", "Non-extracted samples cannot specify volume_used")
 
         # Check concentration fields given biospecimen_type
 
         if self.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES and self.concentration is None:
-            add_error(
-                errors,
-                "concentration",
-                ValidationError("Concentration must be specified if the biospecimen_type is DNA or RNA")
-            )
+            add_error("concentration", "Concentration must be specified if the biospecimen_type is DNA or RNA")
 
         # Check tissue source given extracted_from
 
         if self.tissue_source and self.biospecimen_type not in Sample.NA_BIOSPECIMEN_TYPES:
-            add_error(
-                errors,
-                "tissue_source",
-                ValidationError("Tissue source can only be specified for a nucleic acid sample.")
-            )
+            add_error("tissue_source", "Tissue source can only be specified for a nucleic acid sample.")
 
         # Validate container consistency
 
@@ -364,11 +380,7 @@ class Sample(models.Model):
 
             #  - Validate that parent can hold samples
             if not parent_spec.sample_holding:
-                add_error(
-                    errors,
-                    "container",
-                    ValidationError(f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
-                )
+                add_error("container", f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
             if self.extracted_from is not None and any((
@@ -376,18 +388,14 @@ class Sample(models.Model):
                     self.container.location is None,
                     CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
             )):
-                add_error(
-                    errors,
-                    "container",
-                    ValidationError("Extractions currently must be conducted on a tube in an 8x12 tube rack")
-                )
+                add_error("container", "Extractions currently must be conducted on a tube in an 8x12 tube rack")
 
             #  - Validate coordinates against parent container spec
             if not errors.get("container"):
                 try:
                     self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
                 except CoordinateError as e:
-                    add_error(errors, "container", ValidationError(str(e)))
+                    add_error("container", str(e))
 
             # TODO: This isn't performant for bulk ingestion
             # - Check for coordinate overlap with existing child containers of the parent
@@ -395,7 +403,7 @@ class Sample(models.Model):
                 try:
                     check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
                 except CoordinateError as e:
-                    add_error(errors, "container", ValidationError(str(e)))
+                    add_error("container", str(e))
                 except Sample.DoesNotExist:
                     # Fine, the coordinates are free to use.
                     pass
@@ -482,18 +490,27 @@ class Individual(models.Model):
     def clean(self):
         errors = {}
 
+        def add_error(field: str, error: str):
+            _add_error(errors, field, ValidationError(error))
+
         self.normalize()
 
         if self.mother_id is not None and self.father_id is not None and self.mother_id == self.father_id:
-            e = ValidationError("Mother and father IDs can't be the same.")
-            add_error(errors, "mother", e)
-            add_error(errors, "father", e)
+            e = "Mother and father IDs can't be the same."
+            add_error("mother", e)
+            add_error("father", e)
 
         if self.mother_id is not None and self.mother_id == self.id:
-            add_error(errors, "mother", ValidationError("Mother can't be same as self."))
+            add_error("mother", "Mother can't be same as self.")
 
         if self.father_id is not None and self.father_id == self.id:
-            add_error(errors, "father", ValidationError("Father can't be same as self."))
+            add_error("father", "Father can't be same as self.")
+
+        if self.mother_id is not None and self.pedigree != self.mother.pedigree:
+            add_error("pedigree", "Pedigree between individual and mother must match")
+
+        if self.father_id is not None and self.pedigree != self.father.pedigree:
+            add_error("pedigree", "Pedigree between individual and father must match")
 
         if errors:
             raise ValidationError(errors)

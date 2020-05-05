@@ -21,8 +21,12 @@ class ContainerTest(TestCase):
         Container.objects.create(**create_container(location=rack, barcode='R123457', coordinates="A01", kind="tube",
                                                     name="tube01"))
         with self.assertRaises(ValidationError):
-            Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
-                                                        kind="tube", name="tube02"))
+            try:
+                Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
+                                                            kind="tube", name="tube02"))
+            except ValidationError as e:
+                self.assertIn("coordinates", e.message_dict)
+                raise e
 
     def test_non_existent_parent(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -33,9 +37,13 @@ class ContainerTest(TestCase):
 
     def test_coordinates_without_location(self):
         with self.assertRaises(ValidationError):
-            c = create_container(barcode="Barcode001")
-            c["coordinates"] = "A01"
-            Container.objects.create(**c)
+            try:
+                c = create_container(barcode="Barcode001")
+                c["coordinates"] = "A01"
+                Container.objects.create(**c)
+            except ValidationError as e:
+                self.assertIn("coordinates", e.message_dict)
+                raise e
 
     def test_invalid_parent_coordiantes(self):
         parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
@@ -108,9 +116,13 @@ class SampleTest(TestCase):
             sample_in_plate_container.save()
 
             with self.assertRaises(ValidationError):
-                # Should not be able to create a sample in the sample place
-                Sample.objects.create(**create_sample(self.valid_individual, plate_container,
-                                                      coordinates="A11", name="test_sample_02"))
+                try:
+                    # Should not be able to create a sample in the same place
+                    Sample.objects.create(**create_sample(self.valid_individual, plate_container,
+                                                          coordinates="A11", name="test_sample_02"))
+                except ValidationError as e:
+                    self.assertIn("container", e.message_dict)
+                    raise e
 
         self.assertEqual(Sample.objects.count(), 2)
 
@@ -150,18 +162,37 @@ class ExtractedSampleTest(TestCase):
         # create parent samples
         self.parent_sample = Sample.objects.create(**create_sample(self.valid_individual, self.valid_container,
                                                                    name="test_sample_10"))
-        self.invalid_parent_sample = Sample.objects.create(**create_sample(self.valid_individual,
-                                                                           self.tube_container_2,
-                                                                           name="test_sample_11",
-                                                                           concentration=Decimal('1.0'),
-                                                                           biospecimen_type="DNA"))
-        self.constants = dict(individual=self.valid_individual, container=self.tube_container,
-                              extracted_from=self.parent_sample)
+        self.invalid_parent_sample = Sample.objects.create(**create_sample(
+            self.valid_individual,
+            self.tube_container_2,
+            name="test_sample_11",
+            concentration=Decimal('1.0'),
+            biospecimen_type="DNA"
+        ))
+
+        self.constants = dict(
+            individual=self.valid_individual,
+            container=self.tube_container,
+            extracted_from=self.parent_sample,
+            tissue_source=Sample.TISSUE_SOURCE_BLOOD
+        )
 
     def test_extracted_sample(self):
         Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
                                                         **self.constants))
         self.assertEqual(Sample.objects.count(), 3)
+
+    def test_no_tissue_source_extracted_sample(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Sample.objects.create(**create_extracted_sample(
+                    biospecimen_type='DNA',
+                    volume_used=Decimal('0.01'),
+                    **{**self.constants, "tissue_source": Sample.TISSUE_SOURCE_SALIVA}
+                ))
+            except ValidationError as e:
+                self.assertIn("tissue_source", e.message_dict)
+                raise e
 
     def test_wrong_container_extracted_sample(self):
         pc = Container.objects.create(**create_container("BOX001", kind="tube box 8x8", name="Box001"))
@@ -217,19 +248,25 @@ class ExtractedSampleTest(TestCase):
         # volume_used cannot be None for an extracted_sample
         invalid_volume_used = Sample(**create_extracted_sample(biospecimen_type='DNA', volume_used=None,
                                                                **self.constants))
-        try:
-            invalid_volume_used.full_clean()
-        except ValidationError as e:
-            self.assertTrue('volume_used' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_volume_used.full_clean()
+            except ValidationError as e:
+                self.assertIn('volume_used', e.message_dict)
+                raise e
 
         # the volume_used is not allowed with non-extracted sample + this container already has a sample inside
         invalid_volume_used = Sample(**create_sample(self.valid_individual, self.valid_container,
                                                      volume_used=Decimal('0.01')))
-        try:
-            invalid_volume_used.full_clean()
-        except ValidationError as e:
-            for error in ('volume_used', 'container'):
-                self.assertTrue(error in e.message_dict.keys())
+
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_volume_used.full_clean()
+            except ValidationError as e:
+                for error in ('volume_used', 'container'):
+                    self.assertIn(error, e.message_dict.keys())
+                    raise e
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
@@ -258,9 +295,6 @@ class ExtractedSampleTest(TestCase):
 
 class IndividualTest(TestCase):
 
-    def setUp(self) -> None:
-        pass
-
     def test_individual(self):
         individual = Individual.objects.create(**create_individual(individual_id="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
@@ -271,19 +305,43 @@ class IndividualTest(TestCase):
         mother = Individual.objects.create(**create_individual(individual_id='janedoe'))
         father = Individual.objects.create(**create_individual(individual_id='johndoe'))
         individual = Individual(**create_individual(individual_id='janedoe', mother=mother))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            self.assertTrue('mother' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                self.assertIn('mother', e.message_dict)
+                raise e
+
         individual = Individual(**create_individual(individual_id='johndoe', father=father))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            self.assertTrue('father' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                self.assertIn('father', e.message_dict)
+                raise e
+
         # mother and father can't be the same individual
         individual = Individual(**create_individual(individual_id='jdoe', mother=mother, father=mother))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            for mf in ('mother', 'father'):
-                self.assertTrue(mf in e.message_dict.keys())
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                for mf in ('mother', 'father'):
+                    self.assertIn(mf, e.message_dict)
+                raise e
+
+    def test_pedigree(self):
+        # pedigree must match for trio
+        mother = Individual.objects.create(**create_individual(individual_id='janedoe', pedigree='p1'))
+        father = Individual.objects.create(**create_individual(individual_id='johndoe', pedigree='p1'))
+
+        with self.assertRaises(ValidationError):
+            try:
+                Individual.objects.create(**create_individual(individual_id='jimdoe', mother=mother, father=father,
+                                                              pedigree='p2'))
+            except ValidationError as e:
+                self.assertIn("pedigree", e.message_dict)
+                raise e
