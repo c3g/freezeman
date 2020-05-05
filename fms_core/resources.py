@@ -291,7 +291,7 @@ class SampleResource(GenericResource):
 
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
-            data["Comment"] = str(data.get("Comment") or "")
+            data["Comment"] = str(data.get("Comment") or "").strip()
 
         elif field.attribute == "alias":
             # if numeric value entered as alias make sure it's a string
