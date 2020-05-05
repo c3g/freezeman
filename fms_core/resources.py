@@ -289,17 +289,17 @@ class SampleResource(GenericResource):
             data["Experimental Group"] = json.dumps(
                 [g.strip() for g in RE_SEPARATOR.split(str(data.get("Experimental Group") or "")) if g.strip()])
 
-        elif field.attribute in self.COMPUTED_FIELDS:
-            # Ignore importing this, since it's a computed property.
-            return
-
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
             data["Comment"] = str(data.get("Comment") or "")
 
         elif field.attribute == "alias":
             # if numeric value entered as alias make sure it's a string
-            data["Alias"] = str(data.get("Alias") or "")
+            data["Alias"] = str(data.get("Alias") or "").strip()
+
+        elif field.attribute in self.COMPUTED_FIELDS:
+            # Ignore importing this, since it's a computed property.
+            return
 
         super().import_field(field, obj, data, is_m2m)
 
