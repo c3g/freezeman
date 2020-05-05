@@ -217,19 +217,25 @@ class ExtractedSampleTest(TestCase):
         # volume_used cannot be None for an extracted_sample
         invalid_volume_used = Sample(**create_extracted_sample(biospecimen_type='DNA', volume_used=None,
                                                                **self.constants))
-        try:
-            invalid_volume_used.full_clean()
-        except ValidationError as e:
-            self.assertTrue('volume_used' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_volume_used.full_clean()
+            except ValidationError as e:
+                self.assertIn('volume_used', e.message_dict)
+                raise e
 
         # the volume_used is not allowed with non-extracted sample + this container already has a sample inside
         invalid_volume_used = Sample(**create_sample(self.valid_individual, self.valid_container,
                                                      volume_used=Decimal('0.01')))
-        try:
-            invalid_volume_used.full_clean()
-        except ValidationError as e:
-            for error in ('volume_used', 'container'):
-                self.assertTrue(error in e.message_dict.keys())
+
+        with self.assertRaises(ValidationError):
+            try:
+                invalid_volume_used.full_clean()
+            except ValidationError as e:
+                for error in ('volume_used', 'container'):
+                    self.assertIn(error, e.message_dict.keys())
+                    raise e
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
@@ -258,9 +264,6 @@ class ExtractedSampleTest(TestCase):
 
 class IndividualTest(TestCase):
 
-    def setUp(self) -> None:
-        pass
-
     def test_individual(self):
         individual = Individual.objects.create(**create_individual(individual_id="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
@@ -271,19 +274,30 @@ class IndividualTest(TestCase):
         mother = Individual.objects.create(**create_individual(individual_id='janedoe'))
         father = Individual.objects.create(**create_individual(individual_id='johndoe'))
         individual = Individual(**create_individual(individual_id='janedoe', mother=mother))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            self.assertTrue('mother' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                self.assertIn('mother', e.message_dict)
+                raise e
+
         individual = Individual(**create_individual(individual_id='johndoe', father=father))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            self.assertTrue('father' in e.message_dict)
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                self.assertIn('father', e.message_dict)
+                raise e
+
         # mother and father can't be the same individual
         individual = Individual(**create_individual(individual_id='jdoe', mother=mother, father=mother))
-        try:
-            individual.full_clean()
-        except ValidationError as e:
-            for mf in ('mother', 'father'):
-                self.assertTrue(mf in e.message_dict.keys())
+
+        with self.assertRaises(ValidationError):
+            try:
+                individual.full_clean()
+            except ValidationError as e:
+                for mf in ('mother', 'father'):
+                    self.assertIn(mf, e.message_dict)
+                raise e
