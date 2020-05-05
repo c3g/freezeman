@@ -79,7 +79,8 @@ EXPERIMENTAL_GROUP_SCHEMA = {
     "description": "Schema used to define experimental groups for a sample.",
     "type": "array",
     "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1,
     },
     "uniqueItems": True
 }

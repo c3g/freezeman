@@ -286,19 +286,20 @@ class SampleResource(GenericResource):
 
         elif field.attribute == "experimental_group":
             # Experimental group is stored as a JSON array, so parse out what's going on
-            data["Experimental Group"] = json.dumps(RE_SEPARATOR.split(str(data.get("Experimental Group") or "")))
+            data["Experimental Group"] = json.dumps(
+                [g.strip() for g in RE_SEPARATOR.split(str(data.get("Experimental Group") or "")) if g.strip()])
+
+        elif field.attribute == "comment":
+            # Normalize None comments to empty strings
+            data["Comment"] = str(data.get("Comment") or "").strip()
+
+        elif field.attribute == "alias":
+            # if numeric value entered as alias make sure it's a string
+            data["Alias"] = str(data.get("Alias") or "").strip()
 
         elif field.attribute in self.COMPUTED_FIELDS:
             # Ignore importing this, since it's a computed property.
             return
-
-        elif field.attribute == "comment":
-            # Normalize None comments to empty strings
-            data["Comment"] = str(data.get("Comment") or "")
-
-        elif field.attribute == "alias":
-            # if numeric value entered as alias make sure it's a string
-            data["Alias"] = str(data.get("Alias") or "")
 
         super().import_field(field, obj, data, is_m2m)
 
