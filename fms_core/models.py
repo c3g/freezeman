@@ -519,6 +519,12 @@ class Individual(models.Model):
         if self.father_id is not None and self.father_id == self.id:
             add_error(errors, "father", ValidationError("Father can't be same as self."))
 
+        if self.mother_id is not None and self.pedigree != self.mother.pedigree:
+            add_error(errors, "pedigree", ValidationError("Pedigree between individual and mother must match"))
+
+        if self.father_id is not None and self.pedigree != self.father.pedigree:
+            add_error(errors, "pedigree", ValidationError("Pedigree between individual and father must match"))
+
         if errors:
             raise ValidationError(errors)
 

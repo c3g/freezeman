@@ -320,3 +320,16 @@ class IndividualTest(TestCase):
                 for mf in ('mother', 'father'):
                     self.assertIn(mf, e.message_dict)
                 raise e
+
+    def test_pedigree(self):
+        # pedigree must match for trio
+        mother = Individual.objects.create(**create_individual(individual_id='janedoe', pedigree='p1'))
+        father = Individual.objects.create(**create_individual(individual_id='johndoe', pedigree='p1'))
+
+        with self.assertRaises(ValidationError):
+            try:
+                Individual.objects.create(**create_individual(individual_id='jimdoe', mother=mother, father=father,
+                                                              pedigree='p2'))
+            except ValidationError as e:
+                self.assertIn("pedigree", e.message_dict)
+                raise e
