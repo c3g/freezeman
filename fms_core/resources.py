@@ -1,7 +1,9 @@
 import json
 import reversion
 
+from crequest.middleware import CrequestMiddleware
 from datetime import datetime
+from django.contrib import messages
 from import_export import resources
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, ForeignKeyWidget, JSONWidget
@@ -229,8 +231,9 @@ class SampleResource(GenericResource):
                 **({"cohort": cohort} if cohort else {}),  # Father has same cohort as offspring TODO: Confirm
             )
 
-        # TODO: This should throw a warning if the individual already exists
-        individual, _ = Individual.objects.get_or_create(
+        # TODO: This should throw a nicer warning if the individual already exists
+        # TODO: Warn if the individual exists but pedigree/cohort is different
+        individual, individual_created = Individual.objects.get_or_create(
             id=str(data.get("Individual ID") or ""),  # TODO: Normalize properly
             sex=str(data.get("Sex") or Individual.SEX_UNKNOWN),
             taxon=taxon,
@@ -240,6 +243,11 @@ class SampleResource(GenericResource):
             **({"father": father} if father else {}),
         )
         obj.individual = individual
+
+        if dry_run and not individual_created:
+            request = CrequestMiddleware.get_request()
+            messages.warning(request, f"Row {data['#']}: Using existing individual '{individual}' instead of creating "
+                                      f"a new one")
 
         vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
 
