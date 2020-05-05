@@ -150,18 +150,37 @@ class ExtractedSampleTest(TestCase):
         # create parent samples
         self.parent_sample = Sample.objects.create(**create_sample(self.valid_individual, self.valid_container,
                                                                    name="test_sample_10"))
-        self.invalid_parent_sample = Sample.objects.create(**create_sample(self.valid_individual,
-                                                                           self.tube_container_2,
-                                                                           name="test_sample_11",
-                                                                           concentration=Decimal('1.0'),
-                                                                           biospecimen_type="DNA"))
-        self.constants = dict(individual=self.valid_individual, container=self.tube_container,
-                              extracted_from=self.parent_sample)
+        self.invalid_parent_sample = Sample.objects.create(**create_sample(
+            self.valid_individual,
+            self.tube_container_2,
+            name="test_sample_11",
+            concentration=Decimal('1.0'),
+            biospecimen_type="DNA"
+        ))
+
+        self.constants = dict(
+            individual=self.valid_individual,
+            container=self.tube_container,
+            extracted_from=self.parent_sample,
+            tissue_source=Sample.TISSUE_SOURCE_BLOOD
+        )
 
     def test_extracted_sample(self):
         Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
                                                         **self.constants))
         self.assertEqual(Sample.objects.count(), 3)
+
+    def test_no_tissue_source_extracted_sample(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Sample.objects.create(**create_extracted_sample(
+                    biospecimen_type='DNA',
+                    volume_used=Decimal('0.01'),
+                    **{**self.constants, "tissue_source": Sample.TISSUE_SOURCE_SALIVA}
+                ))
+            except ValidationError as e:
+                self.assertIn("tissue_source", e.message_dict)
+                raise e
 
     def test_wrong_container_extracted_sample(self):
         pc = Container.objects.create(**create_container("BOX001", kind="tube box 8x8", name="Box001"))

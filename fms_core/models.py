@@ -181,6 +181,11 @@ class Sample(models.Model):
         (TISSUE_SOURCE_CELLS, TISSUE_SOURCE_CELLS),
     )
 
+    BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE = {
+        BIOSPECIMEN_TYPE_BLOOD: TISSUE_SOURCE_BLOOD,
+        BIOSPECIMEN_TYPE_SALIVA: TISSUE_SOURCE_SALIVA,
+    }
+
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES,
                                         help_text="Biological material collected from study subject "
@@ -337,6 +342,17 @@ class Sample(models.Model):
                     ValidationError(f"Extraction process cannot be run on sample of type "
                                     f"{self.extracted_from.biospecimen_type}")
                 )
+
+            else:
+                original_biospecimen_type = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[
+                    self.extracted_from.biospecimen_type]
+                if self.tissue_source != original_biospecimen_type:
+                    add_error(
+                        errors,
+                        "tissue_source",
+                        ValidationError(f"Mismatch between sample tissue source {self.tissue_source} and original "
+                                        f"biospecimen type {original_biospecimen_type}")
+                    )
 
             if self.volume_used is None:
                 add_error(errors, "volume_used", ValidationError("Extracted samples must specify volume_used"))

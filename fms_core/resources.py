@@ -451,6 +451,8 @@ class ExtractionResource(GenericResource):
         instance.collection_site = instance.extracted_from.collection_site
         instance.experimental_group = instance.extracted_from.experimental_group
         instance.individual = instance.extracted_from.individual
+        instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
+            instance.extracted_from.biospecimen_type, "")
 
         # Update volume and depletion status of original
         instance.extracted_from.volume_history.append(create_volume_history(
