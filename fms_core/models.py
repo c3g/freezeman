@@ -163,14 +163,22 @@ class Sample(models.Model):
         (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA)
     )
 
+    TISSUE_SOURCE_BLOOD = "Blood"
+    TISSUE_SOURCE_SALIVA = "Saliva"
+    TISSUE_SOURCE_TUMOR = "Tumor"
+    TISSUE_SOURCE_PLASMA = "Plasma"
+    TISSUE_SOURCE_BUFFY_COAT = "Buffy coat"
+    TISSUE_SOURCE_TAIL = "Tail"
+    TISSUE_SOURCE_CELLS = "Cells"
+
     TISSUE_SOURCE_CHOICES = (
-        ("Blood", "Blood"),
-        ("Saliva", "Saliva"),
-        ("Tumor", "Tumor"),
-        ("Plasma", "Plasma"),
-        ("Buffy coat", "Buffy coat"),
-        ("Tail", "Tail"),
-        ("Cells", "Cells"),
+        (TISSUE_SOURCE_BLOOD, TISSUE_SOURCE_BLOOD),
+        (TISSUE_SOURCE_SALIVA, TISSUE_SOURCE_SALIVA),
+        (TISSUE_SOURCE_TUMOR, TISSUE_SOURCE_TUMOR),
+        (TISSUE_SOURCE_PLASMA, TISSUE_SOURCE_PLASMA),
+        (TISSUE_SOURCE_BUFFY_COAT, TISSUE_SOURCE_BUFFY_COAT),
+        (TISSUE_SOURCE_TAIL, TISSUE_SOURCE_TAIL),
+        (TISSUE_SOURCE_CELLS, TISSUE_SOURCE_CELLS),
     )
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
