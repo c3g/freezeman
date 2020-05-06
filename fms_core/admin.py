@@ -149,7 +149,7 @@ class SampleAdmin(AggregatedAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             **(extra_context or {}),
-            "submission_template": static("submission_templates/Sample_submission_v0.6.xlsx"),
+            "submission_template": static("submission_templates/Sample_submission_v0.7.xlsx"),
         })
 
 
@@ -162,7 +162,7 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             "title": "Import extracted samples",
-            "submission_template": static("submission_templates/Extraction_v0.4.xlsx"),
+            "submission_template": static("submission_templates/Extraction_v0.5.xlsx"),
         })
 
     def has_add_permission(self, request):
@@ -222,7 +222,7 @@ class ContainerMoveAdmin(CustomImportMixin, admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             "title": "Move Containers",
-            "submission_template": static("submission_templates/Container_move_v0.2.xlsx"),
+            "submission_template": static("submission_templates/Container_move_v0.3.xlsx"),
         })
 
     def get_queryset(self, request):
@@ -242,7 +242,7 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             "title": "Update Samples",
-            "submission_template": static("submission_templates/Sample_update_v0.2.xlsx"),
+            "submission_template": static("submission_templates/Sample_update_v0.3.xlsx"),
         })
 
     def get_queryset(self, request):
