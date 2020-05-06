@@ -334,11 +334,10 @@ class ExtractionResource(GenericResource):
     # Non-attribute fields
     location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
-    # TODO throws a coordinates system error
-    # coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
+    coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
-    source_depleted = Field(column_name='Source Depleted')
+    source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
     comment = Field(attribute='comment', column_name='Comment')
@@ -365,6 +364,7 @@ class ExtractionResource(GenericResource):
             'sample_container_coordinates',
             'container',
             'location',
+            'coordinates',
             'volume_history',
             'concentration',
             'source_depleted',
@@ -376,6 +376,10 @@ class ExtractionResource(GenericResource):
 
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
+
+        if field.attribute == 'source_depleted':
+            # Computed field, skip importing it.
+            return
 
         if field.attribute == 'volume_history':
             # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.

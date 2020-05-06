@@ -103,6 +103,7 @@ class SampleTest(TestCase):
         self.assertEqual(sample.container_name, "TestTube01")
         self.assertIsNone(sample.container_location)
         self.assertEqual(sample.context_sensitive_coordinates, "")
+        self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only
@@ -178,8 +179,9 @@ class ExtractedSampleTest(TestCase):
         )
 
     def test_extracted_sample(self):
-        Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
-                                                        **self.constants))
+        s = Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.01'),
+                                                            **self.constants))
+        self.assertFalse(s.source_depleted)
         self.assertEqual(Sample.objects.count(), 3)
 
     def test_no_tissue_source_extracted_sample(self):
