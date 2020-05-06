@@ -334,8 +334,7 @@ class ExtractionResource(GenericResource):
     # Non-attribute fields
     location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
-    # TODO throws a coordinates system error
-    # coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
+    coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
@@ -365,6 +364,7 @@ class ExtractionResource(GenericResource):
             'sample_container_coordinates',
             'container',
             'location',
+            'coordinates',
             'volume_history',
             'concentration',
             'source_depleted',
