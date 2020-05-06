@@ -305,6 +305,12 @@ class Sample(models.Model):
     def context_sensitive_coordinates(self):
         return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
 
+    # Computed properties for extracted samples
+
+    @property
+    def source_depleted(self):
+        return self.extracted_from.depleted if self.extracted_from else None
+
     # Representations
 
     def __str__(self):
