@@ -50,7 +50,8 @@ class Container(models.Model):
         help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
                   "properties."
     )
-    # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
+
+    # TODO: Further normalize any incoming names
     name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.",
                             validators=[barcode_name_validator])
     barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.",
@@ -102,14 +103,14 @@ class Container(models.Model):
                         f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}"
                     )
 
-                if not errors.get("coordinates", None) and not errors.get("location", None):
+                if not errors.get("coordinates") and not errors.get("location"):
                     # Validate coordinates against parent container spec
                     try:
                         self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
                     except CoordinateError as e:
                         add_error("coordinates", str(e))
 
-                if not errors.get("coordinates", None) and not errors.get("location", None) \
+                if not errors.get("coordinates") and not errors.get("location") \
                         and not parent_spec.coordinate_overlap_allowed:
                     # Check for coordinate overlap with existing child containers of the parent
                     try:
@@ -407,7 +408,7 @@ class Sample(models.Model):
 
             # TODO: This isn't performant for bulk ingestion
             # - Check for coordinate overlap with existing child containers of the parent
-            if not errors.get("container", None) and not parent_spec.coordinate_overlap_allowed:
+            if not errors.get("container") and not parent_spec.coordinate_overlap_allowed:
                 try:
                     check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
                 except CoordinateError as e:
