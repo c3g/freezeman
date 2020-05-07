@@ -1,6 +1,7 @@
 # C3G FreezeMan
 
 ![Travis Build Status](https://api.travis-ci.com/c3g/fms.svg?branch=master)
+[![codecov](https://codecov.io/gh/c3g/fms/branch/master/graph/badge.svg)](https://codecov.io/gh/c3g/fms)
 
 FreezeMan is a freezer management system designed to manage the storage and 
 tracking of biological samples in a laboratory environment.
