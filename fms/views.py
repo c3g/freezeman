@@ -1,7 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .info import COMMIT_DATE, COMMIT_HASH, COMMIT_TAGGED_VERSION, COPYRIGHT_YEARS, REPOSITORY, VERSION
+from .info import (
+    COMMIT_DATE,
+    COMMIT_FULL_HASH,
+    COMMIT_SMALL_HASH,
+    COMMIT_TAGGED_VERSION,
+    COPYRIGHT_YEARS,
+    REPOSITORY,
+    VERSION,
+)
 
 
 __all__ = ["SoftwareInformationView"]
@@ -13,7 +21,8 @@ class SoftwareInformationView(APIView):
         return Response({
             "commit": {
                 "date": COMMIT_DATE,
-                "hash": COMMIT_HASH,
+                "hash_full": COMMIT_FULL_HASH,
+                "hash_small": COMMIT_SMALL_HASH,
                 "tagged_version": COMMIT_TAGGED_VERSION,
             },
             "copyright_years": COPYRIGHT_YEARS,
