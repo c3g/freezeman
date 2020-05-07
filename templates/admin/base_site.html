@@ -58,7 +58,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             Public License version 3.0</a>.<br>
         <small>
             <strong>Commit Date:</strong> {{ fm_commit_date }}
-            <strong style="margin-left: 16px;">Commit Hash:</strong> {{ fm_commit_hash }}
+            <span title="{{ fm_commit_hash_full }}">
+                <strong style="margin-left: 16px;">Commit Hash:</strong>
+                <a href="{{ fm_repository }}/commit/{{ fm_commit_hash_full }}"
+                   target="_blank" rel="noreferrer noopener">{{ fm_commit_hash_small }}</a>
+            </span>
             <strong style="margin-left: 16px;">Tagged Version:</strong> {{ fm_commit_tagged_version }}
         </small>
     </p>
