@@ -334,7 +334,7 @@ class ExtractionResource(GenericResource):
     # Non-attribute fields
     location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
-    coordinates = Field(attribute='coordinates', column_name='Nucleic Acid Location Coord')
+    location_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Nucleic Acid Location Coord')
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
@@ -364,7 +364,7 @@ class ExtractionResource(GenericResource):
             'sample_container_coordinates',
             'container',
             'location',
-            'coordinates',
+            'location_coordinates',
             'volume_history',
             'concentration',
             'source_depleted',
@@ -377,7 +377,7 @@ class ExtractionResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
 
-        if field.attribute == 'source_depleted':
+        if field.attribute in ('source_depleted', 'context_sensitive_coordinates'):
             # Computed field, skip importing it.
             return
 

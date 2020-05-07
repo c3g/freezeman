@@ -437,7 +437,7 @@ class ExtractedSample(Sample):
     class Meta:
         proxy = True
 
-    manager = ExtractedSampleManager()
+    objects = ExtractedSampleManager()
 
 
 class SampleUpdateManager(models.Manager):
@@ -450,7 +450,7 @@ class SampleUpdate(Sample):
     class Meta:
         proxy = True
 
-    manager = SampleUpdateManager()
+    objects = SampleUpdateManager()
 
 
 @reversion.register()
