@@ -4,7 +4,7 @@ Sample Update,,,,,,
 ,,,,,,
 ,,,,,,
 ,,,,,,
-#,Container Barcode,Coord (if plate),New Volume (uL),New Conc. (ng/uL),Depleted,Comment
+#,Container Barcode,Coord (if plate),New Volume (uL),New Conc. (ng/uL),Depleted,Update Comment
 1,tube001,,0.001,0.001,False,sample updated
 2,,,,,,
 3,,,,,,
