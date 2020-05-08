@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 
-class JsonSchemaValidator(object):
+class JsonSchemaValidator:
     """ Custom class based validator to validate against Json schema for JSONField """
 
     def __init__(self, schema, formats=None):

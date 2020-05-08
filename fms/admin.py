@@ -18,8 +18,8 @@ class AdminConfig(admin_apps.AdminConfig):
 
 class AdminSite(admin.AdminSite):
     def each_context(self, request):
-        context = super().each_context(request)
-        context.update({
+        return {
+            **super().each_context(request),
             "fm_commit_date": COMMIT_DATE,
             "fm_commit_hash_full": COMMIT_FULL_HASH,
             "fm_commit_hash_small": COMMIT_SMALL_HASH,
@@ -27,5 +27,4 @@ class AdminSite(admin.AdminSite):
             "fm_copyright_years": COPYRIGHT_YEARS,
             "fm_repository": REPOSITORY,
             "fm_version": VERSION,
-        })
-        return context
+        }

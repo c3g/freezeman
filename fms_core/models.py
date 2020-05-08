@@ -65,7 +65,10 @@ class Container(models.Model):
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True,
                                    help_text="Coordinates of this container within the parent container.")
+
     comment = models.TextField(blank=True, help_text="Other relevant information about the container.")
+    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the "
+                                                            "container. Change this whenever updates are made.")
 
     def __str__(self):
         return self.barcode
@@ -77,6 +80,7 @@ class Container(models.Model):
         self.barcode = str_normalize(self.barcode)
         self.coordinates = str_normalize(self.coordinates)
         self.comment = str_normalize(self.comment)
+        self.update_comment = str_normalize(self.update_comment)
 
     def clean(self):
         errors = {}
@@ -226,7 +230,10 @@ class Sample(models.Model):
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
     reception_date = models.DateField(default=timezone.now, help_text="Date of the sample reception.")
     phenotype = models.CharField(max_length=200, blank=True, help_text="Sample phenotype.")
+
     comment = models.TextField(blank=True, help_text="Other relevant information about the sample.")
+    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the sample. "
+                                                            "Change this whenever updates are made.")
 
     # In what container is this sample located?
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy
@@ -328,6 +335,7 @@ class Sample(models.Model):
         self.tissue_source = str_normalize(self.tissue_source)
         self.phenotype = str_normalize(self.phenotype)
         self.comment = str_normalize(self.comment)
+        self.update_comment = str_normalize(self.update_comment)
 
     def clean(self):
         errors = {}
