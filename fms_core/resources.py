@@ -499,7 +499,7 @@ class ContainerMoveResource(GenericResource):
     location = Field(attribute='location', column_name='Dest. Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Dest. Location Coord')
-    update_comment = Field(attribute='update_comment', column_name='Comment')
+    update_comment = Field(attribute='update_comment', column_name='Update Comment')
 
     class Meta:
         model = Container
@@ -548,7 +548,7 @@ class SampleUpdateResource(GenericResource):
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
-    update_comment = Field(attribute="update_comment", column_name="Comment")
+    update_comment = Field(attribute="update_comment", column_name="Update Comment")
 
     class Meta:
         model = Sample
