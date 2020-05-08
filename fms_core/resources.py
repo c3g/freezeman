@@ -521,13 +521,14 @@ class ContainerMoveResource(GenericResource):
         ], header='id')
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'id':
-            obj = Container.objects.get(pk=str(data.get("Container Barcode to move") or ""))
-            obj.location = Container.objects.get(barcode=str(data.get("Dest. Location Barcode") or ""))
-            obj.coordinates = str(data.get("Dest. Location Coord") or "")
-            # comment if empty does that mean that comment was removed? or not just not added
-            obj.comment = str(data.get("Comment") or "")
-            return
+        if field.attribute == "location":
+            data["Dest. Location Barcode"] = str(data.get("Dest. Location Barcode") or "").strip()
+
+        if field.attribute == "coordinates":
+            data["Dest. Location Coord"] = str(data.get("Dest. Location Coord") or "").strip()
+
+        if field.attribute == "update_comment":
+            data["Update Comment"] = str(data.get("Update Comment") or "").strip()
 
         super().import_field(field, obj, data, is_m2m)
 
@@ -575,24 +576,29 @@ class SampleUpdateResource(GenericResource):
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'id':
-            # Manually process sample ID and don't call superclass method
-            obj = Sample.objects.get(pk=str(data.get("id") or ""))
-            obj.concentration = str(data.get("New Conc. (ng/uL)") or "")
-            obj.comment = str(data.get("Comment") or "")
-            return
+        if field.attribute == 'concentration':
+            conc = blank_str_to_none(data.get("New Conc. (ng/uL)"))  # "" -> None for CSVs
+            if conc is None:
+                return
+            data["New Conc. (ng/uL)"] = float_to_decimal(conc)
 
         if field.attribute == 'volume_history':
             # Manually process volume history and don't call superclass method
-            vol = blank_str_to_none(data.get("New Volume (uL)"))    # "" -> None for CSVs
-            obj.volume_history.append(
-                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")
-            )
+            vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
+            if vol is not None:  # Only update volume if we got a value
+                obj.volume_history.append(create_volume_history("update", str(float_to_decimal(vol))))
             return
 
         if field.attribute == 'depleted':
-            # Normalize boolean attribute then proceed normally
-            data["Depleted"] = check_truth_like(str(data.get("Depleted") or ""))
+            depleted = blank_str_to_none(data.get("Depleted"))  # "" -> None for CSVs
+            if depleted is None:
+                return
+
+            if isinstance(depleted, str):  # Strip string values to ensure empty strings get caught
+                depleted = depleted.strip()
+
+            # Normalize boolean attribute then proceed normally (only if some value is specified)
+            data["Depleted"] = check_truth_like(str(depleted or ""))
 
         super().import_field(field, obj, data, is_m2m)
 

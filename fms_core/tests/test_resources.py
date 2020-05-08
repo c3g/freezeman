@@ -96,9 +96,12 @@ class ResourcesTestCase(TestCase):
             self.ur.import_data(u, raise_errors=True)
 
             s = Sample.objects.get(container_id="tube001")
+            self.assertEqual(s.coordinates, "")
             self.assertEqual(s.concentration, Decimal("0.001"))
             self.assertEqual(s.comment, "some comment here")
             self.assertEqual(s.update_comment, "sample updated")
+
+            # TODO: Test moving within a plate
 
     def test_container_move(self):
         with reversion.create_revision(manage_manually=True), \
@@ -110,5 +113,6 @@ class ResourcesTestCase(TestCase):
             self.mr.import_data(m, raise_errors=True)
 
             ci = Container.objects.get(barcode="tube001")
+            self.assertEqual(ci.location_id, "rack001")
             self.assertEqual(ci.coordinates, "D05")
             self.assertEqual(ci.update_comment, "sample moved")
