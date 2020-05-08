@@ -66,12 +66,12 @@ class ResourcesTestCase(TestCase):
         with reversion.create_revision(manage_manually=True), open(os.path.join(APP_DATA_ROOT, "containers.csv")) as cf:
             ds = Dataset().load(cf.read())
             self.cr.import_data(ds, raise_errors=True)
-            self.assertEqual(len(Container.objects.all()), 4)
+            self.assertEqual(len(Container.objects.all()), 5)
 
     def test_sample_import(self):
         with reversion.create_revision(manage_manually=True):
             self.load_samples()
-            self.assertEqual(len(Sample.objects.all()), 2)
+            self.assertEqual(len(Sample.objects.all()), 3)
 
     def test_sample_extraction_import(self):
         with reversion.create_revision(manage_manually=True), \
@@ -81,7 +81,7 @@ class ResourcesTestCase(TestCase):
             e = Dataset().load(ef.read())
             self.er.import_data(e, raise_errors=True)
 
-            self.assertEqual(len(Sample.objects.all()), 4)
+            self.assertEqual(len(Sample.objects.all()), 5)
             self.assertEqual(len(ExtractedSample.objects.all()), 2)
 
             s = Sample.objects.get(container_id="tube003")
@@ -101,7 +101,12 @@ class ResourcesTestCase(TestCase):
             self.assertEqual(s.comment, "some comment here")
             self.assertEqual(s.update_comment, "sample updated")
 
-            # TODO: Test moving within a plate
+            s = Sample.objects.get(container_id="plate001", coordinates="A01")
+            self.assertEqual(s.volume, Decimal("0.1"))
+            self.assertEqual(s.concentration, Decimal("0.2"))
+            self.assertEqual(s.update_comment, "sample 3 updated")
+
+            # TODO: Test leaving coordinate blank not updating container coordinate
 
     def test_container_move(self):
         with reversion.create_revision(manage_manually=True), \
@@ -116,3 +121,4 @@ class ResourcesTestCase(TestCase):
             self.assertEqual(ci.location_id, "rack001")
             self.assertEqual(ci.coordinates, "D05")
             self.assertEqual(ci.update_comment, "sample moved")
+

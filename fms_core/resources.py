@@ -568,8 +568,8 @@ class SampleUpdateResource(GenericResource):
         # add column 'id' with pk
         dataset.append_col([
             Sample.objects.get(
-                container=d.get('Container Barcode') or "",
-                coordinates=d.get('Coord (if plate)') or "",
+                container_id=str(d.get('Container Barcode') or "").strip(),
+                coordinates=str(d.get('Coord (if plate)') or "").strip(),
             ).pk for d in dataset.dict
         ], header='id')
 
