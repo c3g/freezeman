@@ -6,6 +6,6 @@ Sample Update,,,,,,
 ,,,,,,
 #,Container Barcode,Coord (if plate),New Volume (uL),New Conc. (ng/uL),Depleted,Update Comment
 1,tube001,,0.001,0.001,False,sample updated
-2,,,,,,
+2,plate001,A01,0.1,0.2,False,sample 3 updated
 3,,,,,,
 4,,,,,,
