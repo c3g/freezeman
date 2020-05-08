@@ -74,6 +74,7 @@ class ContainerAdmin(AggregatedAdmin):
             "classes": ("parent_fieldset",),
         }),
         ("Additional information", {"fields": ("comment",)}),
+        ("Update information", {"fields": ("update_comment",)}),
     )
 
     def changelist_view(self, request, extra_context=None):
@@ -141,6 +142,7 @@ class SampleAdmin(AggregatedAdmin):
         ("For Extracted Samples Only", {"fields": ("extracted_from", "volume_used")}),
         ("Location", {"fields": ("container", "coordinates")}),
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
+        ("Update information", {"fields": ("update_comment",)}),
     )
 
     def has_delete_permission(self, request, obj=None):
