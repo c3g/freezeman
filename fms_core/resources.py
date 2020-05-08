@@ -499,7 +499,7 @@ class ContainerMoveResource(GenericResource):
     location = Field(attribute='location', column_name='Dest. Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     coordinates = Field(attribute='coordinates', column_name='Dest. Location Coord')
-    comment = Field(attribute='comment', column_name='Comment')
+    update_comment = Field(attribute='update_comment', column_name='Comment')
 
     class Meta:
         model = Container
@@ -507,7 +507,7 @@ class ContainerMoveResource(GenericResource):
         fields = (
             'location',
             'coordinates',
-            'comment',
+            'update_comment',
         )
         exclude = ('id',)
 

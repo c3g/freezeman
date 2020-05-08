@@ -111,3 +111,4 @@ class ResourcesTestCase(TestCase):
 
             ci = Container.objects.get(barcode="tube001")
             self.assertEqual(ci.coordinates, "D05")
+            self.assertEqual(ci.update_comment, "sample moved")
