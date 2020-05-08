@@ -84,6 +84,10 @@ class ResourcesTestCase(TestCase):
             self.assertEqual(len(Sample.objects.all()), 4)
             self.assertEqual(len(ExtractedSample.objects.all()), 2)
 
+            s = Sample.objects.get(container_id="tube003")
+            self.assertEqual(s.extracted_from.update_comment,
+                             "Extracted sample (imported from template) consumed 1.000 µL.")
+
     def test_sample_update(self):
         with reversion.create_revision(manage_manually=True), \
                 open(os.path.join(APP_DATA_ROOT, "sample_update.csv")) as uf:
@@ -93,6 +97,8 @@ class ResourcesTestCase(TestCase):
 
             s = Sample.objects.get(container_id="tube001")
             self.assertEqual(s.concentration, Decimal("0.001"))
+            self.assertEqual(s.comment, "some comment here")
+            self.assertEqual(s.update_comment, "sample updated")
 
     def test_container_move(self):
         with reversion.create_revision(manage_manually=True), \

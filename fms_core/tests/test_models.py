@@ -104,6 +104,8 @@ class SampleTest(TestCase):
         self.assertIsNone(sample.container_location)
         self.assertEqual(sample.context_sensitive_coordinates, "")
         self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
+        self.assertEqual(sample.comment, "")
+        self.assertEqual(sample.update_comment, "")
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only

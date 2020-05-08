@@ -226,7 +226,11 @@ class Sample(models.Model):
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
     reception_date = models.DateField(default=timezone.now, help_text="Date of the sample reception.")
     phenotype = models.CharField(max_length=200, blank=True, help_text="Sample phenotype.")
+
     comment = models.TextField(blank=True, help_text="Other relevant information about the sample.")
+
+    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the sample. "
+                                                            "Change this whenever updates are made.")
 
     # In what container is this sample located?
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy

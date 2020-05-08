@@ -473,6 +473,9 @@ class ExtractionResource(GenericResource):
             instance.extracted_from.id
         ))
 
+        instance.extracted_from.update_comment = f"Extracted sample (imported from template) consumed " \
+                                                 f"{instance.volume_used} µL."
+
         instance.extracted_from.save()
 
         super().before_save_instance(instance, using_transactions, dry_run)
@@ -545,7 +548,7 @@ class SampleUpdateResource(GenericResource):
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
-    comment = Field(attribute="comment", column_name="Comment")
+    update_comment = Field(attribute="update_comment", column_name="Comment")
 
     class Meta:
         model = Sample
@@ -554,7 +557,7 @@ class SampleUpdateResource(GenericResource):
             'volume_history',
             'concentration',
             'depleted',
-            'comment',
+            'update_comment',
         )
         exclude = ('container', 'coordinates')
 
