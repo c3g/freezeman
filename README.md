@@ -98,4 +98,33 @@ coverage run ./manage.py test
 
 ## Deploying to production:
 
-TODO
+  * Use NGINX or Apache HTTPD as a reverse proxy
+    * Remember to serve static and media files using the proxy instead of
+      Django **for security and performance reasons**
+    * Static files are collected to the application `staticfiles/` directory
+    * Media files are kept in the `media/` directory
+  
+  * Use a WSGI server such as uWSGI or Gunicorn
+  
+  * Set a secret key in `settings.py` different from the default repository
+    value **for security reasons**
+  
+  * Make sure to set `FMS_DEBUG=False` and `FMS_HOST=your.domain.org` in the
+    production environment **for security reasons** and for the site to 
+    function correctly
+    
+  * Configure the Postgres connection using any of the following environment
+    variables, where the default value is not sufficient:
+    
+    * `PG_DATABASE`: Postgres database name. Default: `fms`
+    * `PG_USER`: Postgres username. Default: `admin`
+    * `PG_PASSWORD`: Postgres user password. Default: `admin`
+    * `PG_HOST`: Postgres database host. Default: `localhost`
+    * `PG_PORT`: Postgres database port. Default: `5432`
+    
+  * Any time a new version is deployed, remember to run the following
+    management commands:
+    
+    * `./manage.py collectstatic` - Moves all static files into the
+      `staticfiles/` directory
+    * `./manage.py migrate` - Migrates the database to the latest version
