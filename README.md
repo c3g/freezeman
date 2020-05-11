@@ -93,7 +93,12 @@ coverage run ./manage.py test
   1. Update the `VERSION` file in the repository to represent the current
      version number, according to semantic versioning.
      
-  2. Tag a new release on GitHub, following the format `vX.Y.Z` where `X` is
+  2. Squash any migrations between the last version and the new version and
+     name it `vX.Y.Z` where the version reflects the new semantic version
+     number stored in the `VERSION` file. There should be **at most one
+     migration per version.**
+     
+  3. Tag a new release on GitHub, following the format `vX.Y.Z` where `X` is
      the major version, `Y` is the minor version, and `Z` is the patch version.
 
 ## Deploying to production:
