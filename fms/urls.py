@@ -26,8 +26,8 @@ schema_view = get_schema_view(
 
 # noinspection PyUnresolvedReferences
 urlpatterns = [
-    path('', include(router.urls)),
-    path('admin/', admin.site.urls),
+    path('', admin.site.urls),
+    path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('info/', SoftwareInformationView.as_view()),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-redoc'),
