@@ -9,7 +9,7 @@ from rest_framework_simplejwt import views as jwt_views
 
 from fms_core.router import router
 
-from .info import CONTACT_EMAIL, COPYRIGHT_YEARS, REPOSITORY, VERSION
+from .info import CONTACT_EMAIL
 from .views import SoftwareInformationView
 
 schema_view = get_schema_view(
