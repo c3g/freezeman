@@ -28,11 +28,11 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('', admin.site.urls),
     path('api/', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('info/', SoftwareInformationView.as_view()),
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-redoc'),
-    path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/info/', SoftwareInformationView.as_view()),
+    path('api/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-redoc'),
+    path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]
