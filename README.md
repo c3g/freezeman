@@ -6,6 +6,15 @@
 FreezeMan is a freezer management system designed to manage the storage and 
 tracking of biological samples in a laboratory environment.
 
+## Table of contents
+
+  * [License](#license)
+  * [Dependencies](#dependencies)
+  * [Running locally for development](#running-locally-for-development)
+  * [Running tests](#running-tests)
+  * [Creating releases](#creating-releases)
+  * [Deploying to production](#deploying-to-production)
+
 ## License
 
 Copyright &copy; the 
@@ -29,7 +38,7 @@ See relevant license in the following files:
   * `/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
   * `/fms_core/templates/admin/fms_core/download_import.html`
 
-## Dependencies:
+## Dependencies
 
   * Python 3.6 or later
   * Django 3
@@ -37,7 +46,7 @@ See relevant license in the following files:
   
 Python package dependencies are listed in `requirements.txt`.
   
-## Running locally for development:
+## Running locally for development
 
   1. Clone the repository
   
@@ -78,7 +87,7 @@ Python package dependencies are listed in `requirements.txt`.
      python ./manage.py runserver
      ```
      
-## Running tests:
+## Running tests
 
 Make sure all database configuration has been done successfully with a user
 that can create new databases (in order to create the test-specific database.)
@@ -88,7 +97,7 @@ Then, run the following command:
 coverage run ./manage.py test
 ```
 
-## Creating releases:
+## Creating releases
 
   1. Update the `VERSION` file in the repository to represent the current
      version number, according to semantic versioning.
@@ -102,13 +111,15 @@ coverage run ./manage.py test
   3. Tag a new release on GitHub, following the format `vX.Y.Z` where `X` is
      the major version, `Y` is the minor version, and `Z` is the patch version.
 
-## Deploying to production:
+## Deploying to production
 
   * Use NGINX or Apache HTTPD as a reverse proxy
     * Remember to serve static and media files using the proxy instead of
       Django **for security and performance reasons**
     * Static files are collected to the application `staticfiles/` directory
     * Media files are kept in the `media/` directory
+    * For example uWSGI and NGINX configurations, see `example.uwsgi.ini` and
+      `example.nginx.conf` respectively
   
   * Use a WSGI server such as uWSGI or Gunicorn
   
