@@ -26,9 +26,6 @@ class ContainerForm(forms.ModelForm):
         model = Container
         exclude = ()
 
-    class Media:
-        js = ('fms_core/hide_field.js',)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

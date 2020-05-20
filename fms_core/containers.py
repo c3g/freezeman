@@ -51,6 +51,9 @@ class ContainerSpec:
     def register_parent(self, parent: "ContainerSpec"):
         self._is_child_of.append(parent)
 
+    def add_child(self, spec: "ContainerSpec"):
+        self._children = (*self._children, spec)
+
     @property
     def is_source(self) -> bool:
         return not self._is_child_of
@@ -217,6 +220,9 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
         CONTAINER_SPEC_FREEZER_RACK_8X6,
     ),
 )
+
+# Allow rooms to be nested
+CONTAINER_SPEC_ROOM.add_child(CONTAINER_SPEC_ROOM)
 
 CONTAINER_SPEC_BOX = ContainerSpec(
     container_kind_id="box",
