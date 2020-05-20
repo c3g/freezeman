@@ -78,7 +78,7 @@ class ContainerAdmin(AggregatedAdmin):
         extra_context = extra_context or {}
         # glob doesn't work with static
         # all_files = glob.glob(static("submission_templates/Container_creation*.xlsx"))
-        extra_context['submission_template'] = static("submission_templates/Container_creation_v0.3.xlsx")
+        extra_context['submission_template'] = static("submission_templates/Container_creation_v0.4.xlsx")
         return super().changelist_view(request, extra_context=extra_context,)
 
 
