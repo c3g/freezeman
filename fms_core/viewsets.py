@@ -43,6 +43,7 @@ class ContainerKindViewSet(viewsets.ViewSet):
 class ContainerViewSet(viewsets.ModelViewSet):
     queryset = Container.objects.all()
     serializer_class = ContainerSerializer
+    filterset_fields = ["location"]
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
@@ -53,6 +54,11 @@ class ContainerViewSet(viewsets.ModelViewSet):
 class SampleViewSet(viewsets.ModelViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
+    filterset_fields = [
+        "biospecimen_type",
+        "depleted",
+        "tissue_source",
+    ]
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
@@ -63,6 +69,12 @@ class SampleViewSet(viewsets.ModelViewSet):
 class IndividualViewSet(viewsets.ModelViewSet):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
+    filterset_fields = [
+        "taxon",
+        "sex",
+        "pedigree",
+        "cohort",
+    ]
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
