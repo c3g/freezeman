@@ -73,6 +73,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Version.objects.all()
     serializer_class = VersionSerializer
+    filterset_fields = ["content_type__model"]
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
