@@ -467,10 +467,12 @@ class Individual(models.Model):
 
     TAXON_HOMO_SAPIENS = "Homo sapiens"
     TAXON_MUS_MUSCULUS = "Mus musculus"
+    TAXON_SARS_COV_2 = "Sars-Cov-2"
 
     TAXON_CHOICES = (
         (TAXON_HOMO_SAPIENS, TAXON_HOMO_SAPIENS),
         (TAXON_MUS_MUSCULUS, TAXON_MUS_MUSCULUS),
+        (TAXON_SARS_COV_2, TAXON_SARS_COV_2),
     )
 
     SEX_MALE = "M"
