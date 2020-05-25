@@ -112,8 +112,8 @@ const App = ({user, fetchContainerKinds, fetchAuthorizedData, refreshAuthToken, 
             </Menu>
         </Layout.Header>
         <Layout>
-            <Layout.Sider style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
-                <Menu theme="dark" mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
+            <Layout.Sider theme="light" style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
+                <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
                     {MENU_ITEMS.map(renderMenuItem)}
                 </Menu>
             </Layout.Sider>
@@ -164,7 +164,7 @@ export const mapStateToProps = state => ({
 export const mapDispatchToProps = dispatch => ({
     fetchContainerKinds: () => dispatch(fetchContainerKinds()),
     fetchAuthorizedData: () => dispatch(fetchAuthorizedData()),
-    refreshAuthToken: async () => await dispatch(refreshAuthToken()),
+    refreshAuthToken: () => dispatch(refreshAuthToken()),
     invalidateAuth: () => dispatch(invalidateAuth()),
 });
 
