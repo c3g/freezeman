@@ -33,11 +33,13 @@ export const auth = (
                 ...state,
                 tokens: action.data,
                 lastUpdated: action.receivedAt,
+                isFetching: false,
             };
-        case PERFORM_AUTH.FINISH:
+        case PERFORM_AUTH.ERROR:
             return {
                 ...state,
                 isFetching: false,
+                error: action.error,
             };
 
         case REFRESH_AUTH_TOKEN.REQUEST:
@@ -53,11 +55,13 @@ export const auth = (
                     ...action.data,
                 },
                 lastUpdated: action.receivedAt,
+                isFetching: false,
             };
-        case REFRESH_AUTH_TOKEN.FINISH:
+        case REFRESH_AUTH_TOKEN.ERROR:
             return {
                 ...state,
                 isFetching: false,
+                error: action.error,
             };
 
         default:

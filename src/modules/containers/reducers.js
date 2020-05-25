@@ -23,11 +23,13 @@ export const containerKinds = (
                 items: action.data,
                 itemsByID: objectsByProperty(action.data, "id"),
                 lastUpdated: action.receivedAt,
+                isFetching: false,
             };
-        case FETCH_CONTAINER_KINDS.FINISH:
+        case FETCH_CONTAINER_KINDS.ERROR:
             return {
                 ...state,
                 isFetching: false,
+                error: action.error,
             };
         default:
             return state;
@@ -58,13 +60,15 @@ export const containers = (
                 items: action.data,
                 itemsByBarcode: objectsByProperty(action.data, "barcode"),
                 serverCount: action.data.length,
+                isFetching: false,
                 didInvalidate: false,
                 lastUpdated: action.receivedAt,
             };
-        case FETCH_CONTAINERS.FINISH:
+        case FETCH_CONTAINERS.ERROR:
             return {
                 ...state,
                 isFetching: false,
+                error: action.error,
             };
 
         case FETCH_CONTAINER.REQUEST:
@@ -81,14 +85,16 @@ export const containers = (
                     ...state.itemsByBarcode,
                     [action.params.barcode]: action.data,
                 },
-                serverCount: items.length
+                serverCount: items.length,
+                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
             };
         }
-        case FETCH_CONTAINER.FINISH:
+        case FETCH_CONTAINER.ERROR:
             return {
                 ...state,
                 // TODO: Update server count here instead?
                 isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
+                error: action.error,
             };
 
         default:

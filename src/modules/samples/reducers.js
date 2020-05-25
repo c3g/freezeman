@@ -24,13 +24,15 @@ export const samples = (
                 items: action.data,
                 itemsByID: objectsByProperty(action.data, "id"),
                 serverCount: action.data.length,
+                isFetching: false,
                 didInvalidate: false,
                 lastUpdated: action.receivedAt,
             };
-        case FETCH_SAMPLES.FINISH:
+        case FETCH_SAMPLES.ERROR:
             return {
                 ...state,
                 isFetching: false,
+                error: action.error,
             };
         default:
             return state;

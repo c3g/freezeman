@@ -22,13 +22,15 @@ export const users = (
                 ...state,
                 items: action.data,
                 itemsByID: objectsByProperty(action.data, "id"),
+                isFetching: false,
                 didInvalidate: false,
                 lastUpdated: action.receivedAt
             };
-        case FETCH_USERS.FINISH:
+        case FETCH_USERS.ERROR:
             return {
                 ...state,
-                isFetching: false
+                isFetching: false,
+                error: action.error,
             };
         default:
             return state;

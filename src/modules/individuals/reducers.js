@@ -24,13 +24,15 @@ export const individuals = (
                 items: action.data,
                 itemsByName: objectsByProperty(action.data, "name"),
                 serverCount: action.data.length,
+                isFetching: false,
                 didInvalidate: false,
                 lastUpdated: action.receivedAt
             };
-        case FETCH_INDIVIDUALS.FINISH:
+        case FETCH_INDIVIDUALS.ERROR:
             return {
                 ...state,
-                isFetching: false
+                isFetching: false,
+                error: action.error,
             };
         default:
             return state;

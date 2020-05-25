@@ -5,39 +5,56 @@ import {API_BASE_PATH} from "../config";
 export const createNetworkActionTypes = name => ({
     REQUEST: `${name}.REQUEST`,
     RECEIVE: `${name}.RECEIVE`,
-    FINISH: `${name}.FINISH`,
+    ERROR: `${name}.ERROR`,
 });
 
 export const networkAction = (types, url, method="GET") =>
-    (body=undefined, params={}) => async (dispatch, getState) => {
-        let result = false;
+        (body, params={}) =>
+        (dispatch, getState) => {
 
-        await dispatch({type: types.REQUEST, params});
+    dispatch({type: types.REQUEST, params});
 
-        try {
-            // TODO: Auth
-            const response = await fetch(`${API_BASE_PATH}${url(params)}`, {
-                method,
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(getState().auth.tokens.access ? {
-                        "Authorization": `Bearer ${getState().auth.tokens.access}`
-                    } : {})
-                },
-                body: body === undefined ? body : JSON.stringify(body),
-            });
+    const accessToken = getState().auth.tokens.access;
 
-            if (response.ok) {
-                await dispatch({type: types.RECEIVE, data: await response.json(), params, receivedAt: Date.now()});
-                result = true;
-            } else {
-                console.error(response);
-            }
-        } catch (e) {
-            console.error(e);
+    return fetch(`${API_BASE_PATH}${url(params)}`, {
+        method,
+        headers: {
+            "content-type": "application/json",
+            "authorization": accessToken ? `Bearer ${accessToken}` : undefined,
+        },
+        body: body === undefined ? body : JSON.stringify(body),
+    })
+    .then(attachJSON)
+    .then(response => {
+        if (response.ok) {
+            dispatch({type: types.RECEIVE, data: response.data, params, receivedAt: Date.now()});
+            return response.data;
         }
 
-        await dispatch({type: types.FINISH, params});
+        return Promise.reject(createAPIError(response));
+    })
+    .catch(error => {
+        dispatch({type: types.ERROR, error, params});
+    });
+};
 
-        return result;
-    };
+function createAPIError(response) {
+    const error = new Error(response.data.detail);
+    error.url = response.url;
+    error.status = response.status;
+    error.statusText = response.statusText;
+    return error;
+}
+
+function attachJSON(response) {
+    return response.json()
+    .then(data => {
+        response.data = data;
+        return response;
+    })
+    .catch(err => {
+        response.data = {};
+        return response;
+    })
+}
+
