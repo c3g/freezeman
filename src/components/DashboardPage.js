@@ -21,6 +21,7 @@ import {
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
+import reports from "./reports/list";
 
 const COL_LAYOUT = {
     lg: 8,
@@ -88,17 +89,17 @@ const DashboardPage = ({containerCount, sampleCount, extractedSampleCount}) => <
                 </Card>
             </Col>
             <Col {...COL_LAYOUT}>
-                <Card title="Reporting" {...CARD_PROPS}>
+                <Card title="Reports" {...CARD_PROPS}>
                     <Row gutter={16}>
-                        <Col {...WIDE_BUTTON_COL_PROPS}>
-                            <Button block={true} icon={<SolutionOutlined />}>User Reports</Button>
-                        </Col>
-                        <Col {...WIDE_BUTTON_COL_PROPS}>
-                            <Button block={true} icon={<ExperimentOutlined />}>Sample Reports</Button>
-                        </Col>
-                        <Col {...WIDE_BUTTON_COL_PROPS}>
-                            <Button block={true} icon={<ProfileOutlined />}>Action Log</Button>
-                        </Col>
+                        {reports.map(report =>
+                            <Col {...WIDE_BUTTON_COL_PROPS}>
+                                <Link to={report.path}>
+                                    <Button block={true} icon={report.icon}>
+                                        {report.title}
+                                    </Button>
+                                </Link>
+                            </Col>
+                        )}
                     </Row>
                 </Card>
             </Col>
