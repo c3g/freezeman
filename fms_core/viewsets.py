@@ -83,9 +83,9 @@ class IndividualViewSet(viewsets.ModelViewSet):
 
 
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Version.objects.all()
+    queryset = Version.objects.all().prefetch_related("content_type", "revision")
     serializer_class = VersionSerializer
-    filterset_fields = ["content_type__model"]
+    filterset_fields = ["content_type__model", "revision__user"]
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
