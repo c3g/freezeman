@@ -36,12 +36,20 @@ module.exports = {
             title: "FreezeMan",
             template: path.resolve(__dirname, "./src/template.html"),
             hash: true,
-        })
+        }),
+        new webpack.NamedModulesPlugin(),
+        new webpack.HotModuleReplacementPlugin(),
     ],
     devServer: {
         contentBase: path.join(__dirname, 'dist'),
         compress: true,
         port: 9000,
         historyApiFallback: true,
-    }
+        hot: true,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+            },
+        },
+    },
 };

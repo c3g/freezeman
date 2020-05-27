@@ -1,4 +1,5 @@
 import React, {useEffect} from "react";
+import { hot } from "react-hot-loader/root";
 import {connect} from "react-redux";
 import {Redirect, Route, Switch, withRouter} from "react-router-dom";
 
@@ -168,4 +169,4 @@ export const mapDispatchToProps = dispatch => ({
     invalidateAuth: () => dispatch(invalidateAuth()),
 });
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
+export default hot(withRouter(connect(mapStateToProps, mapDispatchToProps)(App)));

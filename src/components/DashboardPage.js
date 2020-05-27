@@ -92,7 +92,7 @@ const DashboardPage = ({containerCount, sampleCount, extractedSampleCount}) => <
                 <Card title="Reports" {...CARD_PROPS}>
                     <Row gutter={16}>
                         {reports.map(report =>
-                            <Col {...WIDE_BUTTON_COL_PROPS}>
+                            <Col key={report.path} {...WIDE_BUTTON_COL_PROPS}>
                                 <Link to={report.path}>
                                     <Button block={true} icon={report.icon}>
                                         {report.title}
