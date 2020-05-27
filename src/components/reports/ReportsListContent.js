@@ -19,9 +19,8 @@ const ReportsListContent = () => <>
   <PageContent>
     <Row gutter={16}>
       {reports.map(report =>
-        <Col span={8}>
+        <Col key={report.path} span={8}>
           <Card
-            key={report.path}
             title={report.title}
             extra={<Link to={report.path}>Open</Link>}
           >
