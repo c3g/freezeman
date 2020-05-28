@@ -23,4 +23,8 @@ v12+. To set up the application locally, use the following steps:
      npm install
      ```
      
-  4. TODO: DEV SERVER SETUP
+  4. Start the dev server:
+     
+     ```bash
+     npm run start-server
+     ```
