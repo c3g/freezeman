@@ -5,14 +5,15 @@ import {Link} from "react-router-dom";
 import {Table} from "antd";
 import "antd/es/table/style/css";
 
+import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 
 const TABLE_COLUMNS = [
     {
         title: "Name",
-        dataIndex: "name",
-        render: name => <Link to={`/individuals/${name}`}>{name}</Link>,
+        dataIndex: "id",
+        render: id => <Link to={`/individuals/${id}`}>{id}</Link>,
     },
     {
         title: "Taxon",
@@ -62,6 +63,7 @@ const TABLE_COLUMNS = [
 ];
 
 const IndividualsListContent = ({individuals, isFetching}) => {
+    console.log(individuals)
     return <>
         <AppPageHeader title="Individuals" />
         <PageContent>
@@ -76,7 +78,7 @@ const IndividualsListContent = ({individuals, isFetching}) => {
 };
 
 const mapStateToProps = state => ({
-    individuals: state.individuals.items,
+    individuals: objectByIdToArray(state.individuals.itemsByID),
     isFetching: state.individuals.isFetching,
 });
 
