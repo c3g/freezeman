@@ -41,6 +41,10 @@ const BUTTON_COL_PROPS = {
     style: {marginTop: "8px"},
 };
 
+const STATS_COL_PROPS = {
+    xs: 12,
+};
+
 const WIDE_BUTTON_COL_PROPS = {
     xs: 24,
     style: {marginTop: "8px"},
@@ -69,8 +73,14 @@ const DashboardPage = ({containerCount, sampleCount, extractedSampleCount}) => <
             </Col>
             <Col {...COL_LAYOUT}>
                 <Card title="Samples" {...CARD_PROPS}>
-                    <Statistic title="Total Samples" value={sampleCount || "—"} />
-                    <Statistic title="Extracted Samples" value={extractedSampleCount || "—"} />
+                    <Row gutter={16}>
+                        <Col {...STATS_COL_PROPS}>
+                            <Statistic title="Total Samples" value={sampleCount || "—"} />
+                        </Col>
+                        <Col {...STATS_COL_PROPS}>
+                            <Statistic title="Extracted Samples" value={extractedSampleCount || "—"} />
+                        </Col>
+                    </Row>
                     <Row gutter={16}>
                         <Col {...WIDE_BUTTON_COL_PROPS}>
                             <Link to="/samples/add">
