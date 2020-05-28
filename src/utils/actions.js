@@ -39,10 +39,25 @@ export const networkAction = (types, url, method="GET") =>
 };
 
 function createAPIError(response) {
-    const error = new Error(response.data.detail);
+    const data = response.data
+
+    let detail
+    try {
+        detail = data.detail ||
+            (data.revision__user && ('User: ' + data.revision__user.join(', ')))
+    } catch (_) {}
+
+    const message = detail ?
+        ('API error: ' + detail) :
+        (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
+
+    const error = new Error(message);
+    error.fromAPI = Boolean(detail);
     error.url = response.url;
     error.status = response.status;
     error.statusText = response.statusText;
+    error.stack = []
+
     return error;
 }
 

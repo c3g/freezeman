@@ -9,7 +9,7 @@ import PageContainer from "../PageContainer";
 const ReportsPage = () => <PageContainer>
     <Switch>
         <Route path="/reports/sample"><ReportsSampleContent /></Route>
-        <Route path="/reports/user"><ReportsUserContent /></Route>
+        <Route path="/reports/user/:id"><ReportsUserContent /></Route>
         <Route path="/reports"><ReportsListContent /></Route>
         <Redirect to="/reports" />
     </Switch>

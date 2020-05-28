@@ -1,6 +1,6 @@
 import {fetchContainerKinds, fetchContainers} from "../containers/actions";
 import {fetchIndividuals} from "../individuals/actions";
-import {fetchUsers} from "../users/actions";
+import Users from "../users/actions";
 import Samples from "../samples/actions";
 
 export const fetchAuthorizedData = () => async (dispatch, getState) => {
@@ -12,7 +12,7 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
         fetchContainers,
         fetchIndividuals,
         Samples.list,
-        fetchUsers,
+        Users.list,
         // TODO: Versions
     ].map(a => dispatch(a())))
 };

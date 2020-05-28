@@ -1,5 +1,6 @@
 import { merge, set } from "object-path-immutable";
 
+import preprocessVersions from "../../utils/preprocessVersions";
 import {objectsByProperty} from "../../utils/objects";
 import SAMPLES from "./actions";
 
@@ -47,10 +48,3 @@ export const samples = (
             return state;
     }
 };
-
-function preprocessVersions(/* mut */ versions) {
-    versions.forEach(version => {
-        version.fields = JSON.parse(version.serialized_data)[0].fields
-    })
-    return versions
-}

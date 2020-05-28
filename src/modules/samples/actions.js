@@ -1,7 +1,7 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import {constVal} from "../../utils/functions";
 
-export const LIST         = createNetworkActionTypes("SAMPLES.LIST");
+export const LIST          = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 
 // TODO: Account for pagination
@@ -25,5 +25,5 @@ export default {
     LIST_VERSIONS,
     list,
     listVersions,
-}
+};
 

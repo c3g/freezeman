@@ -1,8 +1,7 @@
-import React from "react";
+import React, {useRef, useEffect, useState} from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {format} from "date-fns";
 
 import {UserOutlined} from "@ant-design/icons";
 import {Card, Descriptions, Tag, Timeline, Typography, Row, Col} from "antd";
@@ -11,18 +10,27 @@ import "antd/es/timeline/style/css";
 import "antd/es/descriptions/style/css";
 import "antd/es/tag/style/css";
 
+import dateToString from "../../utils/dateToString";
+import useTimeline from "../../utils/useTimeline";
+import renderSampleDiff from "../../utils/renderSampleDiff";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import ErrorMessage from "../ErrorMessage";
 import {SampleDepletion} from "./SampleDepletion";
 import {listVersions} from "../../modules/samples/actions";
-import renderSampleDiff from "../../utils/renderSampleDiff";
 
 const { Title, Text } = Typography;
 
-const timelineStyle = {
-  marginLeft: -250,
+const usernameStyle = {
+  cursor: 'default',
 }
 
+const depletedStyle = {
+  display: "inline-block",
+  verticalAlign: "top",
+  marginTop: "4px",
+  marginLeft: "4px",
+};
 
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
@@ -35,10 +43,22 @@ const mapDispatchToProps = dispatch =>
 const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
+
+  const [timelineMarginLeft, timelineRef] = useTimeline();
+
   const sample = samplesByID[id];
 
-  if (!sample) return null;
+  if (!sample)
+    return (
+      <PageContent>
+        <ErrorMessage
+          title="Invalid sample ID"
+          description="The sample you are trying to view doesn't seem to exist."
+        />
+      </PageContent>
+    )
 
+  const error = sample.error;
   const isFetching = sample.isFetching;
   const volume = parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3);
   const experimentalGroups = sample.experimental_group || [];
@@ -54,16 +74,15 @@ const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
         <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
             <Tag>{sample.biospecimen_type}</Tag>
         </div>,
-        <div key="depleted" style={{
-            display: "inline-block",
-            verticalAlign: "top",
-            marginTop: "4px",
-            marginLeft: "4px",
-        }}>
+        <div key="depleted" style={depletedStyle}>
             <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
         </div>,
     ]} />
     <PageContent>
+      {error &&
+        <ErrorMessage error={error} />
+      }
+
       <Title level={2}>Overview</Title>
 
       <Descriptions bordered={true} size="small">
@@ -114,30 +133,29 @@ const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
       <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
       <Row>
         <Col sm={24} md={24}>
-          <Card>
-            <Timeline mode="left" style={timelineStyle}>
-              {versions === undefined && isFetching &&
-                <Timeline.Item pending={true}>Loading...</Timeline.Item>
-              }
-              {versions && versions.map((version, i) =>
-                <Timeline.Item
-                  label={renderTimelineLabel(version, usersByID)}
-                >
-                  <strong>{version.revision.comment}</strong>
-                  {renderSampleDiff(versions[i + 1], version)}
-                </Timeline.Item>
-              )}
-            </Timeline>
-          </Card>
+          <div ref={timelineRef}>
+            <Card>
+              <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                {versions === undefined && isFetching &&
+                  <Timeline.Item pending={true}>Loading...</Timeline.Item>
+                }
+                {versions && versions.map((version, i) =>
+                  <Timeline.Item
+                    key={i}
+                    label={renderTimelineLabel(version, usersByID)}
+                  >
+                    <strong>{version.revision.comment}</strong>
+                    {renderSampleDiff(versions[i + 1], version)}
+                  </Timeline.Item>
+                )}
+              </Timeline>
+            </Card>
+          </div>
         </Col>
       </Row>
     </PageContent>
   </>;
 };
-
-const usernameStyle = {
-  cursor: 'default',
-}
 
 function renderTimelineLabel(version, usersByID) {
   const user = usersByID[version.revision.user];
@@ -147,10 +165,6 @@ function renderTimelineLabel(version, usersByID) {
       <div><Text disabled style={usernameStyle}><UserOutlined /> {user.username}</Text></div>
     </div>
   )
-}
-
-function dateToString(date) {
-  return format(new Date(date), "yyyy-MMM-dd HH:mm:ss")
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(SamplesDetailContent);

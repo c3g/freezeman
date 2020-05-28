@@ -29,6 +29,7 @@
     "jwt-decode": "^2.2.0",
     "object-path-immutable": "^4.1.0",
     "prop-types": "^15.7.2",
+    "rambda": "^5.4.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.21",
