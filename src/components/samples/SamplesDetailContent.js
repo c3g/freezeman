@@ -127,7 +127,7 @@ const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
                   {renderSampleDiff(versions[i + 1], version)}
                 </Timeline.Item>
               )}
-            </Timeline>,
+            </Timeline>
           </Card>
         </Col>
       </Row>
