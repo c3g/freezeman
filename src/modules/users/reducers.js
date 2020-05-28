@@ -20,7 +20,7 @@ export const users = (
         case USERS.LIST.RECEIVE:
             return {
                 ...state,
-                itemsByID: objectsByProperty(action.data, "id"),
+                itemsByID: preprocessUsers(action.data, state.itemsByID),
                 serverCount: action.data.length,
                 isFetching: false,
                 didInvalidate: false,
@@ -47,3 +47,14 @@ export const users = (
             return state;
     }
 };
+
+function preprocessUsers(users, previousUsersByID) {
+    const usersByID = objectsByProperty(users, "id");
+
+    Object.keys(previousUsersByID).forEach(id => {
+        if (previousUsersByID[id].versions)
+            usersByID[id].versions = previousUsersByID[id].versions;
+    })
+
+    return usersByID;
+}

@@ -2,7 +2,17 @@ import React, { useState } from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-import {map, sortBy, compose, groupBy, path, values, reverse} from "rambda";
+import { 
+  compose,
+  groupBy,
+  map,
+  path,
+  reduce,
+  reverse,
+  sortBy,
+  values,
+} from "rambda";
+import {set} from "object-path-immutable";
 
 import {
   Button,
@@ -12,11 +22,14 @@ import {
   Timeline,
   Typography,
   Row,
-  Col
+  Col,
+  Space,
 } from "antd";
 import "antd/es/table/style/css";
 import {
- MinusSquareOutlined,
+  ArrowsAltOutlined,
+  ShrinkOutlined,
+  MinusSquareOutlined,
   PlusSquareOutlined,
   CheckOutlined,
   CloseOutlined
@@ -42,6 +55,12 @@ const groupByRevisionID = weakMapMemoize(
     groupBy(path(['revision', 'id']))
   ))
 
+const getTrueByID =
+  compose(
+    reduce((acc, cur) => (acc[cur] = true, acc), {}),
+    map(path([0, 'revision', 'id']))
+  )
+
 const route = {
   path: "/user",
   breadcrumbName: "User",
@@ -64,6 +83,7 @@ const mapDispatchToProps = dispatch =>
 const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
+  const [expandedGroups, setExpandedGroups] = useState({});
 
   const user = usersByID[id];
 
@@ -90,7 +110,11 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
           />
         }
         {user &&
-          renderUserReport(user)
+          <UserReport
+            user={user}
+            expandedGroups={expandedGroups}
+            setExpandedGroups={setExpandedGroups}
+          />
         }
       </PageContent>
     </>
@@ -98,12 +122,16 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
 
 };
 
-function renderUserReport(user) {
+function UserReport({user, expandedGroups, setExpandedGroups}) {
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
   const error = user.error;
   const isFetching = user.isFetching;
   const versions = user.versions;
+  const groups = versions ? groupByRevisionID(versions) : [];
+
+  const expandAll = () => setExpandedGroups(getTrueByID(groups));
+  const closeAll = () => setExpandedGroups({});
 
   return (
     <>
@@ -120,29 +148,52 @@ function renderUserReport(user) {
         <Descriptions.Item label="Superuser">{user.is_superuser ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
       </Descriptions>
 
-
-      <Title level={2} style={{ marginTop: '1em' }}>History</Title>
-      <Row>
-        <Col sm={24} md={24}>
-          <div ref={timelineRef}>
-            <Card>
-              <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
-                {versions === undefined && isFetching &&
-                  <Timeline.Item pending={true}>Loading...</Timeline.Item>
-                }
-                {versions && groupByRevisionID(versions).map((group, i) =>
-                  <Timeline.Item
-                    key={i}
-                    label={renderTimelineLabel(group[0].revision)}
-                  >
-                    <TimelineEntry group={group} />
-                  </Timeline.Item>
-                )}
-              </Timeline>
-            </Card>
-          </div>
-        </Col>
-      </Row>
+      <Title level={2} style={{ marginTop: '1em' }}>
+        History
+      </Title>
+      <Space direction="vertical">
+        <Row>
+          <Col sm={24}>
+            <Button.Group>
+              <Button type="secondary" size="small" onClick={expandAll} icon={<ArrowsAltOutlined />}>
+                Expand All
+              </Button>
+              <Button type="secondary" size="small" onClick={closeAll} icon={<ShrinkOutlined />}>
+                Close All
+              </Button>
+            </Button.Group>
+          </Col>
+        </Row>
+        <Row>
+          <Col sm={24} md={24}>
+            <div ref={timelineRef}>
+              <Card>
+                <Timeline
+                  pending={(isFetching && !versions) ? "Loading..." : undefined}
+                  mode="left"
+                  style={{ marginLeft: timelineMarginLeft }}
+                >
+                  {versions === undefined && isFetching &&
+                    <Timeline.Item pending={true}>Loading...</Timeline.Item>
+                  }
+                  {versions && groups.map((group, i) =>
+                    <Timeline.Item
+                      key={i}
+                      label={renderTimelineLabel(group[0].revision)}
+                    >
+                      <TimelineEntry
+                        group={group}
+                        expandedGroups={expandedGroups}
+                        setExpandedGroups={setExpandedGroups}
+                      />
+                    </Timeline.Item>
+                  )}
+                </Timeline>
+              </Card>
+            </div>
+          </Col>
+        </Row>
+      </Space>
     </>
   )
 }
@@ -165,10 +216,9 @@ const tableStyle = {
   marginTop: '0.5em',
 }
 
-function TimelineEntry({ group }) {
-  const [isExpanded, setExpanded] = useState(false);
-
+function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
   const revision = group[0].revision
+  const isExpanded = expandedGroups[revision.id];
 
   return (
     <>
@@ -177,7 +227,7 @@ function TimelineEntry({ group }) {
           type="link"
           size="small"
           style={expandButtonStyle}
-          onClick={() => setExpanded(!isExpanded)}
+          onClick={() => setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))}
         >
           <span style={expandIconStyle}>
             {isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
