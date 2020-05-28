@@ -1,7 +1,20 @@
 
-function weakMapMemoize(...args) {
-  let fn     = args.length === 2 ? args[1] : args[0]
-  let config = args.length === 2 ? args[0] : []
+/**
+ * Returns a memoized fn.
+ * For @config: Object arguments will need to use a WeakMap, and primitive
+ * types will use a Map.
+ * @param {Function} fn - The function to memoize
+ * @param {(WeakMap|Map)[]} config - The map type to use for each argument of fn
+ * @example
+ *   const fn = (item, y) => item.value + y;
+ *
+ *   const mFn = weakMapMemoize(fn, [
+ *     WeakMap, // item is an object, WeakMap is necessary
+ *     Map,     // y is an number, Map is necessary
+ *   ])
+ * @returns {Function}
+ */
+function weakMapMemoize(fn, config = []) {
   let length = Math.max(fn.length, config.length)
 
   const baseMap = createMap(config[0])
