@@ -42,12 +42,14 @@ module.exports = {
         new webpack.NamedModulesPlugin(),
         new webpack.HotModuleReplacementPlugin(),
     ],
+
+    devtool: 'inline-source-map',
     devServer: {
+        hot: true,
         contentBase: path.join(__dirname, 'dist'),
         compress: true,
         port: 9000,
         historyApiFallback: true,
-        hot: true,
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
