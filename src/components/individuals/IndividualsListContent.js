@@ -69,7 +69,7 @@ const IndividualsListContent = ({individuals, isFetching}) => {
                    bordered={true}
                    columns={TABLE_COLUMNS}
                    dataSource={individuals}
-                   rowKey="name"
+                   rowKey="id"
                    loading={isFetching} />
         </PageContent>
     </>;
