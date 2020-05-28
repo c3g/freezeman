@@ -31,9 +31,11 @@ module.exports = {
             chunks: "all"
         }
     },
+
     plugins: [
         new HtmlWebpackPlugin({
             title: "FreezeMan",
+            favicon: './src/static/favicon-16x16.png',
             template: path.resolve(__dirname, "./src/template.html"),
             hash: true,
         }),
