@@ -36,7 +36,7 @@ const AutocompleteReport = ({ data, onSelect, searchKeys, renderItem }) => {
 function getSearchOptions(searchText, data, searchKeys, renderItem) {
   return filterAutocompleteOptions(searchText, data, searchKeys)
     .map(({ item }) => ({
-      value: item.id,
+      value: String(item.id),
       label: renderItem(item),
     }));
 }
