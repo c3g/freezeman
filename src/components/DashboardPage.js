@@ -18,6 +18,8 @@ import {
     SolutionOutlined,
 } from "@ant-design/icons";
 
+
+import objectByIdToArray from "../utils/objectByIdToArray";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
@@ -111,7 +113,7 @@ const mapStateToProps = state => ({
     containerCount: state.containers.serverCount,
     sampleCount: state.samples.serverCount,
     // TODO: Server count for pagination
-    extractedSampleCount: state.samples.items.filter(s => s.extracted_from !== null).length,
+    extractedSampleCount: objectByIdToArray(state.samples.itemsByID).filter(s => s.extracted_from !== null).length,
 })
 
 export default connect(mapStateToProps)(DashboardPage);

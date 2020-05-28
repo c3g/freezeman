@@ -24,6 +24,8 @@
     "@ant-design/icons": "^4.0.5",
     "antd": "^4.2.5",
     "cross-fetch": "^3.0.4",
+    "date-fns": "^2.14.0",
+    "jsondiffpatch": "^0.4.1",
     "jwt-decode": "^2.2.0",
     "object-path-immutable": "^4.1.0",
     "prop-types": "^15.7.2",

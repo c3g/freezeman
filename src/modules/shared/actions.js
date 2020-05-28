@@ -1,7 +1,7 @@
 import {fetchContainerKinds, fetchContainers} from "../containers/actions";
 import {fetchIndividuals} from "../individuals/actions";
-import {fetchSamples} from "../samples/actions";
 import {fetchUsers} from "../users/actions";
+import Samples from "../samples/actions";
 
 export const fetchAuthorizedData = () => async (dispatch, getState) => {
     if (!getState().auth.tokens.access) return;
@@ -11,7 +11,7 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
         fetchContainerKinds,  // Most of the time this will have already been done
         fetchContainers,
         fetchIndividuals,
-        fetchSamples,
+        Samples.list,
         fetchUsers,
         // TODO: Versions
     ].map(a => dispatch(a())))

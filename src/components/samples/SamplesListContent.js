@@ -7,6 +7,7 @@ import "antd/es/button/style/css";
 import "antd/es/table/style/css";
 import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
 
+import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import {SampleDepletion} from "./SampleDepletion";
@@ -68,6 +69,11 @@ const TABLE_COLUMNS = [
     }
 ];
 
+const mapStateToProps = state => ({
+    samples: objectByIdToArray(state.samples.itemsByID),
+    isFetching: state.samples.isFetching,
+});
+
 const SamplesListContent = ({samples, isFetching}) => <>
     <AppPageHeader title="Samples & Extractions"
                    extra={[
@@ -90,10 +96,5 @@ const SamplesListContent = ({samples, isFetching}) => <>
                loading={isFetching} />
     </PageContent>
 </>;
-
-const mapStateToProps = state => ({
-    samples: state.samples.items,
-    isFetching: state.samples.isFetching,
-});
 
 export default connect(mapStateToProps)(SamplesListContent);
