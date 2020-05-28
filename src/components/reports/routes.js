@@ -7,16 +7,6 @@ const routes = [
   {
     path: '/reports',
     breadcrumbName: 'Reports',
-    children: [
-      {
-        path: '/sample',
-        breadcrumbName: 'Sample',
-      },
-      {
-        path: '/user',
-        breadcrumbName: 'User',
-      },
-    ],
   },
 ];
 

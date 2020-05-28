@@ -1,0 +1,14 @@
+/*
+ * antd-adjustments.css
+ * Copyright (C) 2020 romgrk
+ *
+ * Distributed under terms of the MIT license.
+ */
+
+.ant-card .ant-card-head {
+  background: #fafafa;
+}
+
+.ant-card-bordered {
+  border: 1px solid #e0e0e0;
+}

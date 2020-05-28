@@ -11,6 +11,9 @@ import {BrowserRouter} from "react-router-dom";
 import configureStore from "./store";
 import App from "./components/App";
 
+import "./styles/antd-adjustments.css";
+
+
 // noinspection JSUnresolvedVariable
 const store = configureStore({});
 const persistor = persistStore(store);

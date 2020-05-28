@@ -3,8 +3,7 @@ import {objectsByProperty} from "../../utils/objects";
 
 export const individuals = (
     state = {
-        items: [],
-        itemsByName: {},
+        itemsByID: {},
         serverCount: 0,  // For pagination
         isFetching: false,
         didInvalidate: false,
@@ -21,8 +20,7 @@ export const individuals = (
         case FETCH_INDIVIDUALS.RECEIVE:
             return {
                 ...state,
-                items: action.data,
-                itemsByName: objectsByProperty(action.data, "name"),
+                itemsByID: objectsByProperty(action.data, "id"),
                 serverCount: action.data.length,
                 isFetching: false,
                 didInvalidate: false,
