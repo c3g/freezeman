@@ -3,7 +3,6 @@ import {bindActionCreators} from "redux";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
 import {Redirect, Route, Switch, withRouter} from "react-router-dom";
-import jwtDecode from "jwt-decode";
 
 import {Layout, Menu, Typography} from "antd";
 import "antd/es/layout/style/css";
@@ -31,7 +30,7 @@ import PrivateRoute from "./PrivateRoute";
 
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchAuthorizedData} from "../modules/shared/actions";
-import {logOut, refreshAuthToken} from "../modules/auth/actions";
+import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
 
@@ -93,18 +92,14 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch =>
-  bindActionCreators({fetchAuthorizedData, refreshAuthToken, logOut}, dispatch);
+  bindActionCreators({fetchAuthorizedData, logOut}, dispatch);
 
-const App = ({userID, user, fetchAuthorizedData, refreshAuthToken, logOut}) => {
+const App = ({userID, user, logOut, fetchAuthorizedData}) => {
   useEffect(() => {
-    const refreshData = () =>
-        refreshAuthToken().then(fetchAuthorizedData);
-
-    refreshData();
-
-    const interval = setInterval(() => refreshData(), 30000);
+    const interval = setInterval(fetchAuthorizedData, 30000);
+    fetchAuthorizedData();
     return () => clearInterval(interval);
-  });
+  }, []);
 
   const isLoggedIn = userID !== null;
   const menuItems = horizontalMenuItems(logOut);
@@ -119,7 +114,7 @@ const App = ({userID, user, fetchAuthorizedData, refreshAuthToken, logOut}) => {
             <strong><UserOutlined /> {user.username}</strong>
           </div>
         }
-        {user &&
+        {isLoggedIn &&
           <Menu theme="dark"
               mode="horizontal"
               selectedKeys={matchingMenuKeys(menuItems)}>
