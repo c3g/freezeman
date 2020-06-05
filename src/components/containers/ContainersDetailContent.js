@@ -12,6 +12,13 @@ import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
 
+const extraStyle = {
+    display: "flex",
+    flexDirection: "row",
+    height: "100%",
+    alignItems: "center",
+}
+
 const ContainersDetailContent = ({containersByBarcode}) => {
     const history = useHistory();
     const {barcode} = useParams();
@@ -22,13 +29,15 @@ const ContainersDetailContent = ({containersByBarcode}) => {
 
     // TODO: More data (kind tag, barcode, etc.)
     return <>
-        <AppPageHeader title={container.name} onBack={() => history.goBack()} extra={[
-            <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
-                <Tag>{container.kind}</Tag>
-            </div>,
-            <div key="barcode" style={{display: "inline-block", verticalAlign: "top", marginTop: "5px"}}>
-                <BarcodeOutlined /> {container.barcode}
-            </div>,
+        <AppPageHeader title={container.name} onBack={history.goBack} extra={[
+            <div style={extraStyle}>
+                <div key="kind">
+                    <Tag>{container.kind}</Tag>
+                </div>
+                <div key="barcode">
+                    <BarcodeOutlined /> {container.barcode}
+                </div>
+            </div>
         ]} />
         <PageContent>
             <Descriptions bordered={true} size="small">
