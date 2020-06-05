@@ -33,26 +33,19 @@ import PrivateRoute from "./PrivateRoute";
 
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchAuthorizedData} from "../modules/shared/actions";
-import {invalidateAuth, refreshAuthToken} from "../modules/auth/actions";
+import {logOut, refreshAuthToken} from "../modules/auth/actions";
 
 const { Title } = Typography;
 
-const horizontalMenuItems = (user, invalidateAuth) => user ? [
-    {
-      key: "sign-out-link",
-      icon: <LogoutOutlined />,
-      text: "Sign Out",
-      onClick: () => invalidateAuth(),
-    },
-  ] : [
-    {
-      url: "/sign-in",
-      icon: <LoginOutlined />,
-      text: "Sign In",
-    }
-  ]
+const horizontalMenuItems = (logOut) => [
+  {
+    key: "sign-out-link",
+    icon: <LogoutOutlined />,
+    text: "Sign Out",
+    onClick: logOut,
+  },
+]
 
-// TODO: Disabled if not authenticated
 const MENU_ITEMS = [
   {
     url: "/dashboard",
@@ -107,16 +100,14 @@ const cardStyle = {
 };
 
 export const mapStateToProps = state => ({
-  user: state.auth.tokens.access
-    ? (state.users.itemsByID[jwtDecode(state.auth.tokens.access).user_id] || {username: "Loading..."}).username
-    : null,
+  userID: state.auth.currentUserID,
+  user: state.users.itemsByID[state.auth.currentUserID],
 });
 
-// noinspection JSUnusedGlobalSymbols
 export const mapDispatchToProps = dispatch =>
-  bindActionCreators({fetchAuthorizedData, refreshAuthToken, invalidateAuth}, dispatch);
+  bindActionCreators({fetchAuthorizedData, refreshAuthToken, logOut}, dispatch);
 
-const App = ({user, fetchAuthorizedData, refreshAuthToken, invalidateAuth}) => {
+const App = ({userID, user, fetchAuthorizedData, refreshAuthToken, logOut}) => {
   useEffect(() => {
     const refreshData = () =>
         refreshAuthToken().then(fetchAuthorizedData);
@@ -127,6 +118,9 @@ const App = ({user, fetchAuthorizedData, refreshAuthToken, invalidateAuth}) => {
     return () => clearInterval(interval);
   });
 
+  const isLoggedIn = userID !== null;
+  const menuItems = horizontalMenuItems(logOut);
+
   return (
     <Layout style={{height: "100vh"}}>
       <Layout.Header style={{display: "flex"}}>
@@ -134,21 +128,25 @@ const App = ({user, fetchAuthorizedData, refreshAuthToken, invalidateAuth}) => {
         <div style={{flex: 1}}/>
         {user &&
           <div style={colorStyle}>
-            <strong><UserOutlined /> {user}</strong>
+            <strong><UserOutlined /> {user.username}</strong>
           </div>
         }
-        <Menu theme="dark"
-            mode="horizontal"
-            selectedKeys={matchingMenuKeys(horizontalMenuItems(user, null))}>
-          {horizontalMenuItems(user, invalidateAuth).map(renderMenuItem)}
-        </Menu>
+        {user &&
+          <Menu theme="dark"
+              mode="horizontal"
+              selectedKeys={matchingMenuKeys(menuItems)}>
+            {menuItems.map(renderMenuItem)}
+          </Menu>
+        }
       </Layout.Header>
       <Layout>
-        <Layout.Sider theme="light" style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
-            <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
-                {MENU_ITEMS.map(renderMenuItem)}
-            </Menu>
-        </Layout.Sider>
+        {isLoggedIn &&
+          <Layout.Sider theme="light" style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
+              <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
+                  {MENU_ITEMS.map(renderMenuItem)}
+              </Menu>
+          </Layout.Sider>
+        }
         <Layout.Content style={{position: "relative"}}>
           <Switch>
             <Route path="/sign-in">

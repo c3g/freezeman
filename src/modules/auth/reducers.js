@@ -1,27 +1,22 @@
-import {INVALIDATE_AUTH, PERFORM_AUTH, REFRESH_AUTH_TOKEN} from "./actions";
+import {LOG_OUT, PERFORM_AUTH, REFRESH_AUTH_TOKEN} from "./actions";
+
+const initialState = {
+    isFetching: false,
+    didInvalidate: false,
+    currentUserID: null,
+    tokens: {
+        access: null,
+        refresh: null,
+    },
+};
 
 export const auth = (
-    state = {
-        tokens: {
-            access: null,
-            refresh: null,
-        },
-        isFetching: false,
-        didInvalidate: false,
-        lastUpdated: null,
-    },
+    state = initialState,
     action
 ) => {
     switch (action.type) {
-        case INVALIDATE_AUTH:
-            return {
-                ...state,
-                tokens: {
-                    access: null,
-                    refresh: null,
-                },
-                lastUpdated: Date.now(),
-            };
+        case LOG_OUT:
+            return initialState;
 
         case PERFORM_AUTH.REQUEST:
             return {
@@ -31,8 +26,8 @@ export const auth = (
         case PERFORM_AUTH.RECEIVE:
             return {
                 ...state,
-                tokens: action.data,
-                lastUpdated: action.receivedAt,
+                tokens: action.data.tokens,
+                currentUserID: action.data.currentUserID,
                 isFetching: false,
             };
         case PERFORM_AUTH.ERROR:
@@ -54,7 +49,6 @@ export const auth = (
                     ...state.tokens,
                     ...action.data,
                 },
-                lastUpdated: action.receivedAt,
                 isFetching: false,
             };
         case REFRESH_AUTH_TOKEN.ERROR:
