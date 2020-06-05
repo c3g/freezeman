@@ -11,6 +11,7 @@ import {BrowserRouter} from "react-router-dom";
 import configureStore from "./store";
 import App from "./components/App";
 
+import "./styles/global.css";
 import "./styles/antd-adjustments.css";
 
 

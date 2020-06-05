@@ -5,8 +5,7 @@ import {connect} from "react-redux";
 import {Redirect, Route, Switch, withRouter} from "react-router-dom";
 import jwtDecode from "jwt-decode";
 
-import {Card, Layout, Menu, Typography} from "antd";
-import "antd/es/card/style/css";
+import {Layout, Menu, Typography} from "antd";
 import "antd/es/layout/style/css";
 import "antd/es/menu/style/css";
 
@@ -14,7 +13,6 @@ import {
   AuditOutlined,
   DashboardOutlined,
   ExperimentOutlined,
-  LoginOutlined,
   LogoutOutlined,
   TableOutlined,
   TeamOutlined,
@@ -89,16 +87,6 @@ const titleStyle = {
   margin: 0,
 };
 
-const cardStyle = {
-  boxSizing: "border-box",
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  maxWidth: "396px",
-  width: "100%",
-};
-
 export const mapStateToProps = state => ({
   userID: state.auth.currentUserID,
   user: state.users.itemsByID[state.auth.currentUserID],
@@ -150,9 +138,7 @@ const App = ({userID, user, fetchAuthorizedData, refreshAuthToken, logOut}) => {
         <Layout.Content style={{position: "relative"}}>
           <Switch>
             <Route path="/sign-in">
-              <Card style={cardStyle} bodyStyle={{paddingBottom: 0}}>
-                <SignInForm/>
-              </Card>
+              <SignInForm/>
             </Route>
             <PrivateRoute path="/dashboard">
               <DashboardPage/>
