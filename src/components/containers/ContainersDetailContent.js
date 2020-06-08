@@ -29,7 +29,7 @@ const ContainersDetailContent = ({containersByBarcode}) => {
 
     // TODO: More data (kind tag, barcode, etc.)
     return <>
-        <AppPageHeader title={container.name} onBack={history.goBack} extra={[
+        <AppPageHeader title={container.name} onBack={history.goBack} extra={
             <div style={extraStyle}>
                 <div key="kind">
                     <Tag>{container.kind}</Tag>
@@ -38,7 +38,7 @@ const ContainersDetailContent = ({containersByBarcode}) => {
                     <BarcodeOutlined /> {container.barcode}
                 </div>
             </div>
-        ]} />
+        } />
         <PageContent>
             <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
