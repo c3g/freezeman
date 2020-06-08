@@ -186,6 +186,11 @@ class ExtractedSampleTest(TestCase):
         self.assertFalse(s.source_depleted)
         self.assertEqual(Sample.objects.count(), 3)
 
+        # Should be able to move to a non-tube rack 8x12 now that it's created
+        pc = Container.objects.create(**create_container("BOX001", kind="tube box 8x8", name="Box001"))
+        s.container.location = pc
+        s.save()
+
     def test_no_tissue_source_extracted_sample(self):
         with self.assertRaises(ValidationError):
             try:

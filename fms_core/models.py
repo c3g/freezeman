@@ -400,7 +400,8 @@ class Sample(models.Model):
                 add_error("container", f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
-            if self.extracted_from is not None and any((
+            #    Only run this check when the object is first created - it can be updated later if it's moved elsewhere.
+            if not Sample.objects.filter(id=self.id).exists() and self.extracted_from is not None and any((
                     parent_spec != CONTAINER_SPEC_TUBE,
                     self.container.location is None,
                     CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
