@@ -206,6 +206,7 @@ class ExtractedSampleTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA',
+                                                                tissue_source=Sample.TISSUE_SOURCE_BLOOD,
                                                                 volume_used=Decimal('0.01'),
                                                                 extracted_from=self.parent_sample,
                                                                 individual=self.valid_individual,
