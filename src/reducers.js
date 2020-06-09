@@ -1,6 +1,10 @@
+import React from "react";
 import {combineReducers} from "redux";
 import {persistReducer} from "redux-persist";
 import storage from "redux-persist/lib/storage";
+
+import {notification} from "antd";
+import "antd/es/notification/style/css";
 
 import {auth} from "./modules/auth/reducers";
 import {containerKinds, containers} from "./modules/containers/reducers";
@@ -15,7 +19,7 @@ const AUTH_PERSIST_CONFIG = {
     storage,
 };
 
-export default combineReducers({
+const allReducers = combineReducers({
     auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
     containerKinds,
     containers,
@@ -24,3 +28,22 @@ export default combineReducers({
     users,
     versions,
 });
+
+function errorReducer(state, action) {
+    if (action.error) {
+        notification.error({
+            message: 'An error occured',
+            description:
+                <pre style={{ fontSize: '0.8em' }}>
+                    {action.error.message}
+                    {action.error.stack}
+                </pre>,
+            duration: 0,
+        });
+    }
+    return allReducers(state, action);
+}
+
+const rootReducer = errorReducer;
+
+export default rootReducer;
