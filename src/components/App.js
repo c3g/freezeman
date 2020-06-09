@@ -29,7 +29,7 @@ import ReportsPage from "./reports/ReportsPage";
 import PrivateRoute from "./PrivateRoute";
 
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {fetchAuthorizedData} from "../modules/shared/actions";
+import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
@@ -92,12 +92,12 @@ export const mapStateToProps = state => ({
 });
 
 export const mapDispatchToProps = dispatch =>
-  bindActionCreators({fetchAuthorizedData, logOut}, dispatch);
+  bindActionCreators({fetchInitialData, fetchAuthorizedData, logOut}, dispatch);
 
-const App = ({userID, user, logOut, fetchAuthorizedData}) => {
+const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   useEffect(() => {
     const interval = setInterval(fetchAuthorizedData, 30000);
-    fetchAuthorizedData();
+    fetchInitialData();
     return () => clearInterval(interval);
   }, []);
 

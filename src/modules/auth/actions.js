@@ -1,7 +1,7 @@
 import jwtDecode from "jwt-decode";
 
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
-import {fetchAuthorizedData} from "../shared/actions";
+import {fetchInitialData} from "../shared/actions";
 import {constVal} from "../../utils/functions";
 
 export const LOG_OUT = "AUTH.LOG_OUT";
@@ -16,7 +16,7 @@ const _performAuth = networkAction(PERFORM_AUTH, constVal("/token/"), "POST", de
 export const performAuth = (username, password) => async (dispatch, getState) => {
     if (getState().auth.isFetching) return false;
     const authResult = await dispatch(_performAuth({username, password}));
-    if (authResult) await dispatch(fetchAuthorizedData());
+    if (authResult) await dispatch(fetchInitialData());
 }
 
 const _refreshAuthToken = networkAction(REFRESH_AUTH_TOKEN, constVal("/token/refresh/"), "POST");

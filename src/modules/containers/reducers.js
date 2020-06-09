@@ -1,6 +1,6 @@
 import {objectsByProperty} from "../../utils/objects";
 
-import {FETCH_CONTAINER, FETCH_CONTAINER_KINDS, FETCH_CONTAINERS} from "./actions";
+import CONTAINERS from "./actions";
 
 export const containerKinds = (
     state = {
@@ -12,12 +12,12 @@ export const containerKinds = (
     action
 ) => {
     switch (action.type) {
-        case FETCH_CONTAINER_KINDS.REQUEST:
+        case CONTAINERS.LIST_KINDS.REQUEST:
             return {
                 ...state,
                 isFetching: true,
             };
-        case FETCH_CONTAINER_KINDS.RECEIVE:
+        case CONTAINERS.LIST_KINDS.RECEIVE:
             return {
                 ...state,
                 items: action.data,
@@ -25,7 +25,7 @@ export const containerKinds = (
                 lastUpdated: action.receivedAt,
                 isFetching: false,
             };
-        case FETCH_CONTAINER_KINDS.ERROR:
+        case CONTAINERS.LIST_KINDS.ERROR:
             return {
                 ...state,
                 isFetching: false,
@@ -49,12 +49,12 @@ export const containers = (
     action
 ) => {
     switch (action.type) {
-        case FETCH_CONTAINERS.REQUEST:
+        case CONTAINERS.LIST.REQUEST:
             return {
                 ...state,
                 isFetching: true,
             };
-        case FETCH_CONTAINERS.RECEIVE:
+        case CONTAINERS.LIST.RECEIVE:
             return {
                 ...state,
                 items: action.data,
@@ -64,19 +64,19 @@ export const containers = (
                 didInvalidate: false,
                 lastUpdated: action.receivedAt,
             };
-        case FETCH_CONTAINERS.ERROR:
+        case CONTAINERS.LIST.ERROR:
             return {
                 ...state,
                 isFetching: false,
                 error: action.error,
             };
 
-        case FETCH_CONTAINER.REQUEST:
+        case CONTAINERS.GET.REQUEST:
             return {
                 ...state,
                 isFetchingBarcodes: [...state.isFetchingBarcodes, action.params.barcode],
             };
-        case FETCH_CONTAINER.RECEIVE: {
+        case CONTAINERS.GET.RECEIVE: {
             const items = [...state.items.filter(c => c.barcode !== action.params.barcode), action.data];
             return {
                 ...state,
@@ -89,7 +89,7 @@ export const containers = (
                 isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
             };
         }
-        case FETCH_CONTAINER.ERROR:
+        case CONTAINERS.GET.ERROR:
             return {
                 ...state,
                 // TODO: Update server count here instead?

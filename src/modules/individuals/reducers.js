@@ -1,4 +1,4 @@
-import {FETCH_INDIVIDUALS} from "./actions";
+import INDIVIDUALS from "./actions";
 import {objectsByProperty} from "../../utils/objects";
 
 export const individuals = (
@@ -12,12 +12,12 @@ export const individuals = (
     action
 ) => {
     switch (action.type) {
-        case FETCH_INDIVIDUALS.REQUEST:
+        case INDIVIDUALS.LIST.REQUEST:
             return {
                 ...state,
                 isFetching: true
             };
-        case FETCH_INDIVIDUALS.RECEIVE:
+        case INDIVIDUALS.LIST.RECEIVE:
             return {
                 ...state,
                 itemsByID: objectsByProperty(action.data, "id"),
@@ -26,7 +26,7 @@ export const individuals = (
                 didInvalidate: false,
                 lastUpdated: action.receivedAt
             };
-        case FETCH_INDIVIDUALS.ERROR:
+        case INDIVIDUALS.LIST.ERROR:
             return {
                 ...state,
                 isFetching: false,

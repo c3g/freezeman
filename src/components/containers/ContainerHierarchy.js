@@ -5,7 +5,7 @@ import {Tree} from "antd";
 import "antd/es/tree/style/css";
 
 import {LoadingOutlined} from "@ant-design/icons";
-import {fetchContainer} from "../../modules/containers/actions";
+import Container from "../../modules/containers/actions";
 
 const buildContainerTreeFromPath = (containersByBarcode, path) => {
     if (path.length === 0) return [];
@@ -74,7 +74,7 @@ const mapStateToProps = state => ({
 
 // noinspection JSUnusedGlobalSymbols
 const mapDispatchToProps = dispatch => ({
-    fetchContainer: barcode => dispatch(fetchContainer(barcode)),
+    fetchContainer: barcode => dispatch(Container.get(barcode)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ContainerHierarchy);

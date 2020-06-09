@@ -1,11 +1,16 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import {constVal} from "../../utils/functions";
 
-export const FETCH_INDIVIDUALS = createNetworkActionTypes("FETCH_INDIVIDUALS");
+export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
 
-const _fetchIndividuals = networkAction(FETCH_INDIVIDUALS, constVal("/individuals/"));
-export const fetchIndividuals = () => async (dispatch, getState) => {
+const _list = networkAction(LIST, constVal("/individuals/"));
+export const list = () => async (dispatch, getState) => {
     if (getState().individuals.isFetching) return;
     if (!getState().individuals.didInvalidate && getState().individuals.serverCount > 0) return;
-    await dispatch(_fetchIndividuals());
+    await dispatch(_list());
 }
+
+export default {
+    LIST,
+    list,
+};
