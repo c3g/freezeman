@@ -29,6 +29,7 @@ def versions_detail(obj):
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class ContainerKindViewSet(viewsets.ViewSet):
+    pagination_class = None
     permission_classes = [AllowAny]
 
     def list(self, request):
