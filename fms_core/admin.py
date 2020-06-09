@@ -131,7 +131,7 @@ class SampleAdmin(AggregatedAdmin):
     search_fields = (
         "name",
         "alias",
-        "container_id",
+        "container__barcode",
     )
 
     fieldsets = (
