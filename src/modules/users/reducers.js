@@ -7,10 +7,8 @@ import USERS from "./actions";
 export const users = (
     state = {
         itemsByID: {},
-        serverCount: 0,
+        totalCount: 0,
         isFetching: false,
-        didInvalidate: false,
-        lastUpdated: null,
     },
     action
 ) => {
@@ -20,11 +18,9 @@ export const users = (
         case USERS.LIST.RECEIVE:
             return {
                 ...state,
-                itemsByID: preprocessUsers(action.data, state.itemsByID),
-                serverCount: action.data.length,
+                itemsByID: preprocessUsers(action.data.results, state.itemsByID),
+                totalCount: action.data.count,
                 isFetching: false,
-                didInvalidate: false,
-                lastUpdated: action.receivedAt
             };
         case USERS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };

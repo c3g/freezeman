@@ -7,10 +7,8 @@ import SAMPLES from "./actions";
 export const samples = (
     state = {
         itemsByID: {},
-        serverCount: 0,  // For pagination
+        totalCount: 0,  // For pagination
         isFetching: false,
-        didInvalidate: false,
-        lastUpdated: null,
     },
     action
 ) => {
@@ -21,11 +19,9 @@ export const samples = (
         case SAMPLES.LIST.RECEIVE:
             return {
                 ...state,
-                itemsByID: objectsByProperty(action.data, "id"),
-                serverCount: action.data.length,
+                itemsByID: objectsByProperty(action.data.results, "id"),
+                totalCount: action.data.count,
                 isFetching: false,
-                didInvalidate: false,
-                lastUpdated: action.receivedAt,
             };
         case SAMPLES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };

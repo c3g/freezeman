@@ -1,3 +1,4 @@
+import { merge, set } from "object-path-immutable";
 import {objectsByProperty} from "../../utils/objects";
 
 import CONTAINERS from "./actions";
@@ -7,7 +8,6 @@ export const containerKinds = (
         items: [],
         itemsByID: {},
         isFetching: false,
-        lastUpdated: null,
     },
     action
 ) => {
@@ -22,7 +22,6 @@ export const containerKinds = (
                 ...state,
                 items: action.data,
                 itemsByID: objectsByProperty(action.data, "id"),
-                lastUpdated: action.receivedAt,
                 isFetching: false,
             };
         case CONTAINERS.LIST_KINDS.ERROR:
@@ -38,38 +37,27 @@ export const containerKinds = (
 
 export const containers = (
     state = {
-        items: [],
         itemsByBarcode: {},
-        serverCount: 0,  // For pagination
+        page: { previous: null, next: null },
+        totalCount: null,
         isFetching: false,
         isFetchingBarcodes: [],
-        didInvalidate: false,
-        lastUpdated: null,
     },
     action
 ) => {
     switch (action.type) {
         case CONTAINERS.LIST.REQUEST:
-            return {
-                ...state,
-                isFetching: true,
-            };
+            return { ...state, isFetching: true };
         case CONTAINERS.LIST.RECEIVE:
             return {
                 ...state,
-                items: action.data,
-                itemsByBarcode: objectsByProperty(action.data, "barcode"),
-                serverCount: action.data.length,
+                itemsByBarcode: objectsByProperty(action.data.results, "barcode"),
+                page: { previous: action.data.previous, next: action.data.next },
+                totalCount: action.data.count,
                 isFetching: false,
-                didInvalidate: false,
-                lastUpdated: action.receivedAt,
             };
         case CONTAINERS.LIST.ERROR:
-            return {
-                ...state,
-                isFetching: false,
-                error: action.error,
-            };
+            return { ...state, isFetching: false, error: action.error };
 
         case CONTAINERS.GET.REQUEST:
             return {
@@ -77,22 +65,15 @@ export const containers = (
                 isFetchingBarcodes: [...state.isFetchingBarcodes, action.params.barcode],
             };
         case CONTAINERS.GET.RECEIVE: {
-            const items = [...state.items.filter(c => c.barcode !== action.params.barcode), action.data];
             return {
                 ...state,
-                items,
-                itemsByBarcode: {
-                    ...state.itemsByBarcode,
-                    [action.params.barcode]: action.data,
-                },
-                serverCount: items.length,
+                itemsByBarcode: set(state.itemsByBarcode, [action.params.barcode], action.data),
                 isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
             };
         }
         case CONTAINERS.GET.ERROR:
             return {
                 ...state,
-                // TODO: Update server count here instead?
                 isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
                 error: action.error,
             };

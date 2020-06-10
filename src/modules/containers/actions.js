@@ -16,9 +16,6 @@ export const listKinds = () => async (dispatch, getState) => {
 export const list = () => async (dispatch, getState) => {
     if (getState().containers.isFetching)
         return;
-    // TODO: Account for pagination
-    if (!getState().containers.didInvalidate && getState().containers.items.length > 0)
-        return;
 
     await dispatch(networkAction(LIST, api.containers.list()));
 };

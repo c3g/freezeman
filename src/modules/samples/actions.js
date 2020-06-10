@@ -6,7 +6,7 @@ export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 
 export const list = () => async (dispatch, getState) => {
     if (getState().samples.isFetching) return;
-    if (!getState().samples.didInvalidate && getState().samples.serverCount > 0) return;
+    if (!getState().samples.didInvalidate && getState().samples.totalCount > 0) return;
 
     await dispatch(networkAction(LIST, api.samples.list()));
 }

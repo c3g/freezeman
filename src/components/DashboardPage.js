@@ -120,8 +120,8 @@ const DashboardPage = ({containerCount, sampleCount, extractedSampleCount}) => <
 </PageContainer>;
 
 const mapStateToProps = state => ({
-    containerCount: state.containers.serverCount,
-    sampleCount: state.samples.serverCount,
+    containerCount: state.containers.totalCount,
+    sampleCount: state.samples.totalCount,
     // TODO: Server count for pagination
     extractedSampleCount: objectByIdToArray(state.samples.itemsByID).filter(s => s.extracted_from !== null).length,
 })
