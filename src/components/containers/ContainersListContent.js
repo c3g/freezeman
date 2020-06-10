@@ -7,6 +7,7 @@ import "antd/es/button/style/css";
 import "antd/es/table/style/css";
 import {BarcodeOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
+import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 
@@ -64,7 +65,7 @@ const ContainersListContent = ({containers, isFetching}) => <>
 </>;
 
 const mapStateToProps = state => ({
-    containers: state.containers.items,
+    containers: objectByIdToArray(state.containers.itemsByBarcode),
     isFetching: state.containers.isFetching,
 });
 
