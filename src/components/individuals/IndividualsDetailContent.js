@@ -8,18 +8,18 @@ import "antd/es/descriptions/style/css";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 
-const IndividualsDetailContent = ({individualsByName}) => {
+const IndividualsDetailContent = ({individualsByID}) => {
     const history = useHistory();
     const {name} = useParams();
-    const individual = individualsByName[name];
+    const individual = individualsByID[name];
 
     if (!individual) return null;
 
     return <>
-        <AppPageHeader title={individual.name} onBack={() => history.goBack()} />
+        <AppPageHeader title={individual.id} onBack={() => history.goBack()} />
         <PageContent>
             <Descriptions bordered={true} size="small">
-                <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
+                <Descriptions.Item label="Name">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>
@@ -40,7 +40,7 @@ const IndividualsDetailContent = ({individualsByName}) => {
 };
 
 const mapStateToProps = state => ({
-    individualsByName: state.individuals.itemsByName,
+    individualsByID: state.individuals.itemsByID,
 });
 
 export default connect(mapStateToProps)(IndividualsDetailContent);
