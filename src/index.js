@@ -19,18 +19,20 @@ const Root = process.env.NODE_ENV === 'development' ? hot(App) : App;
 
 // noinspection JSUnresolvedVariable
 const store = configureStore({});
-const persistor = persistStore(store);
+const persistor = persistStore(store, {
+  blacklist: ['containers', 'individuals', 'users', 'samples'],
+});
 
 const renderApp = () =>
-    render(
-        <Provider store={store}>
-            <PersistGate loading={null} persistor={persistor}>
-                <BrowserRouter>
-                    <Root />
-                </BrowserRouter>
-            </PersistGate>
-        </Provider>,
-        document.getElementById("root")
-    );
+  render(
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <Root />
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>,
+    document.getElementById("root")
+  );
 
 document.addEventListener("DOMContentLoaded", renderApp);
