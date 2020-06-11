@@ -63,7 +63,6 @@ const TABLE_COLUMNS = [
 ];
 
 const IndividualsListContent = ({individuals, isFetching}) => {
-    console.log(individuals)
     return <>
         <AppPageHeader title="Individuals" />
         <PageContent>
