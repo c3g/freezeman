@@ -38,9 +38,8 @@ export default api;
 
 
 function apiFetch(method, route, body) {
-    // (body, params={}) =>
-
   return (_, getState) => {
+
     const accessToken = getState().auth.tokens.access;
 
     return fetch(`${API_BASE_PATH}${route}`, {

@@ -1,5 +1,6 @@
 import React from "react";
 import {render} from "react-dom";
+import {hot} from 'react-hot-loader/root';
 
 import {persistStore} from "redux-persist";
 import {PersistGate} from "redux-persist/integration/react";
@@ -14,6 +15,7 @@ import App from "./components/App";
 import "./styles/global.css";
 import "./styles/antd-adjustments.css";
 
+const Root = process.env.NODE_ENV === 'development' ? hot(App) : App;
 
 // noinspection JSUnresolvedVariable
 const store = configureStore({});
@@ -24,7 +26,7 @@ const renderApp = () =>
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
                 <BrowserRouter>
-                    <App />
+                    <Root />
                 </BrowserRouter>
             </PersistGate>
         </Provider>,
