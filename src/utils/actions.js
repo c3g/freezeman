@@ -6,22 +6,21 @@ export const createNetworkActionTypes = name => ({
   ERROR: `${name}.ERROR`,
 });
 
-export const networkAction = (types, apiAction, { meta: params, transform } = {}) =>
+export const networkAction = (types, apiAction, { meta, transform } = {}) =>
     (dispatch) => {
 
-  dispatch({type: types.REQUEST, params});
+  dispatch({type: types.REQUEST, meta});
 
   return dispatch(apiAction)
   .then(response => {
     dispatch({
       type: types.RECEIVE,
       data: transform ? transform(response.data) : response.data,
-      params,
-      receivedAt: Date.now()
+      meta,
     });
     return response.data;
   })
   .catch(error => {
-    dispatch({type: types.ERROR, error, params});
+    dispatch({type: types.ERROR, error, meta});
   });
 };
