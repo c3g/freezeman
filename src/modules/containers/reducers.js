@@ -62,19 +62,19 @@ export const containers = (
         case CONTAINERS.GET.REQUEST:
             return {
                 ...state,
-                isFetchingBarcodes: [...state.isFetchingBarcodes, action.params.barcode],
+                isFetchingBarcodes: [...state.isFetchingBarcodes, action.meta.barcode],
             };
         case CONTAINERS.GET.RECEIVE: {
             return {
                 ...state,
-                itemsByBarcode: set(state.itemsByBarcode, [action.params.barcode], action.data),
-                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
+                itemsByBarcode: set(state.itemsByBarcode, [action.meta.barcode], action.data),
+                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.meta.barcode),
             };
         }
         case CONTAINERS.GET.ERROR:
             return {
                 ...state,
-                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.params.barcode),
+                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.meta.barcode),
                 error: action.error,
             };
 

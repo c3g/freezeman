@@ -27,14 +27,14 @@ export const samples = (
             return { ...state, isFetching: false, error: action.error, };
 
         case SAMPLES.LIST_VERSIONS.REQUEST:
-            return set(state, ['itemsByID', action.params.id, 'isFetching'], true);
+            return set(state, ['itemsByID', action.meta.id, 'isFetching'], true);
         case SAMPLES.LIST_VERSIONS.RECEIVE:
-            return merge(state, ['itemsByID', action.params.id], {
+            return merge(state, ['itemsByID', action.meta.id], {
                 isFetching: false,
                 versions: preprocessVersions(action.data),
             });
         case SAMPLES.LIST_VERSIONS.ERROR:
-            return merge(state, ['itemsByID', action.params.id], {
+            return merge(state, ['itemsByID', action.meta.id], {
                 isFetching: false,
                 versions: [],
                 error: action.error,
