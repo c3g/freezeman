@@ -1,4 +1,5 @@
 import fetch from "cross-fetch";
+import { stringify as qs } from "querystring";
 
 import {API_BASE_PATH} from "../config";
 
@@ -19,7 +20,7 @@ const api = {
   },
 
   individuals: {
-    list: () => get("/individuals/"),
+    list: (page = {}) => get("/individuals/", page),
   },
 
   samples: {
@@ -60,8 +61,8 @@ function apiFetch(method, route, body) {
   };
 };
 
-function get(route) {
-  return apiFetch('GET', route, undefined);
+function get(route, queryParams) {
+  return apiFetch('GET', route + (queryParams ? '?' + qs(queryParams) : ''), undefined);
 }
 
 function post(route, body) {
