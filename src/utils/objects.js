@@ -1,1 +1,4 @@
-export const objectsByProperty = (objs, prop="id") => Object.fromEntries(objs.map(o => [o[prop], o]));
+import {indexBy, prop} from "rambda";
+
+export const objectsByProperty = (items, key="id") =>
+  indexBy(prop(key), items)
