@@ -15,17 +15,18 @@ const api = {
   },
 
   containers: {
-    list: () => get("/containers/"),
     get: barcode => get(`/containers/${barcode}`),
+    list: () => get("/containers/"),
   },
 
   individuals: {
-    list: (page = {}) => get("/individuals/", page),
     get: individualId => get(`/individuals/${individualId}`),
+    list: (page = {}) => get("/individuals/", page),
   },
 
   samples: {
-    list: () => get("/samples/"),
+    get: sampleId => get(`/samples/${sampleId}`),
+    list: (page = {}) => get("/samples/", page),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
   },
 
