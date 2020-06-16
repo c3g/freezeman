@@ -42,9 +42,14 @@ class ContainerKindViewSet(viewsets.ViewSet):
 
 
 class ContainerViewSet(viewsets.ModelViewSet):
-    queryset = Container.objects.all()
+    queryset = Container.objects.filter(location=None)
     serializer_class = ContainerSerializer
     filterset_fields = ["location"]
+
+    @action(detail=True, methods=["get"])
+    def list_children(self, request, *args, **kwargs):
+        serializer = ContainerSerializer(Container.objects.filter(location=kwargs['pk']), many=True)
+        return Response(serializer.data)
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
