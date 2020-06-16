@@ -48,7 +48,7 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
 
   const sample = samplesByID[id] || {};
   const error = sample.error;
-  const isLoaded = samplesByID[id] && !sample.didFail;
+  const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
   const volume = sample.volume_history ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3) : null;
   const experimentalGroups = sample.experimental_group || [];

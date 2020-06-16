@@ -22,7 +22,7 @@ export const samples = (
         case SAMPLES.GET.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
         case SAMPLES.GET.ERROR:
-            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: false });
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
 
         case SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };
