@@ -51,6 +51,25 @@ class ContainerViewSet(viewsets.ModelViewSet):
         serializer = ContainerSerializer(Container.objects.filter(location=kwargs['pk']), many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["get"])
+    def list_parent(self, request, *args, **kwargs):
+        containerid = kwargs['pk']
+        containers = []
+        current = Container.objects.get(pk=containerid)
+        try:
+            current = Container.objects.get(pk=current.location)
+        except:
+            current = None
+        while current:
+            containers.append(current)
+            try:
+                current = Container.objects.get(pk=current.location)
+            except:
+                current = None
+        containers.reverse()
+        serializer = ContainerSerializer(containers, many=True)
+        return Response(serializer.data)
+
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
