@@ -1,13 +1,15 @@
 import React from "react";
+import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
 import {Table} from "antd";
 import "antd/es/table/style/css";
 
-import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import PaginatedTable from "../PaginatedTable";
+import { list } from "../../modules/individuals/actions";
 
 const TABLE_COLUMNS = [
     {
@@ -62,23 +64,40 @@ const TABLE_COLUMNS = [
     // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
 ];
 
-const IndividualsListContent = ({individuals, isFetching}) => {
+const IndividualsListContent = ({
+    individuals,
+    individualsByID,
+    isFetching,
+    page,
+    totalCount,
+    list,
+}) => {
     return <>
         <AppPageHeader title="Individuals" />
         <PageContent>
-            <Table size="small"
-                   bordered={true}
-                   columns={TABLE_COLUMNS}
-                   dataSource={individuals}
-                   rowKey="id"
-                   loading={isFetching} />
+            <PaginatedTable
+                columns={TABLE_COLUMNS}
+                items={individuals}
+                itemsByID={individualsByID}
+                rowKey="id"
+                loading={isFetching}
+                totalCount={totalCount}
+                page={page}
+                onLoad={list}
+            />
         </PageContent>
     </>;
 };
 
 const mapStateToProps = state => ({
-    individuals: objectByIdToArray(state.individuals.itemsByID),
+    individualsByID: state.individuals.itemsByID,
+    individuals: state.individuals.items,
+    page: state.individuals.page,
+    totalCount: state.individuals.totalCount,
     isFetching: state.individuals.isFetching,
 });
 
-export default connect(mapStateToProps)(IndividualsListContent);
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ list }, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(IndividualsListContent);

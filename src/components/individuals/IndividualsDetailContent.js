@@ -1,23 +1,32 @@
 import React from "react";
+import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
-import {Descriptions} from "antd";
+import {Descriptions, Space, Spin} from "antd";
 import "antd/es/descriptions/style/css";
+import "antd/es/space/style/css";
+import "antd/es/spin/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import { get } from "../../modules/individuals/actions";
 
-const IndividualsDetailContent = ({individualsByID}) => {
+const IndividualsDetailContent = ({individualsByID, get}) => {
     const history = useHistory();
     const {name} = useParams();
-    const individual = individualsByID[name];
+    const isLoaded = name in individualsByID;
+    const individual = individualsByID[name] || {};
 
-    if (!individual) return null;
+    if (!isLoaded)
+        get(name);
+
+    const isLoading = !isLoaded || individual.isFetching;
+    const title = name;
 
     return <>
-        <AppPageHeader title={individual.id} onBack={() => history.goBack()} />
-        <PageContent>
+        <AppPageHeader title={title} onBack={history.goBack} />
+        <PageContent loading={isLoading}>
             <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Name">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>
@@ -43,4 +52,7 @@ const mapStateToProps = state => ({
     individualsByID: state.individuals.itemsByID,
 });
 
-export default connect(mapStateToProps)(IndividualsDetailContent);
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ get }, dispatch);
+
+export default connect(mapStateToProps, mapDispatchToProps)(IndividualsDetailContent);
