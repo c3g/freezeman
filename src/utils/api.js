@@ -21,6 +21,7 @@ const api = {
 
   individuals: {
     list: (page = {}) => get("/individuals/", page),
+    get: individualId => get(`/individuals/${individualId}`),
   },
 
   samples: {
