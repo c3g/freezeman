@@ -17,7 +17,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import {SampleDepletion} from "./SampleDepletion";
-import {listVersions} from "../../modules/samples/actions";
+import {get, listVersions} from "../../modules/samples/actions";
 
 const { Title, Text } = Typography;
 
@@ -38,47 +38,40 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch =>
-  bindActionCreators({ listVersions }, dispatch);
+  bindActionCreators({get, listVersions}, dispatch);
 
-const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
+const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
-  const sample = samplesByID[id];
-
-  if (!sample)
-    return (
-      <PageContent>
-        <ErrorMessage
-          title="Invalid sample ID"
-          description="The sample you are trying to view doesn't seem to exist."
-        />
-      </PageContent>
-    )
-
+  const sample = samplesByID[id] || {};
   const error = sample.error;
-  const isFetching = sample.isFetching;
-  const volume = parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3);
+  const isLoaded = samplesByID[id] && !sample.didFail;
+  const isFetching = !samplesByID[id] || sample.isFetching;
+  const volume = sample.volume_history ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3) : null;
   const experimentalGroups = sample.experimental_group || [];
-  const extractedFrom = sample.extracted_from === null ? null : samplesByID[sample.extracted_from];
+  const extractedFrom = !sample.extracted_from ? null : samplesByID[sample.extracted_from];
   const volumeUsed = extractedFrom ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
 
-  if (!sample.versions && !sample.isFetching)
-      listVersions(sample.id);
+  if (!samplesByID[id])
+    get(id);
+
+  if (isLoaded && !sample.versions && !sample.isFetching)
+    listVersions(sample.id);
 
   return <>
-    <AppPageHeader title={sample.name} onBack={history.goBack} extra={[
+    <AppPageHeader title={sample.name || `Sample ${id}`} onBack={history.goBack} extra={isLoaded ? [
         <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
             <Tag>{sample.biospecimen_type}</Tag>
         </div>,
         <div key="depleted" style={depletedStyle}>
             <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
         </div>,
-    ]} />
-    <PageContent>
+    ] : []} />
+    <PageContent loading={isFetching}>
       {error &&
         <ErrorMessage error={error} />
       }
@@ -91,7 +84,7 @@ const SamplesDetailContent = ({samplesByID, usersByID, listVersions}) => {
           <Descriptions.Item label="Biospecimen Type">{sample.biospecimen_type}</Descriptions.Item>
           <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
           <Descriptions.Item label="Concentration">
-              {sample.concentration === null
+              {sample.concentration == null
                   ? "—"
                   : `${parseFloat(sample.concentration).toFixed(3)} ng/uL`}
           </Descriptions.Item>

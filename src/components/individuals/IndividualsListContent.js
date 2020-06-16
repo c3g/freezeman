@@ -3,13 +3,10 @@ import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {Table} from "antd";
-import "antd/es/table/style/css";
-
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import { list } from "../../modules/individuals/actions";
+import {list} from "../../modules/individuals/actions";
 
 const TABLE_COLUMNS = [
     {
@@ -38,6 +35,17 @@ const TABLE_COLUMNS = [
     // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
 ];
 
+const mapStateToProps = state => ({
+    individualsByID: state.individuals.itemsByID,
+    individuals: state.individuals.items,
+    page: state.individuals.page,
+    totalCount: state.individuals.totalCount,
+    isFetching: state.individuals.isFetching,
+});
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ list }, dispatch);
+
 const IndividualsListContent = ({
     individuals,
     individualsByID,
@@ -62,16 +70,5 @@ const IndividualsListContent = ({
         </PageContent>
     </>;
 };
-
-const mapStateToProps = state => ({
-    individualsByID: state.individuals.itemsByID,
-    individuals: state.individuals.items,
-    page: state.individuals.page,
-    totalCount: state.individuals.totalCount,
-    isFetching: state.individuals.isFetching,
-});
-
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({ list }, dispatch);
 
 export default connect(mapStateToProps, mapDispatchToProps)(IndividualsListContent);

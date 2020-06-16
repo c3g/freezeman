@@ -1,8 +1,8 @@
 import { merge } from "object-path-immutable";
 
-import INDIVIDUALS from "./actions";
 import {objectsByProperty} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
+import INDIVIDUALS from "./actions";
 
 export const individuals = (
     state = {
@@ -15,6 +15,14 @@ export const individuals = (
     action
 ) => {
     switch (action.type) {
+
+        case INDIVIDUALS.GET.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case INDIVIDUALS.GET.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
+        case INDIVIDUALS.GET.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
+
         case INDIVIDUALS.LIST.REQUEST:
             return { ...state, isFetching: true };
         case INDIVIDUALS.LIST.RECEIVE: {
@@ -38,13 +46,6 @@ export const individuals = (
                 isFetching: false,
                 error: action.error,
             };
-
-        case INDIVIDUALS.GET.REQUEST:
-            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case INDIVIDUALS.GET.RECEIVE:
-            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
-        case INDIVIDUALS.GET.ERROR:
-            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
         default:
             return state;

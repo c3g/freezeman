@@ -1,4 +1,5 @@
 import React from "react";
+import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
@@ -10,20 +11,15 @@ import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons"
 import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
+import {list} from "../../modules/samples/actions";
 
 const TABLE_COLUMNS = [
     {
         title: "Type",
         dataIndex: "biospecimen_type",
         width: 80,
-        filters: [
-            {text: "DNA", value: "DNA"},
-            {text: "RNA", value: "RNA"},
-            {text: "Blood", value: "BLOOD"},
-            {text: "Saliva", value: "SALIVA"},
-        ],
-        onFilter: (value, record) => record.biospecimen_type === value,
     },
     {
         title: "Name",
@@ -70,11 +66,24 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
-    samples: objectByIdToArray(state.samples.itemsByID),
+    samplesByID: state.samples.itemsByID,
+    samples: state.samples.items,
+    page: state.samples.page,
+    totalCount: state.samples.totalCount,
     isFetching: state.samples.isFetching,
 });
 
-const SamplesListContent = ({samples, isFetching}) => <>
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ list }, dispatch);
+
+const SamplesListContent = ({
+    samples,
+    samplesByID,
+    isFetching,
+    page,
+    totalCount,
+    list,
+}) => <>
     <AppPageHeader title="Samples & Extractions"
                    extra={[
                        <Link key="add" to="/samples/add">
@@ -88,13 +97,17 @@ const SamplesListContent = ({samples, isFetching}) => <>
                        </Link>,
                    ]} />
     <PageContent>
-        <Table size="small"
-               bordered={true}
-               columns={TABLE_COLUMNS}
-               dataSource={samples}
-               rowKey="id"
-               loading={isFetching} />
+        <PaginatedTable
+            columns={TABLE_COLUMNS}
+            items={samples}
+            itemsByID={samplesByID}
+            rowKey="id"
+            loading={isFetching}
+            totalCount={totalCount}
+            page={page}
+            onLoad={list}
+        />
     </PageContent>
 </>;
 
-export default connect(mapStateToProps)(SamplesListContent);
+export default connect(mapStateToProps, mapDispatchToProps)(SamplesListContent);

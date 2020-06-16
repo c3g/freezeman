@@ -7,9 +7,8 @@ export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
 
 export const get = id => async (dispatch, getState) => {
     const individual = getState().individuals.itemsByID[id];
-    if (individual && individual.isFetching) {
+    if (individual && individual.isFetching)
         return;
-    }
 
     await dispatch(networkAction(GET, api.individuals.get(id), { meta: { id } }));
 };
