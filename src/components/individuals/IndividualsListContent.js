@@ -20,37 +20,11 @@ const TABLE_COLUMNS = [
     {
         title: "Taxon",
         dataIndex: "taxon",
-        filters: [
-            {
-                text: "Homo sapiens",
-                value: "Homo sapiens",
-            },
-            {
-                text: "Mus musculus",
-                value: "Mus musculus",
-            },
-        ],
-        onFilter: (value, record) => record.taxon === value,
         render: taxon => <em>{taxon}</em>,
     },
     {
         title: "Sex",
         dataIndex: "sex",
-        filters: [
-            {
-                text: "Male",
-                value: "M",
-            },
-            {
-                text: "Female",
-                value: "F",
-            },
-            {
-                text: "Unknown",
-                value: "Unknown",
-            },
-        ],
-        onFilter: (value, record) => record.sex === value,
     },
     {
         title: "Pedigree",
