@@ -80,6 +80,14 @@ class ContainerViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(containers, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["get"])
+    def list_samples(self, request, *args, **kwargs):
+        container = Container.objects.get(pk=kwargs['pk'])
+        samples_id = self.get_serializer(container).data["samples"]
+        samples = Sample.objects.filter(pk__in=samples_id)
+        serializer = SampleSerializer(samples, many=True)
+        return Response(serializer.data)
+
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
