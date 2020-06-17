@@ -8,7 +8,6 @@ import "antd/es/button/style/css";
 import "antd/es/table/style/css";
 import {EditOutlined, ExperimentOutlined, PlusOutlined} from "@ant-design/icons";
 
-import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";

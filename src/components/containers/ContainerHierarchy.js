@@ -67,7 +67,7 @@ const ContainerHierarchy = ({container, containersByBarcode, isFetching, isFetch
 };
 
 const mapStateToProps = state => ({
-    containersByBarcode: state.containers.itemsByBarcode,
+    containersByBarcode: state.containers.itemsByID,
     isFetching: state.containers.isFetching,
     isFetchingBarcodes: state.containers.isFetchingBarcodes,
 });

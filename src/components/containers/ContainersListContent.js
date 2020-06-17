@@ -1,22 +1,22 @@
 import React from "react";
+import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {Button, Table} from "antd";
+import {Button} from "antd";
 import "antd/es/button/style/css";
-import "antd/es/table/style/css";
 import {BarcodeOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
-import objectByIdToArray from "../../utils/objectByIdToArray";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import PaginatedTable from "../PaginatedTable";
+import {list} from "../../modules/containers/actions";
 
 const TABLE_COLUMNS = [
     {
-        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Barcode</>,
-        dataIndex: "barcode",
-        render: barcode => <Link to={`/containers/${barcode}`}>{barcode}</Link>,
-        // TODO: Link to some interesting display with location hierarchy, children if relevant (or sample[s])
+        title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Barcode</>,
+        dataIndex: "id",
+        render: id => <Link to={`/containers/${id}`}>{id}</Link>,
     },
     {
         title: "Name",
@@ -27,23 +27,36 @@ const TABLE_COLUMNS = [
         dataIndex: "kind",
     },
     {
-        title: <><BarcodeOutlined style={{marginRight: "8px"}} />Location</>,
-        dataIndex: "location",
-        // TODO: Same display, highlighting current as child?
-        render: barcode => <Link to={`/containers/${barcode}`}>{barcode}</Link>,
+        title: "Children",
+        dataIndex: "children",
+        align: 'right',
+        render: children => children ? children.length : null,
     },
     {
         title: "Co-ords.",
         dataIndex: "coordinates",
     },
-    {
-        title: "Actions",
-        key: "actions",
-        render: () => (<span />),
-    },
 ];
 
-const ContainersListContent = ({containers, isFetching}) => <>
+const mapStateToProps = state => ({
+    containersByID: state.containers.itemsByID,
+    containers: state.containers.items,
+    page: state.containers.page,
+    totalCount: state.containers.totalCount,
+    isFetching: state.containers.isFetching,
+});
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ list }, dispatch);
+
+const ContainersListContent = ({
+    containers,
+    containersByID,
+    isFetching,
+    page,
+    totalCount,
+    list,
+}) => <>
     <AppPageHeader title="Containers"
                    extra={[
                        <Link key="add" to="/containers/add">
@@ -54,19 +67,16 @@ const ContainersListContent = ({containers, isFetching}) => <>
                        </Link>,
                    ]} />
     <PageContent>
-        <Table size="small"
-               style={{minWidth: "700px"}}
-               bordered={true}
-               columns={TABLE_COLUMNS}
-               dataSource={containers}
-               rowKey="barcode"
-               loading={isFetching} />
+        <PaginatedTable
+            columns={TABLE_COLUMNS}
+            items={containers}
+            itemsByID={containersByID}
+            loading={isFetching}
+            totalCount={totalCount}
+            page={page}
+            onLoad={list}
+        />
     </PageContent>
 </>;
 
-const mapStateToProps = state => ({
-    containers: objectByIdToArray(state.containers.itemsByBarcode),
-    isFetching: state.containers.isFetching,
-});
-
-export default connect(mapStateToProps)(ContainersListContent);
+export default connect(mapStateToProps, mapDispatchToProps)(ContainersListContent);

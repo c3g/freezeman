@@ -1,5 +1,6 @@
 import { merge, set } from "object-path-immutable";
 import {objectsByProperty} from "../../utils/objects";
+import mergeArray from "../../utils/mergeArray";
 
 import CONTAINERS from "./actions";
 
@@ -37,48 +38,51 @@ export const containerKinds = (
 
 export const containers = (
     state = {
-        itemsByBarcode: {},
-        page: { previous: null, next: null },
-        totalCount: null,
+        itemsByID: {},
+        items: [],
+        page: { limit: 0, offset: 0 },
+        totalCount: 0,
         isFetching: false,
-        isFetchingBarcodes: [],
     },
     action
 ) => {
     switch (action.type) {
+        case CONTAINERS.GET.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case CONTAINERS.GET.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { ...preprocessContainer(action.data), isFetching: false });
+        case CONTAINERS.GET.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+
         case CONTAINERS.LIST.REQUEST:
             return { ...state, isFetching: true };
-        case CONTAINERS.LIST.RECEIVE:
+        case CONTAINERS.LIST.RECEIVE: {
+            const hasChanged = state.totalCount !== action.data.count;
+            const currentItems = hasChanged ? [] : state.items;
+            const results = action.data.results.map(preprocessContainer)
+            const itemsByID = merge(state.itemsByID, [], objectsByProperty(results, "id"));
+            const itemsID = results.map(r => r.id)
+            const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {
                 ...state,
-                itemsByBarcode: objectsByProperty(action.data.results, "barcode"),
-                page: { previous: action.data.previous, next: action.data.next },
+                itemsByID,
+                items,
                 totalCount: action.data.count,
+                page: action.meta,
                 isFetching: false,
             };
+        }
         case CONTAINERS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error };
-
-        case CONTAINERS.GET.REQUEST:
-            return {
-                ...state,
-                isFetchingBarcodes: [...state.isFetchingBarcodes, action.meta.barcode],
-            };
-        case CONTAINERS.GET.RECEIVE: {
-            return {
-                ...state,
-                itemsByBarcode: set(state.itemsByBarcode, [action.meta.barcode], action.data),
-                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.meta.barcode),
-            };
-        }
-        case CONTAINERS.GET.ERROR:
-            return {
-                ...state,
-                isFetchingBarcodes: state.isFetchingBarcodes.filter(b => b !== action.meta.barcode),
-                error: action.error,
-            };
 
         default:
             return state;
     }
 };
+
+// TODO: delete this when the API returns .id instead of .barcode
+function preprocessContainer(container) {
+    container.id = container.barcode;
+    delete container.barcode;
+    return container;
+}

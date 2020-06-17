@@ -1,6 +1,6 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
-import { DEFAULT_PAGINATION_LIMIT } from "../../config";
+import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET           = createNetworkActionTypes("SAMPLES.GET");
 export const LIST          = createNetworkActionTypes("SAMPLES.LIST");

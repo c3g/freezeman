@@ -10,7 +10,7 @@ function PaginatedTable ({
     columns,
     items,
     itemsByID,
-    rowKey,
+    rowKey = 'id',
     loading,
     totalCount,
     page,
@@ -64,6 +64,7 @@ function PaginatedTable ({
         dataSource={hasUnloadedItems ? [] : dataSource}
         rowKey={rowKey}
         loading={loading && isCurrentPageUnloaded}
+        childrenColumnName={'UNEXISTENT_KEY'}
       />
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"

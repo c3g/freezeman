@@ -58,7 +58,7 @@ const ContainersDetailContent = ({containersByBarcode}) => {
 };
 
 const mapStateToProps = state => ({
-    containersByBarcode: state.containers.itemsByBarcode,
+    containersByBarcode: state.containers.itemsByID,
 });
 
 export default connect(mapStateToProps)(ContainersDetailContent);
