@@ -47,7 +47,7 @@ function PaginatedTable ({
     else if (doesNextPageContainUnloaded)
       offset = items.length;
 
-    onLoad({ offset });
+    setTimeout(() => onLoad({ offset }), 0);
   }
 
 
