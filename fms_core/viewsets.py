@@ -42,9 +42,19 @@ class ContainerKindViewSet(viewsets.ViewSet):
 
 
 class ContainerViewSet(viewsets.ModelViewSet):
-    queryset = Container.objects.filter(location=None)
+    queryset = Container.objects.all()
     serializer_class = ContainerSerializer
     filterset_fields = ["location"]
+
+    @action(detail=False, methods=["get"])
+    def list_root(self, request, *args, **kwargs):
+        containers_data = Container.objects.filter(location=None)
+        page = self.paginate_queryset(containers_data)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(containers_data, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
     def list_children(self, request, *args, **kwargs):
@@ -52,7 +62,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_parent(self, request, *args, **kwargs):
+    def list_parents(self, request, *args, **kwargs):
         containerid = kwargs['pk']
         containers = []
         current = Container.objects.get(pk=containerid)
