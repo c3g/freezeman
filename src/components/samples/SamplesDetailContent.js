@@ -3,8 +3,9 @@ import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
-import {UserOutlined} from "@ant-design/icons";
-import {Card, Descriptions, Tag, Timeline, Typography, Row, Col} from "antd";
+import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
+import {Card, Empty, Descriptions, Tag, Timeline, Typography, Row, Col} from "antd";
+import "antd/es/empty/style/css";
 import "antd/es/typography/style/css";
 import "antd/es/timeline/style/css";
 import "antd/es/descriptions/style/css";
@@ -55,6 +56,7 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
   const extractedFrom = !sample.extracted_from ? null : samplesByID[sample.extracted_from];
   const volumeUsed = extractedFrom ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
+  const isVersionsEmpty = versions && versions.length === 0;
 
   if (!samplesByID[id])
     get(id);
@@ -128,20 +130,24 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
         <Col sm={24} md={24}>
           <div ref={timelineRef}>
             <Card>
-              <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
-                {versions === undefined && isFetching &&
-                  <Timeline.Item pending={true}>Loading...</Timeline.Item>
-                }
-                {versions && versions.map((version, i) =>
-                  <Timeline.Item
-                    key={i}
-                    label={renderTimelineLabel(version, usersByID)}
-                  >
-                    <strong>{version.revision.comment}</strong>
-                    {renderSampleDiff(versions[i + 1], version)}
-                  </Timeline.Item>
-                )}
-              </Timeline>
+              {
+                isVersionsEmpty ?
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
+                  <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                    {versions === undefined && isFetching &&
+                      <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
+                    }
+                    {versions && versions.map((version, i) =>
+                      <Timeline.Item
+                        key={i}
+                        label={renderTimelineLabel(version, usersByID)}
+                      >
+                        <strong>{version.revision.comment}</strong>
+                        {renderSampleDiff(versions[i + 1], version)}
+                      </Timeline.Item>
+                    )}
+                  </Timeline>
+              }
             </Card>
           </div>
         </Col>
