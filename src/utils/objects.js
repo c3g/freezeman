@@ -1,4 +1,4 @@
 import {indexBy, prop} from "rambda";
 
-export const objectsByProperty = (items, key="id") =>
+export const indexByID = (items, key="id") =>
   indexBy(prop(key), items)

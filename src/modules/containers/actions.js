@@ -5,6 +5,8 @@ import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
+export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
+export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 
 export const get = id => async (dispatch, getState) => {
@@ -36,7 +38,33 @@ export const listParents = (id) => async (dispatch, getState) => {
         api.containers.listParents(id),
         { meta: { id } }
     ));
-}
+};
+
+/**
+ * @param {String} id
+ * @param {String[]} excludes - list of containers already loaded; avoid showing them as loading
+ */
+export const listChildren = (id, excludes = []) => async (dispatch, getState) => {
+    const container = getState().containers.itemsByID[id];
+    if (!container || container.isFetching) return;
+
+    await dispatch(networkAction(
+        LIST_CHILDREN,
+        api.containers.listChildren(id),
+        { meta: { id, excludes } }
+    ));
+};
+
+export const listSamples = (id) => async (dispatch, getState) => {
+    const container = getState().containers.itemsByID[id];
+    if (!container || container.isFetching) return;
+
+    await dispatch(networkAction(
+        LIST_SAMPLES,
+        api.containers.listSamples(id),
+        { meta: { id, samples: container.samples } }
+    ));
+};
 
 export const listKinds = () => async (dispatch, getState) => {
     // Check if we're already fetching or have fetched container kinds first (they won't change dynamically.)
@@ -50,9 +78,13 @@ export default {
     GET,
     LIST,
     LIST_PARENTS,
+    LIST_CHILDREN,
+    LIST_SAMPLES,
     LIST_KINDS,
     get,
     list,
     listParents,
+    listChildren,
+    listSamples,
     listKinds,
 }

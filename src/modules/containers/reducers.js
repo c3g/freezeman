@@ -1,5 +1,5 @@
-import { merge, set } from "object-path-immutable";
-import {objectsByProperty} from "../../utils/objects";
+import {merge, set} from "object-path-immutable";
+import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 
 import CONTAINERS from "./actions";
@@ -22,7 +22,7 @@ export const containerKinds = (
             return {
                 ...state,
                 items: action.data,
-                itemsByID: objectsByProperty(action.data, "id"),
+                itemsByID: indexByID(action.data, "id"),
                 isFetching: false,
             };
         case CONTAINERS.LIST_KINDS.ERROR:
@@ -60,7 +60,7 @@ export const containers = (
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
             const results = action.data.results.map(preprocessContainer)
-            const itemsByID = merge(state.itemsByID, [], objectsByProperty(results, "id"));
+            const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
             const itemsID = results.map(r => r.id)
             const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {
@@ -80,7 +80,7 @@ export const containers = (
         case CONTAINERS.LIST_PARENTS.RECEIVE: {
             const parents = action.data.map(preprocessContainer);
             const parentsID = parents.map(p => p.id);
-            const itemsByID = merge(state.itemsByID, [], objectsByProperty(parents))
+            const itemsByID = merge(state.itemsByID, [], indexByID(parents))
             return merge(state, ['itemsByID'],
                 merge(itemsByID, [action.meta.id], { isFetching: false, parents: parentsID })
             );
@@ -88,14 +88,46 @@ export const containers = (
         case CONTAINERS.LIST_PARENTS.ERROR:
             return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
 
+        case CONTAINERS.LIST_CHILDREN.REQUEST: {
+            const container = state.itemsByID[action.meta.id];
+            const itemsByID = indexByID(
+                container.children
+                    .filter(id => !action.meta.excludes.includes(id))
+                    .map(id => ({ id, isFetching: true })))
+            itemsByID[action.meta.id] = set(container, ['isFetching'], true);
+            return merge(state, ['itemsByID'], itemsByID);
+        }
+        case CONTAINERS.LIST_CHILDREN.RECEIVE: {
+            const container = state.itemsByID[action.meta.id];
+            const items = action.data.map(preprocessContainer);
+            const itemsByID = merge(state.itemsByID, [], indexByID(items))
+            itemsByID[action.meta.id] = set(container, ['isFetching'], false);
+            return merge(state, ['itemsByID'], itemsByID);
+        }
+        case CONTAINERS.LIST_CHILDREN.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+
+        /*
+         * NOTE: CONTAINERS.LIST_SAMPLES is handled in samples & containers
+         */
+        case CONTAINERS.LIST_SAMPLES.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { isFetching: true });
+        case CONTAINERS.LIST_SAMPLES.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { isFetching: false });
+        case CONTAINERS.LIST_SAMPLES.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
+
         default:
             return state;
     }
 };
 
-// TODO: delete this when the API returns .id instead of .barcode
 function preprocessContainer(container) {
+    // TODO: delete this when the API returns .id instead of .barcode
     container.id = container.barcode;
     delete container.barcode;
+
+    container.isFetching = false
+    container.isLoaded = true
     return container;
 }

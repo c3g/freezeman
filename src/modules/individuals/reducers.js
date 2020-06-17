@@ -1,6 +1,6 @@
 import { merge } from "object-path-immutable";
 
-import {objectsByProperty} from "../../utils/objects";
+import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import INDIVIDUALS from "./actions";
 
@@ -28,7 +28,7 @@ export const individuals = (
         case INDIVIDUALS.LIST.RECEIVE: {
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
-            const itemsByID = merge(state.itemsByID, [], objectsByProperty(action.data.results, "id"));
+            const itemsByID = merge(state.itemsByID, [], indexByID(action.data.results, "id"));
             const itemsID = action.data.results.map(r => r.id)
             const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {

@@ -1,9 +1,10 @@
 import { merge, set } from "object-path-immutable";
 
 import preprocessVersions from "../../utils/preprocessVersions";
-import {objectsByProperty} from "../../utils/objects";
+import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import SAMPLES from "./actions";
+import CONTAINERS from "../containers/actions";
 
 export const samples = (
     state = {
@@ -29,7 +30,7 @@ export const samples = (
         case SAMPLES.LIST.RECEIVE: {
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
-            const itemsByID = merge(state.itemsByID, [], objectsByProperty(action.data.results, "id"));
+            const itemsByID = merge(state.itemsByID, [], indexByID(action.data.results));
             const itemsID = action.data.results.map(r => r.id)
             const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {
@@ -58,7 +59,31 @@ export const samples = (
                 error: action.error,
             });
 
+        /*
+         * NOTE: CONTAINERS.LIST_SAMPLES is handled in samples & containers
+         */
+        case CONTAINERS.LIST_SAMPLES.REQUEST: {
+            const itemsByID = indexByID(
+                action.meta.samples.map(id => ({ id, isFetching: true })))
+            return merge(state, ['itemsByID'], itemsByID);
+        }
+        case CONTAINERS.LIST_SAMPLES.RECEIVE: {
+            return merge(state, ['itemsByID'], indexByID(action.data.map(preprocessSample)));
+        }
+        case CONTAINERS.LIST_SAMPLES.ERROR: {
+            const itemsByID =
+                action.meta.samples
+                    .reduce((acc, id) => (acc[id] = undefined, acc), {})
+            return merge(state, ['itemsByID'], itemsByID);
+        }
+
         default:
             return state;
     }
 };
+
+function preprocessSample(sample) {
+    sample.isFetching = false;
+    sample.isLoaded = true;
+    return sample
+}

@@ -1,7 +1,7 @@
 import { merge, set } from "object-path-immutable";
 
 import preprocessVersions from "../../utils/preprocessVersions";
-import {objectsByProperty} from "../../utils/objects";
+import {indexByID} from "../../utils/objects";
 import USERS from "./actions";
 
 export const users = (
@@ -45,7 +45,7 @@ export const users = (
 };
 
 function preprocessUsers(users, previousUsersByID) {
-    const usersByID = objectsByProperty(users, "id");
+    const usersByID = indexByID(users, "id");
 
     Object.keys(previousUsersByID).forEach(id => {
         if (previousUsersByID[id].versions)
