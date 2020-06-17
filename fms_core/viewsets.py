@@ -58,7 +58,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def list_children(self, request, *args, **kwargs):
-        serializer = ContainerSerializer(Container.objects.filter(location=kwargs['pk']), many=True)
+        serializer = self.get_serializer(Container.objects.filter(location=kwargs['pk']), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
@@ -77,7 +77,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
             except:
                 current = None
         containers.reverse()
-        serializer = ContainerSerializer(containers, many=True)
+        serializer = self.get_serializer(containers, many=True)
         return Response(serializer.data)
 
     # noinspection PyUnusedLocal
