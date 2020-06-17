@@ -18,7 +18,7 @@
   position: relative;
 }
 
-.ant-tree-show-line-no-icon.anticon.anticon-file.ant-tree-switcher-line-icon {
+.ant-tree-show-line-no-icon .anticon.anticon-file.ant-tree-switcher-line-icon {
   display: none;
 }
 
