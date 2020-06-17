@@ -75,6 +75,19 @@ export const containers = (
         case CONTAINERS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error };
 
+        case CONTAINERS.LIST_PARENTS.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case CONTAINERS.LIST_PARENTS.RECEIVE: {
+            const parents = action.data.map(preprocessContainer);
+            const parentsID = parents.map(p => p.id);
+            const itemsByID = merge(state.itemsByID, [], objectsByProperty(parents))
+            return merge(state, ['itemsByID'],
+                merge(itemsByID, [action.meta.id], { isFetching: false, parents: parentsID })
+            );
+        }
+        case CONTAINERS.LIST_PARENTS.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+
         default:
             return state;
     }

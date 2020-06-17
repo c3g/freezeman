@@ -1,4 +1,5 @@
 import React from "react";
+import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
@@ -11,54 +12,66 @@ import {BarcodeOutlined} from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
+import {get, listParents} from "../../modules/containers/actions";
 
 const extraStyle = {
-    display: "flex",
-    flexDirection: "row",
-    height: "100%",
-    alignItems: "center",
+  display: "flex",
+  flexDirection: "row",
+  height: "100%",
+  alignItems: "center",
 }
 
-const ContainersDetailContent = ({containersByBarcode}) => {
-    const history = useHistory();
-    const {barcode} = useParams();
-    const container = containersByBarcode[barcode];
-
-    // TODO: Load container if not loaded
-    if (!container) return null;
-
-    // TODO: More data (kind tag, barcode, etc.)
-    return <>
-        <AppPageHeader title={container.name} onBack={history.goBack} extra={
-            <div style={extraStyle}>
-                <div key="kind">
-                    <Tag>{container.kind}</Tag>
-                </div>
-                <div key="barcode">
-                    <BarcodeOutlined /> {container.barcode}
-                </div>
-            </div>
-        } />
-        <PageContent>
-            <Descriptions bordered={true} size="small">
-                <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
-                <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
-                <Descriptions.Item label="Location" span={2}>
-                    {container.location || "—"}{container.coordinates ? `at ${container.coordinates}` : ""}
-                </Descriptions.Item>
-                <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
-                <Descriptions.Item label="Hierarchy" span={3}>
-                    <ContainerHierarchy container={container} />
-                </Descriptions.Item>
-                <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
-                <Descriptions.Item label="Contents" span={3}>TODO</Descriptions.Item>
-            </Descriptions>
-        </PageContent>
-    </>;
-};
-
 const mapStateToProps = state => ({
-    containersByBarcode: state.containers.itemsByID,
+  containersByID: state.containers.itemsByID,
 });
 
-export default connect(mapStateToProps)(ContainersDetailContent);
+const mapDispatchToProps = dispatch =>
+  bindActionCreators({get, listParents}, dispatch);
+
+const ContainersDetailContent = ({containersByID, get, listParents}) => {
+  const history = useHistory();
+  const {barcode: id} = useParams();
+
+  const container = containersByID[id] || {};
+  const error = container.error;
+  const isFetching = !containersByID[id] || container.isFetching;
+  const isLoaded = containersByID[id] && !container.isFetching && !container.didFail;
+
+  if (!containersByID[id])
+      get(id);
+
+  if (isLoaded && !container.parents)
+      listParents(id);
+
+  return (
+    <>
+      <AppPageHeader title={container.name || `Container ${id}`} onBack={history.goBack} extra={
+        !isLoaded ? null :
+        <div style={extraStyle}>
+          <div key="kind">
+              <Tag>{container.kind}</Tag>
+          </div>
+          <div key="barcode">
+              <BarcodeOutlined /> {container.id}
+          </div>
+        </div>
+      } />
+      <PageContent loading={isFetching}>
+        <Descriptions bordered={true} size="small">
+          <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
+          <Descriptions.Item label="Barcode">{container.id}</Descriptions.Item>
+          <Descriptions.Item label="Location" span={2}>
+              {container.location || "—"}{container.coordinates ? `at ${container.coordinates}` : ""}
+          </Descriptions.Item>
+          <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
+          <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
+          <Descriptions.Item label="Hierarchy" span={3}>
+              <ContainerHierarchy container={isLoaded ? container : null} />
+          </Descriptions.Item>
+        </Descriptions>
+      </PageContent>
+    </>
+  );
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ContainersDetailContent);

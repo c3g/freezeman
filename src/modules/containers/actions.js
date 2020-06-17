@@ -2,9 +2,10 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
-export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
+export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
+export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
+export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 
 export const get = id => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
@@ -26,6 +27,17 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     ));
 };
 
+export const listParents = (id) => async (dispatch, getState) => {
+    const container = getState().containers.itemsByID[id];
+    if (!container || container.isFetching) return;
+
+    await dispatch(networkAction(
+        LIST_PARENTS,
+        api.containers.listParents(id),
+        { meta: { id } }
+    ));
+}
+
 export const listKinds = () => async (dispatch, getState) => {
     // Check if we're already fetching or have fetched container kinds first (they won't change dynamically.)
     if (getState().containerKinds.isFetching || getState().containerKinds.items.length > 0)
@@ -37,8 +49,10 @@ export const listKinds = () => async (dispatch, getState) => {
 export default {
     GET,
     LIST,
+    LIST_PARENTS,
     LIST_KINDS,
     get,
     list,
+    listParents,
     listKinds,
 }

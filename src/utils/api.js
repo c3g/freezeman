@@ -15,8 +15,10 @@ const api = {
   },
 
   containers: {
-    get: barcode => get(`/containers/${barcode}`),
-    list: () => get("/containers/"),
+    get: id => get(`/containers/${id}`),
+    list: () => get("/containers/list_root"),
+    listParents: id => get(`/containers/${id}/list_parents/`),
+    listChildren: id => get(`/containers/${id}/list_children/`),
   },
 
   individuals: {

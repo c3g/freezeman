@@ -12,3 +12,60 @@
 .ant-card-bordered {
   border: 1px solid #e0e0e0;
 }
+
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher {
+  position: relative;
+}
+
+.ant-tree-show-line-no-icon.anticon.anticon-file.ant-tree-switcher-line-icon {
+  display: none;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:after{
+  content: ' ' !important;
+  width: 1px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  height: 100% !important;
+  position: absolute !important;
+  left: 11px !important;
+}
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:before{
+  content: ' ';
+  width: 16px;
+  border-bottom: 1px solid #d9d9d9;
+  height: 45%;
+  position: absolute;
+  left: 12px;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+  display: block;
+  content: ' ' !important;
+  width: 16px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  height: 38% !important;
+  position: absolute !important;
+  left: 12px !important;
+}
+
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+  display: block;
+  content: ' ' !important;
+  width: 16px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  height: 38% !important;
+  position: absolute !important;
+  left: 12px !important;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+  display: none !important;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+  display: none !important;
+}
