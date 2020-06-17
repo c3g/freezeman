@@ -19,6 +19,7 @@ const api = {
     list: () => get("/containers/list_root"),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
+    listSamples: id => get(`/containers/${id}/list_samples/`),
   },
 
   individuals: {
