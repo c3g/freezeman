@@ -13,13 +13,9 @@ const PageContent = ({children, style, loading}) =>
   <div
     style={style ? {...defaultStyle, ...style} : defaultStyle}
   >
-    {loading ?
-      <Spin>
-        {children}
-      </Spin>
-      :
-      children
-    }
+    <Spin spinning={loading}>
+      {children}
+    </Spin>
   </div>;
 
 export default PageContent;
