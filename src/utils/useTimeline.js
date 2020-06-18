@@ -6,9 +6,14 @@ export default function useTimeline() {
   const timelineMarginLeft = -timelineWidth + 350;
   const timelineRef = useRef(null);
 
-  useEffect(() => void (timelineRef.current && setTimelineWidth(timelineRef.current.clientWidth)));
   useEffect(() => {
-    const resizeListener = () => setTimelineWidth(timelineRef.current.clientWidth);
+    if (timelineRef.current)
+      setTimelineWidth(timelineRef.current.clientWidth)
+  });
+  useEffect(() => {
+    const resizeListener = () => {
+      setTimelineWidth(timelineRef.current.clientWidth)
+    };
     window.addEventListener('resize', resizeListener);
     return () => window.removeEventListener('resize', resizeListener);
   }, []);

@@ -36,7 +36,6 @@ import {
 } from "@ant-design/icons";
 
 import dateToString from "../../utils/dateToString";
-import useTimeline from "../../utils/useTimeline";
 import weakMapMemoize from "../../utils/weak-map-memoize";
 import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";
@@ -72,23 +71,24 @@ const columns = [
 ];
 
 const mapStateToProps = state => ({
+  state,
   isFetching: state.users.isFetching,
   usersError: state.users.error,
   usersByID: state.users.itemsByID,
 });
 
-const mapDispatchToProps = dispatch =>
-  bindActionCreators({listVersions}, dispatch);
+const mapDispatchToProps = {listVersions};
 
-const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) => {
+const ReportsUserContent = ({state, isFetching, usersError, usersByID, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
 
   const user = usersByID[id];
 
-  if (user && !user.versions && !user.isFetching)
-      listVersions(user.id);
+  if (user && !user.versions && !user.isFetching) {
+    setTimeout(() => listVersions(user.id), 0);
+  }
 
   return (
     <>
@@ -123,7 +123,6 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
 };
 
 function UserReport({user, expandedGroups, setExpandedGroups}) {
-  const [timelineMarginLeft, timelineRef] = useTimeline();
 
   const error = user.error;
   const isFetching = user.isFetching;
@@ -151,7 +150,7 @@ function UserReport({user, expandedGroups, setExpandedGroups}) {
       <Title level={2} style={{ marginTop: '1em' }}>
         History
       </Title>
-      <Space direction="vertical">
+      <Space direction="vertical" style={{ width: '100%' }}>
         <Row>
           <Col sm={24}>
             <Button.Group>
@@ -164,35 +163,31 @@ function UserReport({user, expandedGroups, setExpandedGroups}) {
             </Button.Group>
           </Col>
         </Row>
-        <Row>
-          <Col sm={24} md={24}>
-            <div ref={timelineRef}>
-              <Card>
-                <Timeline
-                  pending={(isFetching && !versions) ? "Loading..." : undefined}
-                  mode="left"
-                  style={{ marginLeft: timelineMarginLeft }}
+        <div style={{ width: '100%' }}>
+          <Card>
+            <Timeline
+              pending={(isFetching && !versions) ? "Loading..." : undefined}
+              mode="left"
+              style={{ marginLeft: 0, width: '100%' }}
+            >
+              {versions === undefined && isFetching &&
+                <Timeline.Item pending={true}>Loading...</Timeline.Item>
+              }
+              {versions && groups.map((group, i) =>
+                <Timeline.Item
+                  key={i}
+                  label={renderTimelineLabel(group[0].revision)}
                 >
-                  {versions === undefined && isFetching &&
-                    <Timeline.Item pending={true}>Loading...</Timeline.Item>
-                  }
-                  {versions && groups.map((group, i) =>
-                    <Timeline.Item
-                      key={i}
-                      label={renderTimelineLabel(group[0].revision)}
-                    >
-                      <TimelineEntry
-                        group={group}
-                        expandedGroups={expandedGroups}
-                        setExpandedGroups={setExpandedGroups}
-                      />
-                    </Timeline.Item>
-                  )}
-                </Timeline>
-              </Card>
-            </div>
-          </Col>
-        </Row>
+                  <TimelineEntry
+                    group={group}
+                    expandedGroups={expandedGroups}
+                    setExpandedGroups={setExpandedGroups}
+                  />
+                </Timeline.Item>
+              )}
+            </Timeline>
+          </Card>
+        </div>
       </Space>
     </>
   )

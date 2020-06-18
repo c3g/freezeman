@@ -9,6 +9,7 @@ import "antd/es/notification/style/css";
 import {auth} from "./modules/auth/reducers";
 import {containerKinds, containers} from "./modules/containers/reducers";
 import {individuals} from "./modules/individuals/reducers";
+import {query} from "./modules/query/reducers";
 import {samples} from "./modules/samples/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
@@ -24,6 +25,7 @@ const allReducers = combineReducers({
     containerKinds,
     containers,
     individuals,
+    query,
     samples,
     users,
     versions,

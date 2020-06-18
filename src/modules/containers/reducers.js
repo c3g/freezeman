@@ -124,6 +124,7 @@ export const containers = (
 
 function preprocessContainer(container) {
     // TODO: delete this when the API returns .id instead of .barcode
+    // TODO: also remove shit in query reducer
     container.id = container.barcode;
     delete container.barcode;
 

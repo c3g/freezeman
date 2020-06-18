@@ -20,6 +20,7 @@ import {
 
 import SignInForm from "./SignInForm";
 
+import JumpBar from "./JumpBar";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
@@ -108,6 +109,10 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
     <Layout style={{height: "100vh"}}>
       <Layout.Header style={{display: "flex"}}>
         <Title style={titleStyle}>FreezeMan</Title>
+        <div style={{flex: 1}}/>
+        {isLoggedIn &&
+          <JumpBar />
+        }
         <div style={{flex: 1}}/>
         {user &&
           <div style={colorStyle}>

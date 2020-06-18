@@ -9,7 +9,7 @@ const defaultStyle = {
   overflow: "auto",
 };
 
-const PageContent = ({children, style, loading}) =>
+const PageContent = ({children, style, loading = false}) =>
   <div
     style={style ? {...defaultStyle, ...style} : defaultStyle}
   >

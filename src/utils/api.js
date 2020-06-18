@@ -37,6 +37,10 @@ const api = {
     list: () => get("/users/"),
     listVersions: userId => get(`/versions?revision__user=${userId}`),
   },
+
+  query: {
+    search: q => get("/query/search/", { q }),
+  },
 }
 
 

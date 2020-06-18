@@ -30,7 +30,7 @@ export const users = (
         case USERS.LIST_VERSIONS.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], {
                 isFetching: false,
-                versions: preprocessVersions(action.data),
+                versions: preprocessVersions(action.data.results),
             });
         case USERS.LIST_VERSIONS.ERROR:
             return merge(state, ['itemsByID', action.meta.id], {
