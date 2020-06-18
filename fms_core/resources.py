@@ -511,12 +511,19 @@ class ContainerMoveResource(GenericResource):
         )
         exclude = ('id',)
 
+    @staticmethod
+    def _get_container_pk(**query):
+        try:
+            return Container.objects.get(**query).pk
+        except Container.DoesNotExist:
+            raise Container.DoesNotExist(f"Container matching query {query} does not exist")
+
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
         # diff fields on Update show up only if the pk is 'id' field ???
         dataset.append_col([
-            Container.objects.get(barcode=str(d.get("Container Barcode to move") or "")).pk
+            ContainerMoveResource._get_container_pk(barcode=str(d.get("Container Barcode to move") or ""))
             for d in dataset.dict
         ], header='id')
 
