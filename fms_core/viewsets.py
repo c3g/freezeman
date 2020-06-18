@@ -172,7 +172,7 @@ class QueryViewSet(viewsets.ViewSet):
 
         results = containers + individuals + samples + users
         results.sort(key=lambda c: c["score"], reverse=True)
-        data = map(serialize, results)
+        data = map(serialize, results[:100])
 
         return Response(data)
 
