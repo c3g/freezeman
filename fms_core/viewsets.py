@@ -6,15 +6,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from reversion.models import Version
 
+from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS
 from .models import Container, Sample, Individual
 from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer, UserSerializer
-
 
 __all__ = [
     "ContainerKindViewSet",
     "ContainerViewSet",
     "IndividualViewSet",
+    "QueryViewSet",
     "SampleViewSet",
     "UserViewSet",
     "VersionViewSet",
@@ -123,6 +124,57 @@ class IndividualViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
         return versions_detail(self.get_object())
+
+
+# noinspection PyMethodMayBeStatic,PyUnusedLocal
+class QueryViewSet(viewsets.ViewSet):
+    basename = "query"
+
+    @action(detail=False, methods=["get"])
+    def search(self, request):
+        query = request.GET["q"]
+
+        if len(query) == 0:
+            return Response([])
+
+        def serialize(s):
+            item_type = s["type"]
+            if item_type == Container:
+                s["type"] = "container"
+                s["item"] = ContainerSerializer(s["item"]).data
+                return s
+            if item_type == Sample:
+                s["type"] = "sample"
+                s["item"] = SampleSerializer(s["item"]).data
+                return s
+            if item_type == Individual:
+                s["type"] = "individual"
+                s["item"] = IndividualSerializer(s["item"]).data
+                return s
+            if item_type == User:
+                s["type"] = "user"
+                s["item"] = UserSerializer(s["item"]).data
+                return s
+            raise ValueError('unreachable')
+
+        def query_and_score(model, selector):
+            results = [{
+                    "score": score(query, selector(s)),
+                    "type": model,
+                    "item": s
+                } for s in model.objects.all()]
+            return list(filter(lambda c: c["score"] > 0, results))
+
+        containers = query_and_score(Container, lambda c: c.name)
+        individuals = query_and_score(Individual, lambda c: c.id)
+        samples = query_and_score(Sample, lambda c: c.name)
+        users = query_and_score(User, lambda c: c.username + c.first_name + c.last_name)
+
+        results = containers + individuals + samples + users
+        results.sort(key=lambda c: c["score"], reverse=True)
+        data = map(serialize, results)
+
+        return Response(data)
 
 
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
