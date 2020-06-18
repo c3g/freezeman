@@ -10,9 +10,10 @@ export const list = () => async (dispatch, getState) => {
 }
 
 export const listVersions = (id) => (dispatch, getState) => {
-    if (getState().users.itemsByID[id].isFetching) return Promise.resolve();
+    const user = getState().users.itemsByID[id];
+    if (user.isFetching) return Promise.resolve();
     const meta = { id };
-    return dispatch(networkAction(LIST, api.users.listVersions(id), { meta }));
+    return dispatch(networkAction(LIST_VERSIONS, api.users.listVersions(id), { meta }));
 }
 
 export default {
