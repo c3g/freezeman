@@ -562,27 +562,34 @@ class SampleUpdateResource(GenericResource):
         )
         exclude = ('container', 'coordinates')
 
+    @staticmethod
+    def _get_sample_pk(**query):
+        try:
+            return Sample.objects.get(**query).pk
+        except Sample.DoesNotExist:
+            raise Sample.DoesNotExist(f"Sample matching query {query} does not exist")
+
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
 
         # add column 'id' with pk
         dataset.append_col([
-            Sample.objects.get(
-                container_id=str(d.get('Container Barcode') or "").strip(),
-                coordinates=str(d.get('Coord (if plate)') or "").strip(),
-            ).pk for d in dataset.dict
-        ], header='id')
+            SampleUpdateResource._get_sample_pk(
+                container_id=str(d.get("Container Barcode") or "").strip(),
+                coordinates=str(d.get("Coord (if plate)") or "").strip(),
+            ) for d in dataset.dict
+        ], header="id")
 
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute == 'concentration':
+        if field.attribute == "concentration":
             conc = blank_str_to_none(data.get("New Conc. (ng/uL)"))  # "" -> None for CSVs
             if conc is None:
                 return
             data["New Conc. (ng/uL)"] = float_to_decimal(conc)
 
-        if field.attribute == 'volume_history':
+        if field.attribute == "volume_history":
             # Manually process volume history and don't call superclass method
             vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
             if vol is not None:  # Only update volume if we got a value
