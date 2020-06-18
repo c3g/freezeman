@@ -29,7 +29,7 @@ ALLOWED_HOSTS = [os.environ.get("FMS_HOST", "computationalgenomics.ca")] if not 
 
 INTERNAL_IPS = (
     "127.0.0.1",
-)
+) if DEBUG else ()
 
 
 # Application definition
