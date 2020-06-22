@@ -189,6 +189,7 @@ def has_match(needle, haystack):
 
     return True
 
+
 __all__ = [
     "score",
     "positions",
