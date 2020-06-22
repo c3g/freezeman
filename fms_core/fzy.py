@@ -1,3 +1,7 @@
+#
+# License: MIT
+# ported from: https://github.com/jhawthorn/fzy.js
+#
 
 SCORE_MIN = -100
 SCORE_MAX = +1.0 * 99999999999999999999
@@ -122,18 +126,14 @@ def positions(needle, haystack):
     n = len(needle)
     m = len(haystack)
 
-    positions = []
-
     if not n or not m:
-        return positions
+        return []
 
     if n == m:
-        for i in range(0, n):
-            positions[i] = i
-        return positions
+        return list(range(n))
 
     if m > 1024:
-        return positions
+        return []
 
     D = [0] * n
     M = [0] * n
@@ -145,6 +145,9 @@ def positions(needle, haystack):
 
     i = n - 1
     j = m - 1
+
+    positions = [-1] * (i + 1)
+
     while i >= 0:
         while j >= 0:
             #
@@ -172,7 +175,7 @@ def positions(needle, haystack):
     return positions
 
 
-def hasMatch(needle, haystack):
+def has_match(needle, haystack):
     needle = needle.lower()
     haystack = haystack.lower()
     length = len(needle)
@@ -186,22 +189,8 @@ def hasMatch(needle, haystack):
 
     return True
 
-#  export {
-    #  /* constants */
-    #  SCORE_MIN,
-    #  SCORE_MAX,
-
-    #  SCORE_GAP_LEADING,
-    #  SCORE_GAP_TRAILING,
-    #  SCORE_GAP_INNER,
-    #  SCORE_MATCH_CONSECUTIVE,
-    #  SCORE_MATCH_SLASH,
-    #  SCORE_MATCH_WORD,
-    #  SCORE_MATCH_CAPITAL,
-    #  SCORE_MATCH_DOT,
-
-        #  /* functions */
-    #  score,
-    #  positions,
-    #  hasMatch
-#  }
+__all__ = [
+    "score",
+    "positions",
+    "has_match"
+]

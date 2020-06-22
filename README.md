@@ -38,6 +38,8 @@ See relevant license in the following files:
   * `/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
   * `/fms_core/templates/admin/fms_core/download_import.html`
 
+Port of [fzy.js](https://github.com/jhawthorn/fzy.js) licensed under MIT License.
+
 ## Dependencies
 
   * Python 3.6 or later
