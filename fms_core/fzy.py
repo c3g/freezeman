@@ -3,6 +3,9 @@
 # ported from: https://github.com/jhawthorn/fzy.js
 #
 
+from typing import List
+
+
 SCORE_MIN = -100
 SCORE_MAX = +1.0 * 99999999999999999999
 
@@ -16,41 +19,39 @@ SCORE_MATCH_CAPITAL = 0.7
 SCORE_MATCH_DOT = 0.6
 
 
-def islower(s):
+def islower(s: str) -> bool:
     return s.lower() == s
 
 
-def isupper(s):
+def isupper(s: str) -> bool:
     return s.upper() == s
 
 
-def precompute_bonus(haystack):
+def precompute_bonus(haystack: str):
     #  Which positions are beginning of words
     m = len(haystack)
-    match_bonus = [0] * m
+    match_bonus = [0.0] * m
 
     last_ch = '/'
 
-    for i in range(0, m):
-        ch = haystack[i]
-
+    for i, ch in enumerate(haystack):
         if last_ch == '/':
             match_bonus[i] = SCORE_MATCH_SLASH
-        elif last_ch == '-' or last_ch == '_' or last_ch == ' ':
+        elif last_ch in ('-', '_', ' '):
             match_bonus[i] = SCORE_MATCH_WORD
         elif last_ch == '.':
             match_bonus[i] = SCORE_MATCH_DOT
         elif islower(last_ch) and isupper(ch):
             match_bonus[i] = SCORE_MATCH_CAPITAL
         else:
-            match_bonus[i] = 0
+            match_bonus[i] = 0.0
 
         last_ch = ch
 
     return match_bonus
 
 
-def compute(needle, haystack, D, M):
+def compute(needle: str, haystack: str, D: List[List[float]], M: List[List[float]]):
     n = len(needle)
     m = len(haystack)
 
@@ -64,28 +65,28 @@ def compute(needle, haystack, D, M):
     # M[][] Stores the best possible score at this position.
     #
 
-    for i in range(0, n):
+    for i in range(n):
         D[i] = [0] * m
         M[i] = [0] * m
 
         prev_score = SCORE_MIN
         gap_score = SCORE_GAP_TRAILING if i == n - 1 else SCORE_GAP_INNER
 
-        for j in range(0, m):
+        for j in range(m):
             if lower_needle[i] == lower_haystack[j]:
-                score = SCORE_MIN
+                score_ = SCORE_MIN
 
                 if not i:
-                    score = (j * SCORE_GAP_LEADING) + match_bonus[j]
-                elif j:  # i > 0 and j > 0*/
-                    score = max([
+                    score_ = (j * SCORE_GAP_LEADING) + match_bonus[j]
+                elif j:  # i > 0 and j > 0
+                    score_ = max([
                         M[i - 1][j - 1] + match_bonus[j],
 
                         # consecutive match, doesn't stack with match_bonus
                         D[i - 1][j - 1] + SCORE_MATCH_CONSECUTIVE])
 
-                D[i][j] = score
-                M[i][j] = prev_score = max([score, prev_score + gap_score])
+                D[i][j] = score_
+                M[i][j] = prev_score = max([score_, prev_score + gap_score])
             else:
                 D[i][j] = SCORE_MIN
                 M[i][j] = prev_score = prev_score + gap_score
@@ -114,15 +115,15 @@ def score(needle, haystack):
         #
         return SCORE_MIN
 
-    D = [0] * n
-    M = [0] * n
+    D = [[]] * n
+    M = [[]] * n
 
     compute(needle, haystack, D, M)
 
     return M[n - 1][m - 1]
 
 
-def positions(needle, haystack):
+def positions(needle: str, haystack: str):
     n = len(needle)
     m = len(haystack)
 
@@ -135,8 +136,8 @@ def positions(needle, haystack):
     if m > 1024:
         return []
 
-    D = [0] * n
-    M = [0] * n
+    D = [[]] * n
+    M = [[]] * n
 
     compute(needle, haystack, D, M)
 
@@ -146,7 +147,7 @@ def positions(needle, haystack):
     i = n - 1
     j = m - 1
 
-    positions = [-1] * (i + 1)
+    positions_ = [-1] * (i + 1)
 
     while i >= 0:
         while j >= 0:
@@ -165,27 +166,25 @@ def positions(needle, haystack):
 
                 match_required = i and j and \
                     M[i][j] == D[i - 1][j - 1] + SCORE_MATCH_CONSECUTIVE
-                positions[i] = j
+                positions_[i] = j
                 j -= 1
                 break
             j -= 1
 
         i -= 1
 
-    return positions
+    return positions_
 
 
-def has_match(needle, haystack):
+def has_match(needle: str, haystack: str):
     needle = needle.lower()
     haystack = haystack.lower()
-    length = len(needle)
-    i = 0
+
     j = 0
-    while i < length:
-        j = haystack.index(needle[i], j) + 1
+    for i, ch in enumerate(needle):
+        j = haystack.index(ch, j) + 1
         if j == 0:
             return False
-        i += 1
 
     return True
 
