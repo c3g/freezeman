@@ -92,7 +92,7 @@ def compute(needle: str, haystack: str, D: List[List[float]], M: List[List[float
                 M[i][j] = prev_score = prev_score + gap_score
 
 
-def score(needle, haystack):
+def score(needle: str, haystack: str):
     n = len(needle)
     m = len(haystack)
 
