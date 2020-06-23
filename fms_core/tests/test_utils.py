@@ -1,6 +1,12 @@
 from django.test import TestCase
 
-from ..utils import blank_str_to_none, check_truth_like, normalize_scientific_name
+from ..utils import (
+    blank_str_to_none,
+    check_truth_like,
+    normalize_scientific_name,
+    str_normalize,
+    str_cast_and_normalize,
+)
 
 
 class AdminUtilsTestCase(TestCase):
@@ -37,3 +43,9 @@ class AdminUtilsTestCase(TestCase):
         self.assertEqual(normalize_scientific_name("homo sapiens"), "Homo sapiens")
         self.assertEqual(normalize_scientific_name("Homo Sapiens"), "Homo sapiens")
         self.assertEqual(normalize_scientific_name("HOMO SAPIENS SAPIENS"), "Homo sapiens sapiens")
+
+    def test_str_normalize(self):
+        self.assertEqual(str_normalize("  \u0065\u0301 "), "\u00e9")
+
+    def test_str_cast_and_normalize(self):
+        self.assertEqual(str_cast_and_normalize(5), "5")

@@ -19,7 +19,7 @@ from .containers import (
 )
 from .coordinates import CoordinateError, check_coordinate_overlap
 from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
-from .utils import float_to_decimal, str_normalize
+from .utils import float_to_decimal, str_cast_and_normalize
 
 
 __all__ = [
@@ -75,12 +75,12 @@ class Container(models.Model):
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.kind = str_normalize(self.kind).lower()
-        self.name = str_normalize(self.name)
-        self.barcode = str_normalize(self.barcode)
-        self.coordinates = str_normalize(self.coordinates)
-        self.comment = str_normalize(self.comment)
-        self.update_comment = str_normalize(self.update_comment)
+        self.kind = str_cast_and_normalize(self.kind).lower()
+        self.name = str_cast_and_normalize(self.name)
+        self.barcode = str_cast_and_normalize(self.barcode)
+        self.coordinates = str_cast_and_normalize(self.coordinates)
+        self.comment = str_cast_and_normalize(self.comment)
+        self.update_comment = str_cast_and_normalize(self.update_comment)
 
     def clean(self):
         errors = {}
@@ -329,13 +329,13 @@ class Sample(models.Model):
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.name = str_normalize(self.name)
-        self.alias = str_normalize(self.alias)
-        self.collection_site = str_normalize(self.collection_site)
-        self.tissue_source = str_normalize(self.tissue_source)
-        self.phenotype = str_normalize(self.phenotype)
-        self.comment = str_normalize(self.comment)
-        self.update_comment = str_normalize(self.update_comment)
+        self.name = str_cast_and_normalize(self.name)
+        self.alias = str_cast_and_normalize(self.alias)
+        self.collection_site = str_cast_and_normalize(self.collection_site)
+        self.tissue_source = str_cast_and_normalize(self.tissue_source)
+        self.phenotype = str_cast_and_normalize(self.phenotype)
+        self.comment = str_cast_and_normalize(self.comment)
+        self.update_comment = str_cast_and_normalize(self.update_comment)
 
     def clean(self):
         errors = {}
@@ -503,9 +503,9 @@ class Individual(models.Model):
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.id = str_normalize(self.id)
-        self.pedigree = str_normalize(self.pedigree)
-        self.cohort = str_normalize(self.cohort)
+        self.id = str_cast_and_normalize(self.id)
+        self.pedigree = str_cast_and_normalize(self.pedigree)
+        self.cohort = str_cast_and_normalize(self.cohort)
 
     def clean(self):
         errors = {}

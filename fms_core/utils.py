@@ -16,6 +16,7 @@ __all__ = [
     "normalize_scientific_name",
     "float_to_decimal",
     "str_normalize",
+    "str_cast_and_normalize",
 ]
 
 
@@ -53,5 +54,9 @@ def normalize_scientific_name(name: str) -> str:
     return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
 
 
-def str_normalize(s: str):
+def str_normalize(s: str) -> str:
     return unicodedata.normalize("NFC", s.strip())
+
+
+def str_cast_and_normalize(s) -> str:
+    return str_normalize(str(s))
