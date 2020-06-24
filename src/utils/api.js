@@ -35,7 +35,7 @@ const api = {
 
   users: {
     list: () => get("/users/"),
-    listVersions: userId => get(`/versions?revision__user=${userId}`),
+    listVersions: userId => get(`/versions?revision__user=${userId}&limit=999999`), // TODO: handle versions?
   },
 
   query: {
