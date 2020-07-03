@@ -17,6 +17,7 @@ __all__ = [
     "float_to_decimal",
     "str_normalize",
     "str_cast_and_normalize",
+    "get_normalized_str",
 ]
 
 
@@ -60,3 +61,7 @@ def str_normalize(s: str) -> str:
 
 def str_cast_and_normalize(s) -> str:
     return str_normalize(str(s))
+
+
+def get_normalized_str(d: dict, key: str, default: str = "") -> str:
+    return str_cast_and_normalize(d.get(key) or default)

@@ -25,6 +25,8 @@ from .utils import (
     float_to_decimal,
     normalize_scientific_name,
     str_normalize,
+    str_cast_and_normalize,
+    get_normalized_str,
 )
 
 
@@ -93,13 +95,13 @@ class ContainerResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == "kind":
             # Normalize kind attribute to be lowercase
-            data["Container Kind"] = str(data.get("Container Kind") or "").lower()
+            data["Container Kind"] = get_normalized_str(data, "Container Kind").lower()
         elif field.attribute == "coordinates":
             # Normalize None coordinates to empty strings
-            data["Location Coordinate"] = str(data.get("Location Coordinate") or "").upper()
+            data["Location Coordinate"] = get_normalized_str(data, "Location Coordinate").upper()
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
-            data["Comment"] = str(data.get("Comment") or "")
+            data["Comment"] = get_normalized_str(data, "Comment")
         super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
@@ -209,13 +211,13 @@ class SampleResource(GenericResource):
         mother = None
         father = None
 
-        taxon = normalize_scientific_name(str(data.get("Taxon") or ""))
-        pedigree = str(data.get("Pedigree") or "")
-        cohort = str(data.get("Cohort") or "")
+        taxon = normalize_scientific_name(get_normalized_str(data, "Taxon"))
+        pedigree = str_cast_and_normalize(get_normalized_str(data, "Pedigree"))
+        cohort = str_cast_and_normalize(get_normalized_str(data, "Cohort"))
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
-                id=str(data.get("Mother ID") or ""),
+                id=get_normalized_str(data, "Mother ID"),
                 sex=Individual.SEX_FEMALE,
                 taxon=taxon,  # Mother has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
@@ -224,7 +226,7 @@ class SampleResource(GenericResource):
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
-                id=str(data.get("Father ID") or ""),
+                id=get_normalized_str(data, "Father ID"),
                 sex=Individual.SEX_MALE,
                 taxon=taxon,  # Father has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
@@ -234,8 +236,8 @@ class SampleResource(GenericResource):
         # TODO: This should throw a nicer warning if the individual already exists
         # TODO: Warn if the individual exists but pedigree/cohort is different
         individual, individual_created = Individual.objects.get_or_create(
-            id=str(data.get("Individual ID") or ""),  # TODO: Normalize properly
-            sex=str(data.get("Sex") or Individual.SEX_UNKNOWN),
+            id=get_normalized_str(data, "Individual ID"),
+            sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
             taxon=taxon,
             **({"pedigree": pedigree} if pedigree else {}),
             **({"cohort": cohort} if cohort else {}),
@@ -257,7 +259,7 @@ class SampleResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
 
-        normalized_container_kind = str(data.get('Container Kind') or "").lower()
+        normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
 
         if field.attribute == 'container' and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
@@ -265,23 +267,25 @@ class SampleResource(GenericResource):
             # the container within the parent container. TODO: Ideally this should be tweaked
 
             try:
-                container_parent = Container.objects.get(barcode=str(data.get("Location Barcode") or ""))
+                container_parent = Container.objects.get(barcode=get_normalized_str(data, "Location Barcode"))
             except Container.DoesNotExist:
                 container_parent = None
 
             container_data = dict(
                 kind=normalized_container_kind,
-                name=str(data.get("Container Name") or ""),
-                barcode=str(data.get("Container Barcode") or ""),
+                name=get_normalized_str(data, "Container Name"),
+                barcode=get_normalized_str(data, "Container Barcode"),
                 **(dict(location=container_parent) if container_parent else dict(location__isnull=True)),
             )
 
+            normalized_coords = get_normalized_str(data, "Location Coord")
+
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
                 # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
-                obj.coordinates = str(data.get("Location Coord") or "")
+                obj.coordinates = normalized_coords
             else:
                 # Case where the container gets coordinates within the parent.
-                container_data["coordinates"] = str(data.get("Location Coord") or "")
+                container_data["coordinates"] = normalized_coords
 
             # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
             # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
@@ -294,16 +298,19 @@ class SampleResource(GenericResource):
 
         elif field.attribute == "experimental_group":
             # Experimental group is stored as a JSON array, so parse out what's going on
-            data["Experimental Group"] = json.dumps(
-                [g.strip() for g in RE_SEPARATOR.split(str(data.get("Experimental Group") or "")) if g.strip()])
+            data["Experimental Group"] = json.dumps([
+                g.strip()
+                for g in RE_SEPARATOR.split(get_normalized_str(data, "Experimental Group"))
+                if g.strip()
+            ])
 
         elif field.attribute == "comment":
             # Normalize None comments to empty strings
-            data["Comment"] = str(data.get("Comment") or "").strip()
+            data["Comment"] = get_normalized_str(data, "Comment")
 
         elif field.attribute == "alias":
             # if numeric value entered as alias make sure it's a string
-            data["Alias"] = str(data.get("Alias") or "").strip()
+            data["Alias"] = get_normalized_str(data, "Alias")
 
         elif field.attribute in self.COMPUTED_FIELDS:
             # Ignore importing this, since it's a computed property.
@@ -392,19 +399,19 @@ class ExtractionResource(GenericResource):
 
         if field.attribute == 'extracted_from':
             obj.extracted_from = Sample.objects.get(
-                container=str(data.get('Container Barcode') or ""),
-                coordinates=str(data.get('Location Coord') or "")
+                container=get_normalized_str(data, "Container Barcode"),
+                coordinates=get_normalized_str(data, "Location Coord"),
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
-                                           check_truth_like(str(data.get("Source Depleted") or "")))
+                                           check_truth_like(get_normalized_str(data, "Source Depleted")))
             return
 
         if field.attribute == 'container':
             # Per Alex: We can make new tube racks (8x12) if needed for extractions
 
             shared_parent_info = dict(
-                barcode=str(data.get('Nucleic Acid Location Barcode') or ""),
+                barcode=get_normalized_str(data, "Nucleic Acid Location Barcode"),
                 # TODO: Currently can only extract into tube racks 8x12 - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
             )
@@ -418,19 +425,19 @@ class ExtractionResource(GenericResource):
                     # Leave coordinates blank if creating
                     # Per Alex: Container name = container barcode if we auto-generate the container
                     name=shared_parent_info["barcode"],
-                    comment=f'Automatically generated via extraction template import on '
-                            f'{datetime.utcnow().isoformat()}Z'
+                    comment=f"Automatically generated via extraction template import on "
+                            f"{datetime.utcnow().isoformat()}Z"
                 )
 
             # Per Alex: We can make new tubes if needed for extractions
 
             # Information that can be used to either retrieve or create a new tube container
             shared_container_info = dict(
-                barcode=str(data.get('Nucleic Acid Container Barcode') or ""),
+                barcode=get_normalized_str(data, "Nucleic Acid Container Barcode"),
                 # TODO: Currently can only extract into tubes - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE.container_kind_id,
                 location=parent,
-                coordinates=str(data.get("Nucleic Acid Location Coord") or "")
+                coordinates=get_normalized_str(data, "Nucleic Acid Location Coord"),
             )
 
             try:
@@ -441,8 +448,8 @@ class ExtractionResource(GenericResource):
                     # Below is creation-specific data
                     # Per Alex: Container name = container barcode if we auto-generate the container
                     name=shared_container_info["barcode"],
-                    comment=f'Automatically generated via extraction template import on '
-                            f'{datetime.utcnow().isoformat()}Z'
+                    comment=f"Automatically generated via extraction template import on "
+                            f"{datetime.utcnow().isoformat()}Z"
                 )
 
             return
@@ -488,59 +495,60 @@ class ExtractionResource(GenericResource):
 class IndividualResource(GenericResource):
     class Meta:
         model = Individual
-        import_id_fields = ('id',)
+        import_id_fields = ("id",)
 
 
 # Update resources
 
+
+def _get_container_pk(**query):
+    try:
+        return Container.objects.get(**query).pk
+    except Container.DoesNotExist:
+        raise Container.DoesNotExist(f"Container matching query {query} does not exist")
+
+
 class ContainerMoveResource(GenericResource):
-    id = Field(attribute='barcode', column_name='Container Barcode to move')
+    id = Field(attribute="barcode", column_name="Container Barcode to move")
     # fields that can be updated on container move
-    location = Field(attribute='location', column_name='Dest. Location Barcode',
-                     widget=ForeignKeyWidget(Container, field='barcode'))
-    coordinates = Field(attribute='coordinates', column_name='Dest. Location Coord')
-    update_comment = Field(attribute='update_comment', column_name='Update Comment')
+    location = Field(attribute="location", column_name="Dest. Location Barcode",
+                     widget=ForeignKeyWidget(Container, field="barcode"))
+    coordinates = Field(attribute="coordinates", column_name="Dest. Location Coord")
+    update_comment = Field(attribute="update_comment", column_name="Update Comment")
 
     class Meta:
         model = Container
-        import_id_fields = ('id',)
+        import_id_fields = ("id",)
         fields = (
-            'location',
-            'coordinates',
-            'update_comment',
+            "location",
+            "coordinates",
+            "update_comment",
         )
         exclude = ('id',)
-
-    @staticmethod
-    def _get_container_pk(**query):
-        try:
-            return Container.objects.get(**query).pk
-        except Container.DoesNotExist:
-            raise Container.DoesNotExist(f"Container matching query {query} does not exist")
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
         # diff fields on Update show up only if the pk is 'id' field ???
         dataset.append_col([
-            ContainerMoveResource._get_container_pk(barcode=str(d.get("Container Barcode to move") or ""))
+            _get_container_pk(barcode=get_normalized_str(d, "Container Barcode to move"))
             for d in dataset.dict
-        ], header='id')
+        ], header="id")
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute == "location":
-            data["Dest. Location Barcode"] = str(data.get("Dest. Location Barcode") or "").strip()
+            data["Dest. Location Barcode"] = get_normalized_str(data, "Dest. Location Barcode")
 
         if field.attribute == "coordinates":
-            data["Dest. Location Coord"] = str(data.get("Dest. Location Coord") or "").strip()
+            data["Dest. Location Coord"] = get_normalized_str(data, "Dest. Location Coord")
 
         if field.attribute == "update_comment":
-            data["Update Comment"] = str(data.get("Update Comment") or "").strip()
+            data["Update Comment"] = get_normalized_str(data, "Update Comment")
 
         super().import_field(field, obj, data, is_m2m)
 
-    def after_save_instance(self, instance, using_transactions, dry_run):
-        super().after_save_instance(instance, using_transactions, dry_run)
+    def after_save_instance(self, *args, **kwargs):
+        super().after_save_instance(*args, **kwargs)
         reversion.set_comment("Moved containers from template.")
 
 
@@ -582,8 +590,8 @@ class SampleUpdateResource(GenericResource):
         # add column 'id' with pk
         dataset.append_col([
             SampleUpdateResource._get_sample_pk(
-                container_id=str(d.get("Container Barcode") or "").strip(),
-                coordinates=str(d.get("Coord (if plate)") or "").strip(),
+                container_id=get_normalized_str(d, "Container Barcode"),
+                coordinates=get_normalized_str(d, "Coord (if plate)"),
             ) for d in dataset.dict
         ], header="id")
 

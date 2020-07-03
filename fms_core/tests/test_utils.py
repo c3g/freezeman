@@ -6,6 +6,7 @@ from ..utils import (
     normalize_scientific_name,
     str_normalize,
     str_cast_and_normalize,
+    get_normalized_str,
 )
 
 
@@ -49,3 +50,7 @@ class AdminUtilsTestCase(TestCase):
 
     def test_str_cast_and_normalize(self):
         self.assertEqual(str_cast_and_normalize(5), "5")
+
+    def test_get_normalized_str(self):
+        self.assertEqual(get_normalized_str({"test": 5}, "test"), "5")
+        self.assertEqual(get_normalized_str({"test": None}, "test", default="aa"), "aa")
