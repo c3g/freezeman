@@ -25,6 +25,7 @@ from .utils import float_to_decimal, str_cast_and_normalize
 __all__ = [
     "Container",
     "ContainerMove",
+    "ContainerRename",
     "Sample",
     "ExtractedSample",
     "SampleUpdate",
@@ -135,7 +136,7 @@ class Container(models.Model):
         super().save(*args, **kwargs)  # Save the object
 
 
-class ContainerMoveManager(models.Manager):
+class ContainerProxyManager(models.Manager):
     # noinspection PyMethodMayBeStatic
     def get_queryset(self):
         return Container.objects.all()
@@ -145,7 +146,14 @@ class ContainerMove(Container):
     class Meta:
         proxy = True
 
-    manager = ContainerMoveManager()
+    manager = ContainerProxyManager()
+
+
+class ContainerRename(Container):
+    class Meta:
+        proxy = True
+
+    manager = ContainerProxyManager()
 
 
 @reversion.register()

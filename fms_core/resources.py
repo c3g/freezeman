@@ -38,6 +38,7 @@ __all__ = [
     "IndividualResource",
     "ExtractionResource",
     "ContainerMoveResource",
+    "ContainerRenameResource",
     "SampleUpdateResource",
 ]
 
@@ -550,6 +551,44 @@ class ContainerMoveResource(GenericResource):
     def after_save_instance(self, *args, **kwargs):
         super().after_save_instance(*args, **kwargs)
         reversion.set_comment("Moved containers from template.")
+
+
+class ContainerRenameResource(GenericResource):
+    barcode = Field(attribute="barcode")  # Computed barcode field for updating
+    name = Field(attribute="name", column_name="New Container Name")
+    update_comment = Field(attribute="update_comment", column_name="Update Comment")
+
+    class Meta:
+        model = Container
+        import_id_fields = ("barcode",)
+        fields = (
+            "barcode",
+            "name",
+            "update_comment",
+        )
+
+    def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        skip_rows(dataset, 6)  # Skip preamble and normalize dataset
+
+        # diff fields on Update show up only if the pk is 'id' field ???
+        dataset.append_col([
+            _get_container_pk(barcode=get_normalized_str(d, "Old Container Barcode"))
+            for d in dataset.dict
+        ], header="barcode")
+
+    def import_obj(self, obj, data, dry_run):
+        super().import_obj(obj, data, dry_run)
+
+        old_barcode = get_normalized_str(data, "Old Container Barcode")
+        new_barcode = get_normalized_str(data, "New Container Barcode")
+        obj.barcode = new_barcode
+
+        Container.objects.filter(location_id=old_barcode).update(location_id=new_barcode)
+        Sample.objects.filter(container_id=old_barcode).update(container_id=new_barcode)
+
+    def after_save_instance(self, *args, **kwargs):
+        super().after_save_instance(*args, **kwargs)
+        reversion.set_comment("Renamed containers from template.")
 
 
 class SampleUpdateResource(GenericResource):

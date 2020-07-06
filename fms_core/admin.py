@@ -5,14 +5,24 @@ from django.templatetags.static import static
 from django.utils.html import format_html
 
 from .containers import ContainerSpec, PARENT_CONTAINER_KINDS
-from .models import Container, Sample, ExtractedSample, Individual, ContainerMove, SampleUpdate, ImportedFile
+from .models import (
+    Container,
+    ContainerMove,
+    ContainerRename,
+    Sample,
+    SampleUpdate,
+    ExtractedSample,
+    Individual,
+    ImportedFile,
+)
 from .resources import (
     ContainerResource,
+    ContainerMoveResource,
+    ContainerRenameResource,
     SampleResource,
+    SampleUpdateResource,
     ExtractionResource,
     IndividualResource,
-    ContainerMoveResource,
-    SampleUpdateResource,
 )
 from .utils_admin import AggregatedAdmin, CustomImportMixin, ExportVersionAdmin
 
@@ -227,6 +237,25 @@ class ContainerMoveAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         # TODO: Return subset of samples which have been moved or something
+        return super().get_queryset(request).filter(barcode__isnull=True)  # empty
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(ContainerRename)
+class ContainerRenameAdmin(CustomImportMixin, admin.ModelAdmin):
+    resource_class = ContainerRenameResource
+    actions = None
+    list_display_links = None
+
+    def changelist_view(self, request, extra_context=None):
+        return super().changelist_view(request, extra_context={
+            "title": "Rename Containers",
+            "submission_template": static("submission_templates/TODO.xlsx"),
+        })
+
+    def get_queryset(self, request):
         return super().get_queryset(request).filter(barcode__isnull=True)  # empty
 
     def has_add_permission(self, request):

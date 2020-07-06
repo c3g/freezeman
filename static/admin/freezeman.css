@@ -3,6 +3,7 @@
 }
 
 body.model-containermove #changelist-form .paginator,
+body.model-containerrename #changelist-form .paginator,
 body.model-sampleupdate #changelist-form .paginator {
     display: none;
 }
