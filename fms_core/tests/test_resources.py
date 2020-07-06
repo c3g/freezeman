@@ -11,6 +11,7 @@ from ..resources import (
     ContainerResource,
     ExtractionResource,
     ContainerMoveResource,
+    ContainerRenameResource,
     SampleResource,
     SampleUpdateResource,
 )
@@ -42,6 +43,7 @@ class ResourcesTestCase(TestCase):
         self.er = ExtractionResource()
         self.ur = SampleUpdateResource()
         self.mr = ContainerMoveResource()
+        self.rr = ContainerRenameResource()
 
     def load_samples(self):
         with reversion.create_revision(manage_manually=True), \
@@ -122,3 +124,25 @@ class ResourcesTestCase(TestCase):
             self.assertEqual(ci.coordinates, "D05")
             self.assertEqual(ci.update_comment, "sample moved")
 
+    def test_container_rename(self):
+        with reversion.create_revision(manage_manually=True), \
+                 open(os.path.join(APP_DATA_ROOT, "containers.csv")) as cf, \
+                 open(os.path.join(APP_DATA_ROOT, "samples.csv")) as sf, \
+                 open(os.path.join(APP_DATA_ROOT, "container_rename.csv")) as rf:
+            c = Dataset().load(cf.read())
+            self.cr.import_data(c, raise_errors=True)
+
+            s = Dataset().load(sf.read())
+            self.sr.import_data(s, raise_errors=True)
+
+            r = Dataset().load(rf.read())
+            self.rr.import_data(r, raise_errors=True)
+
+            ci = Container.objects.get(barcode="box0001")
+            self.assertEqual(ci.name, "original_box_2")
+            self.assertEqual(ci.update_comment, "added 0")
+
+            # Check foreign keys
+
+            Sample.objects.get(container_id="tube0001")
+            self.assertEqual(Container.objects.filter(location=ci).count(), 3)
