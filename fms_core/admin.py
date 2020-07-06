@@ -252,7 +252,7 @@ class ContainerRenameAdmin(CustomImportMixin, admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
             "title": "Rename Containers",
-            "submission_template": static("submission_templates/TODO.xlsx"),
+            "submission_template": static("submission_templates/Container_rename_v0.1.xlsx"),
         })
 
     def get_queryset(self, request):
