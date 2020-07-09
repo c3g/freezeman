@@ -182,13 +182,13 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         current = Container.objects.get(pk=containerid)
         try:
             current = Container.objects.get(pk=current.location)
-        except:
+        except Container.DoesNotExist:
             current = None
         while current:
             containers.append(current)
             try:
                 current = Container.objects.get(pk=current.location)
-            except:
+            except Container.DoesNotExist:
                 current = None
         containers.reverse()
         serializer = self.get_serializer(containers, many=True)
@@ -292,12 +292,11 @@ class QueryViewSet(viewsets.ViewSet):
             raise ValueError('unreachable')
 
         def query_and_score(model, selector):
-            results = [{
-                    "score": score(query, selector(s)),
-                    "type": model,
-                    "item": s
-                } for s in model.objects.all()]
-            return list(filter(lambda c: c["score"] > 0, results))
+            return [c for c in ({
+                "score": score(query, selector(s)),
+                "type": model,
+                "item": s
+            } for s in model.objects.all()) if c["score"] > 0]
 
         containers = query_and_score(Container, lambda c: c.name)
         individuals = query_and_score(Individual, lambda c: c.id)
