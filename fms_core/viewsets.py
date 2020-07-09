@@ -1,15 +1,32 @@
 from django.contrib.auth.models import User
-from django.http.response import HttpResponseNotFound
+from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from reversion.models import Version
+from tablib import Dataset
 
 from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS
 from .models import Container, Sample, Individual
+from .resources import (
+    ContainerResource,
+    ContainerMoveResource,
+    ContainerRenameResource,
+    ExtractionResource,
+    SampleResource,
+    SampleUpdateResource,
+)
 from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer, UserSerializer
+from .template_paths import (
+    CONTAINER_CREATION_TEMPLATE,
+    CONTAINER_MOVE_TEMPLATE,
+    CONTAINER_RENAME_TEMPLATE,
+    SAMPLE_EXTRACTION_TEMPLATE,
+    SAMPLE_SUBMISSION_TEMPLATE,
+    SAMPLE_UPDATE_TEMPLATE,
+)
 
 __all__ = [
     "ContainerKindViewSet",
@@ -42,10 +59,106 @@ class ContainerKindViewSet(viewsets.ViewSet):
         return HttpResponseNotFound()
 
 
-class ContainerViewSet(viewsets.ModelViewSet):
+class TemplateActionsMixin:
+    template_action_list = []
+
+    @classmethod
+    def _get_action(cls, request):
+        """
+        Gets template action from request data, or returns an error.
+        """
+
+        action_id = request.POST.get("action")
+        template_file = request.FILES.get("template")
+
+        if action_id is None or template_file is None:
+            return True, "Action or template file not found"
+
+        try:
+            action_def = cls.template_action_list[int(action_id)]
+        except (KeyError, ValueError):
+            return True, f"Action {action_id} not found"
+
+        dataset = Dataset().load(template_file.read())
+
+        return False, (action_def, dataset)
+
+    @action(detail=False, methods=["get"])
+    def template_actions(self, request, *args, **kwargs):
+        return Response([
+            dict((k, v) for k, v in a.items() if k != "resource")
+            for a in self.template_action_list
+        ])
+
+    @action(detail=False, methods=["post"])
+    def template_check(self, request, *args, **kwargs):
+        error, action_data = self._get_action(request)
+        if error:
+            return HttpResponseBadRequest({"message": action_data})
+
+        action_def, dataset = action_data
+
+        resource_instance = action_def["resource"]()
+        result = resource_instance.import_data(dataset, collect_failed_rows=True, dry_run=True)
+
+        return Response({
+            "valid": not (result.has_errors() or result.has_validation_errors()),
+            "base_errors": [{
+                "error": e.error,
+                "traceback": e.traceback,
+                "row": e.row,
+            } for e in result.base_errors()],
+            "rows": [{
+                "errors": r.errors,
+                "validation_error": r.validation_error,
+                "diff": r.diff,
+                "import_type": r.import_type,
+                "raw_values": r.raw_values,
+            } for r in result.rows],  # TODO
+        })
+
+    @action(detail=True, methods=["post"])
+    def template_submit(self, request, *args, **kwargs):
+        error, action_data = self._get_action(request)
+        if error:
+            return HttpResponseBadRequest({"message": action_data})
+
+        action_def, dataset = action_data
+
+        resource_instance = action_def["resource"]()
+        result = resource_instance.import_data(dataset)
+
+        if result.has_errors() or result.has_validation_errors():
+            return HttpResponseBadRequest()
+
+        return Response(status=204)
+
+
+class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.all()
     serializer_class = ContainerSerializer
     filterset_fields = ["location"]
+
+    template_action_list = [
+        {
+            "name": "Add Containers",
+            "description": "Upload the provided template with up to 100 new containers.",
+            "template": CONTAINER_CREATION_TEMPLATE,
+            "resource": ContainerResource,
+        },
+        {
+            "name": "Move Containers",
+            "description": "Upload the provided template with up to 100 containers to move.",
+            "template": CONTAINER_MOVE_TEMPLATE,
+            "resource": ContainerMoveResource,
+        },
+        {
+            "name": "Rename Containers",
+            "description": "Upload the provided template with up to 384 containers to rename.",
+            "template": CONTAINER_RENAME_TEMPLATE,
+            "resource": ContainerRenameResource,
+        }
+    ]
 
     @action(detail=False, methods=["get"])
     def list_root(self, request, *args, **kwargs):
@@ -95,13 +208,34 @@ class ContainerViewSet(viewsets.ModelViewSet):
         return versions_detail(self.get_object())
 
 
-class SampleViewSet(viewsets.ModelViewSet):
+class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filterset_fields = [
         "biospecimen_type",
         "depleted",
         "tissue_source",
+    ]
+
+    template_action_list = [
+        {
+            "name": "Add Samples",
+            "description": "Upload the provided template with up to 384 new samples.",
+            "template": SAMPLE_SUBMISSION_TEMPLATE,
+            "resource": SampleResource,
+        },
+        {
+            "name": "Process Extractions",
+            "description": "Upload the provided template with up to 96 extractions.",
+            "template": SAMPLE_EXTRACTION_TEMPLATE,
+            "resource": ExtractionResource,
+        },
+        {
+            "name": "Update Samples",
+            "description": "Upload the provided template with up to 384 samples to update.",
+            "template": SAMPLE_UPDATE_TEMPLATE,
+            "resource": SampleUpdateResource,
+        }
     ]
 
     # noinspection PyUnusedLocal
