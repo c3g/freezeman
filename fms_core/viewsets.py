@@ -107,7 +107,7 @@ class TemplateActionsMixin:
                 "error": e.error,
                 "traceback": e.traceback,
                 "row": e.row,
-            } for e in result.base_errors()],
+            } for e in result.base_errors],
             "rows": [{
                 "errors": r.errors,
                 "validation_error": r.validation_error,
