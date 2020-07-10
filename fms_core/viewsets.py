@@ -79,7 +79,10 @@ class TemplateActionsMixin:
         except (KeyError, ValueError):
             return True, f"Action {action_id} not found"
 
-        dataset = Dataset().load(template_file.read())
+        xlsx = template_file.name.endswith("xlsx")
+        file_bytes = template_file.read()
+
+        dataset = Dataset().load(file_bytes if xlsx else file_bytes.decode("utf-8"), format="xlsx" if xlsx else "csv")
 
         return False, (action_def, dataset)
 
@@ -104,16 +107,17 @@ class TemplateActionsMixin:
         return Response({
             "valid": not (result.has_errors() or result.has_validation_errors()),
             "base_errors": [{
-                "error": e.error,
+                "error": str(e.error),
                 "traceback": e.traceback,
-                "row": e.row,
             } for e in result.base_errors],
             "rows": [{
-                "errors": r.errors,
+                "errors": [{
+                    "error": str(e.error),
+                    "traceback": e.traceback,
+                } for e in r.errors],
                 "validation_error": r.validation_error,
                 "diff": r.diff,
                 "import_type": r.import_type,
-                "raw_values": r.raw_values,
             } for r in result.rows],  # TODO
         })
 
