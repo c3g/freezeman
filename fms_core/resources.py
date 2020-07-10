@@ -352,6 +352,7 @@ class ExtractionResource(GenericResource):
 
     class Meta:
         model = Sample
+        import_id_fields = ()
         fields = (
             'biospecimen_type',
             'volume_used',
