@@ -13,7 +13,7 @@ import reports from "./list";
 
 const cardStyle = {
   marginBottom: "1em",
-}
+};
 
 const mapStateToProps = state => ({state});
 
@@ -55,6 +55,6 @@ const ReportsListContent = ({state}) => {
       </PageContent>
     </>
   );
-}
+};
 
 export default connect(mapStateToProps)(ReportsListContent);
