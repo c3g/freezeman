@@ -19,9 +19,7 @@ const Root = process.env.NODE_ENV === 'development' ? hot(App) : App;
 
 // noinspection JSUnresolvedVariable
 const store = configureStore({});
-const persistor = persistStore(store, {
-  blacklist: ['containers', 'individuals', 'users', 'samples'],
-});
+const persistor = persistStore(store);
 
 const renderApp = () =>
   render(
