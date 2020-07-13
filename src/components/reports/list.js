@@ -115,7 +115,7 @@ const reports = [
         <span>
           <strong>{item.username}</strong>{' '}
           {item.groups.map(g =>
-            <Tag>{g}</Tag>
+            <Tag>{g.name}</Tag>
           )}
         </span>
 
