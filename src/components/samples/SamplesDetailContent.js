@@ -1,5 +1,4 @@
-import React, {useRef, useEffect, useState} from "react";
-import {bindActionCreators} from "redux";
+import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
@@ -38,8 +37,7 @@ const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-const mapDispatchToProps = dispatch =>
-  bindActionCreators({get, listVersions}, dispatch);
+const actionCreators = {get, listVersions};
 
 const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
   const history = useHistory();
@@ -51,13 +49,16 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
   const error = sample.error;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
-  const volume = sample.volume_history ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3) : null;
+  const volume = sample.volume_history
+    ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3)
+    : null;
   const experimentalGroups = sample.experimental_group || [];
   const extractedFrom = !sample.extracted_from ? null : samplesByID[sample.extracted_from];
   const volumeUsed = extractedFrom ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
 
+  // TODO: This spams API requests
   if (!samplesByID[id])
     get(id);
 
@@ -166,4 +167,4 @@ function renderTimelineLabel(version, usersByID) {
   )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SamplesDetailContent);
+export default connect(mapStateToProps, actionCreators)(SamplesDetailContent);
