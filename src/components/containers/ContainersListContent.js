@@ -9,7 +9,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
 import {list, listTemplateActions} from "../../modules/containers/actions";
-import {actionsToPageHeaderList} from "../../utils/templateActions";
+import {actionsToButtonList} from "../../utils/templateActions";
 
 const TABLE_COLUMNS = [
   {
@@ -48,13 +48,6 @@ const mapStateToProps = state => ({
 
 const actionCreators = {list, listTemplateActions};
 
-const actionIcon = a => {
-  if (a.name.includes("Add")) return <PlusOutlined />;
-  if (a.name.includes("Rename")) return <EditOutlined />;
-  if (a.name.includes("Move")) return <ExportOutlined />;
-  return undefined;
-}
-
 const ContainersListContent = ({
   containers,
   containersByID,
@@ -70,7 +63,7 @@ const ContainersListContent = ({
     listTemplateActions();
   }, []);
   return <>
-    <AppPageHeader title="Containers" extra={actionsToPageHeaderList("/containers", actions, actionIcon)} />
+    <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
     <PageContent>
       <PaginatedTable
         columns={TABLE_COLUMNS}

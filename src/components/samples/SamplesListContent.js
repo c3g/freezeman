@@ -10,7 +10,7 @@ import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
 
 import {list, listTemplateActions} from "../../modules/samples/actions";
-import {actionsToPageHeaderList} from "../../utils/templateActions";
+import {actionsToButtonList} from "../../utils/templateActions";
 
 const TABLE_COLUMNS = [
   {
@@ -73,13 +73,6 @@ const mapStateToProps = state => ({
 
 const actionCreators = {list, listTemplateActions};
 
-const actionIcon = a => {
-  if (a.name.includes("Add")) return <PlusOutlined />;
-  if (a.name.includes("Update")) return <EditOutlined />;
-  if (a.name.includes("Process")) return <ExperimentOutlined />;
-  return undefined;
-}
-
 const SamplesListContent = ({
   samples,
   samplesByID,
@@ -95,8 +88,7 @@ const SamplesListContent = ({
     listTemplateActions();
   }, []);
   return <>
-    <AppPageHeader title="Samples & Extractions"
-                   extra={actionsToPageHeaderList("/samples", actions, actionIcon)} />
+    <AppPageHeader title="Samples & Extractions" extra={actionsToButtonList("/samples", actions)} />
     <PageContent>
       <PaginatedTable
         columns={TABLE_COLUMNS}

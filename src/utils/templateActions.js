@@ -4,10 +4,21 @@ import {Link} from "react-router-dom";
 import {Button} from "antd";
 import "antd/es/button/style/css";
 
-export const actionsToPageHeaderList = (urlBase, actions, actionIcon) =>
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
+
+const actionIcon = a => {
+  if (a.name.includes("Add")) return <PlusOutlined />;
+  if (a.name.includes("Rename")) return <EditOutlined />;
+  if (a.name.includes("Move")) return <ExportOutlined />;
+  if (a.name.includes("Update")) return <EditOutlined />;
+  if (a.name.includes("Process")) return <ExperimentOutlined />;
+  return undefined;
+};
+
+export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
   (actions.items || []).map((a, i) =>
     <Link key={i.toString()} to={`${urlBase}/actions/${i}/`}>
-      <Button icon={actionIcon(a)}>{a.name}</Button>
+      <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width: "100%"}} : {})}>{a.name}</Button>
     </Link>
   );
 
