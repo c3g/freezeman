@@ -1,5 +1,4 @@
 import React, {useEffect} from "react";
-import {bindActionCreators} from "redux";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
 import {Redirect, Route, Switch, withRouter} from "react-router-dom";
@@ -92,8 +91,7 @@ export const mapStateToProps = state => ({
   user: state.users.itemsByID[state.auth.currentUserID],
 });
 
-export const mapDispatchToProps = dispatch =>
-  bindActionCreators({fetchInitialData, fetchAuthorizedData, logOut}, dispatch);
+export const actionCreators = {fetchInitialData, fetchAuthorizedData, logOut};
 
 const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   useEffect(() => {
@@ -121,16 +119,20 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
         }
         {isLoggedIn &&
           <Menu theme="dark"
-              mode="horizontal"
-              selectedKeys={matchingMenuKeys(menuItems)}>
+                mode="horizontal"
+                selectedKeys={matchingMenuKeys(menuItems)}>
             {menuItems.map(renderMenuItem)}
           </Menu>
         }
       </Layout.Header>
       <Layout>
         {isLoggedIn &&
-          <Layout.Sider theme="light" style={{overflowY: "auto"}} breakpoint="md" collapsedWidth={80} width={224}>
-              <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)}>
+          <Layout.Sider theme="light"
+                        style={{overflowY: "auto"}}
+                        breakpoint="md"
+                        collapsedWidth={80}
+                        width={224}>
+              <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)} style={{height: "100%"}}>
                   {MENU_ITEMS.map(renderMenuItem)}
               </Menu>
           </Layout.Sider>
@@ -163,4 +165,4 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   );
 };
 
-export default hot(withRouter(connect(mapStateToProps, mapDispatchToProps)(App)));
+export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
