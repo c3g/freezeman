@@ -87,14 +87,14 @@ class TemplateActionsMixin:
         return False, (action_def, dataset)
 
     @action(detail=False, methods=["get"])
-    def template_actions(self, request, *args, **kwargs):
+    def template_actions(self, request):
         return Response([
             dict((k, v) for k, v in a.items() if k != "resource")
             for a in self.template_action_list
         ])
 
     @action(detail=False, methods=["post"])
-    def template_check(self, request, *args, **kwargs):
+    def template_check(self, request):
         error, action_data = self._get_action(request)
         if error:
             return HttpResponseBadRequest({"message": action_data})
@@ -165,7 +165,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     @action(detail=False, methods=["get"])
-    def list_root(self, request, *args, **kwargs):
+    def list_root(self, request):
         containers_data = Container.objects.filter(location=None)
         page = self.paginate_queryset(containers_data)
         if page is not None:
@@ -175,15 +175,14 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_children(self, request, *args, **kwargs):
-        serializer = self.get_serializer(Container.objects.filter(location=kwargs['pk']), many=True)
+    def list_children(self, request, pk=None):
+        serializer = self.get_serializer(Container.objects.filter(location=pk), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_parents(self, request, *args, **kwargs):
-        containerid = kwargs['pk']
+    def list_parents(self, request, pk=None):
         containers = []
-        current = Container.objects.get(pk=containerid)
+        current = Container.objects.get(pk=pk)
         try:
             current = Container.objects.get(pk=current.location)
         except Container.DoesNotExist:
@@ -199,8 +198,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_samples(self, request, *args, **kwargs):
-        container = Container.objects.get(pk=kwargs['pk'])
+    def list_samples(self, request, pk=None):
+        container = Container.objects.get(pk=pk)
         samples_id = self.get_serializer(container).data["samples"]
         samples = Sample.objects.filter(pk__in=samples_id)
         serializer = SampleSerializer(samples, many=True)
