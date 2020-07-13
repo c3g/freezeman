@@ -121,8 +121,8 @@ class TemplateActionsMixin:
             } for r in result.rows],  # TODO
         })
 
-    @action(detail=True, methods=["post"])
-    def template_submit(self, request, *args, **kwargs):
+    @action(detail=False, methods=["post"])
+    def template_submit(self, request):
         error, action_data = self._get_action(request)
         if error:
             return HttpResponseBadRequest({"message": action_data})
