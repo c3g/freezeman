@@ -51,7 +51,7 @@ const api = {
   query: {
     search: q => get("/query/search/", { q }),
   },
-}
+};
 
 
 export default api;
@@ -78,7 +78,7 @@ function apiFetch(method, route, body) {
       return Promise.reject(createAPIError(response));
     })
   };
-};
+}
 
 function get(route, queryParams) {
   return apiFetch('GET', route + (queryParams ? '?' + qs(queryParams) : ''), undefined);
@@ -90,12 +90,12 @@ function post(route, body) {
 
 
 function createAPIError(response) {
-  const data = response.data
+  const data = response.data;
 
-  let detail
+  let detail;
   try {
     detail = data.detail ||
-      (data.revision__user && ('User: ' + data.revision__user.join(', ')))
+      (data.revision__user && ('User: ' + data.revision__user.join(', ')));
   } catch (_) {}
 
   const message = detail ?
@@ -118,7 +118,7 @@ function attachJSON(response) {
     response.data = data;
     return response;
   })
-  .catch(err => {
+  .catch(() => {
     response.data = {};
     return response;
   })

@@ -15,38 +15,38 @@
  * @returns {Function}
  */
 function weakMapMemoize(fn, config = []) {
-  let length = Math.max(fn.length, config.length)
+  let length = Math.max(fn.length, config.length);
 
-  const baseMap = createMap(config[0])
+  const baseMap = createMap(config[0]);
 
   return (...args) => {
 
-    let currentMap = baseMap
+    let currentMap = baseMap;
 
     for (let i = 0; i < length - 1; i++) {
 
       if (!currentMap.has(args[i]))
-        currentMap.set(args[i], createMap(config[i + 1]))
+        currentMap.set(args[i], createMap(config[i + 1]));
 
-      currentMap = currentMap.get(args[i])
+      currentMap = currentMap.get(args[i]);
     }
 
-    const lastArg = args[args.length - 1]
+    const lastArg = args[args.length - 1];
 
     if (currentMap.has(lastArg))
-      return currentMap.get(lastArg)
+      return currentMap.get(lastArg);
 
-    const result = fn(...args)
+    const result = fn(...args);
 
-    currentMap.set(lastArg, result)
+    currentMap.set(lastArg, result);
 
-    return result
+    return result;
   }
 }
 
 function createMap(type) {
-  return type === undefined ? new WeakMap() : new type()
+  return type === undefined ? new WeakMap() : new type();
 }
 
 
-export default weakMapMemoize
+export default weakMapMemoize;

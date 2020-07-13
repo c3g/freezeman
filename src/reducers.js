@@ -15,35 +15,35 @@ import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 
 const AUTH_PERSIST_CONFIG = {
-    key: "auth",
-    blacklist: ["isFetching"],
-    storage,
+  key: "auth",
+  blacklist: ["isFetching"],
+  storage,
 };
 
 const allReducers = combineReducers({
-    auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
-    containerKinds,
-    containers,
-    individuals,
-    query,
-    samples,
-    users,
-    versions,
+  auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
+  containerKinds,
+  containers,
+  individuals,
+  query,
+  samples,
+  users,
+  versions,
 });
 
 function errorReducer(state, action) {
-    if (action.error) {
-        notification.error({
-            message: 'An error occured',
-            description:
-                <pre style={{ fontSize: '0.8em' }}>
-                    {action.error.message}
-                    {action.error.stack}
-                </pre>,
-            duration: 0,
-        });
-    }
-    return allReducers(state, action);
+  if (action.error) {
+    notification.error({
+      message: 'An error occurred',
+      description:
+        <pre style={{fontSize: '0.8em'}}>
+          {action.error.message}
+          {action.error.stack}
+        </pre>,
+      duration: 0,
+    });
+  }
+  return allReducers(state, action);
 }
 
 const rootReducer = errorReducer;

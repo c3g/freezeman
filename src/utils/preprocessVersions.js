@@ -1,4 +1,3 @@
-
 export default function preprocessVersions(/* mut */ versions) {
   versions.forEach(version => {
     version.key = version.id;

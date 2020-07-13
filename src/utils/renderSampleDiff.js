@@ -15,27 +15,27 @@ const arrowStyle = {
 
 export default function renderSampleDiff(oldVersion, newVersion) {
   if (!oldVersion)
-    return
+    return;
 
-  const deltas = diff(oldVersion.fields, newVersion.fields)
+  const deltas = diff(oldVersion.fields, newVersion.fields);
 
-  delete deltas.update_comment
+  delete deltas.update_comment;
 
-  const items = []
+  const items = [];
 
   for (let key in deltas) {
-    let delta = deltas[key]
+    let delta = deltas[key];
     if (key === 'volume_history')
-      items.push(renderVolumeHisoryDelta(key, delta, oldVersion, newVersion))
+      items.push(renderVolumeHistoryDelta(key, delta, oldVersion, newVersion));
     else if (Array.isArray(delta))
-      items.push(renderArrayDelta(key, delta, oldVersion, newVersion))
+      items.push(renderArrayDelta(key, delta, oldVersion, newVersion));
     else
-      items.push(renderUnknownDelta(key, delta, oldVersion, newVersion))
+      items.push(renderUnknownDelta(key, delta, oldVersion, newVersion));
   }
 
   return (
     <div>{items}</div>
-  )
+  );
 }
 
 function renderUnknownDelta(name, delta, oldVersion, newVersion) {
@@ -47,10 +47,10 @@ function renderUnknownDelta(name, delta, oldVersion, newVersion) {
           unknown modification (please report this): <code>{JSON.stringify(delta)}</code>
         </Tag>
     </div>
-  )
+  );
 }
 
-function renderVolumeHisoryDelta(name, delta, oldVersion, newVersion) {
+function renderVolumeHistoryDelta(name, delta, oldVersion, newVersion) {
   /*
    * Array with inner changes:
    *
@@ -78,7 +78,7 @@ function renderVolumeHisoryDelta(name, delta, oldVersion, newVersion) {
 
   for (let key in delta) {
     if (key === '_t')
-      continue
+      continue;
 
     if (/^\d+$/.test(key)) {
       const index = parseInt(key, 10)
@@ -95,13 +95,13 @@ function renderVolumeHisoryDelta(name, delta, oldVersion, newVersion) {
           <Tag color="green" className='diff__added'>{currentVolume.volume_value} ({currentVolume.update_type})</Tag>
         </div>
       )
-      continue
+      continue;
     }
 
-    items.push(renderUnknownDelta(k))
+    items.push(renderUnknownDelta(key));
   }
 
-  return items
+  return items;
 }
 
 function renderArrayDelta(name, delta, oldVersion, newVersion) {
@@ -115,7 +115,7 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
         <SwapRightOutlined style={arrowStyle} />
         <Tag color="green" className='diff__added'>{delta[1]}</Tag>
       </div>
-    )
+    );
 
   /// MODIFIED: delta = [ oldValue, newValue ]
   if (delta.length === 2)
@@ -126,7 +126,7 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
         <SwapRightOutlined style={arrowStyle} />
         <Tag color="green" className='diff__added'>{delta[1]}</Tag>
       </div>
-    )
+    );
 
   /// DELETED: delta = [ oldValue, 0, 0 ]
   if (delta.length === 3 && delta[1] === 0 && delta[2] === 0)
@@ -136,7 +136,7 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
           <code>{name}:</code> {delta[0]}
         </Tag>
       </div>
-    )
+    );
 
   // Invalid
   return renderUnknownDelta(name, delta, oldVersion, newVersion)

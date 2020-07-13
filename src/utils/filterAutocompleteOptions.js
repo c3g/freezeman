@@ -7,7 +7,7 @@ export default function filterAutocompleteOptions(
 ) {
   const options = {
     keys: searchKeys,
-  }
-  const fuse = new Fuse(items, options)
-  return fuse.search(searchText)
-}
+  };
+  const fuse = new Fuse(items, options);
+  return fuse.search(searchText);
+};

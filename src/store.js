@@ -9,12 +9,12 @@ export default function configureStore(initialState) {
   const store = createStore(
     rootReducer,
     initialState,
-    composeEnhancers(
-      applyMiddleware(thunkMiddleware, logger)),
+    composeEnhancers(applyMiddleware(thunkMiddleware, logger)),
   );
 
   if (module.hot) {
     // Enable Webpack hot module replacement for reducers
+    // noinspection JSValidateTypes
     module.hot.accept([
       './reducers.js',
     ], () => {

@@ -10,4 +10,4 @@ function itemRender(route, params, routes, paths) {
   );
 }
 
-export default itemRender
+export default itemRender;

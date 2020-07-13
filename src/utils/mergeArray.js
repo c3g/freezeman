@@ -12,5 +12,5 @@ export default function mergeArray(array, offset, newArray) {
         items.splice(offset, newArray.length, ...newArray);
     }
 
-    return items
+    return items;
 }
