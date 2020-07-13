@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-import { 
+import {
   compose,
   groupBy,
   map,
@@ -215,6 +214,7 @@ function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
   const revision = group[0].revision
   const isExpanded = expandedGroups[revision.id];
 
+  // noinspection JSUnusedGlobalSymbols
   return (
     <>
       <div>
