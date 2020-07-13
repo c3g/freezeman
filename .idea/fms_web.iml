@@ -8,5 +8,6 @@
     <orderEntry type="library" name="@types/react" level="application" />
     <orderEntry type="library" name="@types/react-router" level="application" />
     <orderEntry type="library" name="@types/react-redux" level="application" />
+    <orderEntry type="library" name="@types/redux-logger" level="application" />
   </component>
 </module>

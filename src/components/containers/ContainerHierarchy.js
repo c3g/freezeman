@@ -45,7 +45,7 @@ const loadingEntry = id => ({
   </span>,
   icon: <LoadingOutlined />,
   key: id,
-})
+});
 
 const buildContainerTreeFromPath = (context, path) => {
   if (path.length === 0)
@@ -93,12 +93,12 @@ const buildContainerTreeFromPath = (context, path) => {
         </span>,
         icon: isFetching ? <LoadingOutlined /> : <EllipsisOutlined />,
         key: `${container.id}$children`,
-      })
+      });
     }
     else {
       children.push(...otherChildren.map(containerId =>
         buildContainerTreeFromPath(context, [containerId])
-      ).flat())
+      ).flat());
     }
   }
 
@@ -131,7 +131,7 @@ const buildContainerTreeFromPath = (context, path) => {
           key: sampleId,
           type: 'sample',
         };
-      }))
+      }));
     }
   }
 
@@ -168,19 +168,24 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, listChildre
   const tree = buildContainerTreeFromPath(context, path);
 
   const onSelect = (selectedKeys, { node }) => {
-    const [selectedKey] = selectedKeys
-    // Explode collapsed nodes
-    if (/\$(children|samples)/.test(selectedKey)) {
-      const id = selectedKey.replace(/\$(children|samples)/, '');
-      const hasChildren = selectedKey.endsWith('$children')
-      if (hasChildren)
-        listChildren(id, path)
-      else
-        listSamples(id)
-      setExplodedKeys(set(explodedKeys, [id], true));
+    const [selectedKey] = selectedKeys;
+    if (selectedKey === undefined) {
+      // De-selection event; ignore it
+      return;
     }
-    // Navigate to container
-    else {
+
+    if (/\$(children|samples)/.test(selectedKey)) {
+      // Explode collapsed nodes
+
+      const id = selectedKey.replace(/\$(children|samples)/, '');
+      const hasChildren = selectedKey.endsWith('$children');
+      if (hasChildren)
+        listChildren(id, path);
+      else
+        listSamples(id);
+      setExplodedKeys(set(explodedKeys, [id], true));
+    } else {
+      // Navigate to container
       if (node.type === 'sample')
         history.push(`/samples/${selectedKey}`);
       else
