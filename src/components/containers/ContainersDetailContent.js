@@ -1,5 +1,4 @@
 import React from "react";
-import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
@@ -19,14 +18,13 @@ const extraStyle = {
   flexDirection: "row",
   height: "100%",
   alignItems: "center",
-}
+};
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
 });
 
-const mapDispatchToProps = dispatch =>
-  bindActionCreators({get, listParents}, dispatch);
+const actionCreators = {get, listParents};
 
 const ContainersDetailContent = ({containersByID, get, listParents}) => {
   const history = useHistory();
@@ -74,4 +72,4 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
   );
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ContainersDetailContent);
+export default connect(mapStateToProps, actionCreators)(ContainersDetailContent);

@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import {useHistory} from "react-router-dom";
-import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {set} from "object-path-immutable";
 
-import {Button, Tree, Typography} from "antd";
-import "antd/es/button/style/css";
+import {Tree, Typography} from "antd";
 import "antd/es/tree/style/css";
 import "antd/es/typography/style/css";
 
@@ -150,8 +148,7 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
 });
 
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({get, listChildren, listSamples}, dispatch)
+const actionCreators = {get, listChildren, listSamples};
 
 const ContainerHierarchy = ({container, containersByID, samplesByID, listChildren, listSamples}) => {
   if (!container || !container.parents)
@@ -205,4 +202,4 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, listChildre
   );
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ContainerHierarchy);
+export default connect(mapStateToProps, actionCreators)(ContainerHierarchy);
