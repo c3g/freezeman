@@ -3,8 +3,12 @@ import { merge, set } from "object-path-immutable";
 import preprocessVersions from "../../utils/preprocessVersions";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
+import {templateActionsReducerFactory} from "../../utils/templateActions";
+
 import SAMPLES from "./actions";
 import CONTAINERS from "../containers/actions";
+
+export const sampleTemplateActions = templateActionsReducerFactory(SAMPLES);
 
 export const samples = (
     state = {
@@ -23,7 +27,8 @@ export const samples = (
         case SAMPLES.GET.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
         case SAMPLES.GET.ERROR:
-            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+            return merge(state, ['itemsByID', action.meta.id],
+              { error: action.error, isFetching: false, didFail: true });
 
         case SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };

@@ -1,6 +1,7 @@
 import {merge, set} from "object-path-immutable";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
+import {templateActionsReducerFactory} from "../../utils/templateActions";
 
 import CONTAINERS from "./actions";
 
@@ -34,7 +35,9 @@ export const containerKinds = (
         default:
             return state;
     }
-}
+};
+
+export const containerTemplateActions = templateActionsReducerFactory(CONTAINERS);
 
 export const containers = (
     state = {
@@ -50,9 +53,11 @@ export const containers = (
         case CONTAINERS.GET.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
         case CONTAINERS.GET.RECEIVE:
-            return merge(state, ['itemsByID', action.meta.id], { ...preprocessContainer(action.data), isFetching: false });
+            return merge(state, ['itemsByID', action.meta.id],
+              { ...preprocessContainer(action.data), isFetching: false });
         case CONTAINERS.GET.ERROR:
-            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+            return merge(state, ['itemsByID', action.meta.id],
+              { error: action.error, isFetching: false, didFail: true });
 
         case CONTAINERS.LIST.REQUEST:
             return { ...state, isFetching: true };
@@ -86,7 +91,8 @@ export const containers = (
             );
         }
         case CONTAINERS.LIST_PARENTS.ERROR:
-            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
+            return merge(state, ['itemsByID', action.meta.id],
+              { error: action.error, isFetching: false, didFail: true });
 
         case CONTAINERS.LIST_CHILDREN.REQUEST: {
             const container = state.itemsByID[action.meta.id];

@@ -13,7 +13,7 @@ const nop = () => {};
 
 const UploadStep = ({onCancel, onNext}) => (
   <Form layout="vertical">
-    <Form.Item label="Container Creation Template" name="template_upload">
+    <Form.Item label="Filled-Out Template" name="template_upload">
       <Upload name="template">
         <Button><UploadOutlined /> Upload</Button>
       </Upload>

@@ -8,6 +8,7 @@ export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
 export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("CONTAINERS.LIST_TEMPLATE_ACTIONS");
 
 export const get = id => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
@@ -72,7 +73,12 @@ export const listKinds = () => async (dispatch, getState) => {
         return;
 
     await dispatch(networkAction(LIST_KINDS, api.containerKinds.list()));
-}
+};
+
+export const listTemplateActions = () => (dispatch, getState) => {
+    if (getState().containerTemplateActions.isFetching) return;
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.containers.template.actions()));
+};
 
 export default {
     GET,
@@ -81,10 +87,12 @@ export default {
     LIST_CHILDREN,
     LIST_SAMPLES,
     LIST_KINDS,
+    LIST_TEMPLATE_ACTIONS,
     get,
     list,
     listParents,
     listChildren,
     listSamples,
     listKinds,
-}
+    listTemplateActions,
+};

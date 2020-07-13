@@ -5,6 +5,7 @@ import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 export const GET           = createNetworkActionTypes("SAMPLES.GET");
 export const LIST          = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 
 export const get = id => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
@@ -23,7 +24,12 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
         api.samples.list(pageOptions),
         { meta: pageOptions }
     ));
-}
+};
+
+export const listTemplateActions = () => (dispatch, getState) => {
+    if (getState().sampleTemplateActions.isFetching) return;
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.samples.template.actions()));
+};
 
 export const listVersions = (id) => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
@@ -40,8 +46,10 @@ export default {
     GET,
     LIST,
     LIST_VERSIONS,
+    LIST_TEMPLATE_ACTIONS,
     get,
     list,
     listVersions,
+    listTemplateActions,
 };
 
