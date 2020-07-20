@@ -195,4 +195,24 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='container_old',
         ),
+
+        # Regex updates for barcode/names
+        migrations.AlterField(
+            model_name='container',
+            name='barcode',
+            field=models.CharField(help_text='Unique container barcode.', max_length=200, unique=True, validators=[
+                django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,199}$'))]),
+        ),
+        migrations.AlterField(
+            model_name='container',
+            name='name',
+            field=models.CharField(help_text='Unique name for the container.', max_length=200, unique=True, validators=[
+                django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,199}$'))]),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='name',
+            field=models.CharField(help_text='Sample name.', max_length=200, validators=[
+                django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,199}$'))]),
+        ),
     ]
