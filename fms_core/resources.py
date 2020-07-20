@@ -577,10 +577,18 @@ class ContainerRenameResource(GenericResource):
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble and normalize dataset
 
-        dataset.append_col([
-            _get_container_pk(barcode=get_normalized_str(d, "Old Container Barcode"))
-            for d in dataset.dict
-        ], header="id")
+        old_barcodes_set = set()
+        id_col = []
+
+        for d in dataset.dict:
+            old_barcode = get_normalized_str(d, "Old Container Barcode")
+            if old_barcode in old_barcodes_set:
+                raise ValueError(f"Cannot rename container with barcode {old_barcode} more than once")
+
+            old_barcodes_set.add(old_barcode)
+            id_col.append(_get_container_pk(barcode=old_barcode))
+
+        dataset.append_col(id_col, header="id")
 
     def import_obj(self, obj, data, dry_run):
         old_container_barcode = get_normalized_str(data, "Old Container Barcode")

@@ -2,7 +2,7 @@ import os
 import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from pathlib import Path
 from tablib import Dataset
@@ -155,8 +155,10 @@ class ResourcesTestCase(TestCase):
 
     def _test_invalid_rename_template(self, fh, err=IntegrityError):
         with self.assertRaises(err):
-            r = Dataset().load(fh.read())
+            d = fh.read()
+            r = Dataset().load(d)
             self.rr.import_data(r, dry_run=True, raise_errors=True)
+            r = Dataset().load(d)
             self.rr.import_data(r, raise_errors=True)
 
     def test_invalid_container_rename(self):
@@ -164,9 +166,14 @@ class ResourcesTestCase(TestCase):
             ("rename_invalid.csv", ValidationError),
             ("same_rename.csv", IntegrityError),
             ("same_rename_2.csv", IntegrityError),
+            ("double_rename.csv", ValueError),
         ):
             print(f"Testing invalid container rename {f}", flush=True)
+
+            s = transaction.savepoint()
 
             with reversion.create_revision(manage_manually=True), open(os.path.join(TEST_DATA_ROOT, f)) as rf:
                 self.load_samples()  # Load containers + samples
                 self._test_invalid_rename_template(rf, err)
+
+            transaction.savepoint_rollback(s)
