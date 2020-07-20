@@ -1,5 +1,6 @@
 import re
 import reversion
+import uuid
 
 from decimal import Decimal
 from django.contrib.auth.models import User
@@ -44,6 +45,9 @@ barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]+$"))
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     # TODO class for choices
     kind = models.CharField(
         max_length=20,
@@ -55,7 +59,7 @@ class Container(models.Model):
     # TODO: Further normalize any incoming names
     name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.",
                             validators=[barcode_name_validator])
-    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.",
+    barcode = models.CharField(unique=True, max_length=200, help_text="Unique container barcode.",
                                validators=[barcode_name_validator])
 
     # In which container is this container located? i.e. its parent.
@@ -270,7 +274,7 @@ class Sample(models.Model):
                                                 "be specified only for extracted nucleic acid samples.")
 
     class Meta:
-        unique_together = ('container', 'coordinates')
+        unique_together = ("container", "coordinates")
 
     @property
     def is_depleted(self) -> str:
