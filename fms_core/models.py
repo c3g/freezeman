@@ -83,13 +83,17 @@ class Container(models.Model):
         self.comment = str_cast_and_normalize(self.comment)
         self.update_comment = str_cast_and_normalize(self.update_comment)
 
-    def clean(self):
+    def clean(self, check_regexes: bool = False):
         errors = {}
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
         self.normalize()
+
+        if check_regexes:
+            barcode_name_validator(self.barcode)
+            barcode_name_validator(self.name)
 
         if self.coordinates != "" and self.location is None:
             add_error("coordinates", "Cannot specify coordinates in non-specified container")
