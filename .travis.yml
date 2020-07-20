@@ -17,3 +17,4 @@ script:
   - export PG_USER="postgres" && export PG_PASSWORD="hj38f3Ntr" && export PG_PORT=5433
   - python3 -m coverage run ./manage.py test
   - codecov
+  - python3 -m flake8 --max-line-length=120 --exclude=./fms_core/migrations/ ./fms_core/ ./fms/

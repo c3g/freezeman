@@ -1,5 +1,6 @@
 import re
 import reversion
+import uuid
 
 from decimal import Decimal
 from django.contrib.auth.models import User
@@ -38,12 +39,21 @@ def _add_error(errors: dict, field: str, error: ValidationError):
     errors[field] = [*errors.get(field, []), error]
 
 
-barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]+$"))
+BARCODE_NAME_FIELD_LENGTH = 200
+
+# Barcodes and names should only contain a-z, A-Z, 0-9, ., -, _
+# They are capped at 200 characters by the field length inherently - but we limit them to
+# one character less than that, since when renaming containers we need to append a
+# temporary character to prevent integrity errors.
+barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]{1,199}$"))
 
 
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     # TODO class for choices
     kind = models.CharField(
         max_length=20,
@@ -53,9 +63,10 @@ class Container(models.Model):
     )
 
     # TODO: Further normalize any incoming names
-    name = models.CharField(unique=True, max_length=200, help_text="Unique name for the container.",
+    name = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH,
+                            help_text="Unique name for the container.",
                             validators=[barcode_name_validator])
-    barcode = models.CharField(primary_key=True, max_length=200, help_text="Unique container barcode.",
+    barcode = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
                                validators=[barcode_name_validator])
 
     # In which container is this container located? i.e. its parent.
@@ -83,13 +94,17 @@ class Container(models.Model):
         self.comment = str_cast_and_normalize(self.comment)
         self.update_comment = str_cast_and_normalize(self.update_comment)
 
-    def clean(self):
+    def clean(self, check_regexes: bool = False):
         errors = {}
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
         self.normalize()
+
+        if check_regexes:
+            barcode_name_validator(self.barcode)
+            barcode_name_validator(self.name)
 
         if self.coordinates != "" and self.location is None:
             add_error("coordinates", "Cannot specify coordinates in non-specified container")
@@ -207,7 +222,8 @@ class Sample(models.Model):
                                         help_text="Biological material collected from study subject "
                                                   "during the conduct of a genomic study project.")
     # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
-    name = models.CharField(max_length=200, validators=[barcode_name_validator], help_text="Sample name.")
+    name = models.CharField(max_length=BARCODE_NAME_FIELD_LENGTH, validators=[barcode_name_validator],
+                            help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
@@ -266,7 +282,7 @@ class Sample(models.Model):
                                                 "be specified only for extracted nucleic acid samples.")
 
     class Meta:
-        unique_together = ('container', 'coordinates')
+        unique_together = ("container", "coordinates")
 
     @property
     def is_depleted(self) -> str:
