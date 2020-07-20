@@ -73,6 +73,10 @@ class ContainerAdmin(AggregatedAdmin):
         "coordinates"
     )
 
+    list_select_related = (
+        "location",
+    )
+
     list_filter = (
         "kind",
     )
@@ -121,7 +125,11 @@ class SampleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if kwargs.get("instance"):
-            self.fields["extracted_from"].queryset = Sample.objects.exclude(id=self.instance.id)
+            self.fields["extracted_from"].queryset = self.fields["extracted_from"].queryset\
+                .exclude(id=self.instance.id)
+
+        self.fields["extracted_from"].queryset = self.fields["extracted_from"].queryset\
+            .select_related("container", "extracted_from")
 
 
 @admin.register(Sample)
@@ -139,6 +147,12 @@ class SampleAdmin(AggregatedAdmin):
         "volume",
         "concentration",
         "is_depleted",
+    )
+
+    list_select_related = (
+        "individual",
+        "container",
+        "extracted_from",
     )
 
     list_filter = (
@@ -217,6 +231,11 @@ class IndividualAdmin(ExportVersionAdmin):
         "mother",
         "father",
         "cohort",
+    )
+
+    list_select_related = (
+        "mother",
+        "father",
     )
 
     list_filter = (
