@@ -333,7 +333,7 @@ class ExtractionResource(GenericResource):
     biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
 
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
-    # parent sample container
+    # parent sample container  TODO: get_container_display doesn't exist anymore...
     sample_container = Field(attribute='get_container_display', column_name='Container Barcode')
     sample_container_coordinates = Field(attribute='get_coordinates_display', column_name='Location Coord')
     # Computed fields
