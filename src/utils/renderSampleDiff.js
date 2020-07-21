@@ -21,17 +21,24 @@ export default function renderSampleDiff(oldVersion, newVersion) {
 
   delete deltas.update_comment;
 
-  const items = [];
+  const items = Object.entries(deltas).map(([key, delta]) => {
+    if (key === "volume_history")
+      return renderVolumeHistoryDelta(key, delta, oldVersion, newVersion);
+    if (Array.isArray(delta))
+      return renderArrayDelta(key, delta, oldVersion, newVersion);
 
-  for (let key in deltas) {
-    let delta = deltas[key];
-    if (key === 'volume_history')
-      items.push(renderVolumeHistoryDelta(key, delta, oldVersion, newVersion));
-    else if (Array.isArray(delta))
-      items.push(renderArrayDelta(key, delta, oldVersion, newVersion));
-    else
-      items.push(renderUnknownDelta(key, delta, oldVersion, newVersion));
-  }
+    return renderUnknownDelta(key, delta, oldVersion, newVersion);
+  });
+
+  // for (let key in deltas) {
+  //   let delta = deltas[key];
+  //   if (key === 'volume_history')
+  //     items.push(renderVolumeHistoryDelta(key, delta, oldVersion, newVersion));
+  //   else if (Array.isArray(delta))
+  //     items.push(renderArrayDelta(key, delta, oldVersion, newVersion));
+  //   else
+  //     items.push(renderUnknownDelta(key, delta, oldVersion, newVersion));
+  // }
 
   return (
     <div>{items}</div>
@@ -111,9 +118,7 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
     return (
       <div key={name}>
         <code>{name}:</code>{' '}
-        <Tag color="red" style={removedStyle}>{delta[0]}</Tag>
-        <SwapRightOutlined style={arrowStyle} />
-        <Tag color="green" className='diff__added'>{delta[1]}</Tag>
+        <Tag color="green" className='diff__added'>{renderDeltaValue(delta[0])}</Tag>
       </div>
     );
 
@@ -122,9 +127,9 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
     return (
       <div key={name}>
         <code>{name}:</code>{' '}
-        <Tag color="red" style={removedStyle}>{delta[0]}</Tag>
+        <Tag color="red" style={removedStyle}>{renderDeltaValue(delta[0])}</Tag>
         <SwapRightOutlined style={arrowStyle} />
-        <Tag color="green" className='diff__added'>{delta[1]}</Tag>
+        <Tag color="green" className='diff__added'>{renderDeltaValue(delta[1])}</Tag>
       </div>
     );
 
@@ -133,11 +138,17 @@ function renderArrayDelta(name, delta, oldVersion, newVersion) {
     return (
       <div key={name}>
         <Tag color="red" style={removedStyle}>
-          <code>{name}:</code> {delta[0]}
+          <code>{name}:</code> {renderDeltaValue(delta[0])}
         </Tag>
       </div>
     );
 
   // Invalid
   return renderUnknownDelta(name, delta, oldVersion, newVersion)
+}
+
+function renderDeltaValue(value) {
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+  return value.toString();
 }

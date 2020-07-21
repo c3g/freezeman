@@ -76,6 +76,7 @@ const reports = [
     renderItem: item =>
       <div key={item.id} style={itemStyle}>
         <span>
+          {/* TODO: Container Barcode */}
           <Text type="secondary" style={containerStyle}>{item.container}</Text>{' '}
           <strong>{item.name}</strong>{' '}
           <Tag size="small">{item.biospecimen_type}</Tag>{' '}
