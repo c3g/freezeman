@@ -7,10 +7,10 @@ import {notification} from "antd";
 import "antd/es/notification/style/css";
 
 import {auth} from "./modules/auth/reducers";
-import {containerKinds, containerTemplateActions, containers} from "./modules/containers/reducers";
+import {containerKinds, containerTemplateActions, containerSummary, containers} from "./modules/containers/reducers";
 import {individuals} from "./modules/individuals/reducers";
 import {query} from "./modules/query/reducers";
-import {sampleTemplateActions, samples} from "./modules/samples/reducers";
+import {sampleTemplateActions, samples, samplesSummary} from "./modules/samples/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 
@@ -23,10 +23,12 @@ const AUTH_PERSIST_CONFIG = {
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
   containerKinds,
+  containersSummary,
   containerTemplateActions,
   containers,
   individuals,
   query,
+  samplesSummary,
   sampleTemplateActions,
   samples,
   users,

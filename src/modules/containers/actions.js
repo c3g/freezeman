@@ -9,6 +9,7 @@ export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN"
 export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("CONTAINERS.LIST_TEMPLATE_ACTIONS");
+export const SUMMARY = createNetworkActionTypes("CONTAINERS.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
@@ -80,6 +81,8 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.containers.template.actions()));
 };
 
+export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.containers.summary()));
+
 export default {
     GET,
     LIST,
@@ -88,6 +91,7 @@ export default {
     LIST_SAMPLES,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
+    SUMMARY,
     get,
     list,
     listParents,
@@ -95,4 +99,5 @@ export default {
     listSamples,
     listKinds,
     listTemplateActions,
+    summary,
 };

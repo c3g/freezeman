@@ -1,6 +1,7 @@
 import {merge, set} from "object-path-immutable";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
+import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
 import CONTAINERS from "./actions";
@@ -37,6 +38,7 @@ export const containerKinds = (
   }
 };
 
+export const containersSummary = summaryReducerFactory(CONTAINERS);
 export const containerTemplateActions = templateActionsReducerFactory(CONTAINERS);
 
 export const containers = (

@@ -13,7 +13,6 @@ import "antd/es/statistic/style/css";
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
 
-import objectByIdToArray from "../utils/objectByIdToArray";
 import {actionsToButtonList} from "../utils/templateActions";
 
 import AppPageHeader from "./AppPageHeader";
@@ -41,9 +40,8 @@ const WIDE_BUTTON_COL_PROPS = {
 };
 
 const DashboardPage = ({
-  containerCount,
-  sampleCount,
-  extractedSampleCount,
+  containersSummary,
+  samplesSummary,
   templates,
   listActions,
 }) => {
@@ -58,7 +56,8 @@ const DashboardPage = ({
       <Row gutter={16}>
         <Col {...COL_LAYOUT}>
           <Card title="Containers" {...CARD_PROPS}>
-            <Statistic title="Total Containers" value={containerCount || "—"} />
+            <Statistic title="Total Containers" value={containersSummary.total_count || "—"} />
+            {/* TODO: Root containers */}
             <Row gutter={16}>
               {actionsToButtonList("/containers", templates.container, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
@@ -70,10 +69,10 @@ const DashboardPage = ({
           <Card title="Samples" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Total Samples" value={sampleCount || "—"} />
+                <Statistic title="Total Samples" value={samplesSummary.total_count || "—"} />
               </Col>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Extracted Samples" value={extractedSampleCount || "—"} />
+                <Statistic title="Extracted Samples" value={samplesSummary.extracted_count || "—"} />
               </Col>
             </Row>
             <Row gutter={16}>
@@ -104,10 +103,8 @@ const DashboardPage = ({
 }
 
 const mapStateToProps = state => ({
-  containerCount: state.containers.totalCount,
-  sampleCount: state.samples.totalCount,
-  // TODO: Server count for pagination
-  extractedSampleCount: objectByIdToArray(state.samples.itemsByID).filter(s => s.extracted_from !== null).length,
+  containersSummary: state.containersSummary.data,
+  samplesSummary: state.samplesSummary.data,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,

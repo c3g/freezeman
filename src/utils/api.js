@@ -20,11 +20,12 @@ const api = {
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
+    summary: () => get("/containers/summary"),
     template: {
       actions: () => get(`/containers/template_actions/`),
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
-    }
+    },
   },
 
   individuals: {
@@ -36,11 +37,12 @@ const api = {
     get: sampleId => get(`/samples/${sampleId}`),
     list: (page = {}) => get("/samples/", page),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
+    summary: () => get("/containers/summary"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
-    }
+    },
   },
 
   users: {

@@ -33,6 +33,7 @@ const TABLE_COLUMNS = [
   {
     title: "Container",
     dataIndex: "container",
+    // TODO: Render barcode here
     render: container => <Link to={`/containers/${container}`}>{container}</Link>,
   },
   {

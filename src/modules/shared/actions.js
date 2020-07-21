@@ -12,8 +12,10 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.listKinds,
         Containers.list,
+        Containers.summary,
         Individuals.list,
         Samples.list,
+        Samples.summary,
         Users.list,
     ].map(a => dispatch(a())))
 }
@@ -25,8 +27,10 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
 
     await Promise.all([
         Containers.list,
+        Containers.summary,
         Individuals.list,
         Samples.list,
+        Samples.summary,
         Users.list,
     ].map(a => dispatch(a())))
 };
