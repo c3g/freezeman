@@ -165,7 +165,14 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     @action(detail=False, methods=["get"])
-    def list_root(self, request):
+    def summary(self, _request):
+        return Response({
+            "total_count": Container.objects.all().count(),
+            "root_count": Container.objects.filter(location_id__isnull=True).count(),
+        })
+
+    @action(detail=False, methods=["get"])
+    def list_root(self, _request):
         containers_data = Container.objects.filter(location=None)
         page = self.paginate_queryset(containers_data)
         if page is not None:
@@ -175,12 +182,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_children(self, request, pk=None):
+    def list_children(self, _request, pk=None):
         serializer = self.get_serializer(Container.objects.filter(location=pk), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_parents(self, request, pk=None):
+    def list_parents(self, _request, pk=None):
         containers = []
         current = Container.objects.get(pk=pk)
         try:
@@ -198,7 +205,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
-    def list_samples(self, request, pk=None):
+    def list_samples(self, _request, pk=None):
         container = Container.objects.get(pk=pk)
         samples_id = self.get_serializer(container).data["samples"]
         samples = Sample.objects.filter(pk__in=samples_id)
@@ -241,9 +248,16 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         }
     ]
 
+    @action(detail=False, methods=["get"])
+    def summary(self, _request):
+        return Response({
+            "total_count": Sample.objects.all().count(),
+            "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
+        })
+
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
-    def versions(self, request, pk=None):
+    def versions(self, _request, pk=None):
         return versions_detail(self.get_object())
 
 
