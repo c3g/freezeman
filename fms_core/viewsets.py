@@ -139,7 +139,7 @@ class TemplateActionsMixin:
 
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Container.objects.all()
+    queryset = Container.objects.all().prefetch_related("children", "samples")
     serializer_class = ContainerSerializer
     filterset_fields = ["location"]
 
