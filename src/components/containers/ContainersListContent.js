@@ -14,8 +14,8 @@ import {actionsToButtonList} from "../../utils/templateActions";
 const TABLE_COLUMNS = [
   {
     title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Barcode</>,
-    dataIndex: "id",
-    render: id => <Link to={`/containers/${id}`}>{id}</Link>,
+    dataIndex: "barcode",
+    render: (barcode, container) => <Link to={`/containers/${container.id}`}>{barcode}</Link>,
   },
   {
     title: "Name",
