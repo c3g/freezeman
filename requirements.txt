@@ -4,11 +4,11 @@ attrs==19.3.0
 certifi==2020.6.20
 cffi==1.14.0
 chardet==3.0.4
-codecov==2.1.7
+codecov==2.1.8
 coreapi==2.3.3
 coreschema==0.0.4
 coverage==5.2
-cryptography==2.9.2
+cryptography==3.0
 defusedxml==0.6.0
 diff-match-patch==20200713
 Django==3.0.8
