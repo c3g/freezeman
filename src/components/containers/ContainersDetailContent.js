@@ -28,7 +28,7 @@ const actionCreators = {get, listParents};
 
 const ContainersDetailContent = ({containersByID, get, listParents}) => {
   const history = useHistory();
-  const {barcode: id} = useParams();
+  const {id} = useParams();
 
   const container = containersByID[id] || {};
   // const error = container.error;
@@ -50,14 +50,14 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
               <Tag>{container.kind}</Tag>
           </div>
           <div key="barcode">
-              <BarcodeOutlined /> {container.id}
+              <BarcodeOutlined /> {container.barcode}
           </div>
         </div>
       } />
       <PageContent loading={!isLoaded && isFetching}>
         <Descriptions bordered={true} size="small">
           <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
-          <Descriptions.Item label="Barcode">{container.id}</Descriptions.Item>
+          <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
           <Descriptions.Item label="Location" span={2}>
               {container.location || "—"}{container.coordinates ? `at ${container.coordinates}` : ""}
           </Descriptions.Item>

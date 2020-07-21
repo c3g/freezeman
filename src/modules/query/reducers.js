@@ -1,5 +1,3 @@
-import { merge, set } from "object-path-immutable";
-
 import QUERY from "./actions";
 
 const initialState = {
@@ -19,7 +17,7 @@ export const query = (state = initialState, action) => {
             return {
                 ...state,
                 isFetching: false,
-                items: action.data.map(preprocessItem),
+                items: action.data,
             };
         case QUERY.SEARCH.ERROR:
             return { ...state, isFetching: false, error: action.error, };
@@ -28,11 +26,3 @@ export const query = (state = initialState, action) => {
             return state;
     }
 };
-
-function preprocessItem(item) {
-    if (item.type === 'container') {
-        item.item.id = item.item.barcode
-        delete item.item.barcode
-    }
-    return item
-}
