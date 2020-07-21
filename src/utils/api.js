@@ -37,7 +37,7 @@ const api = {
     get: sampleId => get(`/samples/${sampleId}`),
     list: (page = {}) => get("/samples/", page),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
-    summary: () => get("/containers/summary"),
+    summary: () => get("/samples/summary"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
