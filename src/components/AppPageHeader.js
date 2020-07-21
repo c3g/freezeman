@@ -1,7 +1,6 @@
 import React from "react";
 
-import {Affix, PageHeader} from "antd";
-import "antd/es/affix/style/css";
+import {PageHeader} from "antd";
 import "antd/es/page-header/style/css";
 
 const style = {

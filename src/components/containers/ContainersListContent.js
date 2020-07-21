@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {BarcodeOutlined, EditOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
+import {BarcodeOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";

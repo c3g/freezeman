@@ -31,7 +31,7 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
   const {barcode: id} = useParams();
 
   const container = containersByID[id] || {};
-  const error = container.error;
+  // const error = container.error;
   const isFetching = !containersByID[id] || container.isFetching;
   const isLoaded = containersByID[id] && container.isLoaded;
 

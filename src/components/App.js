@@ -6,6 +6,7 @@ import {Redirect, Route, Switch, withRouter} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import "antd/es/layout/style/css";
 import "antd/es/menu/style/css";
+import "antd/es/typography/style/css";
 
 import {
   AuditOutlined,

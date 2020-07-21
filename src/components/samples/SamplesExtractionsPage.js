@@ -8,12 +8,12 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const SamplesExtractionsPage = () => <PageContainer>
-    <Switch>
-        <Route path="/samples/list"><SamplesListContent /></Route>
-        <Route path="/samples/actions/:action"><ActionContent templateType="sample" /></Route>
-        <Route path="/samples/:id"><SamplesDetailContent /></Route>
-        <Redirect to="/samples/list" />
-    </Switch>
+  <Switch>
+    <Route path="/samples/list"><SamplesListContent /></Route>
+    <Route path="/samples/actions/:action"><ActionContent templateType="sample" /></Route>
+    <Route path="/samples/:id"><SamplesDetailContent /></Route>
+    <Redirect to="/samples/list" />
+  </Switch>
 </PageContainer>;
 
 export default SamplesExtractionsPage;

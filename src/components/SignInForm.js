@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory} from "react-router-dom";
 
@@ -7,7 +7,7 @@ import "antd/es/button/style/css";
 import "antd/es/card/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
-import { LoginOutlined } from "@ant-design/icons";
+import {LoginOutlined} from "@ant-design/icons";
 
 import {performAuth} from "../modules/auth/actions";
 

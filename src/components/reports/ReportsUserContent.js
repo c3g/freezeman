@@ -16,15 +16,23 @@ import {set} from "object-path-immutable";
 import {
   Button,
   Card,
+  Col,
   Descriptions,
+  Row,
+  Space,
   Table,
   Timeline,
   Typography,
-  Row,
-  Col,
-  Space,
 } from "antd";
+import "antd/es/button/style/css";
+import "antd/es/card/style/css";
+import "antd/es/col/style/css";
+import "antd/es/descriptions/style/css";
+import "antd/es/row/style/css";
+import "antd/es/space/style/css";
 import "antd/es/table/style/css";
+import "antd/es/timeline/style/css";
+import "antd/es/typography/style/css";
 import {
   ArrowsAltOutlined,
   ShrinkOutlined,
@@ -70,7 +78,6 @@ const columns = [
 ];
 
 const mapStateToProps = state => ({
-  state,
   isFetching: state.users.isFetching,
   usersError: state.users.error,
   usersByID: state.users.itemsByID,
@@ -78,7 +85,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {listVersions};
 
-const ReportsUserContent = ({state, isFetching, usersError, usersByID, listVersions}) => {
+const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});

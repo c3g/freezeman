@@ -1,8 +1,11 @@
 import React from "react";
-import { connect } from "react-redux";
-import { useHistory } from "react-router-dom";
+import {connect} from "react-redux";
+import {useHistory} from "react-router-dom";
 
-import { Card, Col, Row } from "antd";
+import {Card, Col, Row} from "antd";
+import "antd/es/card/style/css";
+import "antd/es/col/style/css";
+import "antd/es/row/style/css";
 
 import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";

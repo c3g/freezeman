@@ -3,12 +3,15 @@ import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
-import {Card, Empty, Descriptions, Tag, Timeline, Typography, Row, Col} from "antd";
-import "antd/es/empty/style/css";
-import "antd/es/typography/style/css";
-import "antd/es/timeline/style/css";
+import {Card, Col, Descriptions, Empty, Row, Tag, Timeline, Typography} from "antd";
+import "antd/es/card/style/css";
+import "antd/es/col/style/css";
 import "antd/es/descriptions/style/css";
+import "antd/es/empty/style/css";
+import "antd/es/row/style/css";
 import "antd/es/tag/style/css";
+import "antd/es/timeline/style/css";
+import "antd/es/typography/style/css";
 
 import dateToString from "../../utils/dateToString";
 import useTimeline from "../../utils/useTimeline";
