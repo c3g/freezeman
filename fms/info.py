@@ -28,7 +28,7 @@ COMMIT_TAGGED_VERSION = subprocess.run(
 
 CONTACT_EMAIL = "info@computationalgenomics.ca"
 COPYRIGHT_YEARS = "2020"
-REPOSITORY = "https://github.com/c3g/fms"
+REPOSITORY = "https://github.com/c3g/freezeman_server"
 
 VERSION_PATH = Path(__file__).parent.parent / "VERSION"
 
