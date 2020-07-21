@@ -173,7 +173,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_root(self, _request):
-        containers_data = Container.objects.filter(location=None)
+        containers_data = Container.objects.filter(location_id__isnull=True).prefetch_related("children", "samples")
         page = self.paginate_queryset(containers_data)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -191,13 +191,13 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         containers = []
         current = Container.objects.get(pk=pk)
         try:
-            current = Container.objects.get(pk=current.location)
+            current = Container.objects.get(pk=current.location_id)
         except Container.DoesNotExist:
             current = None
         while current:
             containers.append(current)
             try:
-                current = Container.objects.get(pk=current.location)
+                current = Container.objects.get(pk=current.location_id)
             except Container.DoesNotExist:
                 current = None
         containers.reverse()
