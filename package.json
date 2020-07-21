@@ -22,9 +22,9 @@
   "homepage": "https://github.com/c3g/fms_web#readme",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
-    "antd": "^4.4.2",
+    "antd": "^4.4.3",
     "cross-fetch": "^3.0.5",
-    "date-fns": "^2.14.0",
+    "date-fns": "^2.15.0",
     "fuse.js": "^6.4.0",
     "jsondiffpatch": "^0.4.1",
     "jwt-decode": "^2.2.0",
@@ -43,7 +43,7 @@
     "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
     "@babel/preset-react": "^7.10.4",
     "babel-loader": "^8.1.0",
