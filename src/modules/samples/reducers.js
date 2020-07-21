@@ -6,6 +6,7 @@ import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
+import CONTAINERS from "../containers/actions";
 import SAMPLES from "./actions";
 
 export const samplesSummary = summaryReducerFactory(SAMPLES);
