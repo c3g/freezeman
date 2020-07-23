@@ -14,6 +14,7 @@ tracking of biological samples in a laboratory environment.
   * [Running tests](#running-tests)
   * [Creating releases](#creating-releases)
   * [Deploying to production](#deploying-to-production)
+  * [Database diagram](#database-diagram)
 
 ## License
 
@@ -149,7 +150,7 @@ coverage run ./manage.py test
     * `./manage.py migrate` - Migrates the database to the latest version
     
 
-## Database Diagram
+## Database diagram
 
 ![Database Schema Diagram](docs/database_diagram.png)
 
