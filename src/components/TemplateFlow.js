@@ -43,7 +43,7 @@ const UploadStep = ({action, onChangeFile}) => (
         <Upload
           name="template"
           multiple={false}
-          accept={getExtension(action.template)}
+          accept=".xlsx,.csv"
           beforeUpload={file => { onChangeFile(file); return false }}
           fileList={[]}
         >
@@ -209,8 +209,3 @@ TemplateFlow.propTypes = {
 };
 
 export default TemplateFlow;
-
-
-function getExtension(filepath) {
-  return filepath.slice(filepath.lastIndexOf('.'))
-}
