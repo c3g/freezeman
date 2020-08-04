@@ -11,7 +11,7 @@ import {ArrowRightOutlined, CloseOutlined, UploadOutlined} from "@ant-design/ico
 
 const nop = () => {};
 
-const UploadStep = ({onCancel, onNext}) => (
+const UploadStep = ({onCancel = nop, onNext = nop}) => (
   <Form layout="vertical">
     <Form.Item label="Filled-Out Template" name="template_upload">
       <Upload name="template">
@@ -19,11 +19,11 @@ const UploadStep = ({onCancel, onNext}) => (
       </Upload>
     </Form.Item>
     <Form.Item>
-      <Button onClick={() => (onCancel || nop)()} style={{marginRight: "8px"}}>
+      <Button onClick={onCancel} style={{marginRight: "8px"}}>
         <CloseOutlined />
         Cancel
       </Button>
-      <Button type="primary" onClick={() => (onNext || nop)()}>
+      <Button type="primary" onClick={onNext}>
         Next
         <ArrowRightOutlined />
       </Button>
