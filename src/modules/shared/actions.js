@@ -9,6 +9,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
 
     if (!getState().auth.tokens.access) return;
 
+    // Higher priority
     await Promise.all([
         Containers.listKinds,
         Containers.list,
@@ -17,6 +18,12 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.list,
         Samples.summary,
         Users.list,
+    ].map(a => dispatch(a())))
+
+    // Lower priority
+    await Promise.all([
+        Containers.listTemplateActions,
+        Samples.listTemplateActions,
     ].map(a => dispatch(a())))
 }
 

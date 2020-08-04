@@ -8,59 +8,64 @@ import "antd/es/button/style/css";
 
 import {DownloadOutlined} from "@ant-design/icons";
 
-import CONTAINERS from "../modules/containers/actions";
-import SAMPLES from "../modules/samples/actions";
-
+import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
 import TemplateFlow from "./TemplateFlow";
 
-const ActionContent = ({templateType, templates, listActions}) => {
+const LOADING_ACTION = {
+  name: 'Loading...',
+  description: 'Loading...',
+  template: 'loading.xlsx',
+}
+
+const checkRequests = {
+  sample:    api.samples.template.check,
+  container: api.containers.template.check,
+}
+
+const ActionContent = ({token, templateType, templateActions}) => {
   const history = useHistory();
   const match = useRouteMatch();
 
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listActions[templateType]();
-  }, [templateType]);
+  const actionIndex = parseInt(match.params.action, 10) || 0;
+  const actions = templateActions[templateType];
+  const checkRequest = withToken(token, checkRequests[templateType]);
 
-  // TODO: Memoize this stuff
-  const action = parseInt(match.params.action, 10) || 0;
-  const actionsObj = templates[templateType] || {};
-  const {name, description, template} = actionsObj.items[action] || {};
-
-  // TODO: isFetching
-  // TODO: Not found
+  const action =
+    actions.items[actionIndex] || LOADING_ACTION;
 
   return <>
-    {/* TODO: Navigate back */}
-    <AppPageHeader title={name}
-                   onBack={history.goBack}
-                   extra={<Button onClick={() => window.location = template}>
-                     <DownloadOutlined /> Download Template
-                   </Button>} />
+    <AppPageHeader
+      title={action.name}
+      onBack={history.goBack}
+      extra={
+        <Button onClick={() => window.location = action.template}>
+          <DownloadOutlined /> Download Template
+        </Button>
+      }
+    />
     <PageContent>
-      <TemplateFlow uploadText={description} />
+      <TemplateFlow
+        action={action}
+        actionIndex={actionIndex}
+        templateType={templateType}
+        checkRequest={checkRequest}
+      />
     </PageContent>
   </>;
 };
 
 const mapStateToProps = state => ({
-  templates: {
+  token: state.auth.tokens.access,
+  templateActions: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
   },
-});
-
-const mapDispatchToProps = dispatch => ({
-  listActions: {
-    container: () => dispatch(CONTAINERS.listTemplateActions()),
-    sample: () => dispatch(SAMPLES.listTemplateActions()),
-  }
 });
 
 ActionContent.propTypes = {
   templateType: PropTypes.oneOf(["container", "sample"]).isRequired,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ActionContent);
+export default connect(mapStateToProps)(ActionContent);

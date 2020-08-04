@@ -1,4 +1,3 @@
-import fetch from "cross-fetch";
 import { stringify as qs } from "querystring";
 
 import {API_BASE_PATH} from "../config";
@@ -58,19 +57,34 @@ const api = {
 
 export default api;
 
+export function withToken(token, fn) {
+  return (...args) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
+}
+
 
 function apiFetch(method, route, body) {
   return (_, getState) => {
 
     const accessToken = getState().auth.tokens.access;
 
+    const headers = {}
+
+    if (accessToken)
+      headers["authorization"] = `Bearer ${accessToken}`
+
+    if (!isFormData(body) && isObject(body))
+      headers["content-type"] = "application/json"
+
     return fetch(`${API_BASE_PATH}${route}`, {
       method,
-      headers: {
-          "content-type": "application/json",
-          "authorization": accessToken ? `Bearer ${accessToken}` : undefined,
-      },
-      body: body === undefined ? body : JSON.stringify(body),
+      headers,
+      credentials: 'omit',
+      body:
+        isFormData(body) ?
+          body :
+        isObject(body) ?
+          JSON.stringify(body) :
+          undefined,
     })
     .then(attachJSON)
     .then(response => {
@@ -133,4 +147,12 @@ function form(params) {
     formData.append(key, value)
   }
   return formData
+}
+
+function isObject(object) {
+  return object !== null && typeof object === 'object'
+}
+
+function isFormData(object) {
+  return object instanceof FormData
 }
