@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
@@ -97,7 +99,7 @@ class TemplateActionsMixin:
     def template_check(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest({"message": action_data})
+            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -125,7 +127,7 @@ class TemplateActionsMixin:
     def template_submit(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest({"message": action_data})
+            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -133,7 +135,9 @@ class TemplateActionsMixin:
         result = resource_instance.import_data(dataset)
 
         if result.has_errors() or result.has_validation_errors():
-            return HttpResponseBadRequest()
+            # TODO: Better message
+            return HttpResponseBadRequest(json.dumps({"message": "Template errors encountered in submission"}),
+                                          content_type="application/json")
 
         return Response(status=204)
 
