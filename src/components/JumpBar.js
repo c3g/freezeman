@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory} from "react-router-dom";
@@ -29,6 +29,10 @@ const tagStyle = {
   height: '20px',
 }
 
+
+let lastItems = loadLastItems()
+
+
 const mapStateToProps = state => ({
   isFetching: state.query.isFetching,
   items: state.query.items,
@@ -37,17 +41,24 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch =>
   bindActionCreators({clear, search}, dispatch);
 
+
 const JumpBar = ({items, isFetching, clear, search}) => {
+  const [value, setValue] = useState('');
   const history = useHistory();
 
   const onChange = value => {
     const [type, ...parts] = value.split('_')
     const id = parts.join('_')
     const path = getPath(type, id)
+    const item = items.find(i => i.type === type && String(i.item.id) === String(id))
+    setValue('')
+    pushItem(item)
     history.push(path)
   }
 
   const onSearch = value => {
+    setValue(value)
+
     if (value)
       search(value);
     else
@@ -66,7 +77,7 @@ const JumpBar = ({items, isFetching, clear, search}) => {
       onChange={onChange}
       onSearch={onSearch}
     >
-      {items.map(renderItem)}
+      {(value === '' ? lastItems : items).map(renderItem)}
     </Select>
   </>;
 };
@@ -145,5 +156,18 @@ function renderUser(user) {
   );
 }
 
+function loadLastItems() {
+  try {
+    if (localStorage['JumpBar__lastItems'])
+      return JSON.parse(localStorage['JumpBar__lastItems'])
+  } catch (e) {}
+  return []
+}
+
+function pushItem(item) {
+  lastItems.unshift(item)
+  lastItems = lastItems.slice(0, 10)
+  localStorage['JumpBar__lastItems'] = JSON.stringify(lastItems)
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(JumpBar);
