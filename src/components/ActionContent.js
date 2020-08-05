@@ -8,6 +8,7 @@ import "antd/es/button/style/css";
 
 import {DownloadOutlined} from "@ant-design/icons";
 
+import {fetchAuthorizedData} from "../modules/shared/actions";
 import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
@@ -24,6 +25,11 @@ const checkRequests = {
   container: api.containers.template.check,
 }
 
+const submitRequests = {
+  sample:    api.samples.template.submit,
+  container: api.containers.template.submit,
+}
+
 const ActionContent = ({token, templateType, templateActions}) => {
   const history = useHistory();
   const match = useRouteMatch();
@@ -31,6 +37,10 @@ const ActionContent = ({token, templateType, templateActions}) => {
   const actionIndex = parseInt(match.params.action, 10) || 0;
   const actions = templateActions[templateType];
   const checkRequest = withToken(token, checkRequests[templateType]);
+  const submitRequest = withToken(token, submitRequests[templateType]);
+  const goBack = () => {
+    history.goBack()
+  }
 
   const action =
     actions.items[actionIndex] || LOADING_ACTION;
@@ -38,7 +48,7 @@ const ActionContent = ({token, templateType, templateActions}) => {
   return <>
     <AppPageHeader
       title={action.name}
-      onBack={history.goBack}
+      onBack={goBack}
       extra={
         <Button onClick={() => window.location = action.template}>
           <DownloadOutlined /> Download Template
@@ -51,6 +61,8 @@ const ActionContent = ({token, templateType, templateActions}) => {
         actionIndex={actionIndex}
         templateType={templateType}
         checkRequest={checkRequest}
+        submitRequest={submitRequest}
+        goBack={goBack}
       />
     </PageContent>
   </>;
@@ -64,8 +76,12 @@ const mapStateToProps = state => ({
   },
 });
 
+const mapDispatchToProps = dispatch => ({
+  fetchAuthorizedData: () => dispatch(fetchAuthorizedData),
+})
+
 ActionContent.propTypes = {
   templateType: PropTypes.oneOf(["container", "sample"]).isRequired,
 };
 
-export default connect(mapStateToProps)(ActionContent);
+export default connect(mapStateToProps, mapDispatchToProps)(ActionContent);

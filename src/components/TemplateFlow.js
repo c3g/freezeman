@@ -10,20 +10,25 @@ import "antd/es/upload/style/css";
 import "antd/es/row/style/css";
 import "antd/es/col/style/css";
 
-import {ArrowRightOutlined, ArrowLeftOutlined, UploadOutlined} from "@ant-design/icons";
+import {
+  ArrowRightOutlined,
+  ArrowLeftOutlined,
+  CheckOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
 
 
-function renderResult(result) {
-  if (result.error)
+function renderResult(checkResult) {
+  if (checkResult.error)
     return (
       <pre>
-        {result.error.message}
+        {checkResult.error.message}
       </pre>
     )
 
   const errors = []
 
-  result.rows.forEach((row, index) => {
+  checkResult.rows.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
@@ -56,7 +61,7 @@ const UploadStep = ({action, onChangeFile}) => (
   </Form>
 );
 
-const ReviewStep = ({action, actionIndex, isChecking, isChecked, result}) => (
+const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) => (
   <div>
     {isChecking &&
       <Alert
@@ -66,13 +71,13 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, result}) => (
         showIcon
       />
     }
-    {isChecked && result.valid &&
+    {isChecked && checkResult.valid &&
       <Alert
         message="Template validated"
         description={
           <>
-            No errors were found while validating your template.
-            {result.rows.length} row(s) found
+            No errors were found while validating your template:
+            {checkResult.rows.length} row(s) found
           </>
 
         }
@@ -80,15 +85,15 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, result}) => (
         showIcon
       />
     }
-    {isChecked && !result.valid &&
+    {isChecked && !checkResult.valid &&
       <Alert
         message="Template validated"
         description={
           <>
             <p>
-              Errors were found while validating your template.
+              Errors were found while validating your template :(
             </p>
-            {renderResult(result)}
+            {renderResult(checkResult)}
           </>
         }
         type="error"
@@ -98,8 +103,45 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, result}) => (
   </div>
 );
 
-const ConfirmationStep = () => (
-  <div />
+const ConfirmationStep = ({isSubmitting, isSubmitted, submitResult}) => (
+  <div>
+    {isSubmitting &&
+      <Alert
+        message="Submitting..."
+        description="Please wait while we submit your template..."
+        type="warning"
+        showIcon
+      />
+    }
+    {isSubmitted && submitResult.valid &&
+      <Alert
+        message="Template submitted"
+        description={
+          <>
+            Your template was submitted succesfully :)
+          </>
+
+        }
+        type="success"
+        showIcon
+      />
+    }
+    {isSubmitted && !submitResult.valid &&
+      <Alert
+        message="Template submitted"
+        description={
+          <>
+            <p>
+              Errors were found while submitting your template :(
+            </p>
+            {renderResult(submitResult)}
+          </>
+        }
+        type="error"
+        showIcon
+      />
+    }
+  </div>
 );
 
 const STEPS = [
@@ -119,25 +161,31 @@ const STEPS = [
     content: ConfirmationStep,
   },
 ]
+STEPS.UPLOAD  = 0
+STEPS.REVIEW  = 1
+STEPS.CONFIRM = 2
 
 const TemplateFlow = (props) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [result, setResult] = useState(null);
+  const [checkResult, setCheckResult] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitResult, setSubmitResult] = useState(null);
 
-  const {action, actionIndex, checkRequest} = props;
+  const {action, actionIndex, checkRequest, submitRequest, goBack} = props;
   const StepContent = STEPS[step].content;
 
   if (file && !isChecked && !isChecking) {
     setIsChecking(true)
     checkRequest(actionIndex, file)
     .then(response => {
-      setResult(response.data)
+      setCheckResult(response.data)
     })
     .catch(error => {
-      setResult({
+      setCheckResult({
         valid: false,
         error,
       })
@@ -155,6 +203,25 @@ const TemplateFlow = (props) => {
     setStep(step + 1)
   }
 
+  const onSubmit = () => {
+    setIsSubmitting(true)
+    submitRequest(actionIndex, file)
+    .then(response => {
+      setSubmitResult({ valid: true })
+    })
+    .catch(error => {
+      setSubmitResult({
+        valid: false,
+        error,
+      })
+    })
+    .then(() => {
+      setIsSubmitted(true)
+      setIsSubmitting(false)
+    })
+    setStep(step + 1)
+  }
+
   return <>
     <Steps current={step}>
       {STEPS.map((s, i) =>
@@ -169,9 +236,12 @@ const TemplateFlow = (props) => {
     <div style={{padding: "24px 0", minHeight: "150px"}}>
       <StepContent
         file={file}
-        result={result}
         isChecked={isChecked}
         isChecking={isChecking}
+        checkResult={checkResult}
+        isSubmitted={isSubmitted}
+        isSubmitting={isSubmitting}
+        submitResult={submitResult}
         onChangeFile={onChangeFile}
         {...props}
       />
@@ -188,17 +258,38 @@ const TemplateFlow = (props) => {
       </Col>
       <Col flex="1"></Col>
       <Col>
-        <Button
-          type="primary"
-          disabled={
-            step === STEPS.length - 1 ||
-            (step === 0 && !file) ||
-            (step === 1 && (!result || !result.valid))
-          }
-          onClick={() => setStep(step + 1)}
-        >
-          Next <ArrowRightOutlined />
-        </Button>
+        {
+          step === STEPS.UPLOAD &&
+            <Button
+              type="primary"
+              disabled={
+                step === STEPS.length - 1 ||
+                (step === STEPS.UPLOAD && !file)
+              }
+              onClick={() => setStep(step + 1)}
+            >
+              Next <ArrowRightOutlined />
+            </Button>
+        }
+        {
+          step === STEPS.REVIEW &&
+            <Button
+              type="primary"
+              disabled={false}
+              onClick={onSubmit}
+            >
+              <CheckOutlined /> Submit
+            </Button>
+        }
+        {
+          step === STEPS.CONFIRM &&
+            <Button
+              type="primary"
+              onClick={goBack}
+            >
+              <CheckOutlined /> Go Back to Containers
+            </Button>
+        }
       </Col>
     </Row>
   </>;
