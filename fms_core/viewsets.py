@@ -210,26 +210,17 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     @action(detail=True, methods=["get"])
     def list_parents(self, _request, pk=None):
         containers = []
-        current = Container.objects.get(pk=pk)
-        try:
-            current = Container.objects.get(pk=current.location_id)
-        except Container.DoesNotExist:
-            current = None
+        current = Container.objects.get(pk=pk).location
         while current:
             containers.append(current)
-            try:
-                current = Container.objects.get(pk=current.location_id)
-            except Container.DoesNotExist:
-                current = None
+            current = current.location
         containers.reverse()
         serializer = self.get_serializer(containers, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
     def list_samples(self, _request, pk=None):
-        container = Container.objects.get(pk=pk)
-        samples_id = self.get_serializer(container).data["samples"]
-        samples = Sample.objects.filter(pk__in=samples_id)
+        samples = Container.objects.get(pk=pk).samples
         serializer = SampleSerializer(samples, many=True)
         return Response(serializer.data)
 
