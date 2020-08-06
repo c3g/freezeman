@@ -65,7 +65,7 @@ class ContainerKindViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         if pk in CONTAINER_KIND_SPECS:
             return Response(data=CONTAINER_KIND_SPECS[pk].serialize())
-        return HttpResponseNotFound(json.dumps({"message": f"Could not find container kind '{pk}'"}),
+        return HttpResponseNotFound(json.dumps({"detail": f"Could not find container kind '{pk}'"}),
                                     content_type="application/json")
 
 
@@ -107,7 +107,7 @@ class TemplateActionsMixin:
     def template_check(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
+            return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -135,7 +135,7 @@ class TemplateActionsMixin:
     def template_submit(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
+            return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -144,7 +144,7 @@ class TemplateActionsMixin:
 
         if result.has_errors() or result.has_validation_errors():
             # TODO: Better message
-            return HttpResponseBadRequest(json.dumps({"message": "Template errors encountered in submission"}),
+            return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                           content_type="application/json")
 
         return Response(status=204)
