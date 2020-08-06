@@ -7,8 +7,10 @@ from .models import Container, Sample, Individual
 
 __all__ = [
     "ContainerSerializer",
-    "SampleSerializer",
+    "SimpleContainerSerializer",
     "IndividualSerializer",
+    "SampleSerializer",
+    "NestedSampleSerializer",
     "VersionSerializer",
     "UserSerializer",
 ]
@@ -23,15 +25,31 @@ class ContainerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class SampleSerializer(serializers.ModelSerializer):
+class SimpleContainerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Sample
+        model = Container
         fields = "__all__"
 
 
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = Individual
+        fields = "__all__"
+
+
+class SampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = "__all__"
+
+
+class NestedSampleSerializer(serializers.ModelSerializer):
+    # Serialize individual and container objects; don't allow posting new individuals/containers as objects
+    individual = IndividualSerializer(read_only=True)
+    container = SimpleContainerSerializer(read_only=True)
+
+    class Meta:
+        model = Sample
         fields = "__all__"
 
 

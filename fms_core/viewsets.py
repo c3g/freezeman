@@ -20,7 +20,14 @@ from .resources import (
     SampleResource,
     SampleUpdateResource,
 )
-from .serializers import ContainerSerializer, SampleSerializer, IndividualSerializer, VersionSerializer, UserSerializer
+from .serializers import (
+    ContainerSerializer,
+    SampleSerializer,
+    NestedSampleSerializer,
+    IndividualSerializer,
+    VersionSerializer,
+    UserSerializer,
+)
 from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
     CONTAINER_MOVE_TEMPLATE,
@@ -144,9 +151,18 @@ class TemplateActionsMixin:
 
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Container.objects.all().prefetch_related("children", "samples")
+    queryset = Container.objects.all().prefetch_related("location", "children", "samples")
     serializer_class = ContainerSerializer
-    filterset_fields = ["location"]
+    filterset_fields = [
+        "kind",
+        "coordinates",
+
+        # Location fields
+        "location",
+        "location__kind",
+        "location__coordinates",
+        "location__location",
+    ]
 
     template_action_list = [
         {
@@ -224,12 +240,35 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Sample.objects.all()
-    serializer_class = SampleSerializer
+    queryset = Sample.objects.all().select_related("individual", "container")
+
     filterset_fields = [
         "biospecimen_type",
+        "concentration",
         "depleted",
+        "collection_site",
         "tissue_source",
+        "reception_date",
+        "coordinates",
+
+        # Extraction-specific
+        "extracted_from",
+        "volume_used",
+
+        # Fields on container
+        "container",  # PK
+        "container__kind",
+        "container__coordinates",
+        "container__location",
+
+        # Fields on individual
+        "individual",  # PK
+        "individual__taxon",
+        "individual__sex",
+        "individual__pedigree",
+        "individual__cohort",
+        "individual__mother",
+        "individual__father",
     ]
 
     template_action_list = [
@@ -253,6 +292,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         }
     ]
 
+    def get_serializer_class(self):
+        nested = self.request.query_params.get("nested", False)
+        if nested:
+            return NestedSampleSerializer
+        return SampleSerializer
+
     @action(detail=False, methods=["get"])
     def summary(self, _request):
         return Response({
@@ -274,6 +319,8 @@ class IndividualViewSet(viewsets.ModelViewSet):
         "sex",
         "pedigree",
         "cohort",
+        "mother",
+        "father",
     ]
 
     # noinspection PyUnusedLocal
