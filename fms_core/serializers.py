@@ -44,9 +44,10 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):
-    # Serialize individual and container objects; don't allow posting new individuals/containers as objects
+    # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)
+    extracted_from = SampleSerializer(read_only=True)
 
     class Meta:
         model = Sample
