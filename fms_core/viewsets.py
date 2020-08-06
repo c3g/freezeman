@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.models import User
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
@@ -56,7 +58,8 @@ class ContainerKindViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         if pk in CONTAINER_KIND_SPECS:
             return Response(data=CONTAINER_KIND_SPECS[pk].serialize())
-        return HttpResponseNotFound()
+        return HttpResponseNotFound(json.dumps({"message": f"Could not find container kind '{pk}'"}),
+                                    content_type="application/json")
 
 
 class TemplateActionsMixin:
@@ -97,7 +100,7 @@ class TemplateActionsMixin:
     def template_check(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest({"message": action_data})
+            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -125,7 +128,7 @@ class TemplateActionsMixin:
     def template_submit(self, request):
         error, action_data = self._get_action(request)
         if error:
-            return HttpResponseBadRequest({"message": action_data})
+            return HttpResponseBadRequest(json.dumps({"message": action_data}), content_type="application/json")
 
         action_def, dataset = action_data
 
@@ -133,7 +136,9 @@ class TemplateActionsMixin:
         result = resource_instance.import_data(dataset)
 
         if result.has_errors() or result.has_validation_errors():
-            return HttpResponseBadRequest()
+            # TODO: Better message
+            return HttpResponseBadRequest(json.dumps({"message": "Template errors encountered in submission"}),
+                                          content_type="application/json")
 
         return Response(status=204)
 
