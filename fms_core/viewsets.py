@@ -58,7 +58,8 @@ class ContainerKindViewSet(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
         if pk in CONTAINER_KIND_SPECS:
             return Response(data=CONTAINER_KIND_SPECS[pk].serialize())
-        return HttpResponseNotFound()
+        return HttpResponseNotFound(json.dumps({"message": f"Could not find container kind '{pk}'"}),
+                                    content_type="application/json")
 
 
 class TemplateActionsMixin:
