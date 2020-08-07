@@ -4,7 +4,6 @@ import uuid
 
 from decimal import Decimal
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
@@ -229,8 +228,8 @@ class Sample(models.Model):
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey('Individual', on_delete=models.PROTECT, help_text="Individual associated "
                                                                                      "with the sample.")
-    volume_history = JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
-                               help_text="Volume of the sample in µL.")
+    volume_history = models.JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
+                                      help_text="Volume of the sample in µL.")
 
     # Concentration is REQUIRED if biospecimen_type in {DNA, RNA}.
     concentration = models.DecimalField(
@@ -244,10 +243,10 @@ class Sample(models.Model):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = JSONField(blank=True, default=list,
-                                   validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
-                                   help_text="Sample group having some common characteristics. "
-                                             "It is the way to designate a subgroup within a study.")
+    experimental_group = models.JSONField(blank=True, default=list,
+                                          validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
+                                          help_text="Sample group having some common characteristics. "
+                                                    "It is the way to designate a subgroup within a study.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
                                                                  "of samples.")
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
