@@ -112,7 +112,7 @@ class TemplateActionsMixin:
         action_def, dataset = action_data
 
         resource_instance = action_def["resource"]()
-        result = resource_instance.import_data(dataset, collect_failed_rows=True, dry_run=True)
+        result = resource_instance.import_data(dataset, dry_run=True)
 
         return Response({
             "valid": not (result.has_errors() or result.has_validation_errors()),
