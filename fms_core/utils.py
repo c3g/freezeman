@@ -3,6 +3,7 @@ import unicodedata
 
 from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 from typing import Optional, Union
 
 
@@ -11,7 +12,10 @@ __all__ = [
     "RE_WHITESPACE",
 
     "blank_str_to_none",
+
+    "VolumeHistoryUpdateType",
     "create_volume_history",
+
     "check_truth_like",
     "normalize_scientific_name",
     "float_to_decimal",
@@ -29,9 +33,16 @@ def blank_str_to_none(s):
     return None if s == "" else s
 
 
-def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[int] = None):
+class VolumeHistoryUpdateType(Enum):
+    UPDATE = "update"
+    EXTRACTION = "extraction"
+
+
+def create_volume_history(update_type: VolumeHistoryUpdateType,
+                          volume_value: str,
+                          extracted_sample_id: Optional[int] = None):
     return {
-        "update_type": update_type,
+        "update_type": update_type.value,
         "volume_value": str(Decimal(volume_value)),
         "date": datetime.utcnow().isoformat() + "Z",
         **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id is not None else {})

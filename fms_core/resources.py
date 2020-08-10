@@ -21,6 +21,7 @@ from .models import Container, Sample, Individual
 from .utils import (
     RE_SEPARATOR,
     blank_str_to_none,
+    VolumeHistoryUpdateType,
     create_volume_history,
     check_truth_like,
     float_to_decimal,
@@ -259,7 +260,10 @@ class SampleResource(GenericResource):
         vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
 
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-        obj.volume_history = [create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else "")]
+        obj.volume_history = [create_volume_history(
+            VolumeHistoryUpdateType.UPDATE,
+            str(float_to_decimal(vol)) if vol is not None else ""
+        )]
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below
@@ -398,9 +402,10 @@ class ExtractionResource(GenericResource):
             # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
             # In this case we are initializing the volume history of the EXTRACTED sample.
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
-            obj.volume_history = [
-                create_volume_history("update", str(float_to_decimal(vol)) if vol is not None else ""),
-            ]
+            obj.volume_history = [create_volume_history(
+                VolumeHistoryUpdateType.UPDATE,
+                str(float_to_decimal(vol)) if vol is not None else ""
+            )]
             return
 
         if field.attribute == 'extracted_from':
@@ -409,6 +414,7 @@ class ExtractionResource(GenericResource):
                 coordinates=get_normalized_str(data, "Location Coord"),
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
+            # TODO: TEST IF THIS ACTUALLY WORKS
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
                                            check_truth_like(get_normalized_str(data, "Source Depleted")))
             return
@@ -479,11 +485,14 @@ class ExtractionResource(GenericResource):
         instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
             instance.extracted_from.biospecimen_type, "")
 
+        super().before_save_instance(instance, using_transactions, dry_run)
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
         # Update volume and depletion status of original
         instance.extracted_from.volume_history.append(create_volume_history(
-            "extraction",
+            VolumeHistoryUpdateType.EXTRACTION,
             instance.extracted_from.volume - instance.volume_used,
-            instance.extracted_from.id
+            instance.id
         ))
 
         instance.extracted_from.update_comment = f"Extracted sample (imported from template) consumed " \
@@ -491,9 +500,6 @@ class ExtractionResource(GenericResource):
 
         instance.extracted_from.save()
 
-        super().before_save_instance(instance, using_transactions, dry_run)
-
-    def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported extracted samples from template.")
 
@@ -697,7 +703,10 @@ class SampleUpdateResource(GenericResource):
                 #       synthetic "id" column created above throws a DoesNotExist error.
                 if not obj.volume_history:
                     obj.volume_history = []
-                obj.volume_history.append(create_volume_history("update", str(float_to_decimal(vol))))
+                obj.volume_history.append(create_volume_history(
+                    VolumeHistoryUpdateType.UPDATE,
+                    str(float_to_decimal(vol))
+                ))
             return
 
         if field.attribute == 'depleted':
