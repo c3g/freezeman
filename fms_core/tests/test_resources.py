@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from pathlib import Path
+from reversion.models import Version
 from tablib import Dataset
 
 from ..models import Container, Sample, ExtractedSample
@@ -55,12 +56,32 @@ class ResourcesTestCase(TestCase):
         self.mr = ContainerMoveResource()
         self.rr = ContainerRenameResource()
 
-    def load_samples(self):
-        with reversion.create_revision(manage_manually=True), open(CONTAINERS_CSV) as cf, open(SAMPLES_CSV) as sf:
+    def load_containers(self):
+        with reversion.create_revision(), open(CONTAINERS_CSV) as cf:
             c = Dataset().load(cf.read())
             self.cr.import_data(c, raise_errors=True)
+
+            reversion.set_comment("Loaded containers")
+
+    def load_samples(self):
+        self.load_containers()
+
+        with reversion.create_revision(), open(SAMPLES_CSV) as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
+
+            reversion.set_comment("Loaded samples")
+
+    def load_extractions(self):
+        with reversion.create_revision(), open(EXTRACTIONS_CSV) as ef:
+            e = Dataset().load(ef.read())
+            self.er.import_data(e, raise_errors=True)
+
+            reversion.set_comment("Loaded extractions")
+
+    def load_samples_extractions(self):
+        self.load_samples()
+        self.load_extractions()
 
     def test_skip_rows(self):
         ds = get_ds()
@@ -73,85 +94,136 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(ds.export("csv").replace("\r", ""), CSV_1)
 
     def test_container_import(self):
-        with reversion.create_revision(manage_manually=True), open(CONTAINERS_CSV) as cf:
-            ds = Dataset().load(cf.read())
-            self.cr.import_data(ds, raise_errors=True)
-            self.assertEqual(len(Container.objects.all()), 5)
+        self.load_containers()
+        self.assertEqual(len(Container.objects.all()), 5)
 
     def test_sample_import(self):
-        with reversion.create_revision(manage_manually=True):
-            self.load_samples()
-            self.assertEqual(len(Sample.objects.all()), 3)
+        self.load_samples()
+        self.assertEqual(len(Sample.objects.all()), 3)
 
     def test_sample_extraction_import(self):
-        with reversion.create_revision(manage_manually=True), open(EXTRACTIONS_CSV) as ef:
-            self.load_samples()
+        self.load_samples_extractions()
 
-            e = Dataset().load(ef.read())
-            self.er.import_data(e, raise_errors=True)
+        self.assertEqual(len(Sample.objects.all()), 5)
+        self.assertEqual(len(ExtractedSample.objects.all()), 2)
 
-            self.assertEqual(len(Sample.objects.all()), 5)
-            self.assertEqual(len(ExtractedSample.objects.all()), 2)
+    def test_sample_extracted_from_version_count(self):
+        self.load_samples()
 
-            s = Sample.objects.get(container__barcode="tube003")
-            self.assertEqual(s.extracted_from.update_comment,
-                             "Extracted sample (imported from template) consumed 1.000 µL.")
+        s = Sample.objects.get(container__barcode="tube001")
+        vs = Version.objects.filter(object_id=str(s.id), content_type__model="sample").count()
+        self.assertEqual(vs, 1)
+
+        self.load_extractions()
+
+        vs = Version.objects.filter(object_id=str(s.id), content_type__model="sample").count()
+        self.assertEqual(vs, 2)
+
+    def test_first_sample_extraction_import(self):
+        self.load_samples_extractions()
+
+        # Test first extraction
+        s = Sample.objects.get(container__barcode="tube003")
+        self.assertEqual(s.extracted_from.update_comment,
+                         "Extracted sample (imported from template) consumed 1.000 µL.")
+        self.assertListEqual(s.extracted_from.volume_history, [
+            {
+                "update_type": "update",
+                "volume_value": "10.000",
+                "date": s.extracted_from.volume_history[0]["date"],
+            },
+            {
+                "update_type": "extraction",
+                "volume_value": "9.000",
+                "date": s.extracted_from.volume_history[1]["date"],
+                "extracted_sample_id": s.id,
+            },
+        ])
+        self.assertFalse(s.extracted_from.depleted)
+
+    def test_second_sample_extraction_import(self):
+        self.load_samples_extractions()
+
+        # Test second extraction
+        s = Sample.objects.get(container__barcode="tube004")
+        self.assertEqual(s.extracted_from.update_comment,
+                         "Extracted sample (imported from template) consumed 15.000 µL.")
+        self.assertListEqual(s.extracted_from.volume_history, [
+            {
+                "update_type": "update",
+                "volume_value": "15.000",
+                "date": s.extracted_from.volume_history[0]["date"],
+            },
+            {
+                "update_type": "extraction",
+                "volume_value": "0.000",
+                "date": s.extracted_from.volume_history[1]["date"],
+                "extracted_sample_id": s.id,
+            },
+        ])
+        self.assertTrue(s.extracted_from.depleted)
 
     def test_sample_update(self):
-        with reversion.create_revision(manage_manually=True), open(SAMPLE_UPDATE_CSV) as uf:
-            self.load_samples()
+        self.load_samples()
+
+        s = Sample.objects.get(container__barcode="tube001")
+        vs = Version.objects.filter(object_id=str(s.id), content_type__model="sample").count()
+        self.assertEqual(vs, 1)
+
+        with reversion.create_revision(), open(SAMPLE_UPDATE_CSV) as uf:
             u = Dataset().load(uf.read())
             self.ur.import_data(u, raise_errors=True)
 
-            s = Sample.objects.get(container__barcode="tube001")
-            self.assertEqual(s.coordinates, "")
-            self.assertEqual(s.concentration, Decimal("0.001"))
-            self.assertEqual(s.comment, "some comment here")
-            self.assertEqual(s.update_comment, "sample updated")
+            reversion.set_comment("Updated samples")
 
-            s = Sample.objects.get(container__barcode="plate001", coordinates="A01")
-            self.assertEqual(s.volume, Decimal("0.1"))
-            self.assertEqual(s.concentration, Decimal("0.2"))
-            self.assertEqual(s.update_comment, "sample 3 updated")
+        s.refresh_from_db()
 
-            # TODO: Test leaving coordinate blank not updating container coordinate
+        self.assertEqual(s.coordinates, "")
+        self.assertEqual(s.concentration, Decimal("0.001"))
+        self.assertEqual(s.comment, "some comment here")
+        self.assertEqual(s.update_comment, "sample updated")
+
+        s = Sample.objects.get(container__barcode="plate001", coordinates="A01")
+        self.assertEqual(s.volume, Decimal("0.1"))
+        self.assertEqual(s.concentration, Decimal("0.2"))
+        self.assertEqual(s.update_comment, "sample 3 updated")
+
+        # TODO: Test leaving coordinate blank not updating container coordinate
 
     def test_container_move(self):
-        with reversion.create_revision(manage_manually=True), \
-                open(CONTAINERS_CSV) as cf, \
-                open(CONTAINER_MOVE_CSV) as mf:
-            c = Dataset().load(cf.read())
-            self.cr.import_data(c, raise_errors=True)
+        self.load_containers()
+
+        with reversion.create_revision(), open(CONTAINER_MOVE_CSV) as mf:
             m = Dataset().load(mf.read())
             self.mr.import_data(m, raise_errors=True)
 
-            ci = Container.objects.get(barcode="tube001")
-            self.assertEqual(ci.location.barcode, "rack001")
-            self.assertEqual(ci.coordinates, "D05")
-            self.assertEqual(ci.update_comment, "sample moved")
+        ci = Container.objects.get(barcode="tube001")
+        self.assertEqual(ci.location.barcode, "rack001")
+        self.assertEqual(ci.coordinates, "D05")
+        self.assertEqual(ci.update_comment, "sample moved")
 
     def test_container_rename(self):
-        with reversion.create_revision(manage_manually=True), open(CONTAINER_RENAME_CSV) as rf:
-            self.load_samples()
+        self.load_samples()
 
+        with reversion.create_revision(), open(CONTAINER_RENAME_CSV) as rf:
             r = Dataset().load(rf.read())
             self.rr.import_data(r, raise_errors=True)
 
-            ci = Container.objects.get(barcode="box0001")
-            self.assertEqual(ci.name, "original_box_2")
-            self.assertEqual(ci.update_comment, "added 0")
+        ci = Container.objects.get(barcode="box0001")
+        self.assertEqual(ci.name, "original_box_2")
+        self.assertEqual(ci.update_comment, "added 0")
 
-            # Samples "swapped" due to rename
+        # Samples "swapped" due to rename
 
-            s = Sample.objects.get(container__barcode="tube001")
-            self.assertEqual(s.name, "sample2")
+        s = Sample.objects.get(container__barcode="tube001")
+        self.assertEqual(s.name, "sample2")
 
-            s = Sample.objects.get(container__barcode="tube002")
-            self.assertEqual(s.name, "sample1")
+        s = Sample.objects.get(container__barcode="tube002")
+        self.assertEqual(s.name, "sample1")
 
-            # Foreign key relationships have been maintained
+        # Foreign key relationships have been maintained
 
-            self.assertEqual(Container.objects.filter(location=ci).count(), 2)
+        self.assertEqual(Container.objects.filter(location=ci).count(), 2)
 
     def _test_invalid_rename_template(self, fh, err=IntegrityError):
         with self.assertRaises(err):
