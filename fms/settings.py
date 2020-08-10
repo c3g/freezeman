@@ -165,6 +165,36 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 MEDIA_URL = '/media/'
 
+
+# django_import_export
+
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
 
+
+# Tests
+
 TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
+
+
+# Logging
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "fms": {
+            "format": "[{asctime}] [{levelname}] {message}",
+            "style": "{",
+        }
+    },
+    "handlers": {
+        "console": {
+            "formatter": "fms",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG" if DEBUG else "WARNING",
+    },
+}
