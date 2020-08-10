@@ -99,7 +99,7 @@ class TemplateActionsMixin:
     @action(detail=False, methods=["get"])
     def template_actions(self, request):
         return Response([
-            dict((k, request.build_absolute_uri(v) if k == "template" else v) for k, v in a.items() if k != "resource")
+            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "resource"}
             for a in self.template_action_list
         ])
 
