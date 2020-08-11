@@ -128,12 +128,10 @@ class SampleResource(GenericResource):
     reception_date = Field(attribute='reception_date', column_name='Reception Date', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
     comment = Field(attribute='comment', column_name='Comment')
-    # FK fields
-    container = Field(attribute='container', column_name='Container Barcode',
-                      widget=ForeignKeyWidget(Container, field='barcode'))
 
     # Computed fields to include in export / display on import
 
+    container_barcode = Field(attribute='container_barcode', column_name='Container Barcode')
     container_kind = Field(attribute='container_kind', column_name='Container Kind')
     container_name = Field(attribute='container_name', column_name='Container Name')
     container_location = Field(attribute='container_location', column_name='Location Barcode')
@@ -162,6 +160,7 @@ class SampleResource(GenericResource):
         "individual_pedigree",
         "individual_mother",
         "individual_father",
+        "container_barcode",
         "container_kind",
         "container_name",
         "container_location",
@@ -170,16 +169,16 @@ class SampleResource(GenericResource):
 
     class Meta:
         model = Sample
-        import_id_fields = ('container',)  # TODO: Should include coordinates too, but missing field???
+        import_id_fields = ('container__barcode', 'context_sensitive_coordinates')
         fields = (
             'biospecimen_type',
             'name',
             'alias',
             'concentration',
             'collection_site',
-            'container',
+            'container__barcode',
         )
-        excluded = ('volume_history', 'individual', 'depleted', )
+        excluded = ('volume_history', 'individual', 'depleted', 'container')
         export_order = (
             'biospecimen_type',
             'name',
@@ -189,7 +188,7 @@ class SampleResource(GenericResource):
             'taxon',
             'container_kind',
             'container_name',
-            'container',
+            'container_barcode',
             'container_location',
             'context_sensitive_coordinates',
             'individual_id',
@@ -270,14 +269,21 @@ class SampleResource(GenericResource):
 
         normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
 
-        if field.attribute == 'container' and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
+        if field.attribute == "container_barcode" and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
             # specifies the sample's location within the container itself. Otherwise, it specifies the location of
             # the container within the parent container. TODO: Ideally this should be tweaked
 
+            location_barcode = get_normalized_str(data, "Location Barcode")
+
             try:
-                container_parent = Container.objects.get(barcode=get_normalized_str(data, "Location Barcode"))
+                container_parent = Container.objects.get(barcode=location_barcode)
             except Container.DoesNotExist:
+                if location_barcode:
+                    # If a parent container barcode was specified, raise a
+                    # better error message detailing what went wrong.
+                    # Otherwise, we assume it was left blank on purpose.
+                    raise Container.DoesNotExist(f"Container with barcode {location_barcode} does not exist")
                 container_parent = None
 
             container_data = dict(
