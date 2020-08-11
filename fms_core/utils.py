@@ -29,6 +29,9 @@ RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
 
 
+TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
+
+
 def blank_str_to_none(s):
     return None if s == "" else s
 
@@ -53,7 +56,7 @@ def check_truth_like(string: str) -> bool:
     """
     Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
     """
-    return str_normalize(string).upper() in ("TRUE", "T", "YES", "Y")
+    return str_normalize(string).upper() in TRUTH_VALUES
 
 
 def float_to_decimal(n: Union[float, str], decimals: int = 3) -> Decimal:
