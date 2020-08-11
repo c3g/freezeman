@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -264,6 +265,10 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response({
             "total_count": Container.objects.all().count(),
             "root_count": Container.objects.filter(location_id__isnull=True).count(),
+            "kind_counts": {
+                c["kind"]: c["kind__count"]
+                for c in Container.objects.values("kind").annotate(Count("kind"))
+            },
         })
 
     @action(detail=False, methods=["get"])
@@ -367,9 +372,25 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):
+        """
+        Returns summary statistics about the current set of samples in the
+        database.
+        """
         return Response({
             "total_count": Sample.objects.all().count(),
             "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
+            "biospecimen_type_counts": {
+                c["biospecimen_type"]: c["biospecimen_type__count"]
+                for c in Sample.objects.values("biospecimen_type").annotate(Count("biospecimen_type"))
+            },
+            "tissue_source_counts": {
+                c["tissue_source"]: c["tissue_source__count"]
+                for c in Sample.objects.values("tissue_source").annotate(Count("tissue_source"))
+            },
+            "collection_site_counts": {
+                c["collection_site"]: c["collection_site__count"]
+                for c in Sample.objects.values("collection_site").annotate(Count("collection_site"))
+            },
         })
 
     # noinspection PyUnusedLocal
