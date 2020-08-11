@@ -395,9 +395,9 @@ class QueryViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def search(self, request):
-        query = request.GET["q"]
+        query = request.GET.get("q")
 
-        if len(query) == 0:
+        if not query:
             return Response([])
 
         def serialize(s) -> dict:
@@ -418,7 +418,7 @@ class QueryViewSet(viewsets.ViewSet):
                 s["type"] = "user"
                 s["item"] = UserSerializer(s["item"]).data
                 return s
-            raise ValueError('unreachable')
+            raise ValueError("unreachable")
 
         def query_and_score(model, selector):
             return [c for c in ({
