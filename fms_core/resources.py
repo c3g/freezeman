@@ -211,14 +211,17 @@ class SampleResource(GenericResource):
     def import_obj(self, obj, data, dry_run):
         super().import_obj(obj, data, dry_run)
 
-        # Sample import can optionally create new individuals in the system; or re-use existing ones.
-
-        mother = None
-        father = None
+        # Sample import can optionally create new individuals in the system;
+        # or re-use existing ones. Along with the individual associated with
+        # the sample, if mother/father IDs are specified, corresponding records
+        # can be created by the system.
 
         taxon = normalize_scientific_name(get_normalized_str(data, "Taxon"))
         pedigree = str_cast_and_normalize(get_normalized_str(data, "Pedigree"))
         cohort = str_cast_and_normalize(get_normalized_str(data, "Cohort"))
+
+        mother = None
+        father = None
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
@@ -251,6 +254,11 @@ class SampleResource(GenericResource):
         )
         obj.individual = individual
 
+        # If we're doing a dry run (i.e. uploading for confirmation) and we're
+        # re-using an individual, create a warning for the front end; it's
+        # quite possible that this is a mistake.
+        # TODO: API-generalized method for doing this (currently not possible for React front-end)
+
         if dry_run and not individual_created:
             request = CrequestMiddleware.get_request()
             messages.warning(request, f"Row {data['#']}: Using existing individual '{individual}' instead of creating "
@@ -270,9 +278,11 @@ class SampleResource(GenericResource):
         normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
 
         if field.attribute == "container_barcode" and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
-            # Oddly enough, Location Coord is contextual - when Container Kind is one with coordinates, this
-            # specifies the sample's location within the container itself. Otherwise, it specifies the location of
-            # the container within the parent container. TODO: Ideally this should be tweaked
+            # Oddly enough, Location Coord is contextual - when Container Kind
+            # is one with coordinates, this specifies the sample's location
+            # within the container itself. Otherwise, it specifies the location
+            # of the container within the parent container.
+            # TODO: Ideally this should be tweaked
 
             location_barcode = get_normalized_str(data, "Location Barcode")
 
@@ -296,15 +306,19 @@ class SampleResource(GenericResource):
             normalized_coords = get_normalized_str(data, "Location Coord")
 
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS_WITH_COORDS:
-                # Case where container itself has a coordinate system; in this case the SAMPLE gets the coordinates.
+                # Case where container itself has a coordinate system; in this
+                # case the SAMPLE gets the coordinates (e.g. with a plate.)
                 obj.coordinates = normalized_coords
             else:
-                # Case where the container gets coordinates within the parent.
+                # Case where the container gets coordinates within the parent
+                # (e.g. a tube in a rack).
                 container_data["coordinates"] = normalized_coords
 
-            # If needed, create a sample-holding container to store the current sample; or retrieve an existing one
-            # with the correct barcode. This will throw an error if the kind specified mismatches with an existing
-            # barcode record in the database, which serves as an ad-hoc additional validation step.
+            # If needed, create a sample-holding container to store the current
+            # sample; or retrieve an existing one with the correct barcode.
+            # This will throw an error if the kind specified mismatches with an
+            # existing barcode record in the database, which serves as an
+            # ad-hoc additional validation step.
 
             container, _ = Container.objects.get_or_create(**container_data)
             obj.container = container
@@ -312,7 +326,10 @@ class SampleResource(GenericResource):
             return
 
         elif field.attribute == "experimental_group":
-            # Experimental group is stored as a JSON array, so parse out what's going on
+            # Experimental group is stored as a JSON array, so parse out what's
+            # going on by splitting the string value into potentially multiple
+            # values. If any value is blank, skip it, since it was either the
+            # "null" value ("" -> []) or an accidental trailing comma/similar.
             data["Experimental Group"] = json.dumps([
                 g.strip()
                 for g in RE_SEPARATOR.split(get_normalized_str(data, "Experimental Group"))
@@ -405,8 +422,10 @@ class ExtractionResource(GenericResource):
             return
 
         if field.attribute == 'volume_history':
-            # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-            # In this case we are initializing the volume history of the EXTRACTED sample.
+            # We store volume as a JSON object of historical values, so this
+            # needs to be initialized in a custom way. In this case we are
+            # initializing the volume history of the EXTRACTED sample, so the
+            # actual history entry is of the "normal" type (UPDATE).
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.UPDATE,
@@ -419,18 +438,23 @@ class ExtractionResource(GenericResource):
                 container__barcode=get_normalized_str(data, "Container Barcode"),
                 coordinates=get_normalized_str(data, "Location Coord"),
             )
-            # Cast the "Source Depleted" cell to a Python Boolean value and update the original sample if needed.
-            # TODO: TEST IF THIS ACTUALLY WORKS
+            # Cast the "Source Depleted" cell to a Python Boolean value and
+            # update the original sample if needed. This is the act of the
+            # extracted sample depleting the original in the process of its
+            # creation.
             obj.extracted_from.depleted = (obj.extracted_from.depleted or
                                            check_truth_like(get_normalized_str(data, "Source Depleted")))
             return
 
         if field.attribute == 'container':
-            # Per Alex: We can make new tube racks (8x12) if needed for extractions
+            # Per Alex: We can make new tube racks (8x12) automatically if
+            # needed for extractions, using the inputted barcode for the new
+            # object.
 
             shared_parent_info = dict(
                 barcode=get_normalized_str(data, "Nucleic Acid Location Barcode"),
-                # TODO: Currently can only extract into tube racks 8x12 - otherwise this logic will fall apart
+                # TODO: Currently can only extract into tube racks 8x12
+                #  - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
             )
 
@@ -441,7 +465,8 @@ class ExtractionResource(GenericResource):
                     **shared_parent_info,
                     # Below is creation-specific data
                     # Leave coordinates blank if creating
-                    # Per Alex: Container name = container barcode if we auto-generate the container
+                    # Per Alex: Container name = container barcode if we
+                    #           auto-generate the container
                     name=shared_parent_info["barcode"],
                     comment=f"Automatically generated via extraction template import on "
                             f"{datetime.utcnow().isoformat()}Z"
@@ -449,10 +474,14 @@ class ExtractionResource(GenericResource):
 
             # Per Alex: We can make new tubes if needed for extractions
 
-            # Information that can be used to either retrieve or create a new tube container
+            # Information that can be used to either retrieve or create a new
+            # tube container. It is of type tube specifically because, as
+            # mentioned above, extractions currently only occur into 8x12 tube
+            # racks.
             shared_container_info = dict(
                 barcode=get_normalized_str(data, "Nucleic Acid Container Barcode"),
-                # TODO: Currently can only extract into tubes - otherwise this logic will fall apart
+                # TODO: Currently can only extract into tubes
+                #  - otherwise this logic will fall apart
                 kind=CONTAINER_SPEC_TUBE.container_kind_id,
                 location=parent,
                 coordinates=get_normalized_str(data, "Nucleic Acid Location Coord"),
@@ -464,7 +493,8 @@ class ExtractionResource(GenericResource):
                 obj.container = Container.objects.create(
                     **shared_container_info,
                     # Below is creation-specific data
-                    # Per Alex: Container name = container barcode if we auto-generate the container
+                    # Per Alex: Container name = container barcode if we
+                    #           auto-generate the container
                     name=shared_container_info["barcode"],
                     comment=f"Automatically generated via extraction template import on "
                             f"{datetime.utcnow().isoformat()}Z"
@@ -494,7 +524,9 @@ class ExtractionResource(GenericResource):
         super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
-        # Update volume and depletion status of original
+        # Update volume and depletion status of original sample, thus recording
+        # that the volume was reduced by an extraction process, including an ID
+        # to refer back to the extracted sample.
         instance.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.EXTRACTION,
             instance.extracted_from.volume - instance.volume_used,
@@ -705,8 +737,9 @@ class SampleUpdateResource(GenericResource):
             # Manually process volume history and don't call superclass method
             vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
             if vol is not None:  # Only update volume if we got a value
-                # Note: Volume history should never be None, but this prevents a bunch of cascading tracebacks if the
-                #       synthetic "id" column created above throws a DoesNotExist error.
+                # Note: Volume history should never be None, but this prevents
+                #       a bunch of cascading tracebacks if the synthetic "id"
+                #       column created above throws a DoesNotExist error.
                 if not obj.volume_history:
                     obj.volume_history = []
                 obj.volume_history.append(create_volume_history(
