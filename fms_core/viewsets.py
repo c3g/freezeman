@@ -52,6 +52,7 @@ FREE_TEXT_FILTERS = ["contains", "icontains"]
 CATEGORICAL_FILTERS = ["exact", "in"]
 CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
 FK_FILTERS = CATEGORICAL_FILTERS
+PK_FILTERS = ["in"]
 NULLABLE_FK_FILTERS = [*FK_FILTERS, "isnull"]
 SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
 DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
@@ -164,6 +165,7 @@ def _prefix_keys(prefix: str, d: dict):
 
 
 _container_filterset_fields = {
+    "id": PK_FILTERS,
     "kind": CATEGORICAL_FILTERS,
     "coordinates": ["exact"],
     "comment": FREE_TEXT_FILTERS,
@@ -173,6 +175,7 @@ _container_filterset_fields = {
 
 
 _sample_filterset_fields = {
+    "id": PK_FILTERS,
     "biospecimen_type": CATEGORICAL_FILTERS,
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
@@ -192,6 +195,7 @@ _sample_filterset_fields = {
 }
 
 _individual_filterset_fields = {
+    "id": PK_FILTERS,
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
