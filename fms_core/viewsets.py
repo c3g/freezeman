@@ -48,6 +48,15 @@ __all__ = [
 ]
 
 
+FREE_TEXT_FILTERS = ["contains", "icontains"]
+CATEGORICAL_FILTERS = ["exact", "in"]
+CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
+FK_FILTERS = CATEGORICAL_FILTERS
+NULLABLE_FK_FILTERS = [*FK_FILTERS, "isnull"]
+SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
+DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
+
+
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
     serializer = VersionSerializer(versions, many=True)
@@ -150,19 +159,56 @@ class TemplateActionsMixin:
         return Response(status=204)
 
 
+def _prefix_keys(prefix: str, d: dict):
+    return {prefix + k: v for k, v in d.items()}
+
+
+_container_filterset_fields = {
+    "kind": CATEGORICAL_FILTERS,
+    "coordinates": ["exact"],
+    "comment": FREE_TEXT_FILTERS,
+    "update_comment": FREE_TEXT_FILTERS,
+    "location": NULLABLE_FK_FILTERS,
+}
+
+
+_sample_filterset_fields = {
+    "biospecimen_type": CATEGORICAL_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "collection_site": CATEGORICAL_FILTERS_LOOSE,
+    "tissue_source": CATEGORICAL_FILTERS,
+    "reception_date": DATE_FILTERS,
+    "coordinates": ["exact"],
+    "comment": FREE_TEXT_FILTERS,
+    "update_comment": FREE_TEXT_FILTERS,
+
+    "volume_used": SCALAR_FILTERS,
+
+    "extracted_from": NULLABLE_FK_FILTERS,  # PK
+    "individual": FK_FILTERS,  # PK
+    "container": FK_FILTERS,  # PK
+    **_prefix_keys("container__", _container_filterset_fields),
+}
+
+_individual_filterset_fields = {
+    "taxon": CATEGORICAL_FILTERS,
+    "sex": CATEGORICAL_FILTERS,
+    "pedigree": CATEGORICAL_FILTERS_LOOSE,
+    "cohort": CATEGORICAL_FILTERS_LOOSE,
+
+    "mother": NULLABLE_FK_FILTERS,
+    "father": NULLABLE_FK_FILTERS,
+}
+
+
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.all().prefetch_related("location", "children", "samples")
     serializer_class = ContainerSerializer
-    filterset_fields = [
-        "kind",
-        "coordinates",
-
-        # Location fields
-        "location",
-        "location__kind",
-        "location__coordinates",
-        "location__location",
-    ]
+    filterset_fields = {
+        **_container_filterset_fields,
+        **_prefix_keys("location__", _container_filterset_fields),
+    }
 
     template_action_list = [
         {
@@ -194,6 +240,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_root(self, _request):
+        # TODO: Can be replaced by ?location__isnull=True query param
         containers_data = Container.objects.filter(location_id__isnull=True).prefetch_related("children", "samples")
         page = self.paginate_queryset(containers_data)
         if page is not None:
@@ -204,6 +251,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=True, methods=["get"])
     def list_children(self, _request, pk=None):
+        # TODO: Can be replaced by ?location=pk query param
         serializer = self.get_serializer(Container.objects.filter(location_id=pk), many=True)
         return Response(serializer.data)
 
@@ -233,34 +281,11 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Sample.objects.all().select_related("individual", "container")
 
-    filterset_fields = [
-        "biospecimen_type",
-        "concentration",
-        "depleted",
-        "collection_site",
-        "tissue_source",
-        "reception_date",
-        "coordinates",
-
-        # Extraction-specific
-        "extracted_from",
-        "volume_used",
-
-        # Fields on container
-        "container",  # PK
-        "container__kind",
-        "container__coordinates",
-        "container__location",
-
-        # Fields on individual
-        "individual",  # PK
-        "individual__taxon",
-        "individual__sex",
-        "individual__pedigree",
-        "individual__cohort",
-        "individual__mother",
-        "individual__father",
-    ]
+    filterset_fields = {
+        **_sample_filterset_fields,
+        **_prefix_keys("extracted_from__", _sample_filterset_fields),
+        **_prefix_keys("individual__", _individual_filterset_fields),
+    }
 
     template_action_list = [
         {
@@ -305,14 +330,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 class IndividualViewSet(viewsets.ModelViewSet):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
-    filterset_fields = [
-        "taxon",
-        "sex",
-        "pedigree",
-        "cohort",
-        "mother",
-        "father",
-    ]
+    filterset_fields = _individual_filterset_fields
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
@@ -373,19 +391,19 @@ class QueryViewSet(viewsets.ViewSet):
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Version.objects.all().prefetch_related("content_type", "revision")
     serializer_class = VersionSerializer
-    filterset_fields = [
-        "object_id",
+    filterset_fields = {
+        "object_id": FK_FILTERS,
 
         # Content type filters
-        "content_type__id",
-        "content_type__app_label",
-        "content_type__model",
+        "content_type__id": FK_FILTERS,
+        "content_type__app_label": CATEGORICAL_FILTERS,
+        "content_type__model": CATEGORICAL_FILTERS,
 
         # Revision filters
-        "revision__id",
-        "revision__date_created",
-        "revision__user",
-    ]
+        "revision__id": FK_FILTERS,
+        "revision__date_created": DATE_FILTERS,
+        "revision__user": ["exact"],
+    }
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
