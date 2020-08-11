@@ -2,7 +2,7 @@ const webpack = require("webpack");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-module.exports = {
+module.exports = (env, argv) => ({
     entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
     module: {
         rules: [
@@ -43,7 +43,7 @@ module.exports = {
         new webpack.HotModuleReplacementPlugin(),
     ],
 
-    devtool: 'inline-source-map',
+    devtool: argv.mode === 'production' ? 'source-map' : 'inline-source-map',
     devServer: {
         hot: true,
         contentBase: path.join(__dirname, 'dist'),
@@ -56,4 +56,4 @@ module.exports = {
             },
         },
     },
-};
+});
