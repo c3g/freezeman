@@ -8,7 +8,7 @@ from pathlib import Path
 from reversion.models import Version
 from tablib import Dataset
 
-from ..models import Container, Sample, ExtractedSample
+from ..models import Container, Sample, ExtractedSample, Individual
 from ..resources import (
     skip_rows,
     ContainerResource,
@@ -99,7 +99,20 @@ class ResourcesTestCase(TestCase):
 
     def test_sample_import(self):
         self.load_samples()
+
+        # Test basic import success
         self.assertEqual(len(Sample.objects.all()), 3)
+        self.assertEqual(len(Individual.objects.all()), 5)  # 3 individuals plus 2 parents for DL
+
+        # Test parent record auto-generation
+        i = Individual.objects.get(id="David Lougheed")
+        self.assertEqual(i.sex, Individual.SEX_MALE)
+        self.assertEqual(i.father.sex, Individual.SEX_MALE)
+        self.assertEqual(i.mother.sex, Individual.SEX_FEMALE)
+        self.assertEqual(i.pedigree, i.mother.pedigree)
+        self.assertEqual(i.cohort, i.mother.cohort)
+        self.assertEqual(i.pedigree, i.father.pedigree)
+        self.assertEqual(i.cohort, i.father.cohort)
 
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
