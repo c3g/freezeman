@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -8,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from reversion.models import Version
 from tablib import Dataset
+from typing import Any, Dict, List, Tuple, Union
 
 from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS
@@ -48,6 +50,16 @@ __all__ = [
 ]
 
 
+FREE_TEXT_FILTERS = ["contains", "icontains"]
+CATEGORICAL_FILTERS = ["exact", "in"]
+CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
+FK_FILTERS = CATEGORICAL_FILTERS
+PK_FILTERS = ["in"]
+NULLABLE_FK_FILTERS = [*FK_FILTERS, "isnull"]
+SCALAR_FILTERS = ["exact", "lt", "lte", "gt", "gte"]
+DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
+
+
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
     serializer = VersionSerializer(versions, many=True)
@@ -73,9 +85,19 @@ class TemplateActionsMixin:
     template_action_list = []
 
     @classmethod
-    def _get_action(cls, request):
+    def _get_action(cls, request) -> Tuple[bool, Union[str, Tuple[dict, Dataset]]]:
         """
-        Gets template action from request data, or returns an error.
+        Gets template action from request data. Requests should be
+        multipart/form-data, with two key-value pairs:
+            action: index of the template action (based on the list provided by template_actions/)
+            template: completed template file with data
+        Returns a tuple of:
+            bool
+                True if an error occurred, False if the request was processed
+                to the point of reading the file into a dataset.
+            Union[str, Tuple[dict, Dataset]]
+                str if an error occured, where the string is the error message.
+                Dataset otherwise, with the contents of the uploaded file.
         """
 
         action_id = request.POST.get("action")
@@ -87,7 +109,11 @@ class TemplateActionsMixin:
         try:
             action_def = cls.template_action_list[int(action_id)]
         except (KeyError, ValueError):
+            # If the action index is out of bounds or not int-castable, return an error.
             return True, f"Action {action_id} not found"
+
+        # There are only two file types accepted; .xlsx and .csv. XLSX files
+        # must be treated differently since it's binary data.
 
         xlsx = template_file.name.endswith("xlsx")
         file_bytes = template_file.read()
@@ -99,7 +125,7 @@ class TemplateActionsMixin:
     @action(detail=False, methods=["get"])
     def template_actions(self, request):
         return Response([
-            dict((k, request.build_absolute_uri(v) if k == "template" else v) for k, v in a.items() if k != "resource")
+            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "resource"}
             for a in self.template_action_list
         ])
 
@@ -112,7 +138,7 @@ class TemplateActionsMixin:
         action_def, dataset = action_data
 
         resource_instance = action_def["resource"]()
-        result = resource_instance.import_data(dataset, collect_failed_rows=True, dry_run=True)
+        result = resource_instance.import_data(dataset, dry_run=True)
 
         return Response({
             "valid": not (result.has_errors() or result.has_validation_errors()),
@@ -150,19 +176,62 @@ class TemplateActionsMixin:
         return Response(status=204)
 
 
+def _prefix_keys(prefix: str, d: Dict[str, Any]) -> Dict[str, Any]:
+    return {prefix + k: v for k, v in d.items()}
+
+
+FiltersetFields = Dict[str, List[str]]
+
+
+_container_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "kind": CATEGORICAL_FILTERS,
+    "coordinates": ["exact"],
+    "comment": FREE_TEXT_FILTERS,
+    "update_comment": FREE_TEXT_FILTERS,
+    "location": NULLABLE_FK_FILTERS,
+}
+
+
+_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "biospecimen_type": CATEGORICAL_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "collection_site": CATEGORICAL_FILTERS_LOOSE,
+    "tissue_source": CATEGORICAL_FILTERS,
+    "reception_date": DATE_FILTERS,
+    "coordinates": ["exact"],
+    "comment": FREE_TEXT_FILTERS,
+    "update_comment": FREE_TEXT_FILTERS,
+
+    "volume_used": SCALAR_FILTERS,
+
+    "extracted_from": NULLABLE_FK_FILTERS,  # PK
+    "individual": FK_FILTERS,  # PK
+    "container": FK_FILTERS,  # PK
+    **_prefix_keys("container__", _container_filterset_fields),
+}
+
+_individual_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "taxon": CATEGORICAL_FILTERS,
+    "sex": CATEGORICAL_FILTERS,
+    "pedigree": CATEGORICAL_FILTERS_LOOSE,
+    "cohort": CATEGORICAL_FILTERS_LOOSE,
+
+    "mother": NULLABLE_FK_FILTERS,
+    "father": NULLABLE_FK_FILTERS,
+}
+
+
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.all().prefetch_related("location", "children", "samples")
     serializer_class = ContainerSerializer
-    filterset_fields = [
-        "kind",
-        "coordinates",
-
-        # Location fields
-        "location",
-        "location__kind",
-        "location__coordinates",
-        "location__location",
-    ]
+    filterset_fields = {
+        **_container_filterset_fields,
+        **_prefix_keys("location__", _container_filterset_fields),
+    }
 
     template_action_list = [
         {
@@ -187,13 +256,29 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):
+        """
+        Returns summary statistics about the current set of containers in the
+        database. Useful for displaying overview information in dashboard
+        front-ends and getting quick figures without needing to download actual
+        container records.
+        """
         return Response({
             "total_count": Container.objects.all().count(),
             "root_count": Container.objects.filter(location_id__isnull=True).count(),
+            "kind_counts": {
+                c["kind"]: c["kind__count"]
+                for c in Container.objects.values("kind").annotate(Count("kind"))
+            },
         })
 
     @action(detail=False, methods=["get"])
     def list_root(self, _request):
+        """
+        Lists all "root" containers, i.e. containers which are not nested
+        within another container and are at the root of the tree.
+        """
+
+        # TODO: Can be replaced by ?location__isnull=True query param
         containers_data = Container.objects.filter(location_id__isnull=True).prefetch_related("children", "samples")
         page = self.paginate_queryset(containers_data)
         if page is not None:
@@ -204,11 +289,20 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=True, methods=["get"])
     def list_children(self, _request, pk=None):
+        """
+        Lists all containers that are direct children of a specified container.
+        """
+        # TODO: Can be replaced by ?location=pk query param
         serializer = self.get_serializer(Container.objects.filter(location_id=pk), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
     def list_parents(self, _request, pk=None):
+        """
+        Traverses a container's parent hierarchy and returns a list, in order
+        from closest-to-root to the queried container, of all the containers in
+        that tree traversal.
+        """
         containers = []
         current = Container.objects.get(pk=pk).location
         while current:
@@ -220,6 +314,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=True, methods=["get"])
     def list_samples(self, _request, pk=None):
+        """
+        Lists all samples stored in a given container.
+        """
         samples = Container.objects.get(pk=pk).samples
         serializer = SampleSerializer(samples, many=True)
         return Response(serializer.data)
@@ -227,40 +324,20 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
+        """
+        Lists all django_reversion Version objects associated with a container.
+        """
         return versions_detail(self.get_object())
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Sample.objects.all().select_related("individual", "container")
 
-    filterset_fields = [
-        "biospecimen_type",
-        "concentration",
-        "depleted",
-        "collection_site",
-        "tissue_source",
-        "reception_date",
-        "coordinates",
-
-        # Extraction-specific
-        "extracted_from",
-        "volume_used",
-
-        # Fields on container
-        "container",  # PK
-        "container__kind",
-        "container__coordinates",
-        "container__location",
-
-        # Fields on individual
-        "individual",  # PK
-        "individual__taxon",
-        "individual__sex",
-        "individual__pedigree",
-        "individual__cohort",
-        "individual__mother",
-        "individual__father",
-    ]
+    filterset_fields = {
+        **_sample_filterset_fields,
+        **_prefix_keys("extracted_from__", _sample_filterset_fields),
+        **_prefix_keys("individual__", _individual_filterset_fields),
+    }
 
     template_action_list = [
         {
@@ -284,6 +361,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     def get_serializer_class(self):
+        # If the nested query param is passed in with a non-false-y string
+        # value, use the nested sample serializer; this will nest referenced
+        # objects 1 layer deep to provide more data in a single request.
+
         nested = self.request.query_params.get("nested", False)
         if nested:
             return NestedSampleSerializer
@@ -291,9 +372,25 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):
+        """
+        Returns summary statistics about the current set of samples in the
+        database.
+        """
         return Response({
             "total_count": Sample.objects.all().count(),
             "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
+            "biospecimen_type_counts": {
+                c["biospecimen_type"]: c["biospecimen_type__count"]
+                for c in Sample.objects.values("biospecimen_type").annotate(Count("biospecimen_type"))
+            },
+            "tissue_source_counts": {
+                c["tissue_source"]: c["tissue_source__count"]
+                for c in Sample.objects.values("tissue_source").annotate(Count("tissue_source"))
+            },
+            "collection_site_counts": {
+                c["collection_site"]: c["collection_site__count"]
+                for c in Sample.objects.values("collection_site").annotate(Count("collection_site"))
+            },
         })
 
     # noinspection PyUnusedLocal
@@ -305,14 +402,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 class IndividualViewSet(viewsets.ModelViewSet):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
-    filterset_fields = [
-        "taxon",
-        "sex",
-        "pedigree",
-        "cohort",
-        "mother",
-        "father",
-    ]
+    filterset_fields = _individual_filterset_fields
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
@@ -326,12 +416,12 @@ class QueryViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def search(self, request):
-        query = request.GET["q"]
+        query = request.GET.get("q")
 
-        if len(query) == 0:
+        if not query:
             return Response([])
 
-        def serialize(s):
+        def serialize(s) -> dict:
             item_type = s["type"]
             if item_type == Container:
                 s["type"] = "container"
@@ -349,7 +439,7 @@ class QueryViewSet(viewsets.ViewSet):
                 s["type"] = "user"
                 s["item"] = UserSerializer(s["item"]).data
                 return s
-            raise ValueError('unreachable')
+            raise ValueError("unreachable")
 
         def query_and_score(model, selector):
             return [c for c in ({
@@ -373,7 +463,19 @@ class QueryViewSet(viewsets.ViewSet):
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Version.objects.all().prefetch_related("content_type", "revision")
     serializer_class = VersionSerializer
-    filterset_fields = ["content_type__model", "revision__user"]
+    filterset_fields = {
+        "object_id": FK_FILTERS,
+
+        # Content type filters
+        "content_type__id": FK_FILTERS,
+        "content_type__app_label": CATEGORICAL_FILTERS,
+        "content_type__model": CATEGORICAL_FILTERS,
+
+        # Revision filters
+        "revision__id": FK_FILTERS,
+        "revision__date_created": DATE_FILTERS,
+        "revision__user": ["exact"],
+    }
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

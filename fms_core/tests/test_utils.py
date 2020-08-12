@@ -2,6 +2,8 @@ from django.test import TestCase
 
 from ..utils import (
     blank_str_to_none,
+    VolumeHistoryUpdateType,
+    create_volume_history,
     check_truth_like,
     normalize_scientific_name,
     str_normalize,
@@ -21,6 +23,18 @@ class AdminUtilsTestCase(TestCase):
         self.assertEqual(blank_str_to_none(5), 5)
         self.assertEqual(blank_str_to_none(" 5"), " 5")
 
+    def test_create_volume_history(self):
+        with self.assertRaises(AssertionError):
+            # noinspection PyTypeChecker
+            create_volume_history("fake", "10")
+        with self.assertRaises(ValueError):
+            create_volume_history(VolumeHistoryUpdateType.EXTRACTION, "10")
+        with self.assertRaises(ValueError):
+            create_volume_history(VolumeHistoryUpdateType.EXTRACTION, "10", None)
+        with self.assertRaises(ValueError):
+            # noinspection PyTypeChecker
+            create_volume_history(VolumeHistoryUpdateType.EXTRACTION, "10", "a")
+
     def test_check_truth_like(self):
         self.assertEqual(check_truth_like("true"), True)
         self.assertEqual(check_truth_like("True"), True)
@@ -39,6 +53,8 @@ class AdminUtilsTestCase(TestCase):
         self.assertEqual(check_truth_like("False"), False)
         self.assertEqual(check_truth_like("false"), False)
         self.assertEqual(check_truth_like("FALSE"), False)
+
+        self.assertEqual(check_truth_like("animal"), False)
 
     def test_normalize_scientific_name(self):
         self.assertEqual(normalize_scientific_name("homo sapiens"), "Homo sapiens")

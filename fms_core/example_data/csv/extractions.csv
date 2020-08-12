@@ -7,6 +7,6 @@ Naming Rules,,,,,,,,,,,
 ,,,,,,,,,,,
 #,Extraction Type,Volume Used (uL),Container Barcode,Location Coord,Nucleic Acid Container Barcode,Nucleic Acid Location Barcode,Nucleic Acid Location Coord,Volume (uL),Conc. (ng/uL),Source Depleted,Comment
 1,DNA,1,tube001,,tube003,rack001,A01,0.5,0.3,False,comment 3
-2,RNA,1,tube002,,tube004,rack001,B01,0.5,0.3,False,comment 4
+2,RNA,15,tube002,,tube004,rack001,B01,1,0.3,True,comment 4
 3,,,,,,,,,,,
 4,,,,,,,,,,,

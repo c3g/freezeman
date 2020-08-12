@@ -2,12 +2,12 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from ..schema_validators import JsonSchemaValidator, VOLUME_SCHEMA, EXPERIMENTAL_GROUP_SCHEMA
-from ..utils import create_volume_history
+from ..utils import VolumeHistoryUpdateType, create_volume_history
 
 
 VALID_VOLUMES = (
-    create_volume_history("update", "0.000"),
-    create_volume_history("extraction", "3.000", 1),
+    create_volume_history(VolumeHistoryUpdateType.UPDATE, "0.000"),
+    create_volume_history(VolumeHistoryUpdateType.EXTRACTION, "3.000", 1),
 )
 
 INVALID_VOLUMES = (

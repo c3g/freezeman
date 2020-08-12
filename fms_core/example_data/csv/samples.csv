@@ -5,8 +5,9 @@ Naming Rules,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,
 #,Biospecimen Type,Sample Name,Alias,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual ID,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Reception Date,Phenotype,Comment
-1,BLOOD,sample1,first sample,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,,,10,4,site1,,2020-03-03,phenotype1,some comment here
-2,BLOOD,sample2,second sample,cohort1,group1,Homo sapiens,tube,sample2_tube,tube002,box001,,Ksenia Zaytseva,F,pedigree2,,,15,6,site2,,2020-04-03,phenotype2,some other comment here
-3,SALIVA,sample3,third sample,cohort1,group1,Homo sapiens,96-well plate,sample_plate,plate001,,A01,David Bujold,M,pedigree3,,,16,8,site3,,2020-05-08,phenotype3,some third comment here
+1,BLOOD,sample1,first sample,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,DLMother,DLFather,10,,site1,,2020-03-03,phenotype1,some comment here
+2,BLOOD,sample2,second sample,cohort1,group1,Homo sapiens,tube,sample2_tube,tube002,box001,,Ksenia Zaytseva,F,pedigree2,,,15,,site2,,2020-04-03,phenotype2,some other comment here
+3,SALIVA,sample3,third sample,cohort1,group1,Homo sapiens,96-well plate,sample_plate,plate001,,A01,David Bujold,M,pedigree3,,,16,,site3,,2020-05-08,phenotype3,some third comment here
+3,DNA,sample4,fourth sample,cohort2,"group2,group4",Homo sapiens,tube,sample4_tube,tube005,rack002,B01,John Doe,M,pedigree4,,,200,8.5,site4,,2020-08-12,phenotype4,some fourth comment here
 4,,,,,,,,,,,,,,,,,,,,,,,
 5,,,,,,,,,,,,,,,,,,,,,,,

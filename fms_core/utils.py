@@ -3,7 +3,8 @@ import unicodedata
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, Union
+from enum import Enum
+from typing import Any, Optional, Union
 
 
 __all__ = [
@@ -11,7 +12,10 @@ __all__ = [
     "RE_WHITESPACE",
 
     "blank_str_to_none",
+
+    "VolumeHistoryUpdateType",
     "create_volume_history",
+
     "check_truth_like",
     "normalize_scientific_name",
     "float_to_decimal",
@@ -25,16 +29,50 @@ RE_SEPARATOR = re.compile(r"[,;]\s*")
 RE_WHITESPACE = re.compile(r"\s+")
 
 
-def blank_str_to_none(s):
+TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
+
+
+def blank_str_to_none(s: Any):
+    """
+    Returns None if the argument is a blank string, or the argument with no
+    changes otherwise.
+    """
     return None if s == "" else s
 
 
-def create_volume_history(update_type: str, volume_value: str, extracted_sample_id: Optional[int] = None):
+class VolumeHistoryUpdateType(Enum):
+    """
+    Enumerated values for the types of updates that can occur in the
+    volume_history property of Sample objects, which represent alterations
+    to a sample's volume.
+    """
+    UPDATE = "update"
+    EXTRACTION = "extraction"
+
+
+def create_volume_history(update_type: VolumeHistoryUpdateType,
+                          volume_value: str,
+                          extracted_sample_id: Optional[int] = None):
+    """
+    Given an update type, new volume value (a string compatible with being
+    casted to a Decimal), and (in the case of an 'extraction' update) a
+    sample ID corresponding to the extracted sample which consumed some of the
+    volume of the sample being updated.
+    """
+
+    # If sample ID were to become a UUID in the future, this would have to be
+    # altered (int cast removed, signature changed.)
+
+    assert isinstance(update_type, VolumeHistoryUpdateType)
+
+    if update_type == VolumeHistoryUpdateType.EXTRACTION and extracted_sample_id is None:
+        raise ValueError("An extracted sample ID must be specified if the volume history entry is of type extraction")
+
     return {
-        "update_type": update_type,
+        "update_type": update_type.value,
         "volume_value": str(Decimal(volume_value)),
         "date": datetime.utcnow().isoformat() + "Z",
-        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id is not None else {})
+        **({"extracted_sample_id": int(extracted_sample_id)} if extracted_sample_id is not None else {})
     }
 
 
@@ -42,7 +80,7 @@ def check_truth_like(string: str) -> bool:
     """
     Checks if a string contains a "truth-like" value, e.g. true, yes, etc.
     """
-    return str_normalize(string).upper() in ("TRUE", "T", "YES", "Y")
+    return str_normalize(string).upper() in TRUTH_VALUES
 
 
 def float_to_decimal(n: Union[float, str], decimals: int = 3) -> Decimal:
