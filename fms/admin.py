@@ -17,6 +17,8 @@ class AdminConfig(admin_apps.AdminConfig):
 
 
 class AdminSite(admin.AdminSite):
+    enable_nav_sidebar = False
+
     def each_context(self, request):
         return {
             **super().each_context(request),
