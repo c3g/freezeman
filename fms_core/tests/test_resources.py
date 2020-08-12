@@ -1,4 +1,3 @@
-import os
 import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
@@ -95,14 +94,14 @@ class ResourcesTestCase(TestCase):
 
     def test_container_import(self):
         self.load_containers()
-        self.assertEqual(len(Container.objects.all()), 5)
+        self.assertEqual(len(Container.objects.all()), 6)
 
     def test_sample_import(self):
         self.load_samples()
 
         # Test basic import success
-        self.assertEqual(len(Sample.objects.all()), 3)
-        self.assertEqual(len(Individual.objects.all()), 5)  # 3 individuals plus 2 parents for DL
+        self.assertEqual(len(Sample.objects.all()), 4)
+        self.assertEqual(len(Individual.objects.all()), 6)  # 3 individuals plus 2 parents for DL
 
         # Test parent record auto-generation
         i = Individual.objects.get(id="David Lougheed")
@@ -114,10 +113,18 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(i.pedigree, i.father.pedigree)
         self.assertEqual(i.cohort, i.father.cohort)
 
+    def test_invalid_sample_import(self):
+        self.load_containers()
+
+        # noinspection PyTypeChecker
+        with self.assertRaises(Container.DoesNotExist), open(TEST_DATA_ROOT / "bad_location.csv") as sf:
+                s = Dataset().load(sf.read())
+                self.sr.import_data(s, raise_errors=True)
+
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
 
-        self.assertEqual(len(Sample.objects.all()), 5)
+        self.assertEqual(len(Sample.objects.all()), 6)
         self.assertEqual(len(ExtractedSample.objects.all()), 2)
 
     def test_sample_extracted_from_version_count(self):
@@ -179,7 +186,7 @@ class ResourcesTestCase(TestCase):
     def test_sample_update(self):
         self.load_samples()
 
-        s = Sample.objects.get(container__barcode="tube001")
+        s = Sample.objects.get(container__barcode="tube005")
         vs = Version.objects.filter(object_id=str(s.id), content_type__model="sample").count()
         self.assertEqual(vs, 1)
 
@@ -190,15 +197,24 @@ class ResourcesTestCase(TestCase):
             reversion.set_comment("Updated samples")
 
         s.refresh_from_db()
+        vs = Version.objects.filter(object_id=str(s.id), content_type__model="sample").count()
+        self.assertEqual(vs, 2)
 
         self.assertEqual(s.coordinates, "")
-        self.assertEqual(s.concentration, Decimal("0.001"))
-        self.assertEqual(s.comment, "some comment here")
-        self.assertEqual(s.update_comment, "sample updated")
+        self.assertEqual(s.volume, Decimal("0.001"))
+        self.assertEqual(s.concentration, Decimal("8.5"))
+        self.assertFalse(s.depleted)
+        self.assertEqual(s.comment, "some fourth comment here")
+        self.assertEqual(s.update_comment, "sample 4 updated")
+
+        s = Sample.objects.get(container__barcode="tube001")
+        self.assertTrue(s.depleted)
+        self.assertEqual(s.update_comment, "sample 1 depleted")
 
         s = Sample.objects.get(container__barcode="plate001", coordinates="A01")
         self.assertEqual(s.volume, Decimal("0.1"))
         self.assertEqual(s.concentration, Decimal("0.2"))
+        self.assertFalse(s.depleted)
         self.assertEqual(s.update_comment, "sample 3 updated")
 
         # TODO: Test leaving coordinate blank not updating container coordinate
@@ -257,7 +273,7 @@ class ResourcesTestCase(TestCase):
 
             s = transaction.savepoint()
 
-            with reversion.create_revision(manage_manually=True), open(os.path.join(TEST_DATA_ROOT, f)) as rf:
+            with open(TEST_DATA_ROOT / f) as rf:
                 self.load_samples()  # Load containers + samples
                 self._test_invalid_rename_template(rf, err)
 
