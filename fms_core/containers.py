@@ -31,7 +31,6 @@ __all__ = [
 ]
 
 
-# TODO: Python 3.7: dataclass
 class ContainerSpec:
     container_specs: List["ContainerSpec"] = []
 

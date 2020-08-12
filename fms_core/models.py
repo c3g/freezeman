@@ -151,24 +151,14 @@ class Container(models.Model):
         super().save(*args, **kwargs)  # Save the object
 
 
-class ContainerProxyManager(models.Manager):
-    # noinspection PyMethodMayBeStatic
-    def get_queryset(self):
-        return Container.objects.all()
-
-
 class ContainerMove(Container):
     class Meta:
         proxy = True
-
-    manager = ContainerProxyManager()
 
 
 class ContainerRename(Container):
     class Meta:
         proxy = True
-
-    manager = ContainerProxyManager()
 
 
 @reversion.register()
@@ -322,6 +312,10 @@ class Sample(models.Model):
     # Computed properties for containers
 
     @property
+    def container_barcode(self):
+        return self.container.barcode if self.container else None
+
+    @property
     def container_kind(self):
         return self.container.kind if self.container else None
 
@@ -473,17 +467,9 @@ class ExtractedSample(Sample):
     objects = ExtractedSampleManager()
 
 
-class SampleUpdateManager(models.Manager):
-    # noinspection PyMethodMayBeStatic
-    def get_queryset(self):
-        return Sample.objects.all()
-
-
 class SampleUpdate(Sample):
     class Meta:
         proxy = True
-
-    objects = SampleUpdateManager()
 
 
 @reversion.register()
