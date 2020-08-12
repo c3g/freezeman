@@ -60,11 +60,19 @@ def create_volume_history(update_type: VolumeHistoryUpdateType,
     volume of the sample being updated.
     """
 
+    # If sample ID were to become a UUID in the future, this would have to be
+    # altered (int cast removed, signature changed.)
+
+    assert isinstance(update_type, VolumeHistoryUpdateType)
+
+    if update_type == VolumeHistoryUpdateType.EXTRACTION and extracted_sample_id is None:
+        raise ValueError("An extracted sample ID must be specified if the volume history entry is of type extraction")
+
     return {
         "update_type": update_type.value,
         "volume_value": str(Decimal(volume_value)),
         "date": datetime.utcnow().isoformat() + "Z",
-        **({"extracted_sample_id": extracted_sample_id} if extracted_sample_id is not None else {})
+        **({"extracted_sample_id": int(extracted_sample_id)} if extracted_sample_id is not None else {})
     }
 
 
