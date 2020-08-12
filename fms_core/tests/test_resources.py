@@ -118,8 +118,8 @@ class ResourcesTestCase(TestCase):
 
         # noinspection PyTypeChecker
         with self.assertRaises(Container.DoesNotExist), open(TEST_DATA_ROOT / "bad_location.csv") as sf:
-                s = Dataset().load(sf.read())
-                self.sr.import_data(s, raise_errors=True)
+            s = Dataset().load(sf.read())
+            self.sr.import_data(s, raise_errors=True)
 
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
