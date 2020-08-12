@@ -4,7 +4,7 @@ import unicodedata
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 
 __all__ = [
@@ -32,11 +32,20 @@ RE_WHITESPACE = re.compile(r"\s+")
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
 
-def blank_str_to_none(s):
+def blank_str_to_none(s: Any):
+    """
+    Returns None if the argument is a blank string, or the argument with no
+    changes otherwise.
+    """
     return None if s == "" else s
 
 
 class VolumeHistoryUpdateType(Enum):
+    """
+    Enumerated values for the types of updates that can occur in the
+    volume_history property of Sample objects, which represent alterations
+    to a sample's volume.
+    """
     UPDATE = "update"
     EXTRACTION = "extraction"
 
@@ -44,6 +53,13 @@ class VolumeHistoryUpdateType(Enum):
 def create_volume_history(update_type: VolumeHistoryUpdateType,
                           volume_value: str,
                           extracted_sample_id: Optional[int] = None):
+    """
+    Given an update type, new volume value (a string compatible with being
+    casted to a Decimal), and (in the case of an 'extraction' update) a
+    sample ID corresponding to the extracted sample which consumed some of the
+    volume of the sample being updated.
+    """
+
     return {
         "update_type": update_type.value,
         "volume_value": str(Decimal(volume_value)),
