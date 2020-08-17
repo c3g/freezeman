@@ -1,5 +1,6 @@
 import json
 
+from collections import Counter
 from django.contrib.auth.models import User
 from django.db.models import Count
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
@@ -393,6 +394,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         Returns summary statistics about the current set of samples in the
         database.
         """
+
+        experimental_groups = Counter()
+        for eg in Sample.objects.values_list("experimental_group", flat=True):
+            experimental_groups.update(eg)
+
         return Response({
             "total_count": Sample.objects.all().count(),
             "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
@@ -408,6 +414,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 c["collection_site"]: c["collection_site__count"]
                 for c in Sample.objects.values("collection_site").annotate(Count("collection_site"))
             },
+            "experimental_group_counts": dict(experimental_groups),
         })
 
     # noinspection PyUnusedLocal
