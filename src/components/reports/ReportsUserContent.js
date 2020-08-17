@@ -148,7 +148,7 @@ function UserReport({user, expandedGroups, setExpandedGroups}) {
         <Descriptions.Item label="Name">{user.username}</Descriptions.Item>
         <Descriptions.Item label="Date joined">{dateToString(user.date_joined)}</Descriptions.Item>
         <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-        <Descriptions.Item label="Groups">{user.groups.join(", ")}</Descriptions.Item>
+        <Descriptions.Item label="Groups">{user.groups.map(g => g.name).join(", ")}</Descriptions.Item>
         <Descriptions.Item label="Staff">{user.is_staff ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
         <Descriptions.Item label="Superuser">{user.is_superuser ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
       </Descriptions>
