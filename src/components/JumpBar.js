@@ -47,6 +47,8 @@ const JumpBar = ({items, isFetching, clear, search}) => {
   const history = useHistory();
 
   const onChange = value => {
+    if (!value)
+      return
     const [type, ...parts] = value.split('_')
     const id = parts.join('_')
     const path = getPath(type, id)
@@ -165,6 +167,8 @@ function loadLastItems() {
 }
 
 function pushItem(item) {
+  if (!item)
+    return
   lastItems.unshift(item)
   lastItems = lastItems.slice(0, 10)
   localStorage['JumpBar__lastItems'] = JSON.stringify(lastItems)
