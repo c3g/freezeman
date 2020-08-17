@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+from typing import Optional
 
 from .containers import (
     CONTAINER_SPEC_TUBE,
@@ -259,8 +260,6 @@ class Sample(models.Model):
                                    help_text="Coordinates of the sample in a parent container. Only applicable for "
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
-    # TODO Collection site (Optional but for big study, a choice list will be included in the Submission file) ?
-
     # fields only for extracted samples
     extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
                                        related_name="extractions",
@@ -285,11 +284,11 @@ class Sample(models.Model):
     # Computed properties for individuals
 
     @property
-    def individual_sex(self):
+    def individual_sex(self) -> str:
         return self.individual.sex if self.individual else ""
 
     @property
-    def individual_taxon(self):
+    def individual_taxon(self) -> str:
         return self.individual.taxon if self.individual else ""
 
     @property
@@ -297,43 +296,43 @@ class Sample(models.Model):
         return self.individual.cohort if self.individual else ""
 
     @property
-    def individual_pedigree(self):
+    def individual_pedigree(self) -> str:
         return self.individual.pedigree if self.individual else ""
 
     @property
-    def individual_mother(self):
+    def individual_mother(self) -> Optional["Individual"]:
         return self.individual.mother if self.individual else None
 
     @property
-    def individual_father(self):
+    def individual_father(self) -> Optional["Individual"]:
         return self.individual.father if self.individual else None
 
     # Computed properties for containers
 
     @property
-    def container_barcode(self):
+    def container_barcode(self) -> Optional[str]:
         return self.container.barcode if self.container else None
 
     @property
-    def container_kind(self):
+    def container_kind(self) -> Optional[str]:
         return self.container.kind if self.container else None
 
     @property
-    def container_name(self):
+    def container_name(self) -> Optional[str]:
         return self.container.name if self.container else None
 
     @property
-    def container_location(self):
+    def container_location(self) -> Optional[Container]:
         return self.container.location if self.container else None
 
     @property
-    def context_sensitive_coordinates(self):
+    def context_sensitive_coordinates(self) -> str:
         return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
 
     # Computed properties for extracted samples
 
     @property
-    def source_depleted(self):
+    def source_depleted(self) -> Optional[bool]:
         return self.extracted_from.depleted if self.extracted_from else None
 
     # Representations
