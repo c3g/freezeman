@@ -27,7 +27,7 @@ class JsonSchemaValidator:
 
     def deconstruct(self):
         return (
-            'fms_core.schema_validators.JsonSchemaValidator',
+            "fms_core.schema_validators.JsonSchemaValidator",
             [self.schema],
             {"formats": self.formats}
         )

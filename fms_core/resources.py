@@ -169,40 +169,40 @@ class SampleResource(GenericResource):
 
     class Meta:
         model = Sample
-        import_id_fields = ('container__barcode', 'context_sensitive_coordinates')
+        import_id_fields = ("container__barcode", "context_sensitive_coordinates")
         fields = (
-            'biospecimen_type',
-            'name',
-            'alias',
-            'concentration',
-            'collection_site',
-            'container__barcode',
+            "biospecimen_type",
+            "name",
+            "alias",
+            "concentration",
+            "collection_site",
+            "container__barcode",
         )
-        excluded = ('volume_history', 'individual', 'depleted', 'container')
+        excluded = ("volume_history", "individual", "depleted", "container")
         export_order = (
-            'biospecimen_type',
-            'name',
-            'alias',
-            'cohort',
-            'experimental_group',
-            'taxon',
-            'container_kind',
-            'container_name',
-            'container_barcode',
-            'container_location',
-            'context_sensitive_coordinates',
-            'individual_id',
-            'sex',
-            'pedigree',
-            'mother_id',
-            'father_id',
-            'volume',
-            'concentration',
-            'collection_site',
-            'tissue_source',
-            'reception_date',
-            'phenotype',
-            'comment',
+            "biospecimen_type",
+            "name",
+            "alias",
+            "cohort",
+            "experimental_group",
+            "taxon",
+            "container_kind",
+            "container_name",
+            "container_barcode",
+            "container_location",
+            "context_sensitive_coordinates",
+            "individual_id",
+            "sex",
+            "pedigree",
+            "mother_id",
+            "father_id",
+            "volume",
+            "concentration",
+            "collection_site",
+            "tissue_source",
+            "reception_date",
+            "phenotype",
+            "comment",
         )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
