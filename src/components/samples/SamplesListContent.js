@@ -63,7 +63,10 @@ const SamplesListContent = ({
       dataIndex: "container",
       render: containerID =>
         <Link to={`/containers/${containerID}`}>
-          {containersByID[containerID].name}
+          {containersByID[containerID] ?
+            containersByID[containerID].name :
+            containerID
+          }
         </Link>,
     },
     {
