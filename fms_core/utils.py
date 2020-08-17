@@ -89,17 +89,30 @@ def float_to_decimal(n: Union[float, str], decimals: int = 3) -> Decimal:
 
 
 def normalize_scientific_name(name: str) -> str:
-    # Converts (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
+    """
+    A normalization function for Latin / "scientific" species names.
+    Converts e.g. (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
+    """
     return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
 
 
 def str_normalize(s: str) -> str:
+    """
+    Normalizes the Unicode characters of and strips a string.
+    """
     return unicodedata.normalize("NFC", s.strip())
 
 
 def str_cast_and_normalize(s) -> str:
+    """
+    Casts a value to a string and then normalizes it using str_normalize.
+    """
     return str_normalize(str(s))
 
 
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:
+    """
+    Gets a string-valued item from a dictionary using a provided key. If the
+    value is false-y, returns a default string value instead.
+    """
     return str_cast_and_normalize(d.get(key) or default)

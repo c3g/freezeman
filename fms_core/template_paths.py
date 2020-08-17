@@ -1,3 +1,8 @@
+"""
+Contains constants pointing to the paths of templates for template actions for
+various viewsets. Can be used to calculate URIs for the template files too.
+"""
+
 from django.templatetags.static import static
 
 __all__ = [
