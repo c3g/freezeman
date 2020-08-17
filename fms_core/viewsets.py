@@ -82,6 +82,8 @@ class ContainerKindViewSet(viewsets.ViewSet):
 
 
 class TemplateActionsMixin:
+    # When this mixin is used, this list will be overridden to provide a list
+    # of template actions for the viewset implementation.
     template_action_list = []
 
     @classmethod
@@ -124,6 +126,10 @@ class TemplateActionsMixin:
 
     @action(detail=False, methods=["get"])
     def template_actions(self, request):
+        """
+        Endpoint off of the parent viewset for listing available template
+        actions, converting paths to URIs for better RESTyness.
+        """
         return Response([
             {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "resource"}
             for a in self.template_action_list
@@ -131,6 +137,11 @@ class TemplateActionsMixin:
 
     @action(detail=False, methods=["post"])
     def template_check(self, request):
+        """
+        Checks a template submission without saving any of the data to the
+        database. Used to check for errors prior to final submission.
+        """
+
         error, action_data = self._get_action(request)
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
@@ -159,6 +170,12 @@ class TemplateActionsMixin:
 
     @action(detail=False, methods=["post"])
     def template_submit(self, request):
+        """
+        Submits a template action. Should be done only after an initial check,
+        since this endpoint does not return any helpful error messages. Will
+        save any submitted data to the database unless an error occurs.
+        """
+
         error, action_data = self._get_action(request)
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
