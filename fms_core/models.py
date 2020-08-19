@@ -186,6 +186,7 @@ class Sample(models.Model):
 
     TISSUE_SOURCE_BLOOD = "Blood"
     TISSUE_SOURCE_SALIVA = "Saliva"
+    TISSUE_SOURCE_SWAB = "Swab"
     TISSUE_SOURCE_TUMOR = "Tumor"
     TISSUE_SOURCE_PLASMA = "Plasma"
     TISSUE_SOURCE_BUFFY_COAT = "Buffy coat"
@@ -195,6 +196,7 @@ class Sample(models.Model):
     TISSUE_SOURCE_CHOICES = (
         (TISSUE_SOURCE_BLOOD, TISSUE_SOURCE_BLOOD),
         (TISSUE_SOURCE_SALIVA, TISSUE_SOURCE_SALIVA),
+        (TISSUE_SOURCE_SWAB, TISSUE_SOURCE_SWAB),
         (TISSUE_SOURCE_TUMOR, TISSUE_SOURCE_TUMOR),
         (TISSUE_SOURCE_PLASMA, TISSUE_SOURCE_PLASMA),
         (TISSUE_SOURCE_BUFFY_COAT, TISSUE_SOURCE_BUFFY_COAT),
@@ -205,6 +207,7 @@ class Sample(models.Model):
     BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE = {
         BIOSPECIMEN_TYPE_BLOOD: TISSUE_SOURCE_BLOOD,
         BIOSPECIMEN_TYPE_SALIVA: TISSUE_SOURCE_SALIVA,
+        BIOSPECIMEN_TYPE_SWAB: TISSUE_SOURCE_SWAB,
     }
 
     # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
@@ -217,7 +220,7 @@ class Sample(models.Model):
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
     # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
-    individual = models.ForeignKey('Individual', on_delete=models.PROTECT, help_text="Individual associated "
+    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, help_text="Individual associated "
                                                                                      "with the sample.")
     volume_history = models.JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
                                       help_text="Volume of the sample in µL.")
