@@ -19,14 +19,6 @@ SCORE_MATCH_CAPITAL = 0.7
 SCORE_MATCH_DOT = 0.6
 
 
-def islower(s: str) -> bool:
-    return s.lower() == s
-
-
-def isupper(s: str) -> bool:
-    return s.upper() == s
-
-
 def precompute_bonus(haystack: str):
     #  Which positions are beginning of words
     m = len(haystack)
@@ -41,7 +33,7 @@ def precompute_bonus(haystack: str):
             match_bonus[i] = SCORE_MATCH_WORD
         elif last_ch == '.':
             match_bonus[i] = SCORE_MATCH_DOT
-        elif islower(last_ch) and isupper(ch):
+        elif last_ch.islower() and ch.isupper():
             match_bonus[i] = SCORE_MATCH_CAPITAL
         else:
             match_bonus[i] = 0.0
