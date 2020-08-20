@@ -9,7 +9,6 @@ from tablib import Dataset
 
 from ..models import Container, Sample, ExtractedSample, Individual
 from ..resources import (
-    skip_rows,
     ContainerResource,
     ExtractionResource,
     ContainerMoveResource,
@@ -17,6 +16,8 @@ from ..resources import (
     SampleResource,
     SampleUpdateResource,
 )
+# noinspection PyProtectedMember
+from ..resources._utils import skip_rows
 
 
 def get_ds():
