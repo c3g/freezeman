@@ -170,14 +170,20 @@ class Sample(models.Model):
     BIOSPECIMEN_TYPE_SALIVA = "SALIVA"
     BIOSPECIMEN_TYPE_SWAB = "SWAB"
 
-    NA_BIOSPECIMEN_TYPES = (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_RNA)
-    NA_BIOSPECIMEN_TYPE_CHOICES = (
+    # Nucleic acid biospecimen types and choices
+    BIOSPECIMEN_TYPES_NA = (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_RNA)
+    BIOSPECIMEN_TYPE_NA_CHOICES = (
         (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_DNA),
         (BIOSPECIMEN_TYPE_RNA, BIOSPECIMEN_TYPE_RNA),
     )
 
+    # All biospecimen types for which the concentration field is required for
+    # a sample object to validate successfully.
+    BIOSPECIMEN_TYPES_CONC_REQUIRED = (BIOSPECIMEN_TYPE_DNA,)
+
+    # All choices for biospecimen_type
     BIOSPECIMEN_TYPE_CHOICES = (
-        *NA_BIOSPECIMEN_TYPE_CHOICES,
+        *BIOSPECIMEN_TYPE_NA_CHOICES,
         (BIOSPECIMEN_TYPE_BLOOD, BIOSPECIMEN_TYPE_BLOOD),
         (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA),
         (BIOSPECIMEN_TYPE_SWAB, BIOSPECIMEN_TYPE_SWAB),
@@ -203,6 +209,9 @@ class Sample(models.Model):
         (TISSUE_SOURCE_CELLS, TISSUE_SOURCE_CELLS),
     )
 
+    # Map between biospecimen type and tissue source; used when processing
+    # extractions in order to infer the tissue source based on the original
+    # sample's biospecimen type.
     BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE = {
         BIOSPECIMEN_TYPE_BLOOD: TISSUE_SOURCE_BLOOD,
         BIOSPECIMEN_TYPE_SALIVA: TISSUE_SOURCE_SALIVA,
@@ -360,7 +369,7 @@ class Sample(models.Model):
 
         self.normalize()
 
-        biospecimen_type_choices = (Sample.NA_BIOSPECIMEN_TYPE_CHOICES if self.extracted_from
+        biospecimen_type_choices = (Sample.BIOSPECIMEN_TYPE_NA_CHOICES if self.extracted_from
                                     else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.biospecimen_type not in frozenset(c[0] for c in biospecimen_type_choices):
             add_error(
@@ -370,7 +379,7 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if self.extracted_from.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES:
+            if self.extracted_from.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
                     "extracted_from",
                     f"Extraction process cannot be run on sample of type {self.extracted_from.biospecimen_type}"
@@ -397,12 +406,12 @@ class Sample(models.Model):
 
         # Check concentration fields given biospecimen_type
 
-        if self.biospecimen_type in Sample.NA_BIOSPECIMEN_TYPES and self.concentration is None:
-            add_error("concentration", "Concentration must be specified if the biospecimen_type is DNA or RNA")
+        if self.biospecimen_type in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:
+            add_error("concentration", "Concentration must be specified if the biospecimen_type is DNA")
 
         # Check tissue source given extracted_from
 
-        if self.tissue_source and self.biospecimen_type not in Sample.NA_BIOSPECIMEN_TYPES:
+        if self.tissue_source and self.biospecimen_type not in Sample.BIOSPECIMEN_TYPES_NA:
             add_error("tissue_source", "Tissue source can only be specified for a nucleic acid sample.")
 
         # Validate container consistency
