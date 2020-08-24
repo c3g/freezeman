@@ -1,3 +1,10 @@
+"""
+Class specifying types and functions for the FreezeMan coordinate system.
+Coordinates are used to locate samples / containers within certain types of
+container, and can be customized to use different types of coordinate ranges.
+"""
+
+
 import re
 import unicodedata
 from typing import Tuple, Union
@@ -26,6 +33,10 @@ class CoordinateError(Exception):
 
 
 def alphas(end: int) -> CoordinateAxis:
+    """
+    Generates a tuple of alphabet-derived values for a coordiante axis.
+    """
+
     if end < 0:
         raise ValueError
 
@@ -36,6 +47,12 @@ def alphas(end: int) -> CoordinateAxis:
 
 
 def ints(end: int, pad_to: int = 0) -> CoordinateAxis:
+    """
+    Generates a tuple of integer-derived values for a coordinate axis.
+    If pad_to is specified, the integer strings will be left-0-padded to the
+    specified length.
+    """
+
     if end < 0:
         raise ValueError
 
@@ -44,7 +61,8 @@ def ints(end: int, pad_to: int = 0) -> CoordinateAxis:
 
 def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str:
     """
-    Given a set of coordinates and a coordinate spec, validates if those coordinates are valid by the spec.
+    Given a set of coordinates and a coordinate spec, validates if those
+    coordinates are valid by the spec.
     """
 
     # TODO: Handle padded 0s?
@@ -61,7 +79,11 @@ def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str
 
 
 def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
-    # Check for coordinate overlap with existing child containers/samples of the parent
+    """
+    Check for coordinate overlap with existing child containers/samples of the
+    parent using a queryset, assuming that the queried model has a coordinates
+    field which specifies possibly-overlapping item locations.
+    """
     existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
     raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing} at "
                           f"coordinates {obj.coordinates}")
