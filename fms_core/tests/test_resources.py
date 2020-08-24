@@ -122,6 +122,20 @@ class ResourcesTestCase(TestCase):
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
+    def test_no_conc_dna_import(self):
+        self.load_containers()
+
+        # noinspection PyTypeChecker
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "dna_no_conc.csv") as sf:
+            s = Dataset().load(sf.read())
+            try:
+                self.sr.import_data(s, raise_errors=True)
+            except ValidationError as e:
+                self.assertDictEqual(
+                    e.message_dict,
+                    {'concentration': ['Concentration must be specified if the biospecimen_type is DNA']})
+                raise e
+
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
 
