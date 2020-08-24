@@ -54,7 +54,7 @@ class Container(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    # TODO class for choices
+    # TODO: Model for choices?
     kind = models.CharField(
         max_length=20,
         choices=CONTAINER_KIND_CHOICES,
@@ -62,7 +62,6 @@ class Container(models.Model):
                   "properties."
     )
 
-    # TODO: Further normalize any incoming names
     name = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH,
                             help_text="Unique name for the container.",
                             validators=[barcode_name_validator])
@@ -210,16 +209,13 @@ class Sample(models.Model):
         BIOSPECIMEN_TYPE_SWAB: TISSUE_SOURCE_SWAB,
     }
 
-    # TODO add validation if it's extracted sample then it can be of type DNA or RNA only
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES,
                                         help_text="Biological material collected from study subject "
                                                   "during the conduct of a genomic study project.")
-    # TODO: Trim and normalize any incoming values to prevent whitespace-sensitive names
     name = models.CharField(max_length=BARCODE_NAME_FIELD_LENGTH, validators=[barcode_name_validator],
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
-    # TODO in case individual deleted should we set the value to default e.g. the individual record was deleted ?
     individual = models.ForeignKey("Individual", on_delete=models.PROTECT, help_text="Individual associated "
                                                                                      "with the sample.")
     volume_history = models.JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
