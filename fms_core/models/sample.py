@@ -1,163 +1,29 @@
-import re
 import reversion
-import uuid
 
 from decimal import Decimal
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 from typing import Optional
 
-from .containers import (
+from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
     CONTAINER_KIND_SPECS,
-    CONTAINER_KIND_CHOICES,
     SAMPLE_CONTAINER_KINDS,
-    PARENT_CONTAINER_KINDS,
 )
-from .coordinates import CoordinateError, check_coordinate_overlap
-from .schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
-from .utils import float_to_decimal, str_cast_and_normalize
+from ..coordinates import CoordinateError, check_coordinate_overlap
+from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
+from ..utils import float_to_decimal, str_cast_and_normalize
 
+from .container import Container
+from .individual import Individual
 
-__all__ = [
-    "Container",
-    "ContainerMove",
-    "ContainerRename",
-    "Sample",
-    "ExtractedSample",
-    "SampleUpdate",
-    "Individual",
-    "ImportedFile",
-]
+from ._constants import BARCODE_NAME_FIELD_LENGTH
+from ._utils import add_error as _add_error
+from ._validators import barcode_name_validator
 
-
-def _add_error(errors: dict, field: str, error: ValidationError):
-    errors[field] = [*errors.get(field, []), error]
-
-
-BARCODE_NAME_FIELD_LENGTH = 200
-
-# Barcodes and names should only contain a-z, A-Z, 0-9, ., -, _
-# They are capped at 200 characters by the field length inherently - but we limit them to
-# one character less than that, since when renaming containers we need to append a
-# temporary character to prevent integrity errors.
-barcode_name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]{1,199}$"))
-
-
-@reversion.register()
-class Container(models.Model):
-    """ Class to store information about a sample. """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # TODO: Model for choices?
-    kind = models.CharField(
-        max_length=20,
-        choices=CONTAINER_KIND_CHOICES,
-        help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
-                  "properties."
-    )
-
-    name = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH,
-                            help_text="Unique name for the container.",
-                            validators=[barcode_name_validator])
-    barcode = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
-                               validators=[barcode_name_validator])
-
-    # In which container is this container located? i.e. its parent.
-    location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
-                                 help_text="An existing (parent) container this container is located inside of.",
-                                 limit_choices_to={"kind__in": PARENT_CONTAINER_KINDS})
-
-    # Where in the parent container is this container located, if relevant?
-    coordinates = models.CharField(max_length=20, blank=True,
-                                   help_text="Coordinates of this container within the parent container.")
-
-    comment = models.TextField(blank=True, help_text="Other relevant information about the container.")
-    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the "
-                                                            "container. Change this whenever updates are made.")
-
-    def __str__(self):
-        return self.barcode
-
-    def normalize(self):
-        # Normalize any string values to make searching / data manipulation easier
-        self.kind = str_cast_and_normalize(self.kind).lower()
-        self.name = str_cast_and_normalize(self.name)
-        self.barcode = str_cast_and_normalize(self.barcode)
-        self.coordinates = str_cast_and_normalize(self.coordinates)
-        self.comment = str_cast_and_normalize(self.comment)
-        self.update_comment = str_cast_and_normalize(self.update_comment)
-
-    def clean(self, check_regexes: bool = False):
-        errors = {}
-
-        def add_error(field: str, error: str):
-            _add_error(errors, field, ValidationError(error))
-
-        self.normalize()
-
-        if check_regexes:
-            barcode_name_validator(self.barcode)
-            barcode_name_validator(self.name)
-
-        if self.coordinates != "" and self.location is None:
-            add_error("coordinates", "Cannot specify coordinates in non-specified container")
-
-        if self.location is not None:
-            if self.location.barcode == self.barcode:
-                add_error("location", "Container cannot contain itself")
-
-            else:
-                parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
-
-                # Validate that this container is allowed to be located in the parent container specified
-                if not parent_spec.can_hold_kind(self.kind):
-                    add_error(
-                        "location",
-                        f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}"
-                    )
-
-                if not errors.get("coordinates") and not errors.get("location"):
-                    # Validate coordinates against parent container spec
-                    try:
-                        self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-                    except CoordinateError as e:
-                        add_error("coordinates", str(e))
-
-                if not errors.get("coordinates") and not errors.get("location") \
-                        and not parent_spec.coordinate_overlap_allowed:
-                    # Check for coordinate overlap with existing child containers of the parent
-                    try:
-                        check_coordinate_overlap(self.location.children, self, self.location)
-                    except CoordinateError as e:
-                        add_error("coordinates", str(e))
-                    except Container.DoesNotExist:
-                        # Fine, the coordinates are free to use.
-                        pass
-
-        if errors:
-            raise ValidationError(errors)
-
-    def save(self, *args, **kwargs):
-        # Normalize and validate before saving, always!
-        self.normalize()
-        self.full_clean()
-        super().save(*args, **kwargs)  # Save the object
-
-
-class ContainerMove(Container):
-    class Meta:
-        proxy = True
-
-
-class ContainerRename(Container):
-    class Meta:
-        proxy = True
+__all__ = ["Sample"]
 
 
 @reversion.register()
@@ -458,113 +324,3 @@ class Sample(models.Model):
         self.normalize()
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
-
-
-class ExtractedSampleManager(models.Manager):
-    # noinspection PyMethodMayBeStatic
-    def get_queryset(self):
-        return Sample.objects.filter(extracted_from__isnull=False)
-
-
-class ExtractedSample(Sample):
-    class Meta:
-        proxy = True
-
-    objects = ExtractedSampleManager()
-
-
-class SampleUpdate(Sample):
-    class Meta:
-        proxy = True
-
-
-@reversion.register()
-class Individual(models.Model):
-    """ Class to store information about an Individual. """
-
-    TAXON_HOMO_SAPIENS = "Homo sapiens"
-    TAXON_MUS_MUSCULUS = "Mus musculus"
-    TAXON_SARS_COV_2 = "Sars-Cov-2"
-
-    TAXON_CHOICES = (
-        (TAXON_HOMO_SAPIENS, TAXON_HOMO_SAPIENS),
-        (TAXON_MUS_MUSCULUS, TAXON_MUS_MUSCULUS),
-        (TAXON_SARS_COV_2, TAXON_SARS_COV_2),
-    )
-
-    SEX_MALE = "M"
-    SEX_FEMALE = "F"
-    SEX_UNKNOWN = "Unknown"
-
-    SEX_CHOICES = (
-        (SEX_MALE, SEX_MALE),
-        (SEX_FEMALE, SEX_FEMALE),
-        (SEX_UNKNOWN, SEX_UNKNOWN),
-    )
-
-    id = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
-    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
-    sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
-    pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
-    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="mother_of",
-                               help_text="Mother of the individual.")
-    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
-                               help_text="Father of the individual.")
-    # required ?
-    cohort = models.CharField(max_length=200, blank=True, help_text="Label to group some individuals in "
-                                                                    "a specific study.")
-
-    def __str__(self):
-        return self.id
-
-    def normalize(self):
-        # Normalize any string values to make searching / data manipulation easier
-        self.id = str_cast_and_normalize(self.id)
-        self.pedigree = str_cast_and_normalize(self.pedigree)
-        self.cohort = str_cast_and_normalize(self.cohort)
-
-    def clean(self):
-        errors = {}
-
-        def add_error(field: str, error: str):
-            _add_error(errors, field, ValidationError(error))
-
-        self.normalize()
-
-        if self.mother_id is not None and self.father_id is not None and self.mother_id == self.father_id:
-            e = "Mother and father IDs can't be the same."
-            add_error("mother", e)
-            add_error("father", e)
-
-        if self.mother_id is not None and self.mother_id == self.id:
-            add_error("mother", "Mother can't be same as self.")
-
-        if self.father_id is not None and self.father_id == self.id:
-            add_error("father", "Father can't be same as self.")
-
-        if self.mother_id is not None and self.pedigree != self.mother.pedigree:
-            add_error("pedigree", "Pedigree between individual and mother must match")
-
-        if self.father_id is not None and self.pedigree != self.father.pedigree:
-            add_error("pedigree", "Pedigree between individual and father must match")
-
-        if errors:
-            raise ValidationError(errors)
-
-    def save(self, *args, **kwargs):
-        # Normalize and validate before saving, always!
-        self.normalize()
-        self.full_clean()
-        super().save(*args, **kwargs)  # Save the object
-
-
-class ImportedFile(models.Model):
-    """ Model to store metadata about the imported file. """
-
-    filename = models.CharField(max_length=100)
-    location = models.CharField(max_length=200)
-    added = models.DateTimeField(auto_now_add=True)
-    imported_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return str(self.id)
