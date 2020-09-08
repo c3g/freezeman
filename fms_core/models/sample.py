@@ -270,6 +270,11 @@ class Sample(models.Model):
         if self.volume_used is not None and not self.extracted_from:
             add_error("volume_used", "Non-extracted samples cannot specify volume_used")
 
+        # Check volume_history for negative values
+
+        if self.volume < Decimal("0"):
+            add_error("volume_history", "Current volume must be positive.")
+
         # Check concentration fields given biospecimen_type
 
         if self.biospecimen_type in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:

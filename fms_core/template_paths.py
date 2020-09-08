@@ -19,4 +19,4 @@ CONTAINER_MOVE_TEMPLATE = static("submission_templates/Container_move_v0.4.xlsx"
 CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v0.1.xlsx")
 SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Extraction_v0.6.xlsx")
 SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_v0.9.xlsx")
-SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v0.4.xlsx")
+SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v0.5.xlsx")
