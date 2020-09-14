@@ -1,10 +1,12 @@
 import reversion
 
+import re
+import ast
 from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 from ._generic import GenericResource
-from ._utils import skip_rows
+from ._utils import skip_rows, remove_column_from_results
 from ..models import Container, Sample
 from ..utils import (
     VolumeHistoryUpdateType,
@@ -25,7 +27,7 @@ class SampleUpdateResource(GenericResource):
     # fields that can be updated on sample update
     # volume
     volume_history = Field(attribute='volume_history', column_name='New Volume (uL)')
-    volume_history_delta = Field(attribute='volume_history_delta', column_name='Delta Volume (uL)')
+    volume_history_delta = Field(column_name='Delta Volume (uL)')
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
@@ -92,7 +94,7 @@ class SampleUpdateResource(GenericResource):
                 ))
             return
 
-        if field.attribute == "volume_history_delta":
+        if field.column_name == "Delta Volume (uL)":
             # Manually process volume history and don't call superclass method
             delta_vol = blank_str_to_none(data.get("Delta Volume (uL)"))  # "" -> None for CSVs
             if delta_vol is not None:  # Only update volume if we got a value
@@ -104,7 +106,7 @@ class SampleUpdateResource(GenericResource):
                 vol = obj.volume + Decimal(delta_vol)
                 obj.volume_history.append(create_volume_history(
                     VolumeHistoryUpdateType.UPDATE,
-                    str(float_to_decimal(vol))
+                    str(vol)
                 ))
             return
 
@@ -124,3 +126,17 @@ class SampleUpdateResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Updated samples from template.")
+
+    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
+                    **kwargs):
+        results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
+        # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
+        if dry_run:
+            results = remove_column_from_results("Delta Volume (uL)", results)
+            index_volume = results.diff_headers.index("New Volume (uL)")
+            for row in results.rows:
+                list_vol = row.diff[index_volume]
+                match = re.search(r".*<ins .*>, (.*)</ins>.*", list_vol)
+                latest_vol = ast.literal_eval(match.group(1))
+                row.diff[index_volume] = str(latest_vol["volume_value"])
+        return results
