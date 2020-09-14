@@ -127,7 +127,8 @@ class SampleUpdateResource(GenericResource):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Updated samples from template.")
 
-    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
+    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
+                    **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run:
