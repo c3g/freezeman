@@ -6,7 +6,7 @@ from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 from ._generic import GenericResource
-from ._utils import skip_rows, remove_column_from_preview
+from ._utils import skip_rows, add_column_from_preview
 from ..models import Container, Sample
 from ..utils import (
     VolumeHistoryUpdateType,
@@ -132,7 +132,7 @@ class SampleUpdateResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            results = remove_column_from_preview("Delta Volume (uL)", results)
+            results = add_column_from_preview(results, dataset, "Delta Volume (uL)")
             index_volume = results.diff_headers.index("New Volume (uL)")
             for row in results.rows:
                 if row.diff:
