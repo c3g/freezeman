@@ -7,7 +7,7 @@ __all__ = [
     "get_container_pk",
     "skip_rows",
     "remove_column_from_preview",
-    "add_column_from_preview",
+    "add_column_to_preview",
 ]
 
 
@@ -41,7 +41,7 @@ def remove_column_from_preview(results, column_name: str):
     return results
 
 
-def add_column_from_preview(results, dataset, column_name: str, column_index: int = None):
+def add_column_to_preview(results, dataset, column_name: str, column_index: int = None):
     # Check if the column is already in the preview
     if column_name not in results.diff_headers:  # if absent,
         if not column_index:  # insert at column_index (there is 2 columns that are inserted by default)
