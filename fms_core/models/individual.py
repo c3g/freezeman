@@ -36,24 +36,22 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    id = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
+    label = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
     taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
-    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="mother_of",
-                               help_text="Mother of the individual.")
-    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
-                               help_text="Father of the individual.")
+    mother = models.CharField(max_length=200, blank=True, null=True, help_text="Mother of the individual.")
+    father = models.CharField(max_length=200, blank=True, null=True, help_text="Father of the individual.")
     # required ?
     cohort = models.CharField(max_length=200, blank=True, help_text="Label to group some individuals in "
                                                                     "a specific study.")
 
     def __str__(self):
-        return self.id
+        return self.label
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.id = str_cast_and_normalize(self.id)
+        self.label = str_cast_and_normalize(self.label)
         self.pedigree = str_cast_and_normalize(self.pedigree)
         self.cohort = str_cast_and_normalize(self.cohort)
 
@@ -65,21 +63,21 @@ class Individual(models.Model):
 
         self.normalize()
 
-        if self.mother_id is not None and self.father_id is not None and self.mother_id == self.father_id:
+        if self.mother_label is not None and self.father_label is not None and self.mother_label == self.father_label:
             e = "Mother and father IDs can't be the same."
             add_error("mother", e)
             add_error("father", e)
 
-        if self.mother_id is not None and self.mother_id == self.id:
+        if self.mother_label is not None and self.mother_label == self.label:
             add_error("mother", "Mother can't be same as self.")
 
-        if self.father_id is not None and self.father_id == self.id:
+        if self.father_label is not None and self.father_label == self.label:
             add_error("father", "Father can't be same as self.")
 
-        if self.mother_id is not None and self.pedigree != self.mother.pedigree:
+        if self.mother_label is not None and self.pedigree != self.mother.pedigree:
             add_error("pedigree", "Pedigree between individual and mother must match")
 
-        if self.father_id is not None and self.pedigree != self.father.pedigree:
+        if self.father_label is not None and self.pedigree != self.father.pedigree:
             add_error("pedigree", "Pedigree between individual and father must match")
 
         if errors:
