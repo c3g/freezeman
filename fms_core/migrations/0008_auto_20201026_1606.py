@@ -4,6 +4,21 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def populate_foreign_keys(apps, schema_editor):
+    individual_model = apps.get_model("fms_core", "individual")
+    sample_model = apps.get_model("fms_core", "sample")
+    label_id_map = dict(individual_model.objects.all().values_list("label", "id"))
+    for sample in sample_model.objects.all():
+        sample.individualnew = label_id_map.get(sample.individual)
+        sample.save()
+    for individual in individual_model.objects.all():
+        if individual.mother:
+            individual.mothernew = label_id_map.get(individual.mother)
+        if individual.father:
+            individual.fathernew = label_id_map.get(individual.father)
+        individual.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -19,17 +34,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='individual',
             name='father',
-            field=models.CharField(blank=True, help_text='Father of the individual.', max_length=200, null=True),
+            field=models.CharField(max_length=200, blank=True, null=True, help_text='Father of the individual.'),
         ),
         migrations.AlterField(
             model_name='individual',
             name='mother',
-            field=models.CharField(blank=True, help_text='Mother of the individual.', max_length=200, null=True),
+            field=models.CharField(max_length=200, blank=True, null=True, help_text='Mother of the individual.'),
         ),
         migrations.AlterField(
             model_name='sample',
             name='individual',
-            field=models.CharField(help_text='Individual associated with the sample.', max_length=200),
+            field=models.CharField(max_length=200, help_text='Individual associated with the sample.'),
         ),
         migrations.RunSQL(
             "ALTER TABLE fms_core_individual DROP CONSTRAINT fms_core_individual_pkey",
@@ -41,11 +56,11 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             "DROP TABLE fms_core_individual",
-
+            migrations.RunSQL.noop
         ),
         migrations.RunSQL(
             "CREATE TABLE fms_core_individual AS TABLE fms_core_individual_temp WITH NO DATA",
-            "DROP TABLE fms_core_individual"
+            migrations.RunSQL.noop
         ),
         migrations.AddField(
             model_name='individual',
@@ -54,6 +69,71 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             "INSERT INTO fms_core_individual SELECT * FROM fms_core_individual_temp",
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            "DROP TABLE fms_core_individual_temp",
+            migrations.RunSQL.noop
+        ),
+        migrations.AddField(
+            model_name='sample',
+            name='individualnew',
+            field=models.IntegerField(blank=True, null=True, help_text='Individual associated with the sample.'),
+        ),
+        migrations.AddField(
+            model_name='individual',
+            name='mothernew',
+            field=models.IntegerField(blank=True, null=True, help_text='Mother of the individual.'),
+        ),
+        migrations.AddField(
+            model_name='individual',
+            name='fathernew',
+            field=models.IntegerField(blank=True, null=True, help_text='Father of the individual.'),
+        ),
+        migrations.RunPython(
+            populate_foreign_keys,
+            migrations.RunPython.noop
+        ),
+        migrations.RenameField(
+            model_name='sample',
+            old_name='individual',
+            new_name='individualold',
+        ),
+        migrations.RenameField(
+            model_name='sample',
+            old_name='individualnew',
+            new_name='individual',
+        ),
+        migrations.RenameField(
+            model_name='individual',
+            old_name='mother',
+            new_name='motherold',
+        ),
+        migrations.RenameField(
+            model_name='individual',
+            old_name='mothernew',
+            new_name='mother',
+        ),
+        migrations.RenameField(
+            model_name='individual',
+            old_name='father',
+            new_name='fatherold',
+        ),
+        migrations.RenameField(
+            model_name='individual',
+            old_name='fathernew',
+            new_name='father',
+        ),
+        migrations.RunSQL(
+            "ALTER TABLE fms_core_sample ADD CONSTRAINT fk_individual FOREIGN KEY (individual) REFERENCES fms_core_individual(id)",
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_mother FOREIGN KEY (mother) REFERENCES fms_core_individual(id)",
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_father FOREIGN KEY (father) REFERENCES fms_core_individual(id)",
             migrations.RunSQL.noop
         ),
     ]

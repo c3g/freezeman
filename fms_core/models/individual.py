@@ -36,7 +36,7 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    label = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
+    label = models.CharField(max_length=200, help_text="Unique identifier for the individual.")
     taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
