@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='individual',
             name='id',
-            field=models.AutoField(primary_key=True),
+            field=models.AutoField(primary_key=True, unique=True, blank=False, null=False),
         ),
         migrations.RunSQL(
             "INSERT INTO fms_core_individual SELECT * FROM fms_core_individual_temp",
