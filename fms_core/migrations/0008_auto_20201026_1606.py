@@ -136,4 +136,16 @@ class Migration(migrations.Migration):
             "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_father FOREIGN KEY (father) REFERENCES fms_core_individual(id)",
             migrations.RunSQL.noop
         ),
+        migrations.RemoveField(
+            model_name='individual',
+            name='fatherold',
+        ),
+        migrations.RemoveField(
+            model_name='individual',
+            name='motherold',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='individualold',
+        ),
     ]

@@ -36,12 +36,14 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    label = models.CharField(max_length=200, help_text="Unique identifier for the individual.")
+    label = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the individual.")
     taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
-    mother = models.CharField(max_length=200, blank=True, null=True, help_text="Mother of the individual.")
-    father = models.CharField(max_length=200, blank=True, null=True, help_text="Father of the individual.")
+    mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="mother_of",
+                               help_text="Mother of the individual.")
+    father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
+                               help_text="Father of the individual.")
     # required ?
     cohort = models.CharField(max_length=200, blank=True, help_text="Label to group some individuals in "
                                                                     "a specific study.")
