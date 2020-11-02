@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
         migrations.RenameField(
             model_name='sample',
             old_name='individualnew',
-            new_name='individual',
+            new_name='individual_id',
         ),
         migrations.RenameField(
             model_name='individual',
@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
         migrations.RenameField(
             model_name='individual',
             old_name='mothernew',
-            new_name='mother',
+            new_name='mother_id',
         ),
         migrations.RenameField(
             model_name='individual',
@@ -122,18 +122,18 @@ class Migration(migrations.Migration):
         migrations.RenameField(
             model_name='individual',
             old_name='fathernew',
-            new_name='father',
+            new_name='father_id',
         ),
         migrations.RunSQL(
-            "ALTER TABLE fms_core_sample ADD CONSTRAINT fk_individual FOREIGN KEY (individual) REFERENCES fms_core_individual(id)",
+            "ALTER TABLE fms_core_sample ADD CONSTRAINT fk_individual FOREIGN KEY (individual_id) REFERENCES fms_core_individual(id)",
             migrations.RunSQL.noop
         ),
         migrations.RunSQL(
-            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_mother FOREIGN KEY (mother) REFERENCES fms_core_individual(id)",
+            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_mother FOREIGN KEY (mother_id) REFERENCES fms_core_individual(id)",
             migrations.RunSQL.noop
         ),
         migrations.RunSQL(
-            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_father FOREIGN KEY (father) REFERENCES fms_core_individual(id)",
+            "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_father FOREIGN KEY (father_id) REFERENCES fms_core_individual(id)",
             migrations.RunSQL.noop
         ),
         migrations.RemoveField(
