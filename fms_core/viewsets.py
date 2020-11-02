@@ -233,6 +233,7 @@ _sample_filterset_fields: FiltersetFields = {
 
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "label": PK_FILTERS,
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
@@ -473,7 +474,7 @@ class QueryViewSet(viewsets.ViewSet):
             } for s in model.objects.all()) if c["score"] > 0]
 
         containers = query_and_score(Container, lambda c: c.name)
-        individuals = query_and_score(Individual, lambda c: c.id)
+        individuals = query_and_score(Individual, lambda c: c.label)
         samples = query_and_score(Sample, lambda c: c.name)
         users = query_and_score(User, lambda c: c.username + c.first_name + c.last_name)
 
