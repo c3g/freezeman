@@ -8,4 +8,4 @@ __all__ = ["IndividualResource"]
 class IndividualResource(GenericResource):
     class Meta:
         model = Individual
-        import_id_fields = ("label",)
+        import_id_fields = ("id",)
