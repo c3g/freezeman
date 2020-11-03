@@ -158,6 +158,10 @@ class Sample(models.Model):
     # Computed properties for individuals
 
     @property
+    def individual_label(self) -> str:
+        return self.individual if self.individual else ""
+
+    @property
     def individual_sex(self) -> str:
         return self.individual.sex if self.individual else ""
 

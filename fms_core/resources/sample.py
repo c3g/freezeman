@@ -58,8 +58,8 @@ class SampleResource(GenericResource):
     taxon = Field(attribute='individual_taxon', column_name='Taxon')
     cohort = Field(attribute='individual_cohort', column_name='Cohort')
     pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
-    mother_label = Field(attribute='individual_mother__label', column_name='Mother ID')
-    father_label = Field(attribute='individual_father__label', column_name='Father ID')
+    mother_label = Field(attribute='individual_mother', column_name='Mother ID')
+    father_label = Field(attribute='individual_father', column_name='Father ID')
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 

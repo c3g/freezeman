@@ -65,21 +65,21 @@ class Individual(models.Model):
 
         self.normalize()
 
-        if self.mother_label is not None and self.father_label is not None and self.mother_label == self.father_label:
+        if self.mother_id is not None and self.father_id is not None and self.mother_id == self.father_id:
             e = "Mother and father IDs can't be the same."
             add_error("mother", e)
             add_error("father", e)
 
-        if self.mother_label is not None and self.mother_label == self.label:
+        if self.mother_id is not None and self.mother_id == self.id:
             add_error("mother", "Mother can't be same as self.")
 
-        if self.father_label is not None and self.father_label == self.label:
+        if self.father_id is not None and self.father_id == self.id:
             add_error("father", "Father can't be same as self.")
 
-        if self.mother_label is not None and self.pedigree != self.mother.pedigree:
+        if self.mother_id is not None and self.pedigree != self.mother.pedigree:
             add_error("pedigree", "Pedigree between individual and mother must match")
 
-        if self.father_label is not None and self.pedigree != self.father.pedigree:
+        if self.father_id is not None and self.pedigree != self.father.pedigree:
             add_error("pedigree", "Pedigree between individual and father must match")
 
         if errors:
