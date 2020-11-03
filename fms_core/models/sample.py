@@ -159,7 +159,7 @@ class Sample(models.Model):
 
     @property
     def individual_label(self) -> str:
-        return self.individual if self.individual else ""
+        return self.individual.label if self.individual else ""
 
     @property
     def individual_sex(self) -> str:
