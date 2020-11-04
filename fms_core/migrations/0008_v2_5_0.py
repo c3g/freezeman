@@ -9,13 +9,13 @@ def populate_foreign_keys(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
     label_id_map = dict(individual_model.objects.all().values_list("label", "id"))
     for sample in sample_model.objects.all():
-        sample.individualnew = label_id_map.get(sample.individual)
+        sample.individual_new = label_id_map.get(sample.individual)
         sample.save()
     for individual in individual_model.objects.all():
         if individual.mother:
-            individual.mothernew = label_id_map.get(individual.mother)
+            individual.mother_new = label_id_map.get(individual.mother)
         if individual.father:
-            individual.fathernew = label_id_map.get(individual.father)
+            individual.father_new = label_id_map.get(individual.father)
         individual.save()
 
 
@@ -77,17 +77,17 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='sample',
-            name='individualnew',
+            name='individual_new',
             field=models.IntegerField(blank=True, null=True, help_text='Individual associated with the sample.'),
         ),
         migrations.AddField(
             model_name='individual',
-            name='mothernew',
+            name='mother_new',
             field=models.IntegerField(blank=True, null=True, help_text='Mother of the individual.'),
         ),
         migrations.AddField(
             model_name='individual',
-            name='fathernew',
+            name='father_new',
             field=models.IntegerField(blank=True, null=True, help_text='Father of the individual.'),
         ),
         migrations.RunPython(
@@ -97,55 +97,55 @@ class Migration(migrations.Migration):
         migrations.RenameField(
             model_name='sample',
             old_name='individual',
-            new_name='individualold',
+            new_name='individual_old',
         ),
         migrations.RenameField(
             model_name='sample',
-            old_name='individualnew',
+            old_name='individual_new',
             new_name='individual_id',
         ),
         migrations.RenameField(
             model_name='individual',
             old_name='mother',
-            new_name='motherold',
+            new_name='mother_old',
         ),
         migrations.RenameField(
             model_name='individual',
-            old_name='mothernew',
+            old_name='mother_new',
             new_name='mother_id',
         ),
         migrations.RenameField(
             model_name='individual',
             old_name='father',
-            new_name='fatherold',
+            new_name='father_old',
         ),
         migrations.RenameField(
             model_name='individual',
-            old_name='fathernew',
+            old_name='father_new',
             new_name='father_id',
         ),
         migrations.RunSQL(
             "ALTER TABLE fms_core_sample ADD CONSTRAINT fk_individual FOREIGN KEY (individual_id) REFERENCES fms_core_individual(id)",
-            migrations.RunSQL.noop
+            "ALTER TABLE fms_core_sample DROP CONSTRAINT fk_individual;"
         ),
         migrations.RunSQL(
             "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_mother FOREIGN KEY (mother_id) REFERENCES fms_core_individual(id)",
-            migrations.RunSQL.noop
+            "ALTER TABLE fms_core_individual DROP CONSTRAINT fk_mother;"
         ),
         migrations.RunSQL(
             "ALTER TABLE fms_core_individual ADD CONSTRAINT fk_father FOREIGN KEY (father_id) REFERENCES fms_core_individual(id)",
-            migrations.RunSQL.noop
+            "ALTER TABLE fms_core_individual DROP CONSTRAINT fk_father;"
         ),
         migrations.RemoveField(
             model_name='individual',
-            name='fatherold',
+            name='father_old',
         ),
         migrations.RemoveField(
             model_name='individual',
-            name='motherold',
+            name='mother_old',
         ),
         migrations.RemoveField(
             model_name='sample',
-            name='individualold',
+            name='individual_old',
         ),
     ]
