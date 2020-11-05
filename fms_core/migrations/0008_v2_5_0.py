@@ -2,12 +2,17 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import json
 
 
 def populate_foreign_keys(apps, schema_editor):
     individual_model = apps.get_model("fms_core", "individual")
     sample_model = apps.get_model("fms_core", "sample")
+    version_model = apps.get_model("reversion", "Version")
+    all_individual_labels = set(individual_model.objects.all().values_list("label", flat=True))
     label_id_map = dict(individual_model.objects.all().values_list("label", "id"))
+
+    # update the sample and individual FKs
     for sample in sample_model.objects.all():
         sample.individual_new = label_id_map.get(sample.individual)
         sample.save()
@@ -17,6 +22,29 @@ def populate_foreign_keys(apps, schema_editor):
         if individual.father:
             individual.father_new = label_id_map.get(individual.father)
         individual.save()
+
+    # update the version id to maintain old data with new structure
+    for version in version_model.objects.filter(content_type__model="individual", object_id__in=all_individual_labels):
+        label = version.object_id
+        # Convert label to id
+        version.object_id = label_id_map.get(label)
+        # Re-serialize data to fit new model
+        data = json.loads(version.serialized_data)
+        data[0]["pk"] = version.object_id
+        data[0]["fields"]["label"] = label
+        data[0]["fields"]["mother"] = label_id_map.get(data[0]["fields"]["mother"])
+        data[0]["fields"]["father"] = label_id_map.get(data[0]["fields"]["father"])
+        version.serialized_data = json.dumps(data)
+        # Save to database
+        version.save()
+
+    for version in version_model.objects.filter(content_type__model="sample"):
+        # Fix old references to individual from samples
+        data = json.loads(version.serialized_data)
+        data[0]["fields"]["individual"] = label_id_map.get(data[0]["fields"]["individual"])
+        version.serialized_data = json.dumps(data)
+        # Save to database
+        version.save()
 
 
 class Migration(migrations.Migration):
