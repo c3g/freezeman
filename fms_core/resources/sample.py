@@ -53,19 +53,20 @@ class SampleResource(GenericResource):
     # the container within the parent container. TODO: Ideally this should be tweaked
     context_sensitive_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Location Coord')
 
-    individual_id = Field(attribute='individual_id', column_name='Individual ID')
+    individual_label = Field(attribute='individual_label', column_name='Individual ID')
     sex = Field(attribute='individual_sex', column_name='Sex')
     taxon = Field(attribute='individual_taxon', column_name='Taxon')
     cohort = Field(attribute='individual_cohort', column_name='Cohort')
     pedigree = Field(attribute='individual_pedigree', column_name='Pedigree')
-    mother_id = Field(attribute='individual_mother', column_name='Mother ID')
-    father_id = Field(attribute='individual_father', column_name='Father ID')
+    mother_label = Field(attribute='individual_mother', column_name='Mother ID')
+    father_label = Field(attribute='individual_father', column_name='Father ID')
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 
     COMPUTED_FIELDS = frozenset((
         "volume",
         "individual_id",
+        "individual_label",
         "individual_sex",
         "individual_taxon",
         "individual_cohort",
@@ -103,11 +104,11 @@ class SampleResource(GenericResource):
             "container_barcode",
             "container_location",
             "context_sensitive_coordinates",
-            "individual_id",
+            "individual_label",
             "sex",
             "pedigree",
-            "mother_id",
-            "father_id",
+            "mother_label",
+            "father_label",
             "volume",
             "concentration",
             "collection_site",
@@ -137,16 +138,16 @@ class SampleResource(GenericResource):
 
         if data["Mother ID"]:
             mother, _ = Individual.objects.get_or_create(
-                id=get_normalized_str(data, "Mother ID"),
+                label=get_normalized_str(data, "Mother ID"),
                 sex=Individual.SEX_FEMALE,
                 taxon=taxon,  # Mother has same taxon as offspring
-                **({"pedigree": pedigree} if pedigree else {}),  # Mother has same taxon as offspring
+                **({"pedigree": pedigree} if pedigree else {}),  # Mother has same pedigree as offspring
                 **({"cohort": cohort} if cohort else {}),  # Mother has same cohort as offspring TODO: Confirm
             )
 
         if data["Father ID"]:
             father, _ = Individual.objects.get_or_create(
-                id=get_normalized_str(data, "Father ID"),
+                label=get_normalized_str(data, "Father ID"),
                 sex=Individual.SEX_MALE,
                 taxon=taxon,  # Father has same taxon as offspring
                 **({"pedigree": pedigree} if pedigree else {}),  # Father has same pedigree as offspring
@@ -156,7 +157,7 @@ class SampleResource(GenericResource):
         # TODO: This should throw a nicer warning if the individual already exists
         # TODO: Warn if the individual exists but pedigree/cohort is different
         individual, individual_created = Individual.objects.get_or_create(
-            id=get_normalized_str(data, "Individual ID"),
+            label=get_normalized_str(data, "Individual ID"),
             sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
             taxon=taxon,
             **({"pedigree": pedigree} if pedigree else {}),

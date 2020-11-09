@@ -36,7 +36,7 @@ class Individual(models.Model):
         (SEX_UNKNOWN, SEX_UNKNOWN),
     )
 
-    id = models.CharField(primary_key=True, max_length=200, help_text="Unique identifier for the individual.")
+    label = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the individual.")
     taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
@@ -49,11 +49,11 @@ class Individual(models.Model):
                                                                     "a specific study.")
 
     def __str__(self):
-        return self.id
+        return self.label
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.id = str_cast_and_normalize(self.id)
+        self.label = str_cast_and_normalize(self.label)
         self.pedigree = str_cast_and_normalize(self.pedigree)
         self.cohort = str_cast_and_normalize(self.cohort)
 

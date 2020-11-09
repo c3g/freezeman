@@ -213,7 +213,7 @@ class IndividualForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if kwargs.get("instance"):
-            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(id=self.instance.id)
+            parent_queryset = Individual.objects.filter(taxon=self.instance.taxon).exclude(label=self.instance.label)
             self.fields["mother"].queryset = parent_queryset
             self.fields["father"].queryset = parent_queryset
 
@@ -224,7 +224,7 @@ class IndividualAdmin(ExportVersionAdmin):
     resource_class = IndividualResource
 
     list_display = (
-        "id",
+        "label",
         "taxon",
         "sex",
         "pedigree",
@@ -244,7 +244,7 @@ class IndividualAdmin(ExportVersionAdmin):
     )
 
     search_fields = (
-        "id",
+        "label",
         "pedigree",
         "cohort",
     )

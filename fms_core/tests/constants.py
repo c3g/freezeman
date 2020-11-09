@@ -71,9 +71,9 @@ def create_extracted_sample(biospecimen_type, individual, container, extracted_f
     }
 
 
-def create_individual(individual_id, mother=None, father=None, **kwargs):
+def create_individual(individual_label, mother=None, father=None, **kwargs):
     return {
-        'id': individual_id,
+        'label': individual_label,
         'taxon': Individual.TAXON_HOMO_SAPIENS,
         'sex': Individual.SEX_UNKNOWN,
         'mother': mother,
