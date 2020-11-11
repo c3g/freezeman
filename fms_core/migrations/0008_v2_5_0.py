@@ -176,4 +176,14 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='individual_old',
         ),
+        migrations.AlterField(
+            model_name='importedfile',
+            name='filename',
+            field=models.CharField(max_length=500),
+        ),
+        migrations.AlterField(
+            model_name='importedfile',
+            name='location',
+            field=models.CharField(max_length=600),
+        ),
     ]

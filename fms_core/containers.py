@@ -212,7 +212,7 @@ CONTAINER_SPEC_FREEZER_3_SHELVES = ContainerSpec(
 
 CONTAINER_SPEC_FREEZER_5_SHELVES = ContainerSpec(
     container_kind_id="freezer 5 shelves",
-    coordinate_spec=(alphas(3), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
+    coordinate_spec=(alphas(5), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
     coordinate_overlap_allowed=True,
     children=FREEZER_CHILDREN,
 )
