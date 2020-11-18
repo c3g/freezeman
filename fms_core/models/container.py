@@ -1,5 +1,4 @@
 import reversion
-import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -23,8 +22,6 @@ __all__ = ["Container"]
 @reversion.register()
 class Container(models.Model):
     """ Class to store information about a sample. """
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # TODO: Model for choices?
     kind = models.CharField(
