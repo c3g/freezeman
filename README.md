@@ -158,13 +158,5 @@ coverage run ./manage.py test
 
 ## Database diagram
 
-![Database Schema Diagram](docs/database_diagram.png)
+![Database Schema Diagram](docs/fms_database_diagram.png)
 
-Generated using `django-extensions`, `pygraphviz`, and `graphviz` with the following commands:
-
-```bash
-python ./manage.py graph_models fms_core \
-  --exclude-models ContainerMove,ContainerRename,SampleUpdate \
-  --dot -o database_diagram.dot
-dot -Tpng database_diagram.dot -Gdpi=300 -o database_diagram.png
-```
