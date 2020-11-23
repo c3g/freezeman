@@ -11,8 +11,6 @@ from ..containers import (
     PARENT_CONTAINER_KINDS,
 )
 
-list_deleted_containers_uuid = []
-
 
 def remove_deleted_containers_versions(apps, schema_editor):
     # We restore deleted containers to ensure they are in the table so they receive a auto increment id
@@ -22,45 +20,13 @@ def remove_deleted_containers_versions(apps, schema_editor):
     deleted_containers_ids = set(deleted_containers.values_list("object_id", flat=True))
 
     for version in version_model.objects.filter(content_type__model="container", object_id__in=deleted_containers_ids):
-        print(version.object_id)
-        print(version.serialized_data)
+        # remove all revisions of the already deleted containers
         version.revision.delete()
 
         # update the django admin log entries for individuals
         for log in LogEntry.objects.filter(content_type__model="container", object_id=version.object_id):
             # Delete log entries
             log.delete()
-
-
-def restore_deleted_containers(apps, schema_editor):
-    # We restore deleted containers to ensure they are in the table so they receive a auto increment id
-    container_model = apps.get_model("fms_core", "container")
-    deleted_containers = Version.objects.get_deleted(container_model)
-
-    for version in deleted_containers:
-        print(version.object_id)
-        try:
-            current_uuid = uuid.UUID(str(version.object_id))
-        except ValueError:
-            # the deleted container id was not a uuid (some objects were deleted before uuid were used as pk)
-            current_uuid = uuid.uuid4()
-            version.object_id = current_uuid
-        # Ensure the location is null and the pk is equal to the object_id
-        data = json.loads(version.serialized_data)
-        data[0]["pk"] = version.object_id
-        data[0]["fields"]["location"] = ""
-        version.serialized_data = json.dumps(data)
-        version.save
-        version.revert()
-        list_deleted_containers_uuid.append(current_uuid)
-
-
-def delete_restored_containers(apps, schema_editor):
-    container_model = apps.get_model("fms_core", "container")
-    restored_containers = container_model.objects.filter(old_id__in=list_deleted_containers_uuid)
-
-    for container in restored_containers:
-        container.delete()
 
 
 def populate_foreign_keys(apps, schema_editor):
