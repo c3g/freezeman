@@ -12,6 +12,23 @@ from ..containers import (
 )
 
 
+def remove_deleted_containers_versions(apps, schema_editor):
+    # We restore deleted containers to ensure they are in the table so they receive a auto increment id
+    container_model = apps.get_model("fms_core", "container")
+    version_model = apps.get_model("reversion", "Version")
+    deleted_containers = Version.objects.get_deleted(container_model)
+    deleted_containers_ids = set(deleted_containers.values_list("object_id", flat=True))
+
+    for version in version_model.objects.filter(content_type__model="container", object_id__in=deleted_containers_ids):
+        # remove all revisions of the already deleted containers
+        version.revision.delete()
+
+        # update the django admin log entries for individuals
+        for log in LogEntry.objects.filter(content_type__model="container", object_id=version.object_id):
+            # Delete log entries
+            log.delete()
+
+
 def populate_foreign_keys(apps, schema_editor):
     container_model = apps.get_model("fms_core", "container")
     sample_model = apps.get_model("fms_core", "sample")
@@ -67,6 +84,10 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='sample',
             unique_together={},
+        ),
+        migrations.RunPython(
+            remove_deleted_containers_versions,
+            migrations.RunPython.noop
         ),
         migrations.RenameField(
             model_name='container',
