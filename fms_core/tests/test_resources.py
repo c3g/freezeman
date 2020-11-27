@@ -270,7 +270,7 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(Container.objects.filter(location=ci).count(), 2)
 
     def _test_invalid_rename_template(self, fh, err=IntegrityError):
-        with self.assertRaises(err):
+        with reversion.create_revision(), self.assertRaises(err):
             d = fh.read()
             r = Dataset().load(d)
             self.rr.import_data(r, dry_run=True, raise_errors=True)
@@ -280,8 +280,8 @@ class ResourcesTestCase(TestCase):
     def test_invalid_container_rename(self):
         for f, err in (
             ("rename_invalid.csv", ValidationError),
-            ("same_rename.csv", IntegrityError),
-            ("same_rename_2.csv", IntegrityError),
+            ("same_rename.csv", ValidationError),
+            ("same_rename_2.csv", ValidationError),
             ("double_rename.csv", ValueError),
         ):
             print(f"Testing invalid container rename {f}", flush=True)
