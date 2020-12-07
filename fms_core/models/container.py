@@ -13,7 +13,7 @@ from ..utils import str_cast_and_normalize
 
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
-from ._validators import barcode_name_validator
+from ._validators import name_validator, container_barcode_validator
 
 
 __all__ = ["Container"]
@@ -33,9 +33,9 @@ class Container(models.Model):
 
     name = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH,
                             help_text="Unique name for the container.",
-                            validators=[barcode_name_validator])
+                            validators=[name_validator])
     barcode = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
-                               validators=[barcode_name_validator])
+                               validators=[container_barcode_validator])
 
     # In which container is this container located? i.e. its parent.
     location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
@@ -71,8 +71,8 @@ class Container(models.Model):
         self.normalize()
 
         if check_regexes:
-            barcode_name_validator(self.barcode)
-            barcode_name_validator(self.name)
+            container_barcode_validator(self.barcode)
+            name_validator(self.name)
 
         if self.coordinates != "" and self.location is None:
             add_error("coordinates", "Cannot specify coordinates in non-specified container")
