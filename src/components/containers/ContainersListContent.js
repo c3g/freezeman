@@ -11,6 +11,8 @@ import PaginatedTable from "../PaginatedTable";
 import {list, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
+import Filters from "../Filters";
+
 const TABLE_COLUMNS = [
   {
     title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Barcode</>,
@@ -65,6 +67,7 @@ const ContainersListContent = ({
   return <>
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
     <PageContent>
+      <Filters></Filters>
       <PaginatedTable
         columns={TABLE_COLUMNS}
         items={containers}
