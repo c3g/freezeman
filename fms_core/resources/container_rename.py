@@ -7,12 +7,9 @@ from ._generic import GenericResource
 from ._utils import get_container_pk, skip_rows
 from ..models import Container
 from ..utils import get_normalized_str
-
+from ..models._constants import TEMPORARY_RENAME_SUFFIX
 
 __all__ = ["ContainerRenameResource"]
-
-
-TEMPORARY_NAME_SUFFIX = "$"
 
 
 class ContainerRenameResource(GenericResource):
@@ -81,8 +78,8 @@ class ContainerRenameResource(GenericResource):
         if not dry_run:
             # Append a zero-width space to the barcode / name to avoid triggering integrity errors.
             # These will be removed after the initial import succeeds.
-            obj.barcode = obj.barcode + TEMPORARY_NAME_SUFFIX
-            obj.name = obj.name + TEMPORARY_NAME_SUFFIX
+            obj.barcode = obj.barcode + TEMPORARY_RENAME_SUFFIX
+            obj.name = obj.name + TEMPORARY_RENAME_SUFFIX
 
     def after_save_instance(self, *args, **kwargs):
         super().after_save_instance(*args, **kwargs)
@@ -93,9 +90,9 @@ class ContainerRenameResource(GenericResource):
             # Remove the zero-width spaces introduced before, ideally without errors.
             # If there are integrity errors, django-import-export will revert to the save-point.
             for container in Container.objects.filter(
-                    Q(barcode__endswith=TEMPORARY_NAME_SUFFIX) | Q(name__endswith=TEMPORARY_NAME_SUFFIX)):
-                container.barcode = container.barcode.replace(TEMPORARY_NAME_SUFFIX, "")
-                container.name = container.name.replace(TEMPORARY_NAME_SUFFIX, "")
+                    Q(barcode__endswith=TEMPORARY_RENAME_SUFFIX) | Q(name__endswith=TEMPORARY_RENAME_SUFFIX)):
+                container.barcode = container.barcode.replace(TEMPORARY_RENAME_SUFFIX, "")
+                container.name = container.name.replace(TEMPORARY_RENAME_SUFFIX, "")
                 container.save()  # Will also run normalize and full_clean
 
         return super().after_import(dataset, result, using_transactions, dry_run, **kwargs)

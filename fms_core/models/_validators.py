@@ -1,5 +1,6 @@
 import re
 from django.core.validators import RegexValidator
+from ._constants import TEMPORARY_RENAME_SUFFIX
 
 __all__ = ["name_validator",
            "container_barcode_validator"]
@@ -10,4 +11,4 @@ __all__ = ["name_validator",
 # one character less than that, since when renaming containers we need to append a
 # temporary character to prevent integrity errors.
 name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]{1,199}$"))
-container_barcode_validator = RegexValidator(re.compile(r"^[^\$]{1,199}$"))
+container_barcode_validator = RegexValidator(re.compile(r"^[^\\" + TEMPORARY_RENAME_SUFFIX + "]{1,199}$"))
