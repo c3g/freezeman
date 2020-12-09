@@ -21,7 +21,7 @@ from .individual import Individual
 
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
-from ._validators import barcode_name_validator
+from ._validators import name_validator
 
 __all__ = ["Sample"]
 
@@ -87,7 +87,7 @@ class Sample(models.Model):
     biospecimen_type = models.CharField(max_length=200, choices=BIOSPECIMEN_TYPE_CHOICES,
                                         help_text="Biological material collected from study subject "
                                                   "during the conduct of a genomic study project.")
-    name = models.CharField(max_length=BARCODE_NAME_FIELD_LENGTH, validators=[barcode_name_validator],
+    name = models.CharField(max_length=BARCODE_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
