@@ -15,7 +15,7 @@ const api = {
 
   containers: {
     get: id => get(`/containers/${id}`),
-    list: () => get("/containers/list_root"),
+    list: q => get("/containers", q),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
@@ -97,6 +97,8 @@ function apiFetch(method, route, body) {
 }
 
 function get(route, queryParams) {
+  let a = route + (queryParams ? '?' + qs(queryParams) : '');
+
   return apiFetch('GET', route + (queryParams ? '?' + qs(queryParams) : ''), undefined);
 }
 

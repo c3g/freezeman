@@ -8,7 +8,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-import {list, listTemplateActions} from "../../modules/containers/actions";
+import {list, filterList, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 import Filters from "../Filters";
@@ -40,23 +40,27 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
+  containersKinds: state.containerKinds.items,
   actions: state.containerTemplateActions,
   page: state.containers.page,
   totalCount: state.containers.totalCount,
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list, filterList, listTemplateActions};
 
 const ContainersListContent = ({
   containers,
   containersByID,
+  containersKinds,
   actions,
   isFetching,
   page,
   totalCount,
+  filterList,
   list,
   listTemplateActions,
 }) => {
@@ -64,10 +68,23 @@ const ContainersListContent = ({
     // Must be wrapped; effects cannot return promises
     listTemplateActions();
   }, []);
+
+  const filterChange = (val) => {
+    console.log({kind: val})
+    let test = 0
+    filterList(test, test, {kind: val})
+  }
+
   return <>
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
+
+    <Filters
+      options={containersKinds.map(x => x.id)}
+      multipleOptions={false}
+      onChangeFunction={filterChange}
+    />
     <PageContent>
-      <Filters></Filters>
+
       <PaginatedTable
         columns={TABLE_COLUMNS}
         items={containers}

@@ -1,4 +1,4 @@
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import {createNetworkActionTypes, networkAction, filterTypes} from "../../utils/actions";
 import api from "../../utils/api"
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
@@ -28,6 +28,22 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     await dispatch(networkAction(LIST,
         api.containers.list(pageOptions),
         { meta: pageOptions }
+    ));
+};
+
+
+export const filterList = ( offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}) => async (dispatch, getState) => {
+    if (getState().containers.isFetching)
+        return;
+
+    // dispatch(filterTypes('FILTERS', filters));
+
+    const pageOptions = {limit, offset}
+    const options =  Object.assign(pageOptions, filters)
+
+    await dispatch(networkAction(LIST,
+      api.containers.list(options),
+      { meta: pageOptions }
     ));
 };
 
@@ -100,4 +116,6 @@ export default {
     listKinds,
     listTemplateActions,
     summary,
+
+
 };

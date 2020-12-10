@@ -1,38 +1,35 @@
-import React, {useState} from "react";
-import {useDispatch} from "react-redux";
+import React from "react";
+import {connect} from "react-redux";
+
+const mapStateToProps = state => ({
+  filters: state.containers.filters,
+});
 
 
-
-const Filters = () => {
-  const dispatch = useDispatch();
-  // const [attribute, setAttribute] = useState('');
-  const [values, setValues] = useState([{name: 'male'}, {name: 'female'}]);
-
-  const onSubmit = () => {
-    // dispatch({ type: 'SET_FILTER', attribute, value });
-  }
+const Filters = ({
+  options,
+  multipleOptions,
+  onChangeFunction,
+  filters
+}) => {
   const handleChange = (e) => {
-    setValues();
-    console.log(e.target.value);
+    onChangeFunction(e.target.value)
+    console.log(filters)
   }
 
   return <>
     <div>
-      {/*<label>Attribute</label>*/}
-      {/*<input value={attribute} type="select" onChange={e => setAttribute(e.target.value)} />*/}
-
-      {/*<label>Value</label>*/}
-      {/*<input value={value} type="select" onChange={e => setValue(e.target.value)} />*/}
-
-      <select id="toggleLocationName" onChange={handleChange}>
-        {values.map((item, index) =>
-          <option key={index} value={item.name}>{[item.name]}</option>
-        )}
+      <select id="toggleLocationName"  multiple={multipleOptions} onChange={handleChange}>
+        <option key="all" value="">All</option>
+        {
+          options.map((item, index) =>
+          <option key={index} value={item}>{[item]}</option>
+        )
+        }
       </select>
 
-      <button onClick={onSubmit}>Filter</button>
     </div>
   </>;
 };
 
-export default Filters;
+export default connect(mapStateToProps, null)(Filters);

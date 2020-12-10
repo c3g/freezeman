@@ -20,3 +20,12 @@ export const networkAction = (types, apiAction, { meta, transform } = {}) => (di
       dispatch({type: types.ERROR, error, meta});
     });
 };
+
+
+
+export const filterTypes = (types, filters) => {
+  return{
+    type: `${types}.FILTER`,
+    filters: filters,
+  }
+}

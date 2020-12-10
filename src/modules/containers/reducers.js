@@ -48,6 +48,7 @@ export const containers = (
     page: { limit: 0, offset: 0 },
     totalCount: 0,
     isFetching: false,
+    filters: {},
   },
   action
 ) => {
