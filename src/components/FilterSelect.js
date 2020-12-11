@@ -1,11 +1,12 @@
 import React from "react";
 
 
-const Filters = ({
-  filterItems,
+const FilterSelect = ({
   filterType,
   options,
   multipleOptions,
+  defaultValue,
+  defaultValueName,
   onChange,
   filters
 }) => {
@@ -17,18 +18,21 @@ const Filters = ({
 
   return <>
     <div>
+      {`${filterType.toUpperCase()}: `}
       <select
-        id={`${filterItems}${filterType}Select`}
+        id={`${filterType}Select`}
         multiple={multipleOptions}
         onChange={handleChange}
         value={filters[filterType]}
       >
-        <option key="all" value="">All</option>
+        <option key={defaultValueName} value={defaultValue}>
+          {defaultValueName}
+        </option>
         {
           options.map((item, index) =>
-          <option key={index} value={item}>
-            {[item]}
-          </option>
+            <option key={index} value={item}>
+              {[item]}
+            </option>
         )
         }
       </select>
@@ -37,4 +41,4 @@ const Filters = ({
   </>;
 };
 
-export default Filters;
+export default FilterSelect;

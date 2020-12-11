@@ -7,11 +7,11 @@ import {BarcodeOutlined} from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
+import ContainersFilters from "./ContainersFilters";
 
-import {setFilter, list, listTemplateActions} from "../../modules/containers/actions";
+import {list, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
-import Filters from "../Filters";
 
 const TABLE_COLUMNS = [
   {
@@ -43,7 +43,6 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
-  containersKinds: state.containerKinds.items,
   filters: state.containers.filters,
   actions: state.containerTemplateActions,
   page: state.containers.page,
@@ -51,18 +50,16 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {setFilter, list, listTemplateActions};
+const actionCreators = {list, listTemplateActions};
 
 const ContainersListContent = ({
   containers,
   containersByID,
-  containersKinds,
   filters,
   actions,
   isFetching,
   page,
   totalCount,
-  setFilter,
   list,
   listTemplateActions,
 }) => {
@@ -71,22 +68,10 @@ const ContainersListContent = ({
     listTemplateActions();
   }, []);
 
-  const onChangeFilter = (name, value) => {
-    setFilter(name, value)
-    list()
-  }
-
   return <>
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
 
-    <Filters
-      filterItems='containers'
-      filterType='kind'
-      options={containersKinds.map(x => x.id)}
-      multipleOptions={false}
-      onChange={onChangeFilter}
-      filters={filters}
-    />
+    <ContainersFilters />
     <PageContent>
 
       <PaginatedTable
