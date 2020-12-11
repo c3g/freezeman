@@ -8,7 +8,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-import {list, filterList, listTemplateActions} from "../../modules/containers/actions";
+import {list, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 import Filters from "../Filters";
@@ -50,7 +50,7 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, filterList, listTemplateActions};
+const actionCreators = {list, listTemplateActions};
 
 const ContainersListContent = ({
   containers,
@@ -60,7 +60,6 @@ const ContainersListContent = ({
   isFetching,
   page,
   totalCount,
-  filterList,
   list,
   listTemplateActions,
 }) => {
@@ -69,7 +68,7 @@ const ContainersListContent = ({
     listTemplateActions();
   }, []);
 
-  const filterChange = (val) => {
+  const onChangeFilter = (val) => {
     console.log({kind: val})
     let test = 0
     filterList(test, test, {kind: val})
@@ -81,7 +80,7 @@ const ContainersListContent = ({
     <Filters
       options={containersKinds.map(x => x.id)}
       multipleOptions={false}
-      onChangeFunction={filterChange}
+      onChange={onChangeFilter}
     />
     <PageContent>
 

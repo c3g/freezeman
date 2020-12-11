@@ -9,11 +9,11 @@ const mapStateToProps = state => ({
 const Filters = ({
   options,
   multipleOptions,
-  onChangeFunction,
+  onChange,
   filters
 }) => {
   const handleChange = (e) => {
-    onChangeFunction(e.target.value)
+    onChange(e.target.value)
     console.log(filters)
   }
 
