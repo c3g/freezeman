@@ -8,7 +8,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-import {list, listTemplateActions} from "../../modules/containers/actions";
+import {setFilter, list, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 import Filters from "../Filters";
@@ -50,7 +50,7 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {setFilter, list, listTemplateActions};
 
 const ContainersListContent = ({
   containers,
@@ -60,6 +60,7 @@ const ContainersListContent = ({
   isFetching,
   page,
   totalCount,
+  setFilter,
   list,
   listTemplateActions,
 }) => {
@@ -68,10 +69,9 @@ const ContainersListContent = ({
     listTemplateActions();
   }, []);
 
-  const onChangeFilter = (val) => {
-    console.log({kind: val})
-    let test = 0
-    filterList(test, test, {kind: val})
+  const onChangeFilter = (name, value) => {
+    setFilter(name, value)
+    list()
   }
 
   return <>

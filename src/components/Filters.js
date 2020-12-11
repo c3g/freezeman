@@ -12,9 +12,11 @@ const Filters = ({
   onChange,
   filters
 }) => {
+
   const handleChange = (e) => {
-    onChange(e.target.value)
-    console.log(filters)
+    const key = 'containerKind'
+    const value = e.target.value
+    onChange(key, value)
   }
 
   return <>
