@@ -1,4 +1,4 @@
-import {createNetworkActionTypes, networkAction, filterTypes} from "../../utils/actions";
+import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
