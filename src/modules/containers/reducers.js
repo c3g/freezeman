@@ -62,6 +62,19 @@ export const containers = (
       return merge(state, ['itemsByID', action.meta.id],
         { error: action.error, isFetching: false, didFail: true });
 
+    case CONTAINERS.SET_FILTER:
+      return {
+        ...state,
+        filters: set(state.filters, [action.data.name], action.data.value),
+        page: set(state.page, ['offset'], 0),
+      };
+    case CONTAINERS.CLEAR_FILTERS:
+      return {
+        ...state,
+        filters: {},
+        page: set(state.page, ['offset'], 0),
+      };
+
     case CONTAINERS.LIST.REQUEST:
       return { ...state, isFetching: true };
     case CONTAINERS.LIST.RECEIVE: {
@@ -82,11 +95,6 @@ export const containers = (
     }
     case CONTAINERS.LIST.ERROR:
       return { ...state, isFetching: false, error: action.error };
-
-    case CONTAINERS.SET_FILTER:
-      return set(state, ['filters', action.data.name], action.data.value);
-    case CONTAINERS.CLEAR_FILTERS:
-      return set(state, ['filters'], {});
 
     case CONTAINERS.LIST_PARENTS.REQUEST:
       return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
