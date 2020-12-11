@@ -1,12 +1,9 @@
 import React from "react";
-import {connect} from "react-redux";
-
-const mapStateToProps = state => ({
-  filters: state.containers.filters,
-});
 
 
 const Filters = ({
+  filterItems,
+  filterType,
   options,
   multipleOptions,
   onChange,
@@ -14,18 +11,24 @@ const Filters = ({
 }) => {
 
   const handleChange = (e) => {
-    const key = 'containerKind'
     const value = e.target.value
-    onChange(key, value)
+    onChange(filterType, value)
   }
 
   return <>
     <div>
-      <select id="toggleLocationName"  multiple={multipleOptions} onChange={handleChange}>
+      <select
+        id={`${filterItems}${filterType}Select`}
+        multiple={multipleOptions}
+        onChange={handleChange}
+        value={filters[filterType]}
+      >
         <option key="all" value="">All</option>
         {
           options.map((item, index) =>
-          <option key={index} value={item}>{[item]}</option>
+          <option key={index} value={item}>
+            {[item]}
+          </option>
         )
         }
       </select>
@@ -34,4 +37,4 @@ const Filters = ({
   </>;
 };
 
-export default connect(mapStateToProps, null)(Filters);
+export default Filters;

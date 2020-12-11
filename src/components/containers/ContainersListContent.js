@@ -44,6 +44,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
   containersKinds: state.containerKinds.items,
+  filters: state.containers.filters,
   actions: state.containerTemplateActions,
   page: state.containers.page,
   totalCount: state.containers.totalCount,
@@ -56,6 +57,7 @@ const ContainersListContent = ({
   containers,
   containersByID,
   containersKinds,
+  filters,
   actions,
   isFetching,
   page,
@@ -78,13 +80,18 @@ const ContainersListContent = ({
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
 
     <Filters
+      filterItems='containers'
+      filterType='kind'
       options={containersKinds.map(x => x.id)}
       multipleOptions={false}
       onChange={onChangeFilter}
+      filters={filters}
     />
     <PageContent>
 
       <PaginatedTable
+        // filters as a key in order to instantiate a new component on filters state change
+        key={JSON.stringify(filters)}
         columns={TABLE_COLUMNS}
         items={containers}
         itemsByID={containersByID}
