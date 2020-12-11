@@ -83,6 +83,11 @@ export const containers = (
     case CONTAINERS.LIST.ERROR:
       return { ...state, isFetching: false, error: action.error };
 
+    case CONTAINERS.SET_FILTER:
+      return set(state, ['filters', action.data.name], action.data.value);
+    case CONTAINERS.CLEAR_FILTERS:
+      return set(state, ['filters'], {});
+
     case CONTAINERS.LIST_PARENTS.REQUEST:
       return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
     case CONTAINERS.LIST_PARENTS.RECEIVE: {

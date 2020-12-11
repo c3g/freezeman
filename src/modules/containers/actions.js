@@ -3,6 +3,8 @@ import api from "../../utils/api"
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
+export const SET_FILTER = "CONTAINERS.SET_FILTER";
+export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
@@ -19,31 +21,29 @@ export const get = id => async (dispatch, getState) => {
     await dispatch(networkAction(GET, api.containers.get(id), { meta: { id } }));
 };
 
+export const setFilter = (name, value) => {
+    return {
+        type: SET_FILTER,
+        data: { name, value }
+    }
+};
+
+export const clearFilters = () => {
+    return {
+        type: CLEAR_FILTERS,
+    }
+};
+
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
     if (getState().containers.isFetching)
         return;
 
-    const pageOptions = { limit, offset }
+    const filters = getState().containers.filters
+    const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,
-        api.containers.list(pageOptions),
-        { meta: pageOptions }
-    ));
-};
-
-
-export const filterList = ( offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}) => async (dispatch, getState) => {
-    if (getState().containers.isFetching)
-        return;
-
-    // dispatch(filterTypes('FILTERS', filters));
-
-    const pageOptions = {limit, offset}
-    const options =  Object.assign(pageOptions, filters)
-
-    await dispatch(networkAction(LIST,
-      api.containers.list(options),
-      { meta: pageOptions }
+        api.containers.list(options),
+        { meta: options }
     ));
 };
 
@@ -101,6 +101,8 @@ export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.con
 
 export default {
     GET,
+    SET_FILTER,
+    CLEAR_FILTERS,
     LIST,
     LIST_PARENTS,
     LIST_CHILDREN,
@@ -109,6 +111,8 @@ export default {
     LIST_TEMPLATE_ACTIONS,
     SUMMARY,
     get,
+    setFilter,
+    clearFilters,
     list,
     listParents,
     listChildren,
@@ -116,6 +120,4 @@ export default {
     listKinds,
     listTemplateActions,
     summary,
-
-
 };
