@@ -15,7 +15,7 @@ const api = {
 
   containers: {
     get: id => get(`/containers/${id}`),
-    list: q => get("/containers", q),
+    list: options => get("/containers", options),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
