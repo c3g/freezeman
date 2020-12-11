@@ -17,4 +17,19 @@ class Migration(migrations.Migration):
             name='barcode',
             field=models.CharField(help_text='Unique container barcode.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[^\\$]{1,199}$'))]),
         ),
+        migrations.AlterField(
+            model_name='container',
+            name='kind',
+            field=models.CharField(
+                choices=[('96-well plate', '96-well plate'), ('384-well plate', '384-well plate'), ('tube', 'tube'),
+                         ('tube box 6x6', 'tube box 6x6'), ('tube box 8x8', 'tube box 8x8'),
+                         ('tube box 9x9', 'tube box 9x9'), ('tube box 10x10', 'tube box 10x10'),
+                         ('tube rack 8x12', 'tube rack 8x12'), ('drawer', 'drawer'),
+                         ('freezer rack 4x4', 'freezer rack 4x4'), ('freezer rack 7x4', 'freezer rack 7x4'),
+                         ('freezer rack 8x6', 'freezer rack 8x6'), ('freezer rack 11x6', 'freezer rack 11x6'),
+                         ('freezer 3 shelves', 'freezer 3 shelves'), ('freezer 5 shelves', 'freezer 5 shelves'),
+                         ('room', 'room'), ('box', 'box')],
+                help_text='What kind of container this is. Dictates the coordinate system and other container-specific properties.',
+                max_length=20),
+        ),
     ]

@@ -8,6 +8,7 @@ __all__ = [
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
+    "CONTAINER_SPEC_TUBE_BOX_6X6",
     "CONTAINER_SPEC_TUBE_BOX_8X8",
     "CONTAINER_SPEC_TUBE_BOX_9X9",
     "CONTAINER_SPEC_TUBE_BOX_10X10",
@@ -120,6 +121,13 @@ CONTAINER_SPEC_TUBE = ContainerSpec(
     children=(),  # Leaf node; sample-holding
 )
 
+CONTAINER_SPEC_TUBE_BOX_6X6 = ContainerSpec(
+    container_kind_id="tube box 6x6",
+    coordinate_spec=(alphas(6), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
+)
+
 CONTAINER_SPEC_TUBE_BOX_8X8 = ContainerSpec(
     container_kind_id="tube box 8x8",
     coordinate_spec=(alphas(8), ints(8, pad_to=2)),
@@ -151,6 +159,8 @@ CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
 COMMON_CHILDREN = (
     CONTAINER_SPEC_96_WELL_PLATE,
     CONTAINER_SPEC_384_WELL_PLATE,
+    CONTAINER_SPEC_TUBE_BOX_6X6,
+    CONTAINER_SPEC_TUBE_BOX_8X8,
     CONTAINER_SPEC_TUBE_BOX_9X9,
     CONTAINER_SPEC_TUBE_BOX_10X10,
     CONTAINER_SPEC_TUBE_RACK_8X12,
