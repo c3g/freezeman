@@ -97,8 +97,6 @@ function apiFetch(method, route, body) {
 }
 
 function get(route, queryParams) {
-  let a = route + (queryParams ? '?' + qs(queryParams) : '');
-
   return apiFetch('GET', route + (queryParams ? '?' + qs(queryParams) : ''), undefined);
 }
 
