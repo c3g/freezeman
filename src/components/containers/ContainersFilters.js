@@ -24,7 +24,7 @@ const ContainersFilters = ({
 
   return <>
     <FilterSelect
-      filterType='kind'
+      filterType="kind"
       options={containersKinds.map(x => x.id)}
       multipleOptions={false}
       defaultValue=''

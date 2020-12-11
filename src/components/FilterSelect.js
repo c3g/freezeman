@@ -23,7 +23,6 @@ const FilterSelect = ({
         id={`${filterType}Select`}
         multiple={multipleOptions}
         onChange={handleChange}
-        value={filters[filterType]}
       >
         <option key={defaultValueName} value={defaultValue}>
           {defaultValueName}

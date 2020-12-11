@@ -3,8 +3,11 @@ import api from "../../utils/api";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET           = createNetworkActionTypes("SAMPLES.GET");
+export const SET_FILTER = "SAMPLES.SET_FILTER";
+export const CLEAR_FILTERS = "SAMPLES.CLEAR_FILTERS";
 export const LIST          = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
+export const LIST_BIOSPECIMEN_TYPES = createNetworkActionTypes("SAMPLES.LIST_BIOSPECIMEN_TYPES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 export const SUMMARY       = createNetworkActionTypes("SAMPLES.SUMMARY");
 
@@ -16,15 +19,37 @@ export const get = id => async (dispatch, getState) => {
     await dispatch(networkAction(GET, api.samples.get(id), { meta: { id } }));
 };
 
+export const setFilter = (name, value) => {
+    return {
+        type: SET_FILTER,
+        data: { name, value }
+    }
+};
+
+export const clearFilters = () => {
+    return {
+        type: CLEAR_FILTERS,
+    }
+};
+
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
     if (getState().samples.isFetching) return;
 
-    const pageOptions = { limit, offset }
+    const filters = getState().samples.filters
+    const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,
-        api.samples.list(pageOptions),
-        { meta: pageOptions }
+        api.samples.list(options),
+        { meta: options }
     ));
+};
+
+export const listBiospecimenTypes = () => async (dispatch, getState) => {
+    // Check if we're already fetching or have fetched sample biospecimen types first (they won't change dynamically.)
+    if (getState().sampleBiospecimenTypes.isFetching || getState().sampleBiospecimenTypes.items.length > 0)
+        return;
+
+    await dispatch(networkAction(LIST_BIOSPECIMEN_TYPES, api.sampleBiospecimenTypes.list()));
 };
 
 export const listTemplateActions = () => (dispatch, getState) => {
@@ -47,13 +72,19 @@ export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.sam
 
 export default {
     GET,
+    SET_FILTER,
+    CLEAR_FILTERS,
     LIST,
     SUMMARY,
     LIST_VERSIONS,
+    LIST_BIOSPECIMEN_TYPES,
     LIST_TEMPLATE_ACTIONS,
     get,
+    setFilter,
+    clearFilters,
     list,
     listVersions,
+    listBiospecimenTypes,
     listTemplateActions,
     summary,
 };

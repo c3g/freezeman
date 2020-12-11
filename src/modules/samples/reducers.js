@@ -9,6 +9,39 @@ import {templateActionsReducerFactory} from "../../utils/templateActions";
 import CONTAINERS from "../containers/actions";
 import SAMPLES from "./actions";
 
+export const sampleBiospecimenTypes = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case SAMPLES.LIST_BIOSPECIMEN_TYPES.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case SAMPLES.LIST_BIOSPECIMEN_TYPES.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case SAMPLES.LIST_BIOSPECIMEN_TYPES.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
+
+
 export const samplesSummary = summaryReducerFactory(SAMPLES);
 export const sampleTemplateActions = templateActionsReducerFactory(SAMPLES);
 
@@ -19,6 +52,7 @@ export const samples = (
         page: { limit: 0, offset: 0 },
         totalCount: 0,
         isFetching: false,
+        filters: {},
     },
     action
 ) => {
@@ -31,6 +65,19 @@ export const samples = (
         case SAMPLES.GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
+
+        case SAMPLES.SET_FILTER:
+            return {
+                ...state,
+                filters: set(state.filters, [action.data.name], action.data.value),
+                page: set(state.page, ['offset'], 0),
+            };
+        case SAMPLES.CLEAR_FILTERS:
+            return {
+                ...state,
+                filters: {},
+                page: set(state.page, ['offset'], 0),
+            };
 
         case SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };

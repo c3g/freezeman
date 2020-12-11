@@ -9,6 +9,7 @@ import {SampleDepletion} from "./SampleDepletion";
 
 import {list, listTemplateActions} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
+import SamplesFilters from "./SamplesFilters";
 
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
@@ -98,6 +99,7 @@ const SamplesListContent = ({
   return <>
     <AppPageHeader title="Samples & Extractions" extra={actionsToButtonList("/samples", actions)} />
     <PageContent>
+      <SamplesFilters />
       <PaginatedTable
         columns={TABLE_COLUMNS}
         items={samples}

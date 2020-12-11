@@ -13,6 +13,10 @@ const api = {
     list: () => get("/container-kinds/"),
   },
 
+  sampleBiospecimenTypes: {
+    list: () => get("/sample-biospecimen-type/"),
+  },
+
   containers: {
     get: id => get(`/containers/${id}`),
     list: options => get("/containers", options),
@@ -34,7 +38,7 @@ const api = {
 
   samples: {
     get: sampleId => get(`/samples/${sampleId}`),
-    list: (page = {}) => get("/samples/", page),
+    list: options => get("/samples/", options),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
     summary: () => get("/samples/summary"),
     template: {
