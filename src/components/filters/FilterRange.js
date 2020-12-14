@@ -1,4 +1,6 @@
 import React from "react";
+import {InputNumber} from "antd";
+import "antd/es/input-number/style/css";
 
 
 const FilterRange = ({
@@ -9,16 +11,27 @@ const FilterRange = ({
                         filters
                       }) => {
 
-  const handleChange = (e) => {
-    onChange(e.target.id, e.target.value)
+  const handleChange = (name, val) => {
+    onChange(name,val)
   }
 
   return <>
     <div>
       {`${filterTypeName.toUpperCase()}: `}
-      <input type="text" id={filterTypeMin} value={filters[filterTypeMin]} onChange={handleChange} />
+      <InputNumber
+        min={1}
+        max={1000}
+        defaultValue={filters[filterTypeMin]}
+        onChange={(val) => handleChange(filterTypeMin, val)}
+      />
       { ' to ' }
-      <input type="text" id={filterTypeMax} value={filters[filterTypeMax]} onChange={handleChange} />
+      <InputNumber
+        min={1}
+        max={1000}
+        defaultValue={filters[filterTypeMax]}
+        onChange={(val) => handleChange(filterTypeMax, val)}
+      />
+
     </div>
   </>;
 };
