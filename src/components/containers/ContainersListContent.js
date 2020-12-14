@@ -70,10 +70,8 @@ const ContainersListContent = ({
 
   return <>
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
-
-    <ContainersFilters />
     <PageContent>
-
+      <ContainersFilters />
       <PaginatedTable
         // filters as a key in order to instantiate a new component on filters state change
         key={JSON.stringify(filters)}

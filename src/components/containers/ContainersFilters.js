@@ -1,6 +1,6 @@
 import React from "react";
 import {list, setFilter} from "../../modules/containers/actions";
-import FilterSelect from "../FilterSelect";
+import FilterSelect from "../filters/FilterSelect";
 import {connect} from "react-redux";
 
 const mapStateToProps = state => ({
@@ -25,6 +25,7 @@ const ContainersFilters = ({
   return <>
     <FilterSelect
       filterType="kind"
+      filterTypeName="kind"
       options={containersKinds.map(x => x.id)}
       multipleOptions={false}
       defaultValue=''
