@@ -1,5 +1,5 @@
 import React from "react";
-import {list, setFilter} from "../../modules/containers/actions";
+import {list, setFilter, clearFilters} from "../../modules/containers/actions";
 import FilterSelect from "../filters/FilterSelect";
 import {connect} from "react-redux";
 
@@ -8,28 +8,29 @@ const mapStateToProps = state => ({
   filters: state.containers.filters,
 });
 
-const actionCreators = {setFilter, list};
+const actionCreators = {setFilter, clearFilters, list};
 
 const ContainersFilters = ({
   containersKinds,
   filters,
   setFilter,
+  clearFilters,
   list,
 }) => {
 
   const onChangeFilter = (name, value) => {
-    setFilter(name, value)
+    const val = Array.isArray(value) ? value.join(",") : value
+    val == "" ? clearFilters() : setFilter(name, val)
     list()
   }
 
   return <>
     <FilterSelect
-      filterType="kind"
+      filterType="kind__in"
       filterTypeName="kind"
       options={containersKinds.map(x => x.id)}
-      multipleOptions={false}
-      defaultValue=''
-      defaultValueName='All'
+      mode="multiple"
+      placeholder="All"
       onChange={onChangeFilter}
       filters={filters}
     />

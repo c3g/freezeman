@@ -1,45 +1,44 @@
 import React from "react";
-// import {Select} from "antd";
-// import "antd/es/select/style/css";
-//
-// const { Option } = Select;
+import {Select} from "antd";
+import "antd/es/select/style/css";
+
+const { Option } = Select;
 
 const FilterSelect = ({
   filterType,
   filterTypeName,
   options,
-  multipleOptions,
-  defaultValue,
-  defaultValueName,
+  mode,
+  placeholder,
   onChange,
   filters
 }) => {
+  const convertFiltersToArr = (filters) => {
+    return typeof(filters) == 'string' ? filters.split(",") : filters
+  }
 
-  const handleChange = (e) => {
-    const value = e.target.value
-    onChange(filterType, value)
+  const handleChange = (val) => {
+    onChange(filterType, val)
   }
   return <>
     <div>
       {`${filterTypeName.toUpperCase()}: `}
-      <select
+      <Select
         id={`${filterType}Select`}
-        multiple={multipleOptions}
+        mode={mode}
+        style={{ width: 200 }}
+
+        placeholder={placeholder}
         onChange={handleChange}
-        defaultValue={filters[filterType]}
+        defaultValue={convertFiltersToArr(filters[filterType])}
+
       >
-        <option key={defaultValueName} value={defaultValue} label={defaultValue}>
-          {defaultValueName}
-        </option>
         {
           options.map((item, index) =>
-            <option key={index} value={item} label={item}>
-              {[item]}
-            </option>
+            <Option key={index} value={item}> {[item]} </Option>
           )
         }
-      </select>
-
+      </Select>
     </div>
   </>;
 };

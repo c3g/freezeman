@@ -1,5 +1,5 @@
 import React, {useEffect} from "react";
-import {list, listBiospecimenTypes, setFilter} from "../../modules/samples/actions";
+import {list, listBiospecimenTypes, setFilter, clearFilters} from "../../modules/samples/actions";
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
 import {connect} from "react-redux";
@@ -9,12 +9,13 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
 });
 
-const actionCreators = {setFilter, list, listBiospecimenTypes};
+const actionCreators = {setFilter, clearFilters, list, listBiospecimenTypes};
 
 const SamplesFilters = ({
   samplesBiospecimenTypes,
   filters,
   setFilter,
+  clearFilters,
   list,
   listBiospecimenTypes,
   }) => {
@@ -23,38 +24,36 @@ const SamplesFilters = ({
   }, []);
 
   const onChangeFilter = (name, value) => {
-    setFilter(name, value)
+    const val = Array.isArray(value) ? value.join(",") : value
+    val == "" ? clearFilters() : setFilter(name, val)
     list()
   }
 
   return <>
     <FilterSelect
-      filterType="biospecimen_type"
+      filterType="biospecimen_type__in"
       filterTypeName="biospecimen type"
       options={samplesBiospecimenTypes}
-      multipleOptions={false}
-      defaultValue=''
-      defaultValueName='All'
+      mode="multiple"
+      placeholder="All"
       onChange={onChangeFilter}
       filters={filters}
     />
     <FilterSelect
-      filterType="depleted"
+      filterType="depleted__in"
       filterTypeName="depleted"
       options={['true', 'false']}
-      multipleOptions={false}
-      defaultValue=''
-      defaultValueName='Both'
+      mode=""
+      placeholder="All"
       onChange={onChangeFilter}
       filters={filters}
     />
     <FilterSelect
-      filterType="individual__sex"
+      filterType="individual__sex__in"
       filterTypeName="individual's sex"
       options={['F', 'M', 'Unknown']}
-      multipleOptions={false}
-      defaultValue=''
-      defaultValueName='All'
+      mode="multiple"
+      placeholder="All"
       onChange={onChangeFilter}
       filters={filters}
     />
@@ -72,7 +71,6 @@ const SamplesFilters = ({
       onChange={onChangeFilter}
       filters={filters}
     />
-
   </>;
 }
 
