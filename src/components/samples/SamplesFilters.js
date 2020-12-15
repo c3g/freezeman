@@ -1,21 +1,21 @@
 import React, {useEffect} from "react";
-import {list, listBiospecimenTypes, setFilter, clearFilters} from "../../modules/samples/actions";
+import {connect} from "react-redux";
+import {list, listBiospecimenTypes, setFilter} from "../../modules/samples/actions";
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
-import {connect} from "react-redux";
+
 
 const mapStateToProps = state => ({
   samplesBiospecimenTypes: state.sampleBiospecimenTypes.items,
   filters: state.samples.filters,
 });
 
-const actionCreators = {setFilter, clearFilters, list, listBiospecimenTypes};
+const actionCreators = {setFilter, list, listBiospecimenTypes};
 
 const SamplesFilters = ({
   samplesBiospecimenTypes,
   filters,
   setFilter,
-  clearFilters,
   list,
   listBiospecimenTypes,
   }) => {
@@ -23,9 +23,8 @@ const SamplesFilters = ({
     listBiospecimenTypes();
   }, []);
 
-  const onChangeFilter = (name, value) => {
-    const val = Array.isArray(value) ? value.join(",") : value
-    val == "" ? clearFilters() : setFilter(name, val)
+  const onChangeFilter = (name, serializedValue) => {
+    setFilter(name, serializedValue)
     list()
   }
 
@@ -40,7 +39,7 @@ const SamplesFilters = ({
       filters={filters}
     />
     <FilterSelect
-      filterType="depleted__in"
+      filterType="depleted"
       filterTypeName="depleted"
       options={['true', 'false']}
       mode=""

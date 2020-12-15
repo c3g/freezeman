@@ -1,26 +1,25 @@
 import React from "react";
-import {list, setFilter, clearFilters} from "../../modules/containers/actions";
-import FilterSelect from "../filters/FilterSelect";
 import {connect} from "react-redux";
+import {list, setFilter} from "../../modules/containers/actions";
+import FilterSelect from "../filters/FilterSelect";
+
 
 const mapStateToProps = state => ({
   containersKinds: state.containerKinds.items,
   filters: state.containers.filters,
 });
 
-const actionCreators = {setFilter, clearFilters, list};
+const actionCreators = {setFilter, list};
 
 const ContainersFilters = ({
   containersKinds,
   filters,
   setFilter,
-  clearFilters,
   list,
 }) => {
 
-  const onChangeFilter = (name, value) => {
-    const val = Array.isArray(value) ? value.join(",") : value
-    val == "" ? clearFilters() : setFilter(name, val)
+  const onChangeFilter = (name, serializedValue) => {
+    setFilter(name, serializedValue)
     list()
   }
 

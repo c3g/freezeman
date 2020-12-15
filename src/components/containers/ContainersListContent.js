@@ -40,7 +40,6 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
   filters: state.containers.filters,

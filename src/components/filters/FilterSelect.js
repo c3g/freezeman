@@ -13,10 +13,6 @@ const FilterSelect = ({
   onChange,
   filters
 }) => {
-  const convertFiltersToArr = (filters) => {
-    return typeof(filters) == 'string' ? filters.split(",") : filters
-  }
-
   const handleChange = (val) => {
     onChange(filterType, val)
   }
@@ -27,15 +23,13 @@ const FilterSelect = ({
         id={`${filterType}Select`}
         mode={mode}
         style={{ width: 200 }}
-
         placeholder={placeholder}
         onChange={handleChange}
-        defaultValue={convertFiltersToArr(filters[filterType])}
-
+        defaultValue={filters[filterType]}
       >
         {
           options.map((item, index) =>
-            <Option key={index} value={item}> {[item]} </Option>
+            <Option key={index} value={[item]}> {item} </Option>
           )
         }
       </Select>

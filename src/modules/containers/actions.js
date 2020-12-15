@@ -38,7 +38,12 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     if (getState().containers.isFetching)
         return;
 
-    const filters = getState().containers.filters
+    const containersFilters = getState().containers.filters
+    let filters = {}
+    for (const [key, value] of Object.entries(containersFilters)) {
+        filters[key] = [].concat(value).join(",")
+    }
+
     const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,

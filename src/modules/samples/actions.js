@@ -2,14 +2,14 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-export const GET           = createNetworkActionTypes("SAMPLES.GET");
+export const GET = createNetworkActionTypes("SAMPLES.GET");
 export const SET_FILTER = "SAMPLES.SET_FILTER";
 export const CLEAR_FILTERS = "SAMPLES.CLEAR_FILTERS";
-export const LIST          = createNetworkActionTypes("SAMPLES.LIST");
+export const LIST = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 export const LIST_BIOSPECIMEN_TYPES = createNetworkActionTypes("SAMPLES.LIST_BIOSPECIMEN_TYPES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
-export const SUMMARY       = createNetworkActionTypes("SAMPLES.SUMMARY");
+export const SUMMARY = createNetworkActionTypes("SAMPLES.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
@@ -35,7 +35,12 @@ export const clearFilters = () => {
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
     if (getState().samples.isFetching) return;
 
-    const filters = getState().samples.filters
+    const sampleFilters = getState().samples.filters
+    let filters = {}
+    for (const [key, value] of Object.entries(sampleFilters)) {
+        filters[key] = [].concat(value).join(",")
+    }
+
     const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,
@@ -45,8 +50,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
 };
 
 export const listBiospecimenTypes = () => async (dispatch, getState) => {
-    // Check if we're already fetching or have fetched sample biospecimen types first (they won't change dynamically.)
-    if (getState().sampleBiospecimenTypes.isFetching || getState().sampleBiospecimenTypes.items.length > 0)
+    if (getState().sampleBiospecimenTypes.isFetching)
         return;
 
     await dispatch(networkAction(LIST_BIOSPECIMEN_TYPES, api.sampleBiospecimenTypes.list()));
