@@ -1,5 +1,6 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
+import filtersValuesFromArrToString from "../../utils/filtersValuesFromArrToString";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
@@ -39,11 +40,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
         return;
 
     const containersFilters = getState().containers.filters
-    let filters = {}
-    for (const [key, value] of Object.entries(containersFilters)) {
-        filters[key] = [].concat(value).join(",")
-    }
-
+    const filters = filtersValuesFromArrToString(containersFilters)
     const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,
