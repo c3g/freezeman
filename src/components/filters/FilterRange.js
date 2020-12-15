@@ -4,30 +4,37 @@ import "antd/es/input-number/style/css";
 
 
 const FilterRange = ({
-  filterTypeName,
-  filterTypeMin,
-  filterTypeMax,
+  name,
+  type,
   onChange,
-  filters
+  filter
 }) => {
 
   const handleChange = (name, val) => {
     onChange(name,val)
   }
 
+  const typeMin = (type) =>{
+    return `${type}__gte`
+  }
+
+  const typeMax = (type) =>{
+    return `${type}__lte`
+  }
+
   return <>
     <div>
-      {`${filterTypeName.toUpperCase()}: `}
+      <label>{name.toUpperCase()}</label>
       <InputNumber
         min={0}
-        defaultValue={filters[filterTypeMin]}
-        onChange={(val) => handleChange(filterTypeMin, val)}
+        defaultValue={filter[typeMin]}
+        onChange={(val) => handleChange(typeMin(type), val)}
       />
       { ' to ' }
       <InputNumber
         min={0}
-        defaultValue={filters[filterTypeMax]}
-        onChange={(val) => handleChange(filterTypeMax, val)}
+        defaultValue={filter[typeMax]}
+        onChange={(val) => handleChange(typeMax(type), val)}
       />
 
     </div>

@@ -25,13 +25,13 @@ const ContainersFilters = ({
 
   return <>
     <FilterSelect
-      filterType="kind__in"
-      filterTypeName="kind"
+      type="kind__in"
+      name="kind"
+      value={filters["kind__in"]}
       options={containersKinds.map(x => x.id)}
       mode="multiple"
       placeholder="All"
       onChange={onChangeFilter}
-      filters={filters}
     />
   </>;
 }

@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import {list, listBiospecimenTypes, setFilter} from "../../modules/samples/actions";
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
+import filterDictionaryByKeys from "../../utils/filterDictionaryByKeys"
 
 
 const mapStateToProps = state => ({
@@ -30,8 +31,9 @@ const SamplesFilters = ({
 
   return <>
     <FilterSelect
-      filterType="biospecimen_type__in"
-      filterTypeName="biospecimen type"
+      type="biospecimen_type__in"
+      name="biospecimen type"
+      value={filters["biospecimen_type__in"]}
       options={samplesBiospecimenTypes}
       mode="multiple"
       placeholder="All"
@@ -39,36 +41,34 @@ const SamplesFilters = ({
       filters={filters}
     />
     <FilterSelect
-      filterType="depleted"
-      filterTypeName="depleted"
+      type="depleted"
+      name="depleted"
+      value={filters["depleted"]}
       options={['true', 'false']}
       mode=""
       placeholder="All"
       onChange={onChangeFilter}
-      filters={filters}
     />
     <FilterSelect
-      filterType="individual__sex__in"
-      filterTypeName="individual's sex"
+      type="individual__sex__in"
+      name="individual's sex"
+      value={filters["individual__sex__in"]}
       options={['F', 'M', 'Unknown']}
       mode="multiple"
       placeholder="All"
       onChange={onChangeFilter}
-      filters={filters}
     />
     <FilterRange
-      filterTypeMin="concentration__gte"
-      filterTypeMax="concentration__lte"
-      filterTypeName="concentration"
+      type="concentration"
+      name="concentration"
       onChange={onChangeFilter}
-      filters={filters}
+      filter={filterDictionaryByKeys(["concentration__gte", "concentration__lte"])}
     />
     <FilterRange
-      filterTypeMin="volume_used_gte"
-      filterTypeMax="volume_used__lte"
-      filterTypeName="volume used"
+      type="volume_used"
+      name="volume used"
       onChange={onChangeFilter}
-      filters={filters}
+      filter={filterDictionaryByKeys(["volume_used__gte", "volume_used__lte"])}
     />
   </>;
 }
