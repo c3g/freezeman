@@ -4,6 +4,8 @@ import {list, listBiospecimenTypes, setFilter} from "../../modules/samples/actio
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
 import filterDictionaryByKeys from "../../utils/filterDictionaryByKeys"
+import {sampleFiltersConstants} from "../../constants";
+import {Select} from "antd";
 
 
 const mapStateToProps = state => ({
@@ -58,18 +60,25 @@ const SamplesFilters = ({
       placeholder="All"
       onChange={onChangeFilter}
     />
-    <FilterRange
-      type="concentration"
-      name="concentration"
-      onChange={onChangeFilter}
-      filter={filterDictionaryByKeys(["concentration__gte", "concentration__lte"])}
-    />
-    <FilterRange
-      type="volume_used"
-      name="volume used"
-      onChange={onChangeFilter}
-      filter={filterDictionaryByKeys(["volume_used__gte", "volume_used__lte"])}
-    />
+    <span>
+
+      {
+        sampleFiltersConstants['range'].map(function(item, i){
+          console.log(item);
+          return <FilterRange
+            type={item["key"]}
+            name={item["name"]}
+            min={item["min"]}
+            max={item["max"]}
+            onChange={onChangeFilter}
+            filter={filterDictionaryByKeys([item["min"], item["max"]])}
+          />
+        })
+
+      }
+    </span>
+
+
   </>;
 }
 

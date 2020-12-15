@@ -6,6 +6,8 @@ import "antd/es/input-number/style/css";
 const FilterRange = ({
   name,
   type,
+  min,
+  max,
   onChange,
   filter
 }) => {
@@ -14,27 +16,19 @@ const FilterRange = ({
     onChange(name,val)
   }
 
-  const typeMin = (type) =>{
-    return `${type}__gte`
-  }
-
-  const typeMax = (type) =>{
-    return `${type}__lte`
-  }
-
   return <>
     <div>
       <label>{name.toUpperCase()}</label>
       <InputNumber
         min={0}
-        defaultValue={filter[typeMin]}
-        onChange={(val) => handleChange(typeMin(type), val)}
+        defaultValue={filter[min]}
+        onChange={(val) => handleChange(min, val)}
       />
       { ' to ' }
       <InputNumber
         min={0}
-        defaultValue={filter[typeMax]}
-        onChange={(val) => handleChange(typeMax(type), val)}
+        defaultValue={filter[max]}
+        onChange={(val) => handleChange(max, val)}
       />
 
     </div>
