@@ -25,7 +25,9 @@ from .resources import (
 )
 from .serializers import (
     ContainerSerializer,
+    ContainerExportSerializer,
     SampleSerializer,
+    SampleExportSerializer,
     NestedSampleSerializer,
     IndividualSerializer,
     VersionSerializer,
@@ -245,7 +247,7 @@ _individual_filterset_fields: FiltersetFields = {
 
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Container.objects.all().prefetch_related("location", "children", "samples")
+    queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
     serializer_class = ContainerSerializer
     filterset_fields = {
         **_container_filterset_fields,
@@ -270,7 +272,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "description": "Upload the provided template with up to 384 containers to rename.",
             "template": CONTAINER_RENAME_TEMPLATE,
             "resource": ContainerRenameResource,
-        }
+        },
     ]
 
     @action(detail=False, methods=["get"])
@@ -304,6 +306,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(containers_data, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        containers_data = Container.objects.select_related("location").prefetch_related("children", "samples").all()
+        serializer = ContainerExportSerializer(containers_data, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
@@ -390,6 +398,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return SampleSerializer
 
     @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        samples = Sample.objects.all().select_related("container", "individual")
+        serializer = SampleExportSerializer(samples, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
     def summary(self, _request):
         """
         Returns summary statistics about the current set of samples in the
@@ -433,6 +447,12 @@ class IndividualViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def versions(self, request, pk=None):
         return versions_detail(self.get_object())
+
+    @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        individuals = Individual.objects.all()
+        serializer = IndividualSerializer(individuals, many=True)
+        return Response(serializer.data)
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal

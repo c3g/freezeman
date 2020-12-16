@@ -19,3 +19,5 @@ htmlcov/
 
 # Office temporary files
 ~$*
+.DS_Store
+venv

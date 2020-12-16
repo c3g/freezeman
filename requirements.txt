@@ -18,6 +18,7 @@ django-import-export==2.3.0
 django-nose==1.4.6
 django-reversion==3.0.7
 djangorestframework==3.11.1
+djangorestframework-csv==2.1.0
 djangorestframework-simplejwt==4.4.0
 drf-yasg==1.17.1
 et-xmlfile==1.0.1
