@@ -33,11 +33,7 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
     if (!getState().auth.tokens.access) return;
 
     await Promise.all([
-        Containers.list,
         Containers.summary,
-        Individuals.list,
-        Samples.list,
         Samples.summary,
-        Users.list,
     ].map(a => dispatch(a())))
 };
