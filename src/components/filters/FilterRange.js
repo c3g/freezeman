@@ -5,7 +5,6 @@ import "antd/es/input-number/style/css";
 
 const FilterRange = ({
   name,
-  type,
   min,
   max,
   onChange,

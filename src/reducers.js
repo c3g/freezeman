@@ -16,7 +16,6 @@ import {
 import {individuals} from "./modules/individuals/reducers";
 import {query} from "./modules/query/reducers";
 import {
-  sampleBiospecimenTypes,
   samplesSummary,
   sampleTemplateActions,
   samples,
@@ -38,7 +37,6 @@ const allReducers = combineReducers({
   containers,
   individuals,
   query,
-  sampleBiospecimenTypes,
   samplesSummary,
   sampleTemplateActions,
   samples,

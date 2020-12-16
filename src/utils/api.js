@@ -13,10 +13,6 @@ const api = {
     list: () => get("/container-kinds/"),
   },
 
-  sampleBiospecimenTypes: {
-    list: () => get("/sample-biospecimen-type/"),
-  },
-
   containers: {
     get: id => get(`/containers/${id}`),
     list: options => get("/containers", options),

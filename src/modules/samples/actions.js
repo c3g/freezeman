@@ -46,13 +46,6 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     ));
 };
 
-export const listBiospecimenTypes = () => async (dispatch, getState) => {
-    if (getState().sampleBiospecimenTypes.isFetching)
-        return;
-
-    await dispatch(networkAction(LIST_BIOSPECIMEN_TYPES, api.sampleBiospecimenTypes.list()));
-};
-
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().sampleTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.samples.template.actions()));
@@ -78,14 +71,12 @@ export default {
     LIST,
     SUMMARY,
     LIST_VERSIONS,
-    LIST_BIOSPECIMEN_TYPES,
     LIST_TEMPLATE_ACTIONS,
     get,
     setFilter,
     clearFilters,
     list,
     listVersions,
-    listBiospecimenTypes,
     listTemplateActions,
     summary,
 };

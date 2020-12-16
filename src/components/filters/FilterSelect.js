@@ -28,7 +28,7 @@ const FilterSelect = ({
       >
         {
           options.map((item, index) =>
-            <Option key={index} value={[item]}> {item} </Option>
+            <Option key={index} value={item}> {item} </Option>
           )
         }
       </Select>

@@ -1,11 +1,17 @@
-import React from "react";
 
 export const sampleFiltersConstants = {
   select: [
     {
+      key: "biospecimen_type__in",
+      name: "biospecimen type",
+      mode: "multiple",
+      placeholder: "All",
+      options: ['DNA', 'RNA', 'BLOOD', 'SALIVA', 'SWAB'],
+    },
+    {
       key: "depleted",
       name: "depleted",
-      mode: "",
+      mode: "multiple",
       placeholder: "All",
       options: ['true', 'false'],
     },
@@ -19,13 +25,11 @@ export const sampleFiltersConstants = {
   ],
   range: [
     {
-      key: "concentration",
       name: "concentration",
       min: "concentration__gte",
       max: "concentration__lte"
     },
     {
-      key: "volume_used",
       name: "volume used",
       min: "volume_used__gte",
       max: "volume_used__lte"
