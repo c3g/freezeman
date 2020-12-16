@@ -3,6 +3,9 @@ import {Radio, Select} from "antd";
 import "antd/es/radio/style/css";
 import "antd/es/select/style/css";
 
+import FilterLabel from "./FilterLabel"
+import * as style from "./style"
+
 const { Option } = Select;
 
 const EMPTY_VALUE = '__FILTER_SELECT_EMPTY_VALUE__'
@@ -23,7 +26,7 @@ const FilterSelect = ({
       onChange(item, value === EMPTY_VALUE ? null : [value])
     }
     element =
-      <Radio.Group value={value ? value[0] : EMPTY_VALUE} onChange={handleChange}>
+      <Radio.Group size='small' value={value ? value[0] : EMPTY_VALUE} onChange={handleChange}>
         <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE}>
           {item.placeholder}
         </Radio.Button>
@@ -42,6 +45,7 @@ const FilterSelect = ({
     }
     element =
       <Select
+        size='small' 
         style={{ width: 200 }}
         mode={item.mode}
         placeholder={item.placeholder}
@@ -57,9 +61,11 @@ const FilterSelect = ({
   }
 
   return (
-    <div>
-      <label>{item.label}</label>
-      {element}
+    <div style={style.container}>
+      <FilterLabel>{item.label}</FilterLabel>
+      <div style={style.element}>
+        {element}
+      </div>
     </div>
   );
 };

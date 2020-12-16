@@ -1,6 +1,9 @@
 import React from "react";
-import {InputNumber} from "antd";
+import {Input, InputNumber} from "antd";
+import "antd/es/input/style/css";
 import "antd/es/input-number/style/css";
+import FilterLabel from "./FilterLabel"
+import * as style from "./style"
 
 
 const FilterRange = ({
@@ -10,19 +13,27 @@ const FilterRange = ({
 }) => {
 
   return (
-    <div>
-      <label>{item.label}</label>
-      <InputNumber
-        min={0}
-        value={value[0]}
-        onChange={newMin => onChange(item, [nullize(newMin), value[1]])}
-      />
-      {' to '}
-      <InputNumber
-        min={0}
-        value={value[1]}
-        onChange={newMax => onChange(item, [value[0], nullize(newMax)])}
-      />
+    <div style={style.container}>
+      <FilterLabel>{item.label}</FilterLabel>
+
+      <Input.Group style={style.element} compact>
+        <InputNumber
+          size='small'
+          placeholder='From'
+          min={0}
+          style={{ width: 50 }}
+          value={value[0]}
+          onChange={newMin => onChange(item, [nullize(newMin), value[1]])}
+        />
+        <InputNumber
+          size='small'
+          placeholder='To'
+          min={0}
+          style={{ width: 50 }}
+          value={value[1]}
+          onChange={newMax => onChange(item, [value[0], nullize(newMax)])}
+        />
+      </Input.Group>
     </div>
   );
 };

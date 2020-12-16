@@ -1,6 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/containers/actions";
+import FilterGroup from "../filters/FilterGroup";
 import FilterSelect from "../filters/FilterSelect";
 import {CONTAINER_FILTERS} from "../../constants"
 
@@ -26,14 +27,14 @@ const ContainersFilters = ({
 
   const item = CONTAINER_FILTERS.kind__in
 
-  return <>
+  return <FilterGroup>
     <FilterSelect
       item={item}
       options={containersKinds.map(x => ({ label: x.id, value: x.id }))}
       value={filters[item.key]}
       onChange={onChangeFilter}
     />
-  </>;
+  </FilterGroup>;
 }
 
 export default connect(mapStateToProps, actionCreators)(ContainersFilters);
