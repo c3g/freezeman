@@ -21,15 +21,23 @@ export const SAMPLE_FILTERS = {
     label: "Type",
     mode: "multiple",
     placeholder: "All",
-    options: ["DNA", "RNA", "BLOOD", "SALIVA", "SWAB"],
+    options: [
+      { label: "DNA",    value: "DNA" },
+      { label: "RNA",    value: "RNA" },
+      { label: "BLOOD",  value: "BLOOD" },
+      { label: "SALIVA", value: "SALIVA" },
+      { label: "SWAB",   value: "SWAB "},
+    ],
   },
   depleted: {
     type: FILTER_TYPE.SELECT,
     key: "depleted",
     label: "Depleted",
-    mode: "multiple",
     placeholder: "All",
-    options: ["true", "false"],
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false"},
+    ],
   },
   individual__sex__in: {
     type: FILTER_TYPE.SELECT,
@@ -37,7 +45,11 @@ export const SAMPLE_FILTERS = {
     label: "Individual Sex",
     mode: "multiple",
     placeholder: "All",
-    options: ["F", "M", "Unknown"]
+    options: [
+      { label: "Female",  value: "F" },
+      { label: "Male",    value: "M" },
+      { label: "Unknown", value: "Unknown" },
+    ]
   },
 }
 

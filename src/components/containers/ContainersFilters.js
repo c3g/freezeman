@@ -29,7 +29,7 @@ const ContainersFilters = ({
   return <>
     <FilterSelect
       item={item}
-      options={containersKinds.map(x => x.id)}
+      options={containersKinds.map(x => ({ label: x.id, value: x.id }))}
       value={filters[item.key]}
       onChange={onChangeFilter}
     />
