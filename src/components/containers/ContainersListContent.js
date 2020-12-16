@@ -8,7 +8,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-import {list, listTemplateActions} from "../../modules/containers/actions";
+import {list} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 const TABLE_COLUMNS = [
@@ -46,7 +46,7 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const ContainersListContent = ({
   containers,
@@ -56,12 +56,7 @@ const ContainersListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
   return <>
     <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
     <PageContent>

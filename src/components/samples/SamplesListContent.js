@@ -7,7 +7,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
 
-import {list, listTemplateActions} from "../../modules/samples/actions";
+import {list} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 const mapStateToProps = state => ({
@@ -20,7 +20,7 @@ const mapStateToProps = state => ({
   isFetching: state.samples.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const SamplesListContent = ({
   samples,
@@ -31,13 +31,7 @@ const SamplesListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
-
   const TABLE_COLUMNS = [
     {
       title: "Type",
