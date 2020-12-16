@@ -34,7 +34,7 @@ const api = {
 
   samples: {
     get: sampleId => get(`/samples/${sampleId}`),
-    list: options => get("/samples/", options),
+    list: options => get("/samples", options),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
     summary: () => get("/samples/summary"),
     template: {
