@@ -6,11 +6,15 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
+import ExportButton from "../ExportButton";
+
+import api, {withToken}  from "../../utils/api"
 
 import {list, listTemplateActions} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   samples: state.samples.items,
   containersByID: state.containers.itemsByID,
@@ -23,6 +27,7 @@ const mapStateToProps = state => ({
 const actionCreators = {list, listTemplateActions};
 
 const SamplesListContent = ({
+  token,
   samples,
   samplesByID,
   containersByID,
@@ -93,10 +98,14 @@ const SamplesListContent = ({
       width: 85,
     }
   ];
-
+  const listExport = () =>
+    withToken(token, api.samples.listExport)().then(response => response.data)
 
   return <>
-    <AppPageHeader title="Samples & Extractions" extra={actionsToButtonList("/samples", actions)} />
+    <AppPageHeader title="Samples & Extractions" extra={[
+      <ExportButton exportFunction={listExport} filename="samples"/>,
+      ...actionsToButtonList("/samples", actions)
+    ]}/>
     <PageContent>
       <PaginatedTable
         columns={TABLE_COLUMNS}

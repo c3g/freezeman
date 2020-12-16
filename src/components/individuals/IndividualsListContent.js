@@ -6,7 +6,10 @@ import {Link} from "react-router-dom";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
+import ExportButton from "../ExportButton";
 import {list} from "../../modules/individuals/actions";
+import api, {withToken}  from "../../utils/api"
+
 
 const TABLE_COLUMNS = [
     {
@@ -36,6 +39,7 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
+    token: state.auth.tokens.access,
     individualsByID: state.individuals.itemsByID,
     individuals: state.individuals.items,
     page: state.individuals.page,
@@ -47,6 +51,7 @@ const mapDispatchToProps = dispatch =>
     bindActionCreators({ list }, dispatch);
 
 const IndividualsListContent = ({
+    token,
     individuals,
     individualsByID,
     isFetching,
@@ -54,8 +59,13 @@ const IndividualsListContent = ({
     totalCount,
     list,
 }) => {
+    const listExport = () =>
+      withToken(token, api.individuals.listExport)().then(response => response.data)
+
     return <>
-        <AppPageHeader title="Individuals" />
+        <AppPageHeader title="Individuals" extra={[
+            <ExportButton exportFunction={listExport} filename="individuals"/>,
+        ]}/>
         <PageContent>
             <PaginatedTable
                 columns={TABLE_COLUMNS}
