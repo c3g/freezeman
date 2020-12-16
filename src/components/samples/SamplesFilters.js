@@ -27,12 +27,14 @@ const SamplesFilters = ({
       Object.values(SAMPLE_FILTERS).map(item =>
         item.type === FILTER_TYPE.SELECT ?
           <FilterSelect
+            key={item.key}
             item={item}
             value={filters[item.key]}
             onChange={onChangeFilter}
           />
           :
           <FilterRange
+            key={item.key}
             item={item}
             value={filters[item.key]}
             onChange={onChangeFilter}
