@@ -3,8 +3,8 @@ import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/samples/actions";
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
-import filterDictionaryByKeys from "../../utils/filterDictionaryByKeys"
-import {sampleFiltersConstants} from "../../constants";
+import {filterObjectWithKeys} from "../../utils/filterObjectWithKeys"
+import {SAMPLE_FILTERS_RANGE, SAMPLE_FILTERS_SELECT} from "../../constants";
 
 
 const mapStateToProps = state => ({
@@ -25,35 +25,29 @@ const SamplesFilters = ({
 
   return <>
     {
-      sampleFiltersConstants['select'].map(function(item, i){
-        return <FilterSelect
-          type={item["key"]}
-          name={item["name"]}
-          value={filters[item["key"]]}
-          options={item["options"]}
-          mode={item["mode"]}
-          placeholder={item["placeholder"]}
+      SAMPLE_FILTERS_SELECT.map((item, index) =>
+        <FilterSelect
+          type={item.key}
+          name={item.name}
+          value={filters[item.key]}
+          options={item.options}
+          mode={item.mode}
+          placeholder={item.placeholder}
           onChange={onChangeFilter}
         />
-      })
+      )
     }
-
     {
-      sampleFiltersConstants['range'].map(function(item, i){
-        return <FilterRange
-          type={item["key"]}
-          name={item["name"]}
-          min={item["min"]}
-          max={item["max"]}
+      SAMPLE_FILTERS_RANGE.map((item, i) =>
+        <FilterRange
+          name={item.name}
+          min={item.min}
+          max={item.max}
           onChange={onChangeFilter}
-          filter={filterDictionaryByKeys([item["min"], item["max"]])}
+          filter={filterObjectWithKeys(item["min"], item["max"])}
         />
-      })
-
+      )
     }
-
-
-
   </>;
 }
 

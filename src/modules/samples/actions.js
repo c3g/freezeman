@@ -1,6 +1,6 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
-import dictionaryValuesFromArrToString from "../../utils/dictionaryValuesFromArrToString";
+import {serializeParamsValues} from "../../utils/serializeParamsValues";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("SAMPLES.GET");
@@ -37,7 +37,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     if (getState().samples.isFetching) return;
 
     const sampleFilters = getState().samples.filters
-    const filters = dictionaryValuesFromArrToString(sampleFilters)
+    const filters = serializeParamsValues(sampleFilters)
     const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,

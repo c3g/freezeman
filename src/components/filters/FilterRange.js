@@ -12,7 +12,7 @@ const FilterRange = ({
 }) => {
 
   const handleChange = (name, val) => {
-    onChange(name,val)
+    onChange(name, val)
   }
 
   return <>

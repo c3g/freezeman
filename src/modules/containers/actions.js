@@ -1,6 +1,6 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
-import dictionaryValuesFromArrToString from "../../utils/dictionaryValuesFromArrToString";
+import {serializeParamsValues} from "../../utils/serializeParamsValues";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
@@ -40,7 +40,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
         return;
 
     const containersFilters = getState().containers.filters
-    const filters = dictionaryValuesFromArrToString(containersFilters)
+    const filters = serializeParamsValues(containersFilters)
     const options = { limit, offset, ...filters}
 
     await dispatch(networkAction(LIST,
