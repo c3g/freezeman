@@ -1,39 +1,52 @@
 
-export const SAMPLE_FILTERS_RANGE = [
-    {
-      name: "concentration",
-      min: "concentration__gte",
-      max: "concentration__lte"
-    },
-    {
-      name: "volume used",
-      min: "volume_used__gte",
-      max: "volume_used__lte"
-    }
-]
+export const FILTER_TYPE = {
+  RANGE: "RANGE",
+  SELECT: "SELECT",
+}
 
-export const SAMPLE_FILTERS_SELECT = [
-  {
+export const SAMPLE_FILTERS = {
+  concentration: {
+    type: FILTER_TYPE.RANGE,
+    key: "concentration",
+    label: "Concentration",
+  },
+  volume_used: {
+    type: FILTER_TYPE.RANGE,
+    key: "volume_used",
+    label: "Volume Used",
+  },
+  biospecimen_type__in: {
+    type: FILTER_TYPE.SELECT,
     key: "biospecimen_type__in",
-    name: "biospecimen type",
+    label: "Type",
     mode: "multiple",
     placeholder: "All",
-    options: ['DNA', 'RNA', 'BLOOD', 'SALIVA', 'SWAB'],
+    options: ["DNA", "RNA", "BLOOD", "SALIVA", "SWAB"],
   },
-  {
+  depleted: {
+    type: FILTER_TYPE.SELECT,
     key: "depleted",
-    name: "depleted",
+    label: "Depleted",
     mode: "multiple",
     placeholder: "All",
-    options: ['true', 'false'],
+    options: ["true", "false"],
   },
-  {
+  individual__sex__in: {
+    type: FILTER_TYPE.SELECT,
     key: "individual__sex__in",
-    name: "individual's sex",
+    label: "Individual Sex",
     mode: "multiple",
     placeholder: "All",
-    options: ['F', 'M', 'Unknown']
-  }
-]
+    options: ["F", "M", "Unknown"]
+  },
+}
 
-  
+export const CONTAINER_FILTERS = {
+  kind__in: {
+    type: FILTER_TYPE.SELECT,
+    key: "kind__in",
+    label: "Kind",
+    mode: "multiple",
+    placeholder: "All",
+  },
+}

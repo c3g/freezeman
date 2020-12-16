@@ -3,8 +3,7 @@ import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/samples/actions";
 import FilterSelect from "../filters/FilterSelect";
 import FilterRange from "../filters/FilterRange";
-import {filterObjectWithKeys} from "../../utils/filterObjectWithKeys"
-import {SAMPLE_FILTERS_RANGE, SAMPLE_FILTERS_SELECT} from "../../constants";
+import {FILTER_TYPE, SAMPLE_FILTERS} from "../../constants";
 
 
 const mapStateToProps = state => ({
@@ -17,35 +16,27 @@ const SamplesFilters = ({
   filters,
   setFilter,
   list,
-  }) => {
-  const onChangeFilter = (name, serializedValue) => {
-    setFilter(name, serializedValue)
+}) => {
+  const onChangeFilter = (filter, value) => {
+    setFilter(filter.key, value)
     list()
   }
 
   return <>
     {
-      SAMPLE_FILTERS_SELECT.map((item, index) =>
-        <FilterSelect
-          type={item.key}
-          name={item.name}
-          value={filters[item.key]}
-          options={item.options}
-          mode={item.mode}
-          placeholder={item.placeholder}
-          onChange={onChangeFilter}
-        />
-      )
-    }
-    {
-      SAMPLE_FILTERS_RANGE.map((item, i) =>
-        <FilterRange
-          name={item.name}
-          min={item.min}
-          max={item.max}
-          onChange={onChangeFilter}
-          filter={filterObjectWithKeys(item["min"], item["max"])}
-        />
+      Object.values(SAMPLE_FILTERS).map(item =>
+        item.type === FILTER_TYPE.SELECT ?
+          <FilterSelect
+            item={item}
+            value={filters[item.key]}
+            onChange={onChangeFilter}
+          />
+          :
+          <FilterRange
+            item={item}
+            value={filters[item.key]}
+            onChange={onChangeFilter}
+          />
       )
     }
   </>;

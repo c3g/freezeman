@@ -5,35 +5,32 @@ import "antd/es/select/style/css";
 const { Option } = Select;
 
 const FilterSelect = ({
-  type,
-  name,
+  item,
   value,
-  options,
-  mode,
-  placeholder,
+  options = item.options || [],
   onChange,
 }) => {
-  const handleChange = (val) => {
-    onChange(type, val)
+  const handleChange = (value) => {
+    onChange(item, value)
   }
-  return <>
+  return (
     <div>
-      <label>{name.toUpperCase()}</label>
+      <label>{item.label}</label>
       <Select
-        mode={mode}
+        mode={item.mode}
         style={{ width: 200 }}
-        placeholder={placeholder}
+        placeholder={item.placeholder}
         onChange={handleChange}
         defaultValue={value}
       >
         {
-          options.map((item, index) =>
-            <Option key={index} value={item}> {item} </Option>
+          options.map(item =>
+            <Option key={item} value={item}>{item}</Option>
           )
         }
       </Select>
     </div>
-  </>;
+  );
 };
 
 export default FilterSelect;

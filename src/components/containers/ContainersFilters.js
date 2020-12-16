@@ -2,6 +2,7 @@ import React from "react";
 import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/containers/actions";
 import FilterSelect from "../filters/FilterSelect";
+import {CONTAINER_FILTERS} from "../../constants"
 
 
 const mapStateToProps = state => ({
@@ -18,19 +19,18 @@ const ContainersFilters = ({
   list,
 }) => {
 
-  const onChangeFilter = (name, serializedValue) => {
-    setFilter(name, serializedValue)
+  const onChangeFilter = (filter, value) => {
+    setFilter(filter.key, value)
     list()
   }
 
+  const item = CONTAINER_FILTERS.kind__in
+
   return <>
     <FilterSelect
-      type="kind__in"
-      name="kind"
-      value={filters["kind__in"]}
+      item={item}
       options={containersKinds.map(x => x.id)}
-      mode="multiple"
-      placeholder="All"
+      value={filters[item.key]}
       onChange={onChangeFilter}
     />
   </>;
