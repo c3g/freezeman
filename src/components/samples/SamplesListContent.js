@@ -19,6 +19,7 @@ const mapStateToProps = state => ({
   page: state.samples.page,
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
+  filters: state.samples.filters,
 });
 
 const actionCreators = {list, listTemplateActions};
@@ -33,6 +34,7 @@ const SamplesListContent = ({
   totalCount,
   list,
   listTemplateActions,
+  filters,
 }) => {
   useEffect(() => {
     // Must be wrapped; effects cannot return promises
@@ -101,6 +103,8 @@ const SamplesListContent = ({
     <PageContent>
       <SamplesFilters />
       <PaginatedTable
+        // filters as a key in order to instantiate a new component on filters state change
+        key={JSON.stringify(filters)}
         columns={TABLE_COLUMNS}
         items={samples}
         itemsByID={samplesByID}
