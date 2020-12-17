@@ -20,7 +20,7 @@ const SamplesFilters = ({
 }) => {
   const onChangeFilter = (filter, value) => {
     setFilter(filter.key, value)
-    list()
+    setTimeout(() => {list()}, 500)
   }
 
   return <FilterGroup>
