@@ -1,15 +1,17 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-
 import {BarcodeOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
+import ExportButton from "../ExportButton";
 
 import {list} from "../../modules/containers/actions";
+import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
+
 
 const TABLE_COLUMNS = [
   {
@@ -38,6 +40,7 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
   actions: state.containerTemplateActions,
@@ -49,6 +52,7 @@ const mapStateToProps = state => ({
 const actionCreators = {list};
 
 const ContainersListContent = ({
+  token,
   containers,
   containersByID,
   actions,
@@ -57,8 +61,15 @@ const ContainersListContent = ({
   totalCount,
   list,
 }) => {
+
+  const listExport = () =>
+    withToken(token, api.containers.listExport)().then(response => response.data)
+
   return <>
-    <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
+    <AppPageHeader title="Containers" extra={[
+      <ExportButton exportFunction={listExport} filename="containers"/>,
+      ...actionsToButtonList("/containers", actions)
+    ]}/>
     <PageContent>
       <PaginatedTable
         columns={TABLE_COLUMNS}
