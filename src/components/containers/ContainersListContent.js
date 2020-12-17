@@ -8,8 +8,8 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 
+import {list} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
-import {list, listTemplateActions} from "../../modules/containers/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 
@@ -49,7 +49,7 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const ContainersListContent = ({
   token,
@@ -60,12 +60,7 @@ const ContainersListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
 
   const listExport = () =>
     withToken(token, api.containers.listExport)().then(response => response.data)

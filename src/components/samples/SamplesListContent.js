@@ -10,7 +10,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, listTemplateActions} from "../../modules/samples/actions";
+import {list} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 const mapStateToProps = state => ({
@@ -24,7 +24,7 @@ const mapStateToProps = state => ({
   isFetching: state.samples.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const SamplesListContent = ({
   token,
@@ -36,13 +36,7 @@ const SamplesListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
-
   const TABLE_COLUMNS = [
     {
       title: "Type",
