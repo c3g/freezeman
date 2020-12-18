@@ -30,6 +30,13 @@ export default function serializeFilterParams(filters, descriptions) {
         break
       }
 
+      case FILTER_TYPE.INPUT: {
+        if(value)
+          params[key] = value
+
+        break;
+      }
+
       default: {
         throw new Error('Invalid filter type')
       }

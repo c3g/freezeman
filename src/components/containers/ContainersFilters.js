@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/containers/actions";
 import FilterGroup from "../filters/FilterGroup";
 import FilterSelect from "../filters/FilterSelect";
+import FilterInput from "../filters/FilterInput";
 import {CONTAINER_FILTERS} from "../../constants"
 
 
@@ -22,16 +23,24 @@ const ContainersFilters = ({
 
   const onChangeFilter = (filter, value) => {
     setFilter(filter.key, value)
-    list()
+    setTimeout(() => {list()}, 500)
   }
 
-  const item = CONTAINER_FILTERS.kind__in
+  const containerBarcodeItem = CONTAINER_FILTERS.barcode__icontains
+  const containerKindsItem = CONTAINER_FILTERS.kind__in
 
   return <FilterGroup>
+    <FilterInput
+      key={containerBarcodeItem.key}
+      item={containerBarcodeItem}
+      value={filters[containerBarcodeItem.key]}
+      onChange={onChangeFilter}
+    />
+
     <FilterSelect
-      item={item}
+      item={containerKindsItem}
       options={containersKinds.map(x => ({ label: x.id, value: x.id }))}
-      value={filters[item.key]}
+      value={filters[containerKindsItem.key]}
       onChange={onChangeFilter}
     />
   </FilterGroup>;

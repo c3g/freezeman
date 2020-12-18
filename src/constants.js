@@ -2,19 +2,10 @@
 export const FILTER_TYPE = {
   RANGE: "RANGE",
   SELECT: "SELECT",
+  INPUT: "INPUT",
 }
 
 export const SAMPLE_FILTERS = {
-  concentration: {
-    type: FILTER_TYPE.RANGE,
-    key: "concentration",
-    label: "Concentration",
-  },
-  volume_used: {
-    type: FILTER_TYPE.RANGE,
-    key: "volume_used",
-    label: "Volume Used",
-  },
   biospecimen_type__in: {
     type: FILTER_TYPE.SELECT,
     key: "biospecimen_type__in",
@@ -51,6 +42,11 @@ export const SAMPLE_FILTERS = {
       { label: "Unknown", value: "Unknown" },
     ]
   },
+  concentration: {
+    type: FILTER_TYPE.RANGE,
+    key: "concentration",
+    label: "Concentration",
+  },
 }
 
 export const CONTAINER_FILTERS = {
@@ -60,5 +56,11 @@ export const CONTAINER_FILTERS = {
     label: "Kind",
     mode: "multiple",
     placeholder: "All",
+  },
+  barcode__icontains: {
+    type: FILTER_TYPE.INPUT,
+    key: "barcode__icontains",
+    label: "Barcode",
+    placeholder: "Search by barcode",
   },
 }
