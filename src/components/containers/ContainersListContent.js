@@ -7,8 +7,11 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ContainersFilters from "./ContainersFilters";
+import ExportButton from "../ExportButton";
 
-import {list, listTemplateActions} from "../../modules/containers/actions";
+
+import {list} from "../../modules/containers/actions";
+import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 
 
@@ -39,6 +42,7 @@ const TABLE_COLUMNS = [
 ];
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
   filters: state.containers.filters,
@@ -48,9 +52,10 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const ContainersListContent = ({
+  token,
   containers,
   containersByID,
   filters,
@@ -59,15 +64,15 @@ const ContainersListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
+  const listExport = () =>
+    withToken(token, api.containers.listExport)().then(response => response.data)
 
   return <>
-    <AppPageHeader title="Containers" extra={actionsToButtonList("/containers", actions)} />
+    <AppPageHeader title="Containers" extra={[
+      <ExportButton exportFunction={listExport} filename="containers"/>,
+      ...actionsToButtonList("/containers", actions)
+    ]}/>
     <PageContent>
       <ContainersFilters />
       <PaginatedTable

@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
@@ -6,12 +6,16 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
+import ExportButton from "../ExportButton";
 
-import {list, listTemplateActions} from "../../modules/samples/actions";
+import api, {withToken}  from "../../utils/api"
+
+import {list} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import SamplesFilters from "./SamplesFilters";
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   samples: state.samples.items,
   containersByID: state.containers.itemsByID,
@@ -22,9 +26,10 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
 });
 
-const actionCreators = {list, listTemplateActions};
+const actionCreators = {list};
 
 const SamplesListContent = ({
+  token,
   samples,
   samplesByID,
   containersByID,
@@ -33,14 +38,8 @@ const SamplesListContent = ({
   page,
   totalCount,
   list,
-  listTemplateActions,
   filters,
 }) => {
-  useEffect(() => {
-    // Must be wrapped; effects cannot return promises
-    listTemplateActions();
-  }, []);
-
   const TABLE_COLUMNS = [
     {
       title: "Type",
@@ -96,10 +95,14 @@ const SamplesListContent = ({
       width: 85,
     }
   ];
-
+  const listExport = () =>
+    withToken(token, api.samples.listExport)().then(response => response.data)
 
   return <>
-    <AppPageHeader title="Samples & Extractions" extra={actionsToButtonList("/samples", actions)} />
+    <AppPageHeader title="Samples & Extractions" extra={[
+      <ExportButton exportFunction={listExport} filename="samples"/>,
+      ...actionsToButtonList("/samples", actions)
+    ]}/>
     <PageContent>
       <SamplesFilters />
       <PaginatedTable
