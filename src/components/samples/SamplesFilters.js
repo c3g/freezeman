@@ -1,10 +1,9 @@
 import React from "react";
 import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/samples/actions";
+import Filters from "../filters/Filters";
 import FilterGroup from "../filters/FilterGroup";
-import FilterSelect from "../filters/FilterSelect";
-import FilterRange from "../filters/FilterRange";
-import {FILTER_TYPE, SAMPLE_FILTERS} from "../../constants";
+import {SAMPLE_FILTERS} from "../../constants";
 
 
 const mapStateToProps = state => ({
@@ -24,24 +23,11 @@ const SamplesFilters = ({
   }
 
   return <FilterGroup>
-    {
-      Object.values(SAMPLE_FILTERS).map(item =>
-        item.type === FILTER_TYPE.SELECT ?
-          <FilterSelect
-            key={item.key}
-            item={item}
-            value={filters[item.key]}
-            onChange={onChangeFilter}
-          />
-          :
-          <FilterRange
-            key={item.key}
-            item={item}
-            value={filters[item.key]}
-            onChange={onChangeFilter}
-          />
-      )
-    }
+    <Filters
+      filterObject={SAMPLE_FILTERS}
+      filters={filters}
+      onChangeFilter={onChangeFilter}
+    />
   </FilterGroup>;
 }
 

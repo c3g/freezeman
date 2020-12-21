@@ -10,6 +10,7 @@ const FilterInput = ({
   item,
   value = null,
   placeholder,
+  width = 200,
   onChange,
 }) => {
   let handleChange;
@@ -26,7 +27,7 @@ const FilterInput = ({
         <Input
           size='small'
           placeholder={placeholder}
-          style={{ width: 250 }}
+          style={{ width: width}}
           value={value}
           onChange={handleChange}
         />

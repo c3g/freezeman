@@ -1,7 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-
 import {BarcodeOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
