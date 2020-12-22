@@ -1,7 +1,7 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
-import {SAMPLE_FILTERS} from "../../constants"
+import {SAMPLE_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("SAMPLES.GET");
@@ -9,7 +9,6 @@ export const SET_FILTER = "SAMPLES.SET_FILTER";
 export const CLEAR_FILTERS = "SAMPLES.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
-export const LIST_BIOSPECIMEN_TYPES = createNetworkActionTypes("SAMPLES.LIST_BIOSPECIMEN_TYPES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 export const SUMMARY = createNetworkActionTypes("SAMPLES.SUMMARY");
 

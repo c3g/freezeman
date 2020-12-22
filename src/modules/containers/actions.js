@@ -1,7 +1,7 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import serializeFilterParams from "../../utils/serializeFilterParams";
-import {CONTAINER_FILTERS} from "../../constants";
+import {CONTAINER_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");

@@ -1,9 +1,8 @@
 import React from "react";
 import {connect} from "react-redux";
 import {list, setFilter} from "../../modules/samples/actions";
-import Filters from "../filters/Filters";
 import FilterGroup from "../filters/FilterGroup";
-import {SAMPLE_FILTERS} from "../../constants";
+import {SAMPLE_FILTERS} from "../filters/descriptions";
 
 
 const mapStateToProps = state => ({
@@ -22,13 +21,11 @@ const SamplesFilters = ({
     setTimeout(() => {list()}, 500)
   }
 
-  return <FilterGroup>
-    <Filters
-      filterObject={SAMPLE_FILTERS}
-      filters={filters}
-      onChangeFilter={onChangeFilter}
-    />
-  </FilterGroup>;
+  return <FilterGroup
+    descriptions={SAMPLE_FILTERS}
+    values={filters}
+    onChangeFilter={onChangeFilter}
+  />;
 }
 
 export default connect(mapStateToProps, actionCreators)(SamplesFilters);

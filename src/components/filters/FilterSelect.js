@@ -13,7 +13,7 @@ const EMPTY_VALUE = '__FILTER_SELECT_EMPTY_VALUE__'
 const FilterSelect = ({
   item,
   value,
-  options = item.options || [],
+  options,
   onChange,
 }) => {
 
