@@ -6,6 +6,7 @@ import {BarcodeOutlined} from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
+import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
 import {list} from "../../modules/containers/actions";
@@ -67,8 +68,9 @@ const ContainersListContent = ({
 
   return <>
     <AppPageHeader title="Containers" extra={[
+      <AddButton url="/containers/add" />,
+      ...actionsToButtonList("/containers", actions),
       <ExportButton exportFunction={listExport} filename="containers"/>,
-      ...actionsToButtonList("/containers", actions)
     ]}/>
     <PageContent>
       <PaginatedTable
