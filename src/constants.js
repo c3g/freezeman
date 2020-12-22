@@ -9,3 +9,14 @@ export const BIOSPECIMEN_TYPE = [
   "SALIVA",
   "SWAB",
 ]
+
+export const TISSUE_SOURCE = [
+  "Blood",
+  "Saliva",
+  "Swab",
+  "Tumor",
+  "Plasma",
+  "Buffy coat",
+  "Tail",
+  "Cells",
+]

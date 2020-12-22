@@ -9,8 +9,6 @@ import "antd/es/input/style/css";
 import "antd/es/select/style/css";
 const {Option} = Select
 
-import {BarcodeOutlined} from "@ant-design/icons";
-
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import {add, update} from "../../modules/containers/actions";

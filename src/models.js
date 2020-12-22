@@ -31,24 +31,24 @@ export const container = {
 // }
 
 export const sample = {
-  biospecimen_type: null,
   name: "",
   alias: "",
+  biospecimen_type: null,
   volume_history: null, // 
   concentration: null,
   depleted: false,
-  experimental_group: null,
-  collection_site: "",
-  tissue_source: null,
-  reception_date: null,
-  phenotype: "",
-  comment: "",
-  update_comment: "",
-  coordinates: "",
-  volume_used: null,
-  individual: null,
-  container: null,
-  extracted_from: null
+  experimental_group: null, // string[]
+  collection_site: "", // string(200)
+  tissue_source: null, // enum
+  reception_date: null, // date
+  phenotype: "", // string(200)
+  comment: "", // string(200)
+  update_comment: "", // string(200)
+  coordinates: "", // string(10)
+  volume_used: null, // float
+  individual: null, // individual.id
+  container: null, // container.id
+  extracted_from: null // sample.id
 }
 // Example:
 // {

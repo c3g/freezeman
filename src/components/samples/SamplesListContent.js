@@ -6,6 +6,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
+import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
@@ -97,8 +98,9 @@ const SamplesListContent = ({
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
+      <AddButton url="/samples/add" />,
+      ...actionsToButtonList("/samples", actions),
       <ExportButton exportFunction={listExport} filename="samples"/>,
-      ...actionsToButtonList("/samples", actions)
     ]}/>
     <PageContent>
       <PaginatedTable

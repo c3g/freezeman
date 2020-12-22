@@ -13,6 +13,7 @@ import {EditOutlined, BarcodeOutlined} from "@ant-design/icons";
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
+import EditButton from "../EditButton";
 import {get, listParents} from "../../modules/containers/actions";
 
 const mapStateToProps = state => ({
@@ -39,18 +40,17 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
   return (
     <>
       <AppPageHeader title={container.name || `Container ${id}`} onBack={history.goBack} extra={
-        !isLoaded ? null :
-        <Space>
-          <div key="kind">
-              <Tag>{container.kind}</Tag>
-          </div>
-          <div key="barcode">
-              <BarcodeOutlined /> {container.barcode}
-          </div>
-          <Button icon={<EditOutlined />} onClick={() => history.push(`/containers/${id}/update`)}>
-            Edit
-          </Button>
-        </Space>
+        !isLoaded ? null : [
+          <Space>
+            <div key="kind">
+                <Tag>{container.kind}</Tag>
+            </div>
+            <div key="barcode">
+                <BarcodeOutlined /> {container.barcode}
+            </div>
+            <EditButton url={`/containers/${id}/update`} />
+          </Space>
+        ]
       } />
       <PageContent loading={!isLoaded && isFetching}>
         <Descriptions bordered={true} size="small">

@@ -28,6 +28,7 @@
     "fuse.js": "^6.4.0",
     "jsondiffpatch": "^0.4.1",
     "jwt-decode": "^2.2.0",
+    "moment": "^2.29.1",
     "object-path-immutable": "^4.1.0",
     "prop-types": "^15.7.2",
     "querystring": "^0.2.0",
