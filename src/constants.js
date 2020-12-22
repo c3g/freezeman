@@ -20,3 +20,16 @@ export const TISSUE_SOURCE = [
   "Tail",
   "Cells",
 ]
+
+export const SEX = [
+  "M",
+  "F",
+  "Unknown",
+]
+
+export const TAXON = [
+  "Homo sapiens",
+  "Mus musculus",
+  "Sars-Cov-2",
+]
+

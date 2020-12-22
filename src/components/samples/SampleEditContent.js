@@ -13,7 +13,6 @@ const {Option} = Select
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import EditButton from "../EditButton";
 import {add, update} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {BIOSPECIMEN_TYPE, TISSUE_SOURCE} from "../../constants";

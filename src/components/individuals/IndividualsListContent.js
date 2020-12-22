@@ -7,6 +7,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
+import AddButton from "../AddButton";
 import {list} from "../../modules/individuals/actions";
 import api, {withToken}  from "../../utils/api"
 
@@ -15,7 +16,7 @@ const TABLE_COLUMNS = [
     {
         title: "Name",
         dataIndex: "id",
-        render: id => <Link to={`/individuals/${id}`}>{id}</Link>,
+        render: (id, individual) => <Link to={`/individuals/${id}`}>{individual.label || id}</Link>,
     },
     {
         title: "Taxon",
@@ -64,7 +65,8 @@ const IndividualsListContent = ({
 
     return <>
         <AppPageHeader title="Individuals" extra={[
-            <ExportButton exportFunction={listExport} filename="individuals"/>,
+            <AddButton url="/individuals/add" />,
+            <ExportButton exportFunction={listExport} filename="individuals" />,
         ]}/>
         <PageContent>
             <PaginatedTable
