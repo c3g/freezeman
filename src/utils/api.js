@@ -15,6 +15,8 @@ const api = {
 
   containers: {
     get: id => get(`/containers/${id}`),
+    add: container => post("/containers/", container),
+    update: (id, container) => post(`/containers/${id}`, container),
     list: () => get("/containers/list_root"),
     listExport: () => get("/containers/list_export/", {format: "csv"}),
     listParents: id => get(`/containers/${id}/list_parents/`),
@@ -30,12 +32,16 @@ const api = {
 
   individuals: {
     get: individualId => get(`/individuals/${individualId}`),
+    add: individual => post("/individuals/", individual),
+    update: (id, individual) => post(`/individuals/${id}`, individual),
     list: (page = {}) => get("/individuals/", page),
     listExport: () => get("/individuals/list_export/", {format: "csv"}),
   },
 
   samples: {
     get: sampleId => get(`/samples/${sampleId}`),
+    add: sample => post("/samples/", sample),
+    update: (id, sample) => post(`/samples/${id}`, sample),
     list: (page = {}) => get("/samples/", page),
     listExport: () => get("/samples/list_export/", {format: "csv"}),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
