@@ -81,7 +81,10 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
     listVersions(sample.id);
 
   return <>
-    <AppPageHeader title={sample.name || `Sample ${id}`} onBack={history.goBack} extra={isLoaded ? [
+    <AppPageHeader
+      title={sample.name || `Sample ${id}`}
+      onBack={() => history.push("/samples/list")}
+      extra={isLoaded ? [
         <Space>
           <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
               <Tag>{sample.biospecimen_type}</Tag>

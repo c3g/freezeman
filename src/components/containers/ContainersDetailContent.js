@@ -39,7 +39,10 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
 
   return (
     <>
-      <AppPageHeader title={container.name || `Container ${id}`} onBack={history.goBack} extra={
+      <AppPageHeader
+        title={container.name || `Container ${id}`}
+        onBack={() => history.push("/containers/list")}
+        extra={
         !isLoaded ? null : [
           <Space>
             <div key="kind">

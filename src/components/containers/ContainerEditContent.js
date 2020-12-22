@@ -62,7 +62,7 @@ const ContainerEditContent = ({containerKinds, containersByID, add, update}) => 
     <>
       <AppPageHeader
         title={title}
-        onBack={history.goBack}
+        onBack={() => history.push(`/containers/${id}`)}
       />
       <PageContent>
         <Form
