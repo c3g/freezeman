@@ -3,6 +3,8 @@ import api from "../../utils/api";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET           = createNetworkActionTypes("SAMPLES.GET");
+export const ADD           = createNetworkActionTypes("SAMPLES.ADD");
+export const UPDATE        = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST          = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
@@ -14,6 +16,20 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     await dispatch(networkAction(GET, api.samples.get(id), { meta: { id } }));
+};
+
+export const add = sample => async (dispatch, getState) => {
+    if (getState().samples.itemsByID[id])
+        return;
+
+    await dispatch(networkAction(ADD, api.samples.add(sample)));
+};
+
+export const update = (id, sample) => async (dispatch, getState) => {
+    if (getState().samples.itemsByID[id].isFetching)
+        return;
+
+    await dispatch(networkAction(UPDATE, api.samples.update(sample), { meta: { id } }));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
@@ -47,11 +63,15 @@ export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.sam
 
 export default {
     GET,
+    ADD,
+    UPDATE,
     LIST,
     SUMMARY,
     LIST_VERSIONS,
     LIST_TEMPLATE_ACTIONS,
     get,
+    add,
+    update,
     list,
     listVersions,
     listTemplateActions,

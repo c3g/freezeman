@@ -23,6 +23,22 @@ export const individuals = (
         case INDIVIDUALS.GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
+        case INDIVIDUALS.ADD.REQUEST:
+            return merge(state, ['isFetching'], true);
+        case INDIVIDUALS.ADD.RECEIVE:
+            return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
+                { ...preprocessContainer(action.data) });
+        case INDIVIDUALS.ADD.ERROR:
+            return { ...state, error: action.error, isFetching: false };
+
+        case INDIVIDUALS.UPDATE.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case INDIVIDUALS.UPDATE.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
+        case INDIVIDUALS.UPDATE.ERROR:
+            return merge(state, ['itemsByID', action.meta.id],
+                { error: action.error, isFetching: false, didFail: true });
+
         case INDIVIDUALS.LIST.REQUEST:
             return { ...state, isFetching: true };
         case INDIVIDUALS.LIST.RECEIVE: {

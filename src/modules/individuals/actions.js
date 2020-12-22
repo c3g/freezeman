@@ -3,6 +3,8 @@ import api from "../../utils/api"
 import { DEFAULT_PAGINATION_LIMIT } from "../../config";
 
 export const GET = createNetworkActionTypes("INDIVIDUALS.GET");
+export const ADD = createNetworkActionTypes("INDIVIDUALS.ADD");
+export const UPDATE = createNetworkActionTypes("INDIVIDUALS.UPDATE");
 export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
 
 export const get = id => async (dispatch, getState) => {
@@ -11,6 +13,20 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     await dispatch(networkAction(GET, api.individuals.get(id), { meta: { id } }));
+};
+
+export const add = individual => async (dispatch, getState) => {
+    if (getState().individuals.itemsByID[id])
+        return;
+
+    await dispatch(networkAction(ADD, api.individuals.add(individual)));
+};
+
+export const update = (id, individual) => async (dispatch, getState) => {
+    if (getState().individuals.itemsByID[id].isFetching)
+        return;
+
+    await dispatch(networkAction(UPDATE, api.individuals.update(individual), { meta: { id } }));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
@@ -27,7 +43,11 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
 
 export default {
     GET,
+    ADD,
+    UPDATE,
     LIST,
     get,
+    add,
+    update,
     list,
 };

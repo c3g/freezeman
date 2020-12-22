@@ -3,6 +3,8 @@ import api from "../../utils/api"
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
+export const ADD = createNetworkActionTypes("CONTAINERS.ADD");
+export const UPDATE = createNetworkActionTypes("CONTAINERS.UPDATE");
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
@@ -17,6 +19,20 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     await dispatch(networkAction(GET, api.containers.get(id), { meta: { id } }));
+};
+
+export const add = container => async (dispatch, getState) => {
+    if (getState().containers.itemsByID[id])
+        return;
+
+    await dispatch(networkAction(ADD, api.containers.add(container)));
+};
+
+export const update = (id, container) => async (dispatch, getState) => {
+    if (getState().containers.itemsByID[id].isFetching)
+        return;
+
+    await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
@@ -85,6 +101,8 @@ export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.con
 
 export default {
     GET,
+    ADD,
+    UPDATE,
     LIST,
     LIST_PARENTS,
     LIST_CHILDREN,
@@ -93,6 +111,8 @@ export default {
     LIST_TEMPLATE_ACTIONS,
     SUMMARY,
     get,
+    add,
+    update,
     list,
     listParents,
     listChildren,

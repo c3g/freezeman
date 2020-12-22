@@ -32,6 +32,22 @@ export const samples = (
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
+        case SAMPLES.ADD.REQUEST:
+            return merge(state, ['isFetching'], true);
+        case SAMPLES.ADD.RECEIVE:
+            return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
+                { ...preprocessContainer(action.data) });
+        case SAMPLES.ADD.ERROR:
+            return { ...state, error: action.error, isFetching: false };
+
+        case SAMPLES.UPDATE.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case SAMPLES.UPDATE.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
+        case SAMPLES.UPDATE.ERROR:
+            return merge(state, ['itemsByID', action.meta.id],
+                { error: action.error, isFetching: false, didFail: true });
+
         case SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };
         case SAMPLES.LIST.RECEIVE: {
