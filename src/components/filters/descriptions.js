@@ -1,4 +1,4 @@
-import {FILTER_TYPE} from "../../constants";
+import {FILTER_TYPE, BIOSPECIMEN_TYPE} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   name__icontains: {
@@ -13,13 +13,7 @@ export const SAMPLE_FILTERS = {
     label: "Type",
     mode: "multiple",
     placeholder: "All",
-    options: [
-      { label: "DNA",    value: "DNA" },
-      { label: "RNA",    value: "RNA" },
-      { label: "BLOOD",  value: "BLOOD" },
-      { label: "SALIVA", value: "SALIVA" },
-      { label: "SWAB",   value: "SWAB "},
-    ],
+    options: BIOSPECIMEN_TYPE.map(x => ({ label: x, value: x })),
   },
   container__barcode__icontains: {
     type: FILTER_TYPE.INPUT,
