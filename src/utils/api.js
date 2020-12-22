@@ -16,7 +16,7 @@ const api = {
   containers: {
     get: id => get(`/containers/${id}`),
     add: container => post("/containers/", container),
-    update: (id, container) => post(`/containers/${id}`, container),
+    update: container => put(`/containers/${container.id}/`, container),
     list: () => get("/containers/list_root"),
     listExport: () => get("/containers/list_export/", {format: "csv"}),
     listParents: id => get(`/containers/${id}/list_parents/`),
@@ -33,7 +33,7 @@ const api = {
   individuals: {
     get: individualId => get(`/individuals/${individualId}`),
     add: individual => post("/individuals/", individual),
-    update: (id, individual) => post(`/individuals/${id}`, individual),
+    update: individual => put(`/individuals/${individual.id}/`, individual),
     list: (page = {}) => get("/individuals/", page),
     listExport: () => get("/individuals/list_export/", {format: "csv"}),
   },
@@ -41,7 +41,7 @@ const api = {
   samples: {
     get: sampleId => get(`/samples/${sampleId}`),
     add: sample => post("/samples/", sample),
-    update: (id, sample) => post(`/samples/${id}`, sample),
+    update: sample => put(`/samples/${sample.id}/`, sample),
     list: (page = {}) => get("/samples/", page),
     listExport: () => get("/samples/list_export/", {format: "csv"}),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
@@ -111,6 +111,10 @@ function get(route, queryParams) {
 
 function post(route, body) {
   return apiFetch('POST', route, body);
+}
+
+function put(route, body) {
+  return apiFetch('PUT', route, body);
 }
 
 
