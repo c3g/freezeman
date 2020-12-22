@@ -76,7 +76,7 @@ export const containers = (
       return merge(state, ['itemsByID', action.meta.id], { ...preprocessContainer(action.data) });
     case CONTAINERS.UPDATE.ERROR:
       return merge(state, ['itemsByID', action.meta.id],
-        { error: action.error, isFetching: false, didFail: true });
+        { error: action.error, isFetching: false });
 
     case CONTAINERS.LIST.REQUEST:
       return { ...state, isFetching: true };

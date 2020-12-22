@@ -37,7 +37,7 @@ export const individuals = (
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
         case INDIVIDUALS.UPDATE.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
-                { error: action.error, isFetching: false, didFail: true });
+                { error: action.error, isFetching: false });
 
         case INDIVIDUALS.LIST.REQUEST:
             return { ...state, isFetching: true };

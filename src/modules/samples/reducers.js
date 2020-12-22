@@ -46,7 +46,7 @@ export const samples = (
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
         case SAMPLES.UPDATE.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
-                { error: action.error, isFetching: false, didFail: true });
+                { error: action.error, isFetching: false });
 
         case SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };
