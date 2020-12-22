@@ -12,9 +12,13 @@ module.exports = (env, argv) => ({
                 use: ["babel-loader"]
             },
             {
-                test: /.css$/,
+                test: /\.css$/,
                 use: ["style-loader", "css-loader"]
-            }
+            },
+            {
+                test: /\.scss$/i,
+                use: ["style-loader", "css-loader", "sass-loader"],
+            },
         ]
     },
     resolve: {
