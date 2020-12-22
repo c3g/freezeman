@@ -22,7 +22,7 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const add = container => async (dispatch, getState) => {
-    if (getState().containers.itemsByID[id])
+    if (getState().containers.isFetching)
         return;
 
     await dispatch(networkAction(ADD, api.containers.add(container)));

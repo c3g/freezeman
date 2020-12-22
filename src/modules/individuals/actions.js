@@ -16,7 +16,7 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const add = individual => async (dispatch, getState) => {
-    if (getState().individuals.itemsByID[id])
+    if (getState().individuals.isFetching)
         return;
 
     await dispatch(networkAction(ADD, api.individuals.add(individual)));
