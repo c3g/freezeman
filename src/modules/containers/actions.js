@@ -18,21 +18,21 @@ export const get = id => async (dispatch, getState) => {
     if (container && container.isFetching)
         return;
 
-    await dispatch(networkAction(GET, api.containers.get(id), { meta: { id } }));
+    return await dispatch(networkAction(GET, api.containers.get(id), { meta: { id } }));
 };
 
 export const add = container => async (dispatch, getState) => {
     if (getState().containers.isFetching)
         return;
 
-    await dispatch(networkAction(ADD, api.containers.add(container)));
+    return await dispatch(networkAction(ADD, api.containers.add(container)));
 };
 
 export const update = (id, container) => async (dispatch, getState) => {
     if (getState().containers.itemsByID[id].isFetching)
         return;
 
-    await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
+    return await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
@@ -41,7 +41,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
 
     const pageOptions = { limit, offset }
 
-    await dispatch(networkAction(LIST,
+    return await dispatch(networkAction(LIST,
         api.containers.list(pageOptions),
         { meta: pageOptions }
     ));
@@ -51,7 +51,7 @@ export const listParents = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
     if (!container || container.isFetching) return;
 
-    await dispatch(networkAction(
+    return await dispatch(networkAction(
         LIST_PARENTS,
         api.containers.listParents(id),
         { meta: { id } }
@@ -66,7 +66,7 @@ export const listChildren = (id, excludes = []) => async (dispatch, getState) =>
     const container = getState().containers.itemsByID[id];
     if (!container || container.isFetching) return;
 
-    await dispatch(networkAction(
+    return await dispatch(networkAction(
         LIST_CHILDREN,
         api.containers.listChildren(id),
         { meta: { id, excludes } }
@@ -77,7 +77,7 @@ export const listSamples = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
     if (!container || container.isFetching) return;
 
-    await dispatch(networkAction(
+    return await dispatch(networkAction(
         LIST_SAMPLES,
         api.containers.listSamples(id),
         { meta: { id, samples: container.samples } }
@@ -89,7 +89,7 @@ export const listKinds = () => async (dispatch, getState) => {
     if (getState().containerKinds.isFetching || getState().containerKinds.items.length > 0)
         return;
 
-    await dispatch(networkAction(LIST_KINDS, api.containerKinds.list()));
+    return await dispatch(networkAction(LIST_KINDS, api.containerKinds.list()));
 };
 
 export const listTemplateActions = () => (dispatch, getState) => {
