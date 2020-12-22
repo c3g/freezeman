@@ -13,6 +13,9 @@ import ExportButton from "../ExportButton";
 import {list} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
+import serializeFilterParams from "../../utils/serializeFilterParams";
+
+import {CONTAINER_FILTERS} from "../filters/descriptions";
 
 
 const TABLE_COLUMNS = [
@@ -66,7 +69,7 @@ const ContainersListContent = ({
   list,
 }) => {
   const listExport = () =>
-    withToken(token, api.containers.listExport)().then(response => response.data)
+    withToken(token, api.containers.listExport)({...serializeFilterParams(filters, CONTAINER_FILTERS)}).then(response => response.data)
 
   return <>
     <AppPageHeader title="Containers" extra={[

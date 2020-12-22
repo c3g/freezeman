@@ -13,6 +13,8 @@ import api, {withToken}  from "../../utils/api"
 import {list} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import SamplesFilters from "./SamplesFilters";
+import serializeFilterParams from "../../utils/serializeFilterParams";
+import {SAMPLE_FILTERS} from "../filters/descriptions";
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -96,7 +98,7 @@ const SamplesListContent = ({
     }
   ];
   const listExport = () =>
-    withToken(token, api.samples.listExport)().then(response => response.data)
+    withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
