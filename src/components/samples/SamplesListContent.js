@@ -110,9 +110,9 @@ const SamplesListContent = ({
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
-      <AddButton url="/samples/add" />,
+      <AddButton key='add' url="/samples/add" />,
       ...actionsToButtonList("/samples", actions),
-      <ExportButton exportFunction={listExport} filename="samples"/>,
+      <ExportButton key='export' exportFunction={listExport} filename="samples"/>,
     ]}/>
     <PageContent>
       <PaginatedTable
