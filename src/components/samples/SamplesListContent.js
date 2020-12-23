@@ -2,6 +2,11 @@ import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
+import {Tag, Typography} from "antd";
+import "antd/es/tag/style/css";
+import "antd/es/typography/style/css";
+const {Text} = Typography
+
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
@@ -43,15 +48,18 @@ const SamplesListContent = ({
       title: "Type",
       dataIndex: "biospecimen_type",
       width: 80,
+      render: (type) => <Tag>{type}</Tag>,
     },
     {
       title: "Name",
       dataIndex: "name",
-      render: (name, sample) => <Link to={`/samples/${sample.id}`}>{name}</Link>,
-    },
-    {
-      title: "Alias",
-      dataIndex: "alias",
+      render: (name, sample) =>
+        <Link to={`/samples/${sample.id}`}>
+          <div>{name}</div>
+          {sample.alias &&
+            <div><small>alias: {sample.alias}</small></div>
+          }
+        </Link>,
     },
     {
       title: "Individual",
@@ -77,13 +85,17 @@ const SamplesListContent = ({
     {
       title: "Vol. (µL)",
       dataIndex: "volume_history",
+      align: "right",
+      className: "table-column-numbers",
       render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
       width: 100,
     },
     {
       title: "Conc. (ng/µL)",
       dataIndex: "concentration",
-      render: conc => conc === null ? "—" : parseFloat(conc).toFixed(3),
+      align: "right",
+      className: "table-column-numbers",
+      render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
       width: 115,
     },
     {
