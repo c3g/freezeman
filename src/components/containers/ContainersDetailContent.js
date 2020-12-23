@@ -39,11 +39,10 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
         title={container.name || `Container ${id}`}
         onBack={() => history.push("/containers/list")}
         extra={
-        !isLoaded ? null : [
+        !isLoaded ? null :
           <Space>
             <EditButton url={`/containers/${id}/update`} />
           </Space>
-        ]
       } />
       <PageContent loading={!isLoaded && isFetching}>
         <Descriptions bordered={true} size="small">
