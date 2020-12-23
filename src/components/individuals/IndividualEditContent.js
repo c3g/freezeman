@@ -87,7 +87,7 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/individuals/${id}`)}
+        onBack={() => history.push(`/individuals/${id || 'list'}`)}
       />
       <PageContent>
         <Form

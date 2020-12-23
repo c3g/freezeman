@@ -148,7 +148,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/samples/${id}`)}
+        onBack={() => history.push(`/samples/${id || 'list'}`)}
       />
       <PageContent>
         <Form
