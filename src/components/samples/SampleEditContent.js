@@ -142,7 +142,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
 
   const title = id === undefined ?
     'Add Sample' :
-    ('Update ' + (sample ? sample.name : `Sample ${id}`))
+    `Update Sample ${sample ? sample.name : id}`
 
   return (
     <>

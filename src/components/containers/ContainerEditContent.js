@@ -88,7 +88,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
 
   const title = id === undefined ?
     'Add Container' :
-    ('Update ' + (container ? container.name : `Container ${id}`))
+    `Update Container ${container ? container.name : id}`
 
   return (
     <>

@@ -82,7 +82,7 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
 
   return <>
     <AppPageHeader
-      title={sample.name || `Sample ${id}`}
+      title={`Sample ${sample.name || id}`}
       onBack={() => history.push("/samples/list")}
       extra={isLoaded ?
         <Space>

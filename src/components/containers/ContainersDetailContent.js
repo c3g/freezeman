@@ -36,7 +36,7 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
   return (
     <>
       <AppPageHeader
-        title={container.name || `Container ${id}`}
+        title={`Container ${container.name || id}`}
         onBack={() => history.push("/containers/list")}
         extra={
         !isLoaded ? null :

@@ -81,7 +81,7 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
 
   const title = id === undefined ?
     'Add Individual' :
-    ('Update ' + (individual ? individual.label : `Individual ${id}`))
+    `Update Individual ${individual ? individual.label : id}`
 
   return (
     <>

@@ -23,7 +23,8 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
         get(id);
 
     const isLoading = !isLoaded || individual.isFetching;
-    const title = [id, individual ? individual.label : undefined].filter(Boolean).join(' - ');
+    const title =
+        `Individual ${[id, individual ? individual.label : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/individuals/list")} extra={
