@@ -73,7 +73,7 @@ export const containers = (
     case CONTAINERS.UPDATE.REQUEST:
       return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
     case CONTAINERS.UPDATE.RECEIVE:
-      return merge(state, ['itemsByID', action.meta.id], { ...preprocessContainer(action.data) });
+      return merge(state, ['itemsByID', action.meta.id], { ...preprocessContainer(action.data), isFetching: false, versions: undefined });
     case CONTAINERS.UPDATE.ERROR:
       return merge(state, ['itemsByID', action.meta.id],
         { error: action.error, isFetching: false });
