@@ -1,4 +1,5 @@
-import { stringify as qs } from "querystring";
+import cheerio from "cheerio";
+import {stringify as qs} from "querystring";
 
 import {API_BASE_PATH} from "../config";
 
@@ -37,6 +38,7 @@ const api = {
     update: individual => put(`/individuals/${individual.id}/`, individual),
     list: (page = {}) => get("/individuals/", page),
     listExport: () => get("/individuals/list_export/", {format: "csv"}),
+    search: q => get("/individuals/search/", { q }),
   },
 
   samples: {
@@ -46,12 +48,14 @@ const api = {
     list: (page = {}) => get("/samples/", page),
     listExport: () => get("/samples/list_export/", {format: "csv"}),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
+    listCollectionSites: () => get("/samples/list_collection_sites/"),
     summary: () => get("/samples/summary"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
     },
+    search: q => get("/samples/search/", { q }),
   },
 
   users: {
@@ -123,10 +127,18 @@ function createAPIError(response) {
   const data = response.data;
 
   let detail;
-  try {
-    detail = data.detail ||
-      (data.revision__user && ('User: ' + data.revision__user.join(', ')));
-  } catch (_) {}
+
+  // Django validation errors kind of error
+  if (!response.isJSON && response.status === 500) {
+    detail = parseDjangoError(data)
+  }
+  else {
+    // API error as { ok: false, detail: ... }
+    try {
+      detail = data.detail ||
+        (data.revision__user && ('User: ' + data.revision__user.join(', ')));
+    } catch (_) {}
+  }
 
   const message = detail ?
     ('API error: ' + detail) :
@@ -142,9 +154,16 @@ function createAPIError(response) {
   return error;
 }
 
+function parseDjangoError(html) {
+  const $ = cheerio.load(html)
+  return $('.exception_value').text()
+}
+
 function attachData(response) {
-  let contentType = response.headers.get('Content-Type') || '' ;
-  return (contentType.includes('text/csv') ? response.text() : response.json())
+  const contentType = response.headers.get('content-type') || '' ;
+  const isJSON = contentType.includes('/json')
+  response.isJSON = isJSON
+  return (isJSON ? response.json() : response.text())
   .then(data => {
     response.data = data;
     return response;
