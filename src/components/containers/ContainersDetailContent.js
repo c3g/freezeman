@@ -2,13 +2,9 @@ import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
-import {Space, Button, Descriptions, Tag} from "antd";
-import "antd/es/button/style/css";
+import {Space, Descriptions} from "antd";
 import "antd/es/descriptions/style/css";
-import "antd/es/tag/style/css";
 import "antd/es/space/style/css";
-
-import {EditOutlined, BarcodeOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
@@ -45,12 +41,6 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
         extra={
         !isLoaded ? null : [
           <Space>
-            <div key="kind">
-                <Tag>{container.kind}</Tag>
-            </div>
-            <div key="barcode">
-                <BarcodeOutlined /> {container.barcode}
-            </div>
             <EditButton url={`/containers/${id}/update`} />
           </Space>
         ]
