@@ -7,7 +7,7 @@ import "antd/es/button/style/css";
 import { DownloadOutlined } from "@ant-design/icons";
 
 
-const ExportButton = ({ exportFunction, filename }) => {
+const ExportButton = ({ exportFunction, filename, ...rest }) => {
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
   const onClick = () => {
     exportFunction()
@@ -16,7 +16,7 @@ const ExportButton = ({ exportFunction, filename }) => {
       })
   }
   return (
-    <Button onClick={onClick}>
+    <Button onClick={onClick} {...rest}>
       <DownloadOutlined />
       Export
     </Button>

@@ -6,10 +6,10 @@ import "antd/es/button/style/css";
 
 import {PlusOutlined} from "@ant-design/icons";
 
-const AddButton = ({url}) => {
+const AddButton = ({url, ...rest}) => {
   const history = useHistory();
   return (
-    <Button onClick={() => history.push(url)}>
+    <Button onClick={() => history.push(url)} {...rest}>
       <PlusOutlined /> Add
     </Button>
   )
