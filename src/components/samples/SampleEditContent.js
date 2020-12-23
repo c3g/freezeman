@@ -11,11 +11,13 @@ import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/input-number/style/css";
 import "antd/es/select/style/css";
+import "antd/es/typography/style/css";
 const {Option} = Select
 const {Text} = Typography
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import * as Options from "../../utils/options";
 import {add, update} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {BIOSPECIMEN_TYPE, TISSUE_SOURCE} from "../../constants";
@@ -94,7 +96,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const onFocusSite = onSearchSite
   const onSearchSite = () => {
     listCollectionSites(token).then(sites => {
-      setSiteOptions(sites.map(renderOption))
+      setSiteOptions(sites.map(Options.render))
     })
   }
 
@@ -106,7 +108,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
   const onSearchIndividual = input => {
     searchIndividuals(token, input).then(individuals => {
-      setIndividualOptions(individuals.map(renderIndividualOption))
+      setIndividualOptions(individuals.map(Options.renderIndividual))
     })
   }
 
@@ -118,7 +120,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
   const onSearchContainer = input => {
     searchContainers(token, input).then(containers => {
-      setContainerOptions(containers.map(renderContainerOption))
+      setContainerOptions(containers.map(Options.renderContainer))
     })
   }
 
@@ -130,7 +132,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const onFocusSample = ev => { onSearchSample(ev.target.value) }
   const onSearchSample = input => {
     searchSamples(token, input).then(samples => {
-      setSampleOptions(samples.map(renderSampleOption))
+      setSampleOptions(samples.map(Options.renderSample))
     })
   }
 
@@ -241,49 +243,6 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
     </>
   );
 }
-
-function renderOption(v) {
-  return { value: v, label: v }
-}
-
-function renderIndividualOption(i) {
-  return {
-    value: String(i.id),
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {i.label}{' '}
-        <Text type="secondary">{i.id}</Text>
-      </div>
-    )
-  }
-}
-
-function renderContainerOption(c) {
-  return {
-    value: String(c.id),
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {c.name}{' '}
-        <Text type="secondary">{c.id}</Text>
-      </div>
-    )
-  }
-}
-
-function renderSampleOption(s) {
-  return {
-    value: String(s.id),
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span>
-          {s.name}{s.alias && <small> (alias: {s.alias})</small>}{' '}
-        </span>
-        <Text type="secondary">{s.id}</Text>
-      </div>
-    )
-  }
-}
-
 
 function deserialize(values) {
     if (!values)

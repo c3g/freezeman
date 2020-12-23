@@ -3,38 +3,46 @@ import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {Button, DatePicker, Form, Input, Radio, Select} from "antd";
+import {AutoComplete, Button, Form, Input, Radio} from "antd";
+import "antd/es/auto-complete/style/css";
 import "antd/es/button/style/css";
-import "antd/es/date-picker/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
-import "antd/es/select/style/css";
-const {Option} = Select
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import * as Options from "../../utils/options";
 import {add, update} from "../../modules/individuals/actions";
 import {individual as EMPTY_INDIVIDUAL} from "../../models";
 import {SEX, TAXON} from "../../constants";
+import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
+
+const searchIndividuals = (token, input) =>
+  withToken(token, api.individuals.search)(input).then(res => res.data.results)
 
 const toOptions = values =>
     values.map(v => ({label: v, value: v}))
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
 });
 
 const actionCreators = {add, update};
 
-const IndividualEditContent = ({individualsByID, add, update}) => {
+const IndividualEditContent = ({token, individualsByID, add, update}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
 
   const individual = individualsByID[id];
+
+  /*
+   * Form Data submission
+   */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_INDIVIDUAL : individual))
 
@@ -49,17 +57,27 @@ const IndividualEditContent = ({individualsByID, add, update}) => {
   const onSubmit = () => {
     const data = serialize(formData)
     if (isAdding) {
-      add(data)
-      .then(individual => {
-        history.push(`/individuals/${individual.id}`)
-      })
+      add(data).then(individual => { history.push(`/individuals/${individual.id}`) })
     } else {
-      update(id, data)
-      .then(() => {
-        history.push(`/individuals/${id}`)
-      })
+      update(id, data).then(() => { history.push(`/individuals/${id}`) })
     }
   }
+
+  /*
+   * Individual autocomplete
+   */
+
+  const [individualOptions, setIndividualOptions] = useState([]);
+  const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
+  const onSearchIndividual = input => {
+    searchIndividuals(token, input).then(individuals => {
+      setIndividualOptions(individuals.map(Options.renderIndividual))
+    })
+  }
+
+  /*
+   * Render
+   */
 
   const title = id === undefined ?
     'Add Individual' :
@@ -103,10 +121,18 @@ const IndividualEditContent = ({individualsByID, add, update}) => {
             <Input />
           </Form.Item>
           <Form.Item label="Mother" name="mother">
-            <Input />
+            <AutoComplete
+              options={individualOptions}
+              onSearch={onSearchIndividual}
+              onFocus={onFocusIndividual}
+            />
           </Form.Item>
           <Form.Item label="Father" name="father">
-            <Input />
+            <AutoComplete
+              options={individualOptions}
+              onSearch={onSearchIndividual}
+              onFocus={onFocusIndividual}
+            />
           </Form.Item>
 
           <Form.Item>

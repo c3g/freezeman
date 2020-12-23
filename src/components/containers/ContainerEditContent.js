@@ -15,6 +15,7 @@ const {Text} = Typography
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import * as Options from "../../utils/options";
 import {add, update} from "../../modules/containers/actions";
 import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
@@ -77,7 +78,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
   const onSearchLocation = input => {
     searchContainers(token, input, true).then(containers => {
-      setLocationOptions(containers.map(renderContainerOption))
+      setLocationOptions(containers.map(Options.renderContainer))
     })
   }
 
@@ -144,18 +145,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     </>
   );
 };
-
-function renderContainerOption(c) {
-  return {
-    value: String(c.id),
-    label: (
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {c.name}{' '}
-        <Text type="secondary">{c.id}</Text>
-      </div>
-    )
-  }
-}
 
 
 function deserialize(values) {
