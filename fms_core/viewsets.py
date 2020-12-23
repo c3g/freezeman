@@ -205,8 +205,10 @@ FiltersetFields = Dict[str, List[str]]
 
 _container_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "name": ["icontains"],
+    "barcode": ["icontains"],
     "kind": CATEGORICAL_FILTERS,
-    "coordinates": ["exact"],
+    "coordinates": ["exact", "icontains"],
     "comment": FREE_TEXT_FILTERS,
     "update_comment": FREE_TEXT_FILTERS,
     "location": NULLABLE_FK_FILTERS,
@@ -215,6 +217,7 @@ _container_filterset_fields: FiltersetFields = {
 
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
     "biospecimen_type": CATEGORICAL_FILTERS,
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
@@ -233,9 +236,13 @@ _sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("container__", _container_filterset_fields),
 }
 
+_sample_minimal_filterset_fields: FiltersetFields = {
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "label": PK_FILTERS,
+    "label": ["in", "icontains"],
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
@@ -252,6 +259,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     filterset_fields = {
         **_container_filterset_fields,
         **_prefix_keys("location__", _container_filterset_fields),
+        **_prefix_keys("samples__", _sample_minimal_filterset_fields),
     }
 
     template_action_list = [
@@ -310,8 +318,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        containers_data = Container.objects.select_related("location").prefetch_related("children", "samples").all()
-        serializer = ContainerExportSerializer(containers_data, many=True)
+        serializer = ContainerExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
@@ -399,8 +406,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        samples = Sample.objects.all().select_related("container", "individual")
-        serializer = SampleExportSerializer(samples, many=True)
+        serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
@@ -450,8 +456,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        individuals = Individual.objects.all()
-        serializer = IndividualSerializer(individuals, many=True)
+        serializer = IndividualSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
 
