@@ -21,11 +21,13 @@ const ContainersFilters = ({
     setTimeout(() => {list()}, 500)
   }
 
-  return <FilterGroup
-    descriptions={CONTAINER_FILTERS}
-    values={filters}
-    onChangeFilter={onChangeFilter}
-  />;
+  return <div style={{textAlign: 'center'}}>
+    <FilterGroup
+      descriptions={CONTAINER_FILTERS}
+      values={filters}
+      onChangeFilter={onChangeFilter}
+    />
+  </div>;
 
 }
 

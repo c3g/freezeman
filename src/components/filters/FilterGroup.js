@@ -31,7 +31,7 @@ const FilterGroup = ({
   }
 
   return (
-    <div style={style}>
+    <span style={style}>
       {
         Object.values(descriptions).map(item => {
           switch(item.type){
@@ -69,7 +69,7 @@ const FilterGroup = ({
           }
         })
       }
-    </div>
+    </span>
   );
 };
 
