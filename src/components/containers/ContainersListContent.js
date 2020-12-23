@@ -68,9 +68,9 @@ const ContainersListContent = ({
 
   return <>
     <AppPageHeader title="Containers" extra={[
-      <AddButton url="/containers/add" />,
+      <AddButton key='add' url="/containers/add" />,
       ...actionsToButtonList("/containers", actions),
-      <ExportButton exportFunction={listExport} filename="containers"/>,
+      <ExportButton key='export' exportFunction={listExport} filename="containers"/>,
     ]}/>
     <PageContent>
       <PaginatedTable
