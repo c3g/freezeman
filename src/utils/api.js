@@ -19,6 +19,7 @@ const api = {
     update: container => put(`/containers/${container.id}/`, container),
     list: () => get("/containers/list_root"),
     listExport: () => get("/containers/list_export/", {format: "csv"}),
+    listParentContainers: q => get("/containers/list_parent_containers/", { q }),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
