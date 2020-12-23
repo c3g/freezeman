@@ -19,7 +19,6 @@ const api = {
     update: container => put(`/containers/${container.id}/`, container),
     list: () => get("/containers/list_root"),
     listExport: () => get("/containers/list_export/", {format: "csv"}),
-    listParentContainers: q => get("/containers/list_parent_containers/", { q }),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
@@ -29,6 +28,7 @@ const api = {
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
+    search: (q, parent = false) => get("/containers/search/", { q, parent }),
   },
 
   individuals: {

@@ -21,8 +21,8 @@ import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
 
-const listParentContainers = (token, input) =>
-  withToken(token, api.containers.listParentContainers)(input)
+const searchContainers = (token, input, isParent = false) =>
+  withToken(token, api.containers.search)(input, isParent)
   .then(res => res.data.results)
 
 const mapStateToProps = state => ({
@@ -44,24 +44,25 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState(isAdding ? EMPTY_CONTAINER : container)
+  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_CONTAINER : container))
 
   if (!isAdding && formData === undefined && container !== undefined) {
-    setFormData(container)
+    setFormData(deserialize(container))
   }
 
   const onValuesChange = (values) => {
-    setFormData({ ...formData, ...values })
+    setFormData(deserialize({ ...formData, ...values }))
   }
 
   const onSubmit = () => {
+    const data = serialize(formData)
     if (isAdding) {
-      add(formData)
+      add(data)
       .then(container => {
         history.push(`/containers/${container.id}`)
       })
     } else {
-      update(id, formData)
+      update(id, data)
       .then(() => {
         history.push(`/containers/${id}`)
       })
@@ -76,7 +77,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
 
   const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
   const onSearchLocation = input => {
-    listParentContainers(token, input).then(containers => {
+    searchContainers(token, input, true).then(containers => {
       setLocationOptions(containers.map(renderContainerOption))
     })
   }
@@ -134,20 +135,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           <Item label="Upd. Comment" name="update_comment">
             <Input />
           </Item>
-          <Item label="Children" name="children">
-            <Select mode="tags">
-              {[].map(kind =>
-                <Option key={kind.id} value={kind.id}>{kind.id}</Option>
-              )}
-            </Select>
-          </Item>
-          <Item label="Samples" name="samples">
-            <Select mode="tags">
-              {[].map(kind =>
-                <Option key={kind.id} value={kind.id}>{kind.id}</Option>
-              )}
-            </Select>
-          </Item>
           <Item>
             <Button type="primary" htmlType="submit">
               Submit
@@ -164,11 +151,24 @@ function renderContainerOption(c) {
     value: String(c.id),
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {c.name}
+        {c.name}{' '}
         <Text type="secondary">{c.id}</Text>
       </div>
     )
   }
+}
+
+
+function deserialize(values) {
+    if (!values)
+        return undefined
+    const newValues = { ...values }
+    return newValues
+}
+
+function serialize(values) {
+    const newValues = { ...values }
+    return newValues
 }
 
 export default connect(mapStateToProps, actionCreators)(ContainerEditContent);
