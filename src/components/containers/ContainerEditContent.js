@@ -74,7 +74,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
    */
 
   const [locationOptions, setLocationOptions] = useState([]);
-
   const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
   const onSearchLocation = input => {
     searchContainers(token, input, true).then(containers => {

@@ -3,34 +3,69 @@ import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {Button, DatePicker, Form, Input, Select} from "antd";
+import {AutoComplete, Button, DatePicker, Form, Input, Select, Typography, InputNumber} from "antd";
+import "antd/es/auto-complete/style/css";
 import "antd/es/button/style/css";
 import "antd/es/date-picker/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
+import "antd/es/input-number/style/css";
 import "antd/es/select/style/css";
 const {Option} = Select
+const {Text} = Typography
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import {add, update} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {BIOSPECIMEN_TYPE, TISSUE_SOURCE} from "../../constants";
+import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
 
+// API functions
+
+const searchSamples = (token, input) =>
+  withToken(token, api.samples.search)(input).then(res => res.data.results)
+
+const searchContainers = (token, input) =>
+  withToken(token, api.containers.search)(input).then(res => res.data.results)
+
+const searchIndividuals = (token, input) =>
+  withToken(token, api.individuals.search)(input).then(res => res.data.results)
+
+let collectionSites = undefined
+const listCollectionSites = (token) => {
+  if (collectionSites)
+    return Promise.resolve(collectionSites)
+  collectionSites =  withToken(token, api.samples.listCollectionSites)()
+    .then(res => res.data)
+    .then(sites => {
+      collectionSites = sites
+      return collectionSites
+    })
+  return collectionSites
+}
+
+
+
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
 });
 
 const actionCreators = {add, update};
 
-const SampleEditContent = ({samplesByID, add, update}) => {
+const SampleEditContent = ({token, samplesByID, add, update}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
 
   const sample = samplesByID[id];
+
+  /*
+   * Form Data submission
+   */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
 
@@ -45,23 +80,67 @@ const SampleEditContent = ({samplesByID, add, update}) => {
   const onSubmit = () => {
     const data = serialize(formData)
     if (isAdding) {
-      add(data)
-      .then(sample => {
-        history.push(`/samples/${sample.id}`)
-      })
+      add(data).then(sample => { history.push(`/samples/${sample.id}`) })
     } else {
-      update(id, data)
-      .then(() => {
-        history.push(`/samples/${id}`)
-      })
+      update(id, data).then(() => { history.push(`/samples/${id}`) })
     }
   }
+
+  /*
+   * Collection site autocomplete
+   */
+
+  const [siteOptions, setSiteOptions] = useState([]);
+  const onFocusSite = onSearchSite
+  const onSearchSite = () => {
+    listCollectionSites(token).then(sites => {
+      setSiteOptions(sites.map(renderOption))
+    })
+  }
+
+  /*
+   * Individual autocomplete
+   */
+
+  const [individualOptions, setIndividualOptions] = useState([]);
+  const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
+  const onSearchIndividual = input => {
+    searchIndividuals(token, input).then(individuals => {
+      setIndividualOptions(individuals.map(renderIndividualOption))
+    })
+  }
+
+  /*
+   * Container (location) autocomplete
+   */
+
+  const [containerOptions, setContainerOptions] = useState([]);
+  const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
+  const onSearchContainer = input => {
+    searchContainers(token, input).then(containers => {
+      setContainerOptions(containers.map(renderContainerOption))
+    })
+  }
+
+  /*
+   * Sample autocomplete
+   */
+
+  const [sampleOptions, setSampleOptions] = useState([]);
+  const onFocusSample = ev => { onSearchSample(ev.target.value) }
+  const onSearchSample = input => {
+    searchSamples(token, input).then(samples => {
+      setSampleOptions(samples.map(renderSampleOption))
+    })
+  }
+
+  /*
+   * Render
+   */
 
   const title = id === undefined ?
     'Add Sample' :
     ('Update ' + (sample ? sample.name : `Sample ${id}`))
-
-  // TODO: validate individual, container & extracted_from as valid IDs
 
   return (
     <>
@@ -93,17 +172,21 @@ const SampleEditContent = ({samplesByID, add, update}) => {
             </Select>
           </Form.Item>
           <Form.Item label="Concentration" name="concentration">
-            <Input />
+            <InputNumber step={0.001} />
           </Form.Item>
           <Form.Item label="Exp. Group" name="experimental_group">
             <Select mode="tags" />
           </Form.Item>
           <Form.Item label="Collection Site" name="collection_site">
-            <Input />
+            <AutoComplete
+              options={siteOptions}
+              onSearch={onSearchSite}
+              onFocus={onFocusSite}
+            />
           </Form.Item>
           <Form.Item label="Tissue" name="tissue_source">
             <Select>
-              {BIOSPECIMEN_TYPE.map(type =>
+              {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
@@ -124,16 +207,28 @@ const SampleEditContent = ({samplesByID, add, update}) => {
             <Input />
           </Form.Item>
           <Form.Item label="Vol. Used" name="volume_used">
-            <Input />
+            <InputNumber step={0.001} />
           </Form.Item>
           <Form.Item label="Individual" name="individual">
-            <Input />
+            <AutoComplete
+              options={individualOptions}
+              onSearch={onSearchIndividual}
+              onFocus={onFocusIndividual}
+            />
           </Form.Item>
           <Form.Item label="Container" name="container">
-            <Input />
+            <AutoComplete
+              options={containerOptions}
+              onSearch={onSearchContainer}
+              onFocus={onFocusContainer}
+            />
           </Form.Item>
           <Form.Item label="Extracted" name="extracted_from">
-            <Input />
+            <AutoComplete
+              options={sampleOptions}
+              onSearch={onSearchSample}
+              onFocus={onFocusSample}
+            />
           </Form.Item>
 
           <Form.Item>
@@ -145,7 +240,50 @@ const SampleEditContent = ({samplesByID, add, update}) => {
       </PageContent>
     </>
   );
-};
+}
+
+function renderOption(v) {
+  return { value: v, label: v }
+}
+
+function renderIndividualOption(i) {
+  return {
+    value: String(i.id),
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {i.label}{' '}
+        <Text type="secondary">{i.id}</Text>
+      </div>
+    )
+  }
+}
+
+function renderContainerOption(c) {
+  return {
+    value: String(c.id),
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {c.name}{' '}
+        <Text type="secondary">{c.id}</Text>
+      </div>
+    )
+  }
+}
+
+function renderSampleOption(s) {
+  return {
+    value: String(s.id),
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span>
+          {s.name}{s.alias && <small> (alias: {s.alias})</small>}{' '}
+        </span>
+        <Text type="secondary">{s.id}</Text>
+      </div>
+    )
+  }
+}
+
 
 function deserialize(values) {
     if (!values)
@@ -160,6 +298,10 @@ function serialize(values) {
     const newValues = { ...values }
     if (newValues.reception_date)
         newValues.reception_date = newValues.reception_date.format('YYYY-MM-DD')
+    if (newValues.concentration === '')
+        newValues.concentration = null
+    if (newValues.volume_used === '')
+        newValues.volume_used = null
     return newValues
 }
 

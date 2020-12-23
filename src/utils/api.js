@@ -132,6 +132,10 @@ function createAPIError(response) {
   if (!response.isJSON && response.status === 500) {
     detail = parseDjangoError(data)
   }
+  // Other type of django validation errors
+  else if (response.isJSON && response.status === 400) {
+    detail = JSON.stringify(data, null, 2)
+  }
   else {
     // API error as { ok: false, detail: ... }
     try {
