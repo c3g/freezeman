@@ -9,9 +9,9 @@ import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/select/style/css";
 import "antd/es/typography/style/css";
-const {Option} = Select
-const {Item} = Form
-const {Text} = Typography
+const {Option} = Select;
+const {Item} = Form;
+const {TextArea} = Input;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -21,6 +21,7 @@ import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
+const barcodeRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]
 
 const searchContainers = (token, input, isParent = false) =>
   withToken(token, api.containers.search)(input, isParent)
@@ -116,24 +117,39 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
               )}
             </Select>
           </Item>
-          <Item label="Barcode" name="barcode" rules={[{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]}>
+          <Item
+            label="Barcode"
+            name="barcode"
+            rules={barcodeRules.concat(requiredRules)}
+          >
             <Input />
           </Item>
-          <Item label="Location" name="location">
-            <AutoComplete
-              options={locationOptions}
-              onSearch={onSearchLocation}
-              onFocus={onFocusLocation}
-            />
-          </Item>
-          <Item label="Coordinates" name="coordinates">
-            <Input />
+          <Item label="Location" style={{ margin: 0 }}>
+            <Item name="location" style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}>
+              <Select
+                showSearch
+                allowClear
+                filterOption={false}
+                options={locationOptions}
+                onSearch={onSearchLocation}
+                onFocus={onFocusLocation}
+              />
+            </Item>
+            <Item
+              label="@"
+              name="coordinates"
+              className="ContainerEditContent__coordinates"
+              rules={formData.location ? requiredRules : undefined}
+              style={{ width: 'calc(40% - 1em)' }}
+            >
+              <Input placeholder="Coordinates" />
+            </Item>
           </Item>
           <Item label="Comment" name="comment">
-            <Input />
+            <TextArea />
           </Item>
           <Item label="Upd. Comment" name="update_comment">
-            <Input />
+            <TextArea />
           </Item>
           <Item>
             <Button type="primary" htmlType="submit">

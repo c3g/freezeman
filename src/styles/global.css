@@ -23,3 +23,11 @@ select:-webkit-autofill:focus {
 .SamplesFilters .ant-collapse-content-box {
   padding: 0;
 }
+
+.ContainerEditContent__coordinates {
+  display: inline-flex;
+  flex-direction: row;
+}
+.ContainerEditContent__coordinates .ant-form-item-control {
+  display: inline-flex;
+}
