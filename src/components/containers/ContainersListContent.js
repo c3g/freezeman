@@ -69,7 +69,9 @@ const ContainersListContent = ({
   list,
 }) => {
   const listExport = () =>
-    withToken(token, api.containers.listExport)({...serializeFilterParams(filters, CONTAINER_FILTERS)}).then(response => response.data)
+    withToken(token, api.containers.listExport)
+      (serializeFilterParams(filters, CONTAINER_FILTERS))
+      .then(response => response.data)
 
   return <>
     <AppPageHeader title="Containers" extra={[
