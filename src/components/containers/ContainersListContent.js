@@ -7,11 +7,16 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
+import ContainersFilters from "./ContainersFilters";
 import ExportButton from "../ExportButton";
+
 
 import {list} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
+import serializeFilterParams from "../../utils/serializeFilterParams";
+
+import {CONTAINER_FILTERS} from "../filters/descriptions";
 
 
 const TABLE_COLUMNS = [
@@ -44,6 +49,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
+  filters: state.containers.filters,
   actions: state.containerTemplateActions,
   page: state.containers.page,
   totalCount: state.containers.totalCount,
@@ -56,15 +62,17 @@ const ContainersListContent = ({
   token,
   containers,
   containersByID,
+  filters,
   actions,
   isFetching,
   page,
   totalCount,
   list,
 }) => {
-
   const listExport = () =>
-    withToken(token, api.containers.listExport)().then(response => response.data)
+    withToken(token, api.containers.listExport)
+      (serializeFilterParams(filters, CONTAINER_FILTERS))
+      .then(response => response.data)
 
   return <>
     <AppPageHeader title="Containers" extra={[
@@ -73,7 +81,10 @@ const ContainersListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="containers"/>,
     ]}/>
     <PageContent>
+      <ContainersFilters />
       <PaginatedTable
+        // filters as a key in order to instantiate a new component on filters state change
+        key={JSON.stringify(filters)}
         columns={TABLE_COLUMNS}
         items={containers}
         itemsByID={containersByID}

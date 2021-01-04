@@ -1,10 +1,14 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
+import serializeFilterParams from "../../utils/serializeFilterParams";
+import {CONTAINER_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
 export const ADD = createNetworkActionTypes("CONTAINERS.ADD");
 export const UPDATE = createNetworkActionTypes("CONTAINERS.UPDATE");
+export const SET_FILTER = "CONTAINERS.SET_FILTER";
+export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
@@ -35,15 +39,30 @@ export const update = (id, container) => async (dispatch, getState) => {
     return await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
 };
 
+export const setFilter = (name, value) => {
+    return {
+        type: SET_FILTER,
+        data: { name, value }
+    }
+};
+
+export const clearFilters = () => {
+    return {
+        type: CLEAR_FILTERS,
+    }
+};
+
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
     if (getState().containers.isFetching)
         return;
 
-    const pageOptions = { limit, offset }
+    const containersFilters = getState().containers.filters
+    const filters = serializeFilterParams(containersFilters, CONTAINER_FILTERS)
+    const options = { limit, offset, ...filters}
 
     return await dispatch(networkAction(LIST,
-        api.containers.list(pageOptions),
-        { meta: pageOptions }
+        api.containers.list(options),
+        { meta: options }
     ));
 };
 
@@ -103,6 +122,8 @@ export default {
     GET,
     ADD,
     UPDATE,
+    SET_FILTER,
+    CLEAR_FILTERS,
     LIST,
     LIST_PARENTS,
     LIST_CHILDREN,
@@ -113,6 +134,8 @@ export default {
     get,
     add,
     update,
+    setFilter,
+    clearFilters,
     list,
     listParents,
     listChildren,

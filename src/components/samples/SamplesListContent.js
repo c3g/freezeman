@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
@@ -18,6 +18,9 @@ import api, {withToken}  from "../../utils/api"
 
 import {list} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
+import SamplesFilters from "./SamplesFilters";
+import serializeFilterParams from "../../utils/serializeFilterParams";
+import {SAMPLE_FILTERS} from "../filters/descriptions";
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -28,6 +31,7 @@ const mapStateToProps = state => ({
   page: state.samples.page,
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
+  filters: state.samples.filters,
 });
 
 const actionCreators = {list};
@@ -42,6 +46,7 @@ const SamplesListContent = ({
   page,
   totalCount,
   list,
+  filters,
 }) => {
   const TABLE_COLUMNS = [
     {
@@ -106,7 +111,7 @@ const SamplesListContent = ({
     }
   ];
   const listExport = () =>
-    withToken(token, api.samples.listExport)().then(response => response.data)
+    withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
@@ -115,7 +120,10 @@ const SamplesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="samples"/>,
     ]}/>
     <PageContent>
+      <SamplesFilters />
       <PaginatedTable
+        // filters as a key in order to instantiate a new component on filters state change
+        key={JSON.stringify(filters)}
         columns={TABLE_COLUMNS}
         items={samples}
         itemsByID={samplesByID}

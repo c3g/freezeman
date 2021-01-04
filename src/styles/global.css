@@ -19,3 +19,7 @@ select:-webkit-autofill:focus {
   font-size: 0.9em;
   font-variant-numeric: tabular-nums;
 }
+
+.SamplesFilters .ant-collapse-content-box {
+  padding: 0;
+}

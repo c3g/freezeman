@@ -49,6 +49,7 @@ export const containers = (
     totalCount: 0,
     isFetching: false,
     error: undefined,
+    filters: {},
   },
   action
 ) => {
@@ -77,6 +78,19 @@ export const containers = (
     case CONTAINERS.UPDATE.ERROR:
       return merge(state, ['itemsByID', action.meta.id],
         { error: action.error, isFetching: false });
+
+    case CONTAINERS.SET_FILTER:
+      return {
+        ...state,
+        filters: set(state.filters, [action.data.name], action.data.value),
+        page: set(state.page, ['offset'], 0),
+      };
+    case CONTAINERS.CLEAR_FILTERS:
+      return {
+        ...state,
+        filters: {},
+        page: set(state.page, ['offset'], 0),
+      };
 
     case CONTAINERS.LIST.REQUEST:
       return { ...state, isFetching: true };
