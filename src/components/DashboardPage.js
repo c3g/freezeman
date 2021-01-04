@@ -95,6 +95,11 @@ const DashboardPage = ({
         <Col {...COL_LAYOUT}>
           <Card title="Reports" {...CARD_PROPS}>
             <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to="/individuals/add/">
+                  <Button icon={actionIcon("Add")} style={{width: "100%"}}>Add Individual</Button>
+                </Link>
+              </Col>
               {reports.map(report =>
                 <Col key={report.path} {...WIDE_BUTTON_COL_PROPS}>
                   <Link to={report.path}>
