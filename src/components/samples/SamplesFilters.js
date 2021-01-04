@@ -28,6 +28,10 @@ const SamplesFilters = ({
     setFilter(filter.key, value)
     listDebounced()
   }
+  const onClearFilters = () => {
+    clearFilters()
+    listDebounced()
+  }
 
   return (
     <div className='SamplesFilters'>
@@ -37,7 +41,7 @@ const SamplesFilters = ({
           values={filters}
           onChangeFilter={onChangeFilter}
         />
-        <Button onClick={clearFilters}>Clear</Button>
+        <Button onClick={onClearFilters}>Clear</Button>
       </div>
       <Collapse defaultActiveKey={[]} ghost>
         <Collapse.Panel

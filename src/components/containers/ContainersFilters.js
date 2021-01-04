@@ -25,6 +25,10 @@ const ContainersFilters = ({
     setFilter(filter.key, value)
     listDebounced()
   }
+  const onClearFilters = () => {
+    clearFilters()
+    listDebounced()
+  }
 
   return (
     <div>
@@ -33,7 +37,7 @@ const ContainersFilters = ({
         values={filters}
         onChangeFilter={onChangeFilter}
       />
-      <Button onClick={clearFilters}>
+      <Button onClick={onClearFilters}>
         Clear
       </Button>
     </div>
