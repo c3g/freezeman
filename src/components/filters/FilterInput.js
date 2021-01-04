@@ -13,10 +13,8 @@ const FilterInput = ({
   width = 200,
   onChange,
 }) => {
-  let handleChange;
-  // Need to cache value in {target: {value}} due to SyntheticEvent not persisted
-  handleChange= ({target: {value}}) => {
-    onChange(item, value)
+  const onInputChange = (ev) => {
+    onChange(item, ev.target.value)
   }
 
   return (
@@ -29,7 +27,7 @@ const FilterInput = ({
           placeholder={placeholder}
           style={{ width: width}}
           value={value}
-          onChange={handleChange}
+          onChange={onInputChange}
         />
       </Input.Group>
     </div>
