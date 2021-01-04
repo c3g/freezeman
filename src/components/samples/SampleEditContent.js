@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
@@ -13,7 +13,7 @@ import "antd/es/input-number/style/css";
 import "antd/es/select/style/css";
 import "antd/es/typography/style/css";
 const {Option} = Select
-const {Text} = Typography
+const {TextArea} = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -66,29 +66,6 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const sample = samplesByID[id];
 
   /*
-   * Form Data submission
-   */
-
-  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
-
-  if (!isAdding && formData === undefined && sample !== undefined) {
-    setFormData(deserialize(sample))
-  }
-
-  const onValuesChange = (values) => {
-    setFormData(deserialize({ ...formData, ...values }))
-  }
-
-  const onSubmit = () => {
-    const data = serialize(formData)
-    if (isAdding) {
-      add(data).then(sample => { history.push(`/samples/${sample.id}`) })
-    } else {
-      update(id, data).then(() => { history.push(`/samples/${id}`) })
-    }
-  }
-
-  /*
    * Collection site autocomplete
    */
 
@@ -137,6 +114,35 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   }
 
   /*
+   * Form Data submission
+   */
+
+  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
+
+  if (!isAdding && formData === undefined && sample !== undefined) {
+    const newData = deserialize(sample)
+    setFormData(newData)
+    onSearchSite(newData.collection_site)
+    onSearchIndividual(newData.individual)
+    onSearchContainer(newData.container)
+    onSearchSample(newData.extracted_from)
+  }
+
+  const onValuesChange = (values) => {
+    setFormData(deserialize({ ...formData, ...values }))
+  }
+
+  const onSubmit = () => {
+    const data = serialize(formData)
+    if (isAdding) {
+      add(data).then(sample => { history.push(`/samples/${sample.id}`) })
+    } else {
+      update(id, data).then(() => { history.push(`/samples/${id}`) })
+    }
+  }
+
+
+  /*
    * Render
    */
 
@@ -166,20 +172,53 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           <Form.Item label="Alias" name="alias">
             <Input />
           </Form.Item>
-          <Form.Item label="Biosp. Type" name="biospecimen_type">
+          <Form.Item label="Biosp. Type" name="biospecimen_type" rules={requiredRules}>
             <Select>
               {BIOSPECIMEN_TYPE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Concentration" name="concentration">
+          <Form.Item label="Individual" name="individual" rules={requiredRules}>
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
+              options={individualOptions}
+              onSearch={onSearchIndividual}
+              onFocus={onFocusIndividual}
+            />
+          </Form.Item>
+          <Form.Item label="Container" name="container" rules={requiredRules}>
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
+              options={containerOptions}
+              onSearch={onSearchContainer}
+              onFocus={onFocusContainer}
+            />
+          </Form.Item>
+          <Form.Item label="Coordinates" name="coordinates">
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Vol. (µL)"
+            name="volume"
+          >
+            <InputNumber step={0.001} />
+          </Form.Item>
+          <Form.Item
+            label="Conc. (ng/µL)"
+            name="concentration"
+            extra="Concentration in ng/µL. Required for nucleic acid samples."
+          >
             <InputNumber step={0.001} />
           </Form.Item>
           <Form.Item label="Exp. Group" name="experimental_group">
             <Select mode="tags" />
           </Form.Item>
-          <Form.Item label="Collection Site" name="collection_site">
+          <Form.Item label="Collection Site" name="collection_site" rules={requiredRules}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
@@ -193,43 +232,36 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Reception" name="reception_date">
+          <Form.Item label="Reception" name="reception_date" rules={requiredRules}>
             <DatePicker />
           </Form.Item>
           <Form.Item label="Phenotype" name="phenotype">
             <Input />
           </Form.Item>
           <Form.Item label="Comment" name="comment">
-            <Input />
+            <TextArea />
           </Form.Item>
           <Form.Item label="Upd. Comment" name="update_comment">
-            <Input />
+            <TextArea />
           </Form.Item>
-          <Form.Item label="Coordinates" name="coordinates">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Vol. Used" name="volume_used">
-            <InputNumber step={0.001} />
-          </Form.Item>
-          <Form.Item label="Individual" name="individual">
-            <AutoComplete
-              options={individualOptions}
-              onSearch={onSearchIndividual}
-              onFocus={onFocusIndividual}
-            />
-          </Form.Item>
-          <Form.Item label="Container" name="container">
-            <AutoComplete
-              options={containerOptions}
-              onSearch={onSearchContainer}
-              onFocus={onFocusContainer}
-            />
-          </Form.Item>
-          <Form.Item label="Extracted" name="extracted_from">
-            <AutoComplete
+          <Form.Item label="Extracted From" name="extracted_from">
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
               options={sampleOptions}
               onSearch={onSearchSample}
               onFocus={onFocusSample}
+            />
+          </Form.Item>
+          <Form.Item
+            label="Vol. Used (µL)"
+            name="volume_used"
+            extra="Volume of the original sample used for the extraction, in µL. Must be specified only for extracted nucleic acid samples."
+          >
+            <InputNumber
+              disabled={!formData?.extracted_from}
+              step={0.001}
             />
           </Form.Item>
 
@@ -248,6 +280,8 @@ function deserialize(values) {
     if (!values)
         return undefined
     const newValues = { ...values }
+    if (newValues.experimental_group === null)
+        newValues.experimental_group = []
     if (newValues.reception_date)
         newValues.reception_date = moment(newValues.reception_date, 'YYYY-MM-DD')
     return newValues
@@ -261,6 +295,18 @@ function serialize(values) {
         newValues.concentration = null
     if (newValues.volume_used === '')
         newValues.volume_used = null
+
+    if (newValues.container)
+        newValues.container = Number(newValues.container)
+
+    if (typeof newValues.volume === 'number') {
+        newValues.volume_history = JSON.stringify([{
+          date: new Date().toISOString(),
+          update_type: "update",
+          volume_value: String(newValues.volume),
+        }])
+        delete newValues.volume
+    }
     return newValues
 }
 

@@ -11,7 +11,7 @@ export function render(v) {
 
 export function renderIndividual(i) {
   return {
-    value: String(i.id),
+    value: i.id,
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {i.label}{' '}
@@ -23,7 +23,7 @@ export function renderIndividual(i) {
 
 export function renderContainer(c) {
   return {
-    value: String(c.id),
+    value: c.id,
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {c.name}{' '}
@@ -35,7 +35,7 @@ export function renderContainer(c) {
 
 export function renderSample(s) {
   return {
-    value: String(s.id),
+    value: s.id,
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <span>
