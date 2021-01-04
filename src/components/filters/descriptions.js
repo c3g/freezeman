@@ -106,6 +106,14 @@ export const CONTAINER_FILTERS = {
     width: 250,
     displayByDefault: false,
   },
+  kind__in: {
+    type: FILTER_TYPE.SELECT,
+    key: "kind__in",
+    label: "Kind",
+    mode: "multiple",
+    placeholder: "All",
+    displayByDefault: false,
+  },
   coordinates__icontains: {
     type: FILTER_TYPE.INPUT,
     key: "coordinates__icontains",
@@ -118,14 +126,6 @@ export const CONTAINER_FILTERS = {
     key: "samples__name__icontains",
     label: "Sample name",
     width: 250,
-    displayByDefault: false,
-  },
-  kind__in: {
-    type: FILTER_TYPE.SELECT,
-    key: "kind__in",
-    label: "Kind",
-    mode: "multiple",
-    placeholder: "All",
     displayByDefault: false,
   },
 }
