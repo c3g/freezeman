@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
@@ -43,14 +43,34 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const container = containersByID[id];
 
   /*
+   * Location autocomplete
+   */
+
+  const [locationOptions, setLocationOptions] = useState([]);
+  const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
+  const onSearchLocation = input => {
+    searchContainers(token, input, true).then(containers => {
+      setLocationOptions(containers.map(Options.renderContainer))
+    })
+  }
+
+  /*
    * Form Data submission
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_CONTAINER : container))
 
   if (!isAdding && formData === undefined && container !== undefined) {
-    setFormData(deserialize(container))
+    const newData = deserialize(container)
+    setFormData(newData)
   }
+
+  useEffect(() => {
+    if (!container)
+      return
+    const newData = deserialize(container)
+    onSearchLocation(newData.location)
+  }, [container])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
@@ -69,18 +89,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
         history.push(`/containers/${id}`)
       })
     }
-  }
-
-  /*
-   * Location autocomplete
-   */
-
-  const [locationOptions, setLocationOptions] = useState([]);
-  const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
-  const onSearchLocation = input => {
-    searchContainers(token, input, true).then(containers => {
-      setLocationOptions(containers.map(Options.renderContainer))
-    })
   }
 
   /*
@@ -139,7 +147,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
               label="@"
               name="coordinates"
               className="ContainerEditContent__coordinates"
-              rules={formData.location ? requiredRules : undefined}
               style={{ width: 'calc(40% - 1em)' }}
             >
               <Input placeholder="Coordinates" />

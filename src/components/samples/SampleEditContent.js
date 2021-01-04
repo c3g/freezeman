@@ -122,11 +122,17 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   if (!isAdding && formData === undefined && sample !== undefined) {
     const newData = deserialize(sample)
     setFormData(newData)
+  }
+
+  useEffect(() => {
+    if (!sample)
+      return
+    const newData = deserialize(sample)
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual)
     onSearchContainer(newData.container)
     onSearchSample(newData.extracted_from)
-  }
+  }, [sample])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
