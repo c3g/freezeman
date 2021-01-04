@@ -1,11 +1,14 @@
-import React, {useState} from "react";
+import React, {useCallback} from "react";
 import {connect} from "react-redux";
+import {filter as filterObject} from "rambda";
+import {debounce} from "debounce";
+import {Button, Collapse} from "antd";
+import "antd/es/button/style/css";
+import "antd/es/collapse/style/css";
+
 import {list, setFilter, clearFilters} from "../../modules/samples/actions";
-import {reduceNestedObjectByKeyValue} from "../../utils/reduceNestedObjectsByKeyValue";
 import FilterGroup from "../filters/FilterGroup";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
-import {Button} from "antd";
-import {CaretRightOutlined, CaretDownOutlined} from "@ant-design/icons";
 
 const mapStateToProps = state => ({
   filters: state.samples.filters,
@@ -19,46 +22,36 @@ const SamplesFilters = ({
   clearFilters,
   list,
 }) => {
-  const [showDetailedFilters, setShowDetailedFilters] = useState(false);
 
+  const listDebounced = useCallback(debounce(list, 250), [list])
   const onChangeFilter = (filter, value) => {
     setFilter(filter.key, value)
-    setTimeout(() => {list()}, 500)
+    listDebounced()
   }
 
-  return <div style={{marginBottom: '25px', padding: '20px'}}>
-    <div>
-      <FilterGroup
-        descriptions={reduceNestedObjectByKeyValue(SAMPLE_FILTERS,"displayByDefault", false)}
-        values={filters}
-        onChangeFilter={onChangeFilter}
-      />
-      <span onClick={clearFilters} style={{position: 'relative', left: '10px', top: '25px'}}>
-        <Button type="dashed" style={{color: 'grey'}}>Reset</Button>
-      </span>
-    </div>
-    <div style={{paddingBottom: '15px'}}>
-      <span onClick={() => setShowDetailedFilters(!showDetailedFilters)}>
-      {
-        showDetailedFilters ? <CaretDownOutlined/> : <CaretRightOutlined/>
-      }
-      <a> Advanced options </a>
-      </span>
-    </div>
-    <div>
-      {
-        showDetailedFilters ?
+  return (
+    <div className='SamplesFilters'>
+      <div>
+        <FilterGroup
+          descriptions={filterObject(f => f.displayByDefault === true, SAMPLE_FILTERS)}
+          values={filters}
+          onChangeFilter={onChangeFilter}
+        />
+        <Button onClick={clearFilters}>Clear</Button>
+      </div>
+      <Collapse defaultActiveKey={[]} ghost>
+        <Collapse.Panel
+          header='Show advanced filters'
+        >
           <FilterGroup
-            descriptions={reduceNestedObjectByKeyValue(SAMPLE_FILTERS,"displayByDefault", true)}
+            descriptions={filterObject(f => f.displayByDefault === false, SAMPLE_FILTERS)}
             values={filters}
             onChangeFilter={onChangeFilter}
           />
-          :
-          ''
-      }
+        </Collapse.Panel>
+      </Collapse>
     </div>
-
-  </div>;
+  );
 }
 
 export default connect(mapStateToProps, actionCreators)(SamplesFilters);
