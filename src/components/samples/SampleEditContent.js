@@ -124,15 +124,14 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
     setFormData(newData)
   }
 
+  const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
-    if (!sample)
-      return
-    const newData = deserialize(sample)
+    const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual)
     onSearchContainer(newData.container)
     onSearchSample(newData.extracted_from)
-  }, [sample])
+  }, [sampleValue])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
@@ -306,11 +305,11 @@ function serialize(values) {
         newValues.container = Number(newValues.container)
 
     if (typeof newValues.volume === 'number') {
-        newValues.volume_history = JSON.stringify([{
+        newValues.volume_history = [{
           date: new Date().toISOString(),
           update_type: "update",
           volume_value: String(newValues.volume),
-        }])
+        }]
         delete newValues.volume
     }
     return newValues

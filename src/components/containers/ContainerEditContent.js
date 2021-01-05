@@ -65,12 +65,11 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     setFormData(newData)
   }
 
+  const containerValue = container || EMPTY_CONTAINER
   useEffect(() => {
-    if (!container)
-      return
-    const newData = deserialize(container)
+    const newData = deserialize(containerValue)
     onSearchLocation(newData.location)
-  }, [container])
+  }, [containerValue])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
