@@ -27,7 +27,7 @@ export const individuals = (
             return merge(state, ['isFetching'], true);
         case INDIVIDUALS.ADD.RECEIVE:
             return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
-                { ...preprocessContainer(action.data) });
+                action.data);
         case INDIVIDUALS.ADD.ERROR:
             return { ...state, error: action.error, isFetching: false };
 

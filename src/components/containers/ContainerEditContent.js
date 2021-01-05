@@ -24,7 +24,7 @@ const requiredRules = [{ required: true, message: 'Missing field' }]
 const barcodeRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]
 
 const searchContainers = (token, input, isParent = false) =>
-  withToken(token, api.containers.search)(input, isParent)
+  withToken(token, api.containers.search)(input, { parent: isParent })
   .then(res => res.data.results)
 
 const mapStateToProps = state => ({

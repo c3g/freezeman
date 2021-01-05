@@ -29,7 +29,8 @@ const api = {
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
-    search: (q, parent = false) => get("/containers/search/", { q, parent }),
+    search: (q, { parent, sample_holding }) =>
+      get("/containers/search/", { q, parent, sample_holding }),
   },
 
   individuals: {

@@ -31,7 +31,7 @@ const searchSamples = (token, input) =>
   withToken(token, api.samples.search)(input).then(res => res.data.results)
 
 const searchContainers = (token, input) =>
-  withToken(token, api.containers.search)(input).then(res => res.data.results)
+  withToken(token, api.containers.search)(input, { sample_holding: true }).then(res => res.data.results)
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
@@ -155,6 +155,8 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
     'Add Sample' :
     `Update Sample ${sample ? sample.name : id}`
 
+  const isTissueEnabled = tissueEnabled(formData.biospecimen_type)
+
   return (
     <>
       <AppPageHeader
@@ -184,6 +186,13 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               )}
             </Select>
           </Form.Item>
+          <Form.Item label="Tissue" name="tissue_source" rules={isTissueEnabled ? requiredRules : undefined}>
+            <Select allowClear disabled={!isTissueEnabled}>
+              {TISSUE_SOURCE.map(type =>
+                <Option key={type} value={type}>{type}</Option>
+              )}
+            </Select>
+          </Form.Item>
           <Form.Item label="Individual" name="individual" rules={requiredRules}>
             <Select
               showSearch
@@ -207,12 +216,15 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           <Form.Item label="Coordinates" name="coordinates">
             <Input />
           </Form.Item>
-          <Form.Item
-            label="Vol. (µL)"
-            name="volume"
-          >
-            <InputNumber step={0.001} />
-          </Form.Item>
+          {isAdding &&
+            <Form.Item
+              label="Vol. (µL)"
+              name="volume"
+              rules={requiredRules}
+            >
+              <InputNumber step={0.001} />
+            </Form.Item>
+          }
           <Form.Item
             label="Conc. (ng/µL)"
             name="concentration"
@@ -229,13 +241,6 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               onSearch={onSearchSite}
               onFocus={onFocusSite}
             />
-          </Form.Item>
-          <Form.Item label="Tissue" name="tissue_source">
-            <Select>
-              {TISSUE_SOURCE.map(type =>
-                <Option key={type} value={type}>{type}</Option>
-              )}
-            </Select>
           </Form.Item>
           <Form.Item label="Reception" name="reception_date" rules={requiredRules}>
             <DatePicker />
@@ -282,37 +287,50 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
 }
 
 function deserialize(values) {
-    if (!values)
-        return undefined
-    const newValues = { ...values }
-    if (newValues.experimental_group === null)
-        newValues.experimental_group = []
-    if (newValues.reception_date)
-        newValues.reception_date = moment(newValues.reception_date, 'YYYY-MM-DD')
-    return newValues
+  if (!values)
+    return undefined
+  const newValues = {...values}
+  if (newValues.experimental_group === null)
+    newValues.experimental_group = []
+  if (newValues.reception_date)
+    newValues.reception_date = moment(newValues.reception_date, 'YYYY-MM-DD')
+  return newValues
 }
 
 function serialize(values) {
-    const newValues = { ...values }
-    if (newValues.reception_date)
-        newValues.reception_date = newValues.reception_date.format('YYYY-MM-DD')
-    if (newValues.concentration === '')
-        newValues.concentration = null
-    if (newValues.volume_used === '')
-        newValues.volume_used = null
+  const newValues = {...values}
+  if (newValues.reception_date)
+    newValues.reception_date = newValues.reception_date.format('YYYY-MM-DD')
+  if (newValues.concentration === '')
+    newValues.concentration = null
+  if (newValues.volume_used === '')
+    newValues.volume_used = null
 
-    if (newValues.container)
-        newValues.container = Number(newValues.container)
+  if (newValues.container)
+    newValues.container = Number(newValues.container)
 
-    if (typeof newValues.volume === 'number') {
-        newValues.volume_history = [{
-          date: new Date().toISOString(),
-          update_type: "update",
-          volume_value: String(newValues.volume),
-        }]
-        delete newValues.volume
-    }
-    return newValues
+  if (typeof newValues.volume === 'number') {
+    newValues.volume_history = [{
+      date: new Date().toISOString(),
+      update_type: "update",
+      volume_value: String(newValues.volume),
+    }]
+    delete newValues.volume
+  }
+  if (!newValues.volume_history) {
+    newValues.volume_history = []
+  }
+
+  return newValues
 }
 
 export default connect(mapStateToProps, actionCreators)(SampleEditContent);
+
+
+// Helpers
+
+function tissueEnabled(type) {
+  if (type === 'DNA' || type === 'RNA')
+    return true
+  return false
+}
