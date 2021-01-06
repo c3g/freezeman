@@ -2,7 +2,7 @@ import json
 
 from collections import Counter
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -13,7 +13,7 @@ from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
 from .fzy import score
-from .containers import ContainerSpec, CONTAINER_KIND_SPECS
+from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from .models import Container, Sample, Individual
 from .resources import (
     ContainerResource,
@@ -317,6 +317,27 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for parent containers that match the given query
+        """
+        search_input = _request.GET.get("q")
+        is_parent = _request.GET.get("parent") == 'true'
+        is_sample_holding = _request.GET.get("sample_holding") == 'true'
+
+        query = Q(name__icontains=search_input)
+        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_parent:
+            query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
+        if is_sample_holding:
+            query.add(Q(kind__in=SAMPLE_CONTAINER_KINDS), Q.AND)
+
+        containers_data = Container.objects.filter(query)
+        page = self.paginate_queryset(containers_data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=["get"])
     def list_export(self, _request):
         serializer = ContainerExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
@@ -410,6 +431,28 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
+    def list_collection_sites(self, _request):
+        samples_data = Sample.objects.filter().distinct("collection_site")
+        collection_sites = [s.collection_site for s in samples_data]
+        return Response(collection_sites)
+
+    @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for samples that match the given query
+        """
+        search_input = _request.GET.get("q")
+
+        query = Q(name__icontains=search_input)
+        query.add(Q(alias__icontains=search_input), Q.OR)
+        query.add(Q(id__icontains=search_input), Q.OR)
+
+        samples_data = Sample.objects.filter(query)
+        page = self.paginate_queryset(samples_data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=["get"])
     def summary(self, _request):
         """
         Returns summary statistics about the current set of samples in the
@@ -458,6 +501,21 @@ class IndividualViewSet(viewsets.ModelViewSet):
     def list_export(self, _request):
         serializer = IndividualSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for individuals that match the given query
+        """
+        search_input = _request.GET.get("q")
+
+        query = Q(id__icontains=search_input)
+        query.add(Q(label__icontains=search_input), Q.OR)
+
+        individuals_data = Individual.objects.filter(query)
+        page = self.paginate_queryset(individuals_data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
