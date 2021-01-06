@@ -1,24 +1,16 @@
 import React from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {Link, useHistory, useParams} from "react-router-dom";
 
-import {Descriptions, Tag} from "antd";
+import {Space, Descriptions} from "antd";
 import "antd/es/descriptions/style/css";
-import "antd/es/tag/style/css";
-
-import {BarcodeOutlined} from "@ant-design/icons";
+import "antd/es/space/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
+import EditButton from "../EditButton";
 import {get, listParents} from "../../modules/containers/actions";
-
-const extraStyle = {
-  display: "flex",
-  flexDirection: "row",
-  height: "100%",
-  alignItems: "center",
-};
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -43,16 +35,14 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
 
   return (
     <>
-      <AppPageHeader title={container.name || `Container ${id}`} onBack={history.goBack} extra={
+      <AppPageHeader
+        title={`Container ${container.name || id}`}
+        onBack={() => history.push("/containers/list")}
+        extra={
         !isLoaded ? null :
-        <div style={extraStyle}>
-          <div key="kind">
-              <Tag>{container.kind}</Tag>
-          </div>
-          <div key="barcode">
-              <BarcodeOutlined /> {container.barcode}
-          </div>
-        </div>
+          <Space>
+            <EditButton url={`/containers/${id}/update`} />
+          </Space>
       } />
       <PageContent loading={!isLoaded && isFetching}>
         <Descriptions bordered={true} size="small">

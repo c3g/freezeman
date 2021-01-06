@@ -6,12 +6,13 @@ import "antd/es/button/style/css";
 
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
-const actionIcon = a => {
-  if (a.name.includes("Add")) return <PlusOutlined />;
-  if (a.name.includes("Rename")) return <EditOutlined />;
-  if (a.name.includes("Move")) return <ExportOutlined />;
-  if (a.name.includes("Update")) return <EditOutlined />;
-  if (a.name.includes("Process")) return <ExperimentOutlined />;
+export const actionIcon = a => {
+  const n = a.name || a
+  if (n.includes("Add")) return <PlusOutlined />;
+  if (n.includes("Rename")) return <EditOutlined />;
+  if (n.includes("Move")) return <ExportOutlined />;
+  if (n.includes("Update")) return <EditOutlined />;
+  if (n.includes("Process")) return <ExperimentOutlined />;
   return undefined;
 };
 

@@ -3,12 +3,23 @@ import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
-import {Card, Col, Descriptions, Empty, Row, Tag, Timeline, Typography} from "antd";
+import {
+  Card,
+  Col,
+  Descriptions,
+  Empty,
+  Row,
+  Space,
+  Tag,
+  Timeline,
+  Typography
+} from "antd";
 import "antd/es/card/style/css";
 import "antd/es/col/style/css";
 import "antd/es/descriptions/style/css";
 import "antd/es/empty/style/css";
 import "antd/es/row/style/css";
+import "antd/es/space/style/css";
 import "antd/es/tag/style/css";
 import "antd/es/timeline/style/css";
 import "antd/es/typography/style/css";
@@ -19,6 +30,7 @@ import renderSampleDiff from "../../utils/renderSampleDiff";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
+import EditButton from "../EditButton";
 import {SampleDepletion} from "./SampleDepletion";
 import {get, listVersions} from "../../modules/samples/actions";
 
@@ -69,14 +81,21 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
     listVersions(sample.id);
 
   return <>
-    <AppPageHeader title={sample.name || `Sample ${id}`} onBack={history.goBack} extra={isLoaded ? [
-        <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
-            <Tag>{sample.biospecimen_type}</Tag>
-        </div>,
-        <div key="depleted" style={depletedStyle}>
-            <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
-        </div>,
-    ] : []} />
+    <AppPageHeader
+      title={`Sample ${sample.name || id}`}
+      onBack={() => history.push("/samples/list")}
+      extra={isLoaded ?
+        <Space>
+          <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
+              <Tag>{sample.biospecimen_type}</Tag>
+          </div>
+          <div key="depleted" style={depletedStyle}>
+              <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+          </div>
+          <EditButton url={`/samples/${id}/update`} />
+        </Space>
+      : []}
+    />
     <PageContent loading={isFetching}>
       {error &&
         <ErrorMessage error={error} />
@@ -141,15 +160,20 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
                     {versions === undefined && isFetching &&
                       <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
                     }
-                    {versions && versions.map((version, i) =>
-                      <Timeline.Item
-                        key={i}
-                        label={renderTimelineLabel(version, usersByID)}
-                      >
-                        <strong>{version.revision.comment}</strong>
-                        {renderSampleDiff(versions[i + 1], version)}
-                      </Timeline.Item>
-                    )}
+                    {versions && versions.map((version, i) => {
+                      const diff = renderSampleDiff(versions[i + 1], version);
+                      if (!diff)
+                        return diff;
+                      return (
+                        <Timeline.Item
+                          key={i}
+                          label={renderTimelineLabel(version, usersByID)}
+                        >
+                          <strong>{version.revision.comment}</strong>
+                          {diff}
+                        </Timeline.Item>
+                      )
+                    })}
                   </Timeline>
               }
             </Card>

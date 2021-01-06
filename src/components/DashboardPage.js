@@ -13,7 +13,7 @@ import "antd/es/statistic/style/css";
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
 
-import {actionsToButtonList} from "../utils/templateActions";
+import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
@@ -59,6 +59,11 @@ const DashboardPage = ({
             <Statistic title="Total Containers" value={containersSummary.total_count || "—"} />
             {/* TODO: Root containers */}
             <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to='/containers/add/'>
+                  <Button icon={actionIcon('Add')} style={{width: "100%"}}>Add One Container</Button>
+                </Link>
+              </Col>
               {actionsToButtonList("/containers", templates.container, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
@@ -76,6 +81,11 @@ const DashboardPage = ({
               </Col>
             </Row>
             <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to='/samples/add/'>
+                  <Button icon={actionIcon('Add')} style={{width: "100%"}}>Add One Sample</Button>
+                </Link>
+              </Col>
               {actionsToButtonList("/samples", templates.sample, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
@@ -85,6 +95,11 @@ const DashboardPage = ({
         <Col {...COL_LAYOUT}>
           <Card title="Reports" {...CARD_PROPS}>
             <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to="/individuals/add/">
+                  <Button icon={actionIcon("Add")} style={{width: "100%"}}>Add Individual</Button>
+                </Link>
+              </Col>
               {reports.map(report =>
                 <Col key={report.path} {...WIDE_BUTTON_COL_PROPS}>
                   <Link to={report.path}>

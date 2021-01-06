@@ -1,5 +1,5 @@
 import React from "react";
-import { diff } from "jsondiffpatch";
+import {diff} from "jsondiffpatch";
 
 import {SwapRightOutlined} from "@ant-design/icons";
 import {Tag} from "antd";
@@ -15,9 +15,12 @@ const arrowStyle = {
 
 export default function renderSampleDiff(oldVersion, newVersion) {
   if (!oldVersion)
-    return;
+    return null;
 
   const deltas = diff(oldVersion.fields, newVersion.fields);
+
+  if (deltas === undefined)
+    return null;
 
   delete deltas.update_comment;
 

@@ -4,20 +4,36 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-export const GET = createNetworkActionTypes("SAMPLES.GET");
-export const SET_FILTER = "SAMPLES.SET_FILTER";
-export const CLEAR_FILTERS = "SAMPLES.CLEAR_FILTERS";
-export const LIST = createNetworkActionTypes("SAMPLES.LIST");
-export const LIST_VERSIONS = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
+export const GET                   = createNetworkActionTypes("SAMPLES.GET");
+export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
+export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
+export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
+export const SET_FILTER            = "SAMPLES.SET_FILTER";
+export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
+export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
-export const SUMMARY = createNetworkActionTypes("SAMPLES.SUMMARY");
+export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
     if (sample && sample.isFetching)
         return;
 
-    await dispatch(networkAction(GET, api.samples.get(id), { meta: { id } }));
+    return await dispatch(networkAction(GET, api.samples.get(id), { meta: { id } }));
+};
+
+export const add = sample => async (dispatch, getState) => {
+    if (getState().samples.isFetching)
+        return;
+
+    return await dispatch(networkAction(ADD, api.samples.add(sample)));
+};
+
+export const update = (id, sample) => async (dispatch, getState) => {
+    if (getState().samples.itemsByID[id].isFetching)
+        return;
+
+    return await dispatch(networkAction(UPDATE, api.samples.update(sample), { meta: { id } }));
 };
 
 export const setFilter = (name, value) => {
@@ -40,7 +56,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     const filters = serializeFilterParams(sampleFilters, SAMPLE_FILTERS)
     const options = { limit, offset, ...filters}
 
-    await dispatch(networkAction(LIST,
+    return await dispatch(networkAction(LIST,
         api.samples.list(options),
         { meta: options }
     ));
@@ -55,7 +71,7 @@ export const listVersions = (id) => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
     if (!sample || sample.isFetching) return;
 
-    await dispatch(networkAction(
+    return await dispatch(networkAction(
         LIST_VERSIONS,
         api.samples.listVersions(id),
         { meta: { id } }
@@ -66,6 +82,8 @@ export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.sam
 
 export default {
     GET,
+    ADD,
+    UPDATE,
     SET_FILTER,
     CLEAR_FILTERS,
     LIST,
@@ -73,6 +91,8 @@ export default {
     LIST_VERSIONS,
     LIST_TEMPLATE_ACTIONS,
     get,
+    add,
+    update,
     setFilter,
     clearFilters,
     list,

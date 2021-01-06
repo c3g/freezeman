@@ -45,11 +45,11 @@ const allReducers = combineReducers({
 });
 
 function errorReducer(state, action) {
-  if (action.error) {
+  if (action.error && !(action.meta && action.meta.ignoreError)) {
     notification.error({
       message: 'An error occurred',
       description:
-        <pre style={{fontSize: '0.8em'}}>
+        <pre style={{fontSize: '0.8em', whiteSpace: 'pre-wrap'}}>
           {action.error.message}
           {action.error.stack}
         </pre>,

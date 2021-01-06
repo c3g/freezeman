@@ -1,4 +1,5 @@
-import { stringify as qs } from "querystring";
+import cheerio from "cheerio";
+import {stringify as qs} from "querystring";
 
 import {API_BASE_PATH} from "../config";
 
@@ -15,6 +16,8 @@ const api = {
 
   containers: {
     get: id => get(`/containers/${id}`),
+    add: container => post("/containers/", container),
+    update: container => put(`/containers/${container.id}/`, container),
     list: options => get("/containers", options),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
@@ -26,25 +29,34 @@ const api = {
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
+    search: (q, { parent, sample_holding }) =>
+      get("/containers/search/", { q, parent, sample_holding }),
   },
 
   individuals: {
     get: individualId => get(`/individuals/${individualId}`),
+    add: individual => post("/individuals/", individual),
+    update: individual => put(`/individuals/${individual.id}/`, individual),
     list: (page = {}) => get("/individuals/", page),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
+    search: q => get("/individuals/search/", { q }),
   },
 
   samples: {
     get: sampleId => get(`/samples/${sampleId}`),
+    add: sample => post("/samples/", sample),
+    update: sample => put(`/samples/${sample.id}/`, sample),
     list: options => get("/samples", options),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listVersions: sampleId => get(`/samples/${sampleId}/versions`),
+    listCollectionSites: () => get("/samples/list_collection_sites/"),
     summary: () => get("/samples/summary"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
     },
+    search: q => get("/samples/search/", { q }),
   },
 
   users: {
@@ -107,15 +119,31 @@ function post(route, body) {
   return apiFetch('POST', route, body);
 }
 
+function put(route, body) {
+  return apiFetch('PUT', route, body);
+}
+
 
 function createAPIError(response) {
   const data = response.data;
 
   let detail;
-  try {
-    detail = data.detail ||
-      (data.revision__user && ('User: ' + data.revision__user.join(', ')));
-  } catch (_) {}
+
+  // Django validation errors kind of error
+  if (!response.isJSON && response.status === 500) {
+    detail = parseDjangoError(data)
+  }
+  // Other type of django validation errors
+  else if (response.isJSON && response.status === 400) {
+    detail = JSON.stringify(data, null, 2)
+  }
+  else {
+    // API error as { ok: false, detail: ... }
+    try {
+      detail = data.detail ||
+        (data.revision__user && ('User: ' + data.revision__user.join(', ')));
+    } catch (_) {}
+  }
 
   const message = detail ?
     ('API error: ' + detail) :
@@ -131,9 +159,16 @@ function createAPIError(response) {
   return error;
 }
 
+function parseDjangoError(html) {
+  const $ = cheerio.load(html)
+  return $('.exception_value').text()
+}
+
 function attachData(response) {
-  let contentType = response.headers.get('Content-Type') || '' ;
-  return (contentType.includes('text/csv') ? response.text() : response.json())
+  const contentType = response.headers.get('content-type') || '' ;
+  const isJSON = contentType.includes('/json')
+  response.isJSON = isJSON
+  return (isJSON ? response.json() : response.text())
   .then(data => {
     response.data = data;
     return response;

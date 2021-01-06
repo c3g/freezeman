@@ -4,7 +4,16 @@ export const createNetworkActionTypes = name => ({
   ERROR: `${name}.ERROR`,
 });
 
-export const networkAction = (types, apiAction, { meta, transform } = {}) => (dispatch) => {
+/**
+ * @param {object} types - Action types for REQUEST, RECEIVE, ERROR
+ * @param {function} apiFunction - Store-dispatchable API function
+ * @param {object} [options]
+ * @param {object} [options.meta] - Additional data for actions
+ * @param {boolean} [options.meta.ignoreError] - Don't show error notification on error
+ */
+export const networkAction = (types, apiAction, options = {}) => (dispatch) => {
+  const { meta, transform } = options
+
   dispatch({type: types.REQUEST, meta});
 
   return dispatch(apiAction)
@@ -18,5 +27,6 @@ export const networkAction = (types, apiAction, { meta, transform } = {}) => (di
     })
     .catch(error => {
       dispatch({type: types.ERROR, error, meta});
+      return Promise.reject(error)
     });
 };

@@ -16,3 +16,26 @@ export const BIOSPECIMEN_TYPE = [
   "SWAB",
 ]
 
+export const TISSUE_SOURCE = [
+  "Blood",
+  "Saliva",
+  "Swab",
+  "Tumor",
+  "Plasma",
+  "Buffy coat",
+  "Tail",
+  "Cells",
+]
+
+export const SEX = [
+  "M",
+  "F",
+  "Unknown",
+]
+
+export const TAXON = [
+  "Homo sapiens",
+  "Mus musculus",
+  "Sars-Cov-2",
+]
+
