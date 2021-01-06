@@ -1,12 +1,14 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import serializeFilterParams from "../../utils/serializeFilterParams";
+import serializeSortByParams from "../../utils/serializeSortByParams";
 import {CONTAINER_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET = createNetworkActionTypes("CONTAINERS.GET");
 export const ADD = createNetworkActionTypes("CONTAINERS.ADD");
 export const UPDATE = createNetworkActionTypes("CONTAINERS.UPDATE");
+export const SET_SORT_BY = "CONTAINERS.SET_SORT_BY";
 export const SET_FILTER = "CONTAINERS.SET_FILTER";
 export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
@@ -39,6 +41,13 @@ export const update = (id, container) => async (dispatch, getState) => {
     return await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
 };
 
+export const setSortBy = (key, order) => {
+    return {
+        type: SET_SORT_BY,
+        data: { key, order }
+    }
+};
+
 export const setFilter = (name, value) => {
     return {
         type: SET_FILTER,
@@ -56,9 +65,10 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => a
     if (getState().containers.isFetching)
         return;
 
-    const containersFilters = getState().containers.filters
-    const filters = serializeFilterParams(containersFilters, CONTAINER_FILTERS)
-    const options = { limit, offset, ...filters}
+    const containers = getState().containers
+    const filters = serializeFilterParams(containers.filters, CONTAINER_FILTERS)
+    const ordering = serializeSortByParams(containers.sortBy)
+    const options = { limit, offset, ordering, ...filters}
 
     return await dispatch(networkAction(LIST,
         api.containers.list(options),
@@ -122,6 +132,7 @@ export default {
     GET,
     ADD,
     UPDATE,
+    SET_SORT_BY,
     SET_FILTER,
     CLEAR_FILTERS,
     LIST,
@@ -134,6 +145,7 @@ export default {
     get,
     add,
     update,
+    setSortBy,
     setFilter,
     clearFilters,
     list,

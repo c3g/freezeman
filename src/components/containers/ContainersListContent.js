@@ -11,7 +11,7 @@ import ContainersFilters from "./ContainersFilters";
 import ExportButton from "../ExportButton";
 
 
-import {list} from "../../modules/containers/actions";
+import {list, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 import serializeFilterParams from "../../utils/serializeFilterParams";
@@ -21,17 +21,20 @@ import {CONTAINER_FILTERS} from "../filters/descriptions";
 
 const TABLE_COLUMNS = [
   {
-    title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Barcode</>,
+    title: "Barcode",
     dataIndex: "barcode",
     render: (barcode, container) => <Link to={`/containers/${container.id}`}>{barcode}</Link>,
+    sorter: true,
   },
   {
     title: "Name",
     dataIndex: "name",
+    sorter: true,
   },
   {
     title: "Kind",
     dataIndex: "kind",
+    sorter: true,
   },
   {
     title: "Children",
@@ -42,6 +45,7 @@ const TABLE_COLUMNS = [
   {
     title: "Co-ords.",
     dataIndex: "coordinates",
+    sorter: true,
   },
 ];
 
@@ -49,6 +53,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
+  sortBy: state.containers.sortBy,
   filters: state.containers.filters,
   actions: state.containerTemplateActions,
   page: state.containers.page,
@@ -56,23 +61,30 @@ const mapStateToProps = state => ({
   isFetching: state.containers.isFetching,
 });
 
-const actionCreators = {list};
+const actionCreators = {list, setSortBy};
 
 const ContainersListContent = ({
   token,
   containers,
   containersByID,
+  sortBy,
   filters,
   actions,
   isFetching,
   page,
   totalCount,
   list,
+  setSortBy,
 }) => {
   const listExport = () =>
     withToken(token, api.containers.listExport)
       (serializeFilterParams(filters, CONTAINER_FILTERS))
       .then(response => response.data)
+
+  const onChangeSort = (key, order) => {
+    setSortBy(key, order)
+    list()
+  }
 
   return <>
     <AppPageHeader title="Containers" extra={[
@@ -91,7 +103,9 @@ const ContainersListContent = ({
         loading={isFetching}
         totalCount={totalCount}
         page={page}
+        sortBy={sortBy}
         onLoad={list}
+        onChangeSort={onChangeSort}
       />
     </PageContent>
   </>;

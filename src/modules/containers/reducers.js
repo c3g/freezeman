@@ -50,6 +50,7 @@ export const containers = (
     isFetching: false,
     error: undefined,
     filters: {},
+    sortBy: { key: undefined, order: undefined },
   },
   action
 ) => {
@@ -79,6 +80,8 @@ export const containers = (
       return merge(state, ['itemsByID', action.meta.id],
         { error: action.error, isFetching: false });
 
+    case CONTAINERS.SET_SORT_BY:
+      return { ...state, sortBy: action.data };
     case CONTAINERS.SET_FILTER:
       return {
         ...state,

@@ -11,6 +11,7 @@ export const individuals = (
         page: { limit: 0, offset: 0 },
         totalCount: 0,
         isFetching: false,
+        sortBy: { key: undefined, order: undefined },
     },
     action
 ) => {
@@ -62,6 +63,9 @@ export const individuals = (
                 isFetching: false,
                 error: action.error,
             };
+
+        case INDIVIDUALS.SET_SORT_BY:
+            return { ...state, sortBy: action.data };
 
         default:
             return state;

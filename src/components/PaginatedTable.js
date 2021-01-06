@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState, useRef} from "react";
 
 import {Pagination, Table} from "antd";
 import "antd/es/pagination/style/css";
@@ -14,9 +14,12 @@ function PaginatedTable ({
     loading,
     totalCount,
     page,
+    sortBy,
     onLoad,
+    onChangeSort,
   }) {
 
+  const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
   const nextPage = currentPage + 1;
   const nextPageEndIndex = nextPage * pageSize;
@@ -31,11 +34,8 @@ function PaginatedTable ({
       .map(id => itemsByID[id]);
 
   const hasUnloadedItems = dataSource.some(d => d === undefined);
-
   const isCurrentPageUnloaded = ((endIndex - 1) > items.length) || hasUnloadedItems;
-
   const doesNextPageContainUnloaded = !isLastPage && nextPageEndIndex > items.length;
-
   const shouldLoadNextChunk =
     !loading && (isCurrentPageUnloaded || doesNextPageContainUnloaded);
 
@@ -50,14 +50,25 @@ function PaginatedTable ({
     setTimeout(() => onLoad({ offset }), 0);
   }
 
+  if (sortByRef.current !== sortBy) {
+    setCurrentPage(1)
+    sortByRef.current = sortBy
+  }
 
   const onChangePage = (page, pageSize) => {
     setCurrentPage(page);
   };
 
+  const onChangeTable = (pagination, filters, sorter) => {
+    const key = sorter.column?.dataIndex
+    const order = sorter.order
+    onChangeSort(key, order)
+  };
+
   return (
     <>
-      <Table size="small"
+      <Table
+        size="small"
         bordered={true}
         pagination={false}
         columns={columns}
@@ -65,6 +76,7 @@ function PaginatedTable ({
         rowKey={rowKey}
         loading={loading && isCurrentPageUnloaded}
         childrenColumnName={'UNEXISTENT_KEY'}
+        onChange={onChangeTable}
       />
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"

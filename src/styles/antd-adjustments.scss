@@ -37,6 +37,39 @@ $descriptions-border-color: #e0e0e0;
 
 
 /*
+ * Table
+ */
+
+$table-border-color: #cccccc;
+
+.ant-table.ant-table-bordered > .ant-table-container {
+  border: 1px solid $table-border-color;
+}
+.ant-table .ant-table-thead > tr > th {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.ant-table.ant-table-bordered > .ant-table-container {
+  & > .ant-table-content > table > thead > tr > th,
+  & > .ant-table-header > table > thead > tr > th,
+  & > .ant-table-body > table > thead > tr > th,
+  & > .ant-table-content > table > tbody > tr > td,
+  & > .ant-table-header > table > tbody > tr > td,
+  & > .ant-table-body > table > tbody > tr > td,
+  & > .ant-table-content > table > tfoot > tr > th,
+  & > .ant-table-header > table > tfoot > tr > th,
+  & > .ant-table-body > table > tfoot > tr > th,
+  & > .ant-table-content > table > tfoot > tr > td,
+  & > .ant-table-header > table > tfoot > tr > td,
+  & > .ant-table-body > table > tfoot > tr > td {
+    border-right: none;
+    &:not(:last-child) {
+      border-right: 1px solid $table-border-color;
+    }
+  }
+}
+
+
+/*
  * Hierarchy tree
  */
 

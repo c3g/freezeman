@@ -20,6 +20,7 @@ export const samples = (
         totalCount: 0,
         isFetching: false,
         filters: {},
+        sortBy: { key: undefined, order: undefined },
     },
     action
 ) => {
@@ -49,6 +50,8 @@ export const samples = (
             return merge(state, ['itemsByID', action.meta.id],
                 { error: action.error, isFetching: false });
 
+        case SAMPLES.SET_SORT_BY:
+            return { ...state, sortBy: action.data };
         case SAMPLES.SET_FILTER:
             return {
                 ...state,

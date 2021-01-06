@@ -16,7 +16,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list} from "../../modules/samples/actions";
+import {list, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import SamplesFilters from "./SamplesFilters";
 import serializeFilterParams from "../../utils/serializeFilterParams";
@@ -32,9 +32,10 @@ const mapStateToProps = state => ({
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
   filters: state.samples.filters,
+  sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {list};
+const actionCreators = {list, setSortBy};
 
 const SamplesListContent = ({
   token,
@@ -45,19 +46,23 @@ const SamplesListContent = ({
   isFetching,
   page,
   totalCount,
-  list,
   filters,
+  sortBy,
+  list,
+  setSortBy,
 }) => {
   const TABLE_COLUMNS = [
     {
       title: "Type",
       dataIndex: "biospecimen_type",
+      sorter: true,
       width: 80,
       render: (type) => <Tag>{type}</Tag>,
     },
     {
       title: "Name",
       dataIndex: "name",
+      sorter: true,
       render: (name, sample) =>
         <Link to={`/samples/${sample.id}`}>
           <div>{name}</div>
@@ -74,6 +79,7 @@ const SamplesListContent = ({
     {
       title: "Container",
       dataIndex: "container",
+      sorter: true,
       render: containerID =>
         <Link to={`/containers/${containerID}`}>
           {containersByID[containerID] ?
@@ -85,6 +91,7 @@ const SamplesListContent = ({
     {
       title: "Coords",
       dataIndex: "coordinates",
+      sorter: true,
       width: 70,
     },
     {
@@ -98,6 +105,7 @@ const SamplesListContent = ({
     {
       title: "Conc. (ng/µL)",
       dataIndex: "concentration",
+      sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
@@ -106,12 +114,19 @@ const SamplesListContent = ({
     {
       title: "Depleted",
       dataIndex: "depleted",
+      sorter: true,
       render: depleted => <SampleDepletion depleted={depleted} />,
       width: 85,
     }
   ];
+
   const listExport = () =>
     withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
+
+  const onChangeSort = (key, order) => {
+    setSortBy(key, order)
+    list()
+  }
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
@@ -131,7 +146,9 @@ const SamplesListContent = ({
         loading={isFetching}
         totalCount={totalCount}
         page={page}
+        sortBy={sortBy}
         onLoad={list}
+        onChangeSort={onChangeSort}
       />
     </PageContent>
   </>;

@@ -1,6 +1,7 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
+import serializeSortByParams from "../../utils/serializeSortByParams";
 import {SAMPLE_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
@@ -8,6 +9,7 @@ export const GET                   = createNetworkActionTypes("SAMPLES.GET");
 export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
 export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
+export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
 export const SET_FILTER            = "SAMPLES.SET_FILTER";
 export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
 export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
@@ -36,6 +38,13 @@ export const update = (id, sample) => async (dispatch, getState) => {
     return await dispatch(networkAction(UPDATE, api.samples.update(sample), { meta: { id } }));
 };
 
+export const setSortBy = (key, order) => {
+    return {
+        type: SET_SORT_BY,
+        data: { key, order }
+    }
+};
+
 export const setFilter = (name, value) => {
     return {
         type: SET_FILTER,
@@ -52,9 +61,10 @@ export const clearFilters = () => {
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
     if (getState().samples.isFetching) return;
 
-    const sampleFilters = getState().samples.filters
-    const filters = serializeFilterParams(sampleFilters, SAMPLE_FILTERS)
-    const options = { limit, offset, ...filters}
+    const samples = getState().samples
+    const filters = serializeFilterParams(samples.filters, SAMPLE_FILTERS)
+    const ordering = serializeSortByParams(samples.sortBy)
+    const options = { limit, offset, ordering, ...filters}
 
     return await dispatch(networkAction(LIST,
         api.samples.list(options),
@@ -84,6 +94,7 @@ export default {
     GET,
     ADD,
     UPDATE,
+    SET_SORT_BY,
     SET_FILTER,
     CLEAR_FILTERS,
     LIST,
@@ -93,6 +104,7 @@ export default {
     get,
     add,
     update,
+    setSortBy,
     setFilter,
     clearFilters,
     list,
