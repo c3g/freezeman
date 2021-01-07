@@ -17,7 +17,7 @@ const TABLE_COLUMNS = [
     title: "Name",
     dataIndex: "label",
     sorter: true,
-    render: (id, individual) => <Link to={`/individuals/${id}`}>{individual.label || id}</Link>,
+    render: (label, individual) => <Link to={`/individuals/${individual.id}`}>{label}</Link>,
   },
   {
     title: "Taxon",
