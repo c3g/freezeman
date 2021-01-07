@@ -110,7 +110,7 @@ function renderContainer(container) {
       <TableOutlined />{' '}
       <strong>{container.name}</strong>{' '}
       <Text type="secondary">
-        {container.location}{container.coords ? ` @ ${container.coords}` : ''}
+        {container.location && container.location.barcode} : {container.coords && ` @ ${container.coords}`}
       </Text>{' '}
       <Text type="secondary">container</Text>{' '}
     </Option>
@@ -136,7 +136,7 @@ function renderIndividual(individual) {
   return (
     <Option key={'individual_' + individual.id}>
       <NodeIndexOutlined />{' '}
-      <strong>{individual.id}</strong>{' '}
+      <strong>{individual.label}</strong>{' '}
       <Text type="secondary">individual</Text>{' '}
     </Option>
   );

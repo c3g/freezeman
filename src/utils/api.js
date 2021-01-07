@@ -3,7 +3,6 @@ import {stringify as qs} from "querystring";
 
 import {API_BASE_PATH} from "../config";
 
-
 const api = {
   auth: {
     token: credentials => post("/token/", credentials),
@@ -15,7 +14,7 @@ const api = {
   },
 
   containers: {
-    get: id => get(`/containers/${id}`),
+    get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
     update: container => put(`/containers/${container.id}/`, container),
     list: options => get("/containers", options),
@@ -23,7 +22,7 @@ const api = {
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
-    summary: () => get("/containers/summary"),
+    summary: () => get("/containers/summary/"),
     template: {
       actions: () => get(`/containers/template_actions/`),
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
@@ -34,7 +33,7 @@ const api = {
   },
 
   individuals: {
-    get: individualId => get(`/individuals/${individualId}`),
+    get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
     update: individual => put(`/individuals/${individual.id}/`, individual),
     list: (page = {}) => get("/individuals/", page),
@@ -43,14 +42,14 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/samples/${sampleId}`),
+    get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     update: sample => put(`/samples/${sample.id}/`, sample),
     list: options => get("/samples", options),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
-    listVersions: sampleId => get(`/samples/${sampleId}/versions`),
     listCollectionSites: () => get("/samples/list_collection_sites/"),
-    summary: () => get("/samples/summary"),
+    listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
+    summary: () => get("/samples/summary/"),
     template: {
       actions: () => get(`/samples/template_actions/`),
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),

@@ -11,6 +11,7 @@ import "antd/es/spin/style/css";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import {withIndividual} from "../../utils/withItem";
 import {get} from "../../modules/individuals/actions";
 
 const IndividualsDetailContent = ({individualsByID, get}) => {
@@ -32,20 +33,28 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
         }/>
         <PageContent loading={isLoading}>
             <Descriptions bordered={true} size="small">
-                <Descriptions.Item label="Name">{individual.id}</Descriptions.Item>
+                <Descriptions.Item label="Name">{individual.label}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>
                 <Descriptions.Item label="Cohort" span={2}>{individual.cohort}</Descriptions.Item>
                 <Descriptions.Item label="Mother">
-                    {individual.mother
-                        ? (<Link to={`/individuals/${individual.mother}`}>{individual.mother}</Link>)
-                        : "—"}
+                    {individual.mother ?
+                        (
+                        <Link to={`/individuals/${individual.mother}`}>
+                            {withIndividual(individualsByID, individual.mother, individual => individual.label, "Loading...")}
+                        </Link>
+                        ) :
+                        "—"}
                 </Descriptions.Item>
                 <Descriptions.Item label="Father">
-                    {individual.father
-                        ? (<Link to={`/individuals/${individual.father}`}>{individual.father}</Link>)
-                        : "—"}
+                    {individual.father ?
+                        (
+                        <Link to={`/individuals/${individual.father}`}>
+                            {withIndividual(individualsByID, individual.father, individual => individual.label, "Loading...")}
+                        </Link>
+                        ) :
+                        "—"}
                 </Descriptions.Item>
             </Descriptions>
         </PageContent>

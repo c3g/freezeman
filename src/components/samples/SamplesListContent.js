@@ -18,6 +18,7 @@ import api, {withToken}  from "../../utils/api"
 
 import {list, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
+import {withContainer, withIndividual} from "../../utils/withItem";
 import SamplesFilters from "./SamplesFilters";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
@@ -26,12 +27,13 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   samples: state.samples.items,
-  containersByID: state.containers.itemsByID,
   actions: state.sampleTemplateActions,
   page: state.samples.page,
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
   filters: state.samples.filters,
+  containersByID: state.containers.itemsByID,
+  individualsByID: state.individuals.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -41,12 +43,13 @@ const SamplesListContent = ({
   token,
   samples,
   samplesByID,
-  containersByID,
   actions,
   isFetching,
   page,
   totalCount,
   filters,
+  containersByID,
+  individualsByID,
   sortBy,
   list,
   setSortBy,
@@ -74,19 +77,24 @@ const SamplesListContent = ({
     {
       title: "Individual",
       dataIndex: "individual",
-      render: individual => <Link to={`/individuals/${individual}`}>{individual}</Link>,
+      render: individual => (individual &&
+          <Link to={`/individuals/${individual}`}>
+            {withIndividual(individualsByID, individual, individual => individual.label, "loading...")}
+          </Link>),
     },
     {
-      title: "Container",
+      title: "Container Name",
+      dataIndex: "container",
+      render: container => (container && withContainer(containersByID, container, container => container.name, "loading...")),
+    },
+    {
+      title: "Container Barcode",
       dataIndex: "container",
       sorter: true,
-      render: containerID =>
-        <Link to={`/containers/${containerID}`}>
-          {containersByID[containerID] ?
-            containersByID[containerID].name :
-            containerID
-          }
-        </Link>,
+      render: container => (container &&
+          <Link to={`/containers/${container}`}>
+            {withContainer(containersByID, container, container => container.barcode, "loading...")}
+          </Link>),
     },
     {
       title: "Coords",

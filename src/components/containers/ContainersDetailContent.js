@@ -1,6 +1,6 @@
 import React from "react";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {useHistory, useParams, Link} from "react-router-dom";
 
 import {Space, Descriptions} from "antd";
 import "antd/es/descriptions/style/css";
@@ -11,6 +11,7 @@ import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import {get, listParents} from "../../modules/containers/actions";
+import {withContainer} from "../../utils/withItem";
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -49,7 +50,12 @@ const ContainersDetailContent = ({containersByID, get, listParents}) => {
           <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
           <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
           <Descriptions.Item label="Location" span={2}>
-              {container.location || "—"}{container.coordinates ? `at ${container.coordinates}` : ""}
+            {container.location ?
+              <Link to={`/containers/${container.location}`}>
+                {withContainer(containersByID, container.location, container => container.barcode, "Loading...")}
+              </Link>
+              : "—"}
+            {container.coordinates && ` at ${container.coordinates}`}
           </Descriptions.Item>
           <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
           <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>

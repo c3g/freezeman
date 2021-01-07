@@ -32,7 +32,8 @@ import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
 import {SampleDepletion} from "./SampleDepletion";
-import {get, listVersions} from "../../modules/samples/actions";
+import {get as getSample, listVersions} from "../../modules/samples/actions";
+import {withContainer, withSample, withIndividual} from "../../utils/withItem";
 
 const { Title, Text } = Typography;
 
@@ -49,12 +50,14 @@ const depletedStyle = {
 
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
+  containersByID: state.containers.itemsByID,
+  individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
-const actionCreators = {get, listVersions};
+const actionCreators = {getSample, listVersions};
 
-const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
+const SamplesDetailContent = ({samplesByID, containersByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -68,14 +71,13 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
     ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3)
     : null;
   const experimentalGroups = sample.experimental_group || [];
-  const extractedFrom = !sample.extracted_from ? null : samplesByID[sample.extracted_from];
-  const volumeUsed = extractedFrom ? parseFloat(sample.volume_used).toFixed(3) : null;
+  const volumeUsed = sample.extracted_from ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
 
   // TODO: This spams API requests
   if (!samplesByID[id])
-    get(id);
+    getSample(id);
 
   if (isLoaded && !sample.versions && !sample.isFetching)
     listVersions(sample.id);
@@ -116,8 +118,19 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
           <Descriptions.Item label="Depleted"><SampleDepletion depleted={sample.depleted} /></Descriptions.Item>
       </Descriptions>
       <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
-          <Descriptions.Item label="Individual">
-              <Link to={`/individuals/${sample.individual}`}>{sample.individual}</Link>
+        <Descriptions.Item label="Individual Name">
+            {sample.individual &&
+              <Link to={`/individuals/${sample.individual}`}>
+                {
+                  withIndividual(
+                    individualsByID,
+                    sample.individual,
+                    individual => individual.label,
+                    "Loading..."
+                  )
+                }
+              </Link>
+            }
           </Descriptions.Item>
           <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
           <Descriptions.Item label="Tissue Source">{sample.tissue_source}</Descriptions.Item>
@@ -128,7 +141,11 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
           <Descriptions.Item label="Phenotype">{sample.phenotype}</Descriptions.Item>
           <Descriptions.Item label="Reception Date">{sample.reception_date}</Descriptions.Item>
           <Descriptions.Item label="Container">
-              <Link to={`/containers/${sample.container}`}>{sample.container}</Link>
+            {sample.container &&
+              <Link to={`/containers/${sample.container}`}>
+                {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
+              </Link>
+            }
           </Descriptions.Item>
           <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
           <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
@@ -136,13 +153,20 @@ const SamplesDetailContent = ({samplesByID, usersByID, get, listVersions}) => {
           {/*TODO: Extracted from*/}
       </Descriptions>
 
-      {extractedFrom ? (
+      {sample.extracted_from ? (
         <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Extracted From">
-            <Link to={`/samples/${extractedFrom.id}`}>
-              {extractedFrom.name} ({extractedFrom.container}{extractedFrom.coordinates
-                  ? ` at ${extractedFrom.coordinates}` : ""})
-            </Link>
+            <Link to={`/samples/${sample.extracted_from}`}>
+              {withSample(samplesByID, sample.extracted_from, sample => sample.name, "Loading...")}
+            </Link> 
+            {" "}(
+            {withContainer(containersByID, 
+              withSample(samplesByID, sample.extracted_from, sample => sample.container),
+              container => container.barcode,
+              "... ")}
+            {withSample(samplesByID, sample.extracted_from, sample => sample.coordinates) &&
+              ` at ${withSample(samplesByID, sample.extracted_from, sample => sample.coordinates)}`}
+            )
           </Descriptions.Item>
           <Descriptions.Item label="Volume Used">{volumeUsed}</Descriptions.Item>
         </Descriptions>

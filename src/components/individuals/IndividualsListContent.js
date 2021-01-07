@@ -15,7 +15,7 @@ import api, {withToken}  from "../../utils/api"
 const TABLE_COLUMNS = [
   {
     title: "Name",
-    dataIndex: "id",
+    dataIndex: "label",
     sorter: true,
     render: (id, individual) => <Link to={`/individuals/${id}`}>{individual.label || id}</Link>,
   },
