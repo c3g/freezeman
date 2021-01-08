@@ -125,7 +125,7 @@ const SamplesDetailContent = ({samplesByID, containersByID, individualsByID, use
                   withIndividual(
                     individualsByID,
                     sample.individual,
-                    individual => individual.label,
+                    individual => individual.name,
                     "Loading..."
                   )
                 }

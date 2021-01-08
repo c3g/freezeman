@@ -25,7 +25,7 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
 
     const isLoading = !isLoaded || individual.isFetching;
     const title =
-        `Individual ${[id, individual ? individual.label : undefined].filter(Boolean).join(' - ')}`;
+        `Individual ${[id, individual ? individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/individuals/list")} extra={
@@ -33,7 +33,7 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
         }/>
         <PageContent loading={isLoading}>
             <Descriptions bordered={true} size="small">
-                <Descriptions.Item label="Name">{individual.label}</Descriptions.Item>
+                <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>

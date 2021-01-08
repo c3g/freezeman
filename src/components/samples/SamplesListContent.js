@@ -49,7 +49,7 @@ const getTableColumns = (containersByID, individualsByID) => [
       dataIndex: "individual",
       render: individual => (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.label, "loading...")}
+            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
           </Link>),
     },
     {
