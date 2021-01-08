@@ -105,7 +105,7 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(len(Individual.objects.all()), 6)  # 3 individuals plus 2 parents for DL
 
         # Test parent record auto-generation
-        i = Individual.objects.get(label="David Lougheed")
+        i = Individual.objects.get(name="David Lougheed")
         self.assertEqual(i.sex, Individual.SEX_MALE)
         self.assertEqual(i.father.sex, Individual.SEX_MALE)
         self.assertEqual(i.mother.sex, Individual.SEX_FEMALE)

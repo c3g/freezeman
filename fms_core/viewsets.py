@@ -242,7 +242,7 @@ _sample_minimal_filterset_fields: FiltersetFields = {
 
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "label": ["in", "icontains"],
+    "name": ["in", "icontains"],
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
@@ -510,7 +510,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
         search_input = _request.GET.get("q")
 
         query = Q(id__icontains=search_input)
-        query.add(Q(label__icontains=search_input), Q.OR)
+        query.add(Q(name__icontains=search_input), Q.OR)
 
         individuals_data = Individual.objects.filter(query)
         page = self.paginate_queryset(individuals_data)
@@ -557,7 +557,7 @@ class QueryViewSet(viewsets.ViewSet):
             } for s in model.objects.all()) if c["score"] > 0]
 
         containers = query_and_score(Container, lambda c: c.name)
-        individuals = query_and_score(Individual, lambda c: c.label)
+        individuals = query_and_score(Individual, lambda c: c.name)
         samples = query_and_score(Sample, lambda c: c.name)
         users = query_and_score(User, lambda c: c.username + c.first_name + c.last_name)
 

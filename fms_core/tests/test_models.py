@@ -89,7 +89,7 @@ class SampleTest(TestCase):
     """ Test module for Sample model """
 
     def setUp(self) -> None:
-        self.valid_individual = Individual.objects.create(**create_individual(individual_label='jdoe'))
+        self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01',
                                                                                   barcode='T123456'))
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
@@ -99,7 +99,7 @@ class SampleTest(TestCase):
         self.assertEqual(Sample.objects.count(), 1)
         self.assertEqual(sample.is_depleted, "no")
         self.assertEqual(sample.volume, Decimal("5000.000"))
-        self.assertEqual(sample.individual_label, "jdoe")
+        self.assertEqual(sample.individual_name, "jdoe")
         self.assertEqual(sample.individual_sex, Individual.SEX_UNKNOWN)
         self.assertEqual(sample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
         self.assertEqual(sample.individual_cohort, "covid-19")
@@ -165,7 +165,7 @@ class ExtractedSampleTest(TestCase):
 
         # ====== parent sample data ======
         # individual
-        self.valid_individual = Individual.objects.create(**create_individual(individual_label='jdoe'))
+        self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         # parent sample container
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube03',
                                                                                   barcode='TParent01'))
@@ -313,34 +313,34 @@ class ExtractedSampleTest(TestCase):
 class IndividualTest(TestCase):
 
     def test_individual(self):
-        individual = Individual.objects.create(**create_individual(individual_label="jdoe"))
+        individual = Individual.objects.create(**create_individual(individual_name="jdoe"))
         self.assertEqual(Individual.objects.count(), 1)
         self.assertEqual(str(individual), "jdoe")
 
     def test_mother_father(self):
         # individual id can't be mother id and can't be father id
-        mother = Individual.objects.create(**create_individual(individual_label='janedoe'))
-        father = Individual.objects.create(**create_individual(individual_label='johndoe'))
-        individual = Individual(**create_individual(individual_label='janedoe', mother=mother))
+        mother = Individual.objects.create(**create_individual(individual_name='janedoe'))
+        father = Individual.objects.create(**create_individual(individual_name='johndoe'))
+        individual = Individual(**create_individual(individual_name='janedoe', mother=mother))
 
         with self.assertRaises(ValidationError):
             try:
                 individual.full_clean()
             except ValidationError as e:
-                self.assertIn('label', e.message_dict)
+                self.assertIn('name', e.message_dict)
                 raise e
 
-        individual = Individual(**create_individual(individual_label='johndoe', father=father))
+        individual = Individual(**create_individual(individual_name='johndoe', father=father))
 
         with self.assertRaises(ValidationError):
             try:
                 individual.full_clean()
             except ValidationError as e:
-                self.assertIn('label', e.message_dict)
+                self.assertIn('name', e.message_dict)
                 raise e
 
         # mother and father can't be the same individual
-        individual = Individual(**create_individual(individual_label='jdoe', mother=mother, father=mother))
+        individual = Individual(**create_individual(individual_name='jdoe', mother=mother, father=mother))
 
         with self.assertRaises(ValidationError):
             try:
@@ -352,12 +352,12 @@ class IndividualTest(TestCase):
 
     def test_pedigree(self):
         # pedigree must match for trio
-        mother = Individual.objects.create(**create_individual(individual_label='janedoe', pedigree='p1'))
-        father = Individual.objects.create(**create_individual(individual_label='johndoe', pedigree='p1'))
+        mother = Individual.objects.create(**create_individual(individual_name='janedoe', pedigree='p1'))
+        father = Individual.objects.create(**create_individual(individual_name='johndoe', pedigree='p1'))
 
         with self.assertRaises(ValidationError):
             try:
-                Individual.objects.create(**create_individual(individual_label='jimdoe', mother=mother, father=father,
+                Individual.objects.create(**create_individual(individual_name='jimdoe', mother=mother, father=father,
                                                               pedigree='p2'))
             except ValidationError as e:
                 self.assertIn("pedigree", e.message_dict)
