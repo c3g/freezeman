@@ -41,40 +41,41 @@ export const update = (id, container) => async (dispatch, getState) => {
     return await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
 };
 
-export const setSortBy = (key, order) => {
-    return {
-        type: SET_SORT_BY,
-        data: { key, order }
-    }
-};
-
-export const setFilter = (name, value) => {
-    return {
-        type: SET_FILTER,
-        data: { name, value }
-    }
-};
-
-export const clearFilters = () => {
-    return {
-        type: CLEAR_FILTERS,
-    }
-};
-
-export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}) => async (dispatch, getState) => {
-    if (getState().containers.isFetching)
-        return;
-
+export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const containers = getState().containers
+    if (containers.isFetching && !abort)
+        return
+
     const filters = serializeFilterParams(containers.filters, CONTAINER_FILTERS)
     const ordering = serializeSortByParams(containers.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
-    return await dispatch(networkAction(LIST,
-        api.containers.list(options),
-        { meta: options }
+    const res =  await dispatch(networkAction(LIST,
+        api.containers.list(options, abort),
+        { meta: { ...options, ignoreError: 'AbortError' } }
     ));
+    return res
 };
+
+export const setSortBy = thenList((key, order) => {
+    return {
+        type: SET_SORT_BY,
+        data: { key, order }
+    }
+});
+
+export const setFilter = thenList((name, value) => {
+    return {
+        type: SET_FILTER,
+        data: { name, value }
+    }
+});
+
+export const clearFilters = thenList(() => {
+    return {
+        type: CLEAR_FILTERS,
+    }
+});
 
 export const listParents = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
@@ -156,3 +157,11 @@ export default {
     listTemplateActions,
     summary,
 };
+
+// Helper to call list() after another action
+function thenList(fn) {
+    return (...args) => async dispatch => {
+        dispatch(fn(...args))
+        dispatch(list(undefined, true))
+    }
+}

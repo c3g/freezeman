@@ -1,10 +1,16 @@
 import React, {useState, useRef} from "react";
+import prop from "prop-types";
 
 import {Pagination, Table} from "antd";
 import "antd/es/pagination/style/css";
 import "antd/es/table/style/css";
 
 const pageSize = 10;
+
+const propTypes = {
+ filters: prop.object.isRequired,
+ sortBy: prop.object.isRequired,
+};
 
 function PaginatedTable ({
     columns,
@@ -14,11 +20,13 @@ function PaginatedTable ({
     loading,
     totalCount,
     page,
+    filters,
     sortBy,
     onLoad,
     onChangeSort,
   }) {
 
+  const filtersRef = useRef(filters);
   const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
   const nextPage = currentPage + 1;
@@ -54,6 +62,10 @@ function PaginatedTable ({
     setCurrentPage(1)
     sortByRef.current = sortBy
   }
+  if (filtersRef.current !== filters) {
+    setCurrentPage(1)
+    filtersRef.current = filters
+  }
 
   const onChangePage = (page, pageSize) => {
     setCurrentPage(page);
@@ -62,7 +74,8 @@ function PaginatedTable ({
   const onChangeTable = (pagination, filters, sorter) => {
     const key = sorter.column?.dataIndex
     const order = sorter.order
-    onChangeSort(key, order)
+    if (sortBy.key !== key || sortBy.order !== order)
+      onChangeSort(key, order)
   };
 
   return (
@@ -91,5 +104,7 @@ function PaginatedTable ({
     </>
   );
 }
+
+PaginatedTable.propTypes = propTypes;
 
 export default PaginatedTable;

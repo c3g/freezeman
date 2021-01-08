@@ -7,9 +7,13 @@ import {FILTER_TYPE} from "../constants"
 export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
-  Object.keys(filters).forEach(key => {
-    const value = filters[key]
-    const description = descriptions[key]
+  Object.keys(filters).forEach(field => {
+    const value = filters[field]
+    const description = descriptions[field]
+    const key = description.key
+
+    if (value === undefined)
+      return
 
     switch (description.type) {
 

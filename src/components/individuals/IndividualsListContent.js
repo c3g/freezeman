@@ -3,13 +3,20 @@ import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
+import {Button} from "antd";
+import "antd/es/button/style/css";
+
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 import AddButton from "../AddButton";
-import {list, setSortBy} from "../../modules/individuals/actions";
+
 import api, {withToken}  from "../../utils/api"
+import {list, setFilter, clearFilters, setSortBy} from "../../modules/individuals/actions";
+import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
+import getFilterProps from "../filters/getFilterProps";
+import FiltersWarning from "../filters/FiltersWarning";
 
 
 const TABLE_COLUMNS = [
@@ -51,10 +58,11 @@ const mapStateToProps = state => ({
   page: state.individuals.page,
   totalCount: state.individuals.totalCount,
   isFetching: state.individuals.isFetching,
+  filters: state.individuals.filters,
   sortBy: state.individuals.sortBy,
 });
 
-const mapDispatchToProps = {list, setSortBy};
+const mapDispatchToProps = {list, setFilter, clearFilters, setSortBy};
 
 const IndividualsListContent = ({
   token,
@@ -63,17 +71,24 @@ const IndividualsListContent = ({
   isFetching,
   page,
   totalCount,
+  filters,
   sortBy,
   list,
+  setFilter,
+  clearFilters,
   setSortBy,
 }) => {
   const listExport = () =>
     withToken(token, api.individuals.listExport)().then(response => response.data)
 
-  const onChangeSort = (key, order) => {
-    setSortBy(key, order)
-    list()
-  }
+  const columns = TABLE_COLUMNS.map(c => Object.assign(c, getFilterProps(
+    c,
+    INDIVIDUAL_FILTERS,
+    filters,
+    setFilter,
+  )))
+
+  const nFilters = Object.entries(filters).filter(e => e[1]).length
 
   return <>
     <AppPageHeader title="Individuals" extra={[
@@ -81,18 +96,30 @@ const IndividualsListContent = ({
         <ExportButton key='export' exportFunction={listExport} filename="individuals" />,
     ]}/>
     <PageContent>
-        <PaginatedTable
-          columns={TABLE_COLUMNS}
-          items={individuals}
-          itemsByID={individualsByID}
-          rowKey="id"
-          loading={isFetching}
-          totalCount={totalCount}
-          page={page}
-          sortBy={sortBy}
-          onLoad={list}
-          onChangeSort={onChangeSort}
-        />
+      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+        <div style={{ flex: 1 }} />
+        <FiltersWarning value={nFilters} />
+        <Button
+          style={{ margin: 6 }}
+          disabled={nFilters === 0}
+          onClick={clearFilters}
+        >
+          Clear Filters
+        </Button>
+      </div>
+      <PaginatedTable
+        columns={columns}
+        items={individuals}
+        itemsByID={individualsByID}
+        rowKey="id"
+        loading={isFetching}
+        totalCount={totalCount}
+        page={page}
+        filters={filters}
+        sortBy={sortBy}
+        onLoad={list}
+        onChangeSort={setSortBy}
+      />
     </PageContent>
   </>;
 };

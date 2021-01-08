@@ -1,4 +1,4 @@
-import { merge } from "object-path-immutable";
+import {merge, set} from "object-path-immutable";
 
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
@@ -11,6 +11,7 @@ export const individuals = (
         page: { limit: 0, offset: 0 },
         totalCount: 0,
         isFetching: false,
+        filters: {},
         sortBy: { key: undefined, order: undefined },
     },
     action
@@ -66,6 +67,18 @@ export const individuals = (
 
         case INDIVIDUALS.SET_SORT_BY:
             return { ...state, sortBy: action.data };
+        case INDIVIDUALS.SET_FILTER:
+            return {
+                ...state,
+                filters: set(state.filters, [action.data.name], action.data.value),
+                page: set(state.page, ['offset'], 0),
+            };
+        case INDIVIDUALS.CLEAR_FILTERS:
+            return {
+                ...state,
+                filters: {},
+                page: set(state.page, ['offset'], 0),
+            };
 
         default:
             return state;

@@ -17,7 +17,7 @@ const api = {
     get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
     update: container => put(`/containers/${container.id}/`, container),
-    list: options => get("/containers", options),
+    list: (options, abort) => get("/containers", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
@@ -36,7 +36,7 @@ const api = {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
     update: individual => put(`/individuals/${individual.id}/`, individual),
-    list: (page = {}) => get("/individuals/", page),
+    list: (options, abort) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: q => get("/individuals/search/", { q }),
   },
@@ -45,7 +45,7 @@ const api = {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     update: sample => put(`/samples/${sample.id}/`, sample),
-    list: options => get("/samples", options),
+    list: (options, abort) => get("/samples", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listCollectionSites: () => get("/samples/list_collection_sites/"),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
@@ -75,8 +75,11 @@ export function withToken(token, fn) {
   return (...args) => fn(...args)(undefined, () => ({ auth: { tokens: { access: token } } }))
 }
 
+const ongoingRequests = {}
 
-function apiFetch(method, route, body) {
+function apiFetch(method, route, body, options = { abort: false }) {
+  const baseRoute = getPathname(route)
+
   return (_, getState) => {
 
     const accessToken = getState().auth.tokens.access;
@@ -89,16 +92,35 @@ function apiFetch(method, route, body) {
     if (!isFormData(body) && isObject(body))
       headers["content-type"] = "application/json"
 
-    return fetch(`${API_BASE_PATH}${route}`, {
+    // For abortable requests
+    let signal
+    if (options.abort) {
+      const controller = new AbortController()
+      signal = controller.signal
+      if (ongoingRequests[baseRoute]) {
+        ongoingRequests[baseRoute].abort()
+      }
+      ongoingRequests[baseRoute] = controller
+    }
+
+    const request = fetch(`${API_BASE_PATH}${route}`, {
       method,
       headers,
       credentials: 'omit',
+      signal,
       body:
         isFormData(body) ?
           body :
         isObject(body) ?
           JSON.stringify(body) :
           undefined,
+    })
+
+    return request.then(res => {
+      if (options.abort) {
+        delete ongoingRequests[baseRoute]
+      }
+      return res
     })
     .then(attachData)
     .then(response => {
@@ -110,16 +132,17 @@ function apiFetch(method, route, body) {
   };
 }
 
-function get(route, queryParams) {
-  return apiFetch('GET', route + (queryParams ? '?' + qs(queryParams) : ''), undefined);
+function get(route, queryParams, options) {
+  const fullRoute = route + (queryParams ? '?' + qs(queryParams) : '')
+  return apiFetch('GET', fullRoute, undefined, options);
 }
 
-function post(route, body) {
-  return apiFetch('POST', route, body);
+function post(route, body, options) {
+  return apiFetch('POST', route, body, options);
 }
 
-function put(route, body) {
-  return apiFetch('PUT', route, body);
+function put(route, body, options) {
+  return apiFetch('PUT', route, body, options);
 }
 
 
@@ -193,4 +216,8 @@ function isObject(object) {
 
 function isFormData(object) {
   return object instanceof FormData
+}
+
+function getPathname(route) {
+  return route.replace(/\?.*$/, '')
 }

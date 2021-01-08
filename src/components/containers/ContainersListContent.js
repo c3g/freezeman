@@ -1,36 +1,35 @@
-import React, {useEffect} from "react";
+import React, {useRef, useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Typography} from "antd";
-import {BarcodeOutlined} from "@ant-design/icons";
-const {Text} = Typography;
+import {Button} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
-import ContainersFilters from "./ContainersFilters";
 import ExportButton from "../ExportButton";
 
 
-import {list, setSortBy} from "../../modules/containers/actions";
+import {list, setFilter, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withSample} from "../../utils/withItem";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
+import getFilterProps from "../filters/getFilterProps";
+import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const getTableColumns = (samplesByID, containersByID) => [
+const getTableColumns = (samplesByID, containersByID, containerKinds) => [
     {
       title: "Name",
       dataIndex: "name",
       sorter: true,
     },
     {
-      title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Barcode</>,
+      title: "Barcode",
       dataIndex: "barcode",
       sorter: true,
       render: (barcode, container) => <Link to={`/containers/${container.id}`}>{barcode}</Link>,
@@ -56,23 +55,31 @@ const getTableColumns = (samplesByID, containersByID) => [
       title: "Kind",
       dataIndex: "kind",
       sorter: true,
+      options: containerKinds.map(kind => ({
+        value: kind.id,
+        label: kind.id,
+      })), // for getFilterProps
     },
     {
-      title: "Location Name",
-      dataIndex: "location",
-      sorter: true,
-      render: location =>
-        (location &&
-          withContainer(containersByID, location, container => container.name, "Loading...")),
-    },
-    {
-      title: <><BarcodeOutlined style={{marginRight: "8px"}} /> Location Barcode</>,
+      title: "Location",
       dataIndex: "location",
       sorter: true,
       render: location => (location &&
         <Link to={`/containers/${location}`}>
-          {withContainer(containersByID, location, container => container.barcode, "Loading...")}
+          {withContainer(containersByID, location, container => container.name, "Loading...")}
         </Link>),
+    },
+    {
+      title: "Children",
+      dataIndex: "children",
+      align: 'right',
+      sorter: true,
+      render: children => children ? children.length : null,
+    },
+    {
+      title: "Co-ords.",
+      dataIndex: "coordinates",
+      sorter: true,
     },
   ];
 
@@ -81,6 +88,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   containersByID: state.containers.itemsByID,
   containers: state.containers.items,
+  containerKinds: state.containerKinds.items,
   sortBy: state.containers.sortBy,
   filters: state.containers.filters,
   actions: state.containerTemplateActions,
@@ -90,12 +98,13 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
 });
 
-const actionCreators = {list, setSortBy};
+const actionCreators = {list, setFilter, clearFilters, setSortBy};
 
 const ContainersListContent = ({
   token,
   containers,
   containersByID,
+  containerKinds,
   samplesByID,
   sortBy,
   filters,
@@ -104,6 +113,8 @@ const ContainersListContent = ({
   page,
   totalCount,
   list,
+  setFilter,
+  clearFilters,
   setSortBy,
 }) => {
   const listExport = () =>
@@ -111,11 +122,15 @@ const ContainersListContent = ({
       (serializeFilterParams(filters, CONTAINER_FILTERS))
       .then(response => response.data)
 
-  const columns = getTableColumns(samplesByID, containersByID)
-  const onChangeSort = (key, order) => {
-    setSortBy(key, order)
-    list()
-  }
+  const columns = getTableColumns(samplesByID, containersByID, containerKinds)
+    .map(c => Object.assign(c, getFilterProps(
+      c,
+      CONTAINER_FILTERS,
+      filters,
+      setFilter,
+    )))
+
+  const nFilters = Object.entries(filters).filter(e => e[1]).length
 
   return <>
     <AppPageHeader title="Containers" extra={[
@@ -124,19 +139,26 @@ const ContainersListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="containers"/>,
     ]}/>
     <PageContent>
-      <ContainersFilters />
+      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+        <FiltersWarning value={nFilters} />
+        <Button
+          disabled={nFilters === 0}
+          onClick={clearFilters}
+        >
+          Clear Filters
+        </Button>
+      </div>
       <PaginatedTable
-        // filters as a key in order to instantiate a new component on filters state change
-        key={JSON.stringify(filters)}
         columns={columns}
         items={containers}
         itemsByID={containersByID}
         loading={isFetching}
         totalCount={totalCount}
         page={page}
+        filters={filters}
         sortBy={sortBy}
         onLoad={list}
-        onChangeSort={onChangeSort}
+        onChangeSort={setSortBy}
       />
     </PageContent>
   </>;

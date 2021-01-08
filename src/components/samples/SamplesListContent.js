@@ -1,11 +1,10 @@
-import React from "react";
+import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {Tag, Typography} from "antd";
+import {Button, Tag} from "antd";
+import "antd/es/button/style/css";
 import "antd/es/tag/style/css";
-import "antd/es/typography/style/css";
-const {Text} = Typography
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -16,45 +15,16 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, setSortBy} from "../../modules/samples/actions";
+import {list, setFilter, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
-import SamplesFilters from "./SamplesFilters";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
+import getFilterProps from "../filters/getFilterProps";
+import FiltersWarning from "../filters/FiltersWarning";
+import SamplesFilters from "./SamplesFilters";
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  samples: state.samples.items,
-  actions: state.sampleTemplateActions,
-  page: state.samples.page,
-  totalCount: state.samples.totalCount,
-  isFetching: state.samples.isFetching,
-  filters: state.samples.filters,
-  containersByID: state.containers.itemsByID,
-  individualsByID: state.individuals.itemsByID,
-  sortBy: state.samples.sortBy,
-});
-
-const actionCreators = {list, setSortBy};
-
-const SamplesListContent = ({
-  token,
-  samples,
-  samplesByID,
-  actions,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  containersByID,
-  individualsByID,
-  sortBy,
-  list,
-  setSortBy,
-}) => {
-  const TABLE_COLUMNS = [
+const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Type",
       dataIndex: "biospecimen_type",
@@ -84,8 +54,8 @@ const SamplesListContent = ({
     },
     {
       title: "Container Name",
-      dataIndex: "container",
-      render: container => (container && withContainer(containersByID, container, container => container.name, "loading...")),
+      dataIndexFilter: "container_name",
+      render: (_, sample) => (sample.container && withContainer(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
@@ -128,13 +98,52 @@ const SamplesListContent = ({
     }
   ];
 
+const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
+  samplesByID: state.samples.itemsByID,
+  samples: state.samples.items,
+  actions: state.sampleTemplateActions,
+  page: state.samples.page,
+  totalCount: state.samples.totalCount,
+  isFetching: state.samples.isFetching,
+  filters: state.samples.filters,
+  containersByID: state.containers.itemsByID,
+  individualsByID: state.individuals.itemsByID,
+  sortBy: state.samples.sortBy,
+});
+
+const actionCreators = {list, setFilter, clearFilters, setSortBy};
+
+const SamplesListContent = ({
+  token,
+  samples,
+  samplesByID,
+  actions,
+  isFetching,
+  page,
+  totalCount,
+  filters,
+  containersByID,
+  individualsByID,
+  sortBy,
+  list,
+  setFilter,
+  clearFilters,
+  setSortBy,
+}) => {
+
   const listExport = () =>
     withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
 
-  const onChangeSort = (key, order) => {
-    setSortBy(key, order)
-    list()
-  }
+  const columns = getTableColumns(containersByID, individualsByID)
+  .map(c => Object.assign(c, getFilterProps(
+    c,
+    SAMPLE_FILTERS,
+    filters,
+    setFilter,
+  )))
+
+  const nFilters = Object.entries(filters).filter(e => e[1]).length
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
@@ -143,20 +152,29 @@ const SamplesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="samples"/>,
     ]}/>
     <PageContent>
-      <SamplesFilters />
+      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+        <SamplesFilters style={{ flex: 1 }} />
+        <FiltersWarning value={nFilters} />
+        <Button
+          style={{ margin: 6 }}
+          disabled={nFilters === 0}
+          onClick={clearFilters}
+        >
+          Clear Filters
+        </Button>
+      </div>
       <PaginatedTable
-        // filters as a key in order to instantiate a new component on filters state change
-        key={JSON.stringify(filters)}
-        columns={TABLE_COLUMNS}
+        columns={columns}
         items={samples}
         itemsByID={samplesByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
         page={page}
+        filters={filters}
         sortBy={sortBy}
         onLoad={list}
-        onChangeSort={onChangeSort}
+        onChangeSort={setSortBy}
       />
     </PageContent>
   </>;

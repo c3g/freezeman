@@ -31,14 +31,15 @@ const FilterGroup = ({
   }
 
   return (
-    <span style={style}>
+    <div style={style}>
       {
-        Object.values(descriptions).map(item => {
+        Object.entries(descriptions).map(([name, item]) => {
           switch(item.type){
             case FILTER_TYPE.SELECT:
               return (
                 <FilterSelect
                   key={item.key}
+                  name={name}
                   item={item}
                   value={values[item.key]}
                   options={optionsForSelect(item)}
@@ -49,6 +50,7 @@ const FilterGroup = ({
               return (
                 <FilterInput
                   key={item.key}
+                  name={name}
                   item={item}
                   value={values[item.key]}
                   width={item.width}
@@ -59,6 +61,7 @@ const FilterGroup = ({
               return (
                 <FilterRange
                   key={item.key}
+                  name={name}
                   item={item}
                   value={values[item.key]}
                   onChange={onChangeFilter}
@@ -69,7 +72,7 @@ const FilterGroup = ({
           }
         })
       }
-    </span>
+    </div>
   );
 };
 

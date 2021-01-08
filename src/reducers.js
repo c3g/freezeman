@@ -45,18 +45,37 @@ const allReducers = combineReducers({
 });
 
 function errorReducer(state, action) {
-  if (action.error && !(action.meta && action.meta.ignoreError)) {
-    notification.error({
-      message: 'An error occurred',
-      description:
-        <pre style={{fontSize: '0.8em', whiteSpace: 'pre-wrap'}}>
-          {action.error.message}
-          {action.error.stack}
-        </pre>,
-      duration: 0,
-    });
-  }
+  showError(action)
   return allReducers(state, action);
+}
+
+function showError(action) {
+  if (!action.error)
+    return
+
+  const ignoreError = action?.meta?.ignoreError
+
+  if (ignoreError === true)
+    return
+
+  if (typeof ignoreError === 'string' && ignoreError === action.error.name)
+    return
+
+  if (Array.isArray(ignoreError) && ignoreError.some(e => e === action.error.name))
+    return
+
+  if (typeof ignoreError === 'function' && ignoreError(action.error, action))
+    return
+
+  notification.error({
+    message: 'An error occurred',
+    description:
+      <pre style={{fontSize: '0.8em', whiteSpace: 'pre-wrap'}}>
+        {action.error.message}
+        {action.error.stack}
+      </pre>,
+    duration: 0,
+  });
 }
 
 const rootReducer = errorReducer;

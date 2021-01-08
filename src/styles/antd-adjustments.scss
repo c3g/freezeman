@@ -15,6 +15,17 @@
 
 
 /*
+ * Collapse header
+ */
+
+.ant-collapse-ghost .ant-collapse-header {
+  transition: 200ms linear;
+  &:hover {
+    background-color: rgba(black, 0.05);
+  }
+}
+
+/*
  * Descriptions
  */
 
