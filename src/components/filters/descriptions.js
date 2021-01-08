@@ -16,8 +16,8 @@ export const SAMPLE_FILTERS = {
   },
   individual: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__label__icontains",
-    label: "Individual Label",
+    key: "individual__name__icontains",
+    label: "Individual Name",
   },
   container_name: {
     type: FILTER_TYPE.INPUT,
@@ -118,10 +118,10 @@ export const CONTAINER_FILTERS = {
 }
 
 export const INDIVIDUAL_FILTERS = {
-  label: {
+  name: {
     type: FILTER_TYPE.INPUT,
-    key: "label__icontains",
-    label: "Label",
+    key: "name__icontains",
+    label: "Name",
   },
   taxon: {
     type: FILTER_TYPE.SELECT,

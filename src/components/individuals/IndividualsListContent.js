@@ -1,5 +1,4 @@
 import React from "react";
-import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
@@ -22,9 +21,9 @@ import FiltersWarning from "../filters/FiltersWarning";
 const TABLE_COLUMNS = [
   {
     title: "Name",
-    dataIndex: "label",
+    dataIndex: "name",
     sorter: true,
-    render: (label, individual) => <Link to={`/individuals/${individual.id}`}>{label}</Link>,
+    render: (name, individual) => <Link to={`/individuals/${individual.id}`}>{name}</Link>,
   },
   {
     title: "Taxon",

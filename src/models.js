@@ -80,7 +80,7 @@ export const sample = {
 // }
 
 export const individual = {
-  label: "",
+  name: "",
   taxon: null,
   sex: null,
   pedigree: "",
@@ -91,7 +91,7 @@ export const individual = {
 // Example:
 // {
 //     id: 100,
-//     label: "L00217559",
+//     name: "L00217559",
 //     taxon: "Sars-Cov-2",
 //     sex: "Unknown",
 //     pedigree: "L00217559",
