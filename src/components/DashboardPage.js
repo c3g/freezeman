@@ -18,7 +18,6 @@ import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
-import reports from "./reports/list";
 
 const COL_LAYOUT = {
   lg: 8,
@@ -93,22 +92,13 @@ const DashboardPage = ({
           </Card>
         </Col>
         <Col {...COL_LAYOUT}>
-          <Card title="Reports" {...CARD_PROPS}>
+          <Card title="Other" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...WIDE_BUTTON_COL_PROPS}>
                 <Link to="/individuals/add/">
                   <Button icon={actionIcon("Add")} style={{width: "100%"}}>Add Individual</Button>
                 </Link>
               </Col>
-              {reports.map(report =>
-                <Col key={report.path} {...WIDE_BUTTON_COL_PROPS}>
-                  <Link to={report.path}>
-                    <Button block={true} icon={report.icon}>
-                      {report.title}
-                    </Button>
-                  </Link>
-                </Col>
-              )}
             </Row>
           </Card>
         </Col>

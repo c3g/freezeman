@@ -43,7 +43,7 @@ function PaginatedTable ({
 
   const hasUnloadedItems = dataSource.some(d => d === undefined);
   const isCurrentPageUnloaded = ((endIndex - 1) > items.length) || hasUnloadedItems;
-  const doesNextPageContainUnloaded = !isLastPage && nextPageEndIndex > items.length;
+  const doesNextPageContainUnloaded = !isLastPage && nextPageEndIndex > items.length && items.length < totalCount;
   const shouldLoadNextChunk =
     !loading && (isCurrentPageUnloaded || doesNextPageContainUnloaded);
 

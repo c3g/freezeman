@@ -59,7 +59,7 @@ const api = {
   },
 
   users: {
-    list: () => get("/users/"),
+    list: (options, abort) => get("/users", options, { abort }),
     listVersions: userId => get(`/versions?revision__user=${userId}&limit=999999`), // TODO: handle versions?
   },
 

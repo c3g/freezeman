@@ -150,3 +150,14 @@ export const INDIVIDUAL_FILTERS = {
     label: "Cohort",
   },
 }
+
+export const USER_FILTERS = {
+  username: {
+    type: FILTER_TYPE.INPUT,
+    key: "username__icontains",
+  },
+  email: {
+    type: FILTER_TYPE.INPUT,
+    key: "email__icontains",
+  }, 
+}

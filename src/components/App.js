@@ -25,7 +25,7 @@ import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
 import IndividualsPage from "./individuals/IndividualsPage";
-import ReportsPage from "./reports/ReportsPage";
+import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
 
@@ -66,9 +66,9 @@ const MENU_ITEMS = [
     text: "Individuals",
   },
   {
-    url: "/reports",
+    url: "/users",
     icon: <AuditOutlined />,
-    text: "Reports",
+    text: "Users",
   },
 ]
 
@@ -155,8 +155,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             <PrivateRoute path="/individuals">
               <IndividualsPage/>
             </PrivateRoute>
-            <PrivateRoute path="/reports">
-              <ReportsPage/>
+            <PrivateRoute path="/users">
+              <UsersPage/>
             </PrivateRoute>
             <Redirect from="/" to="/dashboard" />
           </Switch>

@@ -5,8 +5,8 @@ const routes = [
     breadcrumbName: 'Home',
   },
   {
-    path: '/reports',
-    breadcrumbName: 'Reports',
+    path: '/users',
+    breadcrumbName: 'Users',
   },
 ];
 
