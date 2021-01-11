@@ -252,6 +252,12 @@ _individual_filterset_fields: FiltersetFields = {
     "father": NULLABLE_FK_FILTERS,
 }
 
+_user_filterset_fields: FiltersetFields = {
+    "username": ["icontains"],
+    "email": ["icontains"],
+}
+
+
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
@@ -589,3 +595,4 @@ class VersionViewSet(viewsets.ReadOnlyModelViewSet):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filterset_fields = _user_filterset_fields
