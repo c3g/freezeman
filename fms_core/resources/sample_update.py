@@ -137,7 +137,15 @@ class SampleUpdateResource(GenericResource):
             for row in results.rows:
                 if row.diff:
                     list_vol = row.diff[index_volume]
+                    # Case where the volume is changed and a volume difference is present
                     match = re.search(r".*<ins .*>, (.*)</ins>.*", list_vol)
-                    latest_vol = ast.literal_eval(match.group(1))
-                    row.diff[index_volume] = str(latest_vol["volume_value"])
+                    if match:
+                        latest_vol = ast.literal_eval(match.group(1))
+                        row.diff[index_volume] = str(latest_vol["volume_value"])
+                    else:
+                        # Case where the volume is not changed and we extract the latest volume
+                        match = re.search(r".*<span.*>(.*)</span>.*", list_vol)
+                        if match:
+                            latest_vol = ast.literal_eval(match.group(1))[-1]
+                            row.diff[index_volume] = str(latest_vol["volume_value"])
         return results
