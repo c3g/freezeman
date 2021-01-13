@@ -29,7 +29,7 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.SELECT: {
         if (value)
-          params[key] = value.join(',')
+          params[key] = [].concat(value).join(',')
 
         break
       }
