@@ -291,6 +291,11 @@ function deserialize(values) {
   if (!values)
     return undefined
   const newValues = {...values}
+
+  /* tissue_source bottom value is '' for legacy reasons */
+  if (!newValues.tissue_source)
+    newValues.tissue_source = null
+
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
   if (newValues.reception_date)
