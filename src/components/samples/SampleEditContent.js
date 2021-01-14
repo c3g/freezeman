@@ -300,8 +300,14 @@ function deserialize(values) {
 
 function serialize(values) {
   const newValues = {...values}
+
   if (newValues.reception_date)
     newValues.reception_date = newValues.reception_date.format('YYYY-MM-DD')
+
+  /* tissue_source bottom value is '' for legacy reasons */
+  if (!newValues.tissue_source)
+    newValues.tissue_source = ''
+
   if (newValues.concentration === '')
     newValues.concentration = null
   if (newValues.volume_used === '')
