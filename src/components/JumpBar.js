@@ -136,7 +136,7 @@ function renderIndividual(individual) {
   return (
     <Option key={'individual_' + individual.id}>
       <NodeIndexOutlined />{' '}
-      <strong>{individual.label}</strong>{' '}
+      <strong>{individual.name}</strong>{' '}
       <Text type="secondary">individual</Text>{' '}
     </Option>
   );
