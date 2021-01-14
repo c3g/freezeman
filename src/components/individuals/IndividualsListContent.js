@@ -16,6 +16,7 @@ import {list, setFilter, clearFilters, setSortBy} from "../../modules/individual
 import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import FiltersWarning from "../filters/FiltersWarning";
+import serializeFilterParams from "../../utils/serializeFilterParams";
 
 
 const TABLE_COLUMNS = [
@@ -78,7 +79,9 @@ const IndividualsListContent = ({
   setSortBy,
 }) => {
   const listExport = () =>
-    withToken(token, api.individuals.listExport)().then(response => response.data)
+    withToken(token, api.individuals.listExport)
+    (serializeFilterParams(filters, INDIVIDUAL_FILTERS))
+      .then(response => response.data)
 
   const columns = TABLE_COLUMNS.map(c => Object.assign(c, getFilterProps(
     c,
