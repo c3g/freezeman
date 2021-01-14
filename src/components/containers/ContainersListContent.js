@@ -77,7 +77,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       render: children => children ? children.length : null,
     },
     {
-      title: "Co-ords.",
+      title: "Coord.",
       dataIndex: "coordinates",
       sorter: true,
     },
