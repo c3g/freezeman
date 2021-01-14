@@ -99,7 +99,7 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Label" name="label" rules={requiredRules}>
+          <Form.Item label="Name" name="name" rules={requiredRules}>
             <Input />
           </Form.Item>
           <Form.Item label="Taxon" name="taxon">
