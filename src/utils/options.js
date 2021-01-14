@@ -14,7 +14,7 @@ export function renderIndividual(i) {
     value: i.id,
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {i.label}{' '}
+        {i.name}{' '}
         <Text type="secondary">{i.id}</Text>
       </div>
     )

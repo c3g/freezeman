@@ -24,6 +24,7 @@ import {BIOSPECIMEN_TYPE, TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
+const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]
 
 // API functions
 
@@ -173,7 +174,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" name="name" rules={requiredRules}>
+          <Form.Item label="Name" name="name" rules={requiredRules.concat(nameRules)}>
             <Input />
           </Form.Item>
           <Form.Item label="Alias" name="alias">
