@@ -16,9 +16,6 @@ export default function serializeFilterParams(filters, descriptions) {
     if (value === undefined)
       return
 
-    if (option && option.exactMatch)
-      key = key.replace("__icontains", "")
-
     switch (description.type) {
 
       case FILTER_TYPE.RANGE: {
@@ -32,6 +29,8 @@ export default function serializeFilterParams(filters, descriptions) {
       }
 
       case FILTER_TYPE.SELECT: {
+        key = (description.mode === "multiple") ? (key + "__in") : key
+
         if (value)
           params[key] = [].concat(value).join(',')
 
@@ -39,6 +38,8 @@ export default function serializeFilterParams(filters, descriptions) {
       }
 
       case FILTER_TYPE.INPUT: {
+        key = (option && option.exactMatch) ? key : (key + "__icontains")
+
         if(value)
           params[key] = value
 

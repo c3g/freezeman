@@ -3,7 +3,7 @@ import {FILTER_TYPE, BIOSPECIMEN_TYPE, SEX, TAXON} from "../../constants";
 export const SAMPLE_FILTERS = {
   biospecimen_type: {
     type: FILTER_TYPE.SELECT,
-    key: "biospecimen_type__in",
+    key: "biospecimen_type",
     label: "Type",
     mode: "multiple",
     placeholder: "All",
@@ -11,27 +11,27 @@ export const SAMPLE_FILTERS = {
   },
   name: {
     type: FILTER_TYPE.INPUT,
-    key: "name__icontains",
+    key: "name",
     label: "Name",
   },
   individual: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__name__icontains",
+    key: "individual__name",
     label: "Individual Name",
   },
   container_name: {
     type: FILTER_TYPE.INPUT,
-    key: "container__name__icontains",
+    key: "container__name",
     label: "Container Name",
   },
   container: {
     type: FILTER_TYPE.INPUT,
-    key: "container__barcode__icontains",
+    key: "container__barcode",
     label: "Container Barcode",
   },
   coordinates: {
     type: FILTER_TYPE.INPUT,
-    key: "coordinates__icontains",
+    key: "coordinates",
     label: "Coordinates",
   },
   concentration: {
@@ -53,21 +53,21 @@ export const SAMPLE_FILTERS = {
   // Detached filters
   individual__pedigree__icontains: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__pedigree__icontains",
+    key: "individual__pedigree",
     label: "Individual Pedigree",
     width: 250,
     detached: true,
   },
   individual__cohort__icontains: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__cohort__icontains",
+    key: "individual__cohort",
     label: "Individual Cohort",
     width: 250,
     detached: true,
   },
   individual__sex__in: {
     type: FILTER_TYPE.SELECT,
-    key: "individual__sex__in",
+    key: "individual__sex",
     label: "Individual Sex",
     mode: "multiple",
     placeholder: "All",
@@ -80,7 +80,7 @@ export const SAMPLE_FILTERS = {
   },
   collection_site__icontains: {
     type: FILTER_TYPE.INPUT,
-    key: "collection_site__icontains",
+    key: "collection_site",
     label: "Collection site",
     width: 250,
     detached: true,
@@ -90,29 +90,29 @@ export const SAMPLE_FILTERS = {
 export const CONTAINER_FILTERS = {
   barcode: {
     type: FILTER_TYPE.INPUT,
-    key: "barcode__icontains",
+    key: "barcode",
     label: "Barcode",
   },
   name: {
     type: FILTER_TYPE.INPUT,
-    key: "name__icontains",
+    key: "name",
     label: "Name",
   },
   kind: {
     type: FILTER_TYPE.SELECT,
-    key: "kind__in",
+    key: "kind",
     label: "Kind",
     mode: "multiple",
     placeholder: "All",
   },
   coordinates: {
     type: FILTER_TYPE.INPUT,
-    key: "coordinates__icontains",
+    key: "coordinates",
     label: "Coordinates",
   },
   samples: {
     type: FILTER_TYPE.INPUT,
-    key: "samples__name__icontains",
+    key: "samples__name",
     label: "Sample name",
   },
 }
@@ -120,12 +120,12 @@ export const CONTAINER_FILTERS = {
 export const INDIVIDUAL_FILTERS = {
   name: {
     type: FILTER_TYPE.INPUT,
-    key: "name__icontains",
+    key: "name",
     label: "Name",
   },
   taxon: {
     type: FILTER_TYPE.SELECT,
-    key: "taxon__in",
+    key: "taxon",
     label: "Taxon",
     mode: "multiple",
     placeholder: "All",
@@ -133,7 +133,7 @@ export const INDIVIDUAL_FILTERS = {
   },
   sex: {
     type: FILTER_TYPE.SELECT,
-    key: "sex__in",
+    key: "sex",
     label: "Sex",
     mode: "multiple",
     placeholder: "All",
@@ -141,12 +141,12 @@ export const INDIVIDUAL_FILTERS = {
   },
   pedigree: {
     type: FILTER_TYPE.INPUT,
-    key: "pedigree__icontains",
+    key: "pedigree",
     label: "Pedigree",
   },
   cohort: {
     type: FILTER_TYPE.INPUT,
-    key: "cohort__icontains",
+    key: "cohort",
     label: "Cohort",
   },
 }
@@ -154,10 +154,10 @@ export const INDIVIDUAL_FILTERS = {
 export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,
-    key: "username__icontains",
+    key: "username",
   },
   email: {
     type: FILTER_TYPE.INPUT,
-    key: "email__icontains",
+    key: "email",
   }, 
 }
