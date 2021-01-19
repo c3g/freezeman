@@ -9,11 +9,15 @@ export default function serializeFilterParams(filters, descriptions) {
 
   Object.keys(filters).forEach(field => {
     const value = filters[field].value
+    const option = filters[field].option
     const description = descriptions[field]
-    const key = description.key
+    let key = description.key
 
     if (value === undefined)
       return
+
+    if (option && option.exactMatch)
+      key = key.replace("__icontains", "")
 
     switch (description.type) {
 

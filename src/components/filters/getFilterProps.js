@@ -1,9 +1,10 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Space} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Switch, Space} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
 import "antd/es/select/style/css";
+import "antd/es/switch/style/css";
 import "antd/es/space/style/css";
 import {SearchOutlined} from "@ant-design/icons";
 
@@ -44,6 +45,10 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
       confirm()
   }
 
+  const onToggleSwitch = (checked, dataIndex) => {
+    setFilter(dataIndex, {exactMatch: checked}, 'option')
+  }
+
   return {
     filteredValue: arrayize(filters[dataIndex]),
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
@@ -57,6 +62,12 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
+        <div style={{ margin: 8, textAlign: 'center'}}>
+          <Switch
+            checked={selectedKeys['option'] ? selectedKeys['option']['exactMatch'] : undefined}
+            onChange={e => onToggleSwitch(e, dataIndex)}
+          /> Exact Match
+        </div>
       </div>
     ),
     filterIcon: getFilterIcon,
