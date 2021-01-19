@@ -64,10 +64,10 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
-export const setFilter = thenList((name, value) => {
+export const setFilter = thenList((name, value, field) => {
     return {
         type: SET_FILTER,
-        data: { name, value }
+        data: { name, value, field }
     }
 });
 

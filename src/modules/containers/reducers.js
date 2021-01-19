@@ -85,7 +85,7 @@ export const containers = (
     case CONTAINERS.SET_FILTER:
       return {
         ...state,
-        filters: set(state.filters, [action.data.name], action.data.value),
+        filters: set(state.filters, [action.data.name, action.data.field], action.data.value),
         page: set(state.page, ['offset'], 0),
       };
     case CONTAINERS.CLEAR_FILTERS:

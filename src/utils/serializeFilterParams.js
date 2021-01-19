@@ -8,7 +8,7 @@ export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
   Object.keys(filters).forEach(field => {
-    const value = filters[field]
+    const value = filters[field].value
     const description = descriptions[field]
     const key = description.key
 

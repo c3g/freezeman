@@ -36,7 +36,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
 
   const onSearch = (selectedKeys, setSelectedKeys) => {
     setSelectedKeys(selectedKeys)
-    setFilter(dataIndex, selectedKeys[0])
+    setFilter(dataIndex, selectedKeys[0], 'value')
   }
 
   const onKeyDown = (ev, confirm) => {
@@ -52,7 +52,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
           ref={inputRef}
           allowClear
           placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
+          value={selectedKeys['value']}
           onChange={e => onSearch(e.target.value ? [e.target.value] : [], setSelectedKeys)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
