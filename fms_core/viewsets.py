@@ -289,6 +289,11 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         },
     ]
 
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context['header'] = ContainerExportSerializer.Meta.fields
+        return context
+
     @action(detail=False, methods=["get"])
     def summary(self, _request):
         """
