@@ -57,14 +57,14 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
           ref={inputRef}
           allowClear
           placeholder={`Search ${dataIndex}`}
-          value={selectedKeys['value']}
+          value={selectedKeyValue(selectedKeys[0])}
           onChange={e => onSearch(e.target.value ? [e.target.value] : [], setSelectedKeys)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
         <div style={{ margin: 8, textAlign: 'center'}}>
           <Switch
-            checked={selectedKeys['option'] ? selectedKeys['option']['exactMatch'] : undefined}
+            checked={selectedKeyOptionExactMatch(selectedKeys[0])}
             onChange={e => onToggleSwitch(e, dataIndex)}
           /> Exact Match
         </div>
@@ -290,3 +290,10 @@ function arrayize(v) {
   return [v]
 }
 
+function selectedKeyValue(selectedKeysArg){
+  return selectedKeysArg ? selectedKeysArg.value : undefined
+}
+
+function selectedKeyOptionExactMatch(selectedKeysArg){
+  return (selectedKeysArg && selectedKeysArg.option)  ? selectedKeysArg.option.exactMatch : undefined
+}

@@ -8,8 +8,7 @@ export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
   Object.keys(filters).forEach(field => {
-    const value = filters[field].value
-    const option = filters[field].option
+    let value = filters[field]
     const description = descriptions[field]
     let key = description.key
 
@@ -38,6 +37,8 @@ export default function serializeFilterParams(filters, descriptions) {
       }
 
       case FILTER_TYPE.INPUT: {
+        value = filters[field].value
+        const option = filters[field].option
         key = (option && option.exactMatch) ? key : (key + "__icontains")
 
         if(value)
