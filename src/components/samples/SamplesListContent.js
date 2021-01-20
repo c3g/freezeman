@@ -47,6 +47,7 @@ const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Individual",
       dataIndex: "individual",
+      sorter: true,
       render: individual => (individual &&
           <Link to={`/individuals/${individual}`}>
             {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
@@ -55,6 +56,7 @@ const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Container Name",
       dataIndexFilter: "container_name",
+      sorter: true,
       render: (_, sample) => (sample.container && withContainer(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
@@ -75,6 +77,7 @@ const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Vol. (µL)",
       dataIndex: "volume_history",
+      sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),

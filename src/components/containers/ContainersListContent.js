@@ -37,6 +37,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
     {
       title: "Sample",
       dataIndex: "samples",
+      sorter: true,
       render: (samples, container) =>
         (CONTAINER_KIND_SHOW_SAMPLE.includes(container.kind) && samples.length > 0 && 
           <>
