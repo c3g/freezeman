@@ -53,7 +53,7 @@ __all__ = [
 ]
 
 
-FREE_TEXT_FILTERS = ["contains", "icontains"]
+FREE_TEXT_FILTERS = ["contains", "icontains", "exact"]
 CATEGORICAL_FILTERS = ["exact", "in"]
 CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
 FK_FILTERS = CATEGORICAL_FILTERS
@@ -205,10 +205,10 @@ FiltersetFields = Dict[str, List[str]]
 
 _container_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "name": ["icontains"],
-    "barcode": ["icontains"],
+    "name": FREE_TEXT_FILTERS,
+    "barcode": FREE_TEXT_FILTERS,
     "kind": CATEGORICAL_FILTERS,
-    "coordinates": ["exact", "icontains"],
+    "coordinates": FREE_TEXT_FILTERS,
     "comment": FREE_TEXT_FILTERS,
     "update_comment": FREE_TEXT_FILTERS,
     "location": NULLABLE_FK_FILTERS,
