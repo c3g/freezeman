@@ -35,10 +35,16 @@ class SimpleContainerSerializer(serializers.ModelSerializer):
 
 class ContainerExportSerializer(serializers.ModelSerializer):
     location = serializers.SlugRelatedField(slug_field='barcode', read_only=True)
+    container_kind = serializers.CharField(source='kind')
 
     class Meta:
         model = Container
-        fields = ('name', 'kind', 'barcode', 'location', 'coordinates', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
+
+    def to_representation(self, obj):
+        primitive_repr = super(ContainerExportSerializer, self).to_representation(obj)
+        primitive_repr = {k.replace("_", " "): v for k, v in primitive_repr.items()}
+        return primitive_repr
 
 
 class IndividualSerializer(serializers.ModelSerializer):
