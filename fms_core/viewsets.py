@@ -242,7 +242,7 @@ _sample_minimal_filterset_fields: FiltersetFields = {
 
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "name": ["in", "icontains"],
+    "name": ["in", "icontains", "exact"],
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
@@ -253,8 +253,8 @@ _individual_filterset_fields: FiltersetFields = {
 }
 
 _user_filterset_fields: FiltersetFields = {
-    "username": ["icontains"],
-    "email": ["icontains"],
+    "username": FREE_TEXT_FILTERS,
+    "email": FREE_TEXT_FILTERS,
 }
 
 
