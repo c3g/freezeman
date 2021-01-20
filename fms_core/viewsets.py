@@ -291,7 +291,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
-        context['header'] = ContainerExportSerializer.Meta.fields
+        context['header'] = ContainerExportSerializer.Meta.fields if self.action == 'list_export' else None
         return context
 
     @action(detail=False, methods=["get"])

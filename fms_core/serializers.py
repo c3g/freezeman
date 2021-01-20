@@ -38,7 +38,7 @@ class ContainerExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Container
-        fields = ('kind', 'name', 'barcode', 'location', 'coordinates', 'comment')
+        fields = ('name', 'kind', 'barcode', 'location', 'coordinates', 'comment')
 
 
 class IndividualSerializer(serializers.ModelSerializer):
