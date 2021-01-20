@@ -60,26 +60,29 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
+    sample_name = serializers.CharField(source="name")
     individual_id = serializers.CharField(read_only=True, source="individual.name")
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
     sex = serializers.CharField(read_only=True, source="individual.sex")
     pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
     cohort = serializers.CharField(read_only=True, source="individual.cohort")
-    mother_name = serializers.SerializerMethodField()
-    father_name = serializers.SerializerMethodField()
+    mother_id = serializers.SerializerMethodField()
+    father_id = serializers.SerializerMethodField()
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
-    container_coordinates = serializers.CharField(read_only=True, source="container.coordinates")
+    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
-    last_volume_history = serializers.SerializerMethodField()
+    current_volume = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        fields = ('biospecimen_type', 'name', 'alias', 'concentration', 'depleted', 'collection_site', 'tissue_source',
-                  'reception_date', 'phenotype', 'comment', 'coordinates', 'last_volume_history',
-                  'individual_id', 'taxon', 'sex', 'pedigree', 'mother_name', 'father_name', 'cohort',
-                  'container_kind', 'container_name', 'container_barcode', 'container_coordinates', 'location_barcode')
+        fields = ('biospecimen_type', 'sample_name', 'alias', 'cohort', 'taxon',
+                  'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
+                  'individual_id', 'sex', 'pedigree', 'mother_id', 'father_id',
+                  'current_volume', 'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype',
+                  'depleted', 'coordinates',
+                  'comment')
 
     def get_location_barcode(self, obj):
         if obj.container.location is None:
@@ -87,17 +90,22 @@ class SampleExportSerializer(serializers.ModelSerializer):
         else:
             return obj.container.location.barcode
 
-    def get_last_volume_history(self, obj):
+    def get_current_volume(self, obj):
         sorted_volume_histories = sorted(obj.volume_history, key=lambda k: k['date'])
         return sorted_volume_histories[-1]['volume_value']
 
-    def get_father_name(self, obj):
+    def get_father_id(self, obj):
         father = '' if obj.individual.father is None else obj.individual.father.name
         return father
 
-    def get_mother_name(self, obj):
+    def get_mother_id(self, obj):
         mother = '' if obj.individual.mother is None else obj.individual.mother.name
         return mother
+
+    def to_representation(self, obj):
+        primitive_repr = super(SampleExportSerializer, self).to_representation(obj)
+        primitive_repr = {k.replace("_", " "): v for k, v in primitive_repr.items()}
+        return primitive_repr
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):

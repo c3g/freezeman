@@ -437,6 +437,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             return NestedSampleSerializer
         return SampleSerializer
 
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            context['header'] = [field.replace("_", " ") for field in SampleExportSerializer.Meta.fields]
+        return context
+
+
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
