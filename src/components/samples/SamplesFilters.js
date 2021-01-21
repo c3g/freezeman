@@ -5,7 +5,7 @@ import {Collapse} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/collapse/style/css";
 
-import {setFilter} from "../../modules/samples/actions";
+import {setFilterValue} from "../../modules/samples/actions";
 import FilterGroup from "../filters/FilterGroup";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 
@@ -13,16 +13,16 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
 });
 
-const actionCreators = {setFilter};
+const actionCreators = {setFilterValue};
 
 const SamplesFilters = ({
   filters,
-  setFilter,
+  setFilterValue,
   ...rest
 }) => {
 
   const onChangeFilter = (filter, value) => {
-    setFilter(filter.key, value)
+    setFilterValue(filter.key, value)
   }
 
   return (

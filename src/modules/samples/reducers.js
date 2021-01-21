@@ -52,10 +52,16 @@ export const samples = (
 
         case SAMPLES.SET_SORT_BY:
             return { ...state, sortBy: action.data };
-        case SAMPLES.SET_FILTER:
+        case SAMPLES.SET_FILTER_VALUE:
             return {
                 ...state,
-                filters: set(state.filters, [action.data.name, action.data.field], action.data.value),
+                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                page: set(state.page, ['offset'], 0),
+            };
+        case SAMPLES.SET_FILTER_OPTIONS:
+            return {
+                ...state,
+                filters: set(state.filters, [action.data.name, 'options'], action.data.options),
                 page: set(state.page, ['offset'], 0),
             };
         case SAMPLES.CLEAR_FILTERS:

@@ -51,21 +51,21 @@ export const SAMPLE_FILTERS = {
   },
 
   // Detached filters
-  individual__pedigree__icontains: {
+  individual__pedigree: {
     type: FILTER_TYPE.INPUT,
     key: "individual__pedigree",
     label: "Individual Pedigree",
     width: 250,
     detached: true,
   },
-  individual__cohort__icontains: {
+  individual__cohort: {
     type: FILTER_TYPE.INPUT,
     key: "individual__cohort",
     label: "Individual Cohort",
     width: 250,
     detached: true,
   },
-  individual__sex__in: {
+  individual__sex: {
     type: FILTER_TYPE.SELECT,
     key: "individual__sex",
     label: "Individual Sex",
@@ -78,7 +78,7 @@ export const SAMPLE_FILTERS = {
     ],
     detached: true,
   },
-  collection_site__icontains: {
+  collection_site: {
     type: FILTER_TYPE.INPUT,
     key: "collection_site",
     label: "Collection site",

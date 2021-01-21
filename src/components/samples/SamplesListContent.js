@@ -15,7 +15,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, setFilter, clearFilters, setSortBy} from "../../modules/samples/actions";
+import {list, setFilterValue, setFilterOptions, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
 import serializeFilterParams from "../../utils/serializeFilterParams";
@@ -115,7 +115,7 @@ const mapStateToProps = state => ({
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {list, setFilter, clearFilters, setSortBy};
+const actionCreators = {list, setFilterValue, setFilterOptions, clearFilters, setSortBy};
 
 const SamplesListContent = ({
   token,
@@ -130,7 +130,8 @@ const SamplesListContent = ({
   individualsByID,
   sortBy,
   list,
-  setFilter,
+  setFilterValue,
+  setFilterOptions,
   clearFilters,
   setSortBy,
 }) => {
@@ -143,7 +144,8 @@ const SamplesListContent = ({
     c,
     SAMPLE_FILTERS,
     filters,
-    setFilter,
+    setFilterValue,
+    setFilterOptions
   )))
 
   const nFilters = Object.entries(filters).filter(e => e[1]).length

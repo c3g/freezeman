@@ -12,24 +12,24 @@ import {FILTER_TYPE} from "../../constants";
 
 const EMPTY_VALUE = '__EMPTY_VALUE__'
 
-export default function getFilterProps(column, descriptions, filters, setFilter) {
+export default function getFilterProps(column, descriptions, filters, setFilterValue, setFilterOptions) {
   const description = descriptions[column.dataIndex];
   if (!description)
     return undefined;
   switch (description.type) {
     case FILTER_TYPE.INPUT:
-      return getInputFilterProps(column, descriptions, filters, setFilter)
+      return getInputFilterProps(column, descriptions, filters, setFilterValue, setFilterOptions)
     case FILTER_TYPE.SELECT:
       if (description.mode !== 'multiple')
-        return getRadioFilterProps(column, descriptions, filters, setFilter)
-      return getSelectFilterProps(column, descriptions, filters, setFilter)
+        return getRadioFilterProps(column, descriptions, filters, setFilterValue)
+      return getSelectFilterProps(column, descriptions, filters, setFilterValue)
     case FILTER_TYPE.RANGE:
-      return getRangeFilterProps(column, descriptions, filters, setFilter)
+      return getRangeFilterProps(column, descriptions, filters, setFilterValue)
   }
   throw new Error(`unreachable: ${description.type}`)
 }
 
-function getInputFilterProps(column, descriptions, filters, setFilter) {
+function getInputFilterProps(column, descriptions, filters, setFilterValue, setFilterOptions) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
 
@@ -37,7 +37,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
 
   const onSearch = (selectedKeys, setSelectedKeys) => {
     setSelectedKeys(selectedKeys)
-    setFilter(dataIndex, selectedKeys[0], 'value')
+    setFilterValue(dataIndex, selectedKeys[0])
   }
 
   const onKeyDown = (ev, confirm) => {
@@ -45,8 +45,8 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
       confirm()
   }
 
-  const onToggleSwitch = (checked, dataIndex) => {
-    setFilter(dataIndex, {exactMatch: checked}, 'option')
+  const onToggleSwitch = (checked) => {
+    setFilterOptions(dataIndex, {exactMatch: checked})
   }
 
   return {
@@ -83,7 +83,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
   }
 }
 
-function getSelectFilterProps(column, descriptions, filters, setFilter) {
+function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
 
@@ -92,15 +92,15 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
   const onSearch = (selectedKeys, setSelectedKeys, confirm) => {
     setSelectedKeys(selectedKeys);
     if (selectedKeys.length === 0)
-      setFilter(dataIndex, undefined)
+      setFilterValue(dataIndex, undefined)
     else
-      setFilter(dataIndex, selectedKeys)
+      setFilterValue(dataIndex, selectedKeys)
     if (confirm)
       confirm()
   }
 
   const onReset = clearFilters => {
-    setFilter(dataIndex, undefined)
+    setFilterValue(dataIndex, undefined)
     clearFilters()
   };
 
@@ -150,7 +150,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
   }
 }
 
-function getRadioFilterProps(column, descriptions, filters, setFilter) {
+function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
 
@@ -161,7 +161,7 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
     const tableValue = value === EMPTY_VALUE ? [] : [value]
     const storeValue = value === EMPTY_VALUE ? undefined : value
     setSelectedKeys(tableValue)
-    setFilter(dataIndex, storeValue)
+    setFilterValue(dataIndex, storeValue)
     confirm()
   }
 
@@ -197,19 +197,19 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
   }
 }
 
-function getRangeFilterProps(column, descriptions, filters, setFilter) {
+function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
 
   const inputRef = useRef()
 
   const onSearch = (value, confirm) => {
-    setFilter(dataIndex, value)
+    setFilterValue(dataIndex, value)
     confirm()
   }
 
   const onReset = clearFilters => {
-    setFilter(dataIndex, undefined)
+    setFilterValue(dataIndex, undefined)
     clearFilters()
   };
 

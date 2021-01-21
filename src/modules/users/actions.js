@@ -8,7 +8,8 @@ import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 export const LIST          = createNetworkActionTypes("USERS.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("USERS.LIST_VERSIONS");
 export const SET_SORT_BY = "USERS.SET_SORT_BY";
-export const SET_FILTER = "USERS.SET_FILTER";
+export const SET_FILTER_VALUE = "USERS.SET_FILTER_VALUE";
+export const SET_FILTER_OPTIONS = "USERS.SET_FILTER_OPTIONS"
 export const CLEAR_FILTERS = "USERS.CLEAR_FILTERS";
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
@@ -42,10 +43,17 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
-export const setFilter = thenList((name, value, field) => {
+export const setFilterValue = thenList((name, value) => {
     return {
-        type: SET_FILTER,
-        data: { name, value, field }
+        type: SET_FILTER_VALUE,
+        data: { name, value}
+    }
+});
+
+export const setFilterOptions = thenList((name, options) => {
+    return {
+        type: SET_FILTER_OPTIONS,
+        data: { name, options }
     }
 });
 
@@ -59,12 +67,14 @@ export default {
     LIST,
     LIST_VERSIONS,
     SET_SORT_BY,
-    SET_FILTER,
+    SET_FILTER_VALUE,
+    SET_FILTER_OPTIONS,
     CLEAR_FILTERS,
     list,
     listVersions,
     setSortBy,
-    setFilter,
+    setFilterValue,
+    setFilterOptions,
     clearFilters,
 };
 
