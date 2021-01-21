@@ -10,7 +10,7 @@ export const ADD = createNetworkActionTypes("INDIVIDUALS.ADD");
 export const UPDATE = createNetworkActionTypes("INDIVIDUALS.UPDATE");
 export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
 export const SET_SORT_BY = "INDIVIDUALS.SET_SORT_BY"
-export const SET_FILTER = "CONTAINERS.SET_FILTER";
+export const SET_FILTER = "INDIVIDUALS.SET_FILTER";
 export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 
 export const get = id => async (dispatch, getState) => {
