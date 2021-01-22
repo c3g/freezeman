@@ -1,14 +1,13 @@
-import React, {useState} from "react";
-import moment from "moment";
+import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {AutoComplete, Button, Form, Input, Radio} from "antd";
-import "antd/es/auto-complete/style/css";
+import {Button, Form, Input, Radio, Select} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
+import "antd/es/select/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -50,6 +49,12 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
   if (!isAdding && formData === undefined && individual !== undefined) {
     setFormData(deserialize(individual))
   }
+
+  const individualValue = individual || EMPTY_INDIVIDUAL
+  useEffect(() => {
+    const newData = deserialize(individualValue)
+    onSearchIndividual(newData.mother)
+  }, [individualValue])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
@@ -132,14 +137,20 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
             <Input />
           </Form.Item>
           <Form.Item label="Mother" {...props("mother")}>
-            <AutoComplete
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
             />
           </Form.Item>
           <Form.Item label="Father" {...props("father")}>
-            <AutoComplete
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
@@ -163,15 +174,11 @@ function deserialize(values) {
     const newValues = { ...values }
     if (newValues.sex === null)
         newValues.sex = ''
-    if (newValues.sex === null)
-        newValues.sex = ''
     return newValues
 }
 
 function serialize(values) {
     const newValues = { ...values }
-    if (newValues.sex === '')
-        newValues.sex = null
     if (newValues.sex === '')
         newValues.sex = null
     return newValues
