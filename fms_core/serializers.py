@@ -61,8 +61,8 @@ class SampleExportSerializer(serializers.ModelSerializer):
     sex = serializers.CharField(read_only=True, source="individual.sex")
     pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
     cohort = serializers.CharField(read_only=True, source="individual.cohort")
-    mother_id = serializers.SerializerMethodField()
-    father_id = serializers.SerializerMethodField()
+    mother_name = serializers.SerializerMethodField()
+    father_name = serializers.SerializerMethodField()
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
@@ -74,7 +74,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
         model = Sample
         fields = ('biospecimen_type', 'sample_name', 'alias', 'cohort', 'taxon',
                   'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
-                  'individual_id', 'sex', 'pedigree', 'mother_id', 'father_id',
+                  'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
                   'current_volume', 'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype',
                   'depleted', 'coordinates',
                   'comment')
@@ -89,11 +89,11 @@ class SampleExportSerializer(serializers.ModelSerializer):
         sorted_volume_histories = sorted(obj.volume_history, key=lambda k: k['date'])
         return sorted_volume_histories[-1]['volume_value']
 
-    def get_father_id(self, obj):
+    def get_father_name(self, obj):
         father = '' if obj.individual.father is None else obj.individual.father.name
         return father
 
-    def get_mother_id(self, obj):
+    def get_mother_name(self, obj):
         mother = '' if obj.individual.mother is None else obj.individual.mother.name
         return mother
 
