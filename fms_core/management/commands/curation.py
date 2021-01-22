@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction, IntegrityError
 import json
 from os.path import expanduser
 import os
@@ -8,8 +9,18 @@ import logging
 import reversion
 from shutil import copyfile
 from django.contrib.auth.models import User
+# Import the functions of the various curations available.
 from ._rollback_extraction import rollback_extraction
+from ._rollback_curation import rollback_curation
 
+# Available actions
+ACTION_ROLLBACK_CURATION = "rollback_curation"
+ACTION_ROLLBACK_EXTRACTION = "rollback_extraction"
+
+# Curation params template
+# [CURATION_ACTION_TEMPLATE_1,CURATION_ACTION_TEMPLATE_2,...]
+
+# Other contants
 HOME = expanduser("~")
 CURATION_PATH = "/curation/"
 LOG_PATH = "log/"
@@ -19,7 +30,8 @@ class Command(BaseCommand):
     help = 'Manage curations'
 
     curation_switch = {
-        "rollback_extraction": rollback_extraction
+        ACTION_ROLLBACK_EXTRACTION: rollback_extraction,
+        ACTION_ROLLBACK_CURATION: rollback_curation
     }
 
     def init_logging(self, log_name, timestamp):
@@ -51,21 +63,31 @@ class Command(BaseCommand):
         # Extracting the curations to perform from file
         with open(src_curation_file) as file:
             params = json.load(file)
-        # Create a curation revision to eventually rollback the current curation
-        with reversion.create_revision(atomic=True):
-            # Launch each individual curation
-            for curation in params:
-                self.stdout.write(self.style.SUCCESS('Launching action [' + str(curation["curation_index"]) + '] "%s"' % curation["action"]) + '.')
-                action = self.curation_switch.get(curation["action"])
-                if action:
-                    curation_failed = action(curation, log)
-                    if curation_failed:
-                        self.stdout.write(self.style.ERROR("Action [" + str(curation_failed) + "] failed."))
-                    else:
-                        self.stdout.write(self.style.SUCCESS("Action complete."))
+        error_found = False
+        try:
+            with transaction.atomic():
+                # Create a curation revision to eventually rollback the current curation
+                with reversion.create_revision():
+                    # Launch each individual curation
+                    for curation in params:
+                        self.stdout.write(self.style.SUCCESS('Launching action [' + str(curation["curation_index"]) + '] "%s"' % curation["action"]) + '.')
+                        action = self.curation_switch.get(curation["action"])
+                        if action:
+                            curation_failed = action(curation, log)
+                            if curation_failed:
+                                self.stdout.write(self.style.ERROR("Action [" + str(curation_failed) + "] failed."))
+                                error_found = True
+                            else:
+                                self.stdout.write(self.style.SUCCESS("Action complete."))
+                        else:
+                            self.stdout.write(self.style.ERROR("Curation [" + str(curation["action"]) + "] do not exist."))
+                    reversion.set_user(User.objects.get(username="biobankadmin"))  # set biobankadmin (user 1) as user
+                    reversion.set_comment("Manual curation performed by Administrators.")
+                if error_found:
+                    raise IntegrityError
                 else:
-                    self.stdout.write(self.style.ERROR("Curation [" + str(curation["action"]) + "] do not exist."))
-            reversion.set_user(User.objects.get(username="biobankadmin"))  # set biobankadmin (user 1) as user
-            reversion.set_comment("Manual curation performed by Administrators.")
-        self.stdout.write(self.style.SUCCESS("Completed curation."))
+                    self.stdout.write(self.style.SUCCESS("Completed curation."))
+        except IntegrityError:
+            log.info("Curation operation transaction rolled back.")
+
 
