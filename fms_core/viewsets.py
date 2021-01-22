@@ -289,6 +289,12 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         },
     ]
 
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            context['header'] = ContainerExportSerializer.Meta.fields
+        return context
+
     @action(detail=False, methods=["get"])
     def summary(self, _request):
         """
@@ -430,6 +436,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         if nested:
             return NestedSampleSerializer
         return SampleSerializer
+
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            context['header'] = SampleExportSerializer.Meta.fields
+        return context
+
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):

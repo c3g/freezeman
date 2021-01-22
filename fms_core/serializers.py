@@ -35,10 +35,11 @@ class SimpleContainerSerializer(serializers.ModelSerializer):
 
 class ContainerExportSerializer(serializers.ModelSerializer):
     location = serializers.SlugRelatedField(slug_field='barcode', read_only=True)
+    container_kind = serializers.CharField(source='kind')
 
     class Meta:
         model = Container
-        fields = ('kind', 'name', 'barcode', 'location', 'coordinates', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
 
 
 class IndividualSerializer(serializers.ModelSerializer):
@@ -54,6 +55,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
+    sample_name = serializers.CharField(source="name")
     individual_id = serializers.CharField(read_only=True, source="individual.name")
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
     sex = serializers.CharField(read_only=True, source="individual.sex")
@@ -64,16 +66,18 @@ class SampleExportSerializer(serializers.ModelSerializer):
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
-    container_coordinates = serializers.CharField(read_only=True, source="container.coordinates")
+    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
-    last_volume_history = serializers.SerializerMethodField()
+    current_volume = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        fields = ('biospecimen_type', 'name', 'alias', 'concentration', 'depleted', 'collection_site', 'tissue_source',
-                  'reception_date', 'phenotype', 'comment', 'coordinates', 'last_volume_history',
-                  'individual_id', 'taxon', 'sex', 'pedigree', 'mother_name', 'father_name', 'cohort',
-                  'container_kind', 'container_name', 'container_barcode', 'container_coordinates', 'location_barcode')
+        fields = ('biospecimen_type', 'sample_name', 'alias', 'cohort', 'taxon',
+                  'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
+                  'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
+                  'current_volume', 'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype',
+                  'depleted', 'coordinates',
+                  'comment')
 
     def get_location_barcode(self, obj):
         if obj.container.location is None:
@@ -81,7 +85,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
         else:
             return obj.container.location.barcode
 
-    def get_last_volume_history(self, obj):
+    def get_current_volume(self, obj):
         sorted_volume_histories = sorted(obj.volume_history, key=lambda k: k['date'])
         return sorted_volume_histories[-1]['volume_value']
 
