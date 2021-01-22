@@ -3,7 +3,17 @@ import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {AutoComplete, Button, DatePicker, Form, Input, Select, Typography, InputNumber} from "antd";
+import {
+  AutoComplete,
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Switch,
+  Typography,
+} from "antd";
 import "antd/es/auto-complete/style/css";
 import "antd/es/button/style/css";
 import "antd/es/date-picker/style/css";
@@ -11,6 +21,7 @@ import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/input-number/style/css";
 import "antd/es/select/style/css";
+import "antd/es/switch/style/css";
 import "antd/es/typography/style/css";
 const {Option} = Select
 const {TextArea} = Input
@@ -167,7 +178,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
       help: formErrors[name],
     }
 
-  const isTissueEnabled = tissueEnabled(formData.biospecimen_type)
+  const isTissueEnabled = tissueEnabled(formData?.biospecimen_type)
 
   return (
     <>
@@ -227,6 +238,9 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           </Form.Item>
           <Form.Item label="Coordinates" {...props("coordinates")}>
             <Input />
+          </Form.Item>
+          <Form.Item label="Depleted" {...props("depleted")} valuePropName="checked">
+            <Switch />
           </Form.Item>
           {isAdding &&
             <Form.Item
