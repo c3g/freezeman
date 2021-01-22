@@ -41,11 +41,6 @@ class ContainerExportSerializer(serializers.ModelSerializer):
         model = Container
         fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
 
-    def to_representation(self, obj):
-        primitive_repr = super(ContainerExportSerializer, self).to_representation(obj)
-        primitive_repr = {k.replace("_", " "): v for k, v in primitive_repr.items()}
-        return primitive_repr
-
 
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,11 +96,6 @@ class SampleExportSerializer(serializers.ModelSerializer):
     def get_mother_id(self, obj):
         mother = '' if obj.individual.mother is None else obj.individual.mother.name
         return mother
-
-    def to_representation(self, obj):
-        primitive_repr = super(SampleExportSerializer, self).to_representation(obj)
-        primitive_repr = {k.replace("_", " "): v for k, v in primitive_repr.items()}
-        return primitive_repr
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):
