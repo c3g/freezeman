@@ -154,7 +154,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           <Item label="Comment" name="comment">
             <TextArea />
           </Item>
-          <Item label="Upd. Comment" name="update_comment">
+          <Item label="Update Comment" name="update_comment">
             <TextArea />
           </Item>
           <Item>
