@@ -35,7 +35,7 @@ class Command(BaseCommand):
     }
 
     def init_logging(self, log_name, timestamp):
-        filename = HOME + CURATION_PATH + LOG_PATH + log_name + "_" + timestamp + ".log"
+        filename = HOME + CURATION_PATH + LOG_PATH + timestamp + "_" + log_name + ".log"
         formatter = logging.Formatter("%(asctime)s || %(levelname)s || %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
         handler = logging.FileHandler(filename, "w+")
         handler.setFormatter(formatter)
@@ -54,7 +54,7 @@ class Command(BaseCommand):
         time.tzset()
         timestamp = time.strftime("%Y-%m-%d_%H:%M:%S")
         src_curation_file = HOME + CURATION_PATH + options["params_file"] + ".json"
-        dst_curation_file = HOME + CURATION_PATH + LOG_PATH + options["params_file"] + "_" + timestamp + ".json"
+        dst_curation_file = HOME + CURATION_PATH + LOG_PATH + timestamp + "_" + options["params_file"] + ".json"
         copyfile(src_curation_file, dst_curation_file)
         # Use param file name to name log file
         log = self.init_logging(options["params_file"], timestamp)

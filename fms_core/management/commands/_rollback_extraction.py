@@ -78,6 +78,7 @@ def rollback_extraction(params, log):
         if not error_found:
             for sample in sample_to:
                 id = sample.id
+                sample.update_comment = "Marked for deletion"
                 sample.save()
                 sample.delete()
                 log.info("Sample [" + str(id) + "] deleted.")
