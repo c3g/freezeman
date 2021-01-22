@@ -59,6 +59,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_CONTAINER : container))
+  const [formErrors, setFormErrors] = useState({})
 
   if (!isAdding && formData === undefined && container !== undefined) {
     const newData = deserialize(container)
@@ -77,17 +78,13 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
 
   const onSubmit = () => {
     const data = serialize(formData)
-    if (isAdding) {
-      add(data)
-      .then(container => {
-        history.push(`/containers/${container.id}`)
-      })
-    } else {
-      update(id, data)
-      .then(() => {
-        history.push(`/containers/${id}`)
-      })
-    }
+    const action =
+      isAdding ?
+        add(data).then(container => { history.push(`/containers/${container.id}`) }) :
+        update(id, data).then(() => { history.push(`/containers/${id}`) })
+    action
+    .then(() => { setFormErrors({}) })
+    .catch(err => { setFormErrors(err.data || {}) })
   }
 
   /*
@@ -97,6 +94,14 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const title = id === undefined ?
     'Add Container' :
     `Update Container ${container ? container.name : id}`
+
+  const props = name =>
+    !formErrors[name] ? { name } : {
+      name,
+      hasFeedback: true,
+      validateStatus: 'error',
+      help: formErrors[name],
+    }
 
   return (
     <>
@@ -114,10 +119,10 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" name="name" rules={requiredRules}>
+          <Item label="Name" {...props("name")} rules={requiredRules}>
             <Input />
           </Item>
-          <Item label="Kind" name="kind" rules={requiredRules}>
+          <Item label="Kind" {...props("kind")} rules={requiredRules}>
             <Select>
               {containerKinds.map(kind =>
                 <Option key={kind.id} value={kind.id}>{kind.id}</Option>
@@ -126,13 +131,13 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           </Item>
           <Item
             label="Barcode"
-            name="barcode"
+            {...props("barcode")}
             rules={barcodeRules.concat(requiredRules)}
           >
             <Input />
           </Item>
           <Item label="Location" style={{ margin: 0 }}>
-            <Item name="location" style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}>
+            <Item {...props("location")} style={{ display: 'inline-block', width: '60%', marginRight: '1em' }}>
               <Select
                 showSearch
                 allowClear
@@ -144,17 +149,17 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
             </Item>
             <Item
               label="@"
-              name="coordinates"
+              {...props("coordinates")}
               className="ContainerEditContent__coordinates"
               style={{ width: 'calc(40% - 1em)' }}
             >
               <Input placeholder="Coordinates" />
             </Item>
           </Item>
-          <Item label="Comment" name="comment">
+          <Item label="Comment" {...props("comment")}>
             <TextArea />
           </Item>
-          <Item label="Update Comment" name="update_comment">
+          <Item label="Update Comment" {...props("update_comment")}>
             <TextArea />
           </Item>
           <Item>

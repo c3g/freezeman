@@ -28,14 +28,16 @@ export const add = sample => async (dispatch, getState) => {
     if (getState().samples.isFetching)
         return;
 
-    return await dispatch(networkAction(ADD, api.samples.add(sample)));
+    return await dispatch(networkAction(
+        ADD, api.samples.add(sample), { meta: { ignoreError: 'APIError' } }));
 };
 
 export const update = (id, sample) => async (dispatch, getState) => {
     if (getState().samples.itemsByID[id].isFetching)
         return;
 
-    return await dispatch(networkAction(UPDATE, api.samples.update(sample), { meta: { id } }));
+    return await dispatch(networkAction(
+        UPDATE, api.samples.update(sample), { meta: { id, ignoreError: 'APIError' }}));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {

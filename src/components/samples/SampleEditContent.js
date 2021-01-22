@@ -119,6 +119,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
+  const [formErrors, setFormErrors] = useState({})
 
   if (!isAdding && formData === undefined && sample !== undefined) {
     const newData = deserialize(sample)
@@ -140,11 +141,13 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
 
   const onSubmit = () => {
     const data = serialize(formData)
-    if (isAdding) {
-      add(data).then(sample => { history.push(`/samples/${sample.id}`) })
-    } else {
-      update(id, data).then(() => { history.push(`/samples/${id}`) })
-    }
+    const action =
+      isAdding ?
+        add(data).then(sample => { history.push(`/samples/${sample.id}`) }) :
+        update(id, data).then(() => { history.push(`/samples/${id}`) })
+    action
+    .then(() => { setFormErrors({}) })
+    .catch(err => { setFormErrors(err.data || {}) })
   }
 
 
@@ -155,6 +158,14 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
   const title = id === undefined ?
     'Add Sample' :
     `Update Sample ${sample ? sample.name : id}`
+
+  const props = name =>
+    !formErrors[name] ? { name } : {
+      name,
+      hasFeedback: true,
+      validateStatus: 'error',
+      help: formErrors[name],
+    }
 
   const isTissueEnabled = tissueEnabled(formData.biospecimen_type)
 
@@ -174,27 +185,27 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" name="name" rules={requiredRules.concat(nameRules)}>
+          <Form.Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
             <Input />
           </Form.Item>
-          <Form.Item label="Alias" name="alias">
+          <Form.Item label="Alias" {...props("alias")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Biosp. Type" name="biospecimen_type" rules={requiredRules}>
+          <Form.Item label="Biosp. Type" {...props("biospecimen_type")} rules={requiredRules}>
             <Select>
               {BIOSPECIMEN_TYPE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Tissue" name="tissue_source" rules={isTissueEnabled ? requiredRules : undefined}>
+          <Form.Item label="Tissue" {...props("tissue_source")} rules={isTissueEnabled ? requiredRules : undefined}>
             <Select allowClear disabled={!isTissueEnabled}>
               {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" name="individual" rules={requiredRules}>
+          <Form.Item label="Individual" {...props("individual")} rules={requiredRules}>
             <Select
               showSearch
               allowClear
@@ -204,7 +215,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               onFocus={onFocusIndividual}
             />
           </Form.Item>
-          <Form.Item label="Container" name="container" rules={requiredRules}>
+          <Form.Item label="Container" {...props("container")} rules={requiredRules}>
             <Select
               showSearch
               allowClear
@@ -214,13 +225,13 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               onFocus={onFocusContainer}
             />
           </Form.Item>
-          <Form.Item label="Coordinates" name="coordinates">
+          <Form.Item label="Coordinates" {...props("coordinates")}>
             <Input />
           </Form.Item>
           {isAdding &&
             <Form.Item
               label="Vol. (µL)"
-              name="volume"
+              {...props("volume")}
               rules={requiredRules}
             >
               <InputNumber step={0.001} />
@@ -228,34 +239,34 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           }
           <Form.Item
             label="Conc. (ng/µL)"
-            name="concentration"
+            {...props("concentration")}
             extra="Concentration in ng/µL. Required for nucleic acid samples."
           >
             <InputNumber step={0.001} />
           </Form.Item>
-          <Form.Item label="Exp. Group" name="experimental_group">
+          <Form.Item label="Exp. Group" {...props("experimental_group")}>
             <Select mode="tags" />
           </Form.Item>
-          <Form.Item label="Collection Site" name="collection_site" rules={requiredRules}>
+          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
             />
           </Form.Item>
-          <Form.Item label="Reception" name="reception_date" rules={requiredRules}>
+          <Form.Item label="Reception" {...props("reception_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
-          <Form.Item label="Phenotype" name="phenotype">
+          <Form.Item label="Phenotype" {...props("phenotype")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Comment" name="comment">
+          <Form.Item label="Comment" {...props("comment")}>
             <TextArea />
           </Form.Item>
-          <Form.Item label="Upd. Comment" name="update_comment">
+          <Form.Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
           </Form.Item>
-          <Form.Item label="Extracted From" name="extracted_from">
+          <Form.Item label="Extracted From" {...props("extracted_from")}>
             <Select
               showSearch
               allowClear
@@ -267,7 +278,7 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           </Form.Item>
           <Form.Item
             label="Vol. Used (µL)"
-            name="volume_used"
+            {...props("volume_used")}
             extra="Volume of the original sample used for the extraction, in µL. Must be specified only for extracted nucleic acid samples."
           >
             <InputNumber

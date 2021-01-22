@@ -45,6 +45,7 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_INDIVIDUAL : individual))
+  const [formErrors, setFormErrors] = useState({})
 
   if (!isAdding && formData === undefined && individual !== undefined) {
     setFormData(deserialize(individual))
@@ -56,11 +57,13 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
 
   const onSubmit = () => {
     const data = serialize(formData)
-    if (isAdding) {
-      add(data).then(individual => { history.push(`/individuals/${individual.id}`) })
-    } else {
-      update(id, data).then(() => { history.push(`/individuals/${id}`) })
-    }
+    const action =
+      isAdding ?
+        add(data).then(individual => { history.push(`/individuals/${individual.id}`) }) :
+        update(id, data).then(() => { history.push(`/individuals/${id}`) })
+    action
+    .then(() => { setFormErrors({}) })
+    .catch(err => { setFormErrors(err.data || {}) })
   }
 
   /*
@@ -83,6 +86,14 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
     'Add Individual' :
     `Update Individual ${individual ? individual.name : id}`
 
+  const props = name =>
+    !formErrors[name] ? { name } : {
+      name,
+      hasFeedback: true,
+      validateStatus: 'error',
+      help: formErrors[name],
+    }
+
   return (
     <>
       <AppPageHeader
@@ -99,35 +110,35 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" name="name" rules={requiredRules}>
+          <Form.Item label="Name" {...props("name")} rules={requiredRules}>
             <Input />
           </Form.Item>
-          <Form.Item label="Taxon" name="taxon">
+          <Form.Item label="Taxon" {...props("taxon")}>
             <Radio.Group
               optionType="button"
               options={toOptions(TAXON)}
             />
           </Form.Item>
-          <Form.Item label="Sex" name="sex">
+          <Form.Item label="Sex" {...props("sex")}>
             <Radio.Group
               optionType="button"
               options={toOptions(SEX)}
             />
           </Form.Item>
-          <Form.Item label="Pedigree" name="pedigree">
+          <Form.Item label="Pedigree" {...props("pedigree")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Cohort" name="cohort">
+          <Form.Item label="Cohort" {...props("cohort")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Mother" name="mother">
+          <Form.Item label="Mother" {...props("mother")}>
             <AutoComplete
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
             />
           </Form.Item>
-          <Form.Item label="Father" name="father">
+          <Form.Item label="Father" {...props("father")}>
             <AutoComplete
               options={individualOptions}
               onSearch={onSearchIndividual}
