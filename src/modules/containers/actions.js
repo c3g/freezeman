@@ -31,14 +31,16 @@ export const add = container => async (dispatch, getState) => {
     if (getState().containers.isFetching)
         return;
 
-    return await dispatch(networkAction(ADD, api.containers.add(container)));
+    return await dispatch(networkAction(
+        ADD, api.containers.add(container), { meta: { ignoreError: 'APIError' } }));
 };
 
 export const update = (id, container) => async (dispatch, getState) => {
     if (getState().containers.itemsByID[id].isFetching)
         return;
 
-    return await dispatch(networkAction(UPDATE, api.containers.update(container), { meta: { id } }));
+    return await dispatch(networkAction(
+        UPDATE, api.containers.update(container), { meta: { id, ignoreError: 'APIError' }}));
 };
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
