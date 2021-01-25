@@ -135,7 +135,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
           placeholder={`Select ${column.title}`}
           mode='multiple'
           options={options}
-          value={description.mode === 'multiple' ? selectedKeys : selectedKeys[0]}
+          value={description.mode === 'multiple' ? selectedKeyValue(selectedKeys) : selectedKeyValue(selectedKeys[0])}
           onChange={e => onSearch(e, setSelectedKeys, null)}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
@@ -172,7 +172,7 @@ function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Radio.Group
-          value={selectedKeys[0] ? selectedKeys[0] : EMPTY_VALUE}
+          value={selectedKeys[0]?.value ? selectedKeys[0].value : EMPTY_VALUE}
           onChange={ev => onSearch(ev, setSelectedKeys, confirm, clearFilters)}
         >
           <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE} ref={buttonRef}>
@@ -295,5 +295,5 @@ function selectedKeyValue(selectedKeysArg){
 }
 
 function selectedKeyOptionExactMatch(selectedKeysArg){
-  return (selectedKeysArg && selectedKeysArg.option)  ? selectedKeysArg.option.exactMatch : undefined
+  return selectedKeysArg?.option ? selectedKeysArg.option.exactMatch : undefined
 }
