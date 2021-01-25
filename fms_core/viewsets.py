@@ -53,7 +53,7 @@ __all__ = [
 ]
 
 
-FREE_TEXT_FILTERS = ["contains", "icontains", "exact"]
+FREE_TEXT_FILTERS = ["contains", "icontains", "startswith"]
 CATEGORICAL_FILTERS = ["exact", "in"]
 CATEGORICAL_FILTERS_LOOSE = [*CATEGORICAL_FILTERS, *FREE_TEXT_FILTERS]
 FK_FILTERS = CATEGORICAL_FILTERS
@@ -242,7 +242,7 @@ _sample_minimal_filterset_fields: FiltersetFields = {
 
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "name": ["in", "icontains", "exact"],
+    "name": CATEGORICAL_FILTERS_LOOSE,
     "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
