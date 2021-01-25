@@ -64,7 +64,7 @@ const SamplesDetailContent = ({samplesByID, containersByID, individualsByID, use
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
   const sample = samplesByID[id] || {};
-  const error = sample.error;
+  const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
   const volume = sample.volume_history

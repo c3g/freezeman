@@ -1,5 +1,6 @@
 import cheerio from "cheerio";
 import {stringify as qs} from "querystring";
+import {map} from "rambda";
 
 import {API_BASE_PATH} from "../config";
 
@@ -147,13 +148,13 @@ function put(route, body, options) {
 
 
 function createAPIError(response) {
-  const data = response.data;
-
+  let data = response.data;
   let detail;
 
   // Django validation errors kind of error
   if (!response.isJSON && response.status === 500) {
-    detail = parseDjangoError(data)
+    data = parseDjangoError(data)
+    detail = JSON.stringify(data)
   }
   // Other type of django validation errors
   else if (response.isJSON && response.status === 400) {
@@ -172,7 +173,9 @@ function createAPIError(response) {
     (`HTTP error ${response.status}: ` + response.statusText + ': ' + response.url)
 
   const error = new Error(message);
+  error.name = 'APIError';
   error.fromAPI = Boolean(detail);
+  error.data = data || {};
   error.url = response.url;
   error.status = response.status;
   error.statusText = response.statusText;
@@ -183,7 +186,12 @@ function createAPIError(response) {
 
 function parseDjangoError(html) {
   const $ = cheerio.load(html)
-  return $('.exception_value').text()
+  const text = $('.exception_value').text()
+  const transformed = text.replace(/'(\w+)':/g, '$1:')
+  /* Using eval() is hidious but the thing that Django
+   * returns isn't JSON -_- */
+  const errors = eval(`(${transformed})`)
+  return map(es => es.join(', '), errors)
 }
 
 function attachData(response) {

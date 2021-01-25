@@ -1,14 +1,13 @@
-import React, {useState} from "react";
-import moment from "moment";
+import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {AutoComplete, Button, Form, Input, Radio} from "antd";
-import "antd/es/auto-complete/style/css";
+import {Button, Form, Input, Radio, Select} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
+import "antd/es/select/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -45,10 +44,17 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
    */
 
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_INDIVIDUAL : individual))
+  const [formErrors, setFormErrors] = useState({})
 
   if (!isAdding && formData === undefined && individual !== undefined) {
     setFormData(deserialize(individual))
   }
+
+  const individualValue = individual || EMPTY_INDIVIDUAL
+  useEffect(() => {
+    const newData = deserialize(individualValue)
+    onSearchIndividual(newData.mother)
+  }, [individualValue])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
@@ -56,11 +62,13 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
 
   const onSubmit = () => {
     const data = serialize(formData)
-    if (isAdding) {
-      add(data).then(individual => { history.push(`/individuals/${individual.id}`) })
-    } else {
-      update(id, data).then(() => { history.push(`/individuals/${id}`) })
-    }
+    const action =
+      isAdding ?
+        add(data).then(individual => { history.push(`/individuals/${individual.id}`) }) :
+        update(id, data).then(() => { history.push(`/individuals/${id}`) })
+    action
+    .then(() => { setFormErrors({}) })
+    .catch(err => { setFormErrors(err.data || {}) })
   }
 
   /*
@@ -83,6 +91,14 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
     'Add Individual' :
     `Update Individual ${individual ? individual.name : id}`
 
+  const props = name =>
+    !formErrors[name] ? { name } : {
+      name,
+      hasFeedback: true,
+      validateStatus: 'error',
+      help: formErrors[name],
+    }
+
   return (
     <>
       <AppPageHeader
@@ -99,36 +115,42 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" name="name" rules={requiredRules}>
+          <Form.Item label="Name" {...props("name")} rules={requiredRules}>
             <Input />
           </Form.Item>
-          <Form.Item label="Taxon" name="taxon">
+          <Form.Item label="Taxon" {...props("taxon")}>
             <Radio.Group
               optionType="button"
               options={toOptions(TAXON)}
             />
           </Form.Item>
-          <Form.Item label="Sex" name="sex">
+          <Form.Item label="Sex" {...props("sex")}>
             <Radio.Group
               optionType="button"
               options={toOptions(SEX)}
             />
           </Form.Item>
-          <Form.Item label="Pedigree" name="pedigree">
+          <Form.Item label="Pedigree" {...props("pedigree")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Cohort" name="cohort">
+          <Form.Item label="Cohort" {...props("cohort")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Mother" name="mother">
-            <AutoComplete
+          <Form.Item label="Mother" {...props("mother")}>
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
             />
           </Form.Item>
-          <Form.Item label="Father" name="father">
-            <AutoComplete
+          <Form.Item label="Father" {...props("father")}>
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
@@ -152,15 +174,11 @@ function deserialize(values) {
     const newValues = { ...values }
     if (newValues.sex === null)
         newValues.sex = ''
-    if (newValues.sex === null)
-        newValues.sex = ''
     return newValues
 }
 
 function serialize(values) {
     const newValues = { ...values }
-    if (newValues.sex === '')
-        newValues.sex = null
     if (newValues.sex === '')
         newValues.sex = null
     return newValues
