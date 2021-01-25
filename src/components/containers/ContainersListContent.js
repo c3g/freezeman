@@ -37,7 +37,6 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
     {
       title: "Sample",
       dataIndex: "samples",
-      sorter: true,
       render: (samples, container) =>
         (CONTAINER_KIND_SHOW_SAMPLE.includes(container.kind) && samples.length > 0 && 
           <>
@@ -74,7 +73,6 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       title: "Children",
       dataIndex: "children",
       align: 'right',
-      sorter: true,
       render: children => children ? children.length : null,
     },
     {

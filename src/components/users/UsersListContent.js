@@ -30,12 +30,11 @@ const getTableColumns = () => [
     {
       title: "Groups",
       dataIndex: "groups",
-      sorter: true,
       render: (groups = []) => groups.map(g => <Tag key={g.name}>{g.name}</Tag>)
     },
     {
       title: "Date Joined",
-      dataIndex: "",
+      dataIndex: "date_joined",
       sorter: true,
       render: date => moment(date).fromNow(),
     },
