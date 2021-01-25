@@ -30,7 +30,6 @@ const getTableColumns = () => [
     {
       title: "Groups",
       dataIndex: "groups",
-      sorter: true,
       render: (groups = []) => groups.map(g => <Tag key={g.name}>{g.name}</Tag>)
     },
     {
