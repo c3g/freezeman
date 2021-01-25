@@ -34,7 +34,7 @@ const getTableColumns = () => [
     },
     {
       title: "Date Joined",
-      dataIndex: "",
+      dataIndex: "date_joined",
       sorter: true,
       render: date => moment(date).fromNow(),
     },
