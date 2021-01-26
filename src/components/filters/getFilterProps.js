@@ -295,5 +295,6 @@ function selectedKeyValue(selectedKeysArg){
 }
 
 function selectedKeyOptionExactMatch(selectedKeysArg){
-  return selectedKeysArg?.option ? selectedKeysArg.option.exactMatch : undefined
+  const checked = selectedKeysArg?.options ? selectedKeysArg.options.exactMatch : undefined
+  return checked
 }
