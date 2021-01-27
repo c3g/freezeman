@@ -1,11 +1,12 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Switch, Space} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
 import "antd/es/select/style/css";
 import "antd/es/switch/style/css";
 import "antd/es/space/style/css";
+import "antd/es/tooltip/style/css";
 import {SearchOutlined} from "@ant-design/icons";
 
 import {FILTER_TYPE} from "../../constants";
@@ -54,22 +55,24 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
     filterIcon: getFilterIcon(Boolean(value)),
     filteredValue: arrayize(value),
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-      <div style={{ padding: 8 }}>
+      <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
         <Input
           ref={inputRef}
           allowClear
           placeholder={`Search ${dataIndex}`}
+          style={{ marginRight: 8 }}
           value={selectedKeyValue(selectedKeys[0])}
           onChange={e => onSearch(e.target.value ? [e.target.value] : [], setSelectedKeys)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
-        <div style={{ margin: 8, textAlign: 'center'}}>
+        <Tooltip title="Exact Match">
           <Switch
+            size='small'
             checked={selectedKeyOptionExactMatch(selectedKeys[0])}
             onChange={e => onToggleSwitch(e, dataIndex)}
-          /> Exact Match
-        </div>
+          />
+        </Tooltip>
       </div>
     ),
     onFilterDropdownVisibleChange: visible => {
