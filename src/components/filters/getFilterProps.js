@@ -203,9 +203,12 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
 
   const inputRef = useRef()
 
-  const onSearch = (value, confirm) => {
-    setFilterValue(dataIndex, value)
-    confirm()
+  const onSearch = (values, setSelectedKeys, confirm) => {
+    setSelectedKeys(values)
+    setFilterValue(dataIndex, values)
+
+    if(confirm)
+      confirm()
   }
 
   const onReset = clearFilters => {
@@ -228,31 +231,31 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
             placeholder='From'
             min={0}
             style={{ width: 100 }}
-            value={value ? value[0]?.value?.min : undefined}
-            onChange={newMin => onSearch({min: nullize(newMin), max: value[0]?.value?.max}, setSelectedKeys)}
+            value={minRangeValue(value)}
+            onChange={newMin => onSearch({min: nullize(newMin), max: maxRangeValue(value)}, setSelectedKeys)}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            //onPressEnter={() => onSearch(value, confirm)}
+            onPressEnter={() => confirm()}
           />
           <InputNumber
             placeholder='To'
             min={0}
             style={{ width: 100 }}
-            value={value ? value[0]?.value?.max : undefined}
-            onChange={newMax => onSearch({min: value[0]?.value?.min, max: nullize(newMax)}, setSelectedKeys)}
+            value={maxRangeValue(value)}
+            onChange={newMax => onSearch({min: minRangeValue(value), max: nullize(newMax)}, setSelectedKeys)}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            //onPressEnter={() => onSearch(value, confirm)}
+            onPressEnter={() => confirm()}
           />
         </Input.Group>
         <Space>
-          {/*<Button*/}
-          {/*  type="primary"*/}
-          {/*  onClick={() => onSearch(value, confirm)}*/}
-          {/*  icon={<SearchOutlined />}*/}
-          {/*  size="small"*/}
-          {/*  style={{ width: 90 }}*/}
-          {/*>*/}
-          {/*  Search*/}
-          {/*</Button>*/}
+          <Button
+            type="primary"
+            onClick={() => confirm()}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
           <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
             Reset
           </Button>
@@ -297,4 +300,12 @@ function selectedKeyValue(selectedKeysArg){
 function selectedKeyOptionExactMatch(selectedKeysArg){
   const checked = selectedKeysArg?.options ? selectedKeysArg.options.exactMatch : undefined
   return checked
+}
+
+function minRangeValue(value){
+  return value ? value[0]?.value?.min : undefined
+}
+
+function maxRangeValue(value){
+  return value ? value[0]?.value?.max : undefined
 }
