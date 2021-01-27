@@ -67,7 +67,7 @@ export const individuals = (
 
         case INDIVIDUALS.SET_SORT_BY:
             return { ...state, sortBy: action.data };
-        case INDIVIDUALS.SET_FILTER_VALUE:
+        case INDIVIDUALS.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),

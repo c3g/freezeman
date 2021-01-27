@@ -82,7 +82,7 @@ export const containers = (
 
     case CONTAINERS.SET_SORT_BY:
       return { ...state, sortBy: action.data };
-    case CONTAINERS.SET_FILTER_VALUE:
+    case CONTAINERS.SET_FILTER:
       return {
         ...state,
         filters: set(state.filters, [action.data.name, 'value'], action.data.value),

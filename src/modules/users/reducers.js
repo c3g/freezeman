@@ -21,7 +21,7 @@ export const users = (
   switch (action.type) {
     case USERS.SET_SORT_BY:
       return { ...state, sortBy: action.data };
-    case USERS.SET_FILTER_VALUE:
+    case USERS.SET_FILTER:
       return {
         ...state,
         filters: set(state.filters, [action.data.name, 'value'], action.data.value),

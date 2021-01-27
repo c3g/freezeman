@@ -10,7 +10,7 @@ export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
 export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
 export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
-export const SET_FILTER_VALUE      = "SAMPLES.SET_FILTER_VALUE";
+export const SET_FILTER            = "SAMPLES.SET_FILTER";
 export const SET_FILTER_OPTIONS    = "SAMPLES.SET_FILTER_OPTIONS"
 export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
 export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
@@ -63,9 +63,9 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
-export const setFilterValue = thenList((name, value) => {
+export const setFilter = thenList((name, value) => {
     return {
-        type: SET_FILTER_VALUE,
+        type: SET_FILTER,
         data: { name, value}
     }
 });
@@ -106,7 +106,7 @@ export default {
     ADD,
     UPDATE,
     SET_SORT_BY,
-    SET_FILTER_VALUE,
+    SET_FILTER,
     SET_FILTER_OPTIONS,
     CLEAR_FILTERS,
     LIST,
@@ -117,7 +117,7 @@ export default {
     add,
     update,
     setSortBy,
-    setFilterValue,
+    setFilter,
     setFilterOptions,
     clearFilters,
     list,

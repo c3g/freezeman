@@ -10,7 +10,7 @@ import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
 
-import {list, setFilterValue, setFilterOptions, clearFilters, setSortBy} from "../../modules/containers/actions";
+import {list, setFilter, setFilterOptions, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withSample} from "../../utils/withItem";
@@ -98,7 +98,7 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
 });
 
-const actionCreators = {list, setFilterValue, setFilterOptions, clearFilters, setSortBy};
+const actionCreators = {list, setFilter, setFilterOptions, clearFilters, setSortBy};
 
 const ContainersListContent = ({
   token,
@@ -113,7 +113,7 @@ const ContainersListContent = ({
   page,
   totalCount,
   list,
-  setFilterValue,
+  setFilter,
   setFilterOptions,
   clearFilters,
   setSortBy,
@@ -128,7 +128,7 @@ const ContainersListContent = ({
       c,
       CONTAINER_FILTERS,
       filters,
-      setFilterValue,
+      setFilter,
       setFilterOptions
     )))
 
