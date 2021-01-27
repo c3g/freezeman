@@ -32,6 +32,7 @@ export default function getFilterProps(column, descriptions, filters, setFilterV
 function getInputFilterProps(column, descriptions, filters, setFilterValue, setFilterOptions) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const inputRef = useRef()
 
@@ -50,7 +51,8 @@ function getInputFilterProps(column, descriptions, filters, setFilterValue, setF
   }
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
+    filterIcon: getFilterIcon(Boolean(value)),
+    filteredValue: arrayize(value),
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Input
@@ -70,7 +72,6 @@ function getInputFilterProps(column, descriptions, filters, setFilterValue, setF
         </div>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => inputRef?.current.select(), 100);
@@ -86,6 +87,7 @@ function getInputFilterProps(column, descriptions, filters, setFilterValue, setF
 function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const selectRef = useRef()
 
@@ -112,7 +114,8 @@ function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
   const options = description.options || column.options || []
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
+    filterIcon: getFilterIcon(Boolean(value)),
+    filteredValue: arrayize(value),
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Space style={{ marginBottom: 8 }}>
@@ -141,7 +144,6 @@ function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
         />
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => selectRef?.current.focus(), 100);
@@ -153,6 +155,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilterValue) {
 function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const buttonRef = useRef()
 
@@ -168,7 +171,8 @@ function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
   const options = description.options || column.options || []
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
+    filterIcon: getFilterIcon(Boolean(value)),
+    filteredValue: arrayize(value),
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Radio.Group
@@ -188,7 +192,6 @@ function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
         </Radio.Group>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => buttonRef?.current.focus(), 100);
@@ -200,6 +203,7 @@ function getRadioFilterProps(column, descriptions, filters, setFilterValue) {
 function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const inputRef = useRef()
 
@@ -219,7 +223,8 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
   }
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
+    filterIcon: getFilterIcon(Boolean(value)),
+    filteredValue: arrayize(value),
     filterDropdown: ({ setSelectedKeys, selectedKeys: value, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Input.Group compact style={{ marginBottom: 8 }}>
@@ -259,7 +264,6 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
         </Space>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => inputRef?.current.focus(), 100);
@@ -267,6 +271,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
     },
   }
 }
+
 
 function getFilterIcon(filtered) {
   return (

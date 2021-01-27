@@ -15,6 +15,7 @@ import api, {withToken}  from "../../utils/api"
 import {list, setFilterValue, setFilterOptions, clearFilters, setSortBy} from "../../modules/individuals/actions";
 import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
+import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 
@@ -92,7 +93,7 @@ const IndividualsListContent = ({
     setFilterOptions
   )))
 
-  const nFilters = Object.entries(filters).filter(e => e[1]).length
+  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Individuals" extra={[

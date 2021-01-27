@@ -18,6 +18,7 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
+import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -131,7 +132,7 @@ const ContainersListContent = ({
       setFilterOptions
     )))
 
-  const nFilters = Object.entries(filters).filter(e => e[1]).length
+  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Containers" extra={[

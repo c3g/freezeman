@@ -21,6 +21,7 @@ import {withContainer, withIndividual} from "../../utils/withItem";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
+import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 
@@ -148,7 +149,7 @@ const SamplesListContent = ({
     setFilterOptions
   )))
 
-  const nFilters = Object.entries(filters).filter(e => e[1]).length
+  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Samples & Extractions" extra={[
