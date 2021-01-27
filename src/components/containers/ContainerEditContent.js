@@ -2,7 +2,8 @@ import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {AutoComplete, Button, Form, Input, Select, Typography} from "antd";
+import {Alert, AutoComplete, Button, Form, Input, Select, Typography} from "antd";
+import "antd/es/alert/style/css";
 import "antd/es/auto-complete/style/css";
 import "antd/es/button/style/css";
 import "antd/es/form/style/css";
@@ -162,6 +163,23 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           <Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
           </Item>
+          {formErrors?.non_field_errors &&
+            <>
+              <Alert
+                showIcon
+                type="error"
+                message="Error(s)"
+                description={
+                  <ul>
+                    {formErrors.non_field_errors.map((e, i) =>
+                      <li key={i}>{e}</li>
+                    )}
+                  </ul>
+                }
+              />
+              <br/>
+            </>
+          }
           <Item>
             <Button type="primary" htmlType="submit">
               Submit

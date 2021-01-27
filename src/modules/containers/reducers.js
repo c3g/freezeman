@@ -65,7 +65,7 @@ export const containers = (
         { error: action.error, isFetching: false, didFail: true });
 
     case CONTAINERS.ADD.REQUEST:
-      return merge(state, ['isFetching'], true);
+      return { ...state, error: undefined, isFetching: true };
     case CONTAINERS.ADD.RECEIVE:
       return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
         { ...preprocessContainer(action.data) });

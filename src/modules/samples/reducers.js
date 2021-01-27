@@ -35,7 +35,7 @@ export const samples = (
               { error: action.error, isFetching: false, didFail: true });
 
         case SAMPLES.ADD.REQUEST:
-            return merge(state, ['isFetching'], true);
+            return { ...state, error: undefined, isFetching: true };
         case SAMPLES.ADD.RECEIVE:
             return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
                 preprocessSample(action.data));
