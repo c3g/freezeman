@@ -228,31 +228,31 @@ function getRangeFilterProps(column, descriptions, filters, setFilterValue) {
             placeholder='From'
             min={0}
             style={{ width: 100 }}
-            value={value[0]}
-            onChange={newMin => setSelectedKeys([nullize(newMin), value[1]])}
+            value={value ? value[0]?.value?.min : undefined}
+            onChange={newMin => onSearch({min: nullize(newMin), max: value[0]?.value?.max}, setSelectedKeys)}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => onSearch(value, confirm)}
+            //onPressEnter={() => onSearch(value, confirm)}
           />
           <InputNumber
             placeholder='To'
             min={0}
             style={{ width: 100 }}
-            value={value[1]}
-            onChange={newMax => setSelectedKeys([value[0], nullize(newMax)])}
+            value={value ? value[0]?.value?.max : undefined}
+            onChange={newMax => onSearch({min: value[0]?.value?.min, max: nullize(newMax)}, setSelectedKeys)}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => onSearch(value, confirm)}
+            //onPressEnter={() => onSearch(value, confirm)}
           />
         </Input.Group>
         <Space>
-          <Button
-            type="primary"
-            onClick={() => onSearch(value, confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
+          {/*<Button*/}
+          {/*  type="primary"*/}
+          {/*  onClick={() => onSearch(value, confirm)}*/}
+          {/*  icon={<SearchOutlined />}*/}
+          {/*  size="small"*/}
+          {/*  style={{ width: 90 }}*/}
+          {/*>*/}
+          {/*  Search*/}
+          {/*</Button>*/}
           <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
             Reset
           </Button>

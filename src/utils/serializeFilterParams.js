@@ -8,7 +8,7 @@ export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
   Object.keys(filters).forEach(field => {
-    let value = filters[field]?.value
+    const value = filters[field]?.value
     const description = descriptions[field]
     let key = description.key
 
@@ -18,11 +18,10 @@ export default function serializeFilterParams(filters, descriptions) {
     switch (description.type) {
 
       case FILTER_TYPE.RANGE: {
-        if (value[0] !== null)
-          params[key + '__gte'] = value[0]
-
-        if (value[1] !== null)
-          params[key + '__lte'] = value[1]
+        if (value){
+          params[key + '__gte'] = value.min
+          params[key + '__lte'] = value.max
+        }
 
         break
       }
