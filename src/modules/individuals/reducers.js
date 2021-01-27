@@ -73,10 +73,14 @@ export const individuals = (
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 page: set(state.page, ['offset'], 0),
             };
-        case INDIVIDUALS.SET_FILTER_OPTIONS:
+        case INDIVIDUALS.SET_FILTER_OPTION:
             return {
                 ...state,
-                filters: set(state.filters, [action.data.name, 'options'], action.data.options),
+                filters: set(
+                    state.filters,
+                    [action.data.name, 'options', action.data.option],
+                    action.data.value
+                ),
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.CLEAR_FILTERS:

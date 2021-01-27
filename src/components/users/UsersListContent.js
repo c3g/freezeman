@@ -9,7 +9,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
 
-import {list, setFilter, setFilterOptions, clearFilters, setSortBy} from "../../modules/users/actions";
+import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/users/actions";
 
 import {USER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -64,7 +64,7 @@ const mapStateToProps = state => ({
   isFetching: state.users.isFetching,
 });
 
-const actionCreators = {list, setFilter, setFilterOptions, clearFilters, setSortBy};
+const actionCreators = {list, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const UsersListContent = ({
   users,
@@ -76,7 +76,7 @@ const UsersListContent = ({
   totalCount,
   list,
   setFilter,
-  setFilterOptions,
+  setFilterOption,
   clearFilters,
   setSortBy,
 }) => {
@@ -87,7 +87,7 @@ const UsersListContent = ({
       USER_FILTERS,
       filters,
       setFilter,
-      setFilterOptions
+      setFilterOption
     )))
 
   const nFilters = Object.entries(filters).filter(e => e[1]).length

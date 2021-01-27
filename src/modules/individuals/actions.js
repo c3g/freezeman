@@ -11,7 +11,7 @@ export const UPDATE = createNetworkActionTypes("INDIVIDUALS.UPDATE");
 export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
 export const SET_SORT_BY = "INDIVIDUALS.SET_SORT_BY"
 export const SET_FILTER = "INDIVIDUALS.SET_FILTER";
-export const SET_FILTER_OPTIONS = "INDIVIDUALS.SET_FILTER_OPTIONS"
+export const SET_FILTER_OPTION = "INDIVIDUALS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS = "INDIVIDUALS.CLEAR_FILTERS";
 
 export const get = id => async (dispatch, getState) => {
@@ -67,10 +67,10 @@ export const setFilter = thenList((name, value) => {
     }
 });
 
-export const setFilterOptions = thenList((name, options) => {
+export const setFilterOption = thenList((name, option, value) => {
     return {
-        type: SET_FILTER_OPTIONS,
-        data: { name, options }
+        type: SET_FILTER_OPTION,
+        data: { name, option, value }
     }
 });
 
@@ -87,7 +87,7 @@ export default {
     LIST,
     SET_SORT_BY,
     SET_FILTER,
-    SET_FILTER_OPTIONS,
+    SET_FILTER_OPTION,
     CLEAR_FILTERS,
     get,
     add,
@@ -95,7 +95,7 @@ export default {
     list,
     setSortBy,
     setFilter,
-    setFilterOptions,
+    setFilterOption,
     clearFilters,
 };
 

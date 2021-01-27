@@ -10,7 +10,7 @@ export const ADD = createNetworkActionTypes("CONTAINERS.ADD");
 export const UPDATE = createNetworkActionTypes("CONTAINERS.UPDATE");
 export const SET_SORT_BY = "CONTAINERS.SET_SORT_BY";
 export const SET_FILTER = "CONTAINERS.SET_FILTER";
-export const SET_FILTER_OPTIONS = "CONTAINERS.SET_FILTER_OPTIONS"
+export const SET_FILTER_OPTION = "CONTAINERS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
@@ -74,10 +74,10 @@ export const setFilter = thenList((name, value) => {
     }
 });
 
-export const setFilterOptions = thenList((name, options) => {
+export const setFilterOption = thenList((name, option, value) => {
     return {
-        type: SET_FILTER_OPTIONS,
-        data: { name, options }
+        type: SET_FILTER_OPTION,
+        data: { name, option, value }
     }
 });
 
@@ -145,7 +145,7 @@ export default {
     UPDATE,
     SET_SORT_BY,
     SET_FILTER,
-    SET_FILTER_OPTIONS,
+    SET_FILTER_OPTION,
     CLEAR_FILTERS,
     LIST,
     LIST_PARENTS,
@@ -159,7 +159,7 @@ export default {
     update,
     setSortBy,
     setFilter,
-    setFilterOptions,
+    setFilterOption,
     clearFilters,
     list,
     listParents,

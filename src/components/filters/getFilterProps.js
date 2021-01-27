@@ -12,13 +12,13 @@ import {FILTER_TYPE} from "../../constants";
 
 const EMPTY_VALUE = '__EMPTY_VALUE__'
 
-export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOptions) {
+export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const description = descriptions[column.dataIndex];
   if (!description)
     return undefined;
   switch (description.type) {
     case FILTER_TYPE.INPUT:
-      return getInputFilterProps(column, descriptions, filters, setFilter, setFilterOptions)
+      return getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption)
     case FILTER_TYPE.SELECT:
       if (description.mode !== 'multiple')
         return getRadioFilterProps(column, descriptions, filters, setFilter)
@@ -29,7 +29,7 @@ export default function getFilterProps(column, descriptions, filters, setFilter,
   throw new Error(`unreachable: ${description.type}`)
 }
 
-function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOptions) {
+function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
@@ -47,7 +47,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
   }
 
   const onToggleSwitch = (checked) => {
-    setFilterOptions(dataIndex, {exactMatch: checked})
+    setFilterOption(dataIndex, 'exactMatch', checked)
   }
 
   return {

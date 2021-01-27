@@ -58,10 +58,14 @@ export const samples = (
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 page: set(state.page, ['offset'], 0),
             };
-        case SAMPLES.SET_FILTER_OPTIONS:
+        case SAMPLES.SET_FILTER_OPTION:
             return {
                 ...state,
-                filters: set(state.filters, [action.data.name, 'options'], action.data.options),
+                filters: set(
+                    state.filters,
+                    [action.data.name, 'options', action.data.option],
+                    action.data.value
+                ),
                 page: set(state.page, ['offset'], 0),
             };
         case SAMPLES.CLEAR_FILTERS:
