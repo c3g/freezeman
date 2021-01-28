@@ -60,7 +60,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
           allowClear
           placeholder={`Search ${dataIndex}`}
           style={{ marginRight: 8 }}
-          value={filters[dataIndex]?.value}
+          value={value}
           onChange={e => onSearch(e.target.value)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
