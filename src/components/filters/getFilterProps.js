@@ -141,7 +141,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
           placeholder={`Select ${column.title}`}
           mode='multiple'
           options={options}
-          value={description.mode === 'multiple' ? selectedKeyValue(selectedKeys) : selectedKeyValue(selectedKeys[0])}
+          value={description.mode === 'multiple' ? selectedKeys : selectedKeys[0]}
           onChange={e => onSearch(e, setSelectedKeys, null)}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
@@ -179,7 +179,7 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Radio.Group
-          value={selectedKeys[0]?.value ? selectedKeys[0].value : EMPTY_VALUE}
+          value={selectedKeys?.[0]}
           onChange={ev => onSearch(ev, setSelectedKeys, confirm, clearFilters)}
         >
           <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE} ref={buttonRef}>
@@ -226,6 +226,14 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const onKeyDown = (ev, confirm) => {
     if (ev.key === 'Escape')
       confirm()
+  }
+
+  const minRangeValue = value => {
+    return value?.[0]?.min
+  }
+
+  const maxRangeValue = value => {
+    return value?.[0]?.max
   }
 
   return {
@@ -310,10 +318,3 @@ function selectedKeyOptionExactMatch(selectedKeysArg){
   return checked
 }
 
-function minRangeValue(value){
-  return value?.[0]?.value?.min
-}
-
-function maxRangeValue(value){
-  return value?.[0]?.value?.max
-}
