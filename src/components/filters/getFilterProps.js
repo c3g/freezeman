@@ -34,6 +34,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
+  const options = filters[dataIndex]?.options;
 
   const inputRef = useRef()
 
@@ -50,33 +51,24 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
     setFilterOption(dataIndex, 'exactMatch', checked)
   }
 
-  const selectedValue = filters => {
-    return filters[dataIndex]?.value?.[0]
-  }
-
-  const selectedExactMatch = filters => {
-    return filters[dataIndex]?.options?.exactMatch
-  }
-
   return {
     filterIcon: getFilterIcon(Boolean(value)),
-    filteredValue: arrayize(value),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
         <Input
           ref={inputRef}
           allowClear
           placeholder={`Search ${dataIndex}`}
           style={{ marginRight: 8 }}
-          value={selectedValue(filters)}
-          onChange={e => onSearch(e.target.value ? [e.target.value] : [])}
+          value={filters[dataIndex]?.value}
+          onChange={e => onSearch(e.target.value)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
         <Tooltip title="Exact Match">
           <Switch
             size='small'
-            checked={selectedExactMatch(filters)}
+            checked={options?.exactMatch ?? false}
             onChange={e => onToggleSwitch(e, dataIndex)}
           />
         </Tooltip>
@@ -101,20 +93,9 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
 
   const selectRef = useRef()
 
-  const onSearch = (selectedKeys, setSelectedKeys, confirm) => {
-    setSelectedKeys(selectedKeys);
-    if (selectedKeys.length === 0)
-      setFilter(dataIndex, undefined)
-    else
-      setFilter(dataIndex, selectedKeys)
-    if (confirm)
-      confirm()
+  const onSearch = (value) => {
+    setFilter(dataIndex, value.length === 0 ? undefined : value)
   }
-
-  const onReset = clearFilters => {
-    setFilter(dataIndex, undefined)
-    clearFilters()
-  };
 
   const onKeyDown = (ev, confirm) => {
     if (ev.key === 'Escape')
@@ -125,31 +106,17 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
 
   return {
     filterIcon: getFilterIcon(Boolean(value)),
-    filteredValue: arrayize(value),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8 }}>
-        <Space style={{ marginBottom: 8 }}>
-          <Button
-            type="primary"
-            onClick={() => onSearch(selectedKeys, setSelectedKeys, confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
-          <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </Space>
         <Select
           ref={selectRef}
-          style={{ width: 188, marginBottom: 8, display: 'block' }}
+          style={{ width: 188, display: 'block' }}
           placeholder={`Select ${column.title}`}
           mode='multiple'
+          allowClear
           options={options}
-          value={description.mode === 'multiple' ? selectedKeys : selectedKeys[0]}
-          onChange={e => onSearch(e, setSelectedKeys, null)}
+          value={value}
+          onChange={e => onSearch(e)}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
       </div>
@@ -169,11 +136,9 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
 
   const buttonRef = useRef()
 
-  const onSearch = (ev, setSelectedKeys, confirm, clearFilters) => {
+  const onSearch = (ev, confirm) => {
     const value = typeof ev === 'string' ? ev : ev.target.value
-    const tableValue = value === EMPTY_VALUE ? [] : [value]
     const storeValue = value === EMPTY_VALUE ? undefined : value
-    setSelectedKeys(tableValue)
     setFilter(dataIndex, storeValue)
     confirm()
   }
@@ -182,12 +147,11 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
 
   return {
     filterIcon: getFilterIcon(Boolean(value)),
-    filteredValue: arrayize(value),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8 }}>
         <Radio.Group
-          value={selectedKeys?.[0]}
-          onChange={ev => onSearch(ev, setSelectedKeys, confirm, clearFilters)}
+          value={value}
+          onChange={ev => onSearch(ev, confirm)}
         >
           <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE} ref={buttonRef}>
             {description.placeholder}
@@ -214,20 +178,17 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
+  const minValue = value?.min
+  const maxValue = value?.max
 
   const inputRef = useRef()
 
-  const onSearch = (values, setSelectedKeys, confirm) => {
-    setSelectedKeys(values)
+  const onSearch = (values) => {
     setFilter(dataIndex, values)
-
-    if(confirm)
-      confirm()
   }
 
-  const onReset = clearFilters => {
+  const onReset = () => {
     setFilter(dataIndex, undefined)
-    clearFilters()
   };
 
   const onKeyDown = (ev, confirm) => {
@@ -235,18 +196,9 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
       confirm()
   }
 
-  const minRangeValue = value => {
-    return value?.[0]?.min
-  }
-
-  const maxRangeValue = value => {
-    return value?.[0]?.max
-  }
-
   return {
     filterIcon: getFilterIcon(Boolean(value)),
-    filteredValue: arrayize(value),
-    filterDropdown: ({ setSelectedKeys, selectedKeys: value, confirm, clearFilters }) => (
+    filterDropdown: ({ confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Input.Group compact style={{ marginBottom: 8 }}>
           <InputNumber
@@ -254,32 +206,32 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
             placeholder='From'
             min={0}
             style={{ width: 100 }}
-            value={minRangeValue(value)}
-            onChange={newMin => onSearch({min: nullize(newMin), max: maxRangeValue(value)}, setSelectedKeys)}
+            value={minValue}
+            onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => confirm()}
+            onPressEnter={confirm}
           />
           <InputNumber
             placeholder='To'
             min={0}
             style={{ width: 100 }}
-            value={maxRangeValue(value)}
-            onChange={newMax => onSearch({min: minRangeValue(value), max: nullize(newMax)}, setSelectedKeys)}
+            value={maxValue}
+            onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => confirm()}
+            onPressEnter={confirm}
           />
         </Input.Group>
         <Space>
           <Button
             type="primary"
-            onClick={() => confirm()}
+            onClick={confirm}
             icon={<SearchOutlined />}
             size="small"
             style={{ width: 90 }}
           >
-            Search
+            Done
           </Button>
-          <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
+          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
             Reset
           </Button>
         </Space>
@@ -306,12 +258,4 @@ function nullize(v) {
   if (v === '')
     return null
   return v
-}
-
-function arrayize(v) {
-  if (!v)
-    return null
-  if (Array.isArray(v))
-    return v
-  return [v]
 }
