@@ -37,9 +37,8 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
 
   const inputRef = useRef()
 
-  const onSearch = (selectedKeys, setSelectedKeys) => {
-    setSelectedKeys(selectedKeys)
-    setFilter(dataIndex, selectedKeys[0])
+  const onSearch = value => {
+    setFilter(dataIndex, value)
   }
 
   const onKeyDown = (ev, confirm) => {
@@ -47,8 +46,16 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
       confirm()
   }
 
-  const onToggleSwitch = (checked) => {
+  const onToggleSwitch = checked => {
     setFilterOption(dataIndex, 'exactMatch', checked)
+  }
+
+  const selectedValue = filters => {
+    return filters[dataIndex]?.value?.[0]
+  }
+
+  const selectedExactMatch = filters => {
+    return filters[dataIndex]?.options?.exactMatch
   }
 
   return {
@@ -61,15 +68,15 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
           allowClear
           placeholder={`Search ${dataIndex}`}
           style={{ marginRight: 8 }}
-          value={selectedKeyValue(selectedKeys[0])}
-          onChange={e => onSearch(e.target.value ? [e.target.value] : [], setSelectedKeys)}
+          value={selectedValue(filters)}
+          onChange={e => onSearch(e.target.value ? [e.target.value] : [])}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
         <Tooltip title="Exact Match">
           <Switch
             size='small'
-            checked={selectedKeyOptionExactMatch(selectedKeys[0])}
+            checked={selectedExactMatch(filters)}
             onChange={e => onToggleSwitch(e, dataIndex)}
           />
         </Tooltip>
@@ -308,13 +315,3 @@ function arrayize(v) {
     return v
   return [v]
 }
-
-function selectedKeyValue(selectedKeysArg){
-  return selectedKeysArg ? selectedKeysArg.value : undefined
-}
-
-function selectedKeyOptionExactMatch(selectedKeysArg){
-  const checked = selectedKeysArg?.options ? selectedKeysArg.options.exactMatch : undefined
-  return checked
-}
-
