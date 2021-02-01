@@ -41,7 +41,7 @@ const FilterGroup = ({
                   key={item.key}
                   name={name}
                   item={item}
-                  value={values[item.key]}
+                  value={values[item.key]?.value}
                   options={optionsForSelect(item)}
                   onChange={onChangeFilter}
                 />
@@ -52,7 +52,7 @@ const FilterGroup = ({
                   key={item.key}
                   name={name}
                   item={item}
-                  value={values[item.key]}
+                  value={values[item.key]?.value}
                   width={item.width}
                   onChange={onChangeFilter}
                 />
@@ -63,7 +63,7 @@ const FilterGroup = ({
                   key={item.key}
                   name={name}
                   item={item}
-                  value={values[item.key]}
+                  value={values[item.key]?.value}
                   onChange={onChangeFilter}
                 />
               );

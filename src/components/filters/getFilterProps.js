@@ -1,23 +1,25 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Space} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip} from "antd";
 import "antd/es/button/style/css";
 import "antd/es/input/style/css";
 import "antd/es/radio/style/css";
 import "antd/es/select/style/css";
+import "antd/es/switch/style/css";
 import "antd/es/space/style/css";
+import "antd/es/tooltip/style/css";
 import {SearchOutlined} from "@ant-design/icons";
 
 import {FILTER_TYPE} from "../../constants";
 
 const EMPTY_VALUE = '__EMPTY_VALUE__'
 
-export default function getFilterProps(column, descriptions, filters, setFilter) {
+export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const description = descriptions[column.dataIndex];
   if (!description)
     return undefined;
   switch (description.type) {
     case FILTER_TYPE.INPUT:
-      return getInputFilterProps(column, descriptions, filters, setFilter)
+      return getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption)
     case FILTER_TYPE.SELECT:
       if (description.mode !== 'multiple')
         return getRadioFilterProps(column, descriptions, filters, setFilter)
@@ -28,15 +30,16 @@ export default function getFilterProps(column, descriptions, filters, setFilter)
   throw new Error(`unreachable: ${description.type}`)
 }
 
-function getInputFilterProps(column, descriptions, filters, setFilter) {
+function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+  const options = filters[dataIndex]?.options;
 
   const inputRef = useRef()
 
-  const onSearch = (selectedKeys, setSelectedKeys) => {
-    setSelectedKeys(selectedKeys)
-    setFilter(dataIndex, selectedKeys[0])
+  const onSearch = value => {
+    setFilter(dataIndex, value)
   }
 
   const onKeyDown = (ev, confirm) => {
@@ -44,22 +47,33 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
       confirm()
   }
 
+  const onToggleSwitch = checked => {
+    setFilterOption(dataIndex, 'exactMatch', checked)
+  }
+
   return {
-    filteredValue: arrayize(filters[dataIndex]),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-      <div style={{ padding: 8 }}>
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm }) => (
+      <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
         <Input
           ref={inputRef}
           allowClear
           placeholder={`Search ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={e => onSearch(e.target.value ? [e.target.value] : [], setSelectedKeys)}
+          style={{ marginRight: 8 }}
+          value={value}
+          onChange={e => onSearch(e.target.value)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
+        <Tooltip title="Exact Match">
+          <Switch
+            size='small'
+            checked={options?.exactMatch ?? false}
+            onChange={e => onToggleSwitch(e, dataIndex)}
+          />
+        </Tooltip>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => inputRef?.current.select(), 100);
@@ -75,23 +89,13 @@ function getInputFilterProps(column, descriptions, filters, setFilter) {
 function getSelectFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const selectRef = useRef()
 
-  const onSearch = (selectedKeys, setSelectedKeys, confirm) => {
-    setSelectedKeys(selectedKeys);
-    if (selectedKeys.length === 0)
-      setFilter(dataIndex, undefined)
-    else
-      setFilter(dataIndex, selectedKeys)
-    if (confirm)
-      confirm()
+  const onSearch = (value) => {
+    setFilter(dataIndex, value.length === 0 ? undefined : value)
   }
-
-  const onReset = clearFilters => {
-    setFilter(dataIndex, undefined)
-    clearFilters()
-  };
 
   const onKeyDown = (ev, confirm) => {
     if (ev.key === 'Escape')
@@ -101,36 +105,22 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
   const options = description.options || column.options || []
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8 }}>
-        <Space style={{ marginBottom: 8 }}>
-          <Button
-            type="primary"
-            onClick={() => onSearch(selectedKeys, setSelectedKeys, confirm)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Search
-          </Button>
-          <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </Space>
         <Select
           ref={selectRef}
-          style={{ width: 188, marginBottom: 8, display: 'block' }}
+          style={{ width: 188, display: 'block' }}
           placeholder={`Select ${column.title}`}
           mode='multiple'
+          allowClear
           options={options}
-          value={description.mode === 'multiple' ? selectedKeys : selectedKeys[0]}
-          onChange={e => onSearch(e, setSelectedKeys, null)}
+          value={value}
+          onChange={e => onSearch(e)}
           onKeyDown={ev => onKeyDown(ev, confirm)}
         />
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => selectRef?.current.focus(), 100);
@@ -142,14 +132,13 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
 function getRadioFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
 
   const buttonRef = useRef()
 
-  const onSearch = (ev, setSelectedKeys, confirm, clearFilters) => {
+  const onSearch = (ev, confirm) => {
     const value = typeof ev === 'string' ? ev : ev.target.value
-    const tableValue = value === EMPTY_VALUE ? [] : [value]
     const storeValue = value === EMPTY_VALUE ? undefined : value
-    setSelectedKeys(tableValue)
     setFilter(dataIndex, storeValue)
     confirm()
   }
@@ -157,12 +146,12 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
   const options = description.options || column.options || []
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8 }}>
         <Radio.Group
-          value={selectedKeys[0] ? selectedKeys[0] : EMPTY_VALUE}
-          onChange={ev => onSearch(ev, setSelectedKeys, confirm, clearFilters)}
+          value={value}
+          onChange={ev => onSearch(ev, confirm)}
         >
           <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE} ref={buttonRef}>
             {description.placeholder}
@@ -177,7 +166,6 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
         </Radio.Group>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => buttonRef?.current.focus(), 100);
@@ -189,17 +177,18 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
 function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+  const minValue = value?.min
+  const maxValue = value?.max
 
   const inputRef = useRef()
 
-  const onSearch = (value, confirm) => {
-    setFilter(dataIndex, value)
-    confirm()
+  const onSearch = (values) => {
+    setFilter(dataIndex, values)
   }
 
-  const onReset = clearFilters => {
+  const onReset = () => {
     setFilter(dataIndex, undefined)
-    clearFilters()
   };
 
   const onKeyDown = (ev, confirm) => {
@@ -208,8 +197,8 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   }
 
   return {
-    filteredValue: arrayize(filters[dataIndex]),
-    filterDropdown: ({ setSelectedKeys, selectedKeys: value, confirm, clearFilters }) => (
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm, clearFilters }) => (
       <div style={{ padding: 8 }}>
         <Input.Group compact style={{ marginBottom: 8 }}>
           <InputNumber
@@ -217,38 +206,37 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
             placeholder='From'
             min={0}
             style={{ width: 100 }}
-            value={value[0]}
-            onChange={newMin => setSelectedKeys([nullize(newMin), value[1]])}
+            value={minValue}
+            onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => onSearch(value, confirm)}
+            onPressEnter={confirm}
           />
           <InputNumber
             placeholder='To'
             min={0}
             style={{ width: 100 }}
-            value={value[1]}
-            onChange={newMax => setSelectedKeys([value[0], nullize(newMax)])}
+            value={maxValue}
+            onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
             onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={() => onSearch(value, confirm)}
+            onPressEnter={confirm}
           />
         </Input.Group>
         <Space>
           <Button
             type="primary"
-            onClick={() => onSearch(value, confirm)}
+            onClick={confirm}
             icon={<SearchOutlined />}
             size="small"
             style={{ width: 90 }}
           >
-            Search
+            Done
           </Button>
-          <Button onClick={() => onReset(clearFilters)} size="small" style={{ width: 90 }}>
+          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
             Reset
           </Button>
         </Space>
       </div>
     ),
-    filterIcon: getFilterIcon,
     onFilterDropdownVisibleChange: visible => {
       if (visible) {
         setTimeout(() => inputRef?.current.focus(), 100);
@@ -256,6 +244,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
     },
   }
 }
+
 
 function getFilterIcon(filtered) {
   return (
@@ -270,12 +259,3 @@ function nullize(v) {
     return null
   return v
 }
-
-function arrayize(v) {
-  if (!v)
-    return null
-  if (Array.isArray(v))
-    return v
-  return [v]
-}
-

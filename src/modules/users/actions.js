@@ -9,6 +9,7 @@ export const LIST          = createNetworkActionTypes("USERS.LIST");
 export const LIST_VERSIONS = createNetworkActionTypes("USERS.LIST_VERSIONS");
 export const SET_SORT_BY = "USERS.SET_SORT_BY";
 export const SET_FILTER = "USERS.SET_FILTER";
+export const SET_FILTER_OPTION = "USERS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS = "USERS.CLEAR_FILTERS";
 
 export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
@@ -45,7 +46,14 @@ export const setSortBy = thenList((key, order) => {
 export const setFilter = thenList((name, value) => {
     return {
         type: SET_FILTER,
-        data: { name, value }
+        data: { name, value}
+    }
+});
+
+export const setFilterOption = thenList((name, options) => {
+    return {
+        type: SET_FILTER_OPTION,
+        data: { name, options }
     }
 });
 
@@ -60,11 +68,13 @@ export default {
     LIST_VERSIONS,
     SET_SORT_BY,
     SET_FILTER,
+    SET_FILTER_OPTION,
     CLEAR_FILTERS,
     list,
     listVersions,
     setSortBy,
     setFilter,
+    setFilterOption,
     clearFilters,
 };
 

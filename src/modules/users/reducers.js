@@ -24,7 +24,13 @@ export const users = (
     case USERS.SET_FILTER:
       return {
         ...state,
-        filters: set(state.filters, [action.data.name], action.data.value),
+        filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+        page: set(state.page, ['offset'], 0),
+      };
+    case USERS.SET_FILTER_OPTION:
+      return {
+        ...state,
+        filters: set(state.filters, [action.data.name, 'options'], action.data.options),
         page: set(state.page, ['offset'], 0),
       };
     case USERS.CLEAR_FILTERS:

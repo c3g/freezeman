@@ -70,7 +70,17 @@ export const individuals = (
         case INDIVIDUALS.SET_FILTER:
             return {
                 ...state,
-                filters: set(state.filters, [action.data.name], action.data.value),
+                filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                page: set(state.page, ['offset'], 0),
+            };
+        case INDIVIDUALS.SET_FILTER_OPTION:
+            return {
+                ...state,
+                filters: set(
+                    state.filters,
+                    [action.data.name, 'options', action.data.option],
+                    action.data.value
+                ),
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.CLEAR_FILTERS:

@@ -10,7 +10,7 @@ import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
 
-import {list, setFilter, clearFilters, setSortBy} from "../../modules/containers/actions";
+import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withSample} from "../../utils/withItem";
@@ -18,6 +18,7 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
+import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -97,7 +98,7 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
 });
 
-const actionCreators = {list, setFilter, clearFilters, setSortBy};
+const actionCreators = {list, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const ContainersListContent = ({
   token,
@@ -113,6 +114,7 @@ const ContainersListContent = ({
   totalCount,
   list,
   setFilter,
+  setFilterOption,
   clearFilters,
   setSortBy,
 }) => {
@@ -127,9 +129,10 @@ const ContainersListContent = ({
       CONTAINER_FILTERS,
       filters,
       setFilter,
+      setFilterOption
     )))
 
-  const nFilters = Object.entries(filters).filter(e => e[1]).length
+  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Containers" extra={[
