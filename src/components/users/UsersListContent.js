@@ -96,7 +96,10 @@ const UsersListContent = ({
     <AppPageHeader title="Users" />
     <PageContent>
       <div style={{ textAlign: 'right', marginBottom: '1em' }}>
-        <FiltersWarning value={nFilters} />
+        <FiltersWarning
+          nFilters={nFilters}
+          filters={filters}
+        />
         <Button
           disabled={nFilters === 0}
           onClick={clearFilters}

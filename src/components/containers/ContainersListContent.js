@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Tooltip} from "antd";
+import {Button} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -19,7 +19,6 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
-import FiltersDescriptions from "../filters/FiltersDescriptions";
 import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -143,9 +142,10 @@ const ContainersListContent = ({
     ]}/>
     <PageContent>
       <div style={{ textAlign: 'right', marginBottom: '1em' }}>
-        <Tooltip title={<FiltersDescriptions filters={filters}/>}>
-          <span><FiltersWarning value={nFilters} /></span>
-        </Tooltip>
+        <FiltersWarning
+          nFilters={nFilters}
+          filters={filters}
+        />
         <Button
           disabled={nFilters === 0}
           onClick={clearFilters}

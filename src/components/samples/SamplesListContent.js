@@ -160,7 +160,10 @@ const SamplesListContent = ({
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
         <SamplesFilters style={{ flex: 1 }} />
-        <FiltersWarning value={nFilters} />
+        <FiltersWarning
+          nFilters={nFilters}
+          filters={filters}
+        />
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
