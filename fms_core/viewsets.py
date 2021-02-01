@@ -258,7 +258,6 @@ _user_filterset_fields: FiltersetFields = {
 }
 
 
-
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
     serializer_class = ContainerSerializer
@@ -439,7 +438,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             return NestedSampleSerializer
         return SampleSerializer
 
-
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
@@ -447,7 +445,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
-
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
