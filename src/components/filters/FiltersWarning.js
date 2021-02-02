@@ -3,14 +3,14 @@ import {Tooltip, Typography} from "antd";
 import "antd/es/typography/style/css";
 const {Text} = Typography
 
-import FiltersDescriptions from "./FiltersDescriptions";
+import FiltersInfos from "./FiltersInfos";
 
 
 export default function FiltersWarning({ nFilters, filters, description }) {
   if (nFilters === 0)
     return null
   return (
-    <Tooltip title={<FiltersDescriptions filters={filters} description={description}/>}>
+    <Tooltip title={<FiltersInfos filters={filters} description={description}/>}>
       <span style={{marginTop: 12}}>
         <Text type="warning"
           style={{

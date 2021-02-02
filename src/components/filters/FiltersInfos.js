@@ -1,12 +1,10 @@
 import React from "react";
 
 
-const FiltersDescription = ({
+const FiltersInfos = ({
   filters,
   description,
 }) => {
-  //TODO: display description label instead of the description key in <strong> {key}: </strong>
-
   const appliedFilters = Object.keys(filters).filter(key => filters[key]?.value)
 
   return (
@@ -21,4 +19,4 @@ const FiltersDescription = ({
   )
 }
 
-export default FiltersDescription;
+export default FiltersInfos;
