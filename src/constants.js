@@ -12,12 +12,16 @@ export const BIOSPECIMEN_TYPE = [
   "DNA",
   "RNA",
   "BLOOD",
+  "EXPECTORATION",
+  "GARGLE",
   "SALIVA",
   "SWAB",
 ]
 
 export const TISSUE_SOURCE = [
   "Blood",
+  "Expectoration",
+  "Gargle",
   "Saliva",
   "Swab",
   "Tumor",
