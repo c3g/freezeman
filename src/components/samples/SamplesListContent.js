@@ -163,6 +163,7 @@ const SamplesListContent = ({
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
+          description={SAMPLE_FILTERS}
         />
         <Button
           style={{ margin: 6 }}

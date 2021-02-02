@@ -99,6 +99,7 @@ const UsersListContent = ({
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
+          description={USER_FILTERS}
         />
         <Button
           disabled={nFilters === 0}

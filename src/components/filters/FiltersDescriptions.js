@@ -2,7 +2,8 @@ import React from "react";
 
 
 const FiltersDescription = ({
-  filters
+  filters,
+  description,
 }) => {
   //TODO: display description label instead of the description key in <strong> {key}: </strong>
 
@@ -12,7 +13,7 @@ const FiltersDescription = ({
     <>
       {appliedFilters.map(key => (
         <div>
-          <strong>{key}: </strong>
+          <strong>{description[key].label}: </strong>
           { [].concat(filters[key].value).join(', ') }
         </div>
       ))}

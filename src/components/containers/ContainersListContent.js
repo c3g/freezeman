@@ -145,6 +145,7 @@ const ContainersListContent = ({
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
+          description={CONTAINER_FILTERS}
         />
         <Button
           disabled={nFilters === 0}

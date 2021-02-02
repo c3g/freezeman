@@ -6,11 +6,11 @@ const {Text} = Typography
 import FiltersDescriptions from "./FiltersDescriptions";
 
 
-export default function FiltersWarning({ nFilters, filters }) {
+export default function FiltersWarning({ nFilters, filters, description }) {
   if (nFilters === 0)
     return null
   return (
-    <Tooltip title={<FiltersDescriptions filters={filters}/>}>
+    <Tooltip title={<FiltersDescriptions filters={filters} description={description}/>}>
       <span style={{marginTop: 12}}>
         <Text type="warning"
           style={{
