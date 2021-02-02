@@ -13,7 +13,7 @@ import AddButton from "../AddButton";
 
 import api, {withToken}  from "../../utils/api"
 import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/individuals/actions";
-import {CONTAINER_FILTERS, INDIVIDUAL_FILTERS} from "../filters/descriptions";
+import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
