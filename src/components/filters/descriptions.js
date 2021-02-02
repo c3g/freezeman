@@ -24,7 +24,7 @@ export const SAMPLE_FILTERS = {
     key: "container__name",
     label: "Container Name",
   },
-  container: {
+  container_barcode: {
     type: FILTER_TYPE.INPUT,
     key: "container__barcode",
     label: "Container Barcode",

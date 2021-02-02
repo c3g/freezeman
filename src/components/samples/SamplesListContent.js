@@ -56,13 +56,13 @@ const getTableColumns = (containersByID, individualsByID) => [
     },
     {
       title: "Container Name",
-      dataIndexFilter: "container_name",
+      dataIndex: "container_name",
       sorter: true,
       render: (_, sample) => (sample.container && withContainer(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
-      dataIndex: "container",
+      dataIndex: "container_barcode",
       sorter: true,
       render: container => (container &&
           <Link to={`/containers/${container}`}>
