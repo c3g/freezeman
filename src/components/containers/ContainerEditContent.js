@@ -164,21 +164,21 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
             <TextArea />
           </Item>
           {formErrors?.non_field_errors &&
-            <>
-              <Alert
-                showIcon
-                type="error"
-                message="Error(s)"
-                description={
-                  <ul>
-                    {formErrors.non_field_errors.map((e, i) =>
-                      <li key={i}>{e}</li>
-                    )}
-                  </ul>
-                }
-              />
-              <br/>
-            </>
+            <Alert
+              showIcon
+              type="error"
+              style={{ marginBottom: '1em' }}
+              message="Validation error(s)"
+              description={
+                <ul>
+                  {
+                    formErrors.non_field_errors.map(e =>
+                      <li key={e}>{e}</li>
+                    )
+                  }
+                </ul>
+              }
+            />
           }
           <Item>
             <Button type="primary" htmlType="submit">
