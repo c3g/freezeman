@@ -47,26 +47,26 @@ const getTableColumns = (containersByID, individualsByID) => [
     },
     {
       title: "Individual",
-      dataIndex: "individual",
+      dataIndex: "individual__name",
       sorter: true,
-      render: individual => (individual &&
-          <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
+      render: (text, sample) => (sample.individual &&
+          <Link to={`/individuals/${sample.individual}`}>
+            {text}
           </Link>),
     },
     {
       title: "Container Name",
-      dataIndexFilter: "container_name",
+      dataIndex: "container__name",
       sorter: true,
-      render: (_, sample) => (sample.container && withContainer(containersByID, sample.container, container => container.name, "loading...")),
+      render: text => text,
     },
     {
       title: "Container Barcode",
-      dataIndex: "container",
+      dataIndex: "container__barcode",
       sorter: true,
-      render: container => (container &&
-          <Link to={`/containers/${container}`}>
-            {withContainer(containersByID, container, container => container.barcode, "loading...")}
+      render: (text, sample) => (sample.container &&
+          <Link to={`/containers/${sample.container}`}>
+            {text}
           </Link>),
     },
     {
@@ -75,15 +75,15 @@ const getTableColumns = (containersByID, individualsByID) => [
       sorter: true,
       width: 70,
     },
-    {
-      title: "Vol. (µL)",
-      dataIndex: "volume_history",
-      sorter: true,
-      align: "right",
-      className: "table-column-numbers",
-      render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
-      width: 100,
-    },
+    // {
+    //   title: "Vol. (µL)",
+    //   dataIndex: "volume_history",
+    //   sorter: true,
+    //   align: "right",
+    //   className: "table-column-numbers",
+    //   render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
+    //   width: 100,
+    // },
     {
       title: "Conc. (ng/µL)",
       dataIndex: "concentration",
