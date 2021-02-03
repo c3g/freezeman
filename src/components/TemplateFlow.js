@@ -287,7 +287,7 @@ const TemplateFlow = (props) => {
               type="primary"
               onClick={goBack}
             >
-              <CheckOutlined /> Go Back to Containers
+              <CheckOutlined /> Go Back
             </Button>
         }
       </Col>
