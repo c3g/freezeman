@@ -36,6 +36,15 @@ function renderResult(checkResult) {
         </div>
       )
     })
+    row.validation_error.forEach(field => {
+      field[1].forEach(reason => {
+        errors.push(
+          <div key={'row-' + index + field[0] + reason}>
+            Row {index}: {field[0]} - {reason}
+          </div>
+        )
+      })
+    })
   })
 
   return errors
@@ -287,7 +296,7 @@ const TemplateFlow = (props) => {
               type="primary"
               onClick={goBack}
             >
-              <CheckOutlined /> Go Back to Containers
+              <CheckOutlined /> Go Back
             </Button>
         }
       </Col>
