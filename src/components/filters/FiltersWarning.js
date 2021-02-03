@@ -1,14 +1,27 @@
 import React from "react";
-import {Typography} from "antd";
+import {Tooltip, Typography} from "antd";
 import "antd/es/typography/style/css";
 const {Text} = Typography
+import {QuestionCircleOutlined} from "@ant-design/icons";
 
-export default function FiltersWarning({ value }) {
-  if (value === 0)
+import FiltersInfos from "./FiltersInfos";
+
+
+export default function FiltersWarning({ nFilters, filters, description }) {
+  if (nFilters === 0)
     return null
   return (
-    <Text type="warning" style={{ marginLeft: 8, marginRight: 8, marginTop: 11 }}>
-      {value} filter{value > 1 ? 's' : ''} applied
-    </Text>
+    <Tooltip title={<FiltersInfos filters={filters} description={description}/>}>
+      <span style={{marginTop: 12}}>
+        <Text type="warning"
+          style={{
+            marginLeft: 8,
+            marginRight: 8,
+          }}
+        >
+          {nFilters} filter{nFilters > 1 ? 's' : ''} applied <QuestionCircleOutlined />
+        </Text>
+      </span>
+    </Tooltip>
   )
 }

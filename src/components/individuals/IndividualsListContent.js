@@ -103,7 +103,11 @@ const IndividualsListContent = ({
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
         <div style={{ flex: 1 }} />
-        <FiltersWarning value={nFilters} />
+        <FiltersWarning
+          nFilters={nFilters}
+          filters={filters}
+          description={INDIVIDUAL_FILTERS}
+        />
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}

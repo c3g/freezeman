@@ -155,9 +155,11 @@ export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,
     key: "username",
+    label: "Username"
   },
   email: {
     type: FILTER_TYPE.INPUT,
     key: "email",
+    label: "Email"
   }, 
 }
