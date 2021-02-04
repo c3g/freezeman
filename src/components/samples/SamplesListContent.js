@@ -75,15 +75,15 @@ const getTableColumns = (containersByID, individualsByID) => [
       sorter: true,
       width: 70,
     },
-    // {
-    //   title: "Vol. (µL)",
-    //   dataIndex: "volume_history",
-    //   sorter: true,
-    //   align: "right",
-    //   className: "table-column-numbers",
-    //   render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
-    //   width: 100,
-    // },
+    {
+      title: "Vol. (µL)",
+      dataIndex: "volume_history",
+      // sorter: true, (removed temporarily)
+      align: "right",
+      className: "table-column-numbers",
+      render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
+      width: 100,
+    },
     {
       title: "Conc. (ng/µL)",
       dataIndex: "concentration",
