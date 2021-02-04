@@ -1,6 +1,7 @@
 import json
 
 from collections import Counter
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
@@ -158,12 +159,12 @@ class TemplateActionsMixin:
             "valid": not (result.has_errors() or result.has_validation_errors()),
             "base_errors": [{
                 "error": str(e.error),
-                "traceback": e.traceback,
+                "traceback": e.traceback if settings.DEBUG else "",
             } for e in result.base_errors],
             "rows": [{
                 "errors": [{
                     "error": str(e.error),
-                    "traceback": e.traceback,
+                    "traceback": e.traceback if settings.DEBUG else "",
                 } for e in r.errors],
                 "validation_error": r.validation_error,
                 "diff": r.diff,
