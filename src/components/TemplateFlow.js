@@ -36,7 +36,7 @@ function renderResult(checkResult) {
         </div>
       )
     })
-    row.validation_error.forEach(field => {
+    row.validation_error?.forEach(field => {
       field[1].forEach(reason => {
         errors.push(
           <div key={'row-' + index + field[0] + reason}>
