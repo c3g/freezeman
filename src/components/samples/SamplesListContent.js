@@ -78,7 +78,6 @@ const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Vol. (µL)",
       dataIndex: "volume_history",
-      sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
