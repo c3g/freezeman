@@ -200,6 +200,9 @@ class TemplateActionsMixin:
 def _prefix_keys(prefix: str, d: Dict[str, Any]) -> Dict[str, Any]:
     return {prefix + k: v for k, v in d.items()}
 
+def _list_keys(d: Dict[str, Any]) -> Dict[str, Any]:
+    return [k  for k, v in d.items()]
+
 
 FiltersetFields = Dict[str, List[str]]
 
@@ -215,6 +218,22 @@ _container_filterset_fields: FiltersetFields = {
     "location": NULLABLE_FK_FILTERS,
 }
 
+_individual_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "taxon": CATEGORICAL_FILTERS,
+    "sex": CATEGORICAL_FILTERS,
+    "pedigree": CATEGORICAL_FILTERS_LOOSE,
+    "cohort": CATEGORICAL_FILTERS_LOOSE,
+
+    "mother": NULLABLE_FK_FILTERS,
+    "father": NULLABLE_FK_FILTERS,
+}
+
+_user_filterset_fields: FiltersetFields = {
+    "username": FREE_TEXT_FILTERS,
+    "email": FREE_TEXT_FILTERS,
+}
 
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
@@ -235,29 +254,12 @@ _sample_filterset_fields: FiltersetFields = {
     "individual": FK_FILTERS,  # PK
     "container": FK_FILTERS,  # PK
     **_prefix_keys("container__", _container_filterset_fields),
+    **_prefix_keys("individual__", _individual_filterset_fields),
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
-
-_individual_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
-    "taxon": CATEGORICAL_FILTERS,
-    "sex": CATEGORICAL_FILTERS,
-    "pedigree": CATEGORICAL_FILTERS_LOOSE,
-    "cohort": CATEGORICAL_FILTERS_LOOSE,
-
-    "mother": NULLABLE_FK_FILTERS,
-    "father": NULLABLE_FK_FILTERS,
-}
-
-_user_filterset_fields: FiltersetFields = {
-    "username": FREE_TEXT_FILTERS,
-    "email": FREE_TEXT_FILTERS,
-}
-
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
@@ -401,11 +403,13 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Sample.objects.all().select_related("individual", "container")
+    ordering_fields = (
+        *_list_keys(_sample_filterset_fields),
+    )
 
     filterset_fields = {
         **_sample_filterset_fields,
         **_prefix_keys("extracted_from__", _sample_filterset_fields),
-        **_prefix_keys("individual__", _individual_filterset_fields),
     }
 
     template_action_list = [
