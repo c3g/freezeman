@@ -12,6 +12,7 @@ export const BIOSPECIMEN_TYPE = [
   "DNA",
   "RNA",
   "BLOOD",
+  "CELLS",
   "EXPECTORATION",
   "GARGLE",
   "PLASMA",
@@ -21,6 +22,7 @@ export const BIOSPECIMEN_TYPE = [
 
 export const TISSUE_SOURCE = [
   "Blood",
+  "Cells",
   "Expectoration",
   "Gargle",
   "Plasma",
@@ -29,7 +31,6 @@ export const TISSUE_SOURCE = [
   "Tumor",
   "Buffy coat",
   "Tail",
-  "Cells",
 ]
 
 export const SEX = [
