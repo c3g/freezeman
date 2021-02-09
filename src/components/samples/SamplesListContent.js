@@ -49,25 +49,30 @@ const getTableColumns = (containersByID, individualsByID) => [
       title: "Individual",
       dataIndex: "individual__name",
       sorter: true,
-      render: (text, sample) => (sample.individual &&
-          <Link to={`/individuals/${sample.individual}`}>
-            {text}
-          </Link>),
+      render: (_, sample) => {
+        const individual = sample.individual
+        return (individual &&
+          <Link to={`/individuals/${individual}`}>
+            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
+          </Link>)
+      }
     },
     {
       title: "Container Name",
       dataIndex: "container__name",
       sorter: true,
-      render: text => text,
+      render: (_, sample) =>
+        (sample.container &&
+          withContainer(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
       dataIndex: "container__barcode",
       sorter: true,
-      render: (text, sample) => (sample.container &&
-          <Link to={`/containers/${sample.container}`}>
-            {text}
-          </Link>),
+      render: (_, sample) => (sample.container &&
+        <Link to={`/containers/${sample.container}`}>
+          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+        </Link>),
     },
     {
       title: "Coords",
