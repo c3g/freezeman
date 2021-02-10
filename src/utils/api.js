@@ -151,13 +151,8 @@ function createAPIError(response) {
   let data = response.data;
   let detail;
 
-  // Django validation errors kind of error
-  if (!response.isJSON && response.status === 500) {
-    data = parseDjangoError(data)
-    detail = JSON.stringify(data)
-  }
-  // Other type of django validation errors
-  else if (response.isJSON && response.status === 400) {
+  // Server errors
+  if (response.isJSON && response.status === 400) {
     detail = JSON.stringify(data, null, 2)
   }
   else {
@@ -182,16 +177,6 @@ function createAPIError(response) {
   error.stack = []
 
   return error;
-}
-
-function parseDjangoError(html) {
-  const $ = cheerio.load(html)
-  const text = $('.exception_value').text()
-  const transformed = text.replace(/'(\w+)':/g, '$1:')
-  /* Using eval() is hidious but the thing that Django
-   * returns isn't JSON -_- */
-  const errors = eval(`(${transformed})`)
-  return map(es => es.join(', '), errors)
 }
 
 function attachData(response) {

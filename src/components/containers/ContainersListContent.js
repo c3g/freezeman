@@ -9,17 +9,17 @@ import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
-
 import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withSample} from "../../utils/withItem";
-import serializeFilterParams from "../../utils/serializeFilterParams";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
@@ -120,7 +120,7 @@ const ContainersListContent = ({
 }) => {
   const listExport = () =>
     withToken(token, api.containers.listExport)
-      (serializeFilterParams(filters, CONTAINER_FILTERS))
+      (mergedListQueryParams(CONTAINER_FILTERS, filters, sortBy))
       .then(response => response.data)
 
   const columns = getTableColumns(samplesByID, containersByID, containerKinds)

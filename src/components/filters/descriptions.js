@@ -14,17 +14,17 @@ export const SAMPLE_FILTERS = {
     key: "name",
     label: "Name",
   },
-  individual: {
+  individual__name: {
     type: FILTER_TYPE.INPUT,
     key: "individual__name",
     label: "Individual Name",
   },
-  container_name: {
+  container__name: {
     type: FILTER_TYPE.INPUT,
     key: "container__name",
     label: "Container Name",
   },
-  container: {
+  container__barcode: {
     type: FILTER_TYPE.INPUT,
     key: "container__barcode",
     label: "Container Barcode",

@@ -17,7 +17,7 @@ import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
-import serializeFilterParams from "../../utils/serializeFilterParams";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 
 const TABLE_COLUMNS = [
@@ -82,7 +82,7 @@ const IndividualsListContent = ({
 }) => {
   const listExport = () =>
     withToken(token, api.individuals.listExport)
-    (serializeFilterParams(filters, INDIVIDUAL_FILTERS))
+    (mergedListQueryParams(INDIVIDUAL_FILTERS, filters, sortBy))
       .then(response => response.data)
 
   const columns = TABLE_COLUMNS.map(c => Object.assign(c, getFilterProps(

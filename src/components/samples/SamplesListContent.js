@@ -18,12 +18,12 @@ import api, {withToken}  from "../../utils/api"
 import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
-import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = (containersByID, individualsByID) => [
     {
@@ -47,27 +47,32 @@ const getTableColumns = (containersByID, individualsByID) => [
     },
     {
       title: "Individual",
-      dataIndex: "individual",
+      dataIndex: "individual__name",
       sorter: true,
-      render: individual => (individual &&
+      render: (_, sample) => {
+        const individual = sample.individual
+        return (individual &&
           <Link to={`/individuals/${individual}`}>
             {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
-          </Link>),
+          </Link>)
+      }
     },
     {
       title: "Container Name",
-      dataIndexFilter: "container_name",
+      dataIndex: "container__name",
       sorter: true,
-      render: (_, sample) => (sample.container && withContainer(containersByID, sample.container, container => container.name, "loading...")),
+      render: (_, sample) =>
+        (sample.container &&
+          withContainer(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
-      dataIndex: "container",
+      dataIndex: "container__barcode",
       sorter: true,
-      render: container => (container &&
-          <Link to={`/containers/${container}`}>
-            {withContainer(containersByID, container, container => container.barcode, "loading...")}
-          </Link>),
+      render: (_, sample) => (sample.container &&
+        <Link to={`/containers/${sample.container}`}>
+          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+        </Link>),
     },
     {
       title: "Coords",
@@ -78,7 +83,6 @@ const getTableColumns = (containersByID, individualsByID) => [
     {
       title: "Vol. (µL)",
       dataIndex: "volume_history",
-      sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
@@ -138,7 +142,9 @@ const SamplesListContent = ({
 }) => {
 
   const listExport = () =>
-    withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
+    withToken(token, api.samples.listExport)
+    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
+      .then(response => response.data)
 
   const columns = getTableColumns(containersByID, individualsByID)
   .map(c => Object.assign(c, getFilterProps(

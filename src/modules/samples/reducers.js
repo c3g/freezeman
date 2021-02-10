@@ -1,4 +1,5 @@
-import { merge, set } from "object-path-immutable";
+import {merge, set} from "object-path-immutable";
+import {map} from "rambda"
 
 import preprocessVersions from "../../utils/preprocessVersions";
 import {indexByID} from "../../utils/objects";
@@ -35,7 +36,7 @@ export const samples = (
               { error: action.error, isFetching: false, didFail: true });
 
         case SAMPLES.ADD.REQUEST:
-            return merge(state, ['isFetching'], true);
+            return { ...state, error: undefined, isFetching: true };
         case SAMPLES.ADD.RECEIVE:
             return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
                 preprocessSample(action.data));
@@ -80,7 +81,12 @@ export const samples = (
         case SAMPLES.LIST.RECEIVE: {
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
-            const itemsByID = merge(state.itemsByID, [], indexByID(action.data.results));
+            /* samples[].container stored in ../containers/reducers.js */
+            const newItemsByID = map(
+                s => ({ ...s, container: s.container }),
+                indexByID(action.data.results)
+            );
+            const itemsByID = merge(state.itemsByID, [], newItemsByID);
             const itemsID = action.data.results.map(r => r.id)
             const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {

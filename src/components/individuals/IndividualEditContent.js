@@ -2,7 +2,8 @@ import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
-import {Button, Form, Input, Radio, Select} from "antd";
+import {Alert, Button, Form, Input, Radio, Select} from "antd";
+import "antd/es/alert/style/css";
 import "antd/es/button/style/css";
 import "antd/es/form/style/css";
 import "antd/es/input/style/css";
@@ -156,7 +157,23 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
               onFocus={onFocusIndividual}
             />
           </Form.Item>
-
+          {formErrors?.non_field_errors &&
+            <Alert
+              showIcon
+              type="error"
+              style={{ marginBottom: '1em' }}
+              message="Validation error(s)"
+              description={
+                <ul>
+                  {
+                    formErrors.non_field_errors.map(e =>
+                      <li key={e}>{e}</li>
+                    )
+                  }
+                </ul>
+              }
+            />
+          }
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Submit

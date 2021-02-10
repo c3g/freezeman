@@ -4,6 +4,7 @@ import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 
 import {
+  Alert,
   AutoComplete,
   Button,
   DatePicker,
@@ -14,6 +15,7 @@ import {
   Switch,
   Typography,
 } from "antd";
+import "antd/es/alert/style/css";
 import "antd/es/auto-complete/style/css";
 import "antd/es/button/style/css";
 import "antd/es/date-picker/style/css";
@@ -300,7 +302,23 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
               step={0.001}
             />
           </Form.Item>
-
+          {formErrors?.non_field_errors &&
+            <Alert
+              showIcon
+              type="error"
+              style={{ marginBottom: '1em' }}
+              message="Validation error(s)"
+              description={
+                <ul>
+                  {
+                    formErrors.non_field_errors.map(e =>
+                      <li key={e}>{e}</li>
+                    )
+                  }
+                </ul>
+              }
+            />
+          }
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Submit

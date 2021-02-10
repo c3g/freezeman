@@ -5,6 +5,7 @@ import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
 import CONTAINERS from "./actions";
+import SAMPLES from "../samples/actions";
 
 export const containerKinds = (
   state = {
@@ -65,7 +66,7 @@ export const containers = (
         { error: action.error, isFetching: false, didFail: true });
 
     case CONTAINERS.ADD.REQUEST:
-      return merge(state, ['isFetching'], true);
+      return { ...state, error: undefined, isFetching: true };
     case CONTAINERS.ADD.RECEIVE:
       return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
         { ...preprocessContainer(action.data) });
@@ -125,6 +126,14 @@ export const containers = (
     }
     case CONTAINERS.LIST.ERROR:
       return { ...state, isFetching: false, error: action.error };
+
+    /* Normalize samples[].container */
+    case SAMPLES.LIST.RECEIVE: {
+      const samples = action.data.results;
+      const containers = samples.map(s => s.container).filter(Boolean)
+      const itemsByID = merge(state.itemsByID, [], indexByID(containers, "id"));
+      return { ...state, itemsByID };
+    }
 
     case CONTAINERS.LIST_PARENTS.REQUEST:
       return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
