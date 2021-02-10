@@ -15,8 +15,12 @@ const FiltersInfos = ({
     switch(description[key].type) {
       case FILTER_TYPE.SELECT:
         const labels = valuesArray.map((val) => {
-          const option = description[key].options.find(option => option.value === val)
-          return option.label
+          if(description[key].options) {
+            const option = description[key].options.find(option => option.value === val)
+            return option.label
+          } else {
+            return val
+          }
         })
         return labels.join(', ')
       case FILTER_TYPE.RANGE:
