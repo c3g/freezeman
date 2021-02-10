@@ -1,4 +1,5 @@
 import React from "react";
+import {FILTER_TYPE} from "../../constants";
 
 
 const FiltersInfos = ({
@@ -9,24 +10,24 @@ const FiltersInfos = ({
 
   const getValue = (key) => {
     const filterValue = filters[key].value
+    const valuesArray = [].concat(filterValue)
 
     switch(description[key].type) {
-      case 'SELECT':
-        const valuesArray = [].concat(filterValue)
+      case FILTER_TYPE.SELECT:
         const labels = valuesArray.map((val) => {
           const option = description[key].options.find(option => option.value === val)
           return option.label
         })
         return labels.join(', ')
-        break;
-      case 'RANGE':
-        if (filterValue.min || filterValue.max)
-          return `${filterValue.min} to ${filterValue.max} `
-        else
-          throw new Error('MIN and MAX values not defined for Filter range')
-        break;
+      case FILTER_TYPE.RANGE:
+        let value = ""
+        if (filterValue.min !== undefined) {value += ` min: ${filterValue.min}`}
+        if (filterValue.max !== undefined) {value +=` max: ${filterValue.max}`}
+        if (value !== "")
+          return value
+        throw new Error('MIN and MAX values not defined for Filter range')
       default:
-        return [].concat(filterValue).join(', ')
+        return valuesArray.join(', ')
     }
   }
 
@@ -35,7 +36,7 @@ const FiltersInfos = ({
       {appliedFilters.map(key => (
         <div>
           <strong>{description[key].label}: </strong>
-          { getValue(key) }
+          {getValue(key)}
         </div>
       ))}
     </>
