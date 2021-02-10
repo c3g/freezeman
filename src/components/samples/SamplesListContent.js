@@ -18,12 +18,12 @@ import api, {withToken}  from "../../utils/api"
 import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
-import serializeFilterParams from "../../utils/serializeFilterParams";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = (containersByID, individualsByID) => [
     {
@@ -142,7 +142,9 @@ const SamplesListContent = ({
 }) => {
 
   const listExport = () =>
-    withToken(token, api.samples.listExport)({...serializeFilterParams(filters, SAMPLE_FILTERS)}).then(response => response.data)
+    withToken(token, api.samples.listExport)
+    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
+      .then(response => response.data)
 
   const columns = getTableColumns(containersByID, individualsByID)
   .map(c => Object.assign(c, getFilterProps(
