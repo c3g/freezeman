@@ -210,10 +210,12 @@ const SamplesDetailContent = ({samplesByID, containersByID, individualsByID, use
 
 function renderTimelineLabel(version, usersByID) {
   const user = usersByID[version.revision.user];
+  const username = user?.username ?? "Loading...";
+
   return (
     <div>
       <div><Text type="secondary">{dateToString(version.revision.date_created)}</Text></div>
-      <div><Text disabled style={usernameStyle}><UserOutlined /> {user.username}</Text></div>
+      <div><Text disabled style={usernameStyle}><UserOutlined /> {username}</Text></div>
     </div>
   )
 }
