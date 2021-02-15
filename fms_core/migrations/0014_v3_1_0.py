@@ -6,36 +6,38 @@ import json
 
 SAMPLE_KINDS = ['DNA', 'RNA', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
+def create_sample_kinds(apps, schema_editor):
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    for kind in SAMPLE_KINDS:
+        SampleKind.objects.create(name=kind)
+
+
+def copy_samples_kinds(apps, schema_editor):
+    Sample = apps.get_model("fms_core", "Sample")
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
+
+    for sample in Sample.objects.all():
+        name = sample.biospecimen_type
+        sample.sample_kind_id = sample_kind_ids_by_name[name]
+        sample.save()
+
+    # Deals with versions
+    Version = apps.get_model("reversion", "Version")
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
+
+    for version in Version.objects.filter(content_type__model="sample"):
+        data = json.loads(version.serialized_data)
+        if 'biospecimen_type' in data[0]["fields"]:
+            biospecimen_type = data[0]["fields"]["biospecimen_type"]
+            data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[biospecimen_type]
+            data[0]["fields"].pop("biospecimen_type", None)
+        version.serialized_data = json.dumps(data)
+        version.save()
+
+
 class Migration(migrations.Migration):
-    def create_sample_kinds(apps, schema_editor):
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        for kind in SAMPLE_KINDS:
-            SampleKind.objects.create(name=kind)
-
-    def copy_samples_kinds(apps, schema_editor):
-        Sample = apps.get_model("fms_core", "Sample")
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-        for sample in Sample.objects.all():
-            name = sample.biospecimen_type
-            sample.sample_kind_id = sample_kind_ids_by_name[name]
-            sample.save()
-
-        # Deals with versions
-        Version = apps.get_model("reversion", "Version")
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-        for version in Version.objects.filter(content_type__model="sample"):
-            data = json.loads(version.serialized_data)
-            if 'biospecimen_type' in data[0]["fields"]:
-                biospecimen_type = data[0]["fields"]["biospecimen_type"]
-                data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[biospecimen_type]
-                data[0]["fields"].pop("biospecimen_type", None)
-            version.serialized_data = json.dumps(data)
-            version.save()
-
 
     dependencies = [
         ('fms_core', '0013_v3_0_1'),
@@ -53,7 +55,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sample',
             name='sample_kind',
-            field=models.ForeignKey(blank=True, null=True, help_text='Biological material collected from study subject during the conduct of a genomic study project.', on_delete=django.db.models.deletion.PROTECT, to='fms_core.samplekind'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                help_text='Biological material collected from study subject during the conduct of a genomic study project.',
+                on_delete=django.db.models.deletion.PROTECT,
+                to='fms_core.samplekind'),
         ),
         migrations.RunPython(
             create_sample_kinds,
@@ -80,5 +87,13 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 help_text='Biological material collected from study subject during the conduct of a genomic study project.',
                 max_length=200, unique=True),
+        ),
+        migrations.CreateModel(
+            name='SampleLineage',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('child', models.ForeignKey(help_text='Child sample', on_delete=django.db.models.deletion.CASCADE, related_name='child_sample', to='fms_core.sample')),
+                ('parent', models.ForeignKey(help_text='Parent sample', on_delete=django.db.models.deletion.CASCADE, related_name='parent_sample', to='fms_core.sample')),
+            ],
         ),
     ]
