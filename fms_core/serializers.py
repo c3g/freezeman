@@ -49,14 +49,9 @@ class IndividualSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
-    individual__name = serializers.CharField(read_only=True, source="individual.name")
-    container__name = serializers.CharField(read_only=True, source="container.name")
-    container__barcode = serializers.CharField(read_only=True, source="container.barcode")
-
     class Meta:
         model = Sample
         fields = "__all__"
-        extra_fields = ['container__name', 'container__barcode', 'individual__name']
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
