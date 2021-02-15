@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from typing import Optional
+from typing import Optional, List
 
 from ..containers import (
     CONTAINER_SPEC_TUBE,
@@ -16,6 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
+from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 
@@ -155,9 +156,15 @@ class Sample(models.Model):
                                        related_name="extractions",
                                        help_text="The sample this sample was extracted from. Can only be specified for "
                                                  "extracted nucleic acid samples.")
+
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the original sample used for the extraction, in µL. Must "
                                                 "be specified only for extracted nucleic acid samples.")
+
+    child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
+                                      symmetrical=False, related_name="parent_of")
+
+
 
     class Meta:
         unique_together = ("container", "coordinates")
@@ -223,11 +230,28 @@ class Sample(models.Model):
     def context_sensitive_coordinates(self) -> str:
         return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
 
-    # Computed properties for extracted samples
+    # Computed properties for lineage
+    @property
+    def add_parent_lineage(self, parent) -> SampleLineage:
+        parent_lineage, created = SampleLineage.Object.get_or_create(parent=parent, child=self)
+        return parent_lineage
 
     @property
-    def source_depleted(self) -> Optional[bool]:
-        return self.extracted_from.depleted if self.extracted_from else None
+    def add_child_lineage(self, child) -> SampleLineage:
+        child_lineage, created = SampleLineage.Object.get_or_create(parent=self, child=child)
+        return child_lineage
+
+    @property
+    def parents(self) -> List["Sample"]:
+        return self.child_of.filter(parent_sample__child=self)
+
+    @property
+    def children(self) -> List["Sample"]:
+        return self.parent_of.filter(child_sample__parent=self)
+
+    @property
+    def source_depleted(self) -> bool:
+        return any([parent.depleted for parent in self.parents])
 
     # Representations
 
@@ -264,27 +288,25 @@ class Sample(models.Model):
                  f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
             )
 
-        if self.extracted_from:
-            if self.extracted_from.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA:
+        if self.volume_used:
+            if any([(parent.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA) for parent in self.parents]):
                 add_error(
                     "extracted_from",
-                    f"Extraction process cannot be run on sample of type {self.extracted_from.biospecimen_type}"
+                    f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 
             else:
-                original_biospecimen_type = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[
-                    self.extracted_from.biospecimen_type]
-                if self.tissue_source != original_biospecimen_type:
-                    add_error(
-                        "tissue_source",
-                        (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
-                         f"{original_biospecimen_type}")
-                    )
+                original_biospecimen_types = [Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent.biospecimen_type]
+                                              for parent in self.parents]
+                for biospecimen_type in original_biospecimen_types:
+                    if self.tissue_source != biospecimen_type:
+                        add_error(
+                            "tissue_source",
+                            (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
+                             f"{biospecimen_type}")
+                        )
 
-            if self.volume_used is None:
-                add_error("volume_used", "Extracted samples must specify volume_used")
-
-            elif self.volume_used <= Decimal("0"):
+            if self.volume_used <= Decimal("0"):
                 add_error("volume_used", "volume_used must be positive")
 
         if self.volume_used is not None and not self.extracted_from:
@@ -316,7 +338,7 @@ class Sample(models.Model):
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
             #    Only run this check when the object is first created - it can be updated later if it's moved elsewhere.
-            if not Sample.objects.filter(id=self.id).exists() and self.extracted_from is not None and any((
+            if not Sample.objects.filter(id=self.id).exists() and self.volume_used is not None and any((  # using volume_used instead of extracted_from
                     parent_spec != CONTAINER_SPEC_TUBE,
                     self.container.location is None,
                     CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
