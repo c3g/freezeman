@@ -285,12 +285,14 @@ class Sample(models.Model):
             if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
 
-            elif self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.extracted_from.sample_kind.name]:
-                add_error(
-                    "tissue_source",
-                    (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
-                     f"{original_sample_kind}")
-                )
+            else:
+                original_sample_kind = self.extracted_from.sample_kind.name
+                if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
+                    add_error(
+                        "tissue_source",
+                        (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
+                         f"{original_sample_kind}")
+                    )
 
             if self.volume_used is None:
                 add_error("volume_used", "Extracted samples must specify volume_used")

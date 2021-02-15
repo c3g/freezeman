@@ -33,7 +33,7 @@ class SampleLineage(models.Model):
         if not self.child.tissue_source:
             add_error("tissue_source", "Extracted sample need to have a tissue source.")
         elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
-            add_error("tissue_source", "Extracted sample tissue_source must match parent biospecimen_type.")
+            add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
 
         if errors:
             raise ValidationError(errors)
