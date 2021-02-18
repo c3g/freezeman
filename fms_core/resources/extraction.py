@@ -2,7 +2,7 @@ import reversion
 
 from datetime import datetime
 from import_export.fields import Field
-from import_export.widgets import DecimalWidget, JSONWidget, ForeignKeyWidget
+from import_export.widgets import DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows
 from ..containers import (
@@ -37,8 +37,11 @@ class ExtractionResource(GenericResource):
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
-    extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
+    extracted_from = Field(attribute='extracted_from')
+    child_of = Field(attribute='child_of', widget=ManyToManyWidget(Sample))
     comment = Field(attribute='comment', column_name='Comment')
+
+
 
     class Meta:
         model = Sample
@@ -53,7 +56,7 @@ class ExtractionResource(GenericResource):
         excluded = (
             'container',
             'individual',
-            'extracted_from',
+            'child_of',
             'volume_history',
         )
         export_order = (
@@ -202,3 +205,9 @@ class ExtractionResource(GenericResource):
 
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported extracted samples from template.")
+
+    def save_m2m(self, obj, data, using_transactions, dry_run):
+
+        obj.child_of = obj.add_parent_lineage(obj.extracted_from)
+
+        super().save_m2m(obj, data, using_transactions, dry_run)
