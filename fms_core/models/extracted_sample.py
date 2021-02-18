@@ -8,7 +8,7 @@ __all__ = ["ExtractedSample"]
 class ExtractedSampleManager(models.Manager):
     # noinspection PyMethodMayBeStatic
     def get_queryset(self):
-        return Sample.objects.filter(extracted_from__isnull=False)
+        return Sample.objects.filter(child_of__isnull=False)
 
 
 class ExtractedSample(Sample):

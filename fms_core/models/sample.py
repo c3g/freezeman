@@ -152,18 +152,12 @@ class Sample(models.Model):
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
-                                       related_name="extractions",
-                                       help_text="The sample this sample was extracted from. Can only be specified for "
-                                                 "extracted nucleic acid samples.")
-
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the original sample used for the extraction, in µL. Must "
                                                 "be specified only for extracted nucleic acid samples.")
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
-
 
 
     class Meta:
@@ -253,6 +247,10 @@ class Sample(models.Model):
     def source_depleted(self) -> bool:
         return any([parent.depleted for parent in self.parents])
 
+    @property
+    def extracted_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self)  # This definition will only be valid until transfer are created
+
     # Representations
 
     def __str__(self):
@@ -288,10 +286,10 @@ class Sample(models.Model):
                  f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
             )
 
-        if self.volume_used:
+        if self.extracted_from:
             if any([(parent.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA) for parent in self.parents]):
                 add_error(
-                    "extracted_from",
+                    "child_of",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 
@@ -309,8 +307,8 @@ class Sample(models.Model):
             if self.volume_used <= Decimal("0"):
                 add_error("volume_used", "volume_used must be positive")
 
-        if self.volume_used is not None and not self.extracted_from:
-            add_error("volume_used", "Non-extracted samples cannot specify volume_used")
+        #if self.volume_used is not None and not self.extracted_from: # This validation would prevent creation of an extracted sample since the sample must be saved before receiving an id
+            #add_error("volume_used", "Non-extracted samples cannot specify volume_used")
 
         # Check volume_history for negative values
 
@@ -338,7 +336,7 @@ class Sample(models.Model):
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
             #    Only run this check when the object is first created - it can be updated later if it's moved elsewhere.
-            if not Sample.objects.filter(id=self.id).exists() and self.volume_used is not None and any((  # using volume_used instead of extracted_from
+            if not Sample.objects.filter(id=self.id).exists() and self.extracted_from is not None and any((
                     parent_spec != CONTAINER_SPEC_TUBE,
                     self.container.location is None,
                     CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
