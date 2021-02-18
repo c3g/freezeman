@@ -240,6 +240,10 @@ class Sample(models.Model):
     def extracted_from(self) -> ["Sample"]:
         return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
 
+    @property
+    def extracted_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self)  # This definition will only be valid until transfer are created
+
     # Representations
 
     def __str__(self):
@@ -278,7 +282,7 @@ class Sample(models.Model):
         if self.extracted_from:
             if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
-                    "extracted_from",
+                    "child_of",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 

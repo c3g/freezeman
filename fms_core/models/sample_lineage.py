@@ -3,6 +3,9 @@ import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.core.exceptions import ValidationError
+
+from ._utils import add_error as _add_error
 
 from ._utils import add_error as _add_error
 

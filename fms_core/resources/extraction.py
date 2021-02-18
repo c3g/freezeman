@@ -205,5 +205,6 @@ class ExtractionResource(GenericResource):
         reversion.set_comment("Imported extracted samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        SampleLineage.objects.create(parent=self.extracted_from, child=obj)
+        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj)
+        lineage.save()
         super().save_m2m(obj, data, using_transactions, dry_run)
