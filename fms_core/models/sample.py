@@ -152,18 +152,12 @@ class Sample(models.Model):
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
-                                       related_name="extractions",
-                                       help_text="The sample this sample was extracted from. Can only be specified for "
-                                                 "extracted nucleic acid samples.")
-
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the original sample used for the extraction, in µL. Must "
                                                 "be specified only for extracted nucleic acid samples.")
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
-
 
 
     class Meta:
@@ -253,6 +247,10 @@ class Sample(models.Model):
     def source_depleted(self) -> bool:
         return any([parent.depleted for parent in self.parents])
 
+    @property
+    def extracted_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self)  # This definition will only be valid until transfer are created
+
     # Representations
 
     def __str__(self):
@@ -309,7 +307,6 @@ class Sample(models.Model):
                 add_error("volume_used", "Extracted samples must specify volume_used")
 
             elif self.volume_used <= Decimal("0"):
-
                 add_error("volume_used", "volume_used must be positive")
 
         # Check volume_history for negative values
