@@ -16,7 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
-from .sample_lineage import SampleLineage
+from .sample_lineage import SampleLineage, sample_lineage_added
 from .container import Container
 from .individual import Individual
 
@@ -159,7 +159,6 @@ class Sample(models.Model):
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
 
-
     class Meta:
         unique_together = ("container", "coordinates")
 
@@ -225,16 +224,6 @@ class Sample(models.Model):
         return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
 
     # Computed properties for lineage
-    @property
-    def add_parent_lineage(self, parent) -> SampleLineage:
-        parent_lineage, created = SampleLineage.Object.get_or_create(parent=parent, child=self)
-        return parent_lineage
-
-    @property
-    def add_child_lineage(self, child) -> SampleLineage:
-        child_lineage, created = SampleLineage.Object.get_or_create(parent=self, child=child)
-        return child_lineage
-
     @property
     def parents(self) -> List["Sample"]:
         return self.child_of.filter(parent_sample__child=self)
