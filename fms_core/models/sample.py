@@ -16,7 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
-from .sample_lineage import SampleLineage
+from .sample_lineage import SampleLineage, sample_lineage_added
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
