@@ -623,7 +623,18 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filterset_fields = _user_filterset_fields
     #  permission_classes = [AllowAny]
-    #  def create(self, request, *args, **kwargs):
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.queryset.get(pk=kwargs.get("pk"))
+        password = request.data.pop("password", None)
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        if password is not None:
+            user.set_password(password)
+            user.save()
+        return Response(serializer.data)
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()

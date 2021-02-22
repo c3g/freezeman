@@ -133,15 +133,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-    def update(self, instance, validated_data):
-        user = super().update(instance, validated_data)
-        try:
-            user.set_password(validated_data['password'])
-            user.save()
-        except KeyError:
-            pass
-        return user
-
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
