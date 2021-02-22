@@ -1,4 +1,5 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from reversion.models import Version
 
@@ -15,6 +16,7 @@ __all__ = [
     "NestedSampleSerializer",
     "VersionSerializer",
     "UserSerializer",
+    "GroupSerializer",
 ]
 
 
@@ -119,5 +121,26 @@ class VersionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "email", "groups", "is_staff", "is_superuser", "date_joined")
+        fields = ("id", "username", "password", "first_name", "last_name", "email", "groups", "is_staff", "is_superuser", "date_joined")
+
+    def create(self, validated_data):
+        print(validated_data)
+        user = super(UserSerializer, self).create(validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        user = super().update(instance, validated_data)
+        try:
+            user.set_password(validated_data['password'])
+            user.save()
+        except KeyError:
+            pass
+        return user
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ("id", "name", "permissions")
         depth = 1

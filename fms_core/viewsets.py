@@ -2,12 +2,12 @@ import json
 
 from collections import Counter
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db.models import Count, Q
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from reversion.models import Version
 from tablib import Dataset
@@ -33,6 +33,7 @@ from .serializers import (
     IndividualSerializer,
     VersionSerializer,
     UserSerializer,
+    GroupSerializer,
 )
 from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
@@ -50,6 +51,7 @@ __all__ = [
     "QueryViewSet",
     "SampleViewSet",
     "UserViewSet",
+    "GroupViewSet",
     "VersionViewSet",
 ]
 
@@ -233,6 +235,10 @@ _individual_filterset_fields: FiltersetFields = {
 _user_filterset_fields: FiltersetFields = {
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
+}
+
+_group_filterset_fields: FiltersetFields = {
+    "name": FREE_TEXT_FILTERS,
 }
 
 _sample_filterset_fields: FiltersetFields = {
@@ -612,7 +618,14 @@ class VersionViewSet(viewsets.ReadOnlyModelViewSet):
     }
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filterset_fields = _user_filterset_fields
+    #  permission_classes = [AllowAny]
+    #  def create(self, request, *args, **kwargs):
+
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    filterset_fields = _group_filterset_fields
