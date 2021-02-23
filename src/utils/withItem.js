@@ -1,6 +1,7 @@
 import Container from "../modules/containers/actions.js"
 import Sample from "../modules/samples/actions.js"
 import Individual from "../modules/individuals/actions.js"
+import User from "../modules/users/actions.js"
 import {networkAction} from "./actions";
 import api from ".//api"
 import wait from "./wait"
@@ -55,21 +56,21 @@ function createWithItem(type, apiType) {
    * @param {Function} fn
    * @param {any} [defaultValue = null]
    */
-  const withItem = (containersByID, id, fn, defaultValue = null) => {
+  const withItem = (itemsByID, id, fn, defaultValue = null) => {
     if (!id)
       return defaultValue
 
-    const container = containersByID[id]
+    const item = itemsByID[id]
 
-    if (!container) {
+    if (!item) {
       requestItem(id)
       return defaultValue
     }
 
-    if (container.isFetching)
+    if (item.isFetching)
       return defaultValue
 
-    return fn(container)
+    return fn(item)
   }
 
   return withItem
@@ -78,8 +79,10 @@ function createWithItem(type, apiType) {
 export const withContainer = createWithItem(Container, api.containers)
 export const withSample = createWithItem(Sample, api.samples)
 export const withIndividual = createWithItem(Individual, api.individuals)
+export const withUser = createWithItem(User, api.users)
 export default {
   withContainer,
   withSample,
-  withIndividual
+  withIndividual,
+  withUser,
 };

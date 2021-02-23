@@ -6,6 +6,7 @@ import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
+import {resetTable} from "../../utils/reducers";
 
 import CONTAINERS from "../containers/actions";
 import SAMPLES from "./actions";
@@ -38,7 +39,7 @@ export const samples = (
         case SAMPLES.ADD.REQUEST:
             return { ...state, error: undefined, isFetching: true };
         case SAMPLES.ADD.RECEIVE:
-            return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
+            return merge(resetTable({ ...state, isFetching: false, }), ['itemsByID', action.data.id],
                 preprocess(action.data));
         case SAMPLES.ADD.ERROR:
             return { ...state, error: action.error, isFetching: false };

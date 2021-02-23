@@ -9,6 +9,10 @@ export function render(v) {
   return { value: v, label: v }
 }
 
+export function renderGroup(g) {
+  return { value: g.id, label: g.name }
+}
+
 export function renderIndividual(i) {
   return {
     value: i.id,

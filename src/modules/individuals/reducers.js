@@ -2,6 +2,7 @@ import {merge, set} from "object-path-immutable";
 
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
+import {resetTable} from "../../utils/reducers";
 import INDIVIDUALS from "./actions";
 
 export const individuals = (
@@ -28,7 +29,7 @@ export const individuals = (
         case INDIVIDUALS.ADD.REQUEST:
             return { ...state, error: undefined, isFetching: true };
         case INDIVIDUALS.ADD.RECEIVE:
-            return merge({ ...state, isFetching: false, }, ['itemsByID', action.data.id],
+            return merge(resetTable({ ...state, isFetching: false, }), ['itemsByID', action.data.id],
                 action.data);
         case INDIVIDUALS.ADD.ERROR:
             return { ...state, error: action.error, isFetching: false };

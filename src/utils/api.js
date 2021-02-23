@@ -17,7 +17,7 @@ const api = {
   containers: {
     get: id => get(`/containers/${id}/`),
     add: container => post("/containers/", container),
-    update: container => put(`/containers/${container.id}/`, container),
+    update: container => patch(`/containers/${container.id}/`, container),
     list: (options, abort) => get("/containers", options, { abort }),
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
@@ -36,7 +36,7 @@ const api = {
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
-    update: individual => put(`/individuals/${individual.id}/`, individual),
+    update: individual => patch(`/individuals/${individual.id}/`, individual),
     list: (options, abort) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: q => get("/individuals/search/", { q }),
@@ -45,7 +45,7 @@ const api = {
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
-    update: sample => put(`/samples/${sample.id}/`, sample),
+    update: sample => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort) => get("/samples", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listCollectionSites: () => get("/samples/list_collection_sites/"),
@@ -60,8 +60,16 @@ const api = {
   },
 
   users: {
+    get: userId => get(`/users/${userId}/`),
+    add: user => post("/users/", user),
+    update: user => patch(`/users/${user.id}/`, user),
+    updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
     listVersions: userId => get(`/versions?revision__user=${userId}&limit=999999`), // TODO: handle versions?
+  },
+
+  groups: {
+    list: (options, abort) => get("/groups", options, { abort }),
   },
 
   query: {
@@ -142,8 +150,8 @@ function post(route, body, options) {
   return apiFetch('POST', route, body, options);
 }
 
-function put(route, body, options) {
-  return apiFetch('PUT', route, body, options);
+function patch(route, body, options) {
+  return apiFetch('PATCH', route, body, options);
 }
 
 

@@ -99,3 +99,29 @@ export const individual = {
 //     mother: null,
 //     father: null
 // }
+//
+
+export const user = {
+  username: "",
+  first_name: null,
+  last_name: null,
+  email: null,
+  password: "",
+  groups: [],
+  // user_permissions: [], // To be implemented maybe
+  // is_active: true, // To soft-delete the user
+  is_staff: false,
+  is_superuser: false,
+  // last_login: null,
+  date_joined: null,
+}
+// Example:
+// {
+//     "id": 19,
+//     "username": "romgrk",
+//     "email": "romain.gregoire@mcgill.ca",
+//     "groups": [],
+//     "is_staff": true,
+//     "is_superuser": true,
+//     "date_joined": "2021-02-19T17:10:07.503174Z"
+// }

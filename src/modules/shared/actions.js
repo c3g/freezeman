@@ -1,6 +1,7 @@
 import Containers from "../containers/actions";
 import Individuals from "../individuals/actions";
 import Users from "../users/actions";
+import Groups from "../groups";
 import Samples from "../samples/actions";
 import {refreshAuthToken} from "../auth/actions";
 
@@ -18,6 +19,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listTable,
         Samples.summary,
         Users.listTable,
+        Groups.list,
     ].map(a => dispatch(a())))
 
     // Lower priority

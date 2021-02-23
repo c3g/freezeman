@@ -20,6 +20,7 @@ import {
   Descriptions,
   Row,
   Space,
+  Tag,
   Table,
   Timeline,
   Typography,
@@ -48,8 +49,10 @@ import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
+import EditButton from "../EditButton";
+import {listVersions, get} from "../../modules/users/actions";
 import routes from "./routes";
-import {listVersions} from "../../modules/users/actions";
+import canWrite from "./canWrite";
 
 const { Title, Text } = Typography;
 
@@ -78,19 +81,25 @@ const columns = [
 ];
 
 const mapStateToProps = state => ({
+  canWrite: canWrite(state),
   isFetching: state.users.isFetching,
   usersError: state.users.error,
   usersByID: state.users.itemsByID,
+  groupsByID: state.groups.itemsByID,
 });
 
-const mapDispatchToProps = {listVersions};
+const mapDispatchToProps = {get, listVersions};
 
-const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) => {
+const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groupsByID, get, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
 
   const user = usersByID[id];
+
+  if (!isFetching && !user) {
+    get(id)
+  }
 
   if (user && !user.versions && !user.isFetching) {
     setTimeout(() => listVersions(user.id), 0);
@@ -102,6 +111,9 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
         title="User"
         onBack={history.goBack}
         breadcrumb={{ routes: routes.concat(route), itemRender }}
+        extra={canWrite ?
+          <EditButton url={`/users/${id}/update`} /> : undefined
+        }
       />
       <PageContent>
         {usersError &&
@@ -118,6 +130,7 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
         {user &&
           <UserReport
             user={user}
+            groupsByID={groupsByID}
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
           />
@@ -128,7 +141,7 @@ const ReportsUserContent = ({isFetching, usersError, usersByID, listVersions}) =
 
 };
 
-function UserReport({user, expandedGroups, setExpandedGroups}) {
+function UserReport({user, groupsByID, expandedGroups, setExpandedGroups}) {
 
   const error = user.error;
   const isFetching = user.isFetching;
@@ -148,7 +161,9 @@ function UserReport({user, expandedGroups, setExpandedGroups}) {
         <Descriptions.Item label="Name">{user.username}</Descriptions.Item>
         <Descriptions.Item label="Date joined">{dateToString(user.date_joined)}</Descriptions.Item>
         <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-        <Descriptions.Item label="Groups">{user.groups.map(g => g.name).join(", ")}</Descriptions.Item>
+        <Descriptions.Item label="Groups">
+          {user.groups?.map?.(g => <Tag key={g}>{groupsByID[g]?.name}</Tag>)}
+        </Descriptions.Item>
         <Descriptions.Item label="Staff">{user.is_staff ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
         <Descriptions.Item label="Superuser">{user.is_superuser ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
       </Descriptions>
