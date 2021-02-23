@@ -7,7 +7,7 @@ from django.db.models import Count, Q
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissionsOrAnonReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissions
 from rest_framework.response import Response
 from reversion.models import Version
 from tablib import Dataset
@@ -626,7 +626,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == "update_self":
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
+            permission_classes = [DjangoModelPermissions]
         return [permission() for permission in permission_classes]
 
     def partial_update(self, request, *args, **kwargs):
