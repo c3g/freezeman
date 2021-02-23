@@ -3,7 +3,6 @@ import {diff} from "jsondiffpatch";
 
 import {SwapRightOutlined} from "@ant-design/icons";
 import {Tag} from "antd";
-import "antd/es/tag/style/css";
 
 const removedStyle = {
   textDecoration: 'line-through',

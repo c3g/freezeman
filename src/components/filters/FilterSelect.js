@@ -1,7 +1,5 @@
 import React from "react";
 import {Radio, Select} from "antd";
-import "antd/es/radio/style/css";
-import "antd/es/select/style/css";
 
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"

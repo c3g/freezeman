@@ -1,7 +1,5 @@
 import React, {useState} from "react";
-
 import {AutoComplete} from "antd";
-import "antd/es/auto-complete/style/css";
 
 import filterAutocompleteOptions from "../../utils/filterAutocompleteOptions";
 

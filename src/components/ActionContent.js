@@ -2,10 +2,7 @@ import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useRouteMatch} from "react-router-dom";
 import PropTypes from "prop-types";
-
 import {Button} from "antd";
-import "antd/es/button/style/css";
-
 import {DownloadOutlined} from "@ant-design/icons";
 
 import {fetchAuthorizedData} from "../modules/shared/actions";

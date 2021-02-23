@@ -2,8 +2,6 @@ import React from "react";
 import {connect} from "react-redux";
 import {filter as filterObject} from "rambda";
 import {Collapse} from "antd";
-import "antd/es/button/style/css";
-import "antd/es/collapse/style/css";
 
 import {setFilter} from "../../modules/samples/actions";
 import FilterGroup from "../filters/FilterGroup";

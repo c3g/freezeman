@@ -1,10 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams, Link} from "react-router-dom";
-
 import {Space, Descriptions} from "antd";
-import "antd/es/descriptions/style/css";
-import "antd/es/space/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";

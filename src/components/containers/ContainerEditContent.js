@@ -1,15 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-
-import {Alert, AutoComplete, Button, Form, Input, Select, Typography} from "antd";
-import "antd/es/alert/style/css";
-import "antd/es/auto-complete/style/css";
-import "antd/es/button/style/css";
-import "antd/es/form/style/css";
-import "antd/es/input/style/css";
-import "antd/es/select/style/css";
-import "antd/es/typography/style/css";
+import {Alert, Button, Form, Input, Select} from "antd";
 const {Option} = Select;
 const {Item} = Form;
 const {TextArea} = Input;

@@ -1,14 +1,6 @@
 import React, {useState} from "react";
 import PropTypes from "prop-types";
-
 import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
-import "antd/es/alert/style/css";
-import "antd/es/button/style/css";
-import "antd/es/form/style/css";
-import "antd/es/steps/style/css";
-import "antd/es/upload/style/css";
-import "antd/es/row/style/css";
-import "antd/es/col/style/css";
 
 import {
   ArrowRightOutlined,

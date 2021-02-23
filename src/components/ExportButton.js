@@ -1,9 +1,6 @@
 import React, {useState} from "react";
 import {downloadFromText} from "../utils/download";
-
 import {Button, notification} from "antd";
-import "antd/es/button/style/css";
-import "antd/es/notification/style/css";
 
 import { DownloadOutlined } from "@ant-design/icons";
 

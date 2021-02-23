@@ -1,9 +1,6 @@
 import React, {useState, useRef} from "react";
 import prop from "prop-types";
-
 import {Pagination, Table} from "antd";
-import "antd/es/pagination/style/css";
-import "antd/es/table/style/css";
 
 
 const pageSize = 10;

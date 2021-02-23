@@ -1,14 +1,7 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-
 import {Button, Card, Col, Row, Statistic} from "antd";
-import "antd/es/button/style/css";
-import "antd/es/card/style/css";
-import "antd/es/col/style/css";
-import "antd/es/row/style/css";
-import "antd/es/statistic/style/css";
-
 
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";

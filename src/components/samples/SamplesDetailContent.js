@@ -14,15 +14,6 @@ import {
   Timeline,
   Typography
 } from "antd";
-import "antd/es/card/style/css";
-import "antd/es/col/style/css";
-import "antd/es/descriptions/style/css";
-import "antd/es/empty/style/css";
-import "antd/es/row/style/css";
-import "antd/es/space/style/css";
-import "antd/es/tag/style/css";
-import "antd/es/timeline/style/css";
-import "antd/es/typography/style/css";
 
 import dateToString from "../../utils/dateToString";
 import useTimeline from "../../utils/useTimeline";

@@ -1,12 +1,5 @@
 import React, {useRef} from "react";
 import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip} from "antd";
-import "antd/es/button/style/css";
-import "antd/es/input/style/css";
-import "antd/es/radio/style/css";
-import "antd/es/select/style/css";
-import "antd/es/switch/style/css";
-import "antd/es/space/style/css";
-import "antd/es/tooltip/style/css";
 import {SearchOutlined} from "@ant-design/icons";
 
 import {FILTER_TYPE} from "../../constants";

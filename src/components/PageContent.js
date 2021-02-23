@@ -1,7 +1,5 @@
 import React from "react";
-
 import {Spin} from "antd";
-import "antd/es/spin/style/css";
 
 const defaultStyle = {
   flex: "1",

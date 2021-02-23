@@ -1,7 +1,5 @@
 import React from "react";
-
 import {PageHeader} from "antd";
-import "antd/es/page-header/style/css";
 
 const style = {
   backgroundColor: "rgba(0, 0, 0, 0.03)",

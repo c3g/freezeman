@@ -1,7 +1,5 @@
 import React from "react";
 import {Input} from "antd";
-import "antd/es/input/style/css";
-import "antd/es/input-number/style/css";
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"
 

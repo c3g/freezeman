@@ -2,10 +2,7 @@ import React, { useState, useEffect } from "react";
 import {useHistory} from "react-router-dom";
 import {connect} from "react-redux";
 import {set} from "object-path-immutable";
-
 import {Tree, Typography} from "antd";
-import "antd/es/tree/style/css";
-import "antd/es/typography/style/css";
 
 import {
   LoadingOutlined,

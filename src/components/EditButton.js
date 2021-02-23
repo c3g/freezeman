@@ -1,9 +1,6 @@
 import React from "react";
 import {useHistory} from "react-router-dom";
-
 import {Button} from "antd";
-import "antd/es/button/style/css";
-
 import {EditOutlined} from "@ant-design/icons";
 
 const EditButton = ({url}) => {

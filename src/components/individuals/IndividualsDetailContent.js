@@ -2,11 +2,7 @@ import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-
-import {Descriptions, Space, Spin} from "antd";
-import "antd/es/descriptions/style/css";
-import "antd/es/space/style/css";
-import "antd/es/spin/style/css";
+import {Descriptions} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";

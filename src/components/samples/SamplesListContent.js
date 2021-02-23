@@ -1,10 +1,7 @@
 import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-
 import {Button, Tag} from "antd";
-import "antd/es/button/style/css";
-import "antd/es/tag/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";

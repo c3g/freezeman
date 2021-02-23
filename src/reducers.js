@@ -2,9 +2,7 @@ import React from "react";
 import {combineReducers} from "redux";
 import {persistReducer} from "redux-persist";
 import storage from "redux-persist/lib/storage";
-
 import {notification} from "antd";
-import "antd/es/notification/style/css";
 
 import {auth} from "./modules/auth/reducers";
 import {

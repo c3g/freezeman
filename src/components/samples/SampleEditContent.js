@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-
 import {
   Alert,
   AutoComplete,
@@ -13,18 +12,7 @@ import {
   InputNumber,
   Select,
   Switch,
-  Typography,
 } from "antd";
-import "antd/es/alert/style/css";
-import "antd/es/auto-complete/style/css";
-import "antd/es/button/style/css";
-import "antd/es/date-picker/style/css";
-import "antd/es/form/style/css";
-import "antd/es/input/style/css";
-import "antd/es/input-number/style/css";
-import "antd/es/select/style/css";
-import "antd/es/switch/style/css";
-import "antd/es/typography/style/css";
 const {Option} = Select
 const {TextArea} = Input
 

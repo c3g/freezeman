@@ -1,14 +1,7 @@
 import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-
 import {Alert, Button, Form, Input, Radio, Select} from "antd";
-import "antd/es/alert/style/css";
-import "antd/es/button/style/css";
-import "antd/es/form/style/css";
-import "antd/es/input/style/css";
-import "antd/es/radio/style/css";
-import "antd/es/select/style/css";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";

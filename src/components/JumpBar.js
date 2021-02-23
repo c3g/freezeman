@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {useHistory} from "react-router-dom";
-
 import {
   UserOutlined,
   TableOutlined,
@@ -10,9 +9,6 @@ import {
   ExperimentOutlined
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
-import "antd/es/select/style/css";
-import "antd/es/tag/style/css";
-import "antd/es/typography/style/css";
 
 import {clear, search} from "../modules/query/actions";
 

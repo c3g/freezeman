@@ -1,6 +1,5 @@
 import React from "react";
 import {Tooltip, Typography} from "antd";
-import "antd/es/typography/style/css";
 const {Text} = Typography
 import {QuestionCircleOutlined} from "@ant-design/icons";
 

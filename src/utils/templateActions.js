@@ -2,8 +2,6 @@ import React from "react";
 import {Link} from "react-router-dom";
 
 import {Button} from "antd";
-import "antd/es/button/style/css";
-
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined} from "@ant-design/icons";
 
 export const actionIcon = a => {

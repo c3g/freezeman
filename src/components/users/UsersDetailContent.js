@@ -12,7 +12,6 @@ import {
   values,
 } from "rambda";
 import {set} from "object-path-immutable";
-
 import {
   Button,
   Card,
@@ -25,15 +24,6 @@ import {
   Timeline,
   Typography,
 } from "antd";
-import "antd/es/button/style/css";
-import "antd/es/card/style/css";
-import "antd/es/col/style/css";
-import "antd/es/descriptions/style/css";
-import "antd/es/row/style/css";
-import "antd/es/space/style/css";
-import "antd/es/table/style/css";
-import "antd/es/timeline/style/css";
-import "antd/es/typography/style/css";
 import {
   ArrowsAltOutlined,
   ShrinkOutlined,

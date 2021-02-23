@@ -1,7 +1,5 @@
 import React from "react";
-
 import {Alert} from "antd";
-import "antd/es/alert/style/css";
 
 const ErrorMessage = ({title, description, error}) =>
   <Alert
