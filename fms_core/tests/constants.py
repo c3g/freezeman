@@ -24,9 +24,9 @@ def create_sample_container(kind, name, barcode, coordinates='', location=None):
     )
 
 
-def create_sample(individual, container, coordinates='', **kwargs):
+def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
     return {
-        "biospecimen_type": 'BLOOD',
+        "sample_kind": sample_kind,
         "name": 'test_sample_01',
         "alias": '53',
         "individual": individual,
@@ -46,10 +46,10 @@ def create_sample(individual, container, coordinates='', **kwargs):
     }
 
 
-def create_extracted_sample(biospecimen_type, individual, container, extracted_from, volume_used, coordinates='',
+def create_extracted_sample(sample_kind, individual, container, extracted_from, volume_used, coordinates='',
                             **kwargs):
     return {
-        'biospecimen_type': biospecimen_type,
+        'sample_kind': sample_kind,
         'name': 'test_extracted_sample_01',
         'alias': '12',
         'individual': individual,

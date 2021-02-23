@@ -5,6 +5,7 @@ from .extracted_sample import ExtractedSample
 from .imported_file import ImportedFile
 from .individual import Individual
 from .sample import Sample
+from .sample_kind import SampleKind
 from .sample_update import SampleUpdate
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "ImportedFile",
     "Individual",
     "Sample",
+    "SampleKind",
     "SampleUpdate",
 ]

@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from reversion.models import Version
 
-from .models import Container, Sample, Individual
+from .models import Container, Sample, Individual, SampleKind
 
 
 __all__ = [
@@ -10,6 +10,7 @@ __all__ = [
     "ContainerExportSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
+    "SampleKindSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
@@ -49,6 +50,12 @@ class IndividualSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class SampleKindSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleKind
+        fields = "__all__"
+
+
 class SampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
@@ -56,6 +63,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
+    sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
     sample_name = serializers.CharField(source="name")
     individual_id = serializers.CharField(read_only=True, source="individual.name")
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
@@ -73,7 +81,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = ('biospecimen_type', 'sample_name', 'alias', 'cohort', 'taxon',
+        fields = ('sample_kind', 'sample_name', 'alias', 'cohort', 'taxon',
                   'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
                   'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
                   'current_volume', 'concentration', 'collection_site', 'tissue_source', 'reception_date', 'phenotype',
@@ -87,8 +95,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
             return obj.container.location.barcode
 
     def get_current_volume(self, obj):
-        sorted_volume_histories = sorted(obj.volume_history, key=lambda k: k['date'])
-        return sorted_volume_histories[-1]['volume_value']
+        return obj.volume
 
     def get_father_name(self, obj):
         father = '' if obj.individual.father is None else obj.individual.father.name

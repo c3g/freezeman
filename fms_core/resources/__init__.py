@@ -4,6 +4,7 @@ from .container_rename import ContainerRenameResource
 from .extraction import ExtractionResource
 from .individual import IndividualResource
 from .sample import SampleResource
+from .sample_kind import SampleKindResource
 from .sample_update import SampleUpdateResource
 
 __all__ = [
@@ -13,5 +14,6 @@ __all__ = [
     "ExtractionResource",
     "IndividualResource",
     "SampleResource",
+    "SampleKindResource",
     "SampleUpdateResource",
 ]

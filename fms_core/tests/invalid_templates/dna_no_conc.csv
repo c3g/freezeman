@@ -4,5 +4,5 @@ Naming Rules,,,,,,,,,,,,,,,,,,,,,,,
 "- Only use the follwin caracters for Sample name and Barcode: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,
-#,Biospecimen Type,Sample Name,Alias,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual ID,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Reception Date,Phenotype,Comment
+#,Sample Kind,Sample Name,Alias,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual ID,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Reception Date,Phenotype,Comment
 1,DNA,sample1,first sample,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,DLMother,DLFather,10,,site1,Blood,2020-03-03,phenotype1,some comment here

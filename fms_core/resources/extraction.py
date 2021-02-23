@@ -9,7 +9,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Sample
+from ..models import Container, Sample, SampleKind
 from ..utils import (
     VolumeHistoryUpdateType,
     blank_str_to_none,
@@ -21,8 +21,7 @@ from ..utils import (
 
 
 class ExtractionResource(GenericResource):
-    biospecimen_type = Field(attribute='biospecimen_type', column_name='Extraction Type')
-
+    sample_kind = Field(attribute="sample_kind_name", column_name='Extraction Type')
     volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
     # parent sample container
     sample_container = Field(column_name='Container Barcode')
@@ -45,7 +44,7 @@ class ExtractionResource(GenericResource):
         model = Sample
         import_id_fields = ()
         fields = (
-            'biospecimen_type',
+            'sample_kind',
             'volume_used',
             'concentration',
             'source_depleted',
@@ -58,7 +57,7 @@ class ExtractionResource(GenericResource):
             'volume_history',
         )
         export_order = (
-            'biospecimen_type',
+            'sample_kind',
             'volume_used',
             'sample_container',
             'sample_container_coordinates',
@@ -80,6 +79,9 @@ class ExtractionResource(GenericResource):
         if field.attribute in ('source_depleted', 'context_sensitive_coordinates'):
             # Computed field, skip importing it.
             return
+
+        if field.attribute == "sample_kind_name":
+            obj.sample_kind = SampleKind.objects.get(name=data["Extraction Type"])
 
         if field.attribute == 'volume_history':
             # We store volume as a JSON object of historical values, so this
@@ -179,7 +181,7 @@ class ExtractionResource(GenericResource):
         instance.experimental_group = instance.extracted_from.experimental_group
         instance.individual = instance.extracted_from.individual
         instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
-            instance.extracted_from.biospecimen_type, "")
+            instance.extracted_from.sample_kind.name, "")
 
         super().before_save_instance(instance, using_transactions, dry_run)
 

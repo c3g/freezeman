@@ -10,6 +10,7 @@ from .models import (
     ContainerMove,
     ContainerRename,
     Sample,
+    SampleKind,
     SampleUpdate,
     ExtractedSample,
     Individual,
@@ -20,6 +21,7 @@ from .resources import (
     ContainerMoveResource,
     ContainerRenameResource,
     SampleResource,
+    SampleKindResource,
     SampleUpdateResource,
     ExtractionResource,
     IndividualResource,
@@ -138,7 +140,7 @@ class SampleAdmin(AggregatedAdmin):
     resource_class = SampleResource
 
     list_display = (
-        "biospecimen_type",
+        "sample_kind",
         "name",
         "alias",
         "individual",
@@ -150,13 +152,14 @@ class SampleAdmin(AggregatedAdmin):
     )
 
     list_select_related = (
+        "sample_kind",
         "individual",
         "container",
         "extracted_from",
     )
 
     list_filter = (
-        "biospecimen_type",
+        "sample_kind",
         "depleted",
     )
 
@@ -167,7 +170,7 @@ class SampleAdmin(AggregatedAdmin):
     )
 
     fieldsets = (
-        (None, {"fields": ("biospecimen_type", "name", "alias", "individual", "reception_date", "collection_site")}),
+        (None, {"fields": ("sample_kind", "name", "alias", "individual", "reception_date", "collection_site")}),
         ("Quantity Information", {"fields": ("volume_history", "concentration", "depleted")}),
         ("For Extracted Samples Only", {"fields": ("extracted_from", "volume_used")}),
         ("Location", {"fields": ("container", "coordinates")}),
@@ -203,6 +206,44 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+
+
+class SampleKindForm(forms.ModelForm):
+    class Meta:
+        model = SampleKind
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
+
+@admin.register(SampleKind)
+class SampleKindAdmin(AggregatedAdmin):
+    form = SampleKindForm
+    resource_class = SampleKindResource
+
+    list_display = (
+        "name",
+        "molecule_ontology_curie"
+    )
+
+    list_filter = (
+        "name",
+        "molecule_ontology_curie"
+    )
+
+    search_fields = (
+        "name",
+        "molecule_ontology_curie"
+    )
+
+    fieldsets = (
+        (None, {"fields": ("name", "molecule_ontology_curie")}),
+    )
 
 class IndividualForm(forms.ModelForm):
     class Meta:

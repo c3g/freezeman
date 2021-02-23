@@ -11,7 +11,7 @@ from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from ..models import Container, Individual, Sample
+from ..models import Container, Individual, Sample, SampleKind
 from ..utils import (
     RE_SEPARATOR,
     VolumeHistoryUpdateType,
@@ -29,7 +29,7 @@ __all__ = ["SampleResource"]
 
 class SampleResource(GenericResource):
     # Simple model fields
-    biospecimen_type = Field(attribute='biospecimen_type', column_name='Biospecimen Type')
+    sample_kind = Field(attribute='sample_kind_name', column_name='Sample Kind')
     name = Field(attribute='name', column_name='Sample Name')
     alias = Field(attribute='alias', column_name='Alias')
     experimental_group = Field(attribute='experimental_group', column_name='Experimental Group', widget=JSONWidget())
@@ -84,7 +84,7 @@ class SampleResource(GenericResource):
         model = Sample
         import_id_fields = ("container__barcode", "context_sensitive_coordinates")
         fields = (
-            "biospecimen_type",
+            "sample_kind",
             "name",
             "alias",
             "concentration",
@@ -93,7 +93,7 @@ class SampleResource(GenericResource):
         )
         excluded = ("volume_history", "individual", "depleted", "container")
         export_order = (
-            "biospecimen_type",
+            "sample_kind",
             "name",
             "alias",
             "cohort",
@@ -190,7 +190,10 @@ class SampleResource(GenericResource):
 
         normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
 
-        if field.attribute == "container_barcode" and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
+        if field.attribute == "sample_kind_name":
+            obj.sample_kind = SampleKind.objects.get(name=data["Sample Kind"])
+
+        elif field.attribute == "container_barcode" and normalized_container_kind in SAMPLE_CONTAINER_KINDS:
             # Oddly enough, Location Coord is contextual - when Container Kind
             # is one with coordinates, this specifies the sample's location
             # within the container itself. Otherwise, it specifies the location
