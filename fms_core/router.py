@@ -7,6 +7,7 @@ from .viewsets import (
     QueryViewSet,
     SampleViewSet,
     UserViewSet,
+    GroupViewSet,
     VersionViewSet,
 )
 
@@ -20,3 +21,4 @@ router.register(r"individuals", IndividualViewSet)
 router.register(r"query", QueryViewSet, basename="query")
 router.register(r"versions", VersionViewSet)
 router.register(r"users", UserViewSet)
+router.register(r"groups", GroupViewSet)
