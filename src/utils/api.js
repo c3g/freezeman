@@ -59,6 +59,10 @@ const api = {
     search: q => get("/samples/search/", { q }),
   },
 
+  sampleKinds: {
+    list: () => get("/sample-kinds/"),
+  },
+
   users: {
     get: userId => get(`/users/${userId}/`),
     add: user => post("/users/", user),

@@ -11,6 +11,38 @@ import {resetTable} from "../../utils/reducers";
 import CONTAINERS from "../containers/actions";
 import SAMPLES from "./actions";
 
+export const sampleKinds = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case SAMPLES.LIST_KINDS.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case SAMPLES.LIST_KINDS.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case SAMPLES.LIST_KINDS.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
+
 export const samplesSummary = summaryReducerFactory(SAMPLES);
 export const sampleTemplateActions = templateActionsReducerFactory(SAMPLES);
 

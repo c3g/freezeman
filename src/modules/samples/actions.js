@@ -12,9 +12,10 @@ export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("SAMPLES.LIST_TABLE");
 export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
 export const SET_FILTER            = "SAMPLES.SET_FILTER";
-export const SET_FILTER_OPTION    = "SAMPLES.SET_FILTER_OPTION"
+export const SET_FILTER_OPTION     = "SAMPLES.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
 export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
+export const LIST_KINDS            = createNetworkActionTypes("SAMPLES.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
 export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
 
@@ -92,6 +93,14 @@ export const clearFilters = thenList(() => {
     }
 });
 
+export const listKinds = () => async (dispatch, getState) => {
+    // Check if we're already fetching or have fetched sample kinds first
+    if (getState().sampleKinds.isFetching || getState().sampleKinds.items.length > 0)
+        return;
+
+    return await dispatch(networkAction(LIST_KINDS, api.sampleKinds.list()));
+};
+
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().sampleTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.samples.template.actions()));
@@ -122,6 +131,7 @@ export default {
     LIST_TABLE,
     SUMMARY,
     LIST_VERSIONS,
+    LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
     get,
     add,
@@ -133,6 +143,7 @@ export default {
     list,
     listTable,
     listVersions,
+    listKinds,
     listTemplateActions,
     summary,
 };

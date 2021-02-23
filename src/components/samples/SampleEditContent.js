@@ -21,7 +21,7 @@ import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import {add, update} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
-import {BIOSPECIMEN_TYPE, TISSUE_SOURCE} from "../../constants";
+import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
@@ -56,11 +56,12 @@ const listCollectionSites = (token) => {
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
+  sampleKinds: state.sampleKinds.items,
 });
 
 const actionCreators = {add, update};
 
-const SampleEditContent = ({token, samplesByID, add, update}) => {
+const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -192,10 +193,10 @@ const SampleEditContent = ({token, samplesByID, add, update}) => {
           <Form.Item label="Alias" {...props("alias")}>
             <Input />
           </Form.Item>
-          <Form.Item label="Biosp. Type" {...props("biospecimen_type")} rules={requiredRules}>
+          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
             <Select>
-              {BIOSPECIMEN_TYPE.map(type =>
-                <Option key={type} value={type}>{type}</Option>
+              {sampleKinds.map(sk =>
+                <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
             </Select>
           </Form.Item>
