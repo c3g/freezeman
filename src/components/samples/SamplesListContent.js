@@ -15,7 +15,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
@@ -120,7 +120,7 @@ const mapStateToProps = state => ({
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {list, setFilter, setFilterOption, clearFilters, setSortBy};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const SamplesListContent = ({
   token,
@@ -134,7 +134,7 @@ const SamplesListContent = ({
   containersByID,
   individualsByID,
   sortBy,
-  list,
+  listTable,
   setFilter,
   setFilterOption,
   clearFilters,
@@ -189,7 +189,7 @@ const SamplesListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={list}
+        onLoad={listTable}
         onChangeSort={setSortBy}
       />
     </PageContent>

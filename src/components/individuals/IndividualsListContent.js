@@ -12,7 +12,7 @@ import ExportButton from "../ExportButton";
 import AddButton from "../AddButton";
 
 import api, {withToken}  from "../../utils/api"
-import {list, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/individuals/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/individuals/actions";
 import {INDIVIDUAL_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -63,7 +63,7 @@ const mapStateToProps = state => ({
   sortBy: state.individuals.sortBy,
 });
 
-const mapDispatchToProps = {list, setFilter, setFilterOption, clearFilters, setSortBy};
+const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const IndividualsListContent = ({
   token,
@@ -74,7 +74,7 @@ const IndividualsListContent = ({
   totalCount,
   filters,
   sortBy,
-  list,
+  listTable,
   setFilter,
   setFilterOption,
   clearFilters,
@@ -126,7 +126,7 @@ const IndividualsListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={list}
+        onLoad={listTable}
         onChangeSort={setSortBy}
       />
     </PageContent>

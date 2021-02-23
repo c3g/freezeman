@@ -5,14 +5,23 @@ import serializeSortByParams from "../../utils/serializeSortByParams";
 import {USER_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-export const LIST          = createNetworkActionTypes("USERS.LIST");
+export const LIST = createNetworkActionTypes("USERS.LIST");
+export const LIST_TABLE = createNetworkActionTypes("USERS.LIST_TABLE");
 export const LIST_VERSIONS = createNetworkActionTypes("USERS.LIST_VERSIONS");
 export const SET_SORT_BY = "USERS.SET_SORT_BY";
 export const SET_FILTER = "USERS.SET_FILTER";
 export const SET_FILTER_OPTION = "USERS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS = "USERS.CLEAR_FILTERS";
 
-export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch, getState) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST,
+        api.users.list(params),
+        { meta: params }
+    ));
+};
+
+export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const users = getState().users
     if (users.isFetching && !abort)
         return
@@ -21,7 +30,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abor
     const ordering = serializeSortByParams(users.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
-    const res =  await dispatch(networkAction(LIST,
+    const res =  await dispatch(networkAction(LIST_TABLE,
         api.users.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
@@ -65,12 +74,14 @@ export const clearFilters = thenList(() => {
 
 export default {
     LIST,
+    LIST_TABLE,
     LIST_VERSIONS,
     SET_SORT_BY,
     SET_FILTER,
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     list,
+    listTable,
     listVersions,
     setSortBy,
     setFilter,
@@ -82,6 +93,6 @@ export default {
 function thenList(fn) {
     return (...args) => async dispatch => {
         dispatch(fn(...args))
-        dispatch(list(undefined, true))
+        dispatch(listTable(undefined, true))
     }
 }

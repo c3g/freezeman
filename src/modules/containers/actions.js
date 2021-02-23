@@ -13,6 +13,7 @@ export const SET_FILTER = "CONTAINERS.SET_FILTER";
 export const SET_FILTER_OPTION = "CONTAINERS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS = "CONTAINERS.CLEAR_FILTERS";
 export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
+export const LIST_TABLE = createNetworkActionTypes("CONTAINERS.LIST_TABLE");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
 export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
@@ -44,7 +45,15 @@ export const update = (id, container) => async (dispatch, getState) => {
         UPDATE, api.containers.update(container), { meta: { id, ignoreError: 'APIError' }}));
 };
 
-export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch, getState) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST,
+        api.containers.list(params),
+        { meta: params }
+    ));
+};
+
+export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const containers = getState().containers
     if (containers.isFetching && !abort)
         return
@@ -53,7 +62,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abor
     const ordering = serializeSortByParams(containers.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
-    const res =  await dispatch(networkAction(LIST,
+    const res =  await dispatch(networkAction(LIST_TABLE,
         api.containers.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
@@ -148,6 +157,7 @@ export default {
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     LIST,
+    LIST_TABLE,
     LIST_PARENTS,
     LIST_CHILDREN,
     LIST_SAMPLES,
@@ -162,6 +172,7 @@ export default {
     setFilterOption,
     clearFilters,
     list,
+    listTable,
     listParents,
     listChildren,
     listSamples,
@@ -174,6 +185,6 @@ export default {
 function thenList(fn) {
     return (...args) => async dispatch => {
         dispatch(fn(...args))
-        dispatch(list(undefined, true))
+        dispatch(listTable(undefined, true))
     }
 }

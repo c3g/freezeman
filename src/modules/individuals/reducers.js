@@ -44,26 +44,35 @@ export const individuals = (
         case INDIVIDUALS.LIST.REQUEST:
             return { ...state, isFetching: true };
         case INDIVIDUALS.LIST.RECEIVE: {
+            const results = action.data.results.map(preprocess)
+            const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
+            return { ...state, itemsByID, isFetching: false, error: undefined };
+        }
+        case INDIVIDUALS.LIST.ERROR:
+            return { ...state, isFetching: false, error: action.error };
+
+        case INDIVIDUALS.LIST_TABLE.REQUEST:
+            return { ...state, isFetching: true };
+        case INDIVIDUALS.LIST_TABLE.RECEIVE: {
+            const totalCount = action.data.count;
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
-            const itemsByID = merge(state.itemsByID, [], indexByID(action.data.results, "id"));
-            const itemsID = action.data.results.map(r => r.id)
+            const results = action.data.results.map(preprocess)
+            const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
+            const itemsID = results.map(r => r.id)
             const items = mergeArray(currentItems, action.meta.offset, itemsID)
             return {
                 ...state,
                 itemsByID,
                 items,
-                totalCount: action.data.count,
+                totalCount,
                 page: action.meta,
                 isFetching: false,
+                error: undefined,
             };
         }
-        case INDIVIDUALS.LIST.ERROR:
-            return {
-                ...state,
-                isFetching: false,
-                error: action.error,
-            };
+        case INDIVIDUALS.LIST_TABLE.ERROR:
+            return { ...state, isFetching: false, error: action.error };
 
         case INDIVIDUALS.SET_SORT_BY:
             return { ...state, sortBy: action.data };
@@ -94,3 +103,8 @@ export const individuals = (
             return state;
     }
 };
+
+function preprocess(individual) {
+    individual.isFetching = false
+    return individual
+}

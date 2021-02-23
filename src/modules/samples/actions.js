@@ -9,6 +9,7 @@ export const GET                   = createNetworkActionTypes("SAMPLES.GET");
 export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
 export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
+export const LIST_TABLE            = createNetworkActionTypes("SAMPLES.LIST_TABLE");
 export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
 export const SET_FILTER            = "SAMPLES.SET_FILTER";
 export const SET_FILTER_OPTION    = "SAMPLES.SET_FILTER_OPTION"
@@ -41,7 +42,15 @@ export const update = (id, sample) => async (dispatch, getState) => {
         UPDATE, api.samples.update(sample), { meta: { id, ignoreError: 'APIError' }}));
 };
 
-export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch, getState) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST,
+        api.samples.list(params),
+        { meta: params }
+    ));
+};
+
+export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const samples = getState().samples
     if (samples.isFetching && !abort)
         return
@@ -50,7 +59,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abor
     const ordering = serializeSortByParams(samples.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
-    return await dispatch(networkAction(LIST,
+    return await dispatch(networkAction(LIST_TABLE,
         api.samples.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
@@ -110,6 +119,7 @@ export default {
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     LIST,
+    LIST_TABLE,
     SUMMARY,
     LIST_VERSIONS,
     LIST_TEMPLATE_ACTIONS,
@@ -121,6 +131,7 @@ export default {
     setFilterOption,
     clearFilters,
     list,
+    listTable,
     listVersions,
     listTemplateActions,
     summary,
@@ -130,6 +141,6 @@ export default {
 function thenList(fn) {
     return (...args) => async dispatch => {
         dispatch(fn(...args))
-        dispatch(list(undefined, true))
+        dispatch(listTable(undefined, true))
     }
 }

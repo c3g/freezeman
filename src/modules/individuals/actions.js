@@ -9,6 +9,7 @@ export const GET = createNetworkActionTypes("INDIVIDUALS.GET");
 export const ADD = createNetworkActionTypes("INDIVIDUALS.ADD");
 export const UPDATE = createNetworkActionTypes("INDIVIDUALS.UPDATE");
 export const LIST = createNetworkActionTypes("INDIVIDUALS.LIST");
+export const LIST_TABLE = createNetworkActionTypes("INDIVIDUALS.LIST_TABLE");
 export const SET_SORT_BY = "INDIVIDUALS.SET_SORT_BY"
 export const SET_FILTER = "INDIVIDUALS.SET_FILTER";
 export const SET_FILTER_OPTION = "INDIVIDUALS.SET_FILTER_OPTION"
@@ -38,7 +39,15 @@ export const update = (id, individual) => async (dispatch, getState) => {
         UPDATE, api.individuals.update(individual), { meta: { id, ignoreError: 'APIError' }}));
 };
 
-export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch, getState) => {
+    const params = { limit: 100000, ...options }
+    return await dispatch(networkAction(LIST,
+        api.individuals.list(params),
+        { meta: params }
+    ));
+};
+
+export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const {individuals} = getState();
     if (individuals.isFetching && !abort)
         return
@@ -47,7 +56,7 @@ export const list = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abor
     const ordering = serializeSortByParams(individuals.sortBy)
     const options = { limit, offset, ordering, ...filters }
 
-    return await dispatch(networkAction(LIST,
+    return await dispatch(networkAction(LIST_TABLE,
         api.individuals.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
@@ -85,6 +94,7 @@ export default {
     ADD,
     UPDATE,
     LIST,
+    LIST_TABLE,
     SET_SORT_BY,
     SET_FILTER,
     SET_FILTER_OPTION,
@@ -93,6 +103,7 @@ export default {
     add,
     update,
     list,
+    listTable,
     setSortBy,
     setFilter,
     setFilterOption,
@@ -103,6 +114,6 @@ export default {
 function thenList(fn) {
     return (...args) => async dispatch => {
         dispatch(fn(...args))
-        dispatch(list(undefined, true))
+        dispatch(listTable(undefined, true))
     }
 }
