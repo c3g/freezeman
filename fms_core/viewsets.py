@@ -621,7 +621,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filterset_fields = _user_filterset_fields
-    #  permission_classes = [DjangoModelPermissionsOrAnonReadOnly]
 
     def get_permissions(self):
         if self.action == "update_self":

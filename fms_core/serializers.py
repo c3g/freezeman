@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User, Group
-from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from reversion.models import Version
 
