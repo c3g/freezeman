@@ -2,8 +2,7 @@ import json
 
 from collections import Counter
 from django.conf import settings
-from django.core import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db.models import Count, Q
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
