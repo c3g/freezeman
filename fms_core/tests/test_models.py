@@ -269,7 +269,9 @@ class ExtractedSampleTest(TestCase):
 
         # WARNING !!! Removed testing for volume_used not null for non-extracted sample
         # this container already has a sample inside
-        invalid_volume_used = Sample(**create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container,
+        invalid_volume_used = Sample(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                     individual=self.valid_individual,
+                                                     container=self.valid_container,
                                                      volume_used=Decimal('0.01')))
         with self.assertRaises(ValidationError):
             try:
