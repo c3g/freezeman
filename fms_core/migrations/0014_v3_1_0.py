@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.postgres.operations import TrigramExtension
 import json
 
 SAMPLE_KINDS = ['DNA', 'RNA', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
@@ -81,4 +82,5 @@ class Migration(migrations.Migration):
                 help_text='Biological material collected from study subject during the conduct of a genomic study project.',
                 max_length=200, unique=True),
         ),
+        TrigramExtension(),
     ]
