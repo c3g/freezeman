@@ -267,7 +267,7 @@ class Sample(models.Model):
         self.normalize()
 
         sample_kind_choices = (Sample.BIOSPECIMEN_TYPE_NA_CHOICES if self.extracted_from
-                                    else Sample.BIOSPECIMEN_TYPE_CHOICES)
+                               else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.sample_kind.name not in frozenset(c[0] for c in sample_kind_choices):
             add_error(
                 "sample_kind",
@@ -276,23 +276,21 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if elf.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
+            if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
                     "extracted_from",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 
-            if self.biospecimen_type not in Sample.BIOSPECIMEN_TYPES_NA:
-                add_error("biospecimen_type", "Extracted sample need to be a type of Nucleic Acid.")
+            if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
 
-            else:
-                original_biospecimen_type = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[extracted_from_sample_kind]
-                if self.tissue_source != original_biospecimen_type:
-                    add_error(
-                        "tissue_source",
-                        (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
-                         f"{original_biospecimen_type}")
-                    )
+            elif self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.extracted_from.sample_kind.name]:
+                add_error(
+                    "tissue_source",
+                    (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
+                     f"{original_sample_kind}")
+                )
 
             if self.volume_used is None:
                 add_error("volume_used", "Extracted samples must specify volume_used")
@@ -305,10 +303,9 @@ class Sample(models.Model):
         if self.volume < Decimal("0"):
             add_error("volume_history", "Current volume must be positive.")
 
-        # Check concentration fields given biospecimen_type
-
+        # Check concentration fields given sample_kind
         if self.sample_kind.name in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:
-            add_error("concentration", "Concentration must be specified if the biospecimen_type is DNA")
+            add_error("concentration", "Concentration must be specified if the sample_kind is DNA")
 
         # Check tissue source given extracted_from
 

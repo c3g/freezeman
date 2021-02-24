@@ -173,7 +173,9 @@ class ExtractedSampleTest(TestCase):
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube03',
                                                                                   barcode='TParent01'))
         # create parent samples
-        self.parent_sample = Sample.objects.create(**create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container,
+        self.parent_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                                   individual=self.valid_individual,
+                                                                   container=self.valid_container,
                                                                    name="test_sample_10"))
         self.invalid_parent_sample = Sample.objects.create(**create_sample(
             sample_kind=self.sample_kind_DNA,
@@ -190,7 +192,8 @@ class ExtractedSampleTest(TestCase):
         )
 
     def test_extracted_sample(self):
-        s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'),
+        s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                            volume_used=Decimal('0.01'),
                                                             **self.constants))
         s.save()
         SampleLineage.objects.create(parent=self.parent_sample, child=s)
@@ -277,7 +280,7 @@ class ExtractedSampleTest(TestCase):
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
-        invalid_concentration = Sample(**create_extracted_sample(self.sample_kind_DNA, volume_used=Decimal('0.01'),
+        invalid_concentration = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'),
                                                                  **self.constants))
         invalid_concentration.concentration = None
         self.assertRaises(ValidationError, invalid_concentration.full_clean)
@@ -309,6 +312,8 @@ class ExtractedSampleTest(TestCase):
 class SampleLineageTest(TestCase):
 
     def setUp(self):
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA")
         # tube rack 8x12
         self.parent_tube_rack = Container.objects.create(**create_container(barcode='R1234567'))
         # tube
@@ -330,11 +335,14 @@ class SampleLineageTest(TestCase):
         )
 
         # create parent samples
-        self.parent_sample = Sample.objects.create(**create_sample(self.valid_individual, self.valid_container,
+        self.parent_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                                   individual=self.valid_individual,
+                                                                   container=self.valid_container,
                                                                    name="test_sample_11"))
         self.parent_sample.save()
         # create child samples
-        self.child_sample = Sample.objects.create(**create_extracted_sample(biospecimen_type='DNA', volume_used=Decimal('0.02'),
+        self.child_sample = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                            volume_used=Decimal('0.02'),
                                                                             **self.constants))
         self.child_sample.save()
 

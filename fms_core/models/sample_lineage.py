@@ -20,10 +20,10 @@ class SampleLineage(models.Model):
             _add_error(errors, field, ValidationError(error))
 
         from .sample import Sample
-        if self.child.biospecimen_type not in Sample.BIOSPECIMEN_TYPES_NA:
+        if self.child.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
             add_error("biospecimen_type", "Extracted sample need to be a type of Nucleic Acid.")
 
-        if self.parent.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA:
+        if self.parent.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
             add_error("extracted_from",
                       f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}")
 
@@ -32,7 +32,7 @@ class SampleLineage(models.Model):
 
         if not self.child.tissue_source:
             add_error("tissue_source", "Extracted sample need to have a tissue source.")
-        elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.biospecimen_type]:
+        elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
             add_error("tissue_source", "Extracted sample tissue_source must match parent biospecimen_type.")
 
         if errors:
