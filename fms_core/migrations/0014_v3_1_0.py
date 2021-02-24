@@ -48,7 +48,7 @@ def create_lineage_from_extracted(apps, schema_editor):
     for sample in sample_model.objects.all():
         if sample.old_extracted_from:
             sample_lineage_model.objects.create(parent=sample.old_extracted_from, child=sample)
-            sample_lineage_model.save()
+
 
     for version in version_model.objects.filter(content_type__model="sample"):
         # Remove the extracted_from field from the serialized_data in version
