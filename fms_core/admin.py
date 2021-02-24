@@ -15,6 +15,9 @@ from .models import (
     SampleUpdate,
     ExtractedSample,
     Individual,
+    Process,
+    ProcessBySample,
+    Protocol,
     ImportedFile,
 )
 from .resources import (
@@ -26,6 +29,9 @@ from .resources import (
     SampleUpdateResource,
     ExtractionResource,
     IndividualResource,
+    ProcessResource,
+    ProcessBySampleResource,
+    ProtocolResource,
 )
 from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
@@ -343,6 +349,74 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class ProcessForm(forms.ModelForm):
+    class Meta:
+        model = Process
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
+
+@admin.register(Process)
+class ProcessAdmin(ExportVersionAdmin):
+    form = ProcessForm
+    resource_class = ProcessResource
+
+    list_display = (
+        "protocol",
+    )
+
+    list_filter = (
+        "protocol",
+    )
+
+    search_fields = (
+        "protocol",
+    )
+
+    fieldsets = (
+        (None, {"fields": ("protocol", "comment")}),
+    )
+
+
+class ProtocolForm(forms.ModelForm):
+    class Meta:
+        model = Process
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
+
+@admin.register(Protocol)
+class ProtocolAdmin(ExportVersionAdmin):
+    form = ProtocolForm
+    resource_class = ProtocolResource
+
+
+    list_display = (
+        "name",
+    )
+
+    search_fields = (
+        "name",
+    )
+
+    fieldsets = (
+        (None, {"fields": ("name",)}),
+    )
+
 
 
 @admin.register(ImportedFile)
