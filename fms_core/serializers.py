@@ -107,7 +107,6 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)
-    extracted_from = SampleSerializer(read_only=True)
 
     class Meta:
         model = Sample

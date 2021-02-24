@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from .models import Container, Sample, Individual
+from .models import Container, Sample, Individual, SampleLineage
 from .resources import (
     ContainerResource,
     ContainerMoveResource,
@@ -409,7 +409,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     filterset_fields = {
         **_sample_filterset_fields,
-        **_prefix_keys("extracted_from__", _sample_filterset_fields),
     }
 
     template_action_list = [
@@ -491,7 +490,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         return Response({
             "total_count": Sample.objects.all().count(),
-            "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
+            "extracted_count": SampleLineage.objects.all().count(),  # WARNING : will need a filter when transfer are added
             "biospecimen_type_counts": {
                 c["biospecimen_type"]: c["biospecimen_type__count"]
                 for c in Sample.objects.values("biospecimen_type").annotate(Count("biospecimen_type"))

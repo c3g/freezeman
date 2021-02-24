@@ -16,7 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
-from .sample_lineage import SampleLineage, sample_lineage_added
+from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 
@@ -226,25 +226,25 @@ class Sample(models.Model):
     # Computed properties for lineage
     @property
     def parents(self) -> List["Sample"]:
-        return self.child_of.filter(parent_sample__child=self)
+        return self.child_of.filter(parent_sample__child=self).all() if self.id else None
 
     @property
     def children(self) -> List["Sample"]:
-        return self.parent_of.filter(child_sample__parent=self)
+        return self.parent_of.filter(child_sample__parent=self).all() if self.id else None
 
     @property
     def source_depleted(self) -> bool:
-        return any([parent.depleted for parent in self.parents])
+        return self.extracted_from.depleted if self.extracted_from else None
 
     @property
     def extracted_from(self) -> ["Sample"]:
-        return self.child_of.filter(parent_sample__child=self)  # This definition will only be valid until transfer are created
+        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
 
     # Representations
 
     def __str__(self):
-        return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
-               f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
+        return f"{self.name} {'extracted, ' if self.extracted_from else ''}" \
+               f"({self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
 
     # ORM Methods
 
@@ -276,11 +276,14 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if any([(parent.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA) for parent in self.parents]):
+            if self.extracted_from.biospecimen_type in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
-                    "child_of",
+                    "extracted_from",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
+
+            if self.biospecimen_type not in Sample.BIOSPECIMEN_TYPES_NA:
+                add_error("biospecimen_type", "Extracted sample need to be a type of Nucleic Acid.")
 
             else:
                 original_biospecimen_types = [Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent.biospecimen_type]
@@ -324,13 +327,7 @@ class Sample(models.Model):
                 add_error("container", f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
-            #    Only run this check when the object is first created - it can be updated later if it's moved elsewhere.
-            if not Sample.objects.filter(id=self.id).exists() and self.extracted_from is not None and any((
-                    parent_spec != CONTAINER_SPEC_TUBE,
-                    self.container.location is None,
-                    CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
-            )):
-                add_error("container", "Extractions currently must be conducted on a tube in an 8x12 tube rack")
+            # WARNING !!! Removed this validation. Untestable with current structure. Also extraction create 8x12.
 
             #  - Validate coordinates against parent container spec
             if not errors.get("container"):

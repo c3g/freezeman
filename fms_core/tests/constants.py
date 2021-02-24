@@ -46,7 +46,7 @@ def create_sample(individual, container, coordinates='', **kwargs):
     }
 
 
-def create_extracted_sample(biospecimen_type, individual, container, extracted_from, volume_used, coordinates='',
+def create_extracted_sample(biospecimen_type, individual, container, volume_used, coordinates='',
                             **kwargs):
     return {
         'biospecimen_type': biospecimen_type,
@@ -65,7 +65,6 @@ def create_extracted_sample(biospecimen_type, individual, container, extracted_f
         'collection_site': 'Site1',
         'container': container,
         'coordinates': coordinates,
-        'extracted_from': extracted_from,
         'volume_used': volume_used,
         **kwargs
     }
