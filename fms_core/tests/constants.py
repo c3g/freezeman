@@ -37,7 +37,6 @@ def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
                 "volume_value": "5000"
             }
         ],
-        # concentration=Decimal('0.02'),
         "experimental_group": ['EG01', 'EG02'],
         "collection_site": 'Site1',
         "container": container,

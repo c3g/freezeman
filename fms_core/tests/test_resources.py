@@ -133,7 +133,7 @@ class ResourcesTestCase(TestCase):
             except ValidationError as e:
                 self.assertDictEqual(
                     e.message_dict,
-                    {'concentration': ['Concentration must be specified if the biospecimen_type is DNA']})
+                    {'concentration': ['Concentration must be specified if the sample_kind is DNA']})
                 raise e
 
     def test_sample_extraction_import(self):
