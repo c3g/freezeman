@@ -269,7 +269,9 @@ class ExtractedSampleTest(TestCase):
 
         # WARNING !!! Removed testing for volume_used not null for non-extracted sample
         # this container already has a sample inside
-        invalid_volume_used = Sample(**create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container,
+        invalid_volume_used = Sample(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                     individual=self.valid_individual,
+                                                     container=self.valid_container,
                                                      volume_used=Decimal('0.01')))
         with self.assertRaises(ValidationError):
             try:
@@ -300,7 +302,8 @@ class ExtractedSampleTest(TestCase):
     def test_negative_volume(self):
         with self.assertRaises(ValidationError):
             try:
-                negative_volume_used = Sample.objects.create(**create_extracted_sample(self.sample_kind_DNA, volume_used=Decimal('-0.01'),
+                negative_volume_used = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                                       volume_used=Decimal('-0.01'),
                                                                                        **self.constants))
                 negative_volume_used.save()
                 SampleLineage.objects.create(parent=self.parent_sample, child=negative_volume_used)
