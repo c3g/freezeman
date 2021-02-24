@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from .models import Container, Sample, Individual, SampleKind
+from .models import Container, Sample, Individual, SampleKind, SampleLineage
 from .resources import (
     ContainerResource,
     ContainerMoveResource,
@@ -431,7 +431,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     filterset_fields = {
         **_sample_filterset_fields,
-        **_prefix_keys("extracted_from__", _sample_filterset_fields),
     }
 
     template_action_list = [
@@ -515,7 +514,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         return Response({
             "total_count": Sample.objects.all().count(),
-            "extracted_count": Sample.objects.filter(extracted_from_id__isnull=False).count(),
+            "extracted_count": SampleLineage.objects.all().count(),  # WARNING !!! will need a filter when transfer are added
             "kinds_counts": {
                 sample_kind_names_by_id[c["sample_kind"]]: c["sample_kind__count"]
                 for c in Sample.objects.values("sample_kind").annotate(Count("sample_kind"))
@@ -635,6 +634,7 @@ class VersionViewSet(viewsets.ReadOnlyModelViewSet):
         "revision__user": ["exact"],
     }
 
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -681,7 +681,6 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(password)
             user.save()
         return Response(serializer.data)
-
 
 
 class GroupViewSet(viewsets.ModelViewSet):
