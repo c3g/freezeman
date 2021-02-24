@@ -1,6 +1,5 @@
 import reversion
 
-
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -22,8 +21,7 @@ class SampleLineage(models.Model):
 
         from .sample import Sample
         if self.child.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-            add_error("biospecimen_type", "Extracted sample need to be a type of Nucleic Acid.")
-
+            add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
 
         if self.parent.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
             add_error("extracted_from",
@@ -43,3 +41,4 @@ class SampleLineage(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
+

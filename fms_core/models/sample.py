@@ -16,7 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
-from .sample_lineage import SampleLineage, sample_lineage_added
+from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
@@ -242,7 +242,7 @@ class Sample(models.Model):
 
     @property
     def extracted_from(self) -> ["Sample"]:
-        return self.child_of.filter(parent_sample__child=self)  # This definition will only be valid until transfer are created
+        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
 
     # Representations
 
@@ -282,7 +282,7 @@ class Sample(models.Model):
         if self.extracted_from:
             if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
-                    "child_of",
+                    "extracted_from",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 

@@ -300,7 +300,8 @@ class ExtractedSampleTest(TestCase):
     def test_negative_volume(self):
         with self.assertRaises(ValidationError):
             try:
-                negative_volume_used = Sample.objects.create(**create_extracted_sample(self.sample_kind_DNA, volume_used=Decimal('-0.01'),
+                negative_volume_used = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                                       volume_used=Decimal('-0.01'),
                                                                                        **self.constants))
                 negative_volume_used.save()
                 SampleLineage.objects.create(parent=self.parent_sample, child=negative_volume_used)
