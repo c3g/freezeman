@@ -3,7 +3,9 @@ import json
 from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User, Group
+from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Count, Q
+from django.db.models.functions import Greatest
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -581,6 +583,7 @@ class QueryViewSet(viewsets.ViewSet):
 
         def serialize(s) -> dict:
             item_type = s["type"]
+            s["score"] = s["item"].similarity
             if item_type == Container:
                 s["type"] = "container"
                 s["item"] = ContainerSerializer(s["item"]).data
@@ -599,20 +602,25 @@ class QueryViewSet(viewsets.ViewSet):
                 return s
             raise ValueError("unreachable")
 
-        def query_and_score(model, selector):
-            return [c for c in ({
-                "score": score(query, selector(s)),
+        def query_and_score(model, fields):
+            similarities = list(map(lambda f: TrigramSimilarity(f, query), fields))
+            similarities = similarities[0] if len(similarities) == 1 else Greatest(*similarities)
+            return [{
                 "type": model,
                 "item": s
-            } for s in model.objects.all()) if c["score"] > 0]
+            } for s in model.objects
+                .annotate(similarity=similarities)
+                .filter(similarity__gt=0.1)
+                .order_by('-similarity')
+            ]
 
-        containers = query_and_score(Container, lambda c: c.name)
-        individuals = query_and_score(Individual, lambda c: c.name)
-        samples = query_and_score(Sample, lambda c: c.name)
-        users = query_and_score(User, lambda c: c.username + c.first_name + c.last_name)
+        containers = query_and_score(Container, ["name"])
+        individuals = query_and_score(Individual, ["name"])
+        samples = query_and_score(Sample, ["name"])
+        users = query_and_score(User, ["username", "first_name", "last_name"])
 
         results = containers + individuals + samples + users
-        results.sort(key=lambda c: c["score"], reverse=True)
+        results.sort(key=lambda c: c["item"].similarity, reverse=True)
         data = map(serialize, results[:100])
 
         return Response(data)
