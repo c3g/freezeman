@@ -33,7 +33,7 @@ export const container = {
 export const sample = {
   name: "",
   alias: "",
-  biospecimen_type: null,
+  sample_kind: null,
   volume_history: null, // 
   concentration: null,
   depleted: false,
@@ -53,7 +53,7 @@ export const sample = {
 // Example:
 // {
 //     id: 9551,
-//     biospecimen_type: "DNA",
+//     sample_kind: 1,
 //     name: "0110",
 //     alias: "",
 //     volume_history: [

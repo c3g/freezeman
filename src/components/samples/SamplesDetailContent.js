@@ -59,6 +59,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
   const error = sample.error?.name !== 'APIError' ? sample.error : undefined;
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
+  const sampleKind = sampleKindsByID[sample.sample_kind]?.name
   const volume = sample.volume_history
     ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3)
     : null;
@@ -81,7 +82,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
       extra={isLoaded ?
         <Space>
           <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
-              <Tag>{sample.biospecimen_type}</Tag>
+              <Tag>{sampleKind}</Tag>
           </div>
           <div key="depleted" style={depletedStyle}>
               <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
@@ -100,7 +101,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
       <Descriptions bordered={true} size="small">
           <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
           <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
-          <Descriptions.Item label="Sample Kind">{sampleKindsByID[sample.sample_kind]?.name}</Descriptions.Item>
+          <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
           <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
           <Descriptions.Item label="Concentration">
               {sample.concentration == null

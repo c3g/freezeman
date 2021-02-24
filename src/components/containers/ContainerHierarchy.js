@@ -121,7 +121,7 @@ const buildContainerTreeFromPath = (context, path) => {
           title: <span style={entryStyle}>
             <strong>{sample.name}</strong>{' '}
             <Text type="secondary">
-              sample ({sample.biospecimen_type})
+              sample ({context.sampleKinds.itemsByID[sample.sample_kind]?.name})
             </Text>
           </span>,
           icon: <CheckOutlined />,
@@ -143,11 +143,12 @@ const buildContainerTreeFromPath = (context, path) => {
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   samplesByID: state.samples.itemsByID,
+  sampleKinds: state.sampleKinds,
 });
 
 const actionCreators = {get, listChildren, listSamples};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, listChildren, listSamples}) => {
+const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listSamples}) => {
   if (!container || !container.parents)
     return <LoadingOutlined />;
 
@@ -159,6 +160,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, listChildre
   const context = {
     containersByID,
     samplesByID,
+    sampleKinds,
     explodedKeys,
   }
   const path = container.parents.concat([container.id]);

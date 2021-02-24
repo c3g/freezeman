@@ -32,13 +32,15 @@ let lastItems = loadLastItems()
 const mapStateToProps = state => ({
   isFetching: state.query.isFetching,
   items: state.query.items,
+  sampleKindsByID: state.sampleKinds.itemsByID
 });
 
 const mapDispatchToProps = dispatch =>
   bindActionCreators({clear, search}, dispatch);
 
 
-const JumpBar = ({items, isFetching, clear, search}) => {
+const JumpBar = (props) => {
+  const {items, sampleKindsByID, isFetching, clear, search} = props
   const [value, setValue] = useState('');
   const history = useHistory();
 
@@ -75,7 +77,7 @@ const JumpBar = ({items, isFetching, clear, search}) => {
       onChange={onChange}
       onSearch={onSearch}
     >
-      {(value === '' ? lastItems : items).map(renderItem)}
+      {(value === '' ? lastItems : items).map(item => renderItem(item, props))}
     </Select>
   </>;
 };
@@ -90,10 +92,10 @@ function getPath(type, id) {
   throw new Error('unreachable')
 }
 
-function renderItem(r) {
+function renderItem(r, props) {
   switch (r.type) {
     case 'container': return renderContainer(r.item)
-    case 'sample': return renderSample(r.item)
+    case 'sample': return renderSample(r.item, props.sampleKindsByID)
     case 'individual': return renderIndividual(r.item)
     case 'user': return renderUser(r.item)
   }
@@ -113,14 +115,16 @@ function renderContainer(container) {
   );
 }
 
-function renderSample(sample) {
+function renderSample(sample, sampleKindsByID) {
+  const sampleKind = sampleKindsByID?.[sample.sample_kind]?.name
+
   return (
     <Option key={'sample_' + sample.id}>
       <ExperimentOutlined />{' '}
       <strong>{sample.name}</strong>{' '}
-      {sample.biospecimen_type &&
+      {sampleKind &&
         <>
-          <Tag style={tagStyle}>{sample.biospecimen_type}</Tag>{' '}
+          <Tag style={tagStyle}>{sampleKind}</Tag>{' '}
         </>
       }
       <Text type="secondary">sample</Text>{' '}

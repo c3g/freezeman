@@ -56,7 +56,7 @@ const listCollectionSites = (token) => {
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
-  sampleKinds: state.sampleKinds.items,
+  sampleKinds: state.sampleKinds,
 });
 
 const actionCreators = {add, update};
@@ -169,7 +169,9 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
       help: formErrors[name],
     }
 
-  const isTissueEnabled = tissueEnabled(formData?.biospecimen_type)
+  const sampleKindName = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]?.name
+
+  const isTissueEnabled = tissueEnabled(sampleKindName(formData?.sample_kind))
 
   return (
     <>
@@ -195,7 +197,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
           </Form.Item>
           <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
             <Select>
-              {sampleKinds.map(sk =>
+              {sampleKinds.items.map(sk =>
                 <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
             </Select>
