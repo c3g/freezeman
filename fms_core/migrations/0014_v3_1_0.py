@@ -41,12 +41,13 @@ def copy_samples_kinds(apps, schema_editor):
 
 def create_lineage_from_extracted(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
+    sample_lineage_model = apps.get_model("fms_core", "samplelineage")
     version_model = apps.get_model("reversion", "Version")
 
     # Create parent lineage for each sample that had an extracted_from fk
     for sample in sample_model.objects.all():
         if sample.old_extracted_from:
-            sample.child_of.add(sample.old_extracted_from)
+            sample_lineage_model.objects.create(parent=sample.old_extracted_from, child=sample)
 
     for version in version_model.objects.filter(content_type__model="sample"):
         # Remove the extracted_from field from the serialized_data in version

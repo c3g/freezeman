@@ -9,7 +9,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Sample, SampleKind
+from ..models import Container, Sample, SampleKind, SampleLineage
 from ..utils import (
     VolumeHistoryUpdateType,
     blank_str_to_none,
@@ -36,12 +36,9 @@ class ExtractionResource(GenericResource):
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
-    # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
-    extracted_from = Field(attribute='extracted_from')
-    child_of = Field(attribute='child_of', widget=ManyToManyWidget(Sample))
     comment = Field(attribute='comment', column_name='Comment')
 
-
+    extracted_from = {}
 
     class Meta:
         model = Sample
@@ -76,10 +73,24 @@ class ExtractionResource(GenericResource):
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
+    def import_obj(self, obj, data, dry_run):
+        self.extracted_from = Sample.objects.get(
+            container__barcode=get_normalized_str(data, "Container Barcode"),
+            coordinates=get_normalized_str(data, "Location Coord"),
+        )
+        # Cast the "Source Depleted" cell to a Python Boolean value and
+        # update the original sample if needed. This is the act of the
+        # extracted sample depleting the original in the process of its
+        # creation.
+        self.extracted_from.depleted = (self.extracted_from.depleted or
+                                        check_truth_like(get_normalized_str(data, "Source Depleted")))
+
+        super().import_obj(obj, data, dry_run)
+
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
 
-        if field.attribute in ('source_depleted', 'context_sensitive_coordinates'):
+        if field.attribute in ('source_depleted', 'context_sensitive_coordinates', 'child_of'):
             # Computed field, skip importing it.
             return
 
@@ -96,19 +107,6 @@ class ExtractionResource(GenericResource):
                 VolumeHistoryUpdateType.UPDATE,
                 str(float_to_decimal(vol)) if vol is not None else ""
             )]
-            return
-
-        if field.attribute == 'extracted_from':
-            obj.extracted_from = Sample.objects.get(
-                container__barcode=get_normalized_str(data, "Container Barcode"),
-                coordinates=get_normalized_str(data, "Location Coord"),
-            )
-            # Cast the "Source Depleted" cell to a Python Boolean value and
-            # update the original sample if needed. This is the act of the
-            # extracted sample depleting the original in the process of its
-            # creation.
-            obj.extracted_from.depleted = (obj.extracted_from.depleted or
-                                           check_truth_like(get_normalized_str(data, "Source Depleted")))
             return
 
         if field.attribute == 'container':
@@ -178,13 +176,13 @@ class ExtractionResource(GenericResource):
         super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        instance.name = instance.extracted_from.name
-        instance.alias = instance.extracted_from.alias
-        instance.collection_site = instance.extracted_from.collection_site
-        instance.experimental_group = instance.extracted_from.experimental_group
-        instance.individual = instance.extracted_from.individual
+        instance.name = self.extracted_from.name
+        instance.alias = self.extracted_from.alias
+        instance.collection_site = self.extracted_from.collection_site
+        instance.experimental_group = self.extracted_from.experimental_group
+        instance.individual = self.extracted_from.individual
         instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
-            instance.extracted_from.sample_kind.name, "")
+            self.extracted_from.sample_kind.name, "")
 
         super().before_save_instance(instance, using_transactions, dry_run)
 
@@ -192,22 +190,20 @@ class ExtractionResource(GenericResource):
         # Update volume and depletion status of original sample, thus recording
         # that the volume was reduced by an extraction process, including an ID
         # to refer back to the extracted sample.
-        instance.extracted_from.volume_history.append(create_volume_history(
+        self.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.EXTRACTION,
-            instance.extracted_from.volume - instance.volume_used,
+            self.extracted_from.volume - instance.volume_used,
             instance.id
         ))
 
-        instance.extracted_from.update_comment = f"Extracted sample (imported from template) consumed " \
-                                                 f"{instance.volume_used} µL."
+        self.extracted_from.update_comment = f"Extracted sample (imported from template) consumed " \
+                                             f"{instance.volume_used} µL."
 
-        instance.extracted_from.save()
+        self.extracted_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported extracted samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-
-        obj.child_of.add(obj.extracted_from)
-
+        SampleLineage.objects.create(parent=self.extracted_from, child=obj)
         super().save_m2m(obj, data, using_transactions, dry_run)
