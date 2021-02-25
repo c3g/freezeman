@@ -4,7 +4,7 @@ from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Func, F
 from django.db.models.functions import Greatest
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
@@ -240,12 +240,12 @@ _user_filterset_fields: FiltersetFields = {
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
 }
-  
+
 _group_filterset_fields: FiltersetFields = {
     "name": FREE_TEXT_FILTERS,
 
 }
-  
+
 _sample_kind_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -569,6 +569,16 @@ class IndividualViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+class FZY(Func):
+    template = "%(function)s('%(search_term)s', %(expressions)s::cstring)"
+    function = "fzy"
+
+    def __init__(self, expression, search_term, **extras):
+        super(FZY, self).__init__(
+            expression,
+            search_term=search_term,
+            **extras
+        )
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class QueryViewSet(viewsets.ViewSet):
@@ -583,7 +593,7 @@ class QueryViewSet(viewsets.ViewSet):
 
         def serialize(s) -> dict:
             item_type = s["type"]
-            s["score"] = s["item"].similarity
+            s["score"] = s["item"].score
             if item_type == Container:
                 s["type"] = "container"
                 s["item"] = ContainerSerializer(s["item"]).data
@@ -603,15 +613,17 @@ class QueryViewSet(viewsets.ViewSet):
             raise ValueError("unreachable")
 
         def query_and_score(model, fields):
-            similarities = list(map(lambda f: TrigramSimilarity(f, query), fields))
-            similarities = similarities[0] if len(similarities) == 1 else Greatest(*similarities)
+            scores = list(map(lambda f: FZY(F(f), query), fields))
+            scores = scores[0] if len(scores) == 1 else Greatest(*scores)
             return [{
                 "type": model,
                 "item": s
             } for s in model.objects
-                .annotate(similarity=similarities)
-                .filter(similarity__gt=0.1)
-                .order_by('-similarity')
+                .annotate(
+                    score=scores
+                )
+                .filter(score__gt=0)
+                .order_by('-score')
             ]
 
         containers = query_and_score(Container, ["name"])
@@ -620,7 +632,7 @@ class QueryViewSet(viewsets.ViewSet):
         users = query_and_score(User, ["username", "first_name", "last_name"])
 
         results = containers + individuals + samples + users
-        results.sort(key=lambda c: c["item"].similarity, reverse=True)
+        #  results.sort(key=lambda c: c["item"].similarity, reverse=True)
         data = map(serialize, results[:100])
 
         return Response(data)
