@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {useHistory} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
 import {connect} from "react-redux";
 import {set} from "object-path-immutable";
 import {Tree, Typography} from "antd";
@@ -117,12 +117,13 @@ const buildContainerTreeFromPath = (context, path) => {
         const sample = context.samplesByID[sampleId];
         if (!sample)
           return loadingEntry(sampleId);
+        const sampleKind = context.sampleKinds.itemsByID[sample.sample_kind]?.name
         return {
           title: <span style={entryStyle}>
-            <strong>{sample.name}</strong>{' '}
-            <Text type="secondary">
-              sample ({context.sampleKinds.itemsByID[sample.sample_kind]?.name})
-            </Text>
+            <Link to={`/samples/${sample.id}`}>
+              <strong>{sample.name}</strong>{' '}
+              sample ({sampleKind})
+            </Link>
           </span>,
           icon: <CheckOutlined />,
           key: sampleId,
