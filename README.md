@@ -55,7 +55,9 @@ Python package dependencies are listed in `requirements.txt`.
   1. Clone the repository
   
      ```bash
-     git clone https://github.com/c3g/fms.git
+     git clone https://github.com/c3g/fms
+     cd fms
+     git submodule update --init --recursive
      ```
   
   2. Set up a virtual environment with Python 3.6 or later, and install 
