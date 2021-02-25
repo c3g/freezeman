@@ -3,7 +3,6 @@ import json
 from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Count, Q, Func, F
 from django.db.models.functions import Greatest
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
