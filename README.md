@@ -29,7 +29,7 @@ cd freezeman
 git submodule update --init --recursive
 ```
 
-Next, follow the instructios in [/backend/README.md](./backend/README.md) and
+Next, follow the instructions in [/backend/README.md](./backend/README.md) and
 [/frontend/README.md](./frontend/README.md).
 
 ## License
