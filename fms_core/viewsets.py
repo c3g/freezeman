@@ -14,7 +14,6 @@ from reversion.models import Version
 from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
-from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from .models import Container, Sample, Individual, SampleKind
 from .resources import (
