@@ -2,17 +2,20 @@
   FreezeMan
 </h1>
 <p align="center">
-  <b>
-    FreezeMan is a freezer management system designed to manage the storage and tracking of biological samples in a laboratory environment.
-  </b>
+  <a href="https://codecov.io/gh/c3g/freezeman">
+    <img src="https://codecov.io/gh/c3g/freezeman/branch/master/graph/badge.svg" />
+  </a>
 </p>
-
-<!-- ![Travis Build Status](https://api.travis-ci.com/c3g/freezeman_server.svg?branch=master) -->
-[![codecov](https://codecov.io/gh/c3g/freezeman/branch/master/graph/badge.svg)](https://codecov.io/gh/c3g/freezeman)
 
 <p align="center">
   <a href="#installation">Installation</a> •
   <a href="#license">License</a>
+</p>
+
+<p>
+  <b>
+    FreezeMan is a freezer management system designed to manage the storage and tracking of biological samples in a laboratory environment.
+  </b>
 </p>
 
 
