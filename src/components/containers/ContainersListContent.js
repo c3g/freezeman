@@ -36,7 +36,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       render: (barcode, container) => <Link to={`/containers/${container.id}`}>{barcode}</Link>,
     },
     {
-      title: "Sample",
+      title: "Sample(s)",
       dataIndex: "samples",
       render: (samples, container) =>
         (CONTAINER_KIND_SHOW_SAMPLE.includes(container.kind) && samples.length > 0 && 
