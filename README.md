@@ -34,10 +34,9 @@ Next, follow the instructions in [/backend/](./backend/) and
 
 ## License
 
-Copyright: [CCCG](http://www.computationalgenomics.ca/), McGill University 2020.
-All rights reserved.
-
 FreezeMan is licensed under the GNU Lesser General Public License version 3.
+&copy; [CCCG](http://www.computationalgenomics.ca/), McGill University.
+All rights reserved.
 
 Portions copyright: Django Software Foundation and individual
 contributors to the Django project. See relevant licenses:
