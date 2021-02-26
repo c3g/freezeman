@@ -83,6 +83,7 @@ const JumpBar = (props) => {
       showSearch
       showArrow
       filterOption={false}
+      dropdownMatchSelectWidth={false}
       placeholder="Jump to..."
       size="medium"
       style={style}
