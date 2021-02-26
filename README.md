@@ -28,3 +28,12 @@ v12+. To set up the application locally, use the following steps:
      ```bash
      npm run start
      ```
+
+## Running the tests
+
+For the tests to run, the server must be running with the test setup, and the
+frontend dev server must be running on http://localhost:9000.
+
+ - `npx cypress run`: Run the tests headlessly
+ - `npx cypress open`: Open the testing interface, for development of tests
+
