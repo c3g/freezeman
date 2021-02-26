@@ -8,10 +8,10 @@ import json
 SAMPLE_KINDS = ['DNA', 'RNA', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
 def create_pg_fzy(apps, schema_editor):
-    schema_editor.execute("CREATE EXTENSION pg_fzy;")
+    schema_editor.execute("CREATE EXTENSION fzy;")
 
 def drop_pg_fzy(apps, schema_editor):
-    schema_editor.execute("DROP EXTENSION IF EXISTS pg_fzy;")
+    schema_editor.execute("DROP EXTENSION IF EXISTS fzy;")
 
 
 class Migration(migrations.Migration):
