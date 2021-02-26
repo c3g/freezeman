@@ -630,6 +630,7 @@ class QueryViewSet(viewsets.ViewSet):
         users = query_and_score(User, ["username", "first_name", "last_name"])
 
         results = containers + individuals + samples + users
+        results.sort(key=lambda c: c["item"].score, reverse=True)
         data = map(serialize, results[:100])
 
         return Response(data)
