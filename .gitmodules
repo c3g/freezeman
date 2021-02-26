@@ -1,3 +1,0 @@
-[submodule "backend/dependencies/pg_fzy"]
-	path = backend/dependencies/pg_fzy
-	url = git://github.com/romgrk/pg_fzy.git
