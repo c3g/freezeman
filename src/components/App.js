@@ -30,11 +30,11 @@ import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
 
-const horizontalMenuItems = (logOut) => [
+const getMenuItems = (user, logOut) => [
   {
     key: "sign-out-link",
     icon: <LogoutOutlined />,
-    text: "Sign Out",
+    text: `Sign Out (${user?.username})`,
     onClick: logOut,
   },
 ]
@@ -73,12 +73,11 @@ const colorStyle = {
 
 const titleStyle = {
   ...colorStyle,
-  width: 124,
-  textAlign: "center",
+  width: "100%",
   fontWeight: 900,
-  fontSize: "20px",
+  fontSize: "18px",
   lineHeight: "unset",
-  padding: 0,
+  padding: "1em 24px 0",
   margin: 0,
 };
 
@@ -97,40 +96,45 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   }, []);
 
   const isLoggedIn = userID !== null;
-  const menuItems = horizontalMenuItems(logOut);
+  const menuItems = getMenuItems(user, logOut);
 
   return (
     <Layout style={{height: "100vh"}}>
-      <Layout.Header style={{display: "flex"}}>
-        <Title style={titleStyle}>FreezeMan</Title>
-        <div style={{flex: 1}}/>
-        {isLoggedIn &&
-          <JumpBar />
-        }
-        <div style={{flex: 1}}/>
-        {user &&
-          <div style={colorStyle}>
-            <strong><UserOutlined /> {user.username}</strong>
-          </div>
-        }
-        {isLoggedIn &&
-          <Menu theme="dark"
-                mode="horizontal"
-                selectedKeys={matchingMenuKeys(menuItems)}>
-            {menuItems.map(renderMenuItem)}
-          </Menu>
-        }
-      </Layout.Header>
       <Layout>
         {isLoggedIn &&
-          <Layout.Sider theme="light"
-                        style={{overflowY: "auto"}}
-                        breakpoint="md"
-                        collapsedWidth={80}
-                        width={224}>
-              <Menu mode="inline" selectedKeys={matchingMenuKeys(MENU_ITEMS)} style={{height: "100%"}}>
+          <Layout.Sider
+            collapsible
+            theme="dark"
+            className="App__sidebar"
+            breakpoint="md"
+            collapsedWidth={80}
+            width={224}
+          >
+              <Title style={titleStyle} className="App__title">
+                FreezeMan
+              </Title>
+              {isLoggedIn &&
+                <div className='App__jumpBar'>
+                  <JumpBar />
+                </div>
+              }
+              <Menu
+                theme="dark"
+                mode="inline"
+                selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+                style={{flex: 1}}
+              >
                   {MENU_ITEMS.map(renderMenuItem)}
               </Menu>
+              {isLoggedIn &&
+                <Menu
+                  theme="dark"
+                  mode="inline"
+                  selectedKeys={matchingMenuKeys(menuItems)}
+                >
+                  {menuItems.map(renderMenuItem)}
+                </Menu>
+              }
           </Layout.Sider>
         }
         <Layout.Content style={{position: "relative"}}>

@@ -24,6 +24,29 @@ select:-webkit-autofill:focus {
   opacity: 0.9 !important;
 }
 
+.App__sidebar .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+}
+.App__title {
+  white-space: nowrap;
+  transition: all 150ms;
+}
+.ant-layout-sider-collapsed .App__title {
+  width: 0;
+  opacity: 0;
+}
+.App__sidebar .ant-layout-sider-children > ul:first-of-type {
+  flex: 1;
+}
+.App__jumpBar {
+  padding: 1em;
+  transition: all 150ms;
+}
+.ant-layout-sider-collapsed .App__jumpBar {
+  width: 0;
+  opacity: 0;
+}
 
 .SamplesFilters .ant-collapse-header {
   text-align: left;

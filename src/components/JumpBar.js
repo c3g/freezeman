@@ -16,13 +16,13 @@ const {Text} = Typography;
 const {Option} = Select;
 
 const style = {
-  alignSelf: 'center',
-  minWidth: '280px',
+  alignSelf: "center",
+  width: "100%",
 }
 
 const tagStyle = {
-  margin: '0 2px',
-  height: '20px',
+  margin: "0 2px",
+  height: "20px",
 }
 
 
@@ -84,7 +84,7 @@ const JumpBar = (props) => {
       showArrow
       filterOption={false}
       placeholder="Jump to..."
-      size="large"
+      size="medium"
       style={style}
       loading={isFetching}
       value={value}
