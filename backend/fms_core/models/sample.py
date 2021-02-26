@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from typing import Optional
+from typing import Optional, List
 
 from ..containers import (
     CONTAINER_SPEC_TUBE,
@@ -16,6 +16,7 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
+from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
@@ -151,13 +152,12 @@ class Sample(models.Model):
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
     # fields only for extracted samples
-    extracted_from = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT,
-                                       related_name="extractions",
-                                       help_text="The sample this sample was extracted from. Can only be specified for "
-                                                 "extracted nucleic acid samples.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the original sample used for the extraction, in µL. Must "
                                                 "be specified only for extracted nucleic acid samples.")
+
+    child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
+                                      symmetrical=False, related_name="parent_of")
 
     class Meta:
         unique_together = ("container", "coordinates")
@@ -223,17 +223,32 @@ class Sample(models.Model):
     def context_sensitive_coordinates(self) -> str:
         return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
 
-    # Computed properties for extracted samples
+    # Computed properties for lineage
+    @property
+    def parents(self) -> List["Sample"]:
+        return self.child_of.filter(parent_sample__child=self).all() if self.id else None
 
     @property
-    def source_depleted(self) -> Optional[bool]:
+    def children(self) -> List["Sample"]:
+        return self.parent_of.filter(child_sample__parent=self).all() if self.id else None
+
+    @property
+    def source_depleted(self) -> bool:
         return self.extracted_from.depleted if self.extracted_from else None
+
+    @property
+    def extracted_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
+
+    @property
+    def extracted_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
 
     # Representations
 
     def __str__(self):
-        return f"{self.name} ({'extracted, ' if self.extracted_from else ''}" \
-               f"{self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
+        return f"{self.name} {'extracted, ' if self.extracted_from else ''}" \
+               f"({self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
 
     # ORM Methods
 
@@ -256,7 +271,7 @@ class Sample(models.Model):
         self.normalize()
 
         sample_kind_choices = (Sample.BIOSPECIMEN_TYPE_NA_CHOICES if self.extracted_from
-                                    else Sample.BIOSPECIMEN_TYPE_CHOICES)
+                               else Sample.BIOSPECIMEN_TYPE_CHOICES)
         if self.sample_kind.name not in frozenset(c[0] for c in sample_kind_choices):
             add_error(
                 "sample_kind",
@@ -265,21 +280,22 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            extracted_from_sample_kind = self.extracted_from.sample_kind.name
-            if extracted_from_sample_kind in Sample.BIOSPECIMEN_TYPES_NA:
+            if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
                     "extracted_from",
-                    f"Extraction process cannot be run on sample of type {extracted_from_sample_kind}"
+                    f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
 
+            if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
+
             else:
-                original_biospecimen_type = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[
-                    extracted_from_sample_kind]
-                if self.tissue_source != original_biospecimen_type:
+                original_sample_kind = self.extracted_from.sample_kind.name
+                if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
                     add_error(
                         "tissue_source",
-                        (f"Mismatch between sample tissue source {self.tissue_source} and original biospecimen type "
-                         f"{original_biospecimen_type}")
+                        (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
+                         f"{original_sample_kind}")
                     )
 
             if self.volume_used is None:
@@ -288,18 +304,14 @@ class Sample(models.Model):
             elif self.volume_used <= Decimal("0"):
                 add_error("volume_used", "volume_used must be positive")
 
-        if self.volume_used is not None and not self.extracted_from:
-            add_error("volume_used", "Non-extracted samples cannot specify volume_used")
-
         # Check volume_history for negative values
 
         if self.volume < Decimal("0"):
             add_error("volume_history", "Current volume must be positive.")
 
-        # Check concentration fields given biospecimen_type
-
+        # Check concentration fields given sample_kind
         if self.sample_kind.name in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:
-            add_error("concentration", "Concentration must be specified if the biospecimen_type is DNA")
+            add_error("concentration", "Concentration must be specified if the sample_kind is DNA")
 
         # Check tissue source given extracted_from
 
@@ -316,13 +328,7 @@ class Sample(models.Model):
                 add_error("container", f"Parent container kind {parent_spec.container_kind_id} cannot hold samples")
 
             #  - Currently, extractions can only output tubes in a TUBE_RACK_8X12
-            #    Only run this check when the object is first created - it can be updated later if it's moved elsewhere.
-            if not Sample.objects.filter(id=self.id).exists() and self.extracted_from is not None and any((
-                    parent_spec != CONTAINER_SPEC_TUBE,
-                    self.container.location is None,
-                    CONTAINER_KIND_SPECS[self.container.location.kind] != CONTAINER_SPEC_TUBE_RACK_8X12
-            )):
-                add_error("container", "Extractions currently must be conducted on a tube in an 8x12 tube rack")
+            # WARNING !!! Removed this validation. Untestable with current structure. Also extraction create 8x12.
 
             #  - Validate coordinates against parent container spec
             if not errors.get("container"):
