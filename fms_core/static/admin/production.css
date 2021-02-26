@@ -1,0 +1,4 @@
+/* Hide tracebacks in production */
+.traceback {
+    display: none;
+}

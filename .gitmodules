@@ -1,0 +1,3 @@
+[submodule "dependencies/pg_fzy"]
+	path = dependencies/pg_fzy
+	url = git://github.com/romgrk/pg_fzy.git

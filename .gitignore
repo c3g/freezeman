@@ -1,0 +1,23 @@
+env/
+
+# Byte-compiled
+__pycache__/
+*.pyc
+
+# IDE related (intelliJ, vim files)
+.idea/*
+
+# static files
+staticfiles/
+
+# local media uploads
+media/uploads/*
+
+# coverage-related
+.coverage
+htmlcov/
+
+# Office temporary files
+~$*
+.DS_Store
+venv
