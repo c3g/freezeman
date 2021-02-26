@@ -261,7 +261,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
               onFocus={onFocusSite}
             />
           </Form.Item>
-          <Form.Item label="Reception" {...props("reception_date")} rules={requiredRules}>
+          <Form.Item label="Reception/Extraction" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
           <Form.Item label="Phenotype" {...props("phenotype")}>
@@ -332,16 +332,16 @@ function deserialize(values) {
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
-  if (newValues.reception_date)
-    newValues.reception_date = moment(newValues.reception_date, 'YYYY-MM-DD')
+  if (newValues.creation_date)
+    newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
   return newValues
 }
 
 function serialize(values) {
   const newValues = {...values}
 
-  if (newValues.reception_date)
-    newValues.reception_date = newValues.reception_date.format('YYYY-MM-DD')
+  if (newValues.creation_date)
+    newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')
 
   /* tissue_source bottom value is '' for legacy reasons */
   if (!newValues.tissue_source)

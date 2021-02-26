@@ -40,7 +40,7 @@ export const sample = {
   experimental_group: null, // string[]
   collection_site: "", // string(200)
   tissue_source: null, // enum
-  reception_date: null, // date
+  creation_date: null, // date
   phenotype: "", // string(200)
   comment: "", // string(200)
   update_comment: "", // string(200)
@@ -68,7 +68,7 @@ export const sample = {
 //     experimental_group: [],
 //     collection_site: "JGH",
 //     tissue_source: "Blood",
-//     reception_date: "2020-06-16",
+//     creation_date: "2020-06-16",
 //     phenotype: "",
 //     comment: "Extraction done using Chemagen CMG-1091",
 //     update_comment: "",

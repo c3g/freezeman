@@ -132,7 +132,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
                   <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
           </Descriptions.Item>
           <Descriptions.Item label="Phenotype">{sample.phenotype}</Descriptions.Item>
-          <Descriptions.Item label="Reception Date">{sample.reception_date}</Descriptions.Item>
+          <Descriptions.Item label="Reception/Extraction Date">{sample.creation_date}</Descriptions.Item>
           <Descriptions.Item label="Container">
             {sample.container &&
               <Link to={`/containers/${sample.container}`}>
