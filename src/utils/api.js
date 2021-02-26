@@ -77,7 +77,7 @@ const api = {
   },
 
   query: {
-    search: q => get("/query/search/", { q }),
+    search: q => get("/query/search/", { q }, { abort: true }),
   },
 };
 

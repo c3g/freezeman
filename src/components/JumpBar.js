@@ -1,5 +1,4 @@
-import React, {useState} from "react";
-import {bindActionCreators} from "redux";
+import React, {useMemo, useState} from "react";
 import {connect} from "react-redux";
 import {useHistory} from "react-router-dom";
 import {
@@ -10,7 +9,8 @@ import {
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
 
-import {clear, search} from "../modules/query/actions";
+import debounce from "../utils/debounce";
+import api, {withToken} from "../utils/api";
 
 const {Text} = Typography;
 const {Option} = Select;
@@ -30,19 +30,32 @@ let lastItems = loadLastItems()
 
 
 const mapStateToProps = state => ({
-  isFetching: state.query.isFetching,
-  items: state.query.items,
+  token: state.auth.tokens.access,
   sampleKindsByID: state.sampleKinds.itemsByID
 });
 
-const mapDispatchToProps = dispatch =>
-  bindActionCreators({clear, search}, dispatch);
-
-
 const JumpBar = (props) => {
-  const {items, sampleKindsByID, isFetching, clear, search} = props
-  const [value, setValue] = useState('');
+  const {token} = props
+  const [value, setValue] = useState(null);
+  const [error, setError] = useState(undefined);
+  const [isFetching, setIsFetching] = useState(false);
+  const [items, setItems] = useState(lastItems);
   const history = useHistory();
+
+  const search = useMemo(() => debounce(150, query => {
+    setValue(null)
+    setIsFetching(true)
+    withToken(token, api.query.search)(query)
+      .then(response => { setItems(response.data) })
+      .catch(err => {
+        if (err.name === 'AbortError')
+          return
+        setError(err.message)
+      })
+      .then(() => setIsFetching(false))
+  }), [token])
+
+  const clear = () => setItems([])
 
   const onChange = value => {
     if (!value)
@@ -51,14 +64,14 @@ const JumpBar = (props) => {
     const id = parts.join('_')
     const path = getPath(type, id)
     const item = items.find(i => i.type === type && String(i.item.id) === String(id))
-    setValue('')
+    setValue(null)
     pushItem(item)
+    setItems(lastItems)
     history.push(path)
   }
 
   const onSearch = value => {
     setValue(value)
-
     if (value)
       search(value);
     else
@@ -74,11 +87,17 @@ const JumpBar = (props) => {
       size="large"
       style={style}
       loading={isFetching}
+      value={value}
       onChange={onChange}
       onSearch={onSearch}
     >
       {(value === '' ? lastItems : items).map(item => renderItem(item, props))}
     </Select>
+    {error &&
+      <Text type="danger">
+        {error}
+      </Text>
+    }
   </>;
 };
 
@@ -87,7 +106,7 @@ function getPath(type, id) {
     case 'container':  return `/containers/${id}`;
     case 'sample':     return `/samples/${id}`;
     case 'individual': return `/individuals/${id}`;
-    case 'user':       return `/reports/user/${id}`;
+    case 'user':       return `/users/${id}`;
   }
   throw new Error('unreachable')
 }
@@ -169,9 +188,14 @@ function loadLastItems() {
 function pushItem(item) {
   if (!item)
     return
+  lastItems = lastItems.filter(i => !itemEquals(item, i))
   lastItems.unshift(item)
   lastItems = lastItems.slice(0, 10)
   localStorage['JumpBar__lastItems'] = JSON.stringify(lastItems)
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(JumpBar);
+function itemEquals(a, b) {
+  return a.type === b.type && a.item.id === b.item.id
+}
+
+export default connect(mapStateToProps)(JumpBar);
