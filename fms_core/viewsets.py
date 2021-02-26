@@ -621,7 +621,7 @@ class QueryViewSet(viewsets.ViewSet):
                     score=scores
                 )
                 .filter(score__gt=0)
-                .order_by('-score')
+                .order_by('-score')[:100]
             ]
 
         containers = query_and_score(Container, ["name"])
