@@ -3,7 +3,8 @@ import json
 from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Func, F
+from django.db.models.functions import Greatest
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -13,7 +14,6 @@ from reversion.models import Version
 from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
-from .fzy import score
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from .models import Container, Sample, Individual, SampleKind
 from .resources import (
@@ -238,12 +238,12 @@ _user_filterset_fields: FiltersetFields = {
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
 }
-  
+
 _group_filterset_fields: FiltersetFields = {
     "name": FREE_TEXT_FILTERS,
 
 }
-  
+
 _sample_kind_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -567,6 +567,16 @@ class IndividualViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 
+class FZY(Func):
+    template = "%(function)s('%(search_term)s', %(expressions)s::cstring)"
+    function = "fzy"
+
+    def __init__(self, expression, search_term, **extras):
+        super(FZY, self).__init__(
+            expression,
+            search_term=search_term,
+            **extras
+        )
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class QueryViewSet(viewsets.ViewSet):
@@ -581,6 +591,7 @@ class QueryViewSet(viewsets.ViewSet):
 
         def serialize(s) -> dict:
             item_type = s["type"]
+            s["score"] = s["item"].score
             if item_type == Container:
                 s["type"] = "container"
                 s["item"] = ContainerSerializer(s["item"]).data
@@ -599,20 +610,27 @@ class QueryViewSet(viewsets.ViewSet):
                 return s
             raise ValueError("unreachable")
 
-        def query_and_score(model, selector):
-            return [c for c in ({
-                "score": score(query, selector(s)),
+        def query_and_score(model, fields):
+            scores = list(map(lambda f: FZY(F(f), query), fields))
+            scores = scores[0] if len(scores) == 1 else Greatest(*scores)
+            return [{
                 "type": model,
                 "item": s
-            } for s in model.objects.all()) if c["score"] > 0]
+            } for s in model.objects
+                .annotate(
+                    score=scores
+                )
+                .filter(score__gt=0)
+                .order_by('-score')[:100]
+            ]
 
-        containers = query_and_score(Container, lambda c: c.name)
-        individuals = query_and_score(Individual, lambda c: c.name)
-        samples = query_and_score(Sample, lambda c: c.name)
-        users = query_and_score(User, lambda c: c.username + c.first_name + c.last_name)
+        containers = query_and_score(Container, ["name"])
+        individuals = query_and_score(Individual, ["name"])
+        samples = query_and_score(Sample, ["name"])
+        users = query_and_score(User, ["username", "first_name", "last_name"])
 
         results = containers + individuals + samples + users
-        results.sort(key=lambda c: c["score"], reverse=True)
+        results.sort(key=lambda c: c["item"].score, reverse=True)
         data = map(serialize, results[:100])
 
         return Response(data)

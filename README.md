@@ -46,6 +46,7 @@ Port of [fzy.js](https://github.com/jhawthorn/fzy.js) licensed under MIT License
   * Python 3.6 or later
   * Django 3
   * Postgres 9.5 or later (tested on 11 and 12)
+  * Make & C compiler
   
 Python package dependencies are listed in `requirements.txt`.
   
@@ -54,7 +55,9 @@ Python package dependencies are listed in `requirements.txt`.
   1. Clone the repository
   
      ```bash
-     git clone https://github.com/c3g/fms.git
+     git clone https://github.com/c3g/fms
+     cd fms
+     git submodule update --init --recursive
      ```
   
   2. Set up a virtual environment with Python 3.6 or later, and install 
@@ -78,19 +81,25 @@ Python package dependencies are listed in `requirements.txt`.
      export PG_PORT=5432
      ```
      
-  4. Run any outstanding migrations:
+  4. Install the [pg_fzy](#pg_fzy) extension for the database:
+  
+     ```bash
+     cd dependencies/pg_fzy && make && sudo make install
+     ```
+    
+  5. Run any outstanding migrations:
   
      ```bash
      python ./manage.py migrate
      ```
     
-  5. Create an application superuser:
+  6. Create an application superuser:
   
      ```bash
      python ./manage.py createsuperuser
      ```
     
-  6. Run the development server:
+  7. Run the development server:
   
      ```bash
      python ./manage.py runserver
@@ -160,3 +169,16 @@ coverage run ./manage.py test
 
 ![Database Schema Diagram](docs/fms_database_diagram.png)
 
+
+## pg_fzy
+
+The `pg_fzy` extension is a PostgreSQL C extension that implements the fzy
+algorithm. To manage it, here are the useful commands, to be run in the
+`./dependencies/pg_fzy` directory:
+
+ - `make`: build the shared library (linux-x86_64 included by default)
+ - `sudo make install`: install it in the postgres extension list
+ - `sudo make uninstall`: remove it from the postgres extension list
+
+When updating the extension, you might need to run `drop extension fzy;` and
+`create extension fzy;` before uninstalling and after installing it.
