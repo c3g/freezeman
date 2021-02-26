@@ -44,6 +44,15 @@ class Migration(migrations.Migration):
             version.serialized_data = json.dumps(data)
             version.save()
 
+    def change_sample_versions_for_creation_date(apps, schema_editor):
+        Version = apps.get_model("reversion", "Version")
+        for version in Version.objects.filter(content_type__model="sample"):
+            data = json.loads(version.serialized_data)
+            data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
+            data[0]["fields"].pop("reception_date", None)
+            version.serialized_data = json.dumps(data)
+            version.save()
+
 
     dependencies = [
         ('fms_core', '0013_v3_0_1'),
@@ -121,9 +130,22 @@ class Migration(migrations.Migration):
             name='protocol',
             field=models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol'),
         ),
+
+        # Enable fzy
         migrations.RunPython(
             create_pg_fzy,
             reverse_code=drop_pg_fzy,
             atomic=True
+        ),
+
+        # Change reception_date for creation_date
+        migrations.RunPython(
+            change_sample_versions_for_creation_date,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RenameField(
+            model_name='sample',
+            old_name='reception_date',
+            new_name='creation_date',
         ),
     ]

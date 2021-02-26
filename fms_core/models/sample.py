@@ -132,7 +132,7 @@ class Sample(models.Model):
                                                                  "of samples.")
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
-    reception_date = models.DateField(default=timezone.now, help_text="Date of the sample reception.")
+    creation_date = models.DateField(default=timezone.now, help_text="Date of the sample reception or extraction.")
     phenotype = models.CharField(max_length=200, blank=True, help_text="Sample phenotype.")
 
     comment = models.TextField(blank=True, help_text="Other relevant information about the sample.")

@@ -2,7 +2,7 @@ import reversion
 
 from datetime import datetime
 from import_export.fields import Field
-from import_export.widgets import DecimalWidget, JSONWidget, ForeignKeyWidget
+from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows
 from ..containers import (
@@ -38,6 +38,7 @@ class ExtractionResource(GenericResource):
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
     extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
+    creation_date = Field(attribute='creation_date', column_name='Extraction Date', widget=DateWidget())
     comment = Field(attribute='comment', column_name='Comment')
 
     class Meta:
@@ -67,6 +68,7 @@ class ExtractionResource(GenericResource):
             'volume_history',
             'concentration',
             'source_depleted',
+            'creation_date',
             'comment',
         )
 
