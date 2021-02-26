@@ -1,0 +1,66 @@
+/*
+ * global.css
+ */
+
+
+/* Disable auto-fill background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+}
+
+
+.table-column-numbers {
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+}
+
+.input-dropdown-visible .ant-table-filter-dropdown {
+  opacity: 0.9 !important;
+}
+
+.App__sidebar .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+}
+.App__title {
+  white-space: nowrap;
+  transition: all 150ms;
+}
+.ant-layout-sider-collapsed .App__title {
+  width: 0;
+  opacity: 0;
+}
+.App__sidebar .ant-layout-sider-children > ul:first-of-type {
+  flex: 1;
+}
+.App__jumpBar {
+  padding: 1em;
+  transition: all 150ms;
+}
+.ant-layout-sider-collapsed .App__jumpBar {
+  width: 0;
+  opacity: 0;
+}
+
+.SamplesFilters .ant-collapse-header {
+  text-align: left;
+}
+.SamplesFilters .ant-collapse-content-box {
+  padding: 0;
+  text-align: left;
+}
+
+
+.ContainerEditContent__coordinates {
+  display: inline-flex;
+  flex-direction: row;
+}
+.ContainerEditContent__coordinates .ant-form-item-control {
+  display: inline-flex;
+}

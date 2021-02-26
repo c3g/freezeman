@@ -1,0 +1,145 @@
+/*
+ * antd-adjustments.css
+ * Copyright (C) 2020 romgrk
+ *
+ * Distributed under terms of the MIT license.
+ */
+
+.ant-card .ant-card-head {
+  background: #fafafa;
+}
+
+.ant-card-bordered {
+  border: 1px solid #e0e0e0;
+}
+
+
+/*
+ * Collapse header
+ */
+
+.ant-collapse-ghost .ant-collapse-header {
+  transition: 200ms linear;
+  &:hover {
+    background-color: rgba(black, 0.05);
+  }
+}
+
+/*
+ * Descriptions
+ */
+
+$descriptions-border-color: #e0e0e0;
+
+.ant-descriptions-bordered .ant-descriptions-item-label {
+  font-weight: bold !important;
+  background-color: #f5f5f5;
+}
+.ant-descriptions-bordered .ant-descriptions-item-label,
+.ant-descriptions-bordered .ant-descriptions-item-content {
+  border-right: 1px solid $descriptions-border-color;
+}
+.ant-descriptions-bordered .ant-descriptions-row {
+  border-bottom: 1px solid $descriptions-border-color;
+}
+.ant-descriptions-bordered .ant-descriptions-view {
+  border: 1px solid $descriptions-border-color;
+}
+
+
+/*
+ * Table
+ */
+
+$table-border-color: #cccccc;
+
+.ant-table.ant-table-bordered > .ant-table-container {
+  border: 1px solid $table-border-color;
+}
+.ant-table .ant-table-thead > tr > th {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.ant-table.ant-table-bordered > .ant-table-container {
+  & > .ant-table-content > table > thead > tr > th,
+  & > .ant-table-header > table > thead > tr > th,
+  & > .ant-table-body > table > thead > tr > th,
+  & > .ant-table-content > table > tbody > tr > td,
+  & > .ant-table-header > table > tbody > tr > td,
+  & > .ant-table-body > table > tbody > tr > td,
+  & > .ant-table-content > table > tfoot > tr > th,
+  & > .ant-table-header > table > tfoot > tr > th,
+  & > .ant-table-body > table > tfoot > tr > th,
+  & > .ant-table-content > table > tfoot > tr > td,
+  & > .ant-table-header > table > tfoot > tr > td,
+  & > .ant-table-body > table > tfoot > tr > td {
+    border-right: none;
+    &:not(:last-child) {
+      border-right: 1px solid $table-border-color;
+    }
+  }
+}
+
+
+/*
+ * Hierarchy tree
+ */
+
+.ant-tree-show-line-no-icon button.ant-btn.ant-btn-link.ant-btn-sm {
+  padding: 0;
+}
+
+.ant-tree-show-line-no-icon .ant-tree-switcher {
+  position: relative;
+}
+
+.ant-tree-show-line-no-icon .anticon.anticon-file.ant-tree-switcher-line-icon {
+  display: none;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:after{
+  content: ' ' !important;
+  width: 1px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  height: 100% !important;
+  position: absolute !important;
+  left: 11px !important;
+}
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-switcher.ant-tree-switcher-noop:before{
+  content: ' ';
+  width: 16px;
+  border-bottom: 1px solid #d9d9d9;
+  height: 45%;
+  position: absolute;
+  left: 12px;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+  display: block;
+  content: ' ' !important;
+  width: 16px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  height: 38% !important;
+  position: absolute !important;
+  left: 12px !important;
+}
+
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:before{
+  display: block;
+  content: ' ' !important;
+  width: 16px !important;
+  border-left: 1px solid #d9d9d9 !important;
+  border-bottom: 1px solid #d9d9d9 !important;
+  height: 38% !important;
+  position: absolute !important;
+  left: 12px !important;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+  display: none !important;
+}
+
+.ant-tree-show-line-no-icon.ant-tree-show-line .ant-tree-child-tree  > li:last-child >  .ant-tree-switcher.ant-tree-switcher-noop:after{
+  display: none !important;
+}
