@@ -1,14 +1,10 @@
-# C3G FreezeMan Server
-
-![Travis Build Status](https://api.travis-ci.com/c3g/freezeman_server.svg?branch=master)
-[![codecov](https://codecov.io/gh/c3g/freezeman_server/branch/master/graph/badge.svg)](https://codecov.io/gh/c3g/freezeman_server)
+# FreezeMan - Server
 
 FreezeMan is a freezer management system designed to manage the storage and 
 tracking of biological samples in a laboratory environment.
 
 ## Table of contents
 
-  * [License](#license)
   * [Dependencies](#dependencies)
   * [Running locally for development](#running-locally-for-development)
   * [Running tests](#running-tests)
@@ -16,35 +12,9 @@ tracking of biological samples in a laboratory environment.
   * [Deploying to production](#deploying-to-production)
   * [Database diagram](#database-diagram)
 
-## License
-
-Copyright &copy; the 
-[Canadian Centre for Computational Genomics](http://www.computationalgenomics.ca/), 
-McGill University 2020. All rights reserved. FreezeMan is licensed under the 
-GNU Lesser General Public License version 3. See project license in `/LICENSE`. 
-
-Portions copyright &copy; Django Software Foundation and individual
-contributors to the Django project.
-
-See relevant license in the following files:
-
-  * `/templates/admin/base_site.html`
-
-Portions copyright &copy; Bojan Mihelac and individual contributors to the 
-`django-import-export` project.
-
-See relevant license in the following files:
-
-  * `/fms_core/templates/admin/fms_core/change_list_export_version.html`
-  * `/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
-  * `/fms_core/templates/admin/fms_core/download_import.html`
-
-Port of [fzy.js](https://github.com/jhawthorn/fzy.js) licensed under MIT License.
-
 ## Dependencies
 
-  * Python 3.6 or later
-  * Django 3
+  * Python `virtualenv`
   * Postgres 9.5 or later (tested on 11 and 12)
   * Make & C compiler
   
@@ -52,15 +22,7 @@ Python package dependencies are listed in `requirements.txt`.
   
 ## Running locally for development
 
-  1. Clone the repository
-  
-     ```bash
-     git clone https://github.com/c3g/fms
-     cd fms
-     git submodule update --init --recursive
-     ```
-  
-  2. Set up a virtual environment with Python 3.6 or later, and install 
+  1. Set up a virtual environment with Python 3.6 or later, and install 
      dependencies into it:
      
      ```bash
@@ -69,7 +31,7 @@ Python package dependencies are listed in `requirements.txt`.
      pip install -r requirements.txt
      ```
      
-  3. Create a database for the application to use locally in Postgres. The
+  2. Create a database for the application to use locally in Postgres. The
      following environment variables (listed here with defaults) can be used
      to set up the Postgres connection:
      
@@ -81,25 +43,25 @@ Python package dependencies are listed in `requirements.txt`.
      export PG_PORT=5432
      ```
      
-  4. Install the [pg_fzy](#pg_fzy) extension for the database:
+  3. Install the [pg_fzy](#pg_fzy) extension for the database:
   
      ```bash
      cd dependencies/pg_fzy && make && sudo make install
      ```
     
-  5. Run any outstanding migrations:
+  4. Run any outstanding migrations:
   
      ```bash
      python ./manage.py migrate
      ```
     
-  6. Create an application superuser:
+  5. Create an application superuser:
   
      ```bash
      python ./manage.py createsuperuser
      ```
     
-  7. Run the development server:
+  6. Run the development server:
   
      ```bash
      python ./manage.py runserver
