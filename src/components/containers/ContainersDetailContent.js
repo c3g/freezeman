@@ -1,7 +1,8 @@
 import React from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams, Link} from "react-router-dom";
-import {Space, Descriptions} from "antd";
+import {Space, Descriptions, Typography} from "antd";
+const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
@@ -44,6 +45,7 @@ const ContainersDetailContent = ({containersByID, samplesByID, get, listParents}
           </Space>
       } />
       <PageContent loading={!isLoaded && isFetching}>
+        <Title level={2}>Overview</Title>
         <Descriptions bordered={true} size="small">
           <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
           <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
