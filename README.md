@@ -34,22 +34,18 @@ Next, follow the instructions in [/backend/README.md](./backend/README.md) and
 
 ## License
 
-Copyright &copy; the 
-[CCCG](http://www.computationalgenomics.ca/), 
-McGill University 2020. All rights reserved. FreezeMan is licensed under the 
-GNU Lesser General Public License version 3.
+Copyright: [CCCG](http://www.computationalgenomics.ca/), McGill University 2020.
+All rights reserved.
 
-Portions copyright &copy; Django Software Foundation and individual
-contributors to the Django project.
+FreezeMan is licensed under the GNU Lesser General Public License version 3.
 
-See relevant license in the following files:
+Portions copyright: Django Software Foundation and individual
+contributors to the Django project. See relevant licenses:
 
   * `/backend/templates/admin/base_site.html`
 
-Portions copyright &copy; Bojan Mihelac and individual contributors to the 
-`django-import-export` project.
-
-See relevant license in the following files:
+Portions copyright: Bojan Mihelac and individual contributors to the 
+`django-import-export` project. See relevant licenses:
 
   * `/backend/fms_core/templates/admin/fms_core/change_list_export_version.html`
   * `/backend/fms_core/templates/admin/fms_core/change_list_import_export_version.html`
