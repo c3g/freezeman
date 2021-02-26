@@ -30,7 +30,7 @@ export function renderContainer(c) {
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {c.name}{' '}
-        <Text type="secondary">{c.id}</Text>
+        <Text type="secondary">{c.kind}</Text>
       </div>
     )
   }
