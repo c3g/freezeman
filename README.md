@@ -180,5 +180,5 @@ algorithm. To manage it, here are the useful commands, to be run in the
  - `sudo make install`: install it in the postgres extension list
  - `sudo make uninstall`: remove it from the postgres extension list
 
-When updating the extension, you might need to run `drop extension pg_fzy;` and
+When updating the extension, you might need to run `drop extension fzy;` and
 `create extension fzy;` before uninstalling and after installing it.
