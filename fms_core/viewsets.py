@@ -257,7 +257,7 @@ _sample_filterset_fields: FiltersetFields = {
     "depleted": ["exact"],
     "collection_site": CATEGORICAL_FILTERS_LOOSE,
     "tissue_source": CATEGORICAL_FILTERS,
-    "reception_date": DATE_FILTERS,
+    "creation_date": DATE_FILTERS,
     "coordinates": FREE_TEXT_FILTERS,
     "comment": FREE_TEXT_FILTERS,
     "update_comment": FREE_TEXT_FILTERS,
