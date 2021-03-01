@@ -9,13 +9,13 @@ from ._utils import add_error as _add_error
 from .process import Process
 from .sample import Sample
 
-__all__ = ["ProcessBySample"]
+__all__ = ["ProcessSample"]
 
 
 @reversion.register()
-class ProcessBySample(models.Model):
-    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_by_sample", help_text="Process")
-    sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_by_sample", help_text="Sample")
+class ProcessSample(models.Model):
+    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_sample", help_text="Process")
+    source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_sample", help_text="Source Sample")
     execution_date = models.DateField(default=timezone.now, help_text="Date of execution of the process.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the sample used, in µL.")

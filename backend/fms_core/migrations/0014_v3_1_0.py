@@ -121,7 +121,7 @@ class Migration(migrations.Migration):
                 help_text='Biological material collected from study subject during the conduct of a genomic study project.',
                 max_length=200, unique=True),
         ),
-        # Migrations related to Process, Protocol and ProcessBySample
+        # Migrations related to Process, Protocol and ProcessSample
         migrations.CreateModel(
             name='Process',
             fields=[
@@ -137,14 +137,14 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='ProcessBySample',
+            name='ProcessSample',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('execution_date', models.DateField(default=django.utils.timezone.now, help_text='Date of execution of the process.')),
                 ('volume_used', models.DecimalField(blank=True, decimal_places=3, help_text='Volume of the sample used, in µL.', max_digits=20, null=True)),
                 ('comment', models.TextField(blank=True, help_text='Other relevant information.')),
-                ('process', models.ForeignKey(help_text='Process', on_delete=django.db.models.deletion.PROTECT, related_name='process_by_sample', to='fms_core.process')),
-                ('sample', models.ForeignKey(help_text='Sample', on_delete=django.db.models.deletion.PROTECT, related_name='process_by_sample', to='fms_core.sample')),
+                ('process', models.ForeignKey(help_text='Process', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.process')),
+                ('source_sample', models.ForeignKey(help_text='Source Sample', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.sample')),
             ],
         ),
         migrations.AddField(
