@@ -51,20 +51,55 @@ def change_sample_versions_for_creation_date(apps, schema_editor):
         version.serialized_data = json.dumps(data)
         version.save()
 
-def create_lineage_from_extracted(apps, schema_editor):
+def initialize_protocols(apps, schema_editor):
+    protocol_model = apps.get_model("fms_core", "protocol")
+    protocol_model.objects.create(name="Extraction")
+
+def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
     sample_lineage_model = apps.get_model("fms_core", "samplelineage")
-    version_model = apps.get_model("reversion", "Version")
+    protocol_model = apps.get_model("fms_core", "protocol")
+    process_model = apps.get_model("fms_core", "process")
+    process_sample_model = apps.get_model("fms_core", "processsample")
+    revision_model = apps.get_model("reversion", "revision")
+    version_model = apps.get_model("reversion", "version")
 
-    # Create parent lineage for each sample that had an extracted_from fk
+    extraction_protocol = protocol_model.objects.get(name="Extraction")
+    extracted_samples_info = {}
+
+    for revision in revision_model.objects.filter(comment="Imported extracted samples from template."):
+        extracted_samples = version_model.objects.filter(revision_id=revision.id,
+                                                         content_type__model="sample",
+                                                         object_repr__icontains="(extracted, ")
+        if extracted_samples:
+            pr = process_model.objects.create(protocol=extraction_protocol, comment="Created from old extraction data.")
+            for sample in extracted_samples:
+                data = json.loads(sample.serialized_data)
+                comment = data[0]["fields"].pop("comment", "")
+                sample_info = {sample.object_id: {"process": pr, "comment": comment}}
+                extracted_samples_info.update(sample_info)
+
+    # Create process_by_sample and parent lineage for each sample that had an extracted_from fk
     for sample in sample_model.objects.all():
         if sample.old_extracted_from:
-            sample_lineage_model.objects.create(parent=sample.old_extracted_from, child=sample)
+            process_sample_info = extracted_samples_info[str(sample.id)]
+            if process_sample_info:
+                ps = process_sample_model.objects.create(process=process_sample_info["process"],
+                                                         sample=sample.old_extracted_from,
+                                                         execution_date=sample.reception_date,
+                                                         volume_used=sample.volume_used,
+                                                         comment=process_sample_info["comment"])
+                sample_lineage_model.objects.create(parent=sample.old_extracted_from,
+                                                    child=sample,
+                                                    process_sample=ps)
+            else:
+                raise
 
     for version in version_model.objects.filter(content_type__model="sample"):
         # Remove the extracted_from field from the serialized_data in version
         data = json.loads(version.serialized_data)
         data[0]["fields"].pop("extracted_from", None)
+        data[0]["fields"].pop("volume_used", None)
         version.serialized_data = json.dumps(data)
         # Save to database
         version.save()
@@ -192,7 +227,7 @@ class Migration(migrations.Migration):
                                          to='fms_core.Sample'),
         ),
         migrations.RunPython(
-            create_lineage_from_extracted,
+            create_lineage_from_extracted_and_revisions,
             migrations.RunPython.noop
         ),
         migrations.RemoveField(

@@ -195,7 +195,6 @@ class ExtractedSampleTest(TestCase):
         s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
                                                             volume_used=Decimal('0.01'),
                                                             **self.constants))
-        s.save()
         SampleLineage.objects.create(parent=self.parent_sample, child=s)
         self.assertFalse(s.source_depleted)
         self.assertEqual(Sample.objects.count(), 3)
@@ -213,7 +212,6 @@ class ExtractedSampleTest(TestCase):
                     volume_used=Decimal('0.01'),
                     **{**self.constants, "tissue_source": ""}
                 ))
-                s.save()
                 SampleLineage.objects.create(parent=self.parent_sample, child=s)
             except ValidationError as e:
                 self.assertIn("tissue_source", e.message_dict)
@@ -227,7 +225,6 @@ class ExtractedSampleTest(TestCase):
                                                                     container=self.tube_container,
                                                                     individual=self.valid_individual,
                                                                     name="test_extracted_sample_11"))
-                s.save()
                 SampleLineage.objects.create(parent=self.invalid_parent_sample, child=s)
             except ValidationError as e:
                 self.assertIn("extracted_from", e.message_dict)

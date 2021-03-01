@@ -210,5 +210,4 @@ class ExtractionResource(GenericResource):
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
         lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj)
-        lineage.save()
         super().save_m2m(obj, data, using_transactions, dry_run)
