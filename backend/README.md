@@ -16,6 +16,7 @@ tracking of biological samples in a laboratory environment.
 
   * Python `virtualenv`
   * Postgres 9.5 or later (tested on 11 and 12)
+  * Postgres development headers
   * Make & C compiler
   
 Python package dependencies are listed in `requirements.txt`.
