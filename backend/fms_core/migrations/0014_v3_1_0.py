@@ -151,7 +151,7 @@ class Migration(migrations.Migration):
             model_name='sample',
             old_name='reception_date',
             new_name='creation_date',
-
+        ),
         migrations.CreateModel(
             name='SampleLineage',
             fields=[
