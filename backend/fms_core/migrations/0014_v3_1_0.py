@@ -13,49 +13,67 @@ def create_pg_fzy(apps, schema_editor):
 def drop_pg_fzy(apps, schema_editor):
     schema_editor.execute("DROP EXTENSION IF EXISTS fzy;")
 
+def create_sample_kinds(apps, schema_editor):
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    for kind in SAMPLE_KINDS:
+        SampleKind.objects.create(name=kind)
+
+def copy_samples_kinds(apps, schema_editor):
+    Sample = apps.get_model("fms_core", "Sample")
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
+
+    for sample in Sample.objects.all():
+        name = sample.biospecimen_type
+        sample.sample_kind_id = sample_kind_ids_by_name[name]
+        sample.save()
+
+    # Deals with versions
+    Version = apps.get_model("reversion", "Version")
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
+
+    for version in Version.objects.filter(content_type__model="sample"):
+        data = json.loads(version.serialized_data)
+        if 'biospecimen_type' in data[0]["fields"]:
+            biospecimen_type = data[0]["fields"]["biospecimen_type"]
+            data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[biospecimen_type]
+            data[0]["fields"].pop("biospecimen_type", None)
+        version.serialized_data = json.dumps(data)
+        version.save()
+
+def change_sample_versions_for_creation_date(apps, schema_editor):
+    Version = apps.get_model("reversion", "Version")
+    for version in Version.objects.filter(content_type__model="sample"):
+        data = json.loads(version.serialized_data)
+        data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
+        data[0]["fields"].pop("reception_date", None)
+        version.serialized_data = json.dumps(data)
+        version.save()
+
+def create_lineage_from_extracted(apps, schema_editor):
+    sample_model = apps.get_model("fms_core", "sample")
+    sample_lineage_model = apps.get_model("fms_core", "samplelineage")
+    version_model = apps.get_model("reversion", "Version")
+
+    # Create parent lineage for each sample that had an extracted_from fk
+    for sample in sample_model.objects.all():
+        if sample.old_extracted_from:
+            sample_lineage_model.objects.create(parent=sample.old_extracted_from, child=sample)
+
+    for version in version_model.objects.filter(content_type__model="sample"):
+        # Remove the extracted_from field from the serialized_data in version
+        data = json.loads(version.serialized_data)
+        data[0]["fields"].pop("extracted_from", None)
+        version.serialized_data = json.dumps(data)
+        # Save to database
+        version.save()
+
 
 class Migration(migrations.Migration):
     dependencies = [
         ('fms_core', '0013_v3_0_1'),
     ]
-
-    def create_sample_kinds(apps, schema_editor):
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        for kind in SAMPLE_KINDS:
-            SampleKind.objects.create(name=kind)
-
-    def copy_samples_kinds(apps, schema_editor):
-        Sample = apps.get_model("fms_core", "Sample")
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-        for sample in Sample.objects.all():
-            name = sample.biospecimen_type
-            sample.sample_kind_id = sample_kind_ids_by_name[name]
-            sample.save()
-
-        # Deals with versions
-        Version = apps.get_model("reversion", "Version")
-        SampleKind = apps.get_model("fms_core", "SampleKind")
-        sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-        for version in Version.objects.filter(content_type__model="sample"):
-            data = json.loads(version.serialized_data)
-            if 'biospecimen_type' in data[0]["fields"]:
-                biospecimen_type = data[0]["fields"]["biospecimen_type"]
-                data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[biospecimen_type]
-                data[0]["fields"].pop("biospecimen_type", None)
-            version.serialized_data = json.dumps(data)
-            version.save()
-
-    def change_sample_versions_for_creation_date(apps, schema_editor):
-        Version = apps.get_model("reversion", "Version")
-        for version in Version.objects.filter(content_type__model="sample"):
-            data = json.loads(version.serialized_data)
-            data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
-            data[0]["fields"].pop("reception_date", None)
-            version.serialized_data = json.dumps(data)
-            version.save()
 
     operations = [
         # Migrations related to SampleKind replacing Sample.biospecimen_type
