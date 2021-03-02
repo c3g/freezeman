@@ -134,7 +134,6 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual)
     onSearchContainer(newData.container)
-    onSearchSample(newData.extracted_from)
   }, [sampleValue])
 
   const onValuesChange = (values) => {
@@ -272,26 +271,6 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
           </Form.Item>
           <Form.Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
-          </Form.Item>
-          <Form.Item label="Extracted From" {...props("extracted_from")}>
-            <Select
-              showSearch
-              allowClear
-              filterOption={false}
-              options={sampleOptions}
-              onSearch={onSearchSample}
-              onFocus={onFocusSample}
-            />
-          </Form.Item>
-          <Form.Item
-            label="Vol. Used (µL)"
-            {...props("volume_used")}
-            extra="Volume of the original sample used for the extraction, in µL. Must be specified only for extracted nucleic acid samples."
-          >
-            <InputNumber
-              disabled={!formData?.extracted_from}
-              step={0.001}
-            />
           </Form.Item>
           {formErrors?.non_field_errors &&
             <Alert
