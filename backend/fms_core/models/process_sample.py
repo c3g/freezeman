@@ -3,6 +3,7 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 
 from ._utils import add_error as _add_error
 
@@ -16,7 +17,7 @@ __all__ = ["ProcessSample"]
 class ProcessSample(models.Model):
     process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_sample", help_text="Process")
     source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_sample", help_text="Source Sample")
-    execution_date = models.DateField(default=timezone.now, help_text="Date of execution of the process.")
+    execution_date = models.DateField(default=timezone.now(), help_text="Date of execution of the process.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the sample used, in µL.")
     comment = models.TextField(blank=True, help_text="Relevant information about the process info.")

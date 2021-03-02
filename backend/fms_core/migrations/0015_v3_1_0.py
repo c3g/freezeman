@@ -7,12 +7,6 @@ import json
 
 SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
-def create_pg_fzy(apps, schema_editor):
-    schema_editor.execute("CREATE EXTENSION fzy;")
-
-def drop_pg_fzy(apps, schema_editor):
-    schema_editor.execute("DROP EXTENSION IF EXISTS fzy;")
-
 def create_sample_kinds(apps, schema_editor):
     SampleKind = apps.get_model("fms_core", "SampleKind")
     for kind in SAMPLE_KINDS:
@@ -191,13 +185,6 @@ class Migration(migrations.Migration):
             model_name='process',
             name='protocol',
             field=models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol'),
-        ),
-
-        # Enable fzy
-        migrations.RunPython(
-            create_pg_fzy,
-            reverse_code=drop_pg_fzy,
-            atomic=True
         ),
 
         # Change reception_date for creation_date

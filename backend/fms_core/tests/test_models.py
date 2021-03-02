@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.test import TestCase
-from backend.fms_core.utils import timezone_to_str
+from django.utils import timezone
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
 from ..models import Container, Sample, Individual, Process, ProcessSample, Protocol,SampleKind, SampleLineage
 from .constants import (
@@ -203,7 +203,7 @@ class ExtractedSampleTest(TestCase):
 
         ps = ProcessSample.objects.create(process=p,
                                           source_sample=parent_sample,
-                                          execution_date=timezone_to_str,
+                                          execution_date=timezone.now(),
                                           volume_used=volume_used,
                                           comment="ProcessSample test_extracted_sample")
         SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
@@ -228,7 +228,7 @@ class ExtractedSampleTest(TestCase):
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_no_tissue_source_extracted_sample")
                 ps = ProcessSample.objects.create(process=p,
                                                   source_sample=parent_sample,
-                                                  execution_date=timezone_to_str,
+                                                  execution_date=timezone.now(),
                                                   volume_used=volume_used,
                                                   comment="ProcessSample test_no_tissue_source_extracted_sample")
                 SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
@@ -249,7 +249,7 @@ class ExtractedSampleTest(TestCase):
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_original_sample")
                 ps = ProcessSample.objects.create(process=p,
                                                   source_sample=parent_sample,
-                                                  execution_date=timezone_to_str,
+                                                  execution_date=timezone.now(),
                                                   volume_used=volume_used,
                                                   comment="ProcessSample test_original_sample")
                 SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
@@ -277,7 +277,7 @@ class ExtractedSampleTest(TestCase):
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
         ps = ProcessSample.objects.create(process=p,
                                           source_sample=parent_sample,
-                                          execution_date=timezone_to_str,
+                                          execution_date=timezone.now(),
                                           volume_used=volume_used,
                                           comment="ProcessSample test_sample_kind")
         with self.assertRaises(ValidationError):
@@ -298,7 +298,7 @@ class ExtractedSampleTest(TestCase):
             try:
                 ps = ProcessSample.objects.create(process=p,
                                                   source_sample=self.parent_sample,
-                                                  execution_date=timezone_to_str,
+                                                  execution_date=timezone.now(),
                                                   volume_used=volume_used,
                                                   comment="ProcessSample test_volume_used")
                 SampleLineage.objects.create(parent=self.parent_sample, child=invalid_volume_used, process_sample=ps)
@@ -349,7 +349,7 @@ class ExtractedSampleTest(TestCase):
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_negative_volume")
                 ps = ProcessSample.objects.create(process=p,
                                                   source_sample=parent_sample,
-                                                  execution_date=timezone_to_str,
+                                                  execution_date=timezone.now(),
                                                   volume_used=volume_used,
                                                   comment="ProcessSample test_negative_volume")                                                                       
                 SampleLineage.objects.create(parent=parent_sample, child=negative_volume_used, process_sample=ps)
@@ -399,7 +399,7 @@ class SampleLineageTest(TestCase):
         parent_sample = self.parent_sample
         ps = ProcessSample.objects.create(process=self.valid_process,
                                           source_sample=parent_sample,
-                                          execution_date=timezone_to_str,
+                                          execution_date=timezone.now(),
                                           volume_used=Decimal('0.01'),
                                           comment="ProcessSample test_sample_lineage")          
         sl = SampleLineage.objects.create(parent=parent_sample, child=self.child_sample, process_sample=ps)

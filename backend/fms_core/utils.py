@@ -24,7 +24,6 @@ __all__ = [
     "str_normalize",
     "str_cast_and_normalize",
     "get_normalized_str",
-    "timezone_to_str",
 ]
 
 
@@ -119,7 +118,3 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     value is false-y, returns a default string value instead.
     """
     return str_cast_and_normalize(d.get(key) or default)
-
-
-def timezone_to_str(timezone=timezone.now) -> str:
-    return timezone.localtime(timezone).strftime("%Y-%m-%d %H:%M:%S")
