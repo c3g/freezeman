@@ -9,6 +9,7 @@ export const FILTER_TYPE = {
 }
 
 export const TISSUE_SOURCE = [
+  "BAL",
   "Blood",
   "Cells",
   "Expectoration",
