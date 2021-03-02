@@ -57,9 +57,19 @@ class SampleKindSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
+    extracted_from = serializers.SerializerMethodField()
+
     class Meta:
         model = Sample
         fields = "__all__"
+        extra_fields = ('extracted_from')
+
+    def get_extracted_from(self, obj):
+        if obj.extracted_from is None:
+            return ''
+        else:
+            return obj.extracted_from.id
+
 
 
 class SampleExportSerializer(serializers.ModelSerializer):

@@ -172,6 +172,11 @@ class Sample(models.Model):
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
 
+    @property
+    def extracted_from(self) -> Optional[Sample]:
+        return SampleLineage.objects.filter(child=self).first()
+
+
     # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
@@ -241,10 +246,6 @@ class Sample(models.Model):
     @property
     def source_depleted(self) -> bool:
         return self.extracted_from.depleted if self.extracted_from else None
-
-    @property
-    def extracted_from(self) -> ["Sample"]:
-        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
 
     @property
     def extracted_from(self) -> ["Sample"]:
