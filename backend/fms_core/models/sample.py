@@ -299,11 +299,6 @@ class Sample(models.Model):
                          f"{original_sample_kind}")
                     )
 
-            if self.volume_used is None:
-                add_error("volume_used", "Extracted samples must specify volume_used")
-
-            elif self.volume_used <= Decimal("0"):
-                add_error("volume_used", "volume_used must be positive")
 
         # Check volume_history for negative values
 

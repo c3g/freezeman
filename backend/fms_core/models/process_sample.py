@@ -28,6 +28,12 @@ class ProcessSample(models.Model):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.volume_used is None:
+            add_error("volume_used", "volume_used by process must be specified")
+
+        elif self.volume_used <= Decimal("0"):
+            add_error("volume_used", "volume_used must be positive")
+
         if errors:
             raise ValidationError(errors)
 
