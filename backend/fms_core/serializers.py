@@ -66,7 +66,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
     def get_extracted_from(self, obj):
         if obj.extracted_from is None:
-            return ''
+            return None
         else:
             return obj.extracted_from.id
 
