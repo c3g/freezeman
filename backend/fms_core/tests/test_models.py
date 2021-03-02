@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.test import TestCase
-from ...fms_core.utils import timezone_to_str
+from backend.fms_core.utils import timezone_to_str
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
 from ..models import Container, Sample, Individual, Process, ProcessSample, Protocol,SampleKind, SampleLineage
 from .constants import (
