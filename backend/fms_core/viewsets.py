@@ -264,7 +264,6 @@ _sample_filterset_fields: FiltersetFields = {
 
     "volume_used": SCALAR_FILTERS,
 
-    "extracted_from": NULLABLE_FK_FILTERS,  # PK
     "individual": FK_FILTERS,  # PK
     "container": FK_FILTERS,  # PK
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),

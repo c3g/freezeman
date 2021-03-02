@@ -85,8 +85,8 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
             process_sample_info = extracted_samples_info[str(sample.id)]
             if process_sample_info:
                 ps = process_sample_model.objects.create(process=process_sample_info["process"],
-                                                         sample=sample.old_extracted_from,
-                                                         execution_date=sample.reception_date,
+                                                         source_sample=sample.old_extracted_from,
+                                                         execution_date=sample.creation_date,
                                                          volume_used=sample.volume_used,
                                                          comment=process_sample_info["comment"])
                 sample_lineage_model.objects.create(parent=sample.old_extracted_from,
