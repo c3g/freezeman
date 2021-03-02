@@ -1,6 +1,8 @@
 import re
 import unicodedata
 
+from django.utils import timezone
+
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
@@ -116,3 +118,7 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     value is false-y, returns a default string value instead.
     """
     return str_cast_and_normalize(d.get(key) or default)
+
+
+def timezone_to_str(timezone=timezone.now) -> str:
+    return timezone.localtime(timezone).strftime("%Y-%m-%d %H:%M:%S")
