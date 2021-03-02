@@ -172,11 +172,6 @@ class Sample(models.Model):
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
 
-    @property
-    def extracted_from(self) -> Optional[Sample]:
-        return SampleLineage.objects.filter(child=self).first()
-
-
     # noinspection PyUnresolvedReferences
     @property
     def volume(self) -> Decimal:
