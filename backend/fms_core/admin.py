@@ -39,6 +39,11 @@ from .template_paths import (
 )
 from .utils_admin import AggregatedAdmin, CustomImportMixin, ExportVersionAdmin
 
+from .utils import (
+    VolumeHistoryUpdateType,
+    create_volume_history,
+    float_to_decimal,
+)
 
 # Set site header to the actual name of the application
 admin.site.site_header = "FreezeMan"
@@ -124,7 +129,6 @@ class SampleForm(forms.ModelForm):
     class Meta:
         model = Sample
         exclude = ()
-        widgets = {"volume_history": VolumeHistoryWidget()}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -166,7 +170,7 @@ class SampleAdmin(AggregatedAdmin):
 
     fieldsets = (
         (None, {"fields": ("sample_kind", "name", "alias", "individual", "creation_date", "collection_site")}),
-        ("Quantity Information", {"fields": ("volume_history", "concentration", "depleted")}),
+        ("Quantity Information", {"fields": ("volume", "concentration", "depleted")}),
         ("Location", {"fields": ("container", "coordinates")}),
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
         ("Update information", {"fields": ("update_comment",)}),
@@ -180,6 +184,13 @@ class SampleAdmin(AggregatedAdmin):
             **(extra_context or {}),
             "submission_template": SAMPLE_SUBMISSION_TEMPLATE,
         })
+
+    def save_model(self, request, obj, form, change):
+        obj.volume_history.append(create_volume_history(
+            VolumeHistoryUpdateType.UPDATE,
+            str(float_to_decimal(obj.volume))
+        ))
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(ExtractedSample)
