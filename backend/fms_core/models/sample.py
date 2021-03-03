@@ -119,6 +119,8 @@ class Sample(models.Model):
     volume_history = models.JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
                                       help_text="Volume of the sample in µL.")
 
+    volume = models.DecimalField(blank=False, null=True, max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
+
     # Concentration is REQUIRED if sample kind name in {DNA, RNA}.
     concentration = models.DecimalField(
         "concentration in ng/µL",
@@ -171,11 +173,6 @@ class Sample(models.Model):
     @property
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
-
-    # noinspection PyUnresolvedReferences
-    @property
-    def volume(self) -> Decimal:
-        return float_to_decimal(self.volume_history[-1]["volume_value"] if self.volume_history else 0.0)
 
     # Computed properties for individuals
 
