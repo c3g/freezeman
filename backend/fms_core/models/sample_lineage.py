@@ -29,9 +29,6 @@ class SampleLineage(models.Model):
             add_error("extracted_from",
                       f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}")
 
-        if not self.child.volume_used or self.child.volume_used <= Decimal("0"):
-            add_error("volume_used", "volume_used must be given a positive value.")
-
         if not self.child.tissue_source:
             add_error("tissue_source", "Extracted sample need to have a tissue source.")
         elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
