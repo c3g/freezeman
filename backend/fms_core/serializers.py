@@ -57,9 +57,19 @@ class SampleKindSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
+    extracted_from = serializers.SerializerMethodField()
+
     class Meta:
         model = Sample
         fields = "__all__"
+        extra_fields = ('extracted_from')
+
+    def get_extracted_from(self, obj):
+        if obj.extracted_from is None:
+            return None
+        else:
+            return obj.extracted_from.id
+
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
@@ -110,7 +120,6 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)
-    extracted_from = SampleSerializer(read_only=True)
 
     class Meta:
         model = Sample

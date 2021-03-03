@@ -133,7 +133,7 @@ class ResourcesTestCase(TestCase):
             except ValidationError as e:
                 self.assertDictEqual(
                     e.message_dict,
-                    {'concentration': ['Concentration must be specified if the biospecimen_type is DNA']})
+                    {'concentration': ['Concentration must be specified if the sample_kind is DNA']})
                 raise e
 
     def test_sample_extraction_import(self):
@@ -159,8 +159,6 @@ class ResourcesTestCase(TestCase):
 
         # Test first extraction
         s = Sample.objects.get(container__barcode="tube003")
-        self.assertEqual(s.extracted_from.update_comment,
-                         "Extracted sample (imported from template) consumed 1.000 µL.")
         self.assertListEqual(s.extracted_from.volume_history, [
             {
                 "update_type": "update",
@@ -181,8 +179,6 @@ class ResourcesTestCase(TestCase):
 
         # Test second extraction
         s = Sample.objects.get(container__barcode="tube004")
-        self.assertEqual(s.extracted_from.update_comment,
-                         "Extracted sample (imported from template) consumed 15.000 µL.")
         self.assertListEqual(s.extracted_from.volume_history, [
             {
                 "update_type": "update",

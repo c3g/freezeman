@@ -1,8 +1,9 @@
 from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.test import TestCase
+from django.utils import timezone
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
-from ..models import Container, Sample, Individual, SampleKind
+from ..models import Container, Sample, Individual, Process, ProcessSample, Protocol,SampleKind, SampleLineage
 from .constants import (
     create_container,
     create_individual,
@@ -52,7 +53,7 @@ class ContainerTest(TestCase):
                 self.assertIn("coordinates", e.message_dict)
                 raise e
 
-    def test_invalid_parent_coordiantes(self):
+    def test_invalid_parent_coordinates(self):
         parent_container = Container.objects.create(**create_container(barcode='ParentBarcode01'))
         with self.assertRaises(ValidationError):
             Container.objects.create(**create_container(
@@ -153,6 +154,7 @@ class ExtractedSampleTest(TestCase):
     def setUp(self) -> None:
         self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA")
         self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+        self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
         # tube rack 8x12
         self.parent_tube_rack = Container.objects.create(**create_container(barcode='R123456'))
         # tube
@@ -173,7 +175,9 @@ class ExtractedSampleTest(TestCase):
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube03',
                                                                                   barcode='TParent01'))
         # create parent samples
-        self.parent_sample = Sample.objects.create(**create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container,
+        self.parent_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                                   individual=self.valid_individual,
+                                                                   container=self.valid_container,
                                                                    name="test_sample_10"))
         self.invalid_parent_sample = Sample.objects.create(**create_sample(
             sample_kind=self.sample_kind_DNA,
@@ -186,13 +190,23 @@ class ExtractedSampleTest(TestCase):
         self.constants = dict(
             individual=self.valid_individual,
             container=self.tube_container,
-            extracted_from=self.parent_sample,
             tissue_source=Sample.TISSUE_SOURCE_BLOOD
         )
 
     def test_extracted_sample(self):
-        s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'),
+        volume_used = Decimal('0.01')
+        parent_sample = self.parent_sample
+        s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                            volume_used=volume_used,
                                                             **self.constants))
+        p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_extracted_sample")
+
+        ps = ProcessSample.objects.create(process=p,
+                                          source_sample=parent_sample,
+                                          execution_date=timezone.now(),
+                                          volume_used=volume_used,
+                                          comment="ProcessSample test_extracted_sample")
+        SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
         self.assertFalse(s.source_depleted)
         self.assertEqual(Sample.objects.count(), 3)
 
@@ -204,41 +218,41 @@ class ExtractedSampleTest(TestCase):
     def test_no_tissue_source_extracted_sample(self):
         with self.assertRaises(ValidationError):
             try:
-                Sample.objects.create(**create_extracted_sample(
+                volume_used = Decimal('0.01')
+                parent_sample = self.parent_sample
+                s = Sample.objects.create(**create_extracted_sample(
                     self.sample_kind_DNA,
-                    volume_used=Decimal('0.01'),
-                    **{**self.constants, "tissue_source": Sample.TISSUE_SOURCE_SALIVA}
+                    volume_used=volume_used,
+                    **{**self.constants, "tissue_source": ""}
                 ))
+                p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_no_tissue_source_extracted_sample")
+                ps = ProcessSample.objects.create(process=p,
+                                                  source_sample=parent_sample,
+                                                  execution_date=timezone.now(),
+                                                  volume_used=volume_used,
+                                                  comment="ProcessSample test_no_tissue_source_extracted_sample")
+                SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
             except ValidationError as e:
                 self.assertIn("tissue_source", e.message_dict)
-                raise e
-
-    def test_wrong_container_extracted_sample(self):
-        pc = Container.objects.create(**create_container("BOX001", kind="tube box 8x8", name="Box001"))
-        tc = Container.objects.create(**create_sample_container(kind="tube", name="TestTube04", barcode="TUBE004",
-                                                                location=pc, coordinates="A01"))
-
-        with self.assertRaises(ValidationError):
-            try:
-                Sample.objects.create(**create_extracted_sample(self.sample_kind_DNA,
-                                                                tissue_source=Sample.TISSUE_SOURCE_BLOOD,
-                                                                volume_used=Decimal('0.01'),
-                                                                extracted_from=self.parent_sample,
-                                                                individual=self.valid_individual,
-                                                                container=tc))
-            except ValidationError as e:
-                self.assertIn("container", e.message_dict)
                 raise e
 
     def test_original_sample(self):
         with self.assertRaises(ValidationError):
             try:
-                Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                volume_used=Decimal('0.01'),
-                                                                container=self.tube_container,
-                                                                extracted_from=self.invalid_parent_sample,
-                                                                individual=self.valid_individual,
-                                                                name="test_extracted_sample_11"))
+                volume_used = Decimal('0.01')
+                parent_sample=self.invalid_parent_sample
+                s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                    volume_used=volume_used,
+                                                                    container=self.tube_container,
+                                                                    individual=self.valid_individual,
+                                                                    name="test_extracted_sample_11"))
+                p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_original_sample")
+                ps = ProcessSample.objects.create(process=p,
+                                                  source_sample=parent_sample,
+                                                  execution_date=timezone.now(),
+                                                  volume_used=volume_used,
+                                                  comment="ProcessSample test_original_sample")
+                SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
             except ValidationError as e:
                 self.assertIn("extracted_from", e.message_dict)
                 raise e
@@ -255,44 +269,59 @@ class ExtractedSampleTest(TestCase):
 
     def test_sample_kind(self):
         # extracted sample can be only of type DNA or RNA
-        invalid_biospecimen = Sample(**create_extracted_sample(sample_kind=self.sample_kind_BLOOD, volume_used=Decimal('0.01'),
-                                                               individual=self.valid_individual,
-                                                               container=self.tube_container,
-                                                               extracted_from=self.parent_sample,))
+        volume_used = Decimal('0.01')
+        parent_sample = self.parent_sample
+        invalid_sample_kind = Sample(**create_extracted_sample(sample_kind=self.sample_kind_BLOOD, volume_used=volume_used,
+                                                               **{**self.constants, "tissue_source": ""}))
+        invalid_sample_kind.save()
+        p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
+        ps = ProcessSample.objects.create(process=p,
+                                          source_sample=parent_sample,
+                                          execution_date=timezone.now(),
+                                          volume_used=volume_used,
+                                          comment="ProcessSample test_sample_kind")
         with self.assertRaises(ValidationError):
             try:
-                invalid_biospecimen.full_clean()
+                SampleLineage.objects.create(parent=parent_sample, child=invalid_sample_kind, process_sample=ps)
             except ValidationError as e:
                 self.assertIn('tissue_source', e.message_dict)
                 raise e
 
     def test_volume_used(self):
         # volume_used cannot be None for an extracted_sample
-        invalid_volume_used = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=None,
+        volume_used = None
+        invalid_volume_used = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=volume_used,
                                                                **self.constants))
-
+        invalid_volume_used.save()
+        p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_volume_used")
         with self.assertRaises(ValidationError):
             try:
-                invalid_volume_used.full_clean()
+                ps = ProcessSample.objects.create(process=p,
+                                                  source_sample=self.parent_sample,
+                                                  execution_date=timezone.now(),
+                                                  volume_used=volume_used,
+                                                  comment="ProcessSample test_volume_used")
+                SampleLineage.objects.create(parent=self.parent_sample, child=invalid_volume_used, process_sample=ps)
             except ValidationError as e:
                 self.assertIn('volume_used', e.message_dict)
                 raise e
 
-        # the volume_used is not allowed with non-extracted sample + this container already has a sample inside
-        invalid_volume_used = Sample(**create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container,
+        # WARNING !!! Removed testing for volume_used not null for non-extracted sample
+        # this container already has a sample inside
+        invalid_volume_used = Sample(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                     individual=self.valid_individual,
+                                                     container=self.valid_container,
                                                      volume_used=Decimal('0.01')))
-
         with self.assertRaises(ValidationError):
             try:
                 invalid_volume_used.full_clean()
             except ValidationError as e:
-                for error in ('volume_used', 'container'):
-                    self.assertIn(error, e.message_dict.keys())
-                    raise e
+                self.assertIn('container', e.message_dict)
+                raise e
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
-        invalid_concentration = Sample(**create_extracted_sample(self.sample_kind_DNA, volume_used=Decimal('0.01'),
+        invalid_concentration = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'),
                                                                  **self.constants))
         invalid_concentration.concentration = None
         self.assertRaises(ValidationError, invalid_concentration.full_clean)
@@ -311,8 +340,71 @@ class ExtractedSampleTest(TestCase):
 
     def test_negative_volume(self):
         with self.assertRaises(ValidationError):
-            Sample.objects.create(**create_extracted_sample(self.sample_kind_DNA, volume_used=Decimal('-0.01'),
-                                                            **self.constants))
+            try:
+                volume_used = Decimal('-0.01')
+                parent_sample = self.parent_sample
+                negative_volume_used = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                                       volume_used=volume_used,
+                                                                                       **self.constants))
+                p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_negative_volume")
+                ps = ProcessSample.objects.create(process=p,
+                                                  source_sample=parent_sample,
+                                                  execution_date=timezone.now(),
+                                                  volume_used=volume_used,
+                                                  comment="ProcessSample test_negative_volume")                                                                       
+                SampleLineage.objects.create(parent=parent_sample, child=negative_volume_used, process_sample=ps)
+            except ValidationError as e:
+                self.assertTrue('volume_used' in e.message_dict)
+                raise e
+
+
+class SampleLineageTest(TestCase):
+
+    def setUp(self):
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA")
+        self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
+        # tube rack 8x12
+        self.parent_tube_rack = Container.objects.create(**create_container(barcode='R1234567'))
+        # tube
+        self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube02',
+                                                                                 barcode='T1234567',
+                                                                                 location=self.parent_tube_rack,
+                                                                                 coordinates='A01'))
+
+        # individual
+        self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
+        # parent sample container
+        self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube04',
+                                                                                  barcode='TParent01'))
+
+        self.constants = dict(
+            individual=self.valid_individual,
+            container=self.tube_container,
+            tissue_source=Sample.TISSUE_SOURCE_BLOOD
+        )
+
+        # create parent samples
+        self.parent_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                                   individual=self.valid_individual,
+                                                                   container=self.valid_container,
+                                                                   name="test_sample_11"))
+        # create child samples
+        self.child_sample = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                            volume_used=Decimal('0.02'),
+                                                                            **self.constants))
+        self.valid_process = Process.objects.create(protocol=self.extraction_protocol, comment="Process SampleLineage")
+
+    def test_sample_lineage(self):
+        parent_sample = self.parent_sample
+        ps = ProcessSample.objects.create(process=self.valid_process,
+                                          source_sample=parent_sample,
+                                          execution_date=timezone.now(),
+                                          volume_used=Decimal('0.01'),
+                                          comment="ProcessSample test_sample_lineage")          
+        sl = SampleLineage.objects.create(parent=parent_sample, child=self.child_sample, process_sample=ps)
+
+        self.assertEqual(self.child_sample.extracted_from.name, "test_sample_11")
 
 
 class IndividualTest(TestCase):

@@ -11,9 +11,11 @@ from .models import (
     ContainerRename,
     Sample,
     SampleKind,
+    SampleLineage,
     SampleUpdate,
     ExtractedSample,
     Individual,
+    Protocol,
     ImportedFile,
 )
 from .resources import (
@@ -25,6 +27,7 @@ from .resources import (
     SampleUpdateResource,
     ExtractionResource,
     IndividualResource,
+    ProtocolResource,
 )
 from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
@@ -126,13 +129,6 @@ class SampleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if kwargs.get("instance"):
-            self.fields["extracted_from"].queryset = self.fields["extracted_from"].queryset\
-                .exclude(id=self.instance.id)
-
-        self.fields["extracted_from"].queryset = self.fields["extracted_from"].queryset\
-            .select_related("container", "extracted_from")
-
 
 @admin.register(Sample)
 class SampleAdmin(AggregatedAdmin):
@@ -155,7 +151,6 @@ class SampleAdmin(AggregatedAdmin):
         "sample_kind",
         "individual",
         "container",
-        "extracted_from",
     )
 
     list_filter = (
@@ -172,14 +167,13 @@ class SampleAdmin(AggregatedAdmin):
     fieldsets = (
         (None, {"fields": ("sample_kind", "name", "alias", "individual", "creation_date", "collection_site")}),
         ("Quantity Information", {"fields": ("volume_history", "concentration", "depleted")}),
-        ("For Extracted Samples Only", {"fields": ("extracted_from", "volume_used")}),
         ("Location", {"fields": ("container", "coordinates")}),
         ("Additional Information", {"fields": ("experimental_group", "tissue_source", "phenotype", "comment")}),
         ("Update information", {"fields": ("update_comment",)}),
     )
 
     def has_delete_permission(self, request, obj=None):
-        return not (obj and obj.extracted_from)
+        return not (obj and (obj.parents or obj.children))
 
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
@@ -205,7 +199,6 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
 
 
 class SampleKindForm(forms.ModelForm):
@@ -244,6 +237,7 @@ class SampleKindAdmin(AggregatedAdmin):
     fieldsets = (
         (None, {"fields": ("name", "molecule_ontology_curie")}),
     )
+
 
 class IndividualForm(forms.ModelForm):
     class Meta:
@@ -351,6 +345,39 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class ProtocolForm(forms.ModelForm):
+    class Meta:
+        model = Protocol
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
+
+@admin.register(Protocol)
+class ProtocolAdmin(ExportVersionAdmin):
+    form = ProtocolForm
+    resource_class = ProtocolResource
+
+
+    list_display = (
+        "name",
+    )
+
+    search_fields = (
+        "name",
+    )
+
+    fieldsets = (
+        (None, {"fields": ("name",)}),
+    )
+
 
 
 @admin.register(ImportedFile)

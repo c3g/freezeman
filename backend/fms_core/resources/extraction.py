@@ -1,15 +1,16 @@
 import reversion
 
 from datetime import datetime
+from django.utils import timezone
 from import_export.fields import Field
-from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget
+from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows
 from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Sample, SampleKind
+from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     VolumeHistoryUpdateType,
     blank_str_to_none,
@@ -22,7 +23,7 @@ from ..utils import (
 
 class ExtractionResource(GenericResource):
     sample_kind = Field(attribute="sample_kind_name", column_name='Extraction Type')
-    volume_used = Field(attribute='volume_used', column_name='Volume Used (uL)', widget=DecimalWidget())
+    volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
     # parent sample container
     sample_container = Field(column_name='Container Barcode')
     sample_container_coordinates = Field(column_name='Location Coord')
@@ -36,30 +37,26 @@ class ExtractionResource(GenericResource):
     volume_history = Field(attribute='volume_history', widget=JSONWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
-    # individual = Field(attribute='individual', widget=ForeignKeyWidget(Individual, field='name'))
-    extracted_from = Field(attribute='extracted_from', widget=ForeignKeyWidget(Sample, field='name'))
     creation_date = Field(attribute='creation_date', column_name='Extraction Date', widget=DateWidget())
-    comment = Field(attribute='comment', column_name='Comment')
+    comment = Field(column_name='Comment')
 
     class Meta:
         model = Sample
         import_id_fields = ()
         fields = (
             'sample_kind',
-            'volume_used',
             'concentration',
             'source_depleted',
-            'comment',
         )
         excluded = (
             'container',
             'individual',
-            'extracted_from',
+            'child_of',
             'volume_history',
+            'comment',
         )
         export_order = (
             'sample_kind',
-            'volume_used',
             'sample_container',
             'sample_container_coordinates',
             'container',
@@ -75,10 +72,28 @@ class ExtractionResource(GenericResource):
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
+    def import_obj(self, obj, data, dry_run):
+        self.extracted_from = Sample.objects.get(
+            container__barcode=get_normalized_str(data, "Container Barcode"),
+            coordinates=get_normalized_str(data, "Location Coord"),
+        )
+        # Cast the "Source Depleted" cell to a Python Boolean value and
+        # update the original sample if needed. This is the act of the
+        # extracted sample depleting the original in the process of its
+        # creation.
+        self.extracted_from.depleted = (self.extracted_from.depleted or
+                                        check_truth_like(get_normalized_str(data, "Source Depleted")))
+
+        # Create a process for the current extraction
+        self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
+                                              comment="Extracted samples (imported from template)")
+        
+        super().import_obj(obj, data, dry_run)
+
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
 
-        if field.attribute in ('source_depleted', 'context_sensitive_coordinates'):
+        if field.attribute in ('source_depleted', 'context_sensitive_coordinates', 'child_of'):
             # Computed field, skip importing it.
             return
 
@@ -95,19 +110,6 @@ class ExtractionResource(GenericResource):
                 VolumeHistoryUpdateType.UPDATE,
                 str(float_to_decimal(vol)) if vol is not None else ""
             )]
-            return
-
-        if field.attribute == 'extracted_from':
-            obj.extracted_from = Sample.objects.get(
-                container__barcode=get_normalized_str(data, "Container Barcode"),
-                coordinates=get_normalized_str(data, "Location Coord"),
-            )
-            # Cast the "Source Depleted" cell to a Python Boolean value and
-            # update the original sample if needed. This is the act of the
-            # extracted sample depleting the original in the process of its
-            # creation.
-            obj.extracted_from.depleted = (obj.extracted_from.depleted or
-                                           check_truth_like(get_normalized_str(data, "Source Depleted")))
             return
 
         if field.attribute == 'container':
@@ -166,24 +168,37 @@ class ExtractionResource(GenericResource):
 
             return
 
-        if field.attribute == "volume_used":
-            vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
-            data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
-
-        elif field.attribute == "concentration":
+        if field.attribute == "concentration":
             conc = blank_str_to_none(data.get("Conc. (ng/uL)"))  # "" -> None for CSVs
             data["Conc. (ng/uL)"] = float_to_decimal(conc) if conc is not None else None
+
+        if field.column_name == "Volume Used (uL)":
+            # Normalize volume used
+            vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
+            data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
+            self.volume_used = data["Volume Used (uL)"]
+        
+        if field.column_name == "Comment":
+            # Normalize extraction comment
+            data["Comment"] = get_normalized_str(data, "Comment")
+            self.comment = data["Comment"]
 
         super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        instance.name = instance.extracted_from.name
-        instance.alias = instance.extracted_from.alias
-        instance.collection_site = instance.extracted_from.collection_site
-        instance.experimental_group = instance.extracted_from.experimental_group
-        instance.individual = instance.extracted_from.individual
+        instance.name = self.extracted_from.name
+        instance.alias = self.extracted_from.alias
+        instance.collection_site = self.extracted_from.collection_site
+        instance.experimental_group = self.extracted_from.experimental_group
+        instance.individual = self.extracted_from.individual
         instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
-            instance.extracted_from.sample_kind.name, "")
+            self.extracted_from.sample_kind.name, "")
+
+        self.process_sample = ProcessSample.objects.create(process=self.process,
+                                                           source_sample=self.extracted_from,
+                                                           execution_date=timezone.now(),
+                                                           volume_used=self.volume_used,
+                                                           comment=self.comment)
 
         super().before_save_instance(instance, using_transactions, dry_run)
 
@@ -191,16 +206,29 @@ class ExtractionResource(GenericResource):
         # Update volume and depletion status of original sample, thus recording
         # that the volume was reduced by an extraction process, including an ID
         # to refer back to the extracted sample.
-        instance.extracted_from.volume_history.append(create_volume_history(
+        self.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.EXTRACTION,
-            instance.extracted_from.volume - instance.volume_used,
+            self.extracted_from.volume - self.volume_used,
             instance.id
         ))
 
-        instance.extracted_from.update_comment = f"Extracted sample (imported from template) consumed " \
-                                                 f"{instance.volume_used} µL."
-
-        instance.extracted_from.save()
+        self.extracted_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported extracted samples from template.")
+
+    def save_m2m(self, obj, data, using_transactions, dry_run):
+        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_sample=self.process_sample)
+        super().save_m2m(obj, data, using_transactions, dry_run)
+
+    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
+        results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
+        # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
+        if dry_run and not len(results.invalid_rows) > 0:
+            index_volume_used = results.diff_headers.index("Volume Used (uL)")
+            index_comment = results.diff_headers.index("Comment")
+            for line, row in enumerate(results.rows):
+                if row.diff:
+                    row.diff[index_volume_used] = "{:.3f}".format(dataset["Volume Used (uL)"][line])
+                    row.diff[index_comment] = dataset["Comment"][line]
+        return results
