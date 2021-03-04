@@ -82,6 +82,7 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
     {
       title: "Vol. (µL)",
       dataIndex: "volume",
+      sorter: true,
       align: "right",
       className: "table-column-numbers",
       width: 100,
