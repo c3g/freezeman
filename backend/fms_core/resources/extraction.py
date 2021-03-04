@@ -106,6 +106,9 @@ class ExtractionResource(GenericResource):
             # initializing the volume history of the EXTRACTED sample, so the
             # actual history entry is of the "normal" type (UPDATE).
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+
+            obj.volume = vol
+
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.UPDATE,
                 str(float_to_decimal(vol)) if vol is not None else ""
@@ -206,11 +209,14 @@ class ExtractionResource(GenericResource):
         # Update volume and depletion status of original sample, thus recording
         # that the volume was reduced by an extraction process, including an ID
         # to refer back to the extracted sample.
+        parent_volume_left = self.extracted_from.volume - self.volume_used
         self.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.EXTRACTION,
-            self.extracted_from.volume - self.volume_used,
+            parent_volume_left,
             instance.id
         ))
+
+        self.extracted_from.volume = parent_volume_left
 
         self.extracted_from.save()
 
