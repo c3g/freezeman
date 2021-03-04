@@ -245,19 +245,6 @@ class Migration(migrations.Migration):
             name='old_extracted_from',
         ),
 
-
-        # Sample volulme
-        migrations.AddField(
-            model_name='sample',
-            name='volume',
-            field=models.DecimalField(decimal_places=3, help_text='Current volume of the sample, in µL. ',
-                                      max_digits=20, null=True),
-        ),
-        migrations.RunPython(
-            add_values_to_sample_volume,
-            migrations.RunPython.noop
-        ),
-        #TODO: deal with Sample.volume_history (for sample updates) and with Sample versions (for new volume field)
     ]
 
     
