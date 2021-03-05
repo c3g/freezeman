@@ -119,7 +119,7 @@ class Sample(models.Model):
     volume_history = models.JSONField("volume history in µL", validators=[VOLUME_VALIDATOR],
                                       help_text="Volume of the sample in µL.")
 
-    volume = models.DecimalField(blank=False, null=True, max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
+    volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
 
     # Concentration is REQUIRED if sample kind name in {DNA, RNA}.
     concentration = models.DecimalField(

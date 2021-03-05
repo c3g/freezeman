@@ -38,6 +38,11 @@ class Migration(migrations.Migration):
             add_values_to_sample_volume,
             migrations.RunPython.noop
         ),
+        migrations.AlterField(
+            model_name='sample',
+            name='volume',
+            field=models.DecimalField(decimal_places=3, help_text='Current volume of the sample, in µL. ', max_digits=20),
+        ),
         # TODO: deal with Sample.volume_history (for sample updates)
 
 
