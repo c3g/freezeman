@@ -13,7 +13,7 @@ class SampleLineage(models.Model):
     parent = models.ForeignKey("Sample", help_text="Parent sample",
                                on_delete=models.CASCADE, related_name="parent_sample")
     process_sample = models.ForeignKey("ProcessSample", help_text="process used for sample creation",
-                                       on_delete=models.PROTECT, null=True)
+                                       on_delete=models.PROTECT)
 
     def clean(self):
         errors = {}
