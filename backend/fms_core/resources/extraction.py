@@ -106,6 +106,8 @@ class ExtractionResource(GenericResource):
             # initializing the volume history of the EXTRACTED sample, so the
             # actual history entry is of the "normal" type (UPDATE).
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
+            obj.volume = vol
+
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.UPDATE,
                 str(float_to_decimal(vol)) if vol is not None else ""
@@ -177,6 +179,7 @@ class ExtractionResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
             self.volume_used = data["Volume Used (uL)"]
+            self.extracted_from.volume -= self.volume_used
         
         if field.column_name == "Comment":
             # Normalize extraction comment
@@ -208,7 +211,7 @@ class ExtractionResource(GenericResource):
         # to refer back to the extracted sample.
         self.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.EXTRACTION,
-            self.extracted_from.volume - self.volume_used,
+            self.extracted_from.volume,
             instance.id
         ))
 

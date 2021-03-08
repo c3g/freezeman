@@ -81,10 +81,10 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
     },
     {
       title: "Vol. (µL)",
-      dataIndex: "volume_history",
+      dataIndex: "volume",
+      sorter: true,
       align: "right",
       className: "table-column-numbers",
-      render: vh => parseFloat(vh[vh.length - 1].volume_value).toFixed(3),
       width: 100,
     },
     {

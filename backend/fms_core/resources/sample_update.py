@@ -92,6 +92,8 @@ class SampleUpdateResource(GenericResource):
                     VolumeHistoryUpdateType.UPDATE,
                     str(float_to_decimal(vol))
                 ))
+
+                obj.volume = vol
             return
 
         if field.column_name == "Delta Volume (uL)":
@@ -108,6 +110,8 @@ class SampleUpdateResource(GenericResource):
                     VolumeHistoryUpdateType.UPDATE,
                     str(vol)
                 ))
+
+                obj.volume = vol
             return
 
         if field.attribute == 'depleted':

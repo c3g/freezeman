@@ -260,8 +260,12 @@ class ExtractedSampleTest(TestCase):
     def test_no_container(self):
         with self.assertRaises(ValidationError):
             try:
-                s = Sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'), concentration=Decimal('1.0'),
-                           individual=self.valid_individual)
+                s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                    volume_used=Decimal('0.01'),
+                                                                    concentration=Decimal('1.0'),
+                                                                    container=None,
+                                                                    individual=self.valid_individual,
+                                                                    name="test_extracted_sample_no_container"))
                 s.full_clean()
             except ValidationError as e:
                 self.assertIn("container", e.message_dict)

@@ -37,6 +37,7 @@ def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
                 "volume_value": "5000"
             }
         ],
+        "volume": 5000,
         "experimental_group": ['EG01', 'EG02'],
         "collection_site": 'Site1',
         "container": container,
@@ -58,6 +59,7 @@ def create_extracted_sample(sample_kind, individual, container, volume_used, coo
                 "volume_value": "0"
             }
         ],
+        'volume': 0,
         'concentration': Decimal('0.01'),
         'experimental_group': ['EG01'],
         'collection_site': 'Site1',

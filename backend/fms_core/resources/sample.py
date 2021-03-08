@@ -179,6 +179,8 @@ class SampleResource(GenericResource):
 
         vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
 
+        obj.volume = vol
+
         # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
         obj.volume_history = [create_volume_history(
             VolumeHistoryUpdateType.UPDATE,

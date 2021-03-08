@@ -33,6 +33,11 @@ export const SAMPLE_FILTERS = {
     key: "coordinates",
     label: "Coordinates",
   },
+  volume: {
+    type: FILTER_TYPE.RANGE,
+    key: "volume",
+    label: "Volume",
+  },
   concentration: {
     type: FILTER_TYPE.RANGE,
     key: "concentration",

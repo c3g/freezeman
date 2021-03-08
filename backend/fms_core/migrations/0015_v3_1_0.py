@@ -5,6 +5,8 @@ import django.db.models.deletion
 import django.utils.timezone
 import json
 
+from ..utils import float_to_decimal
+
 SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
 def create_sample_kinds(apps, schema_editor):
@@ -151,6 +153,7 @@ class Migration(migrations.Migration):
                 help_text='Biological material collected from study subject during the conduct of a genomic study project.',
                 max_length=200, unique=True),
         ),
+
         # Migrations related to Process, Protocol and ProcessSample
         migrations.CreateModel(
             name='Process',
@@ -187,7 +190,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol'),
         ),
 
-        # Change reception_date for creation_date
+        # Change Sample reception_date for creation_date
         migrations.RunPython(
             change_sample_versions_for_creation_date,
             reverse_code=migrations.RunPython.noop,
@@ -202,6 +205,8 @@ class Migration(migrations.Migration):
             name='creation_date',
             field=models.DateField(default=django.utils.timezone.now, help_text='Date of the sample reception or extraction.'),
         ),
+
+        # Sample Lineage
         migrations.CreateModel(
             name='SampleLineage',
             fields=[
@@ -233,6 +238,7 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='old_extracted_from',
         ),
+
     ]
 
     

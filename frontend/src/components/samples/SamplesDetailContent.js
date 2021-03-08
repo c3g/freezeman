@@ -60,9 +60,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
-  const volume = sample.volume_history
-    ? parseFloat(sample.volume_history[sample.volume_history.length - 1].volume_value).toFixed(3)
-    : null;
+  const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
   const experimentalGroups = sample.experimental_group || [];
   const volumeUsed = sample.extracted_from ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
