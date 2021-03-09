@@ -16,7 +16,6 @@ class SampleLineage(models.Model):
     process_sample = models.ForeignKey("ProcessSample", help_text="process used for sample creation",
                                        on_delete=models.PROTECT, related_name="lineage")
 
-
     def clean(self):
         errors = {}
 
