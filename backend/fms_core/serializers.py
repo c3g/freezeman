@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from reversion.models import Version
 
-from .models import Container, Sample, Individual, SampleKind
+from .models import Container, Sample, Individual, Protocol, Process, ProcessSample, SampleKind
 
 
 __all__ = [
@@ -11,6 +11,8 @@ __all__ = [
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "SampleKindSerializer",
+    "ProcessSampleSerializer",
+    "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
@@ -55,6 +57,19 @@ class SampleKindSerializer(serializers.ModelSerializer):
         model = SampleKind
         fields = "__all__"
 
+class ProtocolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Protocol
+        fields = "__all__"
+
+class ProcessSampleSerializer(serializers.ModelSerializer):
+    protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
+    child_sample = serializers.IntegerField(read_only=True)
+
+    class Meta:
+      model = ProcessSample
+      fields = "__all__"
+      extra_fields = ('protocol', 'child_sample')
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
