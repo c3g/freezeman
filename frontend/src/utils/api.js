@@ -42,6 +42,17 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
+  processSamples: {
+    get: processSampleId => get(`/processsamples/${processSampleId}/`),
+    list: (options, abort) => get("/processsamples/", options, { abort }),
+    search: q => get("/processsamples/search/", { q }),
+    summary: () => get("/processsamples/summary/"),
+  },
+
+  protocols: {
+    list: () => get("/protocols/"),
+  },
+
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
