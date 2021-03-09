@@ -15,7 +15,7 @@ from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from .models import Container, Sample, Individual, SampleKind, SampleLineage
+from .models import Container, Sample, Individual, SampleKind, Protocol, ProcessSample, Process, SampleLineage
 from .resources import (
     ContainerResource,
     ContainerMoveResource,
@@ -28,6 +28,8 @@ from .serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
     SampleKindSerializer,
+    ProtocolSerializer,
+    ProcessSampleSerializer,
     SampleSerializer,
     SampleExportSerializer,
     NestedSampleSerializer,
@@ -52,6 +54,7 @@ __all__ = [
     "QueryViewSet",
     "SampleViewSet",
     "SampleKindViewSet",
+    "ProtocolViewSet",
     "UserViewSet",
     "GroupViewSet",
     "VersionViewSet",
@@ -275,6 +278,22 @@ _sample_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_protocol_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_process_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "source_sample": FK_FILTERS,
+    "execution_date": DATE_FILTERS,
+    "volume_used": SCALAR_FILTERS,
+    "comment": FREE_TEXT_FILTERS,
+    **_prefix_keys("process__protocol__", _protocol_filterset_fields),
+    **_prefix_keys("source_sample__", _sample_minimal_filterset_fields),
+    **_prefix_keys("lineage__child__", _sample_minimal_filterset_fields),
+}
+
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
     serializer_class = ContainerSerializer
@@ -419,8 +438,65 @@ class SampleKindViewSet(viewsets.ModelViewSet):
     queryset = SampleKind.objects.all()
     serializer_class = SampleKindSerializer
     pagination_class = None
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
+class ProtocolViewSet(viewsets.ModelViewSet):
+    queryset = Protocol.objects.all()
+    serializer_class = ProtocolSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
+
+class ProcessSampleViewSet(viewsets.ModelViewSet):
+    queryset = ProcessSample.objects.all().select_related("process")
+    queryset = queryset.annotate(child_sample=F("lineage__child"))
+    queryset = queryset.annotate(child_sample_name=F("lineage__child__name"))
+    queryset = queryset.annotate(source_sample_name=F("source_sample__name"))
+
+    serializer_class = ProcessSampleSerializer
+
+    ordering_fields = (
+        *_list_keys(_process_sample_filterset_fields),
+    )
+
+    filterset_fields = {
+        **_process_sample_filterset_fields,
+    }
+
+    def list(self, _request):
+      print(self.queryset.query)
+      return super().list(_request)
+
+
+    @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for process sample that match the given query
+        """
+        search_input = _request.GET.get("q")
+
+        query = Q(id__icontains=search_input)
+
+        process_sample_data = ProcessSample.objects.filter(query)
+        page = self.paginate_queryset(process_sample_data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def summary(self, _request):
+        """
+        Returns summary statistics about the current set of ProcessSample in the
+        database.
+        """
+
+        protocol_names_by_id = {protocol.id: protocol.name for protocol in Protocol.objects.all()}
+
+        return Response({
+            "total_count": ProcessSample.objects.all().count(),
+            "protocol_counts": {
+                protocol_names_by_id[c["process__protocol"]]: c["process__protocol__count"]
+                for c in self.queryset.values("process__protocol").annotate(Count("process__protocol"))
+            },
+        })
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Sample.objects.all().select_related("individual", "container", "sample_kind")
