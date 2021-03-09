@@ -216,7 +216,8 @@ class Migration(migrations.Migration):
                 ('parent', models.ForeignKey(help_text='Parent sample', on_delete=django.db.models.deletion.CASCADE,
                                              related_name='parent_sample', to='fms_core.sample')),
                 ('process_sample', models.ForeignKey(help_text='process used for sample creation',
-                                                     on_delete=django.db.models.deletion.PROTECT, to='fms_core.processsample')),
+                                                     on_delete=django.db.models.deletion.PROTECT,
+                                                     related_name="lineage", to='fms_core.processsample')),
             ],
         ),
         migrations.RenameField(
