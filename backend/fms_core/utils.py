@@ -50,6 +50,7 @@ class VolumeHistoryUpdateType(Enum):
     """
     UPDATE = "update"
     EXTRACTION = "extraction"
+    TRANSFER = "transfer"
 
 
 def create_volume_history(update_type: VolumeHistoryUpdateType,

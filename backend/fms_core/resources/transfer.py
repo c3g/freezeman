@@ -26,35 +26,37 @@ class TransferResource(GenericResource):
     source_container_coordinates = Field(column_name='Source Location Coord')
 
 
-    destination_container = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
+    destination_container = Field(attribute='location', column_name='Destination Container Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
-    destination_container_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Nucleic Acid Location Coord')
-    destination_container_name = Field(attribute='name', column_name='Container Name')
-    destination_container_kind = Field(attribute='kind', column_name='Container Kind')
+    destination_container_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Destination Location Coord')
+    destination_container_name = Field(attribute='name', column_name='Destination Container Name')
+    destination_container_kind = Field(attribute='kind', column_name='Destination Container Kind')
 
-    destination_parent_container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
+    destination_parent_container = Field(attribute='destination_parent_container', column_name='Destination Parent Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
-    destination_parent_container_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Nucleic Acid Location Coord')
+    destination_parent_container_coordinates = Field(attribute='destination_parent_container_coordinates', column_name='Destination Parent Container Coord')
 
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
-    volume = Field(column_name='Volume (uL)', widget=DecimalWidget())
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     transfer_date = Field(attribute='transfer_date', column_name='Transfer Date', widget=DateWidget())
-    comment = Field(column_name='Comment')
+    comment = Field(attribute='comment', column_name='Comment')
 
 
     class Meta:
         model = Sample
         import_id_fields = ()
         fields = (
-            'sample_kind',
-            'concentration',
+            'volume',
             'source_depleted',
         )
         excluded = (
             'container',
+            'coordinates',
             'individual',
             'child_of',
+            'concentration',
+            'volume_used',
             'volume_history',
             'comment',
         )
@@ -94,39 +96,24 @@ class TransferResource(GenericResource):
         super().import_obj(obj, data, dry_run)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        # More!! ugly hacks
-
         if field.attribute in ('source_depleted', 'context_sensitive_coordinates', 'child_of'):
             # Computed field, skip importing it.
             return
 
-        if field.attribute == "sample_kind_name":
-            obj.sample_kind = SampleKind.objects.get(name=data["Extraction Type"])
-
-        if field.attribute == 'volume_history':
-            # We store volume as a JSON object of historical values, so this
-            # needs to be initialized in a custom way. In this case we are
-            # initializing the volume history of the EXTRACTED sample, so the
-            # actual history entry is of the "normal" type (UPDATE).
+        if field.attribute == 'volume':
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
             obj.volume = vol
 
             obj.volume_history = [create_volume_history(
-                VolumeHistoryUpdateType.UPDATE,
+                VolumeHistoryUpdateType.TRANSFER,
                 str(float_to_decimal(vol)) if vol is not None else ""
             )]
             return
 
-        if field.attribute == 'container':
-            # Per Alex: We can make new tube racks (8x12) automatically if
-            # needed for extractions, using the inputted barcode for the new
-            # object.
-
+        if field.attribute == 'destination_parent_container':
             shared_parent_info = dict(
-                barcode=get_normalized_str(data, "Nucleic Acid Location Barcode"),
-                # TODO: Currently can only extract into tube racks 8x12
-                #  - otherwise this logic will fall apart
-                kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
+                barcode=get_normalized_str(data, "Destination Parent Container Barcode"),
+                coordinates=get_normalized_str(data, "Destination Parent Container Coord")
             )
 
             try:
@@ -139,7 +126,7 @@ class TransferResource(GenericResource):
                     # Per Alex: Container name = container barcode if we
                     #           auto-generate the container
                     name=shared_parent_info["barcode"],
-                    comment=f"Automatically generated via extraction template import on "
+                    comment=f"Automatically generated via transfer template import on "
                             f"{datetime.utcnow().isoformat()}Z"
                 )
 
@@ -149,33 +136,27 @@ class TransferResource(GenericResource):
             # tube container. It is of type tube specifically because, as
             # mentioned above, extractions currently only occur into 8x12 tube
             # racks.
-            shared_container_info = dict(
-                barcode=get_normalized_str(data, "Nucleic Acid Container Barcode"),
-                # TODO: Currently can only extract into tubes
-                #  - otherwise this logic will fall apart
-                kind=CONTAINER_SPEC_TUBE.container_kind_id,
+            destination_container_info = dict(
+                barcode=get_normalized_str(data, "Destination Container Barcode"),
+                kind=get_normalized_str(data, "Destination Container Kind"),
                 location=parent,
-                coordinates=get_normalized_str(data, "Nucleic Acid Location Coord"),
+                coordinates=get_normalized_str(data, "Destination Location Coord"),
             )
 
             try:
-                obj.container = Container.objects.get(**shared_container_info)
+                obj.container = Container.objects.get(**destination_container_info)
             except Container.DoesNotExist:
                 obj.container = Container.objects.create(
-                    **shared_container_info,
+                    **destination_container_info,
                     # Below is creation-specific data
                     # Per Alex: Container name = container barcode if we
                     #           auto-generate the container
-                    name=shared_container_info["barcode"],
-                    comment=f"Automatically generated via extraction template import on "
+                    name=get_normalized_str(data, "Destination Container Name"),
+                    comment=f"Automatically generated via transfer template import on "
                             f"{datetime.utcnow().isoformat()}Z"
                 )
 
             return
-
-        if field.attribute == "concentration":
-            conc = blank_str_to_none(data.get("Conc. (ng/uL)"))  # "" -> None for CSVs
-            data["Conc. (ng/uL)"] = float_to_decimal(conc) if conc is not None else None
 
         if field.column_name == "Volume Used (uL)":
             # Normalize volume used
@@ -194,6 +175,7 @@ class TransferResource(GenericResource):
     def before_save_instance(self, instance, using_transactions, dry_run):
         instance.name = self.extracted_from.name
         instance.alias = self.extracted_from.alias
+        instance.sample_kind = self.extracted_from.sample_kind
         instance.collection_site = self.extracted_from.collection_site
         instance.experimental_group = self.extracted_from.experimental_group
         instance.individual = self.extracted_from.individual
@@ -213,7 +195,7 @@ class TransferResource(GenericResource):
         # that the volume was reduced by an extraction process, including an ID
         # to refer back to the extracted sample.
         self.extracted_from.volume_history.append(create_volume_history(
-            VolumeHistoryUpdateType.EXTRACTION,
+            VolumeHistoryUpdateType.TRANSFER,
             self.extracted_from.volume,
             instance.id
         ))
