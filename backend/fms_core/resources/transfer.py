@@ -6,10 +6,6 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows
-from ..containers import (
-    CONTAINER_SPEC_TUBE,
-    CONTAINER_SPEC_TUBE_RACK_8X12,
-)
 from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     VolumeHistoryUpdateType,
@@ -45,34 +41,30 @@ class TransferResource(GenericResource):
 
     class Meta:
         model = Sample
-        import_id_fields = ()
-        fields = (
-            'volume',
-            'source_depleted',
-        )
-        excluded = (
-            'container',
-            'coordinates',
-            'individual',
-            'child_of',
-            'concentration',
-            'volume_used',
-            'volume_history',
-            'comment',
-        )
-        export_order = (
-            'sample_kind',
-            'sample_container',
-            'sample_container_coordinates',
-            'container',
-            'location',
-            'location_coordinates',
-            'volume_history',
-            'concentration',
-            'source_depleted',
-            'creation_date',
-            'comment',
-        )
+        # import_id_fields = ()
+        # excluded = (
+        #     'container',
+        #     'coordinates',
+        #     'individual',
+        #     'child_of',
+        #     'concentration',
+        #     'volume_used',
+        #     'volume_history',
+        #     'comment',
+        # )
+        # export_order = (
+        #     'sample_kind',
+        #     'sample_container',
+        #     'sample_container_coordinates',
+        #     'container',
+        #     'location',
+        #     'location_coordinates',
+        #     'volume_history',
+        #     'concentration',
+        #     'source_depleted',
+        #     'creation_date',
+        #     'comment',
+        # )
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
@@ -110,32 +102,26 @@ class TransferResource(GenericResource):
             )]
             return
 
-        if field.attribute == 'destination_parent_container':
-            shared_parent_info = dict(
-                barcode=get_normalized_str(data, "Destination Parent Container Barcode"),
-                coordinates=get_normalized_str(data, "Destination Parent Container Coord")
-            )
+        if field.attribute == 'destination_container':
+            parent = None;
+            destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 
-            try:
-                parent = Container.objects.get(**shared_parent_info)
-            except Container.DoesNotExist:
-                parent = Container.objects.create(
-                    **shared_parent_info,
-                    # Below is creation-specific data
-                    # Leave coordinates blank if creating
-                    # Per Alex: Container name = container barcode if we
-                    #           auto-generate the container
-                    name=shared_parent_info["barcode"],
-                    comment=f"Automatically generated via transfer template import on "
-                            f"{datetime.utcnow().isoformat()}Z"
+            if destination_parent_container_barcode:
+                shared_parent_info = dict(
+                    barcode=destination_parent_container_barcode,
+                    coordinates=get_normalized_str(data, "Destination Parent Container Coord")
                 )
+                try:
+                    parent = Container.objects.get(**shared_parent_info)
+                except Container.DoesNotExist:
+                    parent = Container.objects.create(
+                        **shared_parent_info,
+                        name=shared_parent_info["barcode"],
+                        comment=f"Automatically generated via transfer template import on "
+                                f"{datetime.utcnow().isoformat()}Z"
+                    )
 
-            # Per Alex: We can make new tubes if needed for extractions
 
-            # Information that can be used to either retrieve or create a new
-            # tube container. It is of type tube specifically because, as
-            # mentioned above, extractions currently only occur into 8x12 tube
-            # racks.
             destination_container_info = dict(
                 barcode=get_normalized_str(data, "Destination Container Barcode"),
                 kind=get_normalized_str(data, "Destination Container Kind"),
@@ -148,9 +134,6 @@ class TransferResource(GenericResource):
             except Container.DoesNotExist:
                 obj.container = Container.objects.create(
                     **destination_container_info,
-                    # Below is creation-specific data
-                    # Per Alex: Container name = container barcode if we
-                    #           auto-generate the container
                     name=get_normalized_str(data, "Destination Container Name"),
                     comment=f"Automatically generated via transfer template import on "
                             f"{datetime.utcnow().isoformat()}Z"
@@ -159,14 +142,14 @@ class TransferResource(GenericResource):
             return
 
         if field.column_name == "Volume Used (uL)":
-            # Normalize volume used
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
-            data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
-            self.volume_used = data["Volume Used (uL)"]
-            self.extracted_from.volume -= self.volume_used
+            if vu:
+                self.volume_used = float_to_decimal(vu)
+                self.extracted_from.volume -= self.volume_used
+            else:
+                self.volume_used = None
         
         if field.column_name == "Comment":
-            # Normalize extraction comment
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
 

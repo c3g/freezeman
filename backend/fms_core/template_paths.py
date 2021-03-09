@@ -12,6 +12,7 @@ __all__ = [
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
+    "SAMPLE_TRANSFER_TEMPLATE",
 ]
 
 CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_v0.4.xlsx")
@@ -20,3 +21,4 @@ CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v0.1.x
 SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Extraction_v0.10.xlsx")
 SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_v0.13.xlsx")
 SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v0.5.xlsx")
+SAMPLE_TRANSFER_TEMPLATE = static("submission_templates/Sample_transfer_v0.1.xlsx")
