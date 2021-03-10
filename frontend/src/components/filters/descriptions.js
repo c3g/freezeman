@@ -155,6 +155,41 @@ export const INDIVIDUAL_FILTERS = {
   },
 }
 
+export const PROCESS_FILTERS = {
+  process: {
+    type: FILTER_TYPE.INPUT,
+    key: "process",
+    label: "Process ID",
+  },
+  process__protocol__name: {
+    type: FILTER_TYPE.SELECT,
+    key: "protocol__name",
+    label: "Protocol",
+    mode: "multiple",
+    placeholder: "All"
+  },
+  source_sample__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "source_sample__name",
+    label: "Source Sample",
+  },
+  child_sample__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "child_sample__name",
+    label: "Generated Sample",
+  },
+  execution_date: {
+    type: FILTER_TYPE.RANGE,
+    key: "execution_date",
+    label: "Date Processed",
+  },
+  volume_used: {
+    type: FILTER_TYPE.RANGE,
+    key: "volume_used",
+    label: "Volume Used",
+  },
+}
+
 export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,

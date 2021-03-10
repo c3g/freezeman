@@ -18,8 +18,9 @@ import SignInForm from "./SignInForm";
 import JumpBar from "./JumpBar";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
-import SamplesExtractionsPage from "./samples/SamplesExtractionsPage";
+import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
+import ProcessesPage from "./processes/ProcessesPage";
 import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
@@ -53,12 +54,17 @@ const MENU_ITEMS = [
   {
     url: "/samples",
     icon: <ExperimentOutlined />,
-    text: "Samples & Extractions",
+    text: "Samples",
   },
   {
     url: "/individuals",
     icon: <TeamOutlined />,
     text: "Individuals",
+  },
+  {
+    url: "/processes",
+    icon: <ExperimentOutlined />, // ??
+    text: "Protocols",
   },
   {
     url: "/users",
@@ -149,10 +155,13 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
               <ContainersPage/>
             </PrivateRoute>
             <PrivateRoute path="/samples">
-              <SamplesExtractionsPage/>
+              <SamplesPage/>
             </PrivateRoute>
             <PrivateRoute path="/individuals">
               <IndividualsPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/processes">
+              <ProcessesPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>
