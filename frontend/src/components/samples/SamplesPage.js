@@ -8,7 +8,7 @@ import SamplesListContent from "./SamplesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
-const SamplesExtractionsPage = () => <PageContainer>
+const SamplesPage = () => <PageContainer>
   <Switch>
     <Route path="/samples/list"><SamplesListContent /></Route>
     <Route path="/samples/actions/:action"><ActionContent templateType="sample" /></Route>
@@ -19,4 +19,4 @@ const SamplesExtractionsPage = () => <PageContainer>
   </Switch>
 </PageContainer>;
 
-export default SamplesExtractionsPage;
+export default SamplesPage;

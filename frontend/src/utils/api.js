@@ -42,11 +42,16 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
-  processSamples: {
-    get: processSampleId => get(`/processsamples/${processSampleId}/`),
-    list: (options, abort) => get("/processsamples/", options, { abort }),
-    search: q => get("/processsamples/search/", { q }),
-    summary: () => get("/processsamples/summary/"),
+  processes: {
+    get: processSampleId => get(`/processes/${processId}/`),
+    list: (options, abort) => get("/processes/", options, { abort }),
+    search: q => get("/processes/search/", { q }),
+    summary: () => get("/processes/summary/"),
+    template: {
+      actions: () => get(`/processes/template_actions/`),
+      check:  (action, template) => post(`/processes/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/processes/template_submit/`, form({ action, template })),
+    },
   },
 
   protocols: {
