@@ -3,6 +3,7 @@ import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.apps import apps
 from django.utils import timezone
 from typing import Optional, List
 
@@ -20,6 +21,7 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
+
 
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -279,23 +281,37 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
+            try:
+                ProcessSample = apps.get_model("fms_core", "ProcessSample")
+
+                sample_lineage = SampleLineage.objects.get(child_id=self.id)
+                protocol_name = ProcessSample.objects.get(id=sample_lineage.process_sample_id).protocol_name
+                if protocol_name == 'Extraction':
+                    if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
+                        add_error(
+                            "extracted_from",
+                            f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
+                        )
+
+                    if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                        add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
+                elif protocol_name == 'Transfer':
+                    if self.sample_kind != self.extracted_from.sample_kind:
+                        add_error("sample_kind", "Sample kind need to remain the same during transfer")
+            except SampleLineage.DoesNotExist:
                 add_error(
                     "extracted_from",
-                    f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
+                    (f"Sample Lineage not found for {self.name} "),
                 )
 
-            if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
 
-            else:
-                original_sample_kind = self.extracted_from.sample_kind.name
-                if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
-                    add_error(
-                        "tissue_source",
-                        (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
-                         f"{original_sample_kind}")
-                    )
+            original_sample_kind = self.extracted_from.sample_kind.name
+            if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
+                add_error(
+                    "tissue_source",
+                    (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
+                     f"{original_sample_kind}")
+                )
 
 
         # Check volume_history for negative values

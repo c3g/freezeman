@@ -22,11 +22,11 @@ class TransferResource(GenericResource):
     source_container_coordinates = Field(column_name='Source Location Coord')
 
 
-    destination_container = Field(attribute='location', column_name='Destination Container Barcode',
+    destination_container = Field(attribute='destination_container', column_name='Destination Container Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
-    destination_container_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Destination Location Coord')
-    destination_container_name = Field(attribute='name', column_name='Destination Container Name')
-    destination_container_kind = Field(attribute='kind', column_name='Destination Container Kind')
+    destination_container_coordinates = Field(attribute='destination_container_coordinates', column_name='Destination Location Coord')
+    destination_container_name = Field(attribute='destination_container_name', column_name='Destination Container Name')
+    destination_container_kind = Field(attribute='destination_container_kind', column_name='Destination Container Kind')
 
     destination_parent_container = Field(attribute='destination_parent_container', column_name='Destination Parent Container Barcode',
                       widget=ForeignKeyWidget(Container, field='barcode'))
@@ -41,31 +41,33 @@ class TransferResource(GenericResource):
 
     class Meta:
         model = Sample
-        # import_id_fields = ()
-        # excluded = (
-        #     'container',
-        #     'coordinates',
-        #     'individual',
-        #     'child_of',
-        #     'concentration',
-        #     'volume_used',
-        #     'volume_history',
-        #     'comment',
-        # )
-        # export_order = (
-        #     'sample_kind',
-        #     'sample_container',
-        #     'sample_container_coordinates',
-        #     'container',
-        #     'location',
-        #     'location_coordinates',
-        #     'volume_history',
-        #     'concentration',
-        #     'source_depleted',
-        #     'creation_date',
-        #     'comment',
-        # )
-
+        import_id_fields = ()
+        fields = (
+            'source_depleted',
+        )
+        excluded = (
+            'container',
+            'sample_kind',
+            'individual',
+            'child_of',
+            'volume_history',
+            'comment',
+        )
+        export_order = (
+            'source_container',
+            'source_container_coordinates',
+            'destination_container',
+            'destination_container_coordinates',
+            'destination_container_name',
+            'destination_container_kind',
+            'destination_parent_container',
+            'destination_parent_container_coordinates',
+            'source_depleted',
+            'volume_used',
+            'volume',
+            'transfer_date',
+            'comment',
+        )
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
@@ -88,7 +90,7 @@ class TransferResource(GenericResource):
         super().import_obj(obj, data, dry_run)
 
     def import_field(self, field, obj, data, is_m2m=False):
-        if field.attribute in ('source_depleted', 'context_sensitive_coordinates', 'child_of'):
+        if field.attribute in ('source_depleted', 'child_of'):
             # Computed field, skip importing it.
             return
 
@@ -109,35 +111,26 @@ class TransferResource(GenericResource):
             if destination_parent_container_barcode:
                 shared_parent_info = dict(
                     barcode=destination_parent_container_barcode,
-                    coordinates=get_normalized_str(data, "Destination Parent Container Coord")
                 )
                 try:
                     parent = Container.objects.get(**shared_parent_info)
                 except Container.DoesNotExist:
-                    parent = Container.objects.create(
-                        **shared_parent_info,
-                        name=shared_parent_info["barcode"],
-                        comment=f"Automatically generated via transfer template import on "
-                                f"{datetime.utcnow().isoformat()}Z"
-                    )
-
-
-            destination_container_info = dict(
-                barcode=get_normalized_str(data, "Destination Container Barcode"),
-                kind=get_normalized_str(data, "Destination Container Kind"),
-                location=parent,
-                coordinates=get_normalized_str(data, "Destination Location Coord"),
-            )
+                    raise Exception("Destination parent container does not exist")
 
             try:
-                obj.container = Container.objects.get(**destination_container_info)
+                obj.container = Container.objects.get(barcode=get_normalized_str(data, "Destination Container Barcode"))
             except Container.DoesNotExist:
                 obj.container = Container.objects.create(
-                    **destination_container_info,
+                    barcode=get_normalized_str(data, "Destination Container Barcode"),
+                    location=parent,
                     name=get_normalized_str(data, "Destination Container Name"),
+                    kind=get_normalized_str(data, "Destination Container Kind"),
+                    coordinates=get_normalized_str(data, "Destination Parent Container Coord"),
                     comment=f"Automatically generated via transfer template import on "
                             f"{datetime.utcnow().isoformat()}Z"
                 )
+
+            obj.coordinates = get_normalized_str(data, "Destination Location Coord")
 
             return
 
@@ -145,13 +138,13 @@ class TransferResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             if vu:
                 self.volume_used = float_to_decimal(vu)
-                self.extracted_from.volume -= self.volume_used
             else:
                 self.volume_used = None
         
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
+
 
         super().import_field(field, obj, data, is_m2m)
 
@@ -162,8 +155,6 @@ class TransferResource(GenericResource):
         instance.collection_site = self.extracted_from.collection_site
         instance.experimental_group = self.extracted_from.experimental_group
         instance.individual = self.extracted_from.individual
-        instance.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(
-            self.extracted_from.sample_kind.name, "")
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.extracted_from,
@@ -174,13 +165,10 @@ class TransferResource(GenericResource):
         super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
-        # Update volume and depletion status of original sample, thus recording
-        # that the volume was reduced by an extraction process, including an ID
-        # to refer back to the extracted sample.
+        self.extracted_from.volume = float_to_decimal(self.extracted_from.volume - instance.volume)
         self.extracted_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.TRANSFER,
-            self.extracted_from.volume,
-            instance.id
+            self.extracted_from.volume
         ))
 
         self.extracted_from.save()

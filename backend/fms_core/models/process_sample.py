@@ -2,6 +2,7 @@ import reversion
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.apps import apps
 from django.utils import timezone
 from decimal import Decimal
 
@@ -21,6 +22,12 @@ class ProcessSample(models.Model):
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the source sample used, in µL.")
     comment = models.TextField(blank=True, help_text="Relevant information about the process info.")
+
+    @property
+    def protocol_name(self) -> str:
+        Protocol = apps.get_model("fms_core", "Protocol")
+        process = Process.objects.get(id=self.process_id)
+        return Protocol.objects.get(id=process.protocol_id).name
 
 
     def clean(self):
