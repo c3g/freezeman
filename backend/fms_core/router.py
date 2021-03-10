@@ -21,7 +21,7 @@ router.register(r"container-kinds", ContainerKindViewSet, basename="container-ki
 router.register(r"containers", ContainerViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
-router.register(r"processsamples", ProcessSampleViewSet)
+router.register(r"processes", ProcessSampleViewSet)
 router.register(r"samples", SampleViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"query", QueryViewSet, basename="query")

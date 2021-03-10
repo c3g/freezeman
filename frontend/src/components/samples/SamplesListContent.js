@@ -159,7 +159,7 @@ const SamplesListContent = ({
   const nFilters = getNFilters(filters)
 
   return <>
-    <AppPageHeader title="Samples & Extractions" extra={[
+    <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
       ...actionsToButtonList("/samples", actions),
       <ExportButton key='export' exportFunction={listExport} filename="samples"/>,

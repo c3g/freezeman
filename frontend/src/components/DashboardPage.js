@@ -5,6 +5,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
+import PROCESSES from "../modules/processes/actions";
 
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
@@ -34,12 +35,14 @@ const WIDE_BUTTON_COL_PROPS = {
 const DashboardPage = ({
   containersSummary,
   samplesSummary,
+  processesSummary,
   templates,
   listActions,
 }) => {
   useEffect(() => {
     listActions.container();
     listActions.sample();
+    listActions.process();
   }, []);
 
   return <PageContainer>
@@ -85,6 +88,21 @@ const DashboardPage = ({
           </Card>
         </Col>
         <Col {...COL_LAYOUT}>
+          <Card title="Protocols" {...CARD_PROPS}>
+            <Row gutter={16}>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Total Protocols" value={processes.total_count || "—"} />
+              </Col>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Protocol breakdown" value={processesSummary.protocol_counts || "—"} />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              {actionsToButtonList("/processes", templates.process, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
           <Card title="Other" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...WIDE_BUTTON_COL_PROPS}>

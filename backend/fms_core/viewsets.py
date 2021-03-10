@@ -447,7 +447,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated]
 
-class ProcessSampleViewSet(viewsets.ModelViewSet):
+class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ProcessSample.objects.all().select_related("process")
     queryset = queryset.annotate(child_sample=F("lineage__child"))
     queryset = queryset.annotate(child_sample_name=F("lineage__child__name"))
@@ -463,10 +463,14 @@ class ProcessSampleViewSet(viewsets.ModelViewSet):
         **_process_sample_filterset_fields,
     }
 
-    def list(self, _request):
-      print(self.queryset.query)
-      return super().list(_request)
-
+    template_action_list = [
+        {
+            "name": "Process Extractions",
+            "description": "Upload the provided template with up to 96 extractions.",
+            "template": SAMPLE_EXTRACTION_TEMPLATE,
+            "resource": ExtractionResource,
+        },
+    ]
 
     @action(detail=False, methods=["get"])
     def search(self, _request):
