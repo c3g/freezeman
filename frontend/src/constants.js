@@ -10,11 +10,13 @@ export const FILTER_TYPE = {
 
 export const TISSUE_SOURCE = [
   "BAL",
+  "Biopsy",
   "Blood",
   "Cells",
   "Expectoration",
   "Gargle",
   "Plasma",
+  "Respiratory secretion",
   "Saliva",
   "Swab",
   "Tumor",
