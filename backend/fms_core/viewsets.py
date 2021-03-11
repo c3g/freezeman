@@ -21,6 +21,7 @@ from .resources import (
     ContainerMoveResource,
     ContainerRenameResource,
     ExtractionResource,
+    TransferResource,
     SampleResource,
     SampleUpdateResource,
 )
@@ -41,6 +42,7 @@ from .template_paths import (
     CONTAINER_MOVE_TEMPLATE,
     CONTAINER_RENAME_TEMPLATE,
     SAMPLE_EXTRACTION_TEMPLATE,
+    SAMPLE_TRANSFER_TEMPLATE,
     SAMPLE_SUBMISSION_TEMPLATE,
     SAMPLE_UPDATE_TEMPLATE,
 )
@@ -445,6 +447,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "description": "Upload the provided template with up to 96 extractions.",
             "template": SAMPLE_EXTRACTION_TEMPLATE,
             "resource": ExtractionResource,
+        },
+        {
+            "name": "Transfer Samples",
+            "description": "Upload the provided template with up to 96 extractions.",
+            "template": SAMPLE_TRANSFER_TEMPLATE,
+            "resource": TransferResource,
         },
         {
             "name": "Update Samples",

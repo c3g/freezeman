@@ -9,6 +9,7 @@ export const actionIcon = a => {
   if (n.includes("Add")) return <PlusOutlined />;
   if (n.includes("Rename")) return <EditOutlined />;
   if (n.includes("Move")) return <ExportOutlined />;
+  if (n.includes("Transfer")) return <ExportOutlined />;
   if (n.includes("Update")) return <EditOutlined />;
   if (n.includes("Process")) return <ExperimentOutlined />;
   return undefined;
