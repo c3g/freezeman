@@ -71,6 +71,16 @@ class ProcessSampleSerializer(serializers.ModelSerializer):
       fields = "__all__"
       extra_fields = ('protocol', 'child_sample')
 
+class ProcessSampleExportSerializer(serializers.ModelSerializer):
+    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    child_sample_name = serializers.CharField(read_only=True)
+    source_sample_name = serializers.CharField(read_only=True)
+
+    class Meta:
+      model = ProcessSample
+      fields = ('id', 'volume_used', 'execution_date', 'comment')
+      extra_fields = ('protocol_name', 'source_sample_name', 'child_sample_name')
+
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
 

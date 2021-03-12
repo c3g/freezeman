@@ -475,6 +475,11 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        serializer = ProcessSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
     def search(self, _request):
         """
         Searches for process sample that match the given query
