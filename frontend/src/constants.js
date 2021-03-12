@@ -16,7 +16,6 @@ export const TISSUE_SOURCE = [
   "Expectoration",
   "Gargle",
   "Plasma",
-  "Respiratory secretion",
   "Saliva",
   "Swab",
   "Tumor",
