@@ -149,6 +149,7 @@ class TransferResource(GenericResource):
         instance.collection_site = self.extracted_from.collection_site
         instance.experimental_group = self.extracted_from.experimental_group
         instance.individual = self.extracted_from.individual
+        instance.concentration = self.extracted_from.concentration
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.extracted_from,
