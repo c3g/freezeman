@@ -34,7 +34,6 @@ class TransferResource(GenericResource):
 
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
-    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     transfer_date = Field(attribute='transfer_date', column_name='Transfer Date', widget=DateWidget())
     comment = Field(attribute='comment', column_name='Comment')
 
@@ -64,7 +63,6 @@ class TransferResource(GenericResource):
             'destination_parent_container_coordinates',
             'source_depleted',
             'volume_used',
-            'volume',
             'transfer_date',
             'comment',
         )
@@ -92,16 +90,6 @@ class TransferResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute in ('source_depleted', 'child_of'):
             # Computed field, skip importing it.
-            return
-
-        if field.attribute == 'volume':
-            vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
-            obj.volume = vol
-
-            obj.volume_history = [create_volume_history(
-                VolumeHistoryUpdateType.TRANSFER,
-                str(float_to_decimal(vol)) if vol is not None else ""
-            )]
             return
 
         if field.attribute == 'destination_container':
@@ -140,6 +128,12 @@ class TransferResource(GenericResource):
                 self.volume_used = float_to_decimal(vu)
             else:
                 self.volume_used = None
+
+            obj.volume = vu
+            obj.volume_history = [create_volume_history(
+                VolumeHistoryUpdateType.TRANSFER,
+                str(float_to_decimal(vu)) if vu is not None else ""
+            )]
         
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
