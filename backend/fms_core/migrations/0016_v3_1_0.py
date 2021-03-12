@@ -7,7 +7,7 @@ import json
 
 from ..utils import float_to_decimal
 
-SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'RESPIRATORY SECRETION', 'SALIVA', 'SWAB']
+SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
 def create_sample_kinds(apps, schema_editor):
     SampleKind = apps.get_model("fms_core", "SampleKind")

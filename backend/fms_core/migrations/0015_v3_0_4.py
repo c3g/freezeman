@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sample',
             name='biospecimen_type',
-            field=models.CharField(choices=[('DNA', 'DNA'), ('RNA', 'RNA'), ('BAL', 'BAL'), ('BIOPSY', 'BIOPSY'), ('BLOOD', 'BLOOD'), ('CELLS', 'CELLS'), ('EXPECTORATION', 'EXPECTORATION'), ('GARGLE', 'GARGLE'), ('PLASMA', 'PLASMA'), ('RESPIRATORY SECRETION', 'RESPIRATORY SECRETION'), ('SALIVA', 'SALIVA'), ('SWAB', 'SWAB')], help_text='Biological material collected from study subject during the conduct of a genomic study project.', max_length=200),
+            field=models.CharField(choices=[('DNA', 'DNA'), ('RNA', 'RNA'), ('BAL', 'BAL'), ('BIOPSY', 'BIOPSY'), ('BLOOD', 'BLOOD'), ('CELLS', 'CELLS'), ('EXPECTORATION', 'EXPECTORATION'), ('GARGLE', 'GARGLE'), ('PLASMA', 'PLASMA'), ('SALIVA', 'SALIVA'), ('SWAB', 'SWAB')], help_text='Biological material collected from study subject during the conduct of a genomic study project.', max_length=200),
         ),
         migrations.AlterField(
             model_name='sample',
             name='tissue_source',
-            field=models.CharField(blank=True, choices=[('BAL', 'BAL'), ('Biopsy', 'Biopsy'), ('Blood', 'Blood'), ('Cells', 'Cells'), ('Expectoration', 'Expectoration'), ('Gargle', 'Gargle'), ('Plasma', 'Plasma'), ('Respiratory secretion', 'Respiratory secretion'), ('Saliva', 'Saliva'), ('Swab', 'Swab'), ('Tumor', 'Tumor'), ('Buffy coat', 'Buffy coat'), ('Tail', 'Tail')], help_text='Can only be specified if the biospecimen type is DNA or RNA.', max_length=200),
+            field=models.CharField(blank=True, choices=[('BAL', 'BAL'), ('Biopsy', 'Biopsy'), ('Blood', 'Blood'), ('Cells', 'Cells'), ('Expectoration', 'Expectoration'), ('Gargle', 'Gargle'), ('Plasma', 'Plasma'), ('Saliva', 'Saliva'), ('Swab', 'Swab'), ('Tumor', 'Tumor'), ('Buffy coat', 'Buffy coat'), ('Tail', 'Tail')], help_text='Can only be specified if the biospecimen type is DNA or RNA.', max_length=200),
         ),
     ]
