@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/c3g/fms_web.git"
+    "url": "git+https://github.com/c3g/freezeman.git"
   },
   "author": "David Lougheed <david.lougheed@mail.mcgill.ca>",
   "license": "LGPL-3.0-only",
   "bugs": {
-    "url": "https://github.com/c3g/fms_web/issues"
+    "url": "https://github.com/c3g/freezeman/issues"
   },
-  "homepage": "https://github.com/c3g/fms_web#readme",
+  "homepage": "https://github.com/c3g/freezeman/frontend#readme",
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@reduxjs/toolkit": "^1.5.0",
@@ -36,6 +36,7 @@
     "prop-types": "^15.7.2",
     "querystring": "^0.2.0",
     "rambda": "^5.9.0",
+    "rc-util": "^5.8.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.21",
