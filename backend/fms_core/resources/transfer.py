@@ -70,7 +70,7 @@ class TransferResource(GenericResource):
         skip_rows(dataset, 7)  # Skip preamble
 
     def import_obj(self, obj, data, dry_run):
-        self.extracted_from = Sample.objects.get(
+        self.transferred_from = Sample.objects.get(
             container__barcode=get_normalized_str(data, "Source Container Barcode"),
             coordinates=get_normalized_str(data, "Source Location Coord"),
         )
@@ -78,7 +78,7 @@ class TransferResource(GenericResource):
         # update the original sample if needed. This is the act of the
         # extracted sample depleting the original in the process of its
         # creation.
-        self.extracted_from.depleted = (self.extracted_from.depleted or
+        self.transferred_from.depleted = (self.transferred_from.depleted or
                                         check_truth_like(get_normalized_str(data, "Source Depleted")))
 
         # Create a process for the current extraction
@@ -124,15 +124,13 @@ class TransferResource(GenericResource):
 
         if field.column_name == "Volume Used (uL)":
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
-            if vu:
-                self.volume_used = float_to_decimal(vu)
-            else:
-                self.volume_used = None
+            vu = float_to_decimal(vu)
+            self.volume_used = vu
 
             obj.volume = vu
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.TRANSFER,
-                str(float_to_decimal(vu)) if vu is not None else ""
+                str(float_to_decimal(vu))
             )]
         
         if field.column_name == "Comment":
@@ -143,16 +141,16 @@ class TransferResource(GenericResource):
         super().import_field(field, obj, data, is_m2m)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
-        instance.name = self.extracted_from.name
-        instance.alias = self.extracted_from.alias
-        instance.sample_kind = self.extracted_from.sample_kind
-        instance.collection_site = self.extracted_from.collection_site
-        instance.experimental_group = self.extracted_from.experimental_group
-        instance.individual = self.extracted_from.individual
-        instance.concentration = self.extracted_from.concentration
+        instance.name = self.transferred_from.name
+        instance.alias = self.transferred_from.alias
+        instance.sample_kind = self.transferred_from.sample_kind
+        instance.collection_site = self.transferred_from.collection_site
+        instance.experimental_group = self.transferred_from.experimental_group
+        instance.individual = self.transferred_from.individual
+        instance.concentration = self.transferred_from.concentration
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                           source_sample=self.extracted_from,
+                                                           source_sample=self.transferred_from,
                                                            execution_date=timezone.now(),
                                                            volume_used=self.volume_used,
                                                            comment=self.comment)
@@ -160,19 +158,19 @@ class TransferResource(GenericResource):
         super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
-        self.extracted_from.volume = float_to_decimal(self.extracted_from.volume - instance.volume)
-        self.extracted_from.volume_history.append(create_volume_history(
+        self.transferred_from.volume = float_to_decimal(self.transferred_from.volume - instance.volume)
+        self.transferred_from.volume_history.append(create_volume_history(
             VolumeHistoryUpdateType.TRANSFER,
-            self.extracted_from.volume
+            self.transferred_from.volume
         ))
 
-        self.extracted_from.save()
+        self.transferred_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)
-        reversion.set_comment("Imported extracted samples from template.")
+        reversion.set_comment("Imported transferred samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_sample=self.process_sample)
+        lineage = SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_sample=self.process_sample)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):

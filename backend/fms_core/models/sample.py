@@ -281,28 +281,22 @@ class Sample(models.Model):
             )
 
         if self.extracted_from:
-            try:
-                ProcessSample = apps.get_model("fms_core", "ProcessSample")
+            ProcessSample = apps.get_model("fms_core", "ProcessSample")
+            sample_lineage = SampleLineage.objects.get(child_id=self.id)
+            protocol_name = ProcessSample.objects.get(id=sample_lineage.process_sample_id).protocol_name
+            if protocol_name == 'Extraction':
+                if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
+                    add_error(
+                        "extracted_from",
+                        f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
+                    )
 
-                sample_lineage = SampleLineage.objects.get(child_id=self.id)
-                protocol_name = ProcessSample.objects.get(id=sample_lineage.process_sample_id).protocol_name
-                if protocol_name == 'Extraction':
-                    if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
-                        add_error(
-                            "extracted_from",
-                            f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
-                        )
+                if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                    add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
+            elif protocol_name == 'Transfer':
+                if self.sample_kind != self.extracted_from.sample_kind:
+                    add_error("sample_kind", "Sample kind need to remain the same during transfer")
 
-                    if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-                        add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
-                elif protocol_name == 'Transfer':
-                    if self.sample_kind != self.extracted_from.sample_kind:
-                        add_error("sample_kind", "Sample kind need to remain the same during transfer")
-            except SampleLineage.DoesNotExist:
-                add_error(
-                    "extracted_from",
-                    (f"Sample Lineage not found for {self.name} "),
-                )
 
 
             original_sample_kind = self.extracted_from.sample_kind.name
