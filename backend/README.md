@@ -23,13 +23,14 @@ Python package dependencies are listed in `requirements.txt`.
   
 ## Running locally for development
 
-  1. Set up a virtual environment with Python 3.6 or later, and install 
+  1. Set up a virtual environment with Python 3.8 or later, and install 
      dependencies into it:
      
      ```bash
-     virtualenv -p python3 ./env
+     cd .. # move into base repository directory
+     virtualenv -p python3.8 ./env
      source env/bin/activate
-     pip install -r requirements.txt
+     pip3.8 install -r ./backend/requirements.txt
      ```
      
   2. Create a database for the application to use locally in Postgres. The
@@ -47,7 +48,7 @@ Python package dependencies are listed in `requirements.txt`.
   3. Install the [pg_fzy](#pg_fzy) extension for the database:
   
      ```bash
-     cd dependencies/pg_fzy && make && sudo make install
+     cd backend/dependencies/pg_fzy && make && sudo make install
      ```
     
   4. Run any outstanding migrations:
@@ -130,7 +131,7 @@ coverage run ./manage.py test
 
 ## Database diagram
 
-![Database Schema Diagram](docs/fms_database_diagram.png)
+[Database Schema Diagram](https://dbdiagram.io/d/604aa285fcdcb6230b23c0e7)
 
 
 ## pg_fzy
