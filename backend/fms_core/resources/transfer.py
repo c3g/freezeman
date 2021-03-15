@@ -125,12 +125,10 @@ class TransferResource(GenericResource):
         if field.column_name == "Volume Used (uL)":
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             vu = float_to_decimal(vu)
-            self.volume_used = vu
-
             obj.volume = vu
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.TRANSFER,
-                str(float_to_decimal(vu))
+                str(vu)
             )]
         
         if field.column_name == "Comment":
@@ -152,7 +150,7 @@ class TransferResource(GenericResource):
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.transferred_from,
                                                            execution_date=timezone.now(),
-                                                           volume_used=self.volume_used,
+                                                           volume_used=instance.volume,
                                                            comment=self.comment)
 
         super().before_save_instance(instance, using_transactions, dry_run)
