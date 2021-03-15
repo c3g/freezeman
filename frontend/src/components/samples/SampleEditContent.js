@@ -328,8 +328,6 @@ function serialize(values) {
 
   if (newValues.concentration === '')
     newValues.concentration = null
-  if (newValues.volume_used === '')
-    newValues.volume_used = null
 
   if (newValues.container)
     newValues.container = Number(newValues.container)
