@@ -33,7 +33,7 @@ psql $database_test -c 'CREATE EXTENSION fzy;'
 # 2. Setup django server #
 ##########################
 
-# Set the DB name for django, after creating it in case PG_DATABASE needs to be
+# Set the DB name for django
 export PG_DATABASE=$database_test
 
 # Apply migrations, create superuser & run the server
