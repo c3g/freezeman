@@ -16,6 +16,9 @@ export PG_DATABASE=${PG_DATABASE:-postgres}
 # Our test database name
 export database_test=fms_test
 
+# The command to run django with
+export django_command=${1:-runserver}
+
 
 #####################
 # 1. Setup database #
@@ -47,4 +50,4 @@ export DJANGO_SUPERUSER_EMAIL=user@example.com
 python manage.py createsuperuser --noinput
 
 echo "Running server with database $PG_DATABASE"
-python manage.py runserver
+python manage.py $django_command
