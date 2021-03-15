@@ -164,11 +164,6 @@ class Sample(models.Model):
                                    help_text="Coordinates of the sample in a parent container. Only applicable for "
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
-    # fields only for extracted samples
-    volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
-                                      help_text="Volume of the original sample used for the extraction, in µL. Must "
-                                                "be specified only for extracted nucleic acid samples.")
-
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
 
@@ -306,7 +301,7 @@ class Sample(models.Model):
         # Check volume_history for negative values
 
         if self.volume < Decimal("0"):
-            add_error("volume_history", "Current volume must be positive.")
+            add_error("volume", "Current volume must be positive.")
 
         # Check concentration fields given sample_kind
         if self.sample_kind.name in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:

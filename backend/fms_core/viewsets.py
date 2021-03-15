@@ -263,8 +263,6 @@ _sample_filterset_fields: FiltersetFields = {
     "comment": FREE_TEXT_FILTERS,
     "update_comment": FREE_TEXT_FILTERS,
 
-    "volume_used": SCALAR_FILTERS,
-
     "individual": FK_FILTERS,  # PK
     "container": FK_FILTERS,  # PK
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),

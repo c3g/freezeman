@@ -197,7 +197,7 @@ class ExtractedSampleTest(TestCase):
         volume_used = Decimal('0.01')
         parent_sample = self.parent_sample
         s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                            volume_used=volume_used,
+                                                            volume=volume_used,
                                                             **self.constants))
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_extracted_sample")
 
@@ -222,7 +222,7 @@ class ExtractedSampleTest(TestCase):
                 parent_sample = self.parent_sample
                 s = Sample.objects.create(**create_extracted_sample(
                     self.sample_kind_DNA,
-                    volume_used=volume_used,
+                    volume=volume_used,
                     **{**self.constants, "tissue_source": ""}
                 ))
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_no_tissue_source_extracted_sample")
@@ -242,7 +242,7 @@ class ExtractedSampleTest(TestCase):
                 volume_used = Decimal('0.01')
                 parent_sample=self.invalid_parent_sample
                 s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                    volume_used=volume_used,
+                                                                    volume=volume_used,
                                                                     container=self.tube_container,
                                                                     individual=self.valid_individual,
                                                                     name="test_extracted_sample_11"))
@@ -261,7 +261,7 @@ class ExtractedSampleTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 s = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                    volume_used=Decimal('0.01'),
+                                                                    volume=Decimal('0.01'),
                                                                     concentration=Decimal('1.0'),
                                                                     container=None,
                                                                     individual=self.valid_individual,
@@ -275,7 +275,8 @@ class ExtractedSampleTest(TestCase):
         # extracted sample can be only of type DNA or RNA
         volume_used = Decimal('0.01')
         parent_sample = self.parent_sample
-        invalid_sample_kind = Sample(**create_extracted_sample(sample_kind=self.sample_kind_BLOOD, volume_used=volume_used,
+        invalid_sample_kind = Sample(**create_extracted_sample(sample_kind=self.sample_kind_BLOOD,
+                                                               volume=volume_used,
                                                                **{**self.constants, "tissue_source": ""}))
         invalid_sample_kind.save()
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
@@ -294,7 +295,8 @@ class ExtractedSampleTest(TestCase):
     def test_volume_used(self):
         # volume_used cannot be None for an extracted_sample
         volume_used = None
-        invalid_volume_used = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=volume_used,
+        invalid_volume_used = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                               volume=volume_used,
                                                                **self.constants))
         invalid_volume_used.save()
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_volume_used")
@@ -307,7 +309,7 @@ class ExtractedSampleTest(TestCase):
                                                   comment="ProcessSample test_volume_used")
                 SampleLineage.objects.create(parent=self.parent_sample, child=invalid_volume_used, process_sample=ps)
             except ValidationError as e:
-                self.assertIn('volume_used', e.message_dict)
+                self.assertIn('volume', e.message_dict)
                 raise e
 
         # WARNING !!! Removed testing for volume_used not null for non-extracted sample
@@ -325,7 +327,8 @@ class ExtractedSampleTest(TestCase):
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
-        invalid_concentration = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA, volume_used=Decimal('0.01'),
+        invalid_concentration = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
+                                                                 volume=Decimal('0.01'),
                                                                  **self.constants))
         invalid_concentration.concentration = None
         self.assertRaises(ValidationError, invalid_concentration.full_clean)
@@ -348,7 +351,7 @@ class ExtractedSampleTest(TestCase):
                 volume_used = Decimal('-0.01')
                 parent_sample = self.parent_sample
                 negative_volume_used = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                                       volume_used=volume_used,
+                                                                                       volume=volume_used,
                                                                                        **self.constants))
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_negative_volume")
                 ps = ProcessSample.objects.create(process=p,
@@ -358,7 +361,7 @@ class ExtractedSampleTest(TestCase):
                                                   comment="ProcessSample test_negative_volume")                                                                       
                 SampleLineage.objects.create(parent=parent_sample, child=negative_volume_used, process_sample=ps)
             except ValidationError as e:
-                self.assertTrue('volume_used' in e.message_dict)
+                self.assertTrue('volume' in e.message_dict)
                 raise e
 
 
@@ -395,7 +398,7 @@ class SampleLineageTest(TestCase):
                                                                    name="test_sample_11"))
         # create child samples
         self.child_sample = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                            volume_used=Decimal('0.02'),
+                                                                            volume=Decimal('0.02'),
                                                                             **self.constants))
         self.valid_process = Process.objects.create(protocol=self.extraction_protocol, comment="Process SampleLineage")
 
