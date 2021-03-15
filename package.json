@@ -17,6 +17,8 @@
     "test:frontend:open": "nf start backend_runserver,frontend,cypress_open",
     "test:frontend:run":  "nf start backend_runserver,frontend,cypress_run",
 
+    "restore_backup": "cd backend && . env/bin/activate && ./restore_backup.sh $FILE",
+
     "//end": "true"
   },
   "repository": {
