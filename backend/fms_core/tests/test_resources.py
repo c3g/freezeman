@@ -7,7 +7,7 @@ from pathlib import Path
 from reversion.models import Version
 from tablib import Dataset
 
-from ..models import Container, Sample, ExtractedSample, TransferredSample, Individual
+from ..models import Container, Sample, ExtractedSample, Individual
 from ..resources import (
     ContainerResource,
     ExtractionResource,
@@ -94,6 +94,7 @@ class ResourcesTestCase(TestCase):
 
     def load_samples_transfers(self):
         self.load_samples()
+        self.load_containers()
         self.load_transfers()
 
     def test_skip_rows(self):
@@ -207,9 +208,8 @@ class ResourcesTestCase(TestCase):
         ])
         self.assertTrue(s.extracted_from.depleted)
 
-    def test_first_sample_transfer_import(self):
+    def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
-        # Test first sample transfer
         s = Sample.objects.get(container__barcode="newtubefortransfer")
         self.assertEqual(s.volume, Decimal("10.000"))
         self.assertListEqual(s.extracted_from.volume_history, [
@@ -225,6 +225,23 @@ class ResourcesTestCase(TestCase):
             },
         ])
         self.assertFalse(s.extracted_from.depleted)
+
+    def test_sample_transfer_to_existing_container(self):
+        self.load_samples_transfers()
+        s = Sample.objects.get(container__barcode="plate001", coordinates="B01")
+        self.assertEqual(s.volume, Decimal("2.000"))
+        self.assertListEqual(s.extracted_from.volume_history, [
+            {
+                "update_type": "update",
+                "volume_value": "15.000",
+                "date": s.extracted_from.volume_history[0]["date"],
+            },
+            {
+                "update_type": "transfer",
+                "volume_value": "13.000",
+                "date": s.extracted_from.volume_history[1]["date"],
+            },
+        ])
 
     def test_sample_update(self):
         self.load_samples()

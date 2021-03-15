@@ -7,4 +7,4 @@ Sample Transfer Template,,,,,,,,,,,,
 ,,,,,,,,,,,,
 #,Source Container Barcode,Source Location Coord,Destination Container Barcode,Destination Location Coord,Destination Container Name,Destination Container Kind,Destination Parent Container Barcode,Destination Parent Container Coord,Source Depleted,Volume Used (uL),Transfer Date,Comment
 1,tube001,,newtubefortransfer,,newtubefortransfer,Tube,,,,10,2021-01-01,Test Comment
-2,,,,,,,,,,,,
+2,tube002,,plate001,B01,,,,,,2,2021-01-02,Comment
