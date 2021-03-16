@@ -46,7 +46,7 @@ def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
     }
 
 
-def create_extracted_sample(sample_kind, individual, container, volume, coordinates='', **kwargs):
+def create_extracted_sample(sample_kind, individual, container, coordinates='', **kwargs):
     return {
         'sample_kind': sample_kind,
         'name': 'test_extracted_sample_01',
@@ -59,7 +59,7 @@ def create_extracted_sample(sample_kind, individual, container, volume, coordina
                 "volume_value": "0"
             }
         ],
-        'volume': volume,
+        'volume': 0,
         'concentration': Decimal('0.01'),
         'experimental_group': ['EG01'],
         'collection_site': 'Site1',
