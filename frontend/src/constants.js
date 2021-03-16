@@ -4,6 +4,7 @@
 
 export const FILTER_TYPE = {
   RANGE: "RANGE",
+  DATE_RANGE: "DATE_RANGE",
   SELECT: "SELECT",
   INPUT: "INPUT",
 }

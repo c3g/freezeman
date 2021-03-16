@@ -20,6 +20,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listTable,
         Samples.listKinds,
         Samples.summary,
+        Processes.listTable,
         Processes.listProtocols,
         Processes.summary,
         Users.listTable,
@@ -42,5 +43,6 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
+        Processes.summary,
     ].map(a => dispatch(a())))
 };

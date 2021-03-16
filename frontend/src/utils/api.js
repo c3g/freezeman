@@ -45,6 +45,7 @@ const api = {
   processes: {
     get: processSampleId => get(`/processes/${processId}/`),
     list: (options, abort) => get("/processes/", options, { abort }),
+    listExport: options => get("/processes/list_export/", {format: "csv", ...options}),
     search: q => get("/processes/search/", { q }),
     summary: () => get("/processes/summary/"),
     template: {

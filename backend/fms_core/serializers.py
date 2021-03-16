@@ -12,6 +12,7 @@ __all__ = [
     "IndividualSerializer",
     "SampleKindSerializer",
     "ProcessSampleSerializer",
+    "ProcessSampleExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
@@ -78,7 +79,7 @@ class ProcessSampleExportSerializer(serializers.ModelSerializer):
 
     class Meta:
       model = ProcessSample
-      fields = ('id', 'volume_used', 'execution_date', 'comment')
+      fields = ('id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
       extra_fields = ('protocol_name', 'source_sample_name', 'child_sample_name')
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -94,8 +95,6 @@ class SampleSerializer(serializers.ModelSerializer):
             return None
         else:
             return obj.extracted_from.id
-
-
 
 class SampleExportSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")

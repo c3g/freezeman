@@ -1,14 +1,12 @@
 import {merge, set} from "object-path-immutable";
 import {map} from "rambda"
 
-import preprocessVersions from "../../utils/preprocessVersions";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {resetTable} from "../../utils/reducers";
 
-import CONTAINERS from "../containers/actions";
 import PROCESSES from "./actions";
 
 export const protocols = (
