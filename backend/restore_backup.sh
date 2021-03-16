@@ -2,6 +2,11 @@
 set -euf
 set -o pipefail
 
+if [[ $# -ne 1 ]]; then
+    echo "usage: restore_backup.sh [file]"
+    exit 1
+fi
+
 ################
 # 0. Variables #
 ################
@@ -15,11 +20,11 @@ export __dirname="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 export PG_DATABASE=${PG_DATABASE:-postgres}
 
-# Our test database name
-export database_test=fms_test
+# Our database name
+export fms_database=fms
 
-# The command to run django with
-export django_command=${1:-runserver}
+# pgsql backup file to restore
+export backup_file=$1
 
 
 #####################
@@ -27,11 +32,12 @@ export django_command=${1:-runserver}
 #####################
 
 # Drop it & recreate it
-psql $PG_DATABASE -c "DROP DATABASE IF EXISTS $database_test WITH (FORCE)"
-psql $PG_DATABASE -c "CREATE DATABASE $database_test"
+psql $PG_DATABASE -c "DROP DATABASE IF EXISTS $fms_database WITH (FORCE)"
+psql $PG_DATABASE -c "CREATE DATABASE $fms_database"
+psql -d $PG_DATABASE -f $backup_file
 
 # Manually enable fzy as it's not in the migrations
-psql $database_test -c 'CREATE EXTENSION fzy;'
+psql $fms_database -c 'CREATE EXTENSION fzy;'
 
 
 ##########################
@@ -41,17 +47,8 @@ psql $database_test -c 'CREATE EXTENSION fzy;'
 source "$__dirname/env/bin/activate"
 
 # Set the DB name for django
-export PG_DATABASE=$database_test
+export PG_DATABASE=$fms_database
 
-# Apply migrations, create superuser & run the server
+# Apply migrations
 echo "Applying migrations"
 python "$__dirname/manage.py" migrate
-
-echo "Creating superuser"
-export DJANGO_SUPERUSER_USERNAME=user
-export DJANGO_SUPERUSER_PASSWORD=secret
-export DJANGO_SUPERUSER_EMAIL=user@example.com
-python "$__dirname/manage.py" createsuperuser --noinput
-
-echo "Running server with database $PG_DATABASE"
-python "$__dirname/manage.py" $django_command
