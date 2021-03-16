@@ -148,6 +148,7 @@ const ContainersListContent = ({
           description={CONTAINER_FILTERS}
         />
         <Button
+          style={{ margin: 6 }}
           disabled={nFilters === 0}
           onClick={clearFilters}
         >
