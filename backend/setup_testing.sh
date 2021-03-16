@@ -6,6 +6,8 @@ set -o pipefail
 # 0. Variables #
 ################
 
+export __dirname="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
 # NOTE:
 # This assumes that `psql` has access without prompt to the `postgres` or
 # PG_DATABASE database. Variables PG_DATABASE, PG_USER or PG_PASSWORD may
@@ -36,18 +38,20 @@ psql $database_test -c 'CREATE EXTENSION fzy;'
 # 2. Setup django server #
 ##########################
 
+source "$__dirname/env/bin/activate"
+
 # Set the DB name for django
 export PG_DATABASE=$database_test
 
 # Apply migrations, create superuser & run the server
 echo "Applying migrations"
-python manage.py migrate
+python "$__dirname/manage.py" migrate
 
 echo "Creating superuser"
 export DJANGO_SUPERUSER_USERNAME=user
 export DJANGO_SUPERUSER_PASSWORD=secret
 export DJANGO_SUPERUSER_EMAIL=user@example.com
-python manage.py createsuperuser --noinput
+python "$__dirname/manage.py" createsuperuser --noinput
 
 echo "Running server with database $PG_DATABASE"
-python manage.py $django_command
+python "$__dirname/manage.py" $django_command
