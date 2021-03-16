@@ -292,38 +292,6 @@ class ExtractedSampleTest(TestCase):
                 self.assertIn('tissue_source', e.message_dict)
                 raise e
 
-    def test_volume_used(self):
-        # volume_used cannot be None for an extracted_sample
-        volume_used = None
-        invalid_volume_used = Sample(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                               volume=volume_used,
-                                                               **self.constants))
-        invalid_volume_used.save()
-        p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_volume_used")
-        with self.assertRaises(ValidationError):
-            try:
-                ps = ProcessSample.objects.create(process=p,
-                                                  source_sample=self.parent_sample,
-                                                  execution_date=timezone.now(),
-                                                  volume_used=volume_used,
-                                                  comment="ProcessSample test_volume_used")
-                SampleLineage.objects.create(parent=self.parent_sample, child=invalid_volume_used, process_sample=ps)
-            except ValidationError as e:
-                self.assertIn('volume', e.message_dict)
-                raise e
-
-        # WARNING !!! Removed testing for volume_used not null for non-extracted sample
-        # this container already has a sample inside
-        invalid_volume_used = Sample(**create_sample(sample_kind=self.sample_kind_BLOOD,
-                                                     individual=self.valid_individual,
-                                                     container=self.valid_container,
-                                                     volume_used=Decimal('0.01')))
-        with self.assertRaises(ValidationError):
-            try:
-                invalid_volume_used.full_clean()
-            except ValidationError as e:
-                self.assertIn('container', e.message_dict)
-                raise e
 
     def test_concentration(self):
         # for DNA or RNA samples concentration cannot be None
