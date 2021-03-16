@@ -12,13 +12,7 @@ __all__ = [
     "IndividualSerializer",
     "SampleKindSerializer",
     "ProcessSampleSerializer",
-<<<<<<< HEAD
-<<<<<<< HEAD
     "ProcessSampleExportSerializer",
-=======
->>>>>>> setting up the api calls
-=======
->>>>>>> setting up the api calls
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
