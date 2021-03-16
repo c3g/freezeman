@@ -8,6 +8,7 @@
 //  - Extraction_v0.9.xlsx
 //  - Sample_submission_v0.11.xlsx
 //  - Sample_submission_v0.9.1_AB.xlsx
+//  - Sample_transfer_v0.1.xlsx
 //  - Sample_update_v0.5.xlsx
 
 // Helpers
@@ -62,7 +63,6 @@ context('All tests', () => {
       submit()
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
-      // TODO: check if the list displays properly items in another way
       // cy.get('body').should('contain', '1-10 of 15 items')
     })
   })
@@ -74,8 +74,17 @@ context('All tests', () => {
       submit()
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
-      // TODO: check if the list displays properly items in another way
+      // cy.get('body').should('contain', '1-8 of 8 items')
+    })
+    it('transfers samples (template import)', () => {
+      navigateTo('Samples & Extractions', 'Transfer Samples')
+      cy.get('input[type=file]').attachFile('Sample_transfer_v0.1.xlsx')
+      submit()
+      cy.get('.ant-alert-success').should('contain', 'Template submitted')
+      cy.get('button').contains('Go Back').click()
       // cy.get('body').should('contain', '1-8 of 8 items')
     })
   })
+
+
 })

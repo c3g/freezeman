@@ -2,6 +2,7 @@ from .container import Container
 from .container_move import ContainerMove
 from .container_rename import ContainerRename
 from .extracted_sample import ExtractedSample
+from .transferred_sample import TransferredSample
 from .imported_file import ImportedFile
 from .individual import Individual
 from .sample import Sample
@@ -17,6 +18,7 @@ __all__ = [
     "ContainerMove",
     "ContainerRename",
     "ExtractedSample",
+    "TransferredSample",
     "ImportedFile",
     "Individual",
     "Sample",

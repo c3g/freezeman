@@ -14,6 +14,7 @@ from .models import (
     SampleLineage,
     SampleUpdate,
     ExtractedSample,
+    TransferredSample,
     Individual,
     Protocol,
     ImportedFile,
@@ -26,6 +27,7 @@ from .resources import (
     SampleKindResource,
     SampleUpdateResource,
     ExtractionResource,
+    TransferResource,
     IndividualResource,
     ProtocolResource,
 )
@@ -36,6 +38,7 @@ from .template_paths import (
     SAMPLE_EXTRACTION_TEMPLATE,
     SAMPLE_SUBMISSION_TEMPLATE,
     SAMPLE_UPDATE_TEMPLATE,
+    SAMPLE_TRANSFER_TEMPLATE,
 )
 from .utils_admin import AggregatedAdmin, CustomImportMixin, ExportVersionAdmin
 
@@ -203,6 +206,24 @@ class ExtractedSampleAdmin(CustomImportMixin, admin.ModelAdmin):
         return super().changelist_view(request, extra_context={
             "title": "Import extracted samples",
             "submission_template": SAMPLE_EXTRACTION_TEMPLATE,
+        })
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+@admin.register(TransferredSample)
+class TransferredSampleAdmin(CustomImportMixin, admin.ModelAdmin):
+    resource_class = TransferResource
+    actions = None
+    list_display_links = None
+
+    def changelist_view(self, request, extra_context=None):
+        return super().changelist_view(request, extra_context={
+            "title": "Import transferred samples",
+            "submission_template": SAMPLE_TRANSFER_TEMPLATE,
         })
 
     def has_add_permission(self, request):

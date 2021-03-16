@@ -49,6 +49,6 @@ source "$__dirname/env/bin/activate"
 # Set the DB name for django
 export PG_DATABASE=$fms_database
 
-# Apply migrations, create superuser & run the server
+# Apply migrations
 echo "Applying migrations"
 python "$__dirname/manage.py" migrate

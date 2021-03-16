@@ -50,6 +50,7 @@ def change_sample_versions_for_creation_date(apps, schema_editor):
 def initialize_protocols(apps, schema_editor):
     protocol_model = apps.get_model("fms_core", "protocol")
     protocol_model.objects.create(name="Extraction")
+    protocol_model.objects.create(name="Transfer")
 
 def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")

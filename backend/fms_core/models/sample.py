@@ -3,6 +3,7 @@ import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.apps import apps
 from django.utils import timezone
 from typing import Optional, List
 
@@ -20,6 +21,7 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
+
 
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -246,7 +248,11 @@ class Sample(models.Model):
 
     @property
     def extracted_from(self) -> ["Sample"]:
-        return self.child_of.filter(parent_sample__child=self).first() if self.id else None  # This definition will only be valid until transfer are created
+        return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Extraction").first() if self.id else None
+
+    @property
+    def transferred_from(self) -> ["Sample"]:
+        return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Transfer").first() if self.id else None
 
     # Representations
 
@@ -283,6 +289,10 @@ class Sample(models.Model):
                  f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
             )
 
+        if self.transferred_from:
+            if self.sample_kind != self.transferred_from.sample_kind:
+                add_error("sample_kind", "Sample kind need to remain the same during transfer")
+
         if self.extracted_from:
             if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error(
@@ -293,14 +303,14 @@ class Sample(models.Model):
             if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
                 add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
 
-            else:
-                original_sample_kind = self.extracted_from.sample_kind.name
-                if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
-                    add_error(
-                        "tissue_source",
-                        (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
-                         f"{original_sample_kind}")
-                    )
+
+            original_sample_kind = self.extracted_from.sample_kind.name
+            if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
+                add_error(
+                    "tissue_source",
+                    (f"Mismatch between sample tissue source {self.tissue_source} and original sample kind "
+                     f"{original_sample_kind}")
+                )
 
 
         # Check volume_history for negative values

@@ -42,7 +42,7 @@ VOLUME_SCHEMA = {
     "items": {
         "type": "object",
         "properties": {
-            "update_type": {"type": "string", "enum": ["extraction", "update"]},
+            "update_type": {"type": "string", "enum": ["extraction", "update", "transfer"]},
             "volume_value": {
                 "type": "string",
                 # Any of 0.0, .0, 0, 0.

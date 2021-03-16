@@ -11,6 +11,7 @@ from ..models import Container, Sample, ExtractedSample, Individual
 from ..resources import (
     ContainerResource,
     ExtractionResource,
+    TransferResource,
     ContainerMoveResource,
     ContainerRenameResource,
     SampleResource,
@@ -43,6 +44,7 @@ CONTAINERS_CSV = APP_DATA_ROOT / "containers.csv"
 CONTAINER_MOVE_CSV = APP_DATA_ROOT / "container_move.csv"
 CONTAINER_RENAME_CSV = APP_DATA_ROOT / "container_rename.csv"
 EXTRACTIONS_CSV = APP_DATA_ROOT / "extractions.csv"
+TRANSFERS_CSV = APP_DATA_ROOT / "samples_transfers.csv"
 SAMPLES_CSV = APP_DATA_ROOT / "samples.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "sample_update.csv"
 
@@ -52,6 +54,7 @@ class ResourcesTestCase(TestCase):
         self.cr = ContainerResource()
         self.sr = SampleResource()
         self.er = ExtractionResource()
+        self.st = TransferResource()
         self.ur = SampleUpdateResource()
         self.mr = ContainerMoveResource()
         self.rr = ContainerRenameResource()
@@ -79,9 +82,20 @@ class ResourcesTestCase(TestCase):
 
             reversion.set_comment("Loaded extractions")
 
+    def load_transfers(self):
+        with reversion.create_revision(), open(TRANSFERS_CSV) as ef:
+            e = Dataset().load(ef.read())
+            self.st.import_data(e, raise_errors=True)
+            reversion.set_comment("Loaded transfers")
+
     def load_samples_extractions(self):
         self.load_samples()
         self.load_extractions()
+
+    def load_samples_transfers(self):
+        self.load_samples()
+        self.load_containers()
+        self.load_transfers()
 
     def test_skip_rows(self):
         ds = get_ds()
@@ -193,6 +207,40 @@ class ResourcesTestCase(TestCase):
             },
         ])
         self.assertTrue(s.extracted_from.depleted)
+
+    def test_sample_transfer_to_new_container_import(self):
+        self.load_samples_transfers()
+        s = Sample.objects.get(container__barcode="newtubefortransfer")
+        self.assertEqual(s.volume, Decimal("10.000"))
+        self.assertListEqual(s.transferred_from.volume_history, [
+            {
+                "update_type": "update",
+                "volume_value": "10.000",
+                "date": s.transferred_from.volume_history[0]["date"],
+            },
+            {
+                "update_type": "transfer",
+                "volume_value": "0.000",
+                "date": s.transferred_from.volume_history[1]["date"],
+            },
+        ])
+
+    def test_sample_transfer_to_existing_container(self):
+        self.load_samples_transfers()
+        s = Sample.objects.get(container__barcode="plate001", coordinates="B01")
+        self.assertEqual(s.volume, Decimal("2.000"))
+        self.assertListEqual(s.transferred_from.volume_history, [
+            {
+                "update_type": "update",
+                "volume_value": "15.000",
+                "date": s.transferred_from.volume_history[0]["date"],
+            },
+            {
+                "update_type": "transfer",
+                "volume_value": "13.000",
+                "date": s.transferred_from.volume_history[1]["date"],
+            },
+        ])
 
     def test_sample_update(self):
         self.load_samples()
