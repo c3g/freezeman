@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "frontend:watch": "cd frontend && npm start",
+    "backend:watch":  "cd backend && . env/bin/activate && python manage.py runserver",
 
     "//1": "These map 1-to-1 with entries in ./Profile",
     "proc:backend_runserver": "cd backend && ./setup_testing.sh runserver",
