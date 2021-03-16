@@ -91,10 +91,12 @@ const DashboardPage = ({
           <Card title="Protocols" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Total Protocols" value={processes.total_count || "—"} />
+                <Statistic title="Total Protocols" value={processesSummary.total_count || "—"} />
               </Col>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Protocol breakdown" value={processesSummary.protocol_counts || "—"} />
+                {((processesSummary.protocol_counts && Object.keys(processesSummary.protocol_counts)) || []).map((protocol) => 
+                  <Statistic title={protocol} value={processesSummary.protocol_counts[protocol] || "—"} />
+                )}
               </Col>
             </Row>
             <Row gutter={16}>
@@ -103,6 +105,7 @@ const DashboardPage = ({
               )}
             </Row>
           </Card>
+          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
           <Card title="Other" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...WIDE_BUTTON_COL_PROPS}>
@@ -121,9 +124,11 @@ const DashboardPage = ({
 const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
+  processesSummary: state.processesSummary.data,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
+    process: state.processTemplateActions,
   },
 });
 
@@ -131,6 +136,7 @@ const mapDispatchToProps = dispatch => ({
   listActions: {
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
+    process: () => dispatch(PROCESSES.listTemplateActions()),
   }
 });
 

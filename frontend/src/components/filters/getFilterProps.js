@@ -1,5 +1,5 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
 import {SearchOutlined} from "@ant-design/icons";
 
 import {FILTER_TYPE} from "../../constants";
@@ -21,6 +21,8 @@ export default function getFilterProps(column, descriptions, filters, setFilter,
       return getSelectFilterProps(column, descriptions, filters, setFilter)
     case FILTER_TYPE.RANGE:
       return getRangeFilterProps(column, descriptions, filters, setFilter)
+    case FILTER_TYPE.DATE_RANGE:
+      return getDateRangeFilterProps(column, descriptions, filters, setFilter)
   }
   throw new Error(`unreachable: ${description.type}`)
 }
@@ -240,6 +242,58 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   }
 }
 
+function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
+  const dataIndex = column.dataIndex;
+  const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+  const minValue = value?.min
+  const maxValue = value?.max
+
+  const inputRef = useRef()
+
+  const onSearch = (values) => {
+    setFilter(dataIndex, values)
+  }
+
+  const onReset = () => {
+    setFilter(dataIndex, undefined)
+  };
+
+  const onKeyDown = (ev, confirm) => {
+    if (ev.key === 'Escape')
+      confirm()
+  }
+
+  return {
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input.Group compact style={{ marginBottom: 8 }}>
+          <DatePicker/>
+        </Input.Group>
+        <Space>
+          <Button
+            type="primary"
+            onClick={confirm}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Done
+          </Button>
+          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    onFilterDropdownVisibleChange: visible => {
+      if (visible) {
+        setTimeout(() => inputRef?.current.focus(), 100);
+      }
+    },
+  }
+}
 
 function getFilterIcon(filtered) {
   return (

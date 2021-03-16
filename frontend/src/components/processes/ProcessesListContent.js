@@ -19,7 +19,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (samplesByID, individualsByID, protocols) => [
+const getTableColumns = (samplesByID, protocols) => [
     {
       title: "Process ID",
       dataIndex: "process",
@@ -27,12 +27,12 @@ const getTableColumns = (samplesByID, individualsByID, protocols) => [
     },
     {
       title: "Protocol",
-      dataIndex: "process__protocol__name",
+      dataIndex: "protocol__name",
       sorter: true,
       width: 80,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, process) =>
-        <Tag>{protocols.itemsByID[process.process__protocol].name}</Tag>,
+          <Tag><Link to={`/processes/${process.id}`}>{protocols && protocols.itemsByID[process.protocol].name}</Link></Tag>,
     },
     {
       title: "Source Sample",
@@ -64,7 +64,7 @@ const getTableColumns = (samplesByID, individualsByID, protocols) => [
       sorter: true,
       align: "right",
       className: "table-column-numbers",
-      width: 100,
+      width: 200,
     },
     {
       title: "Date Processed",
@@ -130,8 +130,7 @@ const ProcessesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="processes"/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
-        <ProcessesFilters style={{ flex: 1 }} />
+      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}

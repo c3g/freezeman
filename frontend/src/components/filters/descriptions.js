@@ -161,7 +161,7 @@ export const PROCESS_FILTERS = {
     key: "process",
     label: "Process ID",
   },
-  process__protocol__name: {
+  protocol__name: {
     type: FILTER_TYPE.SELECT,
     key: "protocol__name",
     label: "Protocol",
@@ -179,7 +179,7 @@ export const PROCESS_FILTERS = {
     label: "Generated Sample",
   },
   execution_date: {
-    type: FILTER_TYPE.RANGE,
+    type: FILTER_TYPE.DATE_RANGE,
     key: "execution_date",
     label: "Date Processed",
   },
