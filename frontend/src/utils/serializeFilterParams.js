@@ -16,9 +16,10 @@ export default function serializeFilterParams(filters, descriptions) {
       return
 
     switch (description.type) {
-
+      
+      case FILTER_TYPE.DATE_RANGE:
       case FILTER_TYPE.RANGE: {
-        if (value){
+        if (value) {
           params[key + '__gte'] = value.min
           params[key + '__lte'] = value.max
         }
@@ -42,6 +43,13 @@ export default function serializeFilterParams(filters, descriptions) {
         if(value)
           params[key] = value
 
+        break;
+      }
+
+      case FILTER_TYPE.INPUT_NUMBER: {
+        if(value) {
+          params[key] = value
+        }
         break;
       }
 

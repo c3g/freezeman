@@ -450,7 +450,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = ProcessSample.objects.all().select_related("process")
+    queryset = ProcessSample.objects.all().select_related("process").prefetch_related("lineage")
     queryset = queryset.annotate(child_sample=F("lineage__child"))
     queryset = queryset.annotate(child_sample_name=F("lineage__child__name"))
     queryset = queryset.annotate(source_sample_name=F("source_sample__name"))
