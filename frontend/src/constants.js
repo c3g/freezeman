@@ -7,6 +7,7 @@ export const FILTER_TYPE = {
   DATE_RANGE: "DATE_RANGE",
   SELECT: "SELECT",
   INPUT: "INPUT",
+  INPUT_NUMBER: "INPUT_NUMBER",
 }
 
 export const TISSUE_SOURCE = [
@@ -35,3 +36,4 @@ export const TAXON = [
   "Sars-Cov-2",
 ]
 
+export const DATE_FORMAT = "YYYY-MM-DD"
