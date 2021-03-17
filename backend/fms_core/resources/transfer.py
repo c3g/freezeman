@@ -97,26 +97,29 @@ class TransferResource(GenericResource):
             destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 
             if destination_parent_container_barcode:
-                shared_parent_info = dict(
-                    barcode=destination_parent_container_barcode,
-                )
                 try:
-                    parent = Container.objects.get(**shared_parent_info)
+                    parent = Container.objects.get(barcode=destination_parent_container_barcode)
                 except Container.DoesNotExist:
                     raise Exception("Destination parent container does not exist")
 
-            try:
-                obj.container = Container.objects.get(barcode=get_normalized_str(data, "Destination Container Barcode"))
-            except Container.DoesNotExist:
-                obj.container = Container.objects.create(
-                    barcode=get_normalized_str(data, "Destination Container Barcode"),
-                    location=parent,
-                    name=get_normalized_str(data, "Destination Container Name"),
-                    kind=get_normalized_str(data, "Destination Container Kind"),
-                    coordinates=get_normalized_str(data, "Destination Parent Container Coord"),
-                    comment=f"Automatically generated via transfer template import on "
-                            f"{datetime.utcnow().isoformat()}Z"
-                )
+
+            shared_container_info =  dict(
+                barcode=get_normalized_str(data, "Destination Container Barcode")
+            )
+            if parent:
+                shared_container_info['location'] = parent
+            if get_normalized_str(data, "Destination Container Name"):
+                shared_container_info['name'] = get_normalized_str(data, "Destination Container Name")
+            if get_normalized_str(data, "Destination Container Kind"):
+                shared_container_info['kind'] = get_normalized_str(data, "Destination Container Kind")
+            if get_normalized_str(data, "Destination Parent Container Coord"):
+                shared_container_info['coordinates'] = get_normalized_str(data, "Destination Parent Container Coord")
+
+            obj.container, _ = Container.objects.get_or_create(
+                **shared_container_info,
+                defaults={'comment': f"Automatically generated via transfer template import on "
+                        f"{datetime.utcnow().isoformat()}Z"},
+            )
 
             obj.coordinates = get_normalized_str(data, "Destination Location Coord")
 
