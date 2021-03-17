@@ -32,7 +32,7 @@ const getTableColumns = (samplesByID, protocols) => [
       width: 80,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, process) =>
-          <Tag><Link to={`/processes/${process.id}`}>{protocols && protocols.itemsByID[process.protocol].name}</Link></Tag>,
+          <Tag><Link to={`/processes/${process.id}`}>{protocols?.itemsByID[process.protocol]?.name}</Link></Tag>,
     },
     {
       title: "Source Sample",
