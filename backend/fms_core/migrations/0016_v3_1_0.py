@@ -51,6 +51,7 @@ def initialize_protocols(apps, schema_editor):
     protocol_model = apps.get_model("fms_core", "protocol")
     protocol_model.objects.create(name="Extraction")
     protocol_model.objects.create(name="Transfer")
+    protocol_model.objects.create(name="Update")
 
 def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
