@@ -48,7 +48,7 @@ const getTableColumns = (samplesByID, protocols) => [
     },
     {
       title: "Generated Sample",
-      dataIndex: "child_sample__name",
+      dataIndex: "lineage__child__name",
       sorter: true,
       render: (_, process) => {
         const sample = process.child_sample

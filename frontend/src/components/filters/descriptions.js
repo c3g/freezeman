@@ -173,7 +173,7 @@ export const PROCESS_FILTERS = {
     key: "source_sample__name",
     label: "Source Sample",
   },
-  child_sample__name: {
+  lineage__child__name: {
     type: FILTER_TYPE.INPUT,
     key: "lineage__child__name",
     label: "Generated Sample",
