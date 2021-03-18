@@ -107,7 +107,7 @@ function getPath(type, id) {
     case 'container':  return `/containers/${id}`;
     case 'sample':     return `/samples/${id}`;
     case 'individual': return `/individuals/${id}`;
-    case 'process': return `/processes/${id}`;
+    case 'process':    return `/processes/${id}`;
     case 'user':       return `/users/${id}`;
   }
   throw new Error('unreachable')
