@@ -28,7 +28,7 @@ const ProcessesDetailContent = ({processesByID, protocolsByID, samplesByID, get}
         <AppPageHeader title={title} onBack={() => history.push("/processes/list")}/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
-            <Descriptions bordered={true} size="small">
+            <Descriptions bordered={true} size="small" column={3}>
                 <Descriptions.Item label="Protocol" span={3}>{protocolsByID[process.protocol]?.name}</Descriptions.Item>
                 <Descriptions.Item label="Applied To Sample" span={2}>
                   <Link to={`/samples/${process.source_sample}`}>

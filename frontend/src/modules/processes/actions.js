@@ -12,7 +12,6 @@ export const SET_SORT_BY           = "PROCESSES.SET_SORT_BY";
 export const SET_FILTER            = "PROCESSES.SET_FILTER";
 export const SET_FILTER_OPTION     = "PROCESSES.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "PROCESSES.CLEAR_FILTERS";
-export const LIST_PROTOCOLS        = createNetworkActionTypes("PROCESSES.LIST_PROTOCOLS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROCESSES.LIST_TEMPLATE_ACTIONS");
 export const SUMMARY               = createNetworkActionTypes("PROCESSES.SUMMARY");
 
@@ -74,14 +73,6 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const listProtocols = () => async (dispatch, getState) => {
-    // Check if we're already fetching or have fetched protocols first
-    if (getState().protocols.isFetching || getState().protocols.items.length > 0)
-        return;
-
-    return await dispatch(networkAction(LIST_PROTOCOLS, api.protocols.list()));
-};
-
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().processTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.processes.template.actions()));
@@ -98,7 +89,6 @@ export default {
     LIST,
     LIST_TABLE,
     SUMMARY,
-    LIST_PROTOCOLS,
     LIST_TEMPLATE_ACTIONS,
     get,
     setSortBy,
@@ -107,7 +97,6 @@ export default {
     clearFilters,
     list,
     listTable,
-    listProtocols,
     listTemplateActions,
     summary,
 };

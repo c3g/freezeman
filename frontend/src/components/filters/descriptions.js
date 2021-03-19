@@ -190,6 +190,14 @@ export const PROCESS_FILTERS = {
   },
 }
 
+export const PROTOCOL_FILTERS = {
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name"
+  },
+}
+
 export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,

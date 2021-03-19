@@ -56,7 +56,8 @@ const api = {
   },
 
   protocols: {
-    list: () => get("/protocols/"),
+    get: protocolId => get(`/protocols/${protocolId}/`),
+    list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 
   samples: {
