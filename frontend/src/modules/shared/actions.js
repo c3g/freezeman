@@ -4,6 +4,7 @@ import Users from "../users/actions";
 import Groups from "../groups";
 import Samples from "../samples/actions";
 import Processes from "../processes/actions";
+import Protocols from "../protocols/actions";
 import {refreshAuthToken} from "../auth/actions";
 
 export const fetchInitialData = () => async (dispatch, getState) => {
@@ -21,7 +22,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listKinds,
         Samples.summary,
         Processes.listTable,
-        Processes.listProtocols,
+        Protocols.list,
         Processes.summary,
         Users.listTable,
         Groups.list,
