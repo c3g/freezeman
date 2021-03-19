@@ -36,6 +36,7 @@ const DashboardPage = ({
   containersSummary,
   samplesSummary,
   processesSummary,
+  protocolsByID,
   templates,
   listActions,
 }) => {
@@ -71,9 +72,6 @@ const DashboardPage = ({
               <Col {...STATS_COL_PROPS}>
                 <Statistic title="Total Samples" value={samplesSummary.total_count || "—"} />
               </Col>
-              <Col {...STATS_COL_PROPS}>
-                <Statistic title="Extracted Samples" value={samplesSummary.extracted_count || "—"} />
-              </Col>
             </Row>
             <Row gutter={16}>
               <Col {...WIDE_BUTTON_COL_PROPS}>
@@ -95,7 +93,7 @@ const DashboardPage = ({
               </Col>
               <Col {...STATS_COL_PROPS}>
                 {((processesSummary.protocol_counts && Object.keys(processesSummary.protocol_counts)) || []).map((protocol) => 
-                  <Statistic title={protocol} value={processesSummary.protocol_counts[protocol] || "—"} />
+                  <Statistic title={protocolsByID[protocol]?.name} value={processesSummary.protocol_counts[protocol] || "—"} />
                 )}
               </Col>
             </Row>
@@ -125,6 +123,7 @@ const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
   processesSummary: state.processesSummary.data,
+  protocolsByID: state.protocols.itemsByID,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,

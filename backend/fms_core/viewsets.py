@@ -468,9 +468,15 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     template_action_list = [
         {
             "name": "Process Extractions",
-            "description": "Upload the provided template with up to 96 extractions.",
+            "description": "Upload the provided template with extraction information.",
             "template": SAMPLE_EXTRACTION_TEMPLATE,
             "resource": ExtractionResource,
+        },
+        {
+            "name": "Process Transfers",
+            "description": "Upload the provided template with samples to be transfered.",
+            "template": SAMPLE_TRANSFER_TEMPLATE,
+            "resource": TransferResource,
         },
     ]
 
@@ -500,12 +506,10 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         database.
         """
 
-        protocol_names_by_id = {protocol.id: protocol.name for protocol in Protocol.objects.all()}
-
         return Response({
             "total_count": ProcessSample.objects.all().count(),
             "protocol_counts": {
-                protocol_names_by_id[c["process__protocol"]]: c["process__protocol__count"]
+                c["process__protocol"]: c["process__protocol__count"]
                 for c in self.queryset.values("process__protocol").annotate(Count("process__protocol"))
             },
         })
@@ -526,18 +530,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "description": "Upload the provided template with up to 384 new samples.",
             "template": SAMPLE_SUBMISSION_TEMPLATE,
             "resource": SampleResource,
-        },
-        {
-            "name": "Process Extractions",
-            "description": "Upload the provided template with up to 96 extractions.",
-            "template": SAMPLE_EXTRACTION_TEMPLATE,
-            "resource": ExtractionResource,
-        },
-        {
-            "name": "Transfer Samples",
-            "description": "Upload the provided template with up to 96 extractions.",
-            "template": SAMPLE_TRANSFER_TEMPLATE,
-            "resource": TransferResource,
         },
         {
             "name": "Update Samples",
@@ -603,13 +595,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         for eg in Sample.objects.values_list("experimental_group", flat=True):
             experimental_groups.update(eg)
 
-        sample_kind_names_by_id = {sample_kind.id: sample_kind.name for sample_kind in SampleKind.objects.all()}
-
+        
         return Response({
             "total_count": Sample.objects.all().count(),
-            "extracted_count": SampleLineage.objects.all().count(),  # WARNING !!! will need a filter when transfer are added
             "kinds_counts": {
-                sample_kind_names_by_id[c["sample_kind"]]: c["sample_kind__count"]
+                c["sample_kind"]: c["sample_kind__count"]
                 for c in Sample.objects.values("sample_kind").annotate(Count("sample_kind"))
             },
             "tissue_source_counts": {
