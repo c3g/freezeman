@@ -43,15 +43,15 @@ const api = {
   },
 
   processes: {
-    get: processSampleId => get(`/processes/${processId}/`),
-    list: (options, abort) => get("/processes/", options, { abort }),
-    listExport: options => get("/processes/list_export/", {format: "csv", ...options}),
-    search: q => get("/processes/search/", { q }),
-    summary: () => get("/processes/summary/"),
+    get: processSampleId => get(`/processes-samples/${processId}/`),
+    list: (options, abort) => get("/processes-samples/", options, { abort }),
+    listExport: options => get("/processes-samples/list_export/", {format: "csv", ...options}),
+    search: q => get("/processes-samples/search/", { q }),
+    summary: () => get("/processes-samples/summary/"),
     template: {
-      actions: () => get(`/processes/template_actions/`),
-      check:  (action, template) => post(`/processes/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/processes/template_submit/`, form({ action, template })),
+      actions: () => get(`/processes-samples/template_actions/`),
+      check:  (action, template) => post(`/processes-samples/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/processes-samples/template_submit/`, form({ action, template })),
     },
   },
 
