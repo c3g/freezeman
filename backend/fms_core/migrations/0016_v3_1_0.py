@@ -7,50 +7,41 @@ import json
 
 from ..utils import float_to_decimal
 
-SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA', 'SWAB']
 
 def create_sample_kinds(apps, schema_editor):
+    SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA',
+                    'SWAB']
     SampleKind = apps.get_model("fms_core", "SampleKind")
-    for kind in SAMPLE_KINDS:
-        SampleKind.objects.create(name=kind)
+    SampleKind.objects.bulk_create([SampleKind(name=kind) for kind in SAMPLE_KINDS])
 
 def copy_samples_kinds(apps, schema_editor):
     Sample = apps.get_model("fms_core", "Sample")
     SampleKind = apps.get_model("fms_core", "SampleKind")
+
     sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
 
     for sample in Sample.objects.all():
-        name = sample.biospecimen_type
-        sample.sample_kind_id = sample_kind_ids_by_name[name]
+        sample.sample_kind_id = sample_kind_ids_by_name[sample.biospecimen_type]
         sample.save()
 
-    # Deals with versions
-    Version = apps.get_model("reversion", "Version")
-    SampleKind = apps.get_model("fms_core", "SampleKind")
-    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-    for version in Version.objects.filter(content_type__model="sample"):
-        data = json.loads(version.serialized_data)
-        if 'biospecimen_type' in data[0]["fields"]:
-            biospecimen_type = data[0]["fields"]["biospecimen_type"]
-            data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[biospecimen_type]
-            data[0]["fields"].pop("biospecimen_type", None)
-        version.serialized_data = json.dumps(data)
-        version.save()
 
 def change_sample_versions_for_creation_date(apps, schema_editor):
     Version = apps.get_model("reversion", "Version")
-    for version in Version.objects.filter(content_type__model="sample"):
-        data = json.loads(version.serialized_data)
-        data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
-        data[0]["fields"].pop("reception_date", None)
-        version.serialized_data = json.dumps(data)
-        version.save()
+    # versions = Version.objects.filter(content_type__model="sample")
+    # for version in versions:
+    #     data = json.loads(version.serialized_data)
+    #     data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
+    #     data[0]["fields"].pop("reception_date", None)
+    #     version.serialized_data = json.dumps(data)
+    #     #version.save()
+    # Version.objects.bulk_update(versions, ['serialized_data'])
 
 def initialize_protocols(apps, schema_editor):
-    protocol_model = apps.get_model("fms_core", "protocol")
-    protocol_model.objects.create(name="Extraction")
-    protocol_model.objects.create(name="Transfer")
+    Protocol = apps.get_model("fms_core", "protocol")
+    Protocol.objects.bulk_create([
+        Protocol(name="Extraction"),
+        Protocol(name="Transfer")
+    ])
 
 def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
@@ -92,14 +83,45 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
             else:
                 raise
 
-    for version in version_model.objects.filter(content_type__model="sample"):
-        # Remove the extracted_from field from the serialized_data in version
+    # versions = version_model.objects.filter(content_type__model="sample")
+    # for version in versions:
+    #     # Remove the extracted_from field from the serialized_data in version
+    #     data = json.loads(version.serialized_data)
+    #     data[0]["fields"].pop("extracted_from", None)
+    #     data[0]["fields"].pop("volume_used", None)
+    #     version.serialized_data = json.dumps(data)
+    #     # Save to database
+    #     # version.save()
+    # Version.objects.bulk_update(versions, ['serialized_data'])
+
+
+def handle_sample_versions(apps, schema_editor):
+    Version = apps.get_model("reversion", "Version")
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
+
+    versions = Version.objects.filter(content_type__model="sample")
+    for version in versions:
         data = json.loads(version.serialized_data)
+
+        # Handle biospecimen type change to sample_kind_id
+        if 'biospecimen_type' in data[0]["fields"]:
+            data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[data[0]["fields"]["biospecimen_type"]]
+            data[0]["fields"].pop("biospecimen_type", None)
+
+        # Change sample versions for creation dates
+        data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
+        data[0]["fields"].pop("reception_date", None)
+
+        # Pop fields extracted_from and volume_used
         data[0]["fields"].pop("extracted_from", None)
         data[0]["fields"].pop("volume_used", None)
+
         version.serialized_data = json.dumps(data)
-        # Save to database
-        version.save()
+        #version.save()
+    Version.objects.bulk_update(versions, ['serialized_data'])
+
+
 
 
 class Migration(migrations.Migration):
@@ -238,6 +260,10 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='sample',
             name='old_extracted_from',
+        ),
+        migrations.RunPython(
+            handle_sample_versions,
+            migrations.RunPython.noop
         ),
 
     ]
