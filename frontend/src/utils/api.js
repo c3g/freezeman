@@ -43,7 +43,7 @@ const api = {
   },
 
   processes: {
-    get: processSampleId => get(`/processes-samples/${processId}/`),
+    get: processSampleId => get(`/processes-samples/${processSampleId}/`),
     list: (options, abort) => get("/processes-samples/", options, { abort }),
     listExport: options => get("/processes-samples/list_export/", {format: "csv", ...options}),
     search: q => get("/processes-samples/search/", { q }),
@@ -56,7 +56,6 @@ const api = {
   },
 
   protocols: {
-    get: protocolId => get(`/protocols/${protocolId}/`),
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 

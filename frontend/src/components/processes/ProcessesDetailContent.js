@@ -28,8 +28,8 @@ const ProcessesDetailContent = ({processesByID, protocolsByID, samplesByID, get}
         <AppPageHeader title={title} onBack={() => history.push("/processes/list")}/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
-            <Descriptions bordered={true} size="small" column={3}>
-                <Descriptions.Item label="Protocol" span={3}>{protocolsByID[process.protocol]?.name}</Descriptions.Item>
+            <Descriptions bordered={true} size="small" column={4}>
+                <Descriptions.Item label="Protocol" span={4}>{protocolsByID[process.protocol]?.name}</Descriptions.Item>
                 <Descriptions.Item label="Applied To Sample" span={2}>
                   <Link to={`/samples/${process.source_sample}`}>
                     {withSample(samplesByID, process.source_sample, sample => sample.name, "Loading...")}
@@ -44,7 +44,7 @@ const ProcessesDetailContent = ({processesByID, protocolsByID, samplesByID, get}
                 </Descriptions.Item>
                 <Descriptions.Item label="Volume Used (µL)" span={2}>{process.volume_used}</Descriptions.Item>
                 <Descriptions.Item label="Date Executed" span={2}>{process.execution_date}</Descriptions.Item>
-                <Descriptions.Item label="Comment" span={3}>{process.comment}</Descriptions.Item>  
+                <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>  
             </Descriptions>
         </PageContent>
     </>;
