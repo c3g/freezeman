@@ -44,6 +44,10 @@ class Migration(migrations.Migration):
             field=models.DecimalField(decimal_places=3, help_text='Current volume of the sample, in µL. ', max_digits=20),
         ),
         # TODO: deal with Sample.volume_history (for sample updates)
+        migrations.RemoveField(
+            model_name='sample',
+            name='volume_used',
+        ),
 
 
     ]
