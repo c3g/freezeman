@@ -62,7 +62,6 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
   const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
   const experimentalGroups = sample.experimental_group || [];
-  const volumeUsed = sample.extracted_from ? parseFloat(sample.volume_used).toFixed(3) : null;
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
 

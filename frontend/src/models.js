@@ -45,7 +45,6 @@ export const sample = {
   comment: "", // string(200)
   update_comment: "", // string(200)
   coordinates: "", // string(10)
-  volume_used: null, // float
   individual: null, // individual.id
   container: null, // container.id
   extracted_from: null // sample.id
@@ -73,7 +72,6 @@ export const sample = {
 //     comment: "Extraction done using Chemagen CMG-1091",
 //     update_comment: "",
 //     coordinates: "",
-//     volume_used: "250.000",
 //     individual: 401,
 //     container: 1658,
 //     extracted_from: 5797
