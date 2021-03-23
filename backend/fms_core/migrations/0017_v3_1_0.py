@@ -8,7 +8,7 @@ from ..utils import float_to_decimal
 
 def add_values_to_sample_volume(apps, schema_editor):
     Sample = apps.get_model("fms_core", "Sample")
-    for sample in Sample.objects.all():
+    for sample in Sample.objects.iterator():
         sample.volume = float_to_decimal(sample.volume_history[-1]["volume_value"] if sample.volume_history else 0.0)
         sample.save()
 
@@ -18,7 +18,7 @@ def handle_sample_versions(apps, schema_editor):
     SampleKind = apps.get_model("fms_core", "SampleKind")
     sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
 
-    for version in Version.objects.filter(content_type__model="sample"):
+    for version in Version.objects.filter(content_type__model="sample").iterator():
         data = json.loads(version.serialized_data)
 
         # Handle biospecimen type change to sample_kind_id

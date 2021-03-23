@@ -44,7 +44,7 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     extraction_protocol = protocol_model.objects.get(name="Extraction")
     extracted_samples_info = {}
 
-    for revision in revision_model.objects.filter(comment="Imported extracted samples from template.").iterator():
+    for revision in revision_model.objects.filter(comment="Imported extracted samples from template.").all():
         extracted_samples = version_model.objects.filter(revision_id=revision.id,
                                                          content_type__model="sample",
                                                          object_repr__icontains="(extracted, ")
