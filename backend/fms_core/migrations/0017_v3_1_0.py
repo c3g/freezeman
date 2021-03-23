@@ -40,6 +40,56 @@ def handle_sample_versions(apps, schema_editor):
         version.serialized_data = json.dumps(data)
         version.save()
 
+def move_volume_history_to_update_process(apps, schema_editor):
+    Sample = apps.get_model("fms_core", "Sample")
+    Version = apps.get_model("reversion", "Version")
+    Revision = apps.get_model("reversion", "Revision")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    Process = apps.get_model("fms_core", "Process")
+    ProcessSample = apps.get_model("fms_core", "ProcessSample")
+
+    update_protocol = Protocol.objects.get(name="Update")
+
+    # Preloading in a dictionary information needed about Revisions
+    revisions_dictionary = {}
+    for revision in Revision.objects.values('pk', 'comment', 'date_created'):
+        revisions_dictionary[revision['pk']] = {'comment': revision['comment'], 'date_created': revision['date_created']}
+
+    for sample in Sample.objects.all():
+        sample_versions = Version.objects.filter(content_type__model="sample", object_id=sample.id).order_by('id')
+        previous_update_comment = ''
+        previous_volume_value = None
+        for index, sample_version in enumerate(sample_versions):
+            data = json.loads(sample_version.serialized_data)
+            update_comment = data[0]["fields"]["update_comment"]
+            if index != 0: # skip first version, as this will be an object creation
+                volume_history = data[0]["fields"]["volume_history"]
+                last_vh = volume_history[-1]
+                if last_vh["update_type"] == "update": # we only want to get 'Update' processes for this operation
+                    process_sample_comment = ''
+
+                    # As currently designed, the field 'update_comment' in Sample is overwritten each time there
+                    # is an update on the sample and that this field is changed.. Otherwise it remains the same.
+                    # We want to ensure that the current update comment does not just correspond to the previous update_comment left
+                    # It is better to not display the information out of precaution,
+                    # rather than displaying the wrong information (the information will remain in Version anyways)
+                    if update_comment != previous_update_comment:
+                        process_sample_comment = update_comment
+
+                    revision_id = sample_version.revision_id
+                    revision = revisions_dictionary[revision_id]
+                    process, _ = Process.objects.get_or_create(comment=f'{revision["comment"]} [Revision ID {str(revision_id)}]',
+                                                               protocol=update_protocol)
+                    volume_used = float_to_decimal(float(previous_volume_value) - float(volume_history[-1]["volume_value"]))
+                    ProcessSample.objects.create(process=process,
+                                                 source_sample_id=sample.id,
+                                                 execution_date=revision['date_created'],
+                                                 volume_used=volume_used,
+                                                 comment=process_sample_comment)
+
+            previous_update_comment = update_comment
+            previous_volume_value = data[0]["fields"]["volume_history"][-1]["volume_value"]
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -68,6 +118,10 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='sample',
             name='volume_used',
+        ),
+        migrations.RunPython(
+            move_volume_history_to_update_process,
+            migrations.RunPython.noop
         ),
 
 
