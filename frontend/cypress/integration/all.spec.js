@@ -76,25 +76,22 @@ context('All tests', () => {
       cy.get('button').contains('Go Back').click()
       // cy.get('body').should('contain', '1-8 of 8 items')
     })
-    
   })
 
   context('Protocols', () => {
     it('transfers samples (template import)', () => {
-      navigateTo('Samples', 'Process Transfer')
+      navigateTo('Protocols', 'Process Transfers')
       cy.get('input[type=file]').attachFile('Sample_transfer_v0.1.xlsx')
       submit()
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
-      // cy.get('body').should('contain', '1-8 of 8 items')
     })
-    it('transfers samples (template import)', () => {
-      navigateTo('Samples', 'Process Extraction')
+    it('extract samples (template import)', () => {
+      navigateTo('Protocols', 'Process Extractions')
       cy.get('input[type=file]').attachFile('Extraction_v0.9.xlsx')
       submit()
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
-      // cy.get('body').should('contain', '1-8 of 8 items')
     })
   })
 

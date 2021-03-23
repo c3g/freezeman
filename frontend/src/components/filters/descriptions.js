@@ -161,9 +161,9 @@ export const PROCESS_FILTERS = {
     key: "process",
     label: "Process ID",
   },
-  protocol__name: {
+  process__protocol__name: {
     type: FILTER_TYPE.SELECT,
-    key: "protocol__name",
+    key: "process__protocol__name",
     label: "Protocol",
     mode: "multiple",
     placeholder: "All"

@@ -4,7 +4,7 @@ import FilterLabel from "./FilterLabel"
 import * as style from "./style"
 
 
-const FilterInput = ({
+const FilterInputNumber = ({
   item,
   value = null,
   placeholder,
@@ -32,4 +32,4 @@ const FilterInput = ({
   );
 };
 
-export default FilterInput;
+export default FilterInputNumber;

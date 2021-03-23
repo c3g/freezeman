@@ -485,6 +485,14 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         serializer = ProcessSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            fields = ProcessSampleExportSerializer.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        return context
+
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """

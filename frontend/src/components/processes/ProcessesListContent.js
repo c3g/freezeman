@@ -13,23 +13,24 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processes/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withSample} from "../../utils/withItem";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = (samplesByID, protocols) => [
     {
       title: "Process ID",
       dataIndex: "process",
       sorter: true,
+      width: 150,
     },
     {
       title: "Protocol",
-      dataIndex: "protocol__name",
+      dataIndex: "process__protocol__name",
       sorter: true,
-      width: 80,
+      width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, process) =>
           <Tag><Link to={`/processes/${process.id}`}>{protocols?.itemsByID[process.protocol]?.name}</Link></Tag>,
@@ -64,12 +65,13 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       align: "right",
       className: "table-column-numbers",
-      width: 200,
+      width: 180,
     },
     {
       title: "Date Processed",
       dataIndex: "execution_date",
       sorter: true,
+      width: 180,
     },
   ];
 
