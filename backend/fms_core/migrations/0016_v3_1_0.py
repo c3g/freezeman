@@ -25,17 +25,6 @@ def copy_samples_kinds(apps, schema_editor):
         sample.save()
 
 
-def change_sample_versions_for_creation_date(apps, schema_editor):
-    Version = apps.get_model("reversion", "Version")
-    # versions = Version.objects.filter(content_type__model="sample")
-    # for version in versions:
-    #     data = json.loads(version.serialized_data)
-    #     data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
-    #     data[0]["fields"].pop("reception_date", None)
-    #     version.serialized_data = json.dumps(data)
-    #     #version.save()
-    # Version.objects.bulk_update(versions, ['serialized_data'])
-
 def initialize_protocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "protocol")
     Protocol.objects.bulk_create([
@@ -55,7 +44,7 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     extraction_protocol = protocol_model.objects.get(name="Extraction")
     extracted_samples_info = {}
 
-    for revision in revision_model.objects.filter(comment="Imported extracted samples from template."):
+    for revision in revision_model.objects.filter(comment="Imported extracted samples from template.").iterator():
         extracted_samples = version_model.objects.filter(revision_id=revision.id,
                                                          content_type__model="sample",
                                                          object_repr__icontains="(extracted, ")
@@ -64,8 +53,7 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
             for sample in extracted_samples:
                 data = json.loads(sample.serialized_data)
                 comment = data[0]["fields"].pop("comment", "")
-                sample_info = {sample.object_id: {"process": pr, "comment": comment}}
-                extracted_samples_info.update(sample_info)
+                extracted_samples_info.update({sample.object_id: {"process": pr, "comment": comment}})
 
     # Create process_by_sample and parent lineage for each sample that had an extracted_from fk
     for sample in sample_model.objects.all():
@@ -82,44 +70,6 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
                                                     process_sample=ps)
             else:
                 raise
-
-    # versions = version_model.objects.filter(content_type__model="sample")
-    # for version in versions:
-    #     # Remove the extracted_from field from the serialized_data in version
-    #     data = json.loads(version.serialized_data)
-    #     data[0]["fields"].pop("extracted_from", None)
-    #     data[0]["fields"].pop("volume_used", None)
-    #     version.serialized_data = json.dumps(data)
-    #     # Save to database
-    #     # version.save()
-    # Version.objects.bulk_update(versions, ['serialized_data'])
-
-
-def handle_sample_versions(apps, schema_editor):
-    Version = apps.get_model("reversion", "Version")
-    SampleKind = apps.get_model("fms_core", "SampleKind")
-    sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
-
-    versions = Version.objects.filter(content_type__model="sample")
-    for version in versions:
-        data = json.loads(version.serialized_data)
-
-        # Handle biospecimen type change to sample_kind_id
-        if 'biospecimen_type' in data[0]["fields"]:
-            data[0]["fields"]["sample_kind"] = sample_kind_ids_by_name[data[0]["fields"]["biospecimen_type"]]
-            data[0]["fields"].pop("biospecimen_type", None)
-
-        # Change sample versions for creation dates
-        data[0]["fields"]["creation_date"] = data[0]["fields"]["reception_date"]
-        data[0]["fields"].pop("reception_date", None)
-
-        # Pop fields extracted_from and volume_used
-        data[0]["fields"].pop("extracted_from", None)
-        data[0]["fields"].pop("volume_used", None)
-
-        version.serialized_data = json.dumps(data)
-        #version.save()
-    Version.objects.bulk_update(versions, ['serialized_data'])
 
 
 
@@ -214,10 +164,6 @@ class Migration(migrations.Migration):
         ),
 
         # Change Sample reception_date for creation_date
-        migrations.RunPython(
-            change_sample_versions_for_creation_date,
-            reverse_code=migrations.RunPython.noop,
-        ),
         migrations.RenameField(
             model_name='sample',
             old_name='reception_date',
@@ -260,10 +206,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='sample',
             name='old_extracted_from',
-        ),
-        migrations.RunPython(
-            handle_sample_versions,
-            migrations.RunPython.noop
         ),
 
     ]
