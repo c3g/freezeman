@@ -170,77 +170,27 @@ class ResourcesTestCase(TestCase):
 
     def test_first_sample_extraction_import(self):
         self.load_samples_extractions()
-
         # Test first extraction
         s = Sample.objects.get(container__barcode="tube003")
-        self.assertListEqual(s.extracted_from.volume_history, [
-            {
-                "update_type": "update",
-                "volume_value": "10.000",
-                "date": s.extracted_from.volume_history[0]["date"],
-            },
-            {
-                "update_type": "extraction",
-                "volume_value": "9.000",
-                "date": s.extracted_from.volume_history[1]["date"],
-                "extracted_sample_id": s.id,
-            },
-        ])
         self.assertFalse(s.extracted_from.depleted)
 
     def test_second_sample_extraction_import(self):
         self.load_samples_extractions()
-
         # Test second extraction
         s = Sample.objects.get(container__barcode="tube004")
-        self.assertListEqual(s.extracted_from.volume_history, [
-            {
-                "update_type": "update",
-                "volume_value": "15.000",
-                "date": s.extracted_from.volume_history[0]["date"],
-            },
-            {
-                "update_type": "extraction",
-                "volume_value": "0.000",
-                "date": s.extracted_from.volume_history[1]["date"],
-                "extracted_sample_id": s.id,
-            },
-        ])
         self.assertTrue(s.extracted_from.depleted)
 
     def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="newtubefortransfer")
         self.assertEqual(s.volume, Decimal("10.000"))
-        self.assertListEqual(s.transferred_from.volume_history, [
-            {
-                "update_type": "update",
-                "volume_value": "10.000",
-                "date": s.transferred_from.volume_history[0]["date"],
-            },
-            {
-                "update_type": "transfer",
-                "volume_value": "0.000",
-                "date": s.transferred_from.volume_history[1]["date"],
-            },
-        ])
+
 
     def test_sample_transfer_to_existing_container(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="plate001", coordinates="B01")
         self.assertEqual(s.volume, Decimal("2.000"))
-        self.assertListEqual(s.transferred_from.volume_history, [
-            {
-                "update_type": "update",
-                "volume_value": "15.000",
-                "date": s.transferred_from.volume_history[0]["date"],
-            },
-            {
-                "update_type": "transfer",
-                "volume_value": "13.000",
-                "date": s.transferred_from.volume_history[1]["date"],
-            },
-        ])
+
 
     def test_sample_update(self):
         self.load_samples()

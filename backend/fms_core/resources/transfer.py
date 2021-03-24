@@ -8,10 +8,8 @@ from ._generic import GenericResource
 from ._utils import skip_rows
 from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
-    VolumeHistoryUpdateType,
     blank_str_to_none,
     check_truth_like,
-    create_volume_history,
     float_to_decimal,
     get_normalized_str,
 )
@@ -49,7 +47,6 @@ class TransferResource(GenericResource):
             'sample_kind',
             'individual',
             'child_of',
-            'volume_history',
             'comment',
         )
         export_order = (
@@ -129,10 +126,6 @@ class TransferResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             vu = float_to_decimal(vu)
             obj.volume = vu
-            obj.volume_history = [create_volume_history(
-                VolumeHistoryUpdateType.TRANSFER,
-                str(vu)
-            )]
         
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
@@ -160,11 +153,6 @@ class TransferResource(GenericResource):
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         self.transferred_from.volume = float_to_decimal(self.transferred_from.volume - instance.volume)
-        self.transferred_from.volume_history.append(create_volume_history(
-            VolumeHistoryUpdateType.TRANSFER,
-            self.transferred_from.volume
-        ))
-
         self.transferred_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)

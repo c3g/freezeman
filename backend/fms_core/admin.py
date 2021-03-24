@@ -43,8 +43,6 @@ from .template_paths import (
 from .utils_admin import AggregatedAdmin, CustomImportMixin, ExportVersionAdmin
 
 from .utils import (
-    VolumeHistoryUpdateType,
-    create_volume_history,
     float_to_decimal,
 )
 
@@ -189,10 +187,6 @@ class SampleAdmin(AggregatedAdmin):
         })
 
     def save_model(self, request, obj, form, change):
-        obj.volume_history.append(create_volume_history(
-            VolumeHistoryUpdateType.UPDATE,
-            str(float_to_decimal(obj.volume))
-        ))
         super().save_model(request, obj, form, change)
 
 

@@ -9,10 +9,8 @@ from ._generic import GenericResource
 from ._utils import skip_rows, add_column_to_preview
 from ..models import Container, Sample
 from ..utils import (
-    VolumeHistoryUpdateType,
     blank_str_to_none,
     check_truth_like,
-    create_volume_history,
     float_to_decimal,
     get_normalized_str,
 )
@@ -26,8 +24,8 @@ class SampleUpdateResource(GenericResource):
     coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
     # fields that can be updated on sample update
     # volume
-    volume_history = Field(attribute='volume_history', column_name='New Volume (uL)')
-    volume_history_delta = Field(column_name='Delta Volume (uL)')
+    volume = Field(attribute='new_volume', column_name='New Volume (uL)')
+    volume_delta = Field(column_name='Delta Volume (uL)')
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
@@ -37,7 +35,6 @@ class SampleUpdateResource(GenericResource):
         model = Sample
         import_id_fields = ('id',)
         fields = (
-            'volume_history',
             'concentration',
             'depleted',
             'update_comment',
@@ -79,20 +76,10 @@ class SampleUpdateResource(GenericResource):
                 return
             data["New Conc. (ng/uL)"] = float_to_decimal(conc)
 
-        if field.attribute == "volume_history":
+        if field.attribute == "new_volume":
             # Manually process volume history and don't call superclass method
             vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
             if vol is not None:  # Only update volume if we got a value
-                # Note: Volume history should never be None, but this prevents
-                #       a bunch of cascading tracebacks if the synthetic "id"
-                #       column created above throws a DoesNotExist error.
-                if not obj.volume_history:
-                    obj.volume_history = []
-                obj.volume_history.append(create_volume_history(
-                    VolumeHistoryUpdateType.UPDATE,
-                    str(float_to_decimal(vol))
-                ))
-
                 obj.volume = vol
             return
 
@@ -103,15 +90,7 @@ class SampleUpdateResource(GenericResource):
                 # Note: Volume history should never be None, but this prevents
                 #       a bunch of cascading tracebacks if the synthetic "id"
                 #       column created above throws a DoesNotExist error.
-                if not obj.volume_history:
-                    obj.volume_history = []
-                vol = obj.volume + Decimal(delta_vol)
-                obj.volume_history.append(create_volume_history(
-                    VolumeHistoryUpdateType.UPDATE,
-                    str(vol)
-                ))
-
-                obj.volume = vol
+                obj.volume = obj.volume + Decimal(delta_vol)
             return
 
         if field.attribute == 'depleted':
