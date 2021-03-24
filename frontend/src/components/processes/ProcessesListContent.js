@@ -2,6 +2,7 @@ import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
+import { EyeOutlined } from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -33,7 +34,7 @@ const getTableColumns = (samplesByID, protocols) => [
       width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, process) =>
-          <Tag><Link to={`/processes/${process.id}`}>{protocols?.itemsByID[process.protocol]?.name}</Link></Tag>,
+          <Tag>{protocols?.itemsByID[process.protocol]?.name}</Tag>,
     },
     {
       title: "Source Sample",
@@ -72,6 +73,12 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "execution_date",
       sorter: true,
       width: 180,
+    },
+    {
+      title: "Details",
+      align: "center",
+      render: (_, process) =>
+          <Link to={`/processes/${process.id}`}><EyeOutlined/></Link>,
     },
   ];
 
