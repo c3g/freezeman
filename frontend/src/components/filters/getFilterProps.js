@@ -1,10 +1,12 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
 import {SearchOutlined} from "@ant-design/icons";
+import moment from 'moment';
 
-import {FILTER_TYPE} from "../../constants";
+import {FILTER_TYPE, DATE_FORMAT} from "../../constants";
 
 const EMPTY_VALUE = '__EMPTY_VALUE__'
+const { RangePicker } = DatePicker;
 
 export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const dataIndex = column.dataIndex
@@ -15,12 +17,16 @@ export default function getFilterProps(column, descriptions, filters, setFilter,
   switch (description.type) {
     case FILTER_TYPE.INPUT:
       return getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption)
+    case FILTER_TYPE.INPUT_NUMBER:
+        return getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption)
     case FILTER_TYPE.SELECT:
       if (description.mode !== 'multiple')
         return getRadioFilterProps(column, descriptions, filters, setFilter)
       return getSelectFilterProps(column, descriptions, filters, setFilter)
     case FILTER_TYPE.RANGE:
       return getRangeFilterProps(column, descriptions, filters, setFilter)
+    case FILTER_TYPE.DATE_RANGE:
+      return getDateRangeFilterProps(column, descriptions, filters, setFilter)
   }
   throw new Error(`unreachable: ${description.type}`)
 }
@@ -67,6 +73,50 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
             onChange={e => onToggleSwitch(e, dataIndex)}
           />
         </Tooltip>
+      </div>
+    ),
+    onFilterDropdownVisibleChange: visible => {
+      if (visible) {
+        setTimeout(() => inputRef?.current.select(), 100);
+        document.body.classList.add('input-dropdown-visible')
+      }
+      else {
+        document.body.classList.remove('input-dropdown-visible')
+      }
+    },
+  }
+}
+
+function getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
+  const dataIndex = column.dataIndex;
+  const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+
+  const inputRef = useRef()
+
+  const onSearch = value => {
+    setFilter(dataIndex, value)
+  }
+
+  const onKeyDown = (ev, confirm) => {
+    if (ev.key === 'Escape')
+      confirm()
+  }
+
+  return {
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm }) => (
+      <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
+        <Input
+          ref={inputRef}
+          allowClear
+          placeholder={`Search ${description.label}`}
+          style={{ marginRight: 8 }}
+          value={value}
+          onChange={e => onSearch(e.target.value)}
+          onPressEnter={confirm}
+          onKeyDown={ev => onKeyDown(ev, confirm)}
+        />
       </div>
     ),
     onFilterDropdownVisibleChange: visible => {
@@ -240,6 +290,73 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   }
 }
 
+function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
+  const dataIndex = column.dataIndex;
+  const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+  const minValue = value && nullize(value.min) && moment(value.min) 
+  const maxValue = value && nullize(value.max) && moment(value.max)
+
+  const dateRangeRef = useRef()
+
+  const onSearch = (values) => {
+    setFilter(dataIndex, values)
+  }
+
+  const onReset = () => {
+    setFilter(dataIndex, undefined)
+  };
+
+  const onKeyDown = (ev, confirm) => {
+    if (ev.key === 'Escape')
+      confirm()
+  }
+
+  return {
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm, clearFilters }) => (
+      <div style={{ padding: 8 }}>
+        <Input.Group compact style={{ marginBottom: 8 }}>
+          <RangePicker
+            ref={dateRangeRef}
+            style={{ width: 300 }}
+            format={DATE_FORMAT}
+            allowEmpty={[true, true]}
+            defaultValue={[null, null]}
+            value={[minValue, maxValue]}
+            onChange={dates => {
+              const newDates = {}
+              newDates.min = nullize(dates[0]) && dates[0].isValid && dates[0].toISOString().slice(0, 10) || undefined
+              newDates.max = nullize(dates[1]) && dates[1].isValid && dates[1].toISOString().slice(0, 10) || undefined
+              onSearch(newDates)
+            }}
+            onKeyDown={ev => onKeyDown(ev, confirm)}
+            onPressEnter={confirm}
+          />
+        </Input.Group>
+        <Space>
+          <Button
+            type="primary"
+            onClick={confirm}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Done
+          </Button>
+          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </Space>
+      </div>
+    ),
+    onFilterDropdownVisibleChange: visible => {
+      if (visible) {
+        setTimeout(() => dateRangeRef?.current.focus(), 100);
+      }
+    },
+  }
+}
 
 function getFilterIcon(filtered) {
   return (

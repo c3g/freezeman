@@ -24,6 +24,7 @@ const FiltersInfos = ({
         })
         return labels.join(', ')
       case FILTER_TYPE.RANGE:
+      case FILTER_TYPE.DATE_RANGE:
         let value = ""
         if (filterValue.min !== undefined) {value += ` min: ${filterValue.min}`}
         if (filterValue.max !== undefined) {value +=` max: ${filterValue.max}`}

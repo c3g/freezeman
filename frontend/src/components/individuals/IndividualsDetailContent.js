@@ -2,7 +2,8 @@ import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions} from "antd";
+import {Descriptions, Typography} from "antd";
+const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -28,6 +29,7 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
             <EditButton url={`/individuals/${id}/update`} />
         }/>
         <PageContent loading={isLoading}>
+            <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>

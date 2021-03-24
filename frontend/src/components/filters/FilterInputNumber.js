@@ -1,0 +1,35 @@
+import React from "react";
+import {Input} from "antd";
+import FilterLabel from "./FilterLabel"
+import * as style from "./style"
+
+
+const FilterInputNumber = ({
+  item,
+  value = null,
+  placeholder,
+  width = 200,
+  onChange,
+}) => {
+  const onInputChange = (ev) => {
+    onChange(item, ev.target.value)
+  }
+
+  return (
+    <div style={style.container}>
+      <FilterLabel>{item.label}</FilterLabel>
+
+      <Input.Group style={style.element} compact>
+        <Input
+          size='small'
+          placeholder={placeholder}
+          style={{ width: width}}
+          value={value}
+          onChange={onInputChange}
+        />
+      </Input.Group>
+    </div>
+  );
+};
+
+export default FilterInputNumber;

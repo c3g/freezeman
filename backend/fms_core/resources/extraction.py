@@ -106,11 +106,11 @@ class ExtractionResource(GenericResource):
             # initializing the volume history of the EXTRACTED sample, so the
             # actual history entry is of the "normal" type (UPDATE).
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
-            obj.volume = vol
+            obj.volume = float_to_decimal(vol)
 
             obj.volume_history = [create_volume_history(
                 VolumeHistoryUpdateType.UPDATE,
-                str(float_to_decimal(vol)) if vol is not None else ""
+                str(obj.volume) if vol is not None else ""
             )]
             return
 

@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from reversion.models import Version
 
-from .models import Container, Sample, Individual, SampleKind
+from .models import Container, Sample, Individual, Protocol, Process, ProcessSample, SampleKind
 
 
 __all__ = [
@@ -11,6 +11,9 @@ __all__ = [
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "SampleKindSerializer",
+    "ProcessSampleSerializer",
+    "ProcessSampleExportSerializer",
+    "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
@@ -55,6 +58,29 @@ class SampleKindSerializer(serializers.ModelSerializer):
         model = SampleKind
         fields = "__all__"
 
+class ProtocolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Protocol
+        fields = "__all__"
+
+class ProcessSampleSerializer(serializers.ModelSerializer):
+    protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
+    child_sample = serializers.IntegerField(read_only=True)
+
+    class Meta:
+      model = ProcessSample
+      fields = "__all__"
+      extra_fields = ('protocol', 'child_sample')
+
+class ProcessSampleExportSerializer(serializers.ModelSerializer):
+    process_sample_id = serializers.IntegerField(read_only=True, source="id")
+    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    child_sample_name = serializers.CharField(read_only=True)
+    source_sample_name = serializers.CharField(read_only=True)
+
+    class Meta:
+      model = ProcessSample
+      fields = ('process_sample_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
@@ -69,8 +95,6 @@ class SampleSerializer(serializers.ModelSerializer):
             return None
         else:
             return obj.extracted_from.id
-
-
 
 class SampleExportSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
