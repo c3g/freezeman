@@ -158,7 +158,6 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
               ` at ${withSample(samplesByID, sample.extracted_from, sample => sample.coordinates)}`}
             )
           </Descriptions.Item>
-          <Descriptions.Item label="Volume Used">{volumeUsed}</Descriptions.Item>
         </Descriptions>
       ) : null}
 
