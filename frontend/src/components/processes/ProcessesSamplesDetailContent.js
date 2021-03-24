@@ -11,7 +11,7 @@ import PageContent from "../PageContent";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processes/actions";
 
-const ProcessesDetailContent = ({processesByID, protocolsByID, samplesByID, get}) => {
+const ProcessesSamplesDetailContent = ({processesByID, protocolsByID, samplesByID, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in processesByID;
@@ -59,4 +59,4 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProcessesDetailContent);
+export default connect(mapStateToProps, mapDispatchToProps)(ProcessesSamplesDetailContent);
