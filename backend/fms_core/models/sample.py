@@ -275,18 +275,32 @@ class Sample(models.Model):
 
         self.normalize()
 
+        # Sample Kind
         sample_kind_choices = (Sample.BIOSPECIMEN_TYPE_NA_CHOICES if self.extracted_from
                                else Sample.BIOSPECIMEN_TYPE_CHOICES)
-        if self.sample_kind.name not in frozenset(c[0] for c in sample_kind_choices):
-            add_error(
-                "sample_kind",
-                (f"Sample Kind name {self.sample_kind.name} not valid for "
-                 f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
-            )
 
-        if self.transferred_from:
-            if self.sample_kind != self.transferred_from.sample_kind:
-                add_error("sample_kind", "Sample kind need to remain the same during transfer")
+        if self.sample_kind_id is not None:
+            if self.sample_kind.name not in frozenset(c[0] for c in sample_kind_choices):
+                add_error(
+                    "sample_kind",
+                    (f"Sample Kind name {self.sample_kind.name} not valid for "
+                     f"{' extracted' if self.extracted_from else ''} sample {self.name}"),
+                )
+            # Check concentration fields given sample_kind
+            if self.sample_kind.name in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:
+                add_error("concentration", "Concentration must be specified if the sample_kind is DNA")
+
+            # Check tissue source given extracted_from
+
+            if self.tissue_source and self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                add_error("tissue_source", "Tissue source can only be specified for a nucleic acid sample.")
+
+            if self.transferred_from and self.sample_kind != self.transferred_from.sample_kind:
+                    add_error("sample_kind", "Sample kind need to remain the same during transfer")
+
+            if self.extracted_from and self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
+
 
         if self.extracted_from:
             if self.extracted_from.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
@@ -294,10 +308,6 @@ class Sample(models.Model):
                     "extracted_from",
                     f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}"
                 )
-
-            if self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
-
 
             original_sample_kind = self.extracted_from.sample_kind.name
             if self.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
@@ -307,20 +317,10 @@ class Sample(models.Model):
                      f"{original_sample_kind}")
                 )
 
-
-        # Check volume_history for negative values
-
-        if self.volume < Decimal("0"):
+        # Check volume value
+        if self.volume is not None and self.volume < Decimal("0"):
             add_error("volume", "Current volume must be positive.")
 
-        # Check concentration fields given sample_kind
-        if self.sample_kind.name in Sample.BIOSPECIMEN_TYPES_CONC_REQUIRED and self.concentration is None:
-            add_error("concentration", "Concentration must be specified if the sample_kind is DNA")
-
-        # Check tissue source given extracted_from
-
-        if self.tissue_source and self.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-            add_error("tissue_source", "Tissue source can only be specified for a nucleic acid sample.")
 
         # Validate container consistency
 
