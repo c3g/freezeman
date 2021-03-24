@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import django.utils.timezone
+from django.utils import timezone
 import json
 
 from ..utils import float_to_decimal
@@ -20,10 +20,9 @@ def copy_samples_kinds(apps, schema_editor):
 
     sample_kind_ids_by_name = {sample_kind.name: sample_kind.id for sample_kind in SampleKind.objects.all()}
 
-    for sample in Sample.objects.all():
+    for sample in Sample.objects.all().iterator():
         sample.sample_kind_id = sample_kind_ids_by_name[sample.biospecimen_type]
         sample.save()
-
 
 def initialize_protocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "protocol")
@@ -71,8 +70,6 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
                                                     process_sample=ps)
             else:
                 raise
-
-
 
 
 class Migration(migrations.Migration):
