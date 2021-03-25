@@ -9,6 +9,7 @@ const defaultStyle = {
 
 const PageContent = ({children, style, loading = false}) =>
   <div
+    className='PageContent'
     style={style ? {...defaultStyle, ...style} : defaultStyle}
   >
     <Spin spinning={loading}>
