@@ -21,6 +21,7 @@ import DashboardPage from "./DashboardPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessesPage from "./processes/ProcessesPage";
+import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
@@ -32,6 +33,12 @@ import {logOut} from "../modules/auth/actions";
 const { Title } = Typography;
 
 const getMenuItems = (user, logOut) => [
+  {
+    key: "profile-link",
+    icon: <UserOutlined />,
+    text: `Profile`,
+    url: "/profile",
+  },
   {
     key: "sign-out-link",
     icon: <LogoutOutlined />,
@@ -165,6 +172,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/profile">
+              <ProfilePage/>
             </PrivateRoute>
             <Redirect from="/" to="/dashboard" />
           </Switch>
