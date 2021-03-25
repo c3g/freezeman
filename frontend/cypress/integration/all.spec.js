@@ -87,7 +87,7 @@ context('All tests', () => {
       // cy.get('body').should('contain', '1-8 of 8 items')
     })
 
-    it('visit sample detail page', () => {
+    it('visits sample detail page', () => {
       const sampleName = 'Sample_DNA1'
       navigateToMenuItem('Samples')
       cy.get('.ant-table').contains(sampleName).click()
@@ -103,6 +103,7 @@ context('All tests', () => {
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
     })
+
     it('extract samples (template import)', () => {
       navigateTo('Protocols', 'Process Extractions')
       cy.get('input[type=file]').attachFile('Extraction_v0.9.xlsx')
@@ -110,7 +111,8 @@ context('All tests', () => {
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
     })
-    it('visit process detail page', () => {
+
+    it('visits process detail page', () => {
        navigateToMenuItem('Protocols')
        cy.get('.anticon-eye').first().parent('a').click()
        cy.get('body').should('contain', `Process`)
