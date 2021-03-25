@@ -33,8 +33,7 @@ select:-webkit-autofill:focus {
   transition: all 150ms;
 }
 .ant-layout-sider-collapsed .App__title {
-  width: 0;
-  opacity: 0;
+  transform: rotate(-90deg) translate(-60px, -10px);
 }
 .App__sidebar .ant-layout-sider-children > ul:first-of-type {
   flex: 1;
