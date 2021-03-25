@@ -90,7 +90,7 @@ const titleStyle = {
   fontWeight: 900,
   fontSize: "18px",
   lineHeight: "unset",
-  padding: "1em 24px 0",
+  padding: 0,
   margin: 0,
 };
 
@@ -123,8 +123,10 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             collapsedWidth={80}
             width={224}
           >
-              <Title style={titleStyle} className="App__title">
-                FreezeMan
+              <Title style={titleStyle} className="App__title" onTransitionEnd={didTransition}>
+                <div>
+                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                </div>
               </Title>
               {isLoggedIn &&
                 <div className='App__jumpBar'>
@@ -185,3 +187,15 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
 };
 
 export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
+
+// Helpers
+
+function didTransition(ev) {
+  const element = ev.target
+  if (!element.classList.contains('App__title'))
+    return
+  if (element.matches('.ant-layout-sider-collapsed h1'))
+    element.classList.add('did-enter')
+  else if (element.matches('.did-enter'))
+    element.classList.remove('did-enter')
+}

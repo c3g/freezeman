@@ -32,8 +32,45 @@ select:-webkit-autofill:focus {
   white-space: nowrap;
   transition: all 150ms;
 }
-.ant-layout-sider-collapsed .App__title {
-  transform: rotate(-90deg) translate(-60px, -10px);
+.App__title div {
+  margin:  12px;
+  padding: 12px;
+  border: 2px solid transparent;
+  transition: all 500ms ease-in-out 350ms;
+}
+.ant-layout-sider-collapsed .App__title div {
+  transform: rotate(720deg);
+}
+.ant-layout-sider-collapsed .App__title.did-enter div {
+  transform: initial;
+  transition: border-radius 50ms;
+}
+.App__title::after {
+  content: '';
+  position: absolute;
+  display: inline-block;
+  top:    12px;
+  left:   12px;
+  width:  56px;
+  height: 56px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  transition: all 500ms ease-in-out 350ms;
+}
+.ant-layout-sider-collapsed .App__title::after {
+  border-color: white;
+}
+.ant-layout-sider-collapsed .App__title.did-enter::after {
+  transition: all 150ms;
+}
+.App__title span {
+  display: inline-block;
+  width: 45px;
+  transition: all 350ms;
+}
+.ant-layout-sider-collapsed .App__title span {
+  width: 0;
+  opacity: 0;
 }
 .App__sidebar .ant-layout-sider-children > ul:first-of-type {
   flex: 1;
