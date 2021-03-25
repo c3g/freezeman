@@ -5,10 +5,12 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
 
+from .tracked_model import TrackedModel
+
 from ._utils import add_error as _add_error
 
-
-class SampleLineage(models.Model):
+@reversion.register()
+class SampleLineage(TrackedModel):
     child = models.ForeignKey("Sample", help_text="Child sample",
                               on_delete=models.CASCADE, related_name="child_sample")
     parent = models.ForeignKey("Sample", help_text="Parent sample",
@@ -17,6 +19,7 @@ class SampleLineage(models.Model):
                                        on_delete=models.PROTECT, related_name="lineage")
 
     def clean(self):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):

@@ -3,6 +3,8 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .tracked_model import TrackedModel
+
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
 
@@ -11,7 +13,7 @@ __all__ = ["Individual"]
 
 
 @reversion.register()
-class Individual(models.Model):
+class Individual(TrackedModel):
     """
     Class to store information about an Individual.
     """
@@ -58,6 +60,7 @@ class Individual(models.Model):
         self.cohort = str_cast_and_normalize(self.cohort)
 
     def clean(self):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):

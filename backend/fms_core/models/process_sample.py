@@ -6,16 +6,17 @@ from django.apps import apps
 from django.utils import timezone
 from decimal import Decimal
 
-from ._utils import add_error as _add_error
-
+from .tracked_model import TrackedModel
 from .process import Process
 from .sample import Sample
+
+from ._utils import add_error as _add_error
 
 __all__ = ["ProcessSample"]
 
 
 @reversion.register()
-class ProcessSample(models.Model):
+class ProcessSample(TrackedModel):
     process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_sample", help_text="Process")
     source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_sample", help_text="Source Sample")
     execution_date = models.DateField(default=timezone.now, help_text="Date of execution of the process.")
@@ -31,6 +32,7 @@ class ProcessSample(models.Model):
 
 
     def clean(self):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):

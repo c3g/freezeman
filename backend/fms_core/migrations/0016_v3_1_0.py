@@ -12,7 +12,7 @@ def create_sample_kinds(apps, schema_editor):
     SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA',
                     'SWAB']
     SampleKind = apps.get_model("fms_core", "SampleKind")
-    SampleKind.objects.bulk_create([SampleKind(name=kind) for kind in SAMPLE_KINDS])
+    SampleKind.objects.create(name=kind) for kind in SAMPLE_KINDS
 
 def copy_samples_kinds(apps, schema_editor):
     Sample = apps.get_model("fms_core", "Sample")
@@ -26,11 +26,9 @@ def copy_samples_kinds(apps, schema_editor):
 
 def initialize_protocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "protocol")
-    Protocol.objects.bulk_create([
-        Protocol(name="Extraction"),
-        Protocol(name="Transfer"),
-        Protocol(name="Update")
-    ])
+    Protocol.objects.create(name="Extraction")
+    Protocol.objects.create(name="Transfer")
+    Protocol.objects.create(name="Update")
 
 def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
@@ -86,6 +84,11 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Biological material collected from study subject during the conduct of a genomic study project.', max_length=200)),
                 ('molecule_ontology_curie', models.CharField(blank=True, help_text='SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’)', max_length=20)),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_samplekind_creation', to=settings.AUTH_USER_MODEL)),
+                ('modified_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_samplekind_modification', to=settings.AUTH_USER_MODEL)),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
         migrations.AddField(
@@ -127,22 +130,33 @@ class Migration(migrations.Migration):
 
         # Migrations related to Process, Protocol and ProcessSample
         migrations.CreateModel(
-            name='Process',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('comment', models.TextField(blank=True, help_text='Relevant information about the process.')),
-            ],
-        ),
-        migrations.CreateModel(
             name='Protocol',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Unique identifier for the protocol.', max_length=200, unique=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_protocol_creation', to=settings.AUTH_USER_MODEL)),
+                ('modified_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_protocol_modification', to=settings.AUTH_USER_MODEL)),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
         migrations.RunPython(
             initialize_protocols,
             migrations.RunPython.noop
+        ),
+        migrations.CreateModel(
+            name='Process',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('protocol', models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol')),
+                ('comment', models.TextField(blank=True, help_text='Relevant information about the process.')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_process_creation', to=settings.AUTH_USER_MODEL)),
+                ('modified_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_process_modification', to=settings.AUTH_USER_MODEL)),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+            ],
         ),
         migrations.CreateModel(
             name='ProcessSample',
@@ -153,12 +167,23 @@ class Migration(migrations.Migration):
                 ('comment', models.TextField(blank=True, help_text='Relevant information about the process info.')),
                 ('process', models.ForeignKey(help_text='Process', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.process')),
                 ('source_sample', models.ForeignKey(help_text='Source Sample', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.sample')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_processsample_creation', to=settings.AUTH_USER_MODEL)),
+                ('modified_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_processsample_modification', to=settings.AUTH_USER_MODEL)),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
-        migrations.AddField(
-            model_name='process',
-            name='protocol',
-            field=models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol'),
+        migrations.CreateModel(
+            name='TransferredSample',
+            fields=[
+            ],
+            options={
+                'proxy': True,
+                'indexes': [],
+                'constraints': [],
+            },
+            bases=('fms_core.sample',),
         ),
 
         # Change Sample reception_date for creation_date
@@ -185,6 +210,11 @@ class Migration(migrations.Migration):
                 ('process_sample', models.ForeignKey(help_text='process used for sample creation',
                                                      on_delete=django.db.models.deletion.PROTECT,
                                                      related_name="lineage", to='fms_core.processsample')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_samplelineage_creation', to=settings.AUTH_USER_MODEL)),
+                ('modified_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('modified_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_samplelineage_modification', to=settings.AUTH_USER_MODEL)),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
         migrations.RenameField(

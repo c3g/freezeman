@@ -3,6 +3,8 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .tracked_model import TrackedModel
+
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
 
@@ -11,7 +13,7 @@ __all__ = ["Protocol"]
 
 
 @reversion.register()
-class Protocol(models.Model):
+class Protocol(TrackedModel):
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the protocol.")
 
     def __str__(self):
@@ -22,6 +24,7 @@ class Protocol(models.Model):
         self.name = str_cast_and_normalize(self.name)
 
     def clean(self):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):
