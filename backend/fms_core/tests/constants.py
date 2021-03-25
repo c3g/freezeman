@@ -30,13 +30,6 @@ def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
         "name": 'test_sample_01',
         "alias": '53',
         "individual": individual,
-        "volume_history": [
-            {
-                "date": "2020-04-15T03:50:45.127218Z",
-                "update_type": "update",
-                "volume_value": "5000"
-            }
-        ],
         "volume": 5000,
         "experimental_group": ['EG01', 'EG02'],
         "collection_site": 'Site1',
@@ -52,13 +45,6 @@ def create_extracted_sample(sample_kind, individual, container, coordinates='', 
         'name': 'test_extracted_sample_01',
         'alias': '12',
         'individual': individual,
-        'volume_history': [
-            {
-                "date": "2020-04-15T03:50:45.127218Z",
-                "update_type": "update",
-                "volume_value": "0"
-            }
-        ],
         'volume': 0,
         'concentration': Decimal('0.01'),
         'experimental_group': ['EG01'],

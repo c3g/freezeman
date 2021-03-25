@@ -24,23 +24,11 @@ export default function renderSampleDiff(oldVersion, newVersion) {
   delete deltas.update_comment;
 
   const items = Object.entries(deltas).map(([key, delta]) => {
-    if (key === "volume_history")
-      return renderVolumeHistoryDelta(key, delta, oldVersion, newVersion);
     if (Array.isArray(delta))
       return renderArrayDelta(key, delta, oldVersion, newVersion);
 
     return renderUnknownDelta(key, delta, oldVersion, newVersion);
   });
-
-  // for (let key in deltas) {
-  //   let delta = deltas[key];
-  //   if (key === 'volume_history')
-  //     items.push(renderVolumeHistoryDelta(key, delta, oldVersion, newVersion));
-  //   else if (Array.isArray(delta))
-  //     items.push(renderArrayDelta(key, delta, oldVersion, newVersion));
-  //   else
-  //     items.push(renderUnknownDelta(key, delta, oldVersion, newVersion));
-  // }
 
   return (
     <div>{items}</div>
@@ -59,59 +47,6 @@ function renderUnknownDelta(name, delta, oldVersion, newVersion) {
   );
 }
 
-function renderVolumeHistoryDelta(name, delta, oldVersion, newVersion) {
-  /*
-   * Array with inner changes:
-   *
-   * delta = {
-   *   _t: 'a',
-   *   index1: innerDelta1,
-   *   index2: innerDelta2,
-   *   index5: innerDelta5
-   * }
-   *
-   * example = {
-   *   '2': [
-   *     {
-   *       update_type: 'update',
-   *       volume_value: '0.001',
-   *       date: '2020-05-25T20:38:33.012121Z'
-   *     }
-   *   ],
-   *   _t: 'a'
-   * }
-   */
-
-  const items = []
-  const volumeHistory = newVersion.fields.volume_history
-
-  for (let key in delta) {
-    if (key === '_t')
-      continue;
-
-    if (/^\d+$/.test(key)) {
-      const index = parseInt(key, 10)
-      const currentVolume = volumeHistory[index]
-      const previousVolume = volumeHistory[index - 1]
-      items.push(
-        <div key={name + '.' + key}>
-          <code>volume:</code>{' '}
-          {
-            previousVolume &&
-              <Tag color="red" style={removedStyle}>{previousVolume.volume_value}</Tag>
-          }
-          <SwapRightOutlined style={arrowStyle} />
-          <Tag color="green" className='diff__added'>{currentVolume.volume_value} ({currentVolume.update_type})</Tag>
-        </div>
-      )
-      continue;
-    }
-
-    items.push(renderUnknownDelta(key));
-  }
-
-  return items;
-}
 
 function renderArrayDelta(name, delta, oldVersion, newVersion) {
 
