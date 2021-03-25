@@ -172,25 +172,28 @@ class ResourcesTestCase(TestCase):
         self.load_samples_extractions()
         # Test first extraction
         s = Sample.objects.get(container__barcode="tube003")
+        self.assertEqual(s.extracted_from.volume, Decimal("9.000"))
         self.assertFalse(s.extracted_from.depleted)
 
     def test_second_sample_extraction_import(self):
         self.load_samples_extractions()
         # Test second extraction
         s = Sample.objects.get(container__barcode="tube004")
+        self.assertEqual(s.extracted_from.volume, Decimal("0.000"))
         self.assertTrue(s.extracted_from.depleted)
 
     def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="newtubefortransfer")
         self.assertEqual(s.volume, Decimal("10.000"))
+        self.assertEqual(s.transferred_from.volume, Decimal("0"))
 
 
     def test_sample_transfer_to_existing_container(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="plate001", coordinates="B01")
         self.assertEqual(s.volume, Decimal("2.000"))
-
+        self.assertEqual(s.transferred_from.volume, Decimal("13"))
 
     def test_sample_update(self):
         self.load_samples()
