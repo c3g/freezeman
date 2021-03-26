@@ -8,7 +8,6 @@ import fms_core.schema_validators
 
 def init_tracking_importedfile(apps, schema_editor):
     ImportedFile = apps.get_model("fms_core", "ImportedFile")
-
     for entry in ImportedFile.objects.all().iterator():
         entry.created_at = entry.added
         entry.created_by = entry.imported_by
@@ -24,18 +23,37 @@ def init_tracking(apps, schema_editor):
     # Preloading in a dictionary information needed about Revisions
     revisions_dictionary = {}
     for revision in Revision.objects.values('pk', 'user_id', 'date_created'):
-        revisions_dictionary[revision['pk']] = {'user_id': revision['user_id'], 'date_created': revision['date_created']}
-    
-    # Import version information for containers
-    for container in Container.objects.all().iterator()
-        versions = Version.get_for_object(container)
+        revisions_dictionary[revision['pk']] = {'user_id': revision['user_id'], 'revision_date': revision['date_created']}
+
+    for container in Container.objects.all().iterator():
+        versions = Version.objects.filter(content_type__model="container", object_id=container.id)
         first_version = versions.last()
         latest_version = versions.first()
-        container.created_at = revisions_dictionary[latest_version.revision_id].date_created
-        container.created_by = revisions_dictionary[latest_version.revision_id].user_id
-        container.modified_at = revisions_dictionary[latest_version.revision_id].date_created
-        container.modified_by = revisions_dictionary[latest_version.revision_id].user_id
+        container.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+        container.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+        container.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+        container.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
         container.save()
+
+    for individual in Individual.objects.all().iterator():
+        versions = Version.objects.filter(content_type__model="individual", object_id=individual.id)
+        first_version = versions.last()
+        latest_version = versions.first()
+        individual.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+        individual.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+        individual.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+        individual.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
+        individual.save()
+
+    for sample in Sample.objects.all().iterator():
+        versions = Version.objects.filter(content_type__model="sample", object_id=sample.id)
+        first_version = versions.last()
+        latest_version = versions.first()
+        sample.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+        sample.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+        sample.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+        sample.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
+        sample.save()
 
 class Migration(migrations.Migration):
 
@@ -63,12 +81,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='importedfile',
-            name='modified_at',
+            name='updated_at',
             field=models.DateTimeField(auto_now=True, help_text='Date the instance was modified.'),
         ),
         migrations.AddField(
             model_name='importedfile',
-            name='modified_by',
+            name='updated_by',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_importedfile_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.RunPython(
@@ -107,12 +125,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='container',
-            name='modified_at',
+            name='updated_at',
             field=models.DateTimeField(auto_now=True, help_text='Date the instance was modified.'),
         ),
         migrations.AddField(
             model_name='container',
-            name='modified_by',
+            name='updated_by',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_container_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
@@ -132,12 +150,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='individual',
-            name='modified_at',
+            name='updated_at',
             field=models.DateTimeField(auto_now=True, help_text='Date the instance was modified.'),
         ),
         migrations.AddField(
             model_name='individual',
-            name='modified_by',
+            name='updated_by',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
@@ -157,17 +175,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='sample',
-            name='modified_at',
+            name='updated_at',
             field=models.DateTimeField(auto_now=True, help_text='Date the instance was modified.'),
         ),
-        migrations.AddField(s_related
+        migrations.AddField(
             model_name='sample',
-            name='modified_by',
+            name='updated_by',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.RunPython(
-            init_tracking,
-            reverse_code=migrations.RunPython.noop,
         ),
         migrations.AlterField(
             model_name='container',
@@ -183,6 +197,10 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='created_at',
             field=models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.'),
+        ),
+        migrations.RunPython(
+            init_tracking,
+            reverse_code=migrations.RunPython.noop,
         ),
 
     ]
