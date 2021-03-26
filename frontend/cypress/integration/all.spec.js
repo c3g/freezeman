@@ -27,10 +27,6 @@ const navigateTo = (section, button) => {
     cy.get('button').contains(button).click()
 }
 
-const navigateToMenuItem = (item) => {
-  cy.get('.ant-layout-sider-children').contains(item).click()
-}
-
 const submit = () =>
   cy.get('button').contains('Submit').click()
 
@@ -62,7 +58,7 @@ context('All tests', () => {
     })
 
     it('visit container detail page', () => {
-       navigateToMenuItem('Containers')
+       navigateTo('Containers')
        cy.get('.ant-table-cell').contains(singleContainerBarcode).click()
        cy.get('body').should('contain', `Container ${singleContainerBarcode}`)
     })
@@ -88,8 +84,9 @@ context('All tests', () => {
     })
 
     it('visits sample detail page', () => {
+      // Sample from template import
       const sampleName = 'Sample_DNA1'
-      navigateToMenuItem('Samples')
+      navigateTo('Samples')
       cy.get('.ant-table').contains(sampleName).click()
       cy.get('body').should('contain', `Sample ${sampleName}`)
     })
@@ -113,7 +110,7 @@ context('All tests', () => {
     })
 
     it('visits process detail page', () => {
-       navigateToMenuItem('Protocols')
+       navigateTo('Protocols')
        cy.get('.anticon-eye').first().parent('a').click()
        cy.get('body').should('contain', `Process`)
     })
