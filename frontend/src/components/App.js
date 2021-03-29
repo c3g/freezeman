@@ -111,6 +111,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   const isLoggedIn = userID !== null;
   const menuItems = getMenuItems(user, logOut);
 
+  useEffect(onDidMount, []);
+
   return (
     <Layout style={{height: "100vh"}}>
       <Layout>
@@ -123,7 +125,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             collapsedWidth={80}
             width={224}
           >
-              <Title style={titleStyle} className="App__title" onTransitionEnd={didTransition}>
+              <Title style={titleStyle} className="App__title">
                 <div>
                   <b>F</b><span>reeze</span><b>M</b><span>an</span>
                 </div>
@@ -190,12 +192,8 @@ export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
 
 // Helpers
 
-function didTransition(ev) {
-  const element = ev.target
-  if (!element.classList.contains('App__title'))
-    return
-  if (element.matches('.ant-layout-sider-collapsed h1'))
-    element.classList.add('did-enter')
-  else if (element.matches('.did-enter'))
-    element.classList.remove('did-enter')
+function onDidMount() {
+  const title = document.querySelector('.App__title')
+  const span = title.querySelectorAll('span')[0]
+  span.style.width = span.getBoundingClientRect().width + 'px'
 }

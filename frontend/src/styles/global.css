@@ -2,7 +2,6 @@
  * global.css
  */
 
-
 /* Disable auto-fill background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -36,14 +35,6 @@ select:-webkit-autofill:focus {
   margin:  12px;
   padding: 12px;
   border: 2px solid transparent;
-  transition: all 500ms ease-in-out 350ms;
-}
-.ant-layout-sider-collapsed .App__title div {
-  transform: rotate(720deg);
-}
-.ant-layout-sider-collapsed .App__title.did-enter div {
-  transform: initial;
-  transition: border-radius 50ms;
 }
 .App__title::after {
   content: '';
@@ -60,16 +51,12 @@ select:-webkit-autofill:focus {
 .ant-layout-sider-collapsed .App__title::after {
   border-color: white;
 }
-.ant-layout-sider-collapsed .App__title.did-enter::after {
-  transition: all 150ms;
-}
 .App__title span {
   display: inline-block;
-  width: 45px;
   transition: all 350ms;
 }
 .ant-layout-sider-collapsed .App__title span {
-  width: 0;
+  width: 0 !important;
   opacity: 0;
 }
 .App__sidebar .ant-layout-sider-children > ul:first-of-type {
