@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='importedfile',
             name='created_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_importedfile_creation', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_importedfile_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='importedfile',
@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='importedfile',
             name='updated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_importedfile_modification', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_importedfile_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.RunPython(
             init_tracking_importedfile,
@@ -116,7 +116,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='container',
             name='created_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_container_creation', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_container_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='container',
@@ -126,12 +126,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='container',
             name='updated_at',
-            field=models.DateTimeField(auto_now=True, help_text='Date the instance was modified.'),
+            field=models.DateTimeField(auto_now=True, blank=True, help_text='Date the instance was modified.'),
         ),
         migrations.AddField(
             model_name='container',
             name='updated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_container_modification', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_container_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='individual',
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='individual',
             name='created_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_individual_creation', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_individual_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='individual',
@@ -156,7 +156,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='individual',
             name='updated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='sample',
@@ -166,7 +166,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sample',
             name='created_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_creation', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='sample',
@@ -181,7 +181,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sample',
             name='updated_by',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.RunPython(
             init_tracking,
