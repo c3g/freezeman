@@ -23,12 +23,12 @@ const mapStateToProps = state => ({
   isFetching: state.users.isFetching,
   user: state.users.itemsByID[state.auth.currentUserID],
   error: state.users.error,
-  groups: Object.values(state.groups.itemsByID),
+  groupsByID: state.groups.itemsByID,
 });
 
 const actionCreators = {updateSelf};
 
-const ProfileContent = ({isFetching, groups, user, error, updateSelf}) => {
+const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
   const history = useHistory();
   const [state, setState] = useState({ message: undefined, success: undefined });
 
@@ -149,7 +149,8 @@ const ProfileContent = ({isFetching, groups, user, error, updateSelf}) => {
               <Input />
             </Form.Item>
             <Form.Item label="Groups">
-              {groups.map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>)}
+              {user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>)}
+              {user?.groups.length === 0 && 'None'}
             </Form.Item>
             <Form.Item label="Is Staff">
               {user?.is_staff ? 'Yes': 'No'}
