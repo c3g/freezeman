@@ -418,9 +418,7 @@ class ImportedFileAdmin(admin.ModelAdmin):
     list_display_links = None
 
     list_display = (
-        "file",
-        "added",
-        "imported_by",
+        "file"
     )
 
     # noinspection PyMethodMayBeStatic
