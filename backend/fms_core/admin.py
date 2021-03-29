@@ -417,9 +417,9 @@ class ImportedFileAdmin(admin.ModelAdmin):
     actions = None
     list_display_links = None
 
-    list_display = (
+    list_display = [
         "file"
-    )
+    ]
 
     # noinspection PyMethodMayBeStatic
     def file(self, obj):

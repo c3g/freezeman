@@ -183,6 +183,10 @@ class Migration(migrations.Migration):
             name='updated_by',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
         ),
+        migrations.RunPython(
+            init_tracking,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name='container',
             name='created_at',
@@ -197,10 +201,6 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='created_at',
             field=models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.'),
-        ),
-        migrations.RunPython(
-            init_tracking,
-            reverse_code=migrations.RunPython.noop,
         ),
 
     ]
