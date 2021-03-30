@@ -3,14 +3,18 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.auth.models import User
 import django.utils.timezone
 import fms_core.schema_validators
+
+ADMIN_USER_ID = User.objects.get(username="biobankadmin").id
 
 def init_tracking_importedfile(apps, schema_editor):
     ImportedFile = apps.get_model("fms_core", "ImportedFile")
     for entry in ImportedFile.objects.all().iterator():
         entry.created_at = entry.added
         entry.created_by = entry.imported_by
+        entry.updated_by_id = ADMIN_USER_ID
         entry.save()
 
 def init_tracking(apps, schema_editor):
@@ -187,6 +191,8 @@ class Migration(migrations.Migration):
             init_tracking,
             reverse_code=migrations.RunPython.noop,
         ),
+
+        # Modify created_at with auto_add_now=True for Container, Individual and Sample
         migrations.AlterField(
             model_name='container',
             name='created_at',
@@ -202,5 +208,116 @@ class Migration(migrations.Migration):
             name='created_at',
             field=models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.'),
         ),
+
+        # Modify created_by and updated_by for each Model
+        migrations.AlterField(
+            model_name='importedfile',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT,
+                                    related_name='fms_core_importedfile_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='importedfile',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT,
+                                    related_name='fms_core_importedfile_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_sample_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='container',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_container_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='container',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_container_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='individual',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_individual_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='individual',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='samplekind',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_samplekind_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='samplekind',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_samplekind_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='protocol',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_protocol_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='protocol',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_protocol_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='process',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_process_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='process',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_process_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='processsample',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_processsample_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='processsample',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_processsample_modification', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='created_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_samplelineage_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='updated_by',
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
+                                    related_name='fms_core_samplelineage_modification', to=settings.AUTH_USER_MODEL),
+        ),
+
 
     ]
