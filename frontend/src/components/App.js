@@ -194,6 +194,8 @@ export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
 
 function onDidMount() {
   const title = document.querySelector('.App__title')
-  const span = title.querySelectorAll('span')[0]
-  span.style.width = span.getBoundingClientRect().width + 'px'
+  if (title) {
+    const span = title.querySelectorAll('span')[0]
+    span.style.width = span.getBoundingClientRect().width + 'px'
+  }
 }
