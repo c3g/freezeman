@@ -120,8 +120,8 @@ class Migration(migrations.Migration):
             move_volume_history_to_update_process,
             migrations.RunPython.noop
         ),
-        migrations.RemoveField(
-            model_name='sample',
-            name='volume_history',
-        ),
+        # migrations.RemoveField(
+        #     model_name='sample',
+        #     name='volume_history',
+        # ),
     ]

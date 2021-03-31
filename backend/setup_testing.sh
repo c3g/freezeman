@@ -53,11 +53,5 @@ export DJANGO_SUPERUSER_PASSWORD=secret
 export DJANGO_SUPERUSER_EMAIL=user@example.com
 python "$__dirname/manage.py" createsuperuser --noinput
 
-echo "Creating biobank admin user"
-export DJANGO_SUPERUSER_USERNAME=biobankadmin
-export DJANGO_SUPERUSER_PASSWORD=secret
-export DJANGO_SUPERUSER_EMAIL=biobankadmin@example.com
-python "$__dirname/manage.py" createsuperuser --noinput
-
 echo "Running server with database $PG_DATABASE"
 python "$__dirname/manage.py" $django_command

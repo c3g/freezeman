@@ -10,6 +10,10 @@ import django.utils.timezone
 import fms_core.schema_validators
 import re
 
+def create_admin_user(apps, schema_editor):
+    User = apps.get_model('auth', 'User')
+    User.objects.create(username="biobankadmin")
+
 
 class Migration(migrations.Migration):
 
@@ -20,6 +24,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            create_admin_user,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.CreateModel(
             name='Container',
             fields=[

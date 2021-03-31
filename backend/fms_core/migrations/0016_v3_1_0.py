@@ -9,7 +9,7 @@ import json
 from ..utils import float_to_decimal
 
 
-ADMIN_USER_ID = User.objects.get(username="biobankadmin").id
+# ADMIN_USER_ID = User.objects.get(username="biobankadmin").id
 
 
 def create_sample_kinds(apps, schema_editor):
@@ -90,9 +90,9 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(help_text='Biological material collected from study subject during the conduct of a genomic study project.', max_length=200)),
                 ('molecule_ontology_curie', models.CharField(blank=True, help_text='SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’)', max_length=20)),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('created_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_samplekind_creation', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_samplekind_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('updated_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_samplekind_modification', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_samplekind_modification', to=settings.AUTH_USER_MODEL)),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
@@ -140,9 +140,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Unique identifier for the protocol.', max_length=200, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('created_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_protocol_creation', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_protocol_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('updated_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_protocol_modification', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_protocol_modification', to=settings.AUTH_USER_MODEL)),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
@@ -157,9 +157,9 @@ class Migration(migrations.Migration):
                 ('protocol', models.ForeignKey(help_text='Protocol', on_delete=django.db.models.deletion.PROTECT, related_name='processes', to='fms_core.protocol')),
                 ('comment', models.TextField(blank=True, help_text='Relevant information about the process.')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('created_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_process_creation', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_process_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('updated_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_process_modification', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(null=True, blank=True,  on_delete=models.PROTECT, related_name='fms_core_process_modification', to=settings.AUTH_USER_MODEL)),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
@@ -173,9 +173,9 @@ class Migration(migrations.Migration):
                 ('process', models.ForeignKey(help_text='Process', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.process')),
                 ('source_sample', models.ForeignKey(help_text='Source Sample', on_delete=django.db.models.deletion.PROTECT, related_name='process_sample', to='fms_core.sample')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('created_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_processsample_creation', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_processsample_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('updated_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_processsample_modification', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_processsample_modification', to=settings.AUTH_USER_MODEL)),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
@@ -216,9 +216,9 @@ class Migration(migrations.Migration):
                                                      on_delete=django.db.models.deletion.PROTECT,
                                                      related_name="lineage", to='fms_core.processsample')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('created_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_samplelineage_creation', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_samplelineage_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('updated_by', models.ForeignKey(null=False, blank=True, default=ADMIN_USER_ID, on_delete=models.PROTECT, related_name='fms_core_samplelineage_modification', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT, related_name='fms_core_samplelineage_modification', to=settings.AUTH_USER_MODEL)),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
             ],
         ),
