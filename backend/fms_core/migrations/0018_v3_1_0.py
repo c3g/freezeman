@@ -6,6 +6,7 @@ import django.db.models.deletion
 from django.contrib.auth.models import User
 import django.utils.timezone
 import fms_core.schema_validators
+import reversion
 
 ADMIN_USER_ID = User.objects.get(username="biobankadmin").id
 
@@ -29,35 +30,42 @@ def init_tracking(apps, schema_editor):
     for revision in Revision.objects.values('pk', 'user_id', 'date_created'):
         revisions_dictionary[revision['pk']] = {'user_id': revision['user_id'], 'revision_date': revision['date_created']}
 
-    for container in Container.objects.all().iterator():
-        versions = Version.objects.filter(content_type__model="container", object_id=container.id)
-        first_version = versions.last()
-        latest_version = versions.first()
-        container.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
-        container.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
-        container.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
-        container.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
-        container.save()
+    # Create a version for each entity with the new tracking fields
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Addition of tracking fields.")
 
-    for individual in Individual.objects.all().iterator():
-        versions = Version.objects.filter(content_type__model="individual", object_id=individual.id)
-        first_version = versions.last()
-        latest_version = versions.first()
-        individual.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
-        individual.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
-        individual.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
-        individual.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
-        individual.save()
+        for container in Container.objects.all().iterator():
+            versions = Version.objects.filter(content_type__model="container", object_id=container.id)
+            first_version = versions.last()
+            latest_version = versions.first()
+            container.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+            container.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+            container.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+            container.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
+            container.save()
+            reversion.add_to_revision(container)
 
-    for sample in Sample.objects.all().iterator():
-        versions = Version.objects.filter(content_type__model="sample", object_id=sample.id)
-        first_version = versions.last()
-        latest_version = versions.first()
-        sample.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
-        sample.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
-        sample.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
-        sample.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
-        sample.save()
+        for individual in Individual.objects.all().iterator():
+            versions = Version.objects.filter(content_type__model="individual", object_id=individual.id)
+            first_version = versions.last()
+            latest_version = versions.first()
+            individual.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+            individual.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+            individual.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+            individual.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
+            individual.save()
+            reversion.add_to_revision(individual)
+
+        for sample in Sample.objects.all().iterator():
+            versions = Version.objects.filter(content_type__model="sample", object_id=sample.id)
+            first_version = versions.last()
+            latest_version = versions.first()
+            sample.created_at = revisions_dictionary[first_version.revision_id]['revision_date']
+            sample.created_by_id = revisions_dictionary[first_version.revision_id]['user_id']
+            sample.updated_at = revisions_dictionary[latest_version.revision_id]['revision_date']
+            sample.updated_by_id = revisions_dictionary[latest_version.revision_id]['user_id']
+            sample.save()
+            reversion.add_to_revision(sample)
 
 class Migration(migrations.Migration):
 
