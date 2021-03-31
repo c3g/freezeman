@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from crum import get_current_user
 
+ADMIN_USERNAME='biobankadmin'
 
 class TrackedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, help_text="Date the instance was created.")
@@ -17,7 +18,7 @@ class TrackedModel(models.Model):
     def save(self, *args, **kwargs):
         user = get_current_user()
         if not user or (user and not user.pk):
-            user = User.objects.get(username=ADMIN_USER)
+            user = User.objects.get(username=ADMIN_USERNAME)
         # if the instance has not been saved to the DB yet
         if not self.id:
             # initialize the user that create the object.
@@ -31,7 +32,7 @@ class TrackedModel(models.Model):
         # Set modified by user
         user = get_current_user()
         if user and not user.pk:
-            user = User.objects.get(username=ADMIN_USER)
+            user = User.objects.get(username=ADMIN_USERNAME)
         self.updated_by = user
         # Record the instance as deleted
         self.deleted = True
