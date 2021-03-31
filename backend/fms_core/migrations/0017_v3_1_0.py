@@ -121,5 +121,4 @@ class Migration(migrations.Migration):
             migrations.RunPython.noop
         ),
 
-
     ]

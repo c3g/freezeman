@@ -187,6 +187,8 @@ class Migration(migrations.Migration):
             name='updated_by',
             field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.SET_NULL, related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
         ),
+
+        # Migration operation for extracting data from reversion and putting it into new tracking fields
         migrations.RunPython(
             init_tracking,
             reverse_code=migrations.RunPython.noop,
@@ -258,66 +260,5 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AlterField(
-            model_name='samplekind',
-            name='created_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_samplekind_creation', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='samplekind',
-            name='updated_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_samplekind_modification', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='protocol',
-            name='created_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_protocol_creation', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='protocol',
-            name='updated_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_protocol_modification', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='process',
-            name='created_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_process_creation', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='process',
-            name='updated_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_process_modification', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='processsample',
-            name='created_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_processsample_creation', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='processsample',
-            name='updated_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_processsample_modification', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='samplelineage',
-            name='created_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_samplelineage_creation', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.AlterField(
-            model_name='samplelineage',
-            name='updated_by',
-            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
-                                    related_name='fms_core_samplelineage_modification', to=settings.AUTH_USER_MODEL),
-        ),
-
 
     ]
