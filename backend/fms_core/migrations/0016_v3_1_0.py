@@ -9,15 +9,13 @@ import json
 from ..utils import float_to_decimal
 
 
-# ADMIN_USER_ID = User.objects.get(username="biobankadmin").id
-
-
 def create_sample_kinds(apps, schema_editor):
     SampleKind = apps.get_model("fms_core", "SampleKind")
+    admin_id = User.objects.get(username="biobankadmin").id
     SAMPLE_KINDS = ['DNA', 'RNA', 'BAL', 'BIOPSY', 'BLOOD', 'CELLS', 'EXPECTORATION', 'GARGLE', 'PLASMA', 'SALIVA',
                     'SWAB']
     for kind in SAMPLE_KINDS:
-        SampleKind.objects.create(name=kind)
+        SampleKind.objects.create(name=kind, created_by_id=admin_id, updated_by_id=admin_id)
 
 def copy_samples_kinds(apps, schema_editor):
     Sample = apps.get_model("fms_core", "Sample")
@@ -31,9 +29,10 @@ def copy_samples_kinds(apps, schema_editor):
 
 def initialize_protocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "protocol")
-    Protocol.objects.create(name="Extraction")
-    Protocol.objects.create(name="Transfer")
-    Protocol.objects.create(name="Update")
+    admin_id = User.objects.get(username="biobankadmin").id
+    protocols_names = ["Extraction", "Transfer", "Update"]
+    for name in protocols_names:
+        Protocol.objects.create(name=name, created_by_id=admin_id, updated_by_id=admin_id)
 
 def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     sample_model = apps.get_model("fms_core", "sample")
@@ -44,6 +43,8 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
     revision_model = apps.get_model("reversion", "revision")
     version_model = apps.get_model("reversion", "version")
 
+    admin_id = User.objects.get(username="biobankadmin").id
+
     extraction_protocol = protocol_model.objects.get(name="Extraction")
     extracted_samples_info = {}
 
@@ -52,7 +53,10 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
                                                          content_type__model="sample",
                                                          object_repr__icontains="(extracted, ")
         if extracted_samples:
-            pr = process_model.objects.create(protocol=extraction_protocol, comment="Created from old extraction data.")
+            pr = process_model.objects.create(protocol=extraction_protocol,
+                                              comment="Created from old extraction data.",
+                                              created_by_id=admin_id,
+                                              updated_by_id=admin_id)
             for sample in extracted_samples:
                 data = json.loads(sample.serialized_data)
                 comment = data[0]["fields"].pop("comment", "")
@@ -67,10 +71,12 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
                                                          source_sample=sample.old_extracted_from,
                                                          execution_date=sample.creation_date,
                                                          volume_used=sample.volume_used,
-                                                         comment=process_sample_info["comment"])
+                                                         comment=process_sample_info["comment"],
+                                                         created_by_id=admin_id, updated_by_id=admin_id)
                 sample_lineage_model.objects.create(parent=sample.old_extracted_from,
                                                     child=sample,
-                                                    process_sample=ps)
+                                                    process_sample=ps,
+                                                    created_by_id=admin_id, updated_by_id=admin_id)
             else:
                 raise
 

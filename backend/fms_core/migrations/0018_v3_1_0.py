@@ -11,11 +11,11 @@ import reversion
 
 def init_tracking_importedfile(apps, schema_editor):
     ImportedFile = apps.get_model("fms_core", "ImportedFile")
-    admin = User.objects.get(username="biobankadmin").id
+    admin_id = User.objects.get(username="biobankadmin").id
     for entry in ImportedFile.objects.all().iterator():
         entry.created_at = entry.added
         entry.created_by = entry.imported_by
-        entry.updated_by_id = admin.id
+        entry.updated_by_id = admin_id
         entry.save()
 
 def init_tracking(apps, schema_editor):

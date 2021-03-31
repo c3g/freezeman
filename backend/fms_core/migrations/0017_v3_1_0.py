@@ -125,8 +125,4 @@ class Migration(migrations.Migration):
             handle_sample_versions,
             migrations.RunPython.noop
         ),
-        # migrations.RemoveField(
-        #     model_name='sample',
-        #     name='volume_history',
-        # ),
     ]
