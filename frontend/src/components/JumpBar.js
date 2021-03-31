@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState, useRef} from "react";
 import {connect} from "react-redux";
 import {useHistory} from "react-router-dom";
 import {
@@ -41,6 +41,7 @@ const JumpBar = (props) => {
   const [isFetching, setIsFetching] = useState(false);
   const [items, setItems] = useState(lastItems);
   const history = useHistory();
+  const selectRef = useRef();
 
   const search = useMemo(() => debounce(150, query => {
     setValue(null)
@@ -68,6 +69,7 @@ const JumpBar = (props) => {
     pushItem(item)
     setItems(lastItems)
     history.push(path)
+    selectRef.current?.blur()
   }
 
   const onSearch = value => {
@@ -78,19 +80,31 @@ const JumpBar = (props) => {
       clear();
   }
 
+  useEffect(() => {
+    const handler = ev => {
+      if (ev.ctrlKey && ev.code === 'KeyK') {
+        ev.preventDefault()
+        selectRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
   return <>
     <Select
       showSearch
       showArrow
       filterOption={false}
       dropdownMatchSelectWidth={false}
-      placeholder="Jump to..."
+      placeholder="Jump to... [Ctrl + K]"
       size="medium"
       style={style}
       loading={isFetching}
       value={value}
       onChange={onChange}
       onSearch={onSearch}
+      ref={selectRef}
     >
       {(value === '' ? lastItems : items).map(item => renderItem(item, props))}
     </Select>
