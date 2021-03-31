@@ -44,17 +44,23 @@ context('All tests', () => {
   })
 
   context('Containers', () => {
+    const singleContainerBarcode = 'test-container-add';
     it('creates single container', () => {
       navigateTo('Container', 'Add')
-      const name = 'test-container-add'
       const comment = 'This is a comment.'
-      cy.get('#name').type(name)
+      cy.get('#name').type(singleContainerBarcode)
       cy.get('#kind').click()
       cy.get('.ant-select-dropdown .ant-select-item-option').first().click()
-      cy.get('#barcode').type(name)
+      cy.get('#barcode').type(singleContainerBarcode)
       cy.get('#comment').type(comment)
       submit()
       cy.get('body').should('contain', `Container ${name}`) // Details title
+    })
+
+    it('visit container detail page', () => {
+       navigateTo('Containers')
+       cy.get('.ant-table-cell').contains(singleContainerBarcode).click()
+       cy.get('body').should('contain', `Container ${singleContainerBarcode}`)
     })
 
     it('creates multiple containers (template import)', () => {
@@ -76,6 +82,14 @@ context('All tests', () => {
       cy.get('button').contains('Go Back').click()
       // cy.get('body').should('contain', '1-8 of 8 items')
     })
+
+    it('visits sample detail page', () => {
+      // Sample from template import
+      const sampleName = 'Sample_DNA1'
+      navigateTo('Samples')
+      cy.get('.ant-table').contains(sampleName).click()
+      cy.get('body').should('contain', `Sample ${sampleName}`)
+    })
   })
 
   context('Protocols', () => {
@@ -86,12 +100,19 @@ context('All tests', () => {
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
     })
+
     it('extract samples (template import)', () => {
       navigateTo('Protocols', 'Process Extractions')
       cy.get('input[type=file]').attachFile('Extraction_v0.9.xlsx')
       submit()
       cy.get('.ant-alert-success').should('contain', 'Template submitted')
       cy.get('button').contains('Go Back').click()
+    })
+
+    it('visits process detail page', () => {
+       navigateTo('Protocols')
+       cy.get('.anticon-eye').first().parent('a').click()
+       cy.get('body').should('contain', `Process`)
     })
   })
 

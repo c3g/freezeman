@@ -332,17 +332,10 @@ function serialize(values) {
   if (newValues.container)
     newValues.container = Number(newValues.container)
 
-  if (typeof newValues.volume === 'number') {
-    newValues.volume_history = [{
-      date: new Date().toISOString(),
-      update_type: "update",
-      volume_value: String(newValues.volume),
-    }]
-    delete newValues.volume
-  }
-  if (!newValues.volume_history) {
-    newValues.volume_history = []
-  }
+  // We should not be able to modify the volume in the Sample directly yet
+  // if (newValues.volume) {
+  //   newValues.volume = Number(newValues.container)
+  // }
 
   return newValues
 }

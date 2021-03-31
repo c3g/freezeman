@@ -12,10 +12,8 @@ from ..containers import (
 )
 from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
-    VolumeHistoryUpdateType,
     blank_str_to_none,
     check_truth_like,
-    create_volume_history,
     float_to_decimal,
     get_normalized_str,
 )
@@ -34,7 +32,7 @@ class ExtractionResource(GenericResource):
     location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
                      widget=ForeignKeyWidget(Container, field='barcode'))
     location_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Nucleic Acid Location Coord')
-    volume_history = Field(attribute='volume_history', widget=JSONWidget())
+    volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     creation_date = Field(attribute='creation_date', column_name='Extraction Date', widget=DateWidget())
@@ -52,7 +50,6 @@ class ExtractionResource(GenericResource):
             'container',
             'individual',
             'child_of',
-            'volume_history',
             'comment',
         )
         export_order = (
@@ -62,7 +59,6 @@ class ExtractionResource(GenericResource):
             'container',
             'location',
             'location_coordinates',
-            'volume_history',
             'concentration',
             'source_depleted',
             'creation_date',
@@ -100,18 +96,9 @@ class ExtractionResource(GenericResource):
         if field.attribute == "sample_kind_name":
             obj.sample_kind = SampleKind.objects.get(name=data["Extraction Type"])
 
-        if field.attribute == 'volume_history':
-            # We store volume as a JSON object of historical values, so this
-            # needs to be initialized in a custom way. In this case we are
-            # initializing the volume history of the EXTRACTED sample, so the
-            # actual history entry is of the "normal" type (UPDATE).
+        if field.attribute == 'volume':
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
             obj.volume = float_to_decimal(vol)
-
-            obj.volume_history = [create_volume_history(
-                VolumeHistoryUpdateType.UPDATE,
-                str(obj.volume) if vol is not None else ""
-            )]
             return
 
         if field.attribute == 'container':
@@ -180,6 +167,7 @@ class ExtractionResource(GenericResource):
             data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
             self.volume_used = data["Volume Used (uL)"]
             self.extracted_from.volume -= self.volume_used
+
         
         if field.column_name == "Comment":
             # Normalize extraction comment
@@ -206,15 +194,7 @@ class ExtractionResource(GenericResource):
         super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
-        # Update volume and depletion status of original sample, thus recording
-        # that the volume was reduced by an extraction process, including an ID
-        # to refer back to the extracted sample.
-        self.extracted_from.volume_history.append(create_volume_history(
-            VolumeHistoryUpdateType.EXTRACTION,
-            self.extracted_from.volume,
-            instance.id
-        ))
-
+        # Update depletion status of original sample
         self.extracted_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)

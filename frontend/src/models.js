@@ -34,7 +34,7 @@ export const sample = {
   name: "",
   alias: "",
   sample_kind: null,
-  volume_history: null, // 
+  volume: null, //
   concentration: null,
   depleted: false,
   experimental_group: null, // string[]
@@ -55,13 +55,7 @@ export const sample = {
 //     sample_kind: 1,
 //     name: "0110",
 //     alias: "",
-//     volume_history: [
-//         {
-//             date: "2020-06-16T14:05:30.346822Z",
-//             update_type: "update",
-//             volume_value: "200.000"
-//         }
-//     ],
+//     volume: "200.000"
 //     concentration: "31.448",
 //     depleted: false,
 //     experimental_group: [],

@@ -14,9 +14,7 @@ from ..containers import (
 from ..models import Container, Individual, Sample, SampleKind
 from ..utils import (
     RE_SEPARATOR,
-    VolumeHistoryUpdateType,
     blank_str_to_none,
-    create_volume_history,
     float_to_decimal,
     get_normalized_str,
     normalize_scientific_name,
@@ -91,7 +89,7 @@ class SampleResource(GenericResource):
             "collection_site",
             "container__barcode",
         )
-        excluded = ("volume_history", "individual", "depleted", "container")
+        excluded = ("individual", "depleted", "container")
         export_order = (
             "sample_kind",
             "name",
@@ -181,11 +179,6 @@ class SampleResource(GenericResource):
 
         obj.volume = vol
 
-        # We store volume as a JSON object of historical values, so this needs to be initialized in a custom way.
-        obj.volume_history = [create_volume_history(
-            VolumeHistoryUpdateType.UPDATE,
-            str(float_to_decimal(vol)) if vol is not None else ""
-        )]
 
     def import_field(self, field, obj, data, is_m2m=False):
         # Ugly hacks lie below

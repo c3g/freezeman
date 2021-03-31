@@ -139,7 +139,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
           </Descriptions.Item>
           <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
           <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
-
+          <Descriptions.Item label="Update Comment" span={3}>{sample.update_comment}</Descriptions.Item>
           {/*TODO: Extracted from*/}
       </Descriptions>
 
