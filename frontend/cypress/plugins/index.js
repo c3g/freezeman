@@ -20,8 +20,45 @@ module.exports = (on, config) => {
   // `config` is the resolved Cypress config
 
   require('cypress-fail-fast/plugin')(on, config)
+  const { exec, spawn } = require("child_process");
+
+  const cmdError = (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    if (stdout) {
+        console.log(`stdout: ${stdout}`);
+    }
+  }
+
+  var backend = undefined
+  var frontend = undefined
 
   on('task', {
     'log': console.log,
+  })
+
+
+  on('before:run', (details) => {
+    // Create test DB
+    exec("./cypress/plugins/init_db.sh", cmdError);
+    // Start Backend
+    backend=spawn("./cypress/plugins/start_backend.sh", {shell: true})
+    // Start Frontend
+    frontend=spawn("npm", ["start"])
+  })
+
+  on('after:run', (details) => {
+    // Stop the frontend
+    frontend.kill(9)
+    // Stop the backend
+    backend.kill(9)
+    // Remove the fms_test DB
+    exec("psql -d fms -c 'DROP DATABASE IF EXISTS fms_test;'", cmdError);
   })
 }
