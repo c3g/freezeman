@@ -603,7 +603,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         for eg in Sample.objects.values_list("experimental_group", flat=True):
             experimental_groups.update(eg)
 
-        
+
         return Response({
             "total_count": Sample.objects.all().count(),
             "kinds_counts": {
@@ -773,7 +773,8 @@ class UserViewSet(viewsets.ModelViewSet):
         Updates the user's own data, excluding permission fields
         """
         data = request.data
-        if "groups" in data or "is_staff" in data or "is_superuser" in data:
+        restricted_fields = ["groups", "is_staff", "is_superuser", "username", "email"]
+        if any([field in data for field in restricted_fields]):
             return Response({
                 "ok": False,
                 "detail": "Forbidden field",

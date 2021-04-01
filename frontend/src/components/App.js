@@ -21,6 +21,7 @@ import DashboardPage from "./DashboardPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessesPage from "./processes/ProcessesPage";
+import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
@@ -32,6 +33,12 @@ import {logOut} from "../modules/auth/actions";
 const { Title } = Typography;
 
 const getMenuItems = (user, logOut) => [
+  {
+    key: "profile-link",
+    icon: <UserOutlined />,
+    text: `Profile`,
+    url: "/profile",
+  },
   {
     key: "sign-out-link",
     icon: <LogoutOutlined />,
@@ -83,7 +90,7 @@ const titleStyle = {
   fontWeight: 900,
   fontSize: "18px",
   lineHeight: "unset",
-  padding: "1em 24px 0",
+  padding: 0,
   margin: 0,
 };
 
@@ -104,6 +111,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   const isLoggedIn = userID !== null;
   const menuItems = getMenuItems(user, logOut);
 
+  useEffect(onDidMount, []);
+
   return (
     <Layout style={{height: "100vh"}}>
       <Layout>
@@ -117,7 +126,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             width={224}
           >
               <Title style={titleStyle} className="App__title">
-                FreezeMan
+                <div>
+                  <b>F</b><span>reeze</span><b>M</b><span>an</span>
+                </div>
               </Title>
               {isLoggedIn &&
                 <div className='App__jumpBar'>
@@ -166,6 +177,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             <PrivateRoute path="/users">
               <UsersPage/>
             </PrivateRoute>
+            <PrivateRoute path="/profile">
+              <ProfilePage/>
+            </PrivateRoute>
             <Redirect from="/" to="/dashboard" />
           </Switch>
         </Layout.Content>
@@ -175,3 +189,13 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
 };
 
 export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
+
+// Helpers
+
+function onDidMount() {
+  const title = document.querySelector('.App__title')
+  if (title) {
+    const span = title.querySelectorAll('span')[0]
+    span.style.width = span.getBoundingClientRect().width + 'px'
+  }
+}
