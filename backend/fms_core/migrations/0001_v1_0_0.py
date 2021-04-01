@@ -12,7 +12,7 @@ import re
 
 def create_admin_user(apps, schema_editor):
     User = apps.get_model('auth', 'User')
-    User.objects.create(username="biobankadmin")
+    User.objects.create(username="biobankadmin", is_superuser=True, is_staff=True, is_active=True)
 
 
 class Migration(migrations.Migration):
