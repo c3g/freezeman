@@ -62,6 +62,7 @@ MIDDLEWARE = [
 
     'crequest.middleware.CrequestMiddleware',
     'reversion.middleware.RevisionMiddleware',
+    'crum.CurrentRequestUserMiddleware',
 ]
 
 ROOT_URLCONF = 'fms.urls'

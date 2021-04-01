@@ -17,11 +17,11 @@ from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
+from .tracked_model import TrackedModel
 from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
-
 
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -31,7 +31,7 @@ __all__ = ["Sample"]
 
 
 @reversion.register()
-class Sample(models.Model):
+class Sample(TrackedModel):
     """ Class to store information about a sample. """
 
     BIOSPECIMEN_TYPE_DNA = "DNA"
@@ -266,6 +266,7 @@ class Sample(models.Model):
         self.update_comment = str_cast_and_normalize(self.update_comment)
 
     def clean(self):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):

@@ -2,6 +2,7 @@
 
 from django.db import migrations, models, transaction
 import django.db.models.deletion
+from django.contrib.auth.models import User
 from django.utils import timezone
 import json
 
@@ -24,6 +25,8 @@ def move_volume_history_to_update_process(apps, schema_editor):
     ProcessSample = apps.get_model("fms_core", "ProcessSample")
 
     update_protocol = Protocol.objects.get(name="Update")
+
+    admin_id = User.objects.get(username="biobankadmin").id
 
     # Preloading in a dictionary information needed about Revisions
     revisions_dictionary = {}
@@ -49,13 +52,17 @@ def move_volume_history_to_update_process(apps, schema_editor):
 
                     revision = revisions_dictionary[sample_version.revision_id]
                     process, _ = Process.objects.get_or_create(comment=f'{revision["comment"]} [Revision ID {str(sample_version.revision_id)}]',
-                                                               protocol=update_protocol)
+                                                               protocol=update_protocol,
+                                                               updated_by_id=admin_id,
+                                                               created_by_id=admin_id)
 
                     ProcessSample.objects.create(process=process,
                                                  source_sample_id=sample_id,
                                                  execution_date=revision['date_created'],
                                                  volume_used=float_to_decimal(float(previous_volume_value) - float(last_vh["volume_value"])),
-                                                 comment=process_sample_comment)
+                                                 comment=process_sample_comment,
+                                                 updated_by_id=admin_id,
+                                                 created_by_id=admin_id)
 
             previous_update_comment = update_comment
             previous_volume_value = last_vh["volume_value"]
@@ -125,6 +132,4 @@ class Migration(migrations.Migration):
             handle_sample_versions,
             migrations.RunPython.noop
         ),
-
-
     ]

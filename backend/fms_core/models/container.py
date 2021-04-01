@@ -11,6 +11,8 @@ from ..containers import (
 from ..coordinates import CoordinateError, check_coordinate_overlap
 from ..utils import str_cast_and_normalize
 
+from .tracked_model import TrackedModel
+
 from ._constants import BARCODE_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
 from ._validators import name_validator, container_barcode_validator
@@ -20,7 +22,7 @@ __all__ = ["Container"]
 
 
 @reversion.register()
-class Container(models.Model):
+class Container(TrackedModel):
     """ Class to store information about a sample. """
 
     # TODO: Model for choices?
@@ -63,6 +65,7 @@ class Container(models.Model):
         self.update_comment = str_cast_and_normalize(self.update_comment)
 
     def clean(self, check_regexes: bool = False):
+        super().clean()
         errors = {}
 
         def add_error(field: str, error: str):
