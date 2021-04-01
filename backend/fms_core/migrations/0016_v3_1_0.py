@@ -72,11 +72,13 @@ def create_lineage_from_extracted_and_revisions(apps, schema_editor):
                                                          execution_date=sample.creation_date,
                                                          volume_used=sample.volume_used,
                                                          comment=process_sample_info["comment"],
-                                                         created_by_id=admin_id, updated_by_id=admin_id)
+                                                         created_by_id=admin_id,
+                                                         updated_by_id=admin_id)
                 sample_lineage_model.objects.create(parent=sample.old_extracted_from,
                                                     child=sample,
                                                     process_sample=ps,
-                                                    created_by_id=admin_id, updated_by_id=admin_id)
+                                                    created_by_id=admin_id,
+                                                    updated_by_id=admin_id)
             else:
                 raise
 

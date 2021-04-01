@@ -8,10 +8,11 @@ import django.utils.timezone
 import fms_core.schema_validators
 import reversion
 
+ADMIN_USERNAME='biobankadmin'
 
 def init_tracking_importedfile(apps, schema_editor):
     ImportedFile = apps.get_model("fms_core", "ImportedFile")
-    admin_id = User.objects.get(username="biobankadmin").id
+    admin_id = User.objects.get(username=ADMIN_USERNAME).id
     for entry in ImportedFile.objects.all().iterator():
         entry.created_at = entry.added
         entry.created_by = entry.imported_by
@@ -33,6 +34,7 @@ def init_tracking(apps, schema_editor):
     # Create a version for each entity with the new tracking fields
     with reversion.create_revision(manage_manually=True):
         reversion.set_comment("Addition of tracking fields.")
+        reversion.set_user(User.objects.get(username=ADMIN_USERNAME))
 
         for container in Container.objects.all().iterator():
             versions = Version.objects.filter(content_type__model="container", object_id=container.id)
@@ -223,49 +225,49 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='importedfile',
             name='created_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_importedfile_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='importedfile',
             name='updated_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_importedfile_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='sample',
             name='created_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_sample_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='sample',
             name='updated_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_sample_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='container',
             name='created_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_container_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='container',
             name='updated_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_container_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='individual',
             name='created_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_individual_creation', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='individual',
             name='updated_by',
-            field=models.ForeignKey(null=True, blank=True, on_delete=models.PROTECT,
+            field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
         ),
 
