@@ -4,6 +4,8 @@ import {diff} from "jsondiffpatch";
 import {SwapRightOutlined} from "@ant-design/icons";
 import {Tag} from "antd";
 
+import {USER_FIELDS} from "../constants";
+
 const removedStyle = {
   textDecoration: 'line-through',
 }
@@ -87,7 +89,7 @@ function renderDeltaValue(value, key, usersByID) {
   if (value === null) return "null";
   if (value === undefined) return "undefined";
 
-  if (["created_by", "updated_by"].includes(key))
+  if (USER_FIELDS.includes(key))
     return usersByID[value]?.username
 
   return value.toString();

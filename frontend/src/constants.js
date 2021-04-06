@@ -38,3 +38,6 @@ export const TAXON = [
 ]
 
 export const DATE_FORMAT = "YYYY-MM-DD"
+
+// Some foreign key fields
+export const USER_FIELDS = ["created_by", "updated_by"]
