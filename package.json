@@ -12,7 +12,7 @@
     "proc:frontend":          "cd frontend && npm start",
     "//2": "cypress_xxx use sleep 10 to allow DB setup & frontend server to spawn",
     "proc:cypress_open":      "cd frontend && sleep 10 && npx cypress open",
-    "proc:cypress_run":       "cd frontend && sleep 10 && npx cypress run",
+    "proc:cypress_run":       "cd frontend && sleep 10 && npx cypress run --spec 'cypress/integration/all.spec.js'",
 
     "//3": "This runs the backend & the frontend dev-server",
     "test:frontend:open": "nf start backend_runserver,frontend,cypress_open",
