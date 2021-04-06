@@ -174,7 +174,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
                       <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
                     }
                     {versions && versions.map((version, i) => {
-                      const diff = renderSampleDiff(versions[i + 1], version);
+                      const diff = renderSampleDiff(versions[i + 1], version, usersByID);
                       if (!diff)
                         return diff;
                       return (
