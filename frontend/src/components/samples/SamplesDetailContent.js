@@ -25,6 +25,7 @@ import EditButton from "../EditButton";
 import {SampleDepletion} from "./SampleDepletion";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
 import {withContainer, withSample, withIndividual} from "../../utils/withItem";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const { Title, Text } = Typography;
 
@@ -160,6 +161,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
           </Descriptions.Item>
         </Descriptions>
       ) : null}
+
+      <TrackingFieldsContent usersByID={usersByID} entity={sample}/>
 
       <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
       <Row>
