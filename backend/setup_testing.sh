@@ -27,7 +27,7 @@ export django_command=${1:-runserver}
 #####################
 
 # Drop it & recreate it
-psql $PG_DATABASE -c "DROP DATABASE IF EXISTS $database_test WITH (FORCE)"
+psql $PG_DATABASE -c "DROP DATABASE IF EXISTS $database_test"
 psql $PG_DATABASE -c "CREATE DATABASE $database_test"
 
 # Manually enable fzy as it's not in the migrations
