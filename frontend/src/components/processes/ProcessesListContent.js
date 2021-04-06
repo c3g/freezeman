@@ -2,7 +2,6 @@ import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
-import { EyeOutlined } from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -26,6 +25,8 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "process",
       sorter: true,
       width: 150,
+      render: (_, processsample) =>
+          <Link to={`/processes/${processsample.id}`}>{processsample.process}</Link>
     },
     {
       title: "Protocol",
@@ -33,15 +34,15 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-      render: (_, process) =>
-          <Tag>{protocols?.itemsByID[process.protocol]?.name}</Tag>,
+      render: (_, processsample) =>
+          <Tag>{protocols?.itemsByID[processsample.protocol]?.name}</Tag>,
     },
     {
       title: "Source Sample",
       dataIndex: "source_sample__name",
       sorter: true,
-      render: (_, process) => {
-        const sample = process.source_sample
+      render: (_, processsample) => {
+        const sample = processsample.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -52,8 +53,8 @@ const getTableColumns = (samplesByID, protocols) => [
       title: "Generated Sample",
       dataIndex: "lineage__child__name",
       sorter: true,
-      render: (_, process) => {
-        const sample = process.child_sample
+      render: (_, processsample) => {
+        const sample = processsample.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -73,12 +74,6 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "execution_date",
       sorter: true,
       width: 180,
-    },
-    {
-      title: "Details",
-      align: "center",
-      render: (_, process) =>
-          <Link to={`/processes/${process.id}`}><EyeOutlined/></Link>,
     },
   ];
 
