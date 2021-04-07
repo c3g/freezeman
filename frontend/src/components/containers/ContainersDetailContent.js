@@ -10,15 +10,17 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import {get, listParents} from "../../modules/containers/actions";
 import {withContainer, withSample} from "../../utils/withItem";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   samplesByID: state.samples.itemsByID,
+  usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {get, listParents};
 
-const ContainersDetailContent = ({containersByID, samplesByID, get, listParents}) => {
+const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, listParents}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -93,6 +95,7 @@ const ContainersDetailContent = ({containersByID, samplesByID, get, listParents}
               <ContainerHierarchy key={id} container={isLoaded ? container : null} />
           </Descriptions.Item>
         </Descriptions>
+         <TrackingFieldsContent usersByID={usersByID} entity={container}/>
       </PageContent>
     </>
   );
