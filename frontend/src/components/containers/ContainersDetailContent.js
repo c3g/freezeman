@@ -8,9 +8,9 @@ import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 import {get, listParents} from "../../modules/containers/actions";
 import {withContainer, withSample} from "../../utils/withItem";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,

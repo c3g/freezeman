@@ -1,7 +1,6 @@
+import React from "react";
 import {Descriptions} from "antd";
 import {withUser} from "../utils/withItem";
-import React from "react";
-
 
 export const TrackingFieldsContent = ({usersByID, entity}) => {
     const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`

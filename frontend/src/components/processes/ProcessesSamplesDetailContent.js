@@ -7,9 +7,9 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processes/actions";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const mapStateToProps = state => ({
     processesByID: state.processes.itemsByID,

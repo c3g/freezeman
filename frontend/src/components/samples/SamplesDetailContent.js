@@ -22,10 +22,10 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
 import {withContainer, withSample, withIndividual} from "../../utils/withItem";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const { Title, Text } = Typography;
 

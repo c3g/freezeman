@@ -8,9 +8,9 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import {TrackingFieldsContent} from "../TrackingFieldsContent";
 import {withIndividual} from "../../utils/withItem";
 import {get} from "../../modules/individuals/actions";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
 
 const mapStateToProps = state => ({
     individualsByID: state.individuals.itemsByID,
