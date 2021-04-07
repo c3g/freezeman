@@ -7,7 +7,7 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processes/actions";
 
@@ -56,7 +56,7 @@ const ProcessesSamplesDetailContent = ({processesByID, protocolsByID, samplesByI
                 <Descriptions.Item label="Date Executed" span={2}>{process.execution_date}</Descriptions.Item>
                 <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>  
             </Descriptions>
-            <TrackingFieldsContent usersByID={usersByID} entity={process}/>
+            <TrackingFieldsContent entity={process}/>
         </PageContent>
     </>;
 };

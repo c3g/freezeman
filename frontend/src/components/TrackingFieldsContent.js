@@ -1,10 +1,17 @@
 import React from "react";
 import {Descriptions} from "antd";
 import {withUser} from "../utils/withItem";
+import {connect} from "react-redux";
 
-export const TrackingFieldsContent = ({usersByID, entity}) => {
-    const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`
+const mapStateToProps = state => ({
+  usersByID: state.users.itemsByID,
+});
 
+const actionCreators = {};
+
+const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`
+
+const TrackingFieldsContent = ({usersByID, entity}) => {
     return <>
         <Descriptions bordered={true} size="small" title="Tracking Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Item created by">
@@ -16,3 +23,5 @@ export const TrackingFieldsContent = ({usersByID, entity}) => {
         </Descriptions>
     </>;
 };
+
+export default connect(mapStateToProps, actionCreators)(TrackingFieldsContent);

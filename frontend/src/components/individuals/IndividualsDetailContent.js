@@ -8,7 +8,7 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
-import {TrackingFieldsContent} from "../TrackingFieldsContent";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {withIndividual} from "../../utils/withItem";
 import {get} from "../../modules/individuals/actions";
 
@@ -64,7 +64,7 @@ const IndividualsDetailContent = ({individualsByID, usersByID, get}) => {
                         "—"}
                 </Descriptions.Item>
             </Descriptions>
-            <TrackingFieldsContent usersByID={usersByID} entity={individual}/>
+            <TrackingFieldsContent entity={individual}/>
         </PageContent>
     </>;
 };
