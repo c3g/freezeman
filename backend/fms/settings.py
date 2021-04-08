@@ -206,3 +206,7 @@ LOGGING = {
         "level": "DEBUG" if DEBUG else "WARNING",
     },
 }
+
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 60 * 60  # 1 hour

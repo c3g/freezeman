@@ -111,6 +111,19 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   const isLoggedIn = userID !== null;
   const menuItems = getMenuItems(user, logOut);
 
+  let timer;
+
+  useEffect(() => {
+    if(isLoggedIn) {
+      timer = setTimeout(() => {
+        logOut();
+        alert('You were disconnected due to inactivity for 30 seconds');
+      }, 1000 * 30); // 30 secs
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+
   useEffect(onDidMount, []);
 
   return (
