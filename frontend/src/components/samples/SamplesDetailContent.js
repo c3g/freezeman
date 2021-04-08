@@ -22,6 +22,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
 import {withContainer, withSample, withIndividual} from "../../utils/withItem";
@@ -160,6 +161,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
           </Descriptions.Item>
         </Descriptions>
       ) : null}
+
+      <TrackingFieldsContent entity={sample}/>
 
       <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
       <Row>

@@ -8,17 +8,19 @@ import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listParents} from "../../modules/containers/actions";
 import {withContainer, withSample} from "../../utils/withItem";
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   samplesByID: state.samples.itemsByID,
+  usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {get, listParents};
 
-const ContainersDetailContent = ({containersByID, samplesByID, get, listParents}) => {
+const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, listParents}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -59,6 +61,11 @@ const ContainersDetailContent = ({containersByID, samplesByID, get, listParents}
           </Descriptions.Item>
           <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
           <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
+        </Descriptions>
+
+        <TrackingFieldsContent entity={container}/>
+
+        <Descriptions bordered={true} size="small" title="Content Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Content" span={3}>
             {(container.children && container.children.length > 0 )?
               <div><b>Container(s)</b></div>
