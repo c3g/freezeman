@@ -453,6 +453,8 @@ class TrackedTest(TestCase):
 
     def setUp(self):
         pass
+        # from ..signals import register_signal_handlers
+        # register_signal_handlers()
 
     def test_tracked_fields(self):
         # Uses container child to test base class functionality
@@ -478,12 +480,11 @@ class TrackedTest(TestCase):
         data = json.loads(initial_container_version.serialized_data)
         isDeleted = data[0]["fields"].pop("deleted", True)
         self.assertEqual(isDeleted, False)
-        with reversion.create_revision():
-            created_valid_container.delete()
+
+        Container.objects.get(id=container_id).delete()
         deleted_container_version = reversion.models.Version.objects.filter(object_id=container_id).first()
         data = json.loads(deleted_container_version.serialized_data)
         isDeleted = data[0]["fields"].pop("deleted", False)
-        print(isDeleted)
         self.assertEqual(isDeleted, True)
 
         

@@ -16,3 +16,6 @@ class ImportedFile(TrackedModel):
 
     def __str__(self):
         return str(self.id)
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)

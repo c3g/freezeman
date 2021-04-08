@@ -359,3 +359,6 @@ class Sample(TrackedModel):
         self.normalize()
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)

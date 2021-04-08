@@ -33,3 +33,6 @@ class Process(TrackedModel):
         # Normalize and validate before saving, always!
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)

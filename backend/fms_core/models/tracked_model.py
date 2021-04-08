@@ -1,3 +1,5 @@
+import reversion
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -5,6 +7,7 @@ from crum import get_current_user
 
 ADMIN_USERNAME='biobankadmin'
 
+@reversion.register()
 class TrackedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, help_text="Date the instance was created.")
     created_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_creation", on_delete=models.PROTECT)
@@ -29,14 +32,19 @@ class TrackedModel(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        # Set modified by user
         user = get_current_user()
         if user and not user.pk:
             user = User.objects.get(username=ADMIN_USERNAME)
-        self.updated_by = user
-        # Record the instance as deleted
-        self.deleted = True
-        # Save the instance to create a version
-        self.save()
-        # Delete the instance from the table
+
+        with reversion.create_revision():
+            self.updated_by = user
+            self.deleted = True
+            self.save()
+
+            reversion.set_user(user)
+            reversion.set_comment(f'Deletion of object id ${self.id}')
+
         super().delete(*args, **kwargs)
+
+
+
