@@ -7,7 +7,7 @@ from crum import get_current_user
 
 ADMIN_USERNAME='biobankadmin'
 
-@reversion.register()
+
 class TrackedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, help_text="Date the instance was created.")
     created_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_creation", on_delete=models.PROTECT)
