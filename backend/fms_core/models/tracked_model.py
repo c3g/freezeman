@@ -28,7 +28,7 @@ class TrackedModel(models.Model):
 
         super().save(*args, **kwargs)
 
-    def delete(self, using, keep_parents):
+    def delete(self, *args, **kwargs):
         # Set modified by user
         user = get_current_user()
         if user and not user.pk:
@@ -37,6 +37,6 @@ class TrackedModel(models.Model):
         # Record the instance as deleted
         self.deleted = True
         # Save the instance to create a version
-        super().save(*args, **kwargs)
+        self.save()
         # Delete the instance from the table
-        super().delete(using, keep_parents)
+        super().delete(*args, **kwargs)
