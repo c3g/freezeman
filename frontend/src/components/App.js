@@ -26,6 +26,7 @@ import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
 
+import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
@@ -111,20 +112,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   const isLoggedIn = userID !== null;
   const menuItems = getMenuItems(user, logOut);
 
-  let timer;
-
-  useEffect(() => {
-    if(isLoggedIn) {
-      timer = setTimeout(() => {
-        logOut();
-        alert('You were disconnected due to inactivity for 30 seconds');
-      }, 1000 * 30); // 30 secs
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-
   useEffect(onDidMount, []);
+
+  useUserInputExpiration(logOut, 10 * 1000); // 1000ms = 1 s
 
   return (
     <Layout style={{height: "100vh"}}>
