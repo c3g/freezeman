@@ -1,13 +1,14 @@
 import reversion
 
 from import_export import resources
+from import_export.results import RowResult
 from reversion.models import Version
 
 
 class GenericResource(resources.ModelResource):
     clean_model_instances = True
     skip_unchanged = True
-    ERROR_CUTOFF = 100
+    ERROR_CUTOFF = 20
     errorCount = 0
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
@@ -24,13 +25,22 @@ class GenericResource(resources.ModelResource):
             versions = Version.objects.get_for_object(instance)
             reversion.set_comment("Updated from template." if len(versions) >= 1 else "Imported from template.")
 
-    def after_import_row(self, row, row_result, row_number=None, **kwargs):
-        self.errorCount += (len(row_result.errors[0]) + len(row_result.validation_error)
-
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
-        if self.errorCount < ERROR_CUTOFF:
-            super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
+        if self.errorCount < self.ERROR_CUTOFF:
+            row_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
+            print(row_result.errors)
+            error_count = 0 if not row_result.errors else len(row_result.errors[0])
+            validation_error_count = 0
+            if row_result.validation_error:
+              for field in row_result.validation_error:
+                  print(field[1])
+                  validation_error_count += len(field[1])
+            self.errorCount += (error_count + validation_error_count)
+        else:
+            row_result = self.get_row_result_class()()
+            row_result.import_type = RowResult.IMPORT_TYPE_SKIP
+        return row_result
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
-        if self.errorCount >= ERROR_CUTOFF:
+       if self.errorCount >= self.ERROR_CUTOFF:
             raise Exception("Too many errors. Interrupted processing.")
