@@ -7,7 +7,7 @@ from pathlib import Path
 from reversion.models import Version
 from tablib import Dataset
 
-from ..models import Container, Sample, ExtractedSample, Individual
+from ..models import Container, Sample, ExtractedSample, Individual, ProcessSample
 from ..resources import (
     ContainerResource,
     ExtractionResource,
@@ -172,6 +172,8 @@ class ResourcesTestCase(TestCase):
         self.load_samples_extractions()
         # Test first extraction
         s = Sample.objects.get(container__barcode="tube003")
+        ps = ProcessSample.objects.get(source_sample_id=s.extracted_from.id)
+        self.assertEqual('Extraction', ps.process.protocol.name)
         self.assertEqual(s.extracted_from.volume, Decimal("9.000"))
         self.assertFalse(s.extracted_from.depleted)
 
@@ -179,12 +181,16 @@ class ResourcesTestCase(TestCase):
         self.load_samples_extractions()
         # Test second extraction
         s = Sample.objects.get(container__barcode="tube004")
+        ps = ProcessSample.objects.get(source_sample_id=s.extracted_from.id)
+        self.assertEqual('Extraction', ps.process.protocol.name)
         self.assertEqual(s.extracted_from.volume, Decimal("0.000"))
         self.assertTrue(s.extracted_from.depleted)
 
     def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="newtubefortransfer")
+        ps = ProcessSample.objects.get(source_sample_id=s.transferred_from.id)
+        self.assertEqual(ps.process.protocol.name, 'Transfer')
         self.assertEqual(s.volume, Decimal("10.000"))
         self.assertEqual(s.transferred_from.volume, Decimal("0"))
 
@@ -192,6 +198,8 @@ class ResourcesTestCase(TestCase):
     def test_sample_transfer_to_existing_container(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="plate001", coordinates="B01")
+        ps = ProcessSample.objects.get(source_sample_id=s.transferred_from.id)
+        self.assertEqual(ps.process.protocol.name, 'Transfer')
         self.assertEqual(s.volume, Decimal("2.000"))
         self.assertEqual(s.transferred_from.volume, Decimal("13"))
 
@@ -220,10 +228,14 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(s.update_comment, "sample 4 updated")
 
         s = Sample.objects.get(container__barcode="tube001")
+        ps = ProcessSample.objects.get(source_sample_id=s.id)
+        self.assertEqual(ps.process.protocol.name, 'Update')
         self.assertTrue(s.depleted)
         self.assertEqual(s.update_comment, "sample 1 depleted")
 
         s = Sample.objects.get(container__barcode="plate001", coordinates="A01")
+        ps = ProcessSample.objects.get(source_sample_id=s.id)
+        self.assertEqual(ps.process.protocol.name, 'Update')
         self.assertEqual(s.volume, Decimal("0.1"))
         self.assertEqual(s.concentration, Decimal("0.2"))
         self.assertFalse(s.depleted)
