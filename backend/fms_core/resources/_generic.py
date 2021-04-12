@@ -41,4 +41,4 @@ class GenericResource(resources.ModelResource):
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
        if self.errorCount >= self.ERROR_CUTOFF:
-            raise Exception("Too many errors. Interrupted processing.")
+            raise Exception("Too many errors. Processing interrupted.")

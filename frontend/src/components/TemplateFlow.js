@@ -42,6 +42,15 @@ function renderResult(checkResult) {
   return errors
 }
 
+function wasInterrupted(checkResult) {
+  if (checkResult.base_errors.length > 0)
+    return (
+      <p>
+        {checkResult.base_errors[0].error}  
+      </p>
+    )
+  }
+
 const UploadStep = ({action, onChangeFile}) => (
   <Form layout="vertical">
     <Form.Item name="template_upload">
@@ -94,6 +103,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
             <p>
               Errors were found while validating your template :(
             </p>
+            {wasInterrupted(checkResult)}
             {renderResult(checkResult)}
           </>
         }
@@ -135,6 +145,7 @@ const ConfirmationStep = ({isSubmitting, isSubmitted, submitResult}) => (
             <p>
               Errors were found while submitting your template :(
             </p>
+            {wasInterrupted(submitResult)}
             {renderResult(submitResult)}
           </>
         }
