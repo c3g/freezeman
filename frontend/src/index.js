@@ -35,4 +35,4 @@ const renderApp = () =>
     document.getElementById("root")
   );
 
-document.addEventListener("DOMContentLoaded", renderApp);
+renderApp();
