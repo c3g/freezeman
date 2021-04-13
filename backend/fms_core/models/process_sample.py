@@ -41,7 +41,8 @@ class ProcessSample(TrackedModel):
 
         if self.volume_used is None:
             if self.process and self.protocol_name in PROTOCOLS_WITH_VOLUME_USED_REQUIRED:
-                add_error("volume_used", "volume_used by Extraction process must be specified")
+                add_error("volume_used", f'volume_used by processes for protocol {self.protocol_name} must be specified')
+
         else:
             if self.volume_used <= Decimal("0"):
                 add_error("volume_used", "{:.3f} : volume_used must be positive".format(self.volume_used))
