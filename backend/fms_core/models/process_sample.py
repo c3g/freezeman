@@ -39,7 +39,7 @@ class ProcessSample(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         if self.volume_used is None:
-            if self.protocol_name == 'Extraction':
+            if self.process and self.protocol_name == 'Extraction':
                 add_error("volume_used", "volume_used by Extraction process must be specified")
         else:
             if self.volume_used <= Decimal("0"):

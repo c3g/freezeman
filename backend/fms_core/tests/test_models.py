@@ -487,7 +487,102 @@ class TrackedTest(TestCase):
         isDeleted = data[0]["fields"].pop("deleted", False)
         self.assertEqual(isDeleted, True)
 
-        
 
-       
+class ProtocolTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(name="myprotocol")
 
+    def test_protocol(self):
+        self.assertEqual(self.protocol.name, "myprotocol")
+
+    def test_no_protocol_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Protocol.objects.create()
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_existing_protocol_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Protocol.objects.create(name="myprotocol")
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+class ProcessTest(TestCase):
+    def setUp(self):
+        self.protocol, _ = Protocol.objects.get_or_create(name="Update")
+
+    def test_process(self):
+        process = Process.objects.create(protocol=self.protocol, comment="mycomment")
+        self.assertEqual(process.protocol.name, self.protocol.name)
+        self.assertEqual(process.comment, "mycomment")
+
+    def test_missing_protocol(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Process.objects.create(comment="mycomment")
+            except ValidationError as e:
+                self.assertTrue('protocol' in e.message_dict)
+                raise e
+
+class ProcessSampleTest(TestCase):
+    def setUp(self):
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+
+        self.individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
+
+        self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube04',
+                                                                                  barcode='TParent01'))
+
+        self.source_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
+                                                                   individual=self.individual,
+                                                                   container=self.tube_container,
+                                                                   name="test_source_sample"))
+
+        self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
+        self.update_protocol, _ = Protocol.objects.get_or_create(name="Update")
+        self.process = Process.objects.create(protocol=self.update_protocol, comment="Process for Protocol Update Test")
+
+
+    def test_process_sample(self):
+        ps = ProcessSample.objects.create(process=self.process,
+                                          source_sample=self.source_sample,
+                                          volume_used=None,
+                                          comment="Test comment")
+        self.assertEqual(ps.volume_used, None)
+        self.assertEqual(ps.comment, "Test comment")
+        self.assertEqual(ps.process.id, self.process.id)
+        self.assertEqual(ps.process.protocol.name, self.process.protocol.name)
+        self.assertEqual(ps.source_sample, self.source_sample)
+
+
+    def test_missing_process(self):
+        with self.assertRaises(Process.DoesNotExist):
+            ProcessSample.objects.create(source_sample=self.source_sample,
+                                         volume_used=None,
+                                         comment="Test comment")
+
+    def test_missing_source_sample(self):
+        with self.assertRaises(ValidationError):
+            try:
+                ProcessSample.objects.create(process=self.process,
+                                             volume_used=None,
+                                             comment="Test comment")
+            except ValidationError as e:
+                self.assertTrue('source_sample' in e.message_dict)
+                raise e
+
+    def test_missing_volume_used_in_extraction(self):
+        process = Process.objects.create(protocol=self.extraction_protocol,
+                                         comment="Process for Protocol Extraction Test")
+        with self.assertRaises(ValidationError):
+            try:
+                ProcessSample.objects.create(process=process,
+                                             source_sample=self.source_sample,
+                                             comment="Test comment")
+            except ValidationError as e:
+                self.assertTrue('volume_used' in e.message_dict)
+                raise e
