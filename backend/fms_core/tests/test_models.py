@@ -543,6 +543,7 @@ class ProcessSampleTest(TestCase):
                                                                    name="test_source_sample"))
 
         self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
+        self.transfer_protocol, _ = Protocol.objects.get_or_create(name="Transfer")
         self.update_protocol, _ = Protocol.objects.get_or_create(name="Update")
         self.process = Process.objects.create(protocol=self.update_protocol, comment="Process for Protocol Update Test")
 
@@ -578,6 +579,18 @@ class ProcessSampleTest(TestCase):
     def test_missing_volume_used_in_extraction(self):
         process = Process.objects.create(protocol=self.extraction_protocol,
                                          comment="Process for Protocol Extraction Test")
+        with self.assertRaises(ValidationError):
+            try:
+                ProcessSample.objects.create(process=process,
+                                             source_sample=self.source_sample,
+                                             comment="Test comment")
+            except ValidationError as e:
+                self.assertTrue('volume_used' in e.message_dict)
+                raise e
+
+    def test_missing_volume_used_in_transfer(self):
+        process = Process.objects.create(protocol=self.transfer_protocol,
+                                         comment="Process for Protocol Transfer Test")
         with self.assertRaises(ValidationError):
             try:
                 ProcessSample.objects.create(process=process,
