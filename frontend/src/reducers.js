@@ -29,6 +29,7 @@ import {
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
+import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 
 const AUTH_PERSIST_CONFIG = {
@@ -58,13 +59,19 @@ const allReducers = combineReducers({
 });
 
 function errorReducer(state, action) {
-  showError(action)
-  return allReducers(state, action);
+  const otherAction = showError(action);
+  const newState = allReducers(state, action);
+  if (otherAction)
+    return allReducers(newState, otherAction);
+  return newState;
 }
 
 function showError(action) {
   if (!action.error)
     return
+
+  if (action.error.message.includes('Given token not valid for any token type'))
+    return logOut()
 
   if (shouldIgnoreError(action))
     return
