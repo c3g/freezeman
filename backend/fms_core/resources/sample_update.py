@@ -2,12 +2,13 @@ import reversion
 
 import re
 import ast
+from django.utils import timezone
 from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, add_column_to_preview
-from ..models import Container, Sample
+from ..models import Container, Sample, Protocol, Process, ProcessSample
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -61,6 +62,14 @@ class SampleUpdateResource(GenericResource):
 
         super().before_import(dataset, using_transactions, dry_run, **kwargs)
 
+
+    def import_obj(self, obj, data, dry_run):
+        self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
+                                              comment="Updated samples (imported from template)")
+
+        super().import_obj(obj, data, dry_run)
+
+
     def before_import_row(self, row, **kwargs):
         # Ensure that new volume and delta volume do not have both a value for the same row.
         vol = blank_str_to_none(row.get("New Volume (uL)"))
@@ -104,7 +113,20 @@ class SampleUpdateResource(GenericResource):
             # Normalize boolean attribute then proceed normally (only if some value is specified)
             data["Depleted"] = check_truth_like(str(depleted or ""))
 
+        if field.attribute == "update_comment":
+            obj.update_comment = blank_str_to_none(data.get("Update Comment"))
+            self.update_comment = obj.update_comment
+
         super().import_field(field, obj, data, is_m2m)
+
+    def before_save_instance(self, instance, using_transactions, dry_run):
+        self.process_sample = ProcessSample.objects.create(process=self.process,
+                                                           source_sample=instance,
+                                                           execution_date=timezone.now(),
+                                                           volume_used=None,
+                                                           comment=self.update_comment)
+
+        super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
