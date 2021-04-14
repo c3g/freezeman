@@ -183,14 +183,6 @@ STEPS.CONFIRM = 2
 export const actionCreators = {fetchInitialData};
 
 export const mapStateToProps = state => ({
-  containersByID: state.containers.itemsByID,
-  containers: state.containers.items,
-  individualsByID: state.individuals.itemsByID,
-  individuals: state.individuals.items,
-  processes: state.processes.items,
-  processesByID: state.processes.itemsByID,
-  samples: state.samples.items,
-  samplesByID: state.samples.itemsByID,
 });
 
 
