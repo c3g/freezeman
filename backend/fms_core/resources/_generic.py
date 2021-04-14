@@ -31,10 +31,7 @@ class GenericResource(resources.ModelResource):
 
             error_count = 0
             if row_result.errors:
-                if type(row_result.errors[0]) is list:
-                    error_count = len(row_result.errors[0])
-                else:
-                    error_count = 1
+                error_count = 1 if type(row_result.errors[0]) is not list else len(row_result.errors[0])
 
             validation_error_count = 0
             if row_result.validation_error:
