@@ -180,11 +180,7 @@ STEPS.UPLOAD  = 0
 STEPS.REVIEW  = 1
 STEPS.CONFIRM = 2
 
-export const actionCreators = {fetchInitialData};
-
-export const mapStateToProps = state => ({
-});
-
+const actionCreators = {fetchInitialData};
 
 const TemplateFlow = ({fetchInitialData, ...props}) => {
   const [step, setStep] = useState(0);
@@ -229,13 +225,15 @@ const TemplateFlow = ({fetchInitialData, ...props}) => {
     submitRequest(actionIndex, file)
     .then(response => {
       setSubmitResult({ valid: true });
-      fetchInitialData();
     })
     .catch(error => {
       setSubmitResult({
         valid: false,
         error,
       })
+    })
+    .then(() => {
+      fetchInitialData();
     })
     .then(() => {
       setIsSubmitted(true)
@@ -321,4 +319,4 @@ TemplateFlow.propTypes = {
   uploadText: PropTypes.string,
 };
 
-export default connect(mapStateToProps, actionCreators)(TemplateFlow);
+export default connect(undefined, actionCreators)(TemplateFlow);
