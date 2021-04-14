@@ -10,7 +10,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 
-import {fetchInitialData} from "../modules/shared/actions";
+import {fetchListedData} from "../modules/shared/actions";
 
 
 function renderResult(checkResult) {
@@ -180,9 +180,9 @@ STEPS.UPLOAD  = 0
 STEPS.REVIEW  = 1
 STEPS.CONFIRM = 2
 
-const actionCreators = {fetchInitialData};
+const actionCreators = {fetchListedData};
 
-const TemplateFlow = ({fetchInitialData, ...props}) => {
+const TemplateFlow = ({fetchListedData, ...props}) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -232,10 +232,8 @@ const TemplateFlow = ({fetchInitialData, ...props}) => {
         error,
       })
     })
-    .then(() => {
-      fetchInitialData();
-    })
-    .then(() => {
+    .then(fetchListedData)
+    .finally(() => {
       setIsSubmitted(true)
       setIsSubmitting(false)
     })

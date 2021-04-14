@@ -36,7 +36,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     ].map(a => dispatch(a())))
 }
 
-export const fetchAuthorizedData = () => async (dispatch, getState) => {
+export const fetchSummariesData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
 
     if (!getState().auth.tokens.access) return;
@@ -47,3 +47,22 @@ export const fetchAuthorizedData = () => async (dispatch, getState) => {
         Processes.summary,
     ].map(a => dispatch(a())))
 };
+
+
+export const fetchListedData = () => async (dispatch, getState) => {
+    await dispatch(refreshAuthToken())
+
+    if (!getState().auth.tokens.access) return;
+
+    // Higher priority
+    await Promise.all([
+        Containers.listTable,
+        Containers.summary,
+        Individuals.listTable,
+        Samples.listTable,
+        Samples.summary,
+        Processes.listTable,
+        Protocols.list,
+        Processes.summary,
+    ].map(a => dispatch(a())))
+}
