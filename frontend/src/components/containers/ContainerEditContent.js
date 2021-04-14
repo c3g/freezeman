@@ -9,7 +9,7 @@ const {TextArea} = Input;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update} from "../../modules/containers/actions";
+import {add, update, listTable, summary} from "../../modules/containers/actions";
 import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
 
@@ -26,9 +26,9 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable, summary};
 
-const ContainerEditContent = ({token, containerKinds, containersByID, add, update}) => {
+const ContainerEditContent = ({token, containerKinds, containersByID, add, update, listTable, summary}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -78,6 +78,8 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
+    .then(listTable)
+    .finally(summary)
   }
 
   /*

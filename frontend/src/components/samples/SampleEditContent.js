@@ -19,7 +19,7 @@ const {TextArea} = Input
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update} from "../../modules/samples/actions";
+import {add, update, listTable, summary} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
@@ -59,9 +59,9 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable, summary};
 
-const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
+const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTable, summary}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -149,6 +149,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
+    .then(listTable)
+    .finally(summary)
   }
 
 

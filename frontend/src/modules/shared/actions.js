@@ -57,12 +57,16 @@ export const fetchListedData = () => async (dispatch, getState) => {
     // Higher priority
     await Promise.all([
         Containers.listTable,
-        Containers.summary,
         Individuals.listTable,
         Samples.listTable,
-        Samples.summary,
         Processes.listTable,
         Protocols.list,
+    ].map(a => dispatch(a())))
+
+    // Lower priority - Fetch summaries
+    await Promise.all([
+        Containers.summary,
+        Samples.summary,
         Processes.summary,
     ].map(a => dispatch(a())))
 }

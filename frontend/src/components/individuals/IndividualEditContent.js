@@ -6,7 +6,7 @@ import {Alert, Button, Form, Input, Radio, Select} from "antd";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update} from "../../modules/individuals/actions";
+import {add, update, listTable} from "../../modules/individuals/actions";
 import {individual as EMPTY_INDIVIDUAL} from "../../models";
 import {SEX, TAXON} from "../../constants";
 import api, {withToken} from "../../utils/api";
@@ -24,9 +24,9 @@ const mapStateToProps = state => ({
   individualsByID: state.individuals.itemsByID,
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable};
 
-const IndividualEditContent = ({token, individualsByID, add, update}) => {
+const IndividualEditContent = ({token, individualsByID, add, update, listTable}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -63,6 +63,8 @@ const IndividualEditContent = ({token, individualsByID, add, update}) => {
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
+    .then(listTable)
+    .finally(summary)
   }
 
   /*
