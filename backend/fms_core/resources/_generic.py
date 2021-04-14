@@ -28,7 +28,11 @@ class GenericResource(resources.ModelResource):
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
         if self.errorCount < self.ERROR_CUTOFF:
             row_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
-            error_count = 0 if not row_result.errors else len(row_result.errors[0])
+
+            error_count = 0
+            if row_result.errors:
+                error_count = 1 if type(row_result.errors[0]) is not list else len(row_result.errors[0])
+
             validation_error_count = 0
             if row_result.validation_error:
               for field in row_result.validation_error:
