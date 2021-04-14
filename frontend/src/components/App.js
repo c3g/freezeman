@@ -27,7 +27,7 @@ import UsersPage from "./users/UsersPage";
 import PrivateRoute from "./PrivateRoute";
 
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
+import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
@@ -99,11 +99,11 @@ export const mapStateToProps = state => ({
   user: state.users.itemsByID[state.auth.currentUserID],
 });
 
-export const actionCreators = {fetchInitialData, fetchAuthorizedData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
+const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   useEffect(() => {
-    const interval = setInterval(fetchAuthorizedData, 30000);
+    const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
     return () => clearInterval(interval);
   }, []);

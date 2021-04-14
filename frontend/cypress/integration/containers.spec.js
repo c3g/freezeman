@@ -47,7 +47,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        // cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('body').should('contain', '1-10 of 15 items')
       })
     })
   })

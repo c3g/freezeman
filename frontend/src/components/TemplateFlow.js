@@ -1,4 +1,5 @@
 import React, {useState} from "react";
+import {connect} from "react-redux"
 import PropTypes from "prop-types";
 import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
 
@@ -8,6 +9,8 @@ import {
   CheckOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
+
+import {fetchListedData} from "../modules/shared/actions";
 
 
 function renderResult(checkResult) {
@@ -43,7 +46,7 @@ function renderResult(checkResult) {
 }
 
 function wasInterrupted(checkResult) {
-  if (checkResult.base_errors.length > 0)
+  if (checkResult.base_errors?.length > 0)
     return (
       <p>
         {checkResult.base_errors[0].error}  
@@ -177,7 +180,9 @@ STEPS.UPLOAD  = 0
 STEPS.REVIEW  = 1
 STEPS.CONFIRM = 2
 
-const TemplateFlow = (props) => {
+const actionCreators = {fetchListedData};
+
+const TemplateFlow = ({fetchListedData, ...props}) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -219,7 +224,7 @@ const TemplateFlow = (props) => {
     setIsSubmitting(true)
     submitRequest(actionIndex, file)
     .then(response => {
-      setSubmitResult({ valid: true })
+      setSubmitResult({ valid: true });
     })
     .catch(error => {
       setSubmitResult({
@@ -227,7 +232,8 @@ const TemplateFlow = (props) => {
         error,
       })
     })
-    .then(() => {
+    .then(fetchListedData)
+    .finally(() => {
       setIsSubmitted(true)
       setIsSubmitting(false)
     })
@@ -311,4 +317,4 @@ TemplateFlow.propTypes = {
   uploadText: PropTypes.string,
 };
 
-export default TemplateFlow;
+export default connect(undefined, actionCreators)(TemplateFlow);
