@@ -78,8 +78,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
-    .then(listTable)
-    .finally(summary)
+    .then(() => Promise.all([listTable(), summary()]))
   }
 
   /*

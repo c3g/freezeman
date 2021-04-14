@@ -149,8 +149,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
-    .then(listTable)
-    .finally(summary)
+    .then(() => Promise.all([listTable(), summary()]))
   }
 
 
