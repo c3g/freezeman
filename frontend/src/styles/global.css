@@ -87,3 +87,7 @@ select:-webkit-autofill:focus {
 .ContainerEditContent__coordinates .ant-form-item-control {
   display: inline-flex;
 }
+
+abbr.--time {
+  text-decoration: none;
+}

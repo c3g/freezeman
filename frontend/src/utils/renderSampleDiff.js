@@ -3,8 +3,10 @@ import {diff} from "jsondiffpatch";
 
 import {SwapRightOutlined} from "@ant-design/icons";
 import {Tag} from "antd";
+import dateToString from "./dateToString";
 
-import {USER_FIELDS} from "../constants";
+const USER_ID_FIELDS = ["created_by", "updated_by"]
+const DATE_FIELDS    = ["created_at", "updated_at"]
 
 const removedStyle = {
   textDecoration: 'line-through',
@@ -89,8 +91,11 @@ function renderDeltaValue(value, key, usersByID) {
   if (value === null) return "null";
   if (value === undefined) return "undefined";
 
-  if (USER_FIELDS.includes(key))
+  if (USER_ID_FIELDS.includes(key))
     return usersByID[value]?.username
+
+  if (DATE_FIELDS.includes(key))
+    return dateToString(value, 'full')
 
   return value.toString();
 }
