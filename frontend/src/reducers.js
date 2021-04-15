@@ -29,6 +29,7 @@ import {
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
+import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 
 const AUTH_PERSIST_CONFIG = {
@@ -36,6 +37,10 @@ const AUTH_PERSIST_CONFIG = {
   blacklist: ["isFetching"],
   storage,
 };
+
+const TOKEN_EXPIRED_MESSAGE = 'Given token not valid for any token type'
+
+const recentMessages = new Set();
 
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
@@ -57,29 +62,60 @@ const allReducers = combineReducers({
   versions,
 });
 
-function errorReducer(state, action) {
-  showError(action)
-  return allReducers(state, action);
+export default function rootReducer(state, action) {
+  const otherAction = getErrorAction(action);
+  const newState = allReducers(state, action);
+  if (otherAction)
+    return allReducers(newState, otherAction);
+  return newState;
 }
 
-function showError(action) {
+function getErrorAction(action) {
   if (!action.error)
     return
+
+  if (action.error.message.includes(TOKEN_EXPIRED_MESSAGE)) {
+    showNotification('Your session expired. Login again to continue.', undefined, 'warning')
+    return logOut()
+  }
 
   if (shouldIgnoreError(action))
     return
 
-  notification.error({
-    message: 'An error occurred',
+  const error = getErrorDescription(action.error)
+  showNotification(error.message, error.details)
+}
+
+function showNotification(message, details, type = 'error') {
+  if (recentMessages.has(message))
+    return;
+
+  recentMessages.add(message)
+  setTimeout(() => { recentMessages.delete(message) }, 5 * 1000);
+
+  notification[type]({
+    message,
     description:
       <pre style={{fontSize: '0.8em', whiteSpace: 'pre-wrap'}}>
-        {action.error.message}
-        {action.error.stack}
+        {details}
       </pre>,
     duration: 0,
   });
 }
 
-const rootReducer = errorReducer;
+function getErrorDescription(error) {
+  /* HTTP errors are handled specially because they include the URL
+   * in the error message and we don't want many very similar errors
+   * to show up, just show one.
+   */
+  if (typeof error.status === 'number')
+    return {
+      message: `HTTP Error ${error.status}: ${error.statusText}`,
+      details: error.url,
+    }
 
-export default rootReducer;
+  return {
+    message: error.message,
+    details: error.stack,
+  }
+}

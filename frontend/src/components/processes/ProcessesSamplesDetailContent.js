@@ -5,13 +5,23 @@ import {Link, useHistory, useParams} from "react-router-dom";
 import {Descriptions, Typography} from "antd";
 const {Title} = Typography;
 
-
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processes/actions";
 
-const ProcessesSamplesDetailContent = ({processesByID, protocolsByID, samplesByID, get}) => {
+const mapStateToProps = state => ({
+    processesByID: state.processes.itemsByID,
+    protocolsByID: state.protocols.itemsByID,
+    samplesByID: state.samples.itemsByID,
+    usersByID: state.users.itemsByID,
+});
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ get }, dispatch);
+
+const ProcessesSamplesDetailContent = ({processesByID, protocolsByID, samplesByID, usersByID, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in processesByID;
@@ -46,17 +56,9 @@ const ProcessesSamplesDetailContent = ({processesByID, protocolsByID, samplesByI
                 <Descriptions.Item label="Date Executed" span={2}>{process.execution_date}</Descriptions.Item>
                 <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>  
             </Descriptions>
+            <TrackingFieldsContent entity={process}/>
         </PageContent>
     </>;
 };
-
-const mapStateToProps = state => ({
-    processesByID: state.processes.itemsByID,
-    protocolsByID: state.protocols.itemsByID,
-    samplesByID: state.samples.itemsByID,
-});
-
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({ get }, dispatch);
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProcessesSamplesDetailContent);
