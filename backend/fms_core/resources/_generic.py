@@ -6,10 +6,12 @@ from reversion.models import Version
 
 
 class GenericResource(resources.ModelResource):
-    clean_model_instances = True
-    skip_unchanged = True
     ERROR_CUTOFF = 20
     errorCount = 0
+
+    class Meta:
+        clean_model_instances = True
+        skip_unchanged = True
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         if dry_run:
