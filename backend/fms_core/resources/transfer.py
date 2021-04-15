@@ -2,6 +2,7 @@ import reversion
 
 from datetime import datetime
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
@@ -67,22 +68,31 @@ class TransferResource(GenericResource):
         skip_rows(dataset, 7)  # Skip preamble
 
     def import_obj(self, obj, data, dry_run):
-        self.transferred_from = Sample.objects.get(
-            container__barcode=get_normalized_str(data, "Source Container Barcode"),
-            coordinates=get_normalized_str(data, "Source Location Coord"),
-        )
-        # Cast the "Source Depleted" cell to a Python Boolean value and
-        # update the original sample if needed. This is the act of the
-        # extracted sample depleting the original in the process of its
-        # creation.
-        self.transferred_from.depleted = (self.transferred_from.depleted or
-                                        check_truth_like(get_normalized_str(data, "Source Depleted")))
+        errors = {}
+        
+        try:
+            super().import_obj(obj, data, dry_run)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors).copy()
 
+        try:
+            self.transferred_from = Sample.objects.get(
+                container__barcode=get_normalized_str(data, "Source Container Barcode"),
+                coordinates=get_normalized_str(data, "Source Location Coord"),
+            )
+            # Cast the "Source Depleted" cell to a Python Boolean value and
+            # update the original sample if needed. This is the act of the
+            # extracted sample depleting the original in the process of its
+            # creation.
+            self.transferred_from.depleted = (self.transferred_from.depleted or
+                                            check_truth_like(get_normalized_str(data, "Source Depleted")))
+        except Sample.DoesNotExist as e:
+            errors["source sample"] = ValidationError([f"Source Container Barcode and Source Location Coord do not exist or do not contain a sample."], code="invalid")
         # Create a process for the current extraction
         self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
                                               comment="Sample Transfer (imported from template)")
-        
-        super().import_obj(obj, data, dry_run)
+        if errors:
+            raise ValidationError(errors)
 
     def import_field(self, field, obj, data, is_m2m=False):
         if field.attribute in ('source_depleted', 'child_of'):
@@ -90,15 +100,14 @@ class TransferResource(GenericResource):
             return
 
         if field.attribute == 'destination_container':
-            parent = None;
+            parent = None
             destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 
             if destination_parent_container_barcode:
                 try:
                     parent = Container.objects.get(barcode=destination_parent_container_barcode)
                 except Container.DoesNotExist:
-                    raise Exception("Destination parent container does not exist")
-
+                    raise ValidationError({"destination parent container": ValidationError(["Destination parent container does not exist."], code="invalid")})
 
             shared_container_info =  dict(
                 barcode=get_normalized_str(data, "Destination Container Barcode")
@@ -123,14 +132,11 @@ class TransferResource(GenericResource):
             return
 
         if field.column_name == "Volume Used (uL)":
-            vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
-            vu = float_to_decimal(vu)
-            obj.volume = vu
+            obj.volume = float_to_decimal(blank_str_to_none(data.get("Volume Used (uL)")))  # "" -> None for CSVs
         
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
-
 
         super().import_field(field, obj, data, is_m2m)
 

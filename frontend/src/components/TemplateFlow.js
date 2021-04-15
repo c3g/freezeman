@@ -43,7 +43,7 @@ function renderResult(checkResult) {
 }
 
 function wasInterrupted(checkResult) {
-  if (checkResult.base_errors.length > 0)
+  if (checkResult.base_errors?.length > 0)
     return (
       <p>
         {checkResult.base_errors[0].error}  

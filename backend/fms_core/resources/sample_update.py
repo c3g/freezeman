@@ -5,6 +5,7 @@ import ast
 from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
+from django.core.exceptions import ValidationError
 from ._generic import GenericResource
 from ._utils import skip_rows, add_column_to_preview
 from ..models import Container, Sample
@@ -46,7 +47,7 @@ class SampleUpdateResource(GenericResource):
         try:
             return Sample.objects.get(**query).pk
         except Sample.DoesNotExist:
-            raise Sample.DoesNotExist(f"Sample matching query {query} does not exist")
+            raise Exception(f"Sample matching query {query} does not exist.")
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
@@ -103,8 +104,10 @@ class SampleUpdateResource(GenericResource):
 
             # Normalize boolean attribute then proceed normally (only if some value is specified)
             data["Depleted"] = check_truth_like(str(depleted or ""))
-
-        super().import_field(field, obj, data, is_m2m)
+        try:
+            super().import_field(field, obj, data, is_m2m)
+        except Exception as e:
+            raise ValidationError(e)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
