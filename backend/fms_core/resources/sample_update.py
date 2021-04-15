@@ -6,6 +6,7 @@ from django.utils import timezone
 from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import DateWidget, ForeignKeyWidget
+from django.core.exceptions import ValidationError
 from ._generic import GenericResource
 from ._utils import skip_rows, add_column_to_preview
 from ..models import Container, Sample, Protocol, Process, ProcessSample
@@ -48,7 +49,7 @@ class SampleUpdateResource(GenericResource):
         try:
             return Sample.objects.get(**query).pk
         except Sample.DoesNotExist:
-            raise Sample.DoesNotExist(f"Sample matching query {query} does not exist")
+            raise Exception(f"Sample matching query {query} does not exist.")
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
@@ -124,7 +125,10 @@ class SampleUpdateResource(GenericResource):
             obj.update_comment = blank_str_to_none(data.get("Update Comment"))
             self.update_comment = obj.update_comment
 
-        super().import_field(field, obj, data, is_m2m)
+        try:
+            super().import_field(field, obj, data, is_m2m)
+        except Exception as e:
+            raise ValidationError(e)
 
     def before_save_instance(self, instance, using_transactions, dry_run):
         self.process_sample = ProcessSample.objects.create(process=self.process,
