@@ -15,7 +15,7 @@ function asWeekDay(date) {
 function asDate(date) {
   const day = date.getDate()
   const month = date.toLocaleDateString('en-US', { month: 'short' })
-  return month + ' ' + day
+  return month + '-' + day
 }
 
 function isToday(date) {
@@ -53,7 +53,7 @@ export function compact(date, options = {}) {
 
 export function full(date) {
   if (isThisYear(date))
-    return asDate(date) + ' - ' + asTime(date)
+    return asDate(date) + ' ' + asTime(date)
 
-  return asDate(date) + ' ' + date.getFullYear() + ' - ' + asTime(date)
+  return date.getFullYear() + '-' + asDate(date) + ' ' + asTime(date)
 }
