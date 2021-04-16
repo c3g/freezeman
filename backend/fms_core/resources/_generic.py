@@ -11,7 +11,7 @@ class GenericResource(resources.ModelResource):
 
     class Meta:
         clean_model_instances = True
-        skip_unchanged = True
+        skip_unchanged = False
 
     def save_instance(self, instance, using_transactions=True, dry_run=False):
         if dry_run:
