@@ -15,6 +15,7 @@ from ..utils import (
     check_truth_like,
     float_to_decimal,
     get_normalized_str,
+    str_cast_and_normalize,
 )
 
 
@@ -66,12 +67,23 @@ class SampleUpdateResource(GenericResource):
 
 
     def import_obj(self, obj, data, dry_run):
+        errors = {}
+        
+        try:
+            super().import_obj(obj, data, dry_run)
+        except ValidationError as e:
+            errors = e.update_error_dict(errors).copy()
+
         self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
                                               comment="Updated samples (imported from template)")
 
         previous_vol = obj.volume
         super().import_obj(obj, data, dry_run)      
         self.volume_used = float_to_decimal(float(previous_vol) - float(obj.volume)) if previous_vol != obj.volume else None
+        
+        if errors:
+            raise ValidationError(errors)
+
 
     def before_import_row(self, row, **kwargs):
         # Ensure that new volume and delta volume do not have both a value for the same row.
@@ -100,19 +112,13 @@ class SampleUpdateResource(GenericResource):
             # Manually process volume history and don't call superclass method
             delta_vol = blank_str_to_none(data.get("Delta Volume (uL)"))  # "" -> None for CSVs
             if delta_vol is not None:  # Only update volume if we got a value
-                # Note: Volume history should never be None, but this prevents
-                #       a bunch of cascading tracebacks if the synthetic "id"
-                #       column created above throws a DoesNotExist error.
                 obj.volume = obj.volume + Decimal(delta_vol)
             return
 
         if field.attribute == 'depleted':
-            depleted = blank_str_to_none(data.get("Depleted"))  # "" -> None for CSVs
+            depleted = blank_str_to_none(str_cast_and_normalize(data.get("Depleted")))  # "" -> None for CSVs
             if depleted is None:
                 return
-
-            if isinstance(depleted, str):  # Strip string values to ensure empty strings get caught
-                depleted = depleted.strip()
 
             # Normalize boolean attribute then proceed normally (only if some value is specified)
             data["Depleted"] = check_truth_like(str(depleted or ""))
