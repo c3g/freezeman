@@ -208,13 +208,10 @@ LOGGING = {
     },
 }
 
-
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_AGE = 60 * 60  # 1 hour
-
+# Mechanism in order to automatically logout the user after 4 hours
 SIMPLE_JWT = {
-'ACCESS_TOKEN_LIFETIME': timedelta(seconds=20),
-'REFRESH_TOKEN_LIFETIME': timedelta(seconds=20),
+'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
+'REFRESH_TOKEN_LIFETIME': timedelta(minutes=5),
 'ROTATE_REFRESH_TOKENS': True,
 'BLACKLIST_AFTER_ROTATION': True,
 
@@ -233,9 +230,4 @@ SIMPLE_JWT = {
 
 'JTI_CLAIM': 'jti',
 'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-# Note: in the front-end, data is automatically fetched every 30 seconds..
-# 'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-# 'SLIDING_TOKEN_LIFETIME': timedelta(seconds=20),
-# 'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(seconds=20),
 }

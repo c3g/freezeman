@@ -3,6 +3,7 @@ import {stringify as qs} from "querystring";
 import {map} from "rambda";
 
 import {API_BASE_PATH} from "../config";
+import {refreshAuthToken} from "../modules/auth/actions";
 
 const api = {
   auth: {
@@ -108,6 +109,7 @@ export function withToken(token, fn) {
 const ongoingRequests = {}
 
 function apiFetch(method, route, body, options = { abort: false }) {
+  refreshAuthToken()
   const baseRoute = getPathname(route)
 
   return (_, getState) => {

@@ -114,7 +114,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
 
   useEffect(onDidMount, []);
 
-  useUserInputExpiration(logOut, 10 * 1000); // 1000ms = 1 s
+  // Logout the user after 12 hours in all cases where the tab stays open
+  useUserInputExpiration(logOut, 43200 * 1000); // total 12 hours (1000ms = 1 s)
 
   return (
     <Layout style={{height: "100vh"}}>
