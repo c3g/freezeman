@@ -126,7 +126,8 @@ class TransferResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             vu = float_to_decimal(vu)
             obj.volume = vu
-        
+
+
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
@@ -142,6 +143,7 @@ class TransferResource(GenericResource):
         instance.experimental_group = self.transferred_from.experimental_group
         instance.individual = self.transferred_from.individual
         instance.concentration = self.transferred_from.concentration
+        instance.comment = self.comment
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.transferred_from,
