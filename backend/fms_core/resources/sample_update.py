@@ -27,7 +27,7 @@ class SampleUpdateResource(GenericResource):
     coordinates = Field(attribute='coordinates', column_name='Coord (if plate)')
     # fields that can be updated on sample update
     # volume
-    volume = Field(attribute='new_volume', column_name='New Volume (uL)')
+    volume = Field(attribute='volume', column_name='New Volume (uL)')
     volume_delta = Field(column_name='Delta Volume (uL)')
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
@@ -95,7 +95,7 @@ class SampleUpdateResource(GenericResource):
                 return
             data["New Conc. (ng/uL)"] = float_to_decimal(conc)
 
-        if field.attribute == "new_volume":
+        if field.attribute == "volume":
             # Manually process volume history and don't call superclass method
             vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
             if vol is not None:  # Only update volume if we got a value
@@ -145,19 +145,4 @@ class SampleUpdateResource(GenericResource):
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
             results = add_column_to_preview(results, dataset, "Delta Volume (uL)")
-            index_volume = results.diff_headers.index("New Volume (uL)")
-            for row in results.rows:
-                if row.diff:
-                    list_vol = row.diff[index_volume]
-                    # Case where the volume is changed and a volume difference is present
-                    match = re.search(r".*<ins .*>, (.*)</ins>.*", list_vol)
-                    if match:
-                        latest_vol = ast.literal_eval(match.group(1))
-                        row.diff[index_volume] = str(latest_vol["volume_value"])
-                    else:
-                        # Case where the volume is not changed and we extract the latest volume
-                        match = re.search(r".*<span.*>(.*)</span>.*", list_vol)
-                        if match:
-                            latest_vol = ast.literal_eval(match.group(1))[-1]
-                            row.diff[index_volume] = str(latest_vol["volume_value"])
         return results
