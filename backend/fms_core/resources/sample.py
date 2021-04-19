@@ -279,10 +279,6 @@ class SampleResource(GenericResource):
 
         super().import_field(field, obj, data, is_m2m)
 
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        super().before_save_instance(instance, using_transactions, dry_run)
-
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported samples from template.")

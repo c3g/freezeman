@@ -177,6 +177,7 @@ class TemplateActionsMixin:
                     "traceback": e.traceback if settings.DEBUG else "",
                 } for e in r.errors],
                 "validation_error": r.validation_error,
+                "warnings": r.warnings,
                 "diff": r.diff,
                 "import_type": r.import_type,
             } for r in result.rows],  # TODO
