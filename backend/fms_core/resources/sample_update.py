@@ -67,6 +67,7 @@ class SampleUpdateResource(GenericResource):
         self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
                                               comment="Updated samples (imported from template)")
 
+        self.volume_used = None
         super().import_obj(obj, data, dry_run)
 
 
@@ -76,6 +77,7 @@ class SampleUpdateResource(GenericResource):
         delta_vol = blank_str_to_none(row.get("Delta Volume (uL)"))
         if vol and delta_vol:
             raise Exception("You cannot submit both a New Volume and a Delta Volume for a single sample update.")
+
         super().before_import_row(row, **kwargs)
 
     def import_field(self, field, obj, data, is_m2m=False):
@@ -87,9 +89,11 @@ class SampleUpdateResource(GenericResource):
 
         if field.attribute == "new_volume":
             # Manually process volume history and don't call superclass method
-            vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
-            if vol is not None:  # Only update volume if we got a value
-                obj.volume = vol
+            new_vol = blank_str_to_none(data.get("New Volume (uL)"))  # "" -> None for CSVs
+            if new_vol is not None:  # Only update volume if we got a value
+                previous_vol= obj.volume
+                self.volume_used = float_to_decimal(float(previous_vol) - float(new_vol))
+                obj.volume = new_vol
             return
 
         if field.column_name == "Delta Volume (uL)":
@@ -100,6 +104,7 @@ class SampleUpdateResource(GenericResource):
                 #       a bunch of cascading tracebacks if the synthetic "id"
                 #       column created above throws a DoesNotExist error.
                 obj.volume = obj.volume + Decimal(delta_vol)
+                self.volume_used = Decimal(delta_vol)
             return
 
         if field.attribute == 'depleted':
@@ -123,7 +128,7 @@ class SampleUpdateResource(GenericResource):
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=instance,
                                                            execution_date=timezone.now(),
-                                                           volume_used=None,
+                                                           volume_used=self.volume_used,
                                                            comment=self.update_comment)
 
         super().before_save_instance(instance, using_transactions, dry_run)
