@@ -260,7 +260,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
               onFocus={onFocusSite}
             />
           </Form.Item>
-          <Form.Item label="Reception/Extraction" {...props("creation_date")} rules={requiredRules}>
+          <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
           <Form.Item label="Phenotype" {...props("phenotype")}>
