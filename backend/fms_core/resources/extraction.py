@@ -187,7 +187,7 @@ class ExtractionResource(GenericResource):
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.extracted_from,
-                                                           execution_date=timezone.now(),
+                                                           execution_date=instance.creation_date,
                                                            volume_used=self.volume_used,
                                                            comment=self.comment)
 
