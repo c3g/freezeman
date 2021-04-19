@@ -5,7 +5,7 @@ import ast
 from django.utils import timezone
 from decimal import Decimal
 from import_export.fields import Field
-from import_export.widgets import ForeignKeyWidget
+from import_export.widgets import DateWidget, ForeignKeyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, add_column_to_preview
 from ..models import Container, Sample, Protocol, Process, ProcessSample
@@ -30,6 +30,7 @@ class SampleUpdateResource(GenericResource):
     # new concentration
     concentration = Field(attribute='concentration', column_name='New Conc. (ng/uL)')
     depleted = Field(attribute="depleted", column_name="Depleted")
+    update_date = Field(column_name="Update Date", widget=DateWidget())
     update_comment = Field(attribute="update_comment", column_name="Update Comment")
 
     class Meta:
@@ -118,6 +119,10 @@ class SampleUpdateResource(GenericResource):
             # Normalize boolean attribute then proceed normally (only if some value is specified)
             data["Depleted"] = check_truth_like(str(depleted or ""))
 
+        if field.column_name == "Update Date":
+            self.update_date = blank_str_to_none(data.get("Update Date"))
+            return
+
         if field.attribute == "update_comment":
             obj.update_comment = blank_str_to_none(data.get("Update Comment"))
             self.update_comment = obj.update_comment
@@ -127,8 +132,8 @@ class SampleUpdateResource(GenericResource):
     def before_save_instance(self, instance, using_transactions, dry_run):
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=instance,
-                                                           execution_date=timezone.now(),
                                                            volume_used=self.volume_used,
+                                                           execution_date=self.update_date,
                                                            comment=self.update_comment)
 
         super().before_save_instance(instance, using_transactions, dry_run)

@@ -270,5 +270,64 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=False, blank=True, on_delete=models.PROTECT,
                                     related_name='fms_core_individual_modification', to=settings.AUTH_USER_MODEL),
         ),
-
+        migrations.AlterField(
+            model_name='process',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_process_creation', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='process',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_process_modification', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='processsample',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_processsample_creation', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='processsample',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_processsample_modification', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='protocol',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_protocol_creation', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='protocol',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_protocol_modification', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='samplekind',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplekind_creation', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='samplekind',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplekind_modification', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplelineage_creation', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplelineage_modification', to='auth.user'),
+        ),
+        migrations.AlterField(
+            model_name='processsample',
+            name='execution_date',
+            field=models.DateField(help_text='Date of execution of the process.'),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='creation_date',
+            field=models.DateField(help_text='Date of the sample reception or extraction.'),
+        ),
     ]

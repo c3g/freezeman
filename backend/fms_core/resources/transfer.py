@@ -90,7 +90,7 @@ class TransferResource(GenericResource):
             return
 
         if field.attribute == 'destination_container':
-            parent = None;
+            parent = None
             destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 
             if destination_parent_container_barcode:
