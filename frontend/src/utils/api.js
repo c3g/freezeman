@@ -109,7 +109,6 @@ export function withToken(token, fn) {
 const ongoingRequests = {}
 
 function apiFetch(method, route, body, options = { abort: false }) {
-  refreshAuthToken()
   const baseRoute = getPathname(route)
 
   return (_, getState) => {
