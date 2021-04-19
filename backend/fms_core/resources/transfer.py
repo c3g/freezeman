@@ -33,7 +33,7 @@ class TransferResource(GenericResource):
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
     creation_date = Field(attribute='creation_date', column_name='Transfer Date', widget=DateWidget())
-    comment = Field(attribute='comment', column_name='Comment')
+    comment = Field(column_name='Comment')
 
 
     class Meta:
@@ -143,7 +143,6 @@ class TransferResource(GenericResource):
         instance.experimental_group = self.transferred_from.experimental_group
         instance.individual = self.transferred_from.individual
         instance.concentration = self.transferred_from.concentration
-        instance.comment = self.comment
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.transferred_from,
