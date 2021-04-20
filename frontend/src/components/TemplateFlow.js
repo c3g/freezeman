@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
 import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
+import {Table} from "antd";
 
 import {
   ArrowRightOutlined,
@@ -11,16 +12,9 @@ import {
 } from "@ant-design/icons";
 
 import {fetchListedData} from "../modules/shared/actions";
+import stringToHTML from "../utils/stringToHTML";
 
-
-function renderResult(checkResult) {
-  if (checkResult.error)
-    return (
-      <pre>
-        {checkResult.error.message}
-      </pre>
-    )
-
+function renderResultWithErrors(checkResult) {
   const errors = []
 
   checkResult.rows.forEach((row, index) => {
@@ -42,8 +36,35 @@ function renderResult(checkResult) {
     })
   })
 
-  return errors
+  return <>
+    <pre>
+      {checkResult.error.message}
+    </pre>
+    {errors}
+  </>
 }
+
+function renderResultOK(checkResult) {
+  const results = []
+  const columns = []
+
+  checkResult.diff_headers?.forEach((diff_header, index) => {
+    columns.push({title: diff_header, dataIndex: `${index}`, key: `${index}`})
+  })
+
+  checkResult.rows.forEach((row, index) => {
+    const row_data = {}
+    row.diff.forEach((diff, diff_index) => {
+      row_data[`${diff_index}`] = stringToHTML(diff)
+    })
+    results.push(row_data)
+  })
+
+  return <>
+    <Table dataSource={results} columns={columns} bordered/>
+  </>
+}
+
 
 function wasInterrupted(checkResult) {
   if (checkResult.base_errors?.length > 0)
@@ -111,7 +132,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
           <>
             No errors were found while validating your template:
             {checkResult.rows.length} row(s) found
-            {renderWarnings(checkResult)}
+            {renderResultOK(checkResult)}
           </>
 
         }
@@ -128,7 +149,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
               Errors were found while validating your template :(
             </p>
             {wasInterrupted(checkResult)}
-            {renderResult(checkResult)}
+            {renderResultWithErrors(checkResult)}
           </>
         }
         type="error"
