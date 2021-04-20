@@ -1,7 +1,6 @@
 import reversion
 
 from datetime import datetime
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
@@ -177,8 +176,8 @@ class ExtractionResource(GenericResource):
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
-        if errors:
-            raise ValidationError(errors)
+            if errors:
+                raise ValidationError(errors)
 
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
