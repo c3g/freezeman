@@ -1,7 +1,4 @@
-import cheerio from "cheerio";
 import {stringify as qs} from "querystring";
-import {map} from "rambda";
-
 import {API_BASE_PATH} from "../config";
 
 const api = {
@@ -86,7 +83,7 @@ const api = {
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
-    listVersions: userId => get(`/versions?revision__user=${userId}&limit=999999`), // TODO: handle versions?
+    listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 
   groups: {

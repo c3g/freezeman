@@ -77,7 +77,13 @@ export const listVersions = (id) => (dispatch, getState) => {
     const user = getState().users.itemsByID[id];
     if (user.isFetching) return Promise.resolve();
     const meta = { id };
-    return dispatch(networkAction(LIST_VERSIONS, api.users.listVersions(id), { meta }));
+    return dispatch(
+        networkAction(
+            LIST_VERSIONS,
+            api.users.listVersions(id, user?.versions?.next ?? { limit: 10000 }),
+            { meta }
+        )
+    );
 }
 
 

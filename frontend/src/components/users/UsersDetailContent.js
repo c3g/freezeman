@@ -95,6 +95,10 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
     setTimeout(() => listVersions(user.id), 0);
   }
 
+  const onLoadMore = () => {
+    listVersions(user.id)
+  }
+
   return (
     <>
       <AppPageHeader
@@ -123,6 +127,7 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
             groupsByID={groupsByID}
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
+            onLoadMore={onLoadMore}
           />
         }
       </PageContent>
@@ -131,12 +136,12 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
 
 };
 
-function UserReport({user, groupsByID, expandedGroups, setExpandedGroups}) {
+function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore}) {
 
   const error = user.error;
   const isFetching = user.isFetching;
   const versions = user.versions;
-  const groups = versions ? groupByRevisionID(versions) : [];
+  const groups = versions ? groupByRevisionID(versions.results) : [];
 
   const expandAll = () => setExpandedGroups(getTrueByID(groups));
   const closeAll = () => setExpandedGroups({});
@@ -197,6 +202,16 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups}) {
                 </Timeline.Item>
               )}
             </Timeline>
+            {versions && versions.next &&
+              <Button
+                block
+                type="link"
+                loading={isFetching}
+                onClick={onLoadMore}
+              >
+                Load more
+              </Button>
+            }
           </Card>
         </div>
       </Space>
