@@ -64,7 +64,6 @@ const IndividualEditContent = ({token, individualsByID, add, update, listTable})
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
     .then(listTable)
-    .finally(summary)
   }
 
   /*
