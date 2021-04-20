@@ -37,9 +37,6 @@ function renderResultWithErrors(checkResult) {
   })
 
   return <>
-    <pre>
-      {checkResult.error.message}
-    </pre>
     {errors}
   </>
 }
