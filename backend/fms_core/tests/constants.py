@@ -1,6 +1,6 @@
 from decimal import Decimal
 from ..models import Individual
-
+import datetime
 
 def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12", name='TestRack001'):
     return dict(
@@ -35,6 +35,7 @@ def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
         "collection_site": 'Site1',
         "container": container,
         "coordinates": coordinates,
+        "creation_date": datetime.datetime.today(),
         **kwargs
     }
 
@@ -51,6 +52,7 @@ def create_extracted_sample(sample_kind, individual, container, coordinates='', 
         'collection_site': 'Site1',
         'container': container,
         'coordinates': coordinates,
+        "creation_date": datetime.datetime.today(),
         **kwargs
     }
 

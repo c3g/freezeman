@@ -35,7 +35,7 @@ class SampleResource(GenericResource):
     tissue_source = Field(attribute='tissue_source', column_name='Tissue Source')
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     depleted = Field(attribute='depleted', column_name='Source Depleted')
-    creation_date = Field(attribute='reception_date', column_name='Reception Date', widget=DateWidget())
+    creation_date = Field(attribute='creation_date', column_name='Reception Date', widget=DateWidget())
     phenotype = Field(attribute='phenotype', column_name='Phenotype')
     comment = Field(attribute='comment', column_name='Comment')
 

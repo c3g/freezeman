@@ -32,8 +32,8 @@ class TransferResource(GenericResource):
 
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
     volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
-    transfer_date = Field(attribute='transfer_date', column_name='Transfer Date', widget=DateWidget())
-    comment = Field(attribute='comment', column_name='Comment')
+    creation_date = Field(attribute='creation_date', column_name='Transfer Date', widget=DateWidget())
+    comment = Field(column_name='Comment')
 
 
     class Meta:
@@ -60,7 +60,7 @@ class TransferResource(GenericResource):
             'destination_parent_container_coordinates',
             'source_depleted',
             'volume_used',
-            'transfer_date',
+            'creation_date',
             'comment',
         )
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
@@ -90,7 +90,7 @@ class TransferResource(GenericResource):
             return
 
         if field.attribute == 'destination_container':
-            parent = None;
+            parent = None
             destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 
             if destination_parent_container_barcode:
@@ -126,7 +126,8 @@ class TransferResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             vu = float_to_decimal(vu)
             obj.volume = vu
-        
+
+
         if field.column_name == "Comment":
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
@@ -145,7 +146,7 @@ class TransferResource(GenericResource):
 
         self.process_sample = ProcessSample.objects.create(process=self.process,
                                                            source_sample=self.transferred_from,
-                                                           execution_date=timezone.now(),
+                                                           execution_date=instance.creation_date,
                                                            volume_used=instance.volume,
                                                            comment=self.comment)
 

@@ -24,7 +24,7 @@ export const containersTests = () => {
     context('Containers', () => {
       const singleContainerBarcode = 'test-container-add';
       it('creates single container', () => {
-        cy.navigateTo('Container', 'Add')
+        cy.navigateTo('Containers', 'Add')
         const comment = 'This is a comment.'
         cy.get('#name').type(singleContainerBarcode)
         cy.get('#kind').click()

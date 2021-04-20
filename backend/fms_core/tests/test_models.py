@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.test import TestCase
 from django.utils import timezone
 import reversion
+import datetime
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
 from ..models import Container, Sample, Individual, Process, ProcessSample, Protocol,SampleKind, SampleLineage
 from .constants import (
@@ -552,7 +553,8 @@ class ProcessSampleTest(TestCase):
         ps = ProcessSample.objects.create(process=self.process,
                                           source_sample=self.source_sample,
                                           volume_used=None,
-                                          comment="Test comment")
+                                          comment="Test comment",
+                                          execution_date=datetime.datetime.today())
         self.assertEqual(ps.volume_used, None)
         self.assertEqual(ps.comment, "Test comment")
         self.assertEqual(ps.process.id, self.process.id)
