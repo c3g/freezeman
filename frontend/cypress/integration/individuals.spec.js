@@ -10,6 +10,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import {singleIndividualName} from "../tests_constants";
+
 export const individualsTests = () => {
   context('individuals section tests', () => {
 
@@ -19,7 +21,6 @@ export const individualsTests = () => {
     })
 
     context('Individuals', () => {
-      const singleIndividualName = 'test-individual-name'
       it('creates single individual', () => {
         cy.navigateTo('Individuals', 'Add')
         cy.get('#name').type(singleIndividualName)

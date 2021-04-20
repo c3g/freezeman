@@ -13,6 +13,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import {singleContainerName} from "../tests_constants";
+
 export const containersTests = () => {
   context('contrainers section tests', () => {
 
@@ -22,25 +24,24 @@ export const containersTests = () => {
     })
 
     context('Containers', () => {
-      const singleContainerBarcode = 'test-container-add';
       it('creates single container', () => {
         cy.navigateTo('Containers', 'Add')
         const comment = 'This is a comment.'
-        cy.get('#name').type(singleContainerBarcode)
+        cy.get('#name').type(singleContainerName)
         cy.get('#kind').click()
         cy.get('.ant-select-dropdown .ant-select-item-option').first().click()
-        cy.get('#barcode').type(singleContainerBarcode)
+        cy.get('#barcode').type(singleContainerName)
         cy.get('#comment').type(comment)
         cy.submitForm()
         cy.get('body').should('contain', `Container ${name}`) // Details title
       })
-  
+
       it('visit container detail page', () => {
          cy.navigateTo('Containers')
-         cy.get('.ant-table-cell').contains(singleContainerBarcode).click()
-         cy.get('body').should('contain', `Container ${singleContainerBarcode}`)
+         cy.get('.ant-table-cell').contains(singleContainerName).click()
+         cy.get('body').should('contain', `Container ${singleContainerName}`)
       })
-  
+
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
         cy.get('input[type=file]').attachFile('Container_creation_v0.4.xlsx')
