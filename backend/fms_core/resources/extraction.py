@@ -176,7 +176,7 @@ class ExtractionResource(GenericResource):
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
-         if errors:
+        if errors:
             raise ValidationError(errors)
 
     def import_field(self, field, obj, data, is_m2m=False):
