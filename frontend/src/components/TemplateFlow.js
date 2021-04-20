@@ -17,7 +17,7 @@ import stringToHTML from "../utils/stringToHTML";
 function renderResultWithErrors(checkResult) {
   const errors = []
 
-  checkResult.rows.forEach((row, index) => {
+  checkResult.rows?.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
