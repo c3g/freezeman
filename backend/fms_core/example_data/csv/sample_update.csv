@@ -1,12 +1,12 @@
-Sample Update,,,,,,,
-,,,,,,,
-,,,,,,,
-,,,,,,,
-,,,,,,,
-,,,,,,,
-#,Container Barcode,Coord (if plate),New Volume (uL),Delta Volume (uL),New Conc. (ng/uL),Depleted,Update Comment
-1,tube001,,,,,True,sample 1 depleted
-1,tube005,,0.001,,,,sample 4 updated
-2,plate001,A01,,-15.9,0.2,False,sample 3 updated
-3,,,,,,,
-4,,,,,,,
+Sample Update,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+#,Container Barcode,Coord (if plate),New Volume (uL),Delta Volume (uL),New Conc. (ng/uL),Depleted,Update Date,Update Comment
+1,tube001,,,,,True,2021-04-01,sample 1 depleted
+1,tube005,,0.001,,,,2021-04-01,sample 4 updated
+2,plate001,A01,,-15.9,0.2,False,2021-04-01,sample 3 updated
+3,,,,,,,,
+4,,,,,,,,
