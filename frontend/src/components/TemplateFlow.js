@@ -36,9 +36,19 @@ function renderResultWithErrors(checkResult) {
     })
   })
 
-  return <>
-    {errors}
-  </>
+  if (checkResult.error) {
+    return <>
+      <pre>
+        {checkResult.error.message}
+      </pre>
+      {errors}
+    </>
+  }
+  else {
+    return <>
+      {errors}
+    </>
+  }
 }
 
 function renderResultOK(checkResult) {
@@ -58,7 +68,7 @@ function renderResultOK(checkResult) {
   })
 
   return <>
-    <Table dataSource={results} columns={columns} bordered/>
+    <Table dataSource={results} columns={columns} size="small" bordered/>
   </>
 }
 
