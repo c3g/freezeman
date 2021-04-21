@@ -166,7 +166,6 @@ class TemplateActionsMixin:
         result = resource_instance.import_data(dataset, dry_run=True)
 
         return Response({
-            "diff_headers": result.diff_headers,
             "valid": not (result.has_errors() or result.has_validation_errors()),
             "has_warnings" : any([r.warnings for r in result.rows]),
             "base_errors": [{
