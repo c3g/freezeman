@@ -48,12 +48,12 @@ export function compact(date, options = {}) {
   if (isThisWeek(date))
     return asWeekDay(date) + ' ' + asTime(date)
 
+  if (isThisYear(date))
+    return asDate(date) + ' ' + asTime(date)
+
   return full(date)
 }
 
 export function full(date) {
-  if (isThisYear(date))
-    return asDate(date) + ' ' + asTime(date)
-
   return date.getFullYear() + '-' + asDate(date) + ' ' + asTime(date)
 }
