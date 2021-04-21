@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
-from ._utils import skip_rows
+from ._utils import skip_rows, add_columns_to_preview
 from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
@@ -45,6 +45,7 @@ class ExtractionResource(GenericResource):
             'sample_kind',
             'concentration',
             'source_depleted',
+            'volume'
         )
         excluded = (
             'container',
@@ -228,10 +229,7 @@ class ExtractionResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            index_volume_used = results.diff_headers.index("Volume Used (uL)")
-            index_comment = results.diff_headers.index("Comment")
-            for line, row in enumerate(results.rows):
-                if row.diff:
-                    row.diff[index_volume_used] = "{:.3f}".format(dataset["Volume Used (uL)"][line])
-                    row.diff[index_comment] = dataset["Comment"][line]
+            missing_columns = ['Volume Used (uL)', 'Container Barcode', 'Location Coord', 'Comment']
+            results = add_columns_to_preview(results, dataset, missing_columns)
+
         return results
