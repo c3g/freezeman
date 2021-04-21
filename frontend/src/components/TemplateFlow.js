@@ -12,7 +12,7 @@ import {
 } from "@ant-design/icons";
 
 import {fetchListedData} from "../modules/shared/actions";
-import stringToHTML from "../utils/stringToHTML";
+import stripHTMLTags from "../utils/stripHTMLTags";
 
 function renderResultWithErrors(checkResult) {
   const errors = []
@@ -36,19 +36,16 @@ function renderResultWithErrors(checkResult) {
     })
   })
 
-  if (checkResult.error) {
-    return <>
-      <pre>
-        {checkResult.error.message}
-      </pre>
+  return (
+      <>
+      { checkResult.error &&
+        <pre>
+          {checkResult.error.message}
+        </pre>
+      }
       {errors}
     </>
-  }
-  else {
-    return <>
-      {errors}
-    </>
-  }
+  )
 }
 
 function renderResultOK(checkResult) {
@@ -56,19 +53,19 @@ function renderResultOK(checkResult) {
   const columns = []
 
   checkResult.diff_headers?.forEach((diff_header, index) => {
-    columns.push({title: diff_header, dataIndex: `${index}`, key: `${index}`})
+    columns.push({title: diff_header, dataIndex: `column-${index}`, key: `column-${index}`})
   })
 
   checkResult.rows.forEach((row, index) => {
     const row_data = {}
     row.diff.forEach((diff, diff_index) => {
-      row_data[`${diff_index}`] = stringToHTML(diff)
+      row_data[`column-${diff_index}`] = stripHTMLTags(diff)
     })
     results.push(row_data)
   })
 
   return <>
-    <Table dataSource={results} columns={columns} size="small" bordered/>
+    <Table dataSource={results} columns={columns} scroll={{ x: true }} size="small" bordered/>
   </>
 }
 
