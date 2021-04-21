@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
-from ._utils import skip_rows
+from ._utils import skip_rows, add_columns_to_preview
 from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
@@ -182,12 +182,15 @@ class TransferResource(GenericResource):
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
+
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            index_volume_used = results.diff_headers.index("Volume Used (uL)")
-            index_comment = results.diff_headers.index("Comment")
-            for line, row in enumerate(results.rows):
-                if row.diff:
-                    row.diff[index_volume_used] = "{:.3f}".format(dataset["Volume Used (uL)"][line])
-                    row.diff[index_comment] = dataset["Comment"][line]
+            missing_columns = ['Source Container Barcode', 'Source Location Coord',
+                               'Destination Container Barcode', 'Destination Location Coord',
+                               'Destination Container Name', 'Destination Container Kind',
+                               'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                               'Volume Used (uL)'
+                               ]
+            results = add_columns_to_preview(results, dataset, missing_columns)
+
         return results
