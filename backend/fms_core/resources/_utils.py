@@ -8,7 +8,6 @@ __all__ = [
     "skip_rows",
     "remove_column_from_preview",
     "add_column_to_preview",
-    "add_columns_to_preview",
 ]
 
 
@@ -61,10 +60,4 @@ def add_column_to_preview(results, dataset, column_name: str, column_index: int 
         for cnt, row in enumerate(results.rows):
             if row.diff:
                 row.diff[index_column] = dataset.dict[cnt][column_name]
-    return results
-
-
-def add_columns_to_preview(results, dataset, column_names: list):
-    for column_name in column_names:
-        results = add_column_to_preview(results, dataset, column_name)
     return results
