@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
 import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
-import {Table} from "antd";
 
 import {
   ArrowRightOutlined,
@@ -12,12 +11,19 @@ import {
 } from "@ant-design/icons";
 
 import {fetchListedData} from "../modules/shared/actions";
-import stripHTMLTags from "../utils/stripHTMLTags";
 
-function renderResultWithErrors(checkResult) {
+
+function renderResult(checkResult) {
+  if (checkResult.error)
+    return (
+      <pre>
+        {checkResult.error.message}
+      </pre>
+    )
+
   const errors = []
 
-  checkResult.rows?.forEach((row, index) => {
+  checkResult.rows.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
@@ -36,39 +42,8 @@ function renderResultWithErrors(checkResult) {
     })
   })
 
-  return (
-      <>
-      { checkResult.error &&
-        <pre>
-          {checkResult.error.message}
-        </pre>
-      }
-      {errors}
-    </>
-  )
+  return errors
 }
-
-function renderResultOK(checkResult) {
-  const results = []
-  const columns = []
-
-  checkResult.diff_headers?.forEach((diff_header, index) => {
-    columns.push({title: diff_header, dataIndex: `column-${index}`, key: `column-${index}`})
-  })
-
-  checkResult.rows.forEach((row, index) => {
-    const row_data = {}
-    row.diff.forEach((diff, diff_index) => {
-      row_data[`column-${diff_index}`] = stripHTMLTags(diff)
-    })
-    results.push(row_data)
-  })
-
-  return <>
-    <Table dataSource={results} columns={columns} scroll={{ x: true }} size="small" bordered/>
-  </>
-}
-
 
 function wasInterrupted(checkResult) {
   if (checkResult.base_errors?.length > 0)
@@ -136,7 +111,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
           <>
             No errors were found while validating your template:
             {checkResult.rows.length} row(s) found
-            {renderResultOK(checkResult)}
+            {renderWarnings(checkResult)}
           </>
 
         }
@@ -153,7 +128,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
               Errors were found while validating your template :(
             </p>
             {wasInterrupted(checkResult)}
-            {renderResultWithErrors(checkResult)}
+            {renderResult(checkResult)}
           </>
         }
         type="error"
