@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
-import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
+import {Alert, Button, Form, Steps, Upload, Row, Col, Popover} from "antd";
 import {Table} from "antd";
 
 import {
@@ -9,6 +9,7 @@ import {
   ArrowLeftOutlined,
   CheckOutlined,
   UploadOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 
 import {fetchListedData} from "../modules/shared/actions";
@@ -52,12 +53,35 @@ function renderResultOK(checkResult) {
   const results = []
   const columns = []
 
+  checkResult.has_warnings && columns.push(
+    {
+      title: 'Warnings',
+      dataIndex: 'warning',
+      key: 'warning',
+      align: "center",  
+      render: content => {
+        return (content &&
+          <Popover content={content} title='Warnings on current row' placement='bottomLeft'>
+            <WarningOutlined style={{fontSize: '16px', color: '#FFBB00'}}/>
+          </Popover>)
+      },
+    })
+
   checkResult.diff_headers?.forEach((diff_header, index) => {
     columns.push({title: diff_header, dataIndex: `column-${index}`, key: `column-${index}`})
   })
 
   checkResult.rows.forEach((row, index) => {
     const row_data = {}
+
+    checkResult.has_warnings && row.warnings.length > 0 && (
+      row_data['warning'] = ( 
+        <div key={`warning-${index}`}>
+          {row.warnings.map(warning => <p>{warning}</p>)}
+        </div>
+      )
+    )
+
     row.diff.forEach((diff, diff_index) => {
       row_data[`column-${diff_index}`] = stripHTMLTags(diff)
     })
@@ -77,22 +101,6 @@ function wasInterrupted(checkResult) {
       </p>
     )
 }
-
-function renderWarnings(checkResult) {
-  const warnings = []
-  checkResult.rows.forEach((row, index) => {
-    row.warnings.forEach(w => {
-      warnings.push(
-        <div key={'row-' + index}>
-          Warning Row {index}: {w}
-        </div>
-      )
-    })
-  })
-
-  return warnings
-}
-
 
 const UploadStep = ({action, onChangeFile}) => (
   <Form layout="vertical">
