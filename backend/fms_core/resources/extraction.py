@@ -2,6 +2,7 @@ import reversion
 
 from datetime import datetime
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
@@ -72,11 +73,6 @@ class ExtractionResource(GenericResource):
         errors = {}
         self.extracted_from = {}
 
-        try:
-            super().import_obj(obj, data, dry_run)
-        except ValidationError as e:
-            errors = e.update_error_dict(errors).copy()
-
         # This section fetch the source sample that is to be transfered
         try:
             self.extracted_from = Sample.objects.get(
@@ -91,7 +87,7 @@ class ExtractionResource(GenericResource):
                                             check_truth_like(get_normalized_str(data, "Source Depleted")))
         except Sample.DoesNotExist as e:
             errors["source sample"] = ValidationError([f"Source Container Barcode and Source Location Coord do not exist or do not contain a sample."], code="invalid")
-
+        
         if self.extracted_from:
             obj.name = self.extracted_from.name
             obj.alias = self.extracted_from.alias
@@ -130,7 +126,7 @@ class ExtractionResource(GenericResource):
                 )
         else:
             parent = None
-            rowWarnings["parent container"] = f"Parent rack container will not be created if you do not provide [Nucleic Acid Location Barcode]."
+            self.row_warnings.append(f"Parent rack container will not be created if you do not provide [Nucleic Acid Location Barcode].")
 
         # Per Alex: We can make new tubes if needed for extractions
 
@@ -161,8 +157,13 @@ class ExtractionResource(GenericResource):
                             f"{datetime.utcnow().isoformat()}Z"
                 )
             except Exception as e:
-                errors["container"] = ValidationError([f"Could not create destination container." + e.messages.pop()], code="invalid")
+                errors["container"] = ValidationError([f"Could not create destination container. " + e.messages.pop()], code="invalid")
                 
+        try:
+            super().import_obj(obj, data, dry_run)
+        except ValidationError as e:
+            errors.update(e.update_error_dict(errors).copy())
+
         try:
             # Create a process for the current extraction
             self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
@@ -176,7 +177,7 @@ class ExtractionResource(GenericResource):
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
-         if errors:
+        if errors:
             raise ValidationError(errors)
 
     def import_field(self, field, obj, data, is_m2m=False):
@@ -191,7 +192,7 @@ class ExtractionResource(GenericResource):
 
         if field.attribute == 'volume':
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
-            obj.volume = float_to_decimal(vol)
+            obj.volume = float_to_decimal(vol) if vol is not None else None
             return
 
         if field.attribute == "concentration":
@@ -203,7 +204,8 @@ class ExtractionResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
             self.volume_used = data["Volume Used (uL)"]
-            self.extracted_from.volume -= self.volume_used
+            if self.extracted_from:
+                self.extracted_from.volume -= self.volume_used
 
         if field.column_name == "Comment":
             # Normalize extraction comment

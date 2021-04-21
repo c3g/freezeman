@@ -186,9 +186,7 @@ class SampleResource(GenericResource):
         # TODO: API-generalized method for doing this (currently not possible for React front-end)
 
         if dry_run and individual and not individual_created:
-            request = CrequestMiddleware.get_request()
-            messages.warning(request, f"Row {data['#']}: Using existing individual '{individual}' instead of creating "
-                                      f"a new one")
+            self.row_warnings.append(f"Using existing individual '{individual}' instead of creating a new one")
 
         if errors:
             raise ValidationError(errors)
