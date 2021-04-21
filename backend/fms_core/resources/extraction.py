@@ -1,7 +1,6 @@
 import reversion
 
 from datetime import datetime
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
