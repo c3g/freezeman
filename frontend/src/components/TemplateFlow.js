@@ -69,7 +69,6 @@ function renderResultOK(checkResult) {
   </>
 }
 
-
 function wasInterrupted(checkResult) {
   if (checkResult.base_errors?.length > 0)
     return (
@@ -77,10 +76,6 @@ function wasInterrupted(checkResult) {
         {checkResult.base_errors[0].error}  
       </p>
     )
-}
-
-function hasWarnings(checkResult) {
-
 }
 
 function renderWarnings(checkResult) {
