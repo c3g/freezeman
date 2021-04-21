@@ -12,7 +12,7 @@ import {
 } from "@ant-design/icons";
 
 import {fetchListedData} from "../modules/shared/actions";
-import stripHTMLTags from "../utils/stripHTMLTags";
+import innerHTMLPurified from "../utils/innerHTMLPurified";
 
 function renderResultWithErrors(checkResult) {
   const errors = []
@@ -53,13 +53,19 @@ function renderResultOK(checkResult) {
   const columns = []
 
   checkResult.diff_headers?.forEach((diff_header, index) => {
-    columns.push({title: diff_header, dataIndex: `column-${index}`, key: `column-${index}`})
+    columns.push(
+        {
+          title: diff_header,
+          dataIndex: `column-${index}`,
+          key: `column-${index}`,
+        }
+    )
   })
 
   checkResult.rows.forEach((row, index) => {
     const row_data = {}
     row.diff.forEach((diff, diff_index) => {
-      row_data[`column-${diff_index}`] = stripHTMLTags(diff)
+      row_data[`column-${diff_index}`] = innerHTMLPurified(diff)
     })
     results.push(row_data)
   })
