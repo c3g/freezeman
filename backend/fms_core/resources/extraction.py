@@ -228,8 +228,8 @@ class ExtractionResource(GenericResource):
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
-        # if dry_run and not len(results.invalid_rows) > 0:
-        #     missing_columns = ['Volume Used (uL)', 'Container Barcode', 'Location Coord', 'Comment']
-        #     results = add_columns_to_preview(results, dataset, missing_columns)
+        if dry_run and not len(results.invalid_rows) > 0:
+            missing_columns = ['Volume Used (uL)', 'Container Barcode', 'Location Coord', 'Comment']
+            results = add_columns_to_preview(results, dataset, missing_columns)
 
         return results
