@@ -168,6 +168,7 @@ class TemplateActionsMixin:
         return Response({
             "diff_headers": result.diff_headers,
             "valid": not (result.has_errors() or result.has_validation_errors()),
+            "has_warnings" : any([r.warnings for r in result.rows]),
             "base_errors": [{
                 "error": str(e.error),
                 "traceback": e.traceback if settings.DEBUG else "",

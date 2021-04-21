@@ -77,7 +77,27 @@ function wasInterrupted(checkResult) {
         {checkResult.base_errors[0].error}  
       </p>
     )
-  }
+}
+
+function hasWarnings(checkResult) {
+
+}
+
+function renderWarnings(checkResult) {
+  const warnings = []
+  checkResult.rows.forEach((row, index) => {
+    row.warnings.forEach(w => {
+      warnings.push(
+        <div key={'row-' + index}>
+          Warning Row {index}: {w}
+        </div>
+      )
+    })
+  })
+
+  return warnings
+}
+
 
 const UploadStep = ({action, onChangeFile}) => (
   <Form layout="vertical">
@@ -120,7 +140,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
           </>
 
         }
-        type="success"
+        type={checkResult.has_warnings?"warning":"success"}
         showIcon
       />
     }
