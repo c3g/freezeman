@@ -10,7 +10,7 @@ class GenericResource(resources.ModelResource):
     ERROR_CUTOFF = 20
     errorCount = 0
     manuallyExclude = []
-    rowWarnings = {}
+    row_warnings = []
 
     class Meta:
         clean_model_instances = True
@@ -52,7 +52,7 @@ class GenericResource(resources.ModelResource):
             reversion.set_comment("Updated from template." if len(versions) >= 1 else "Imported from template.")
 
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
-        self.rowWarnings = {}
+        self.row_warnings = []
         if self.errorCount < self.ERROR_CUTOFF:
             row_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
 
@@ -66,7 +66,7 @@ class GenericResource(resources.ModelResource):
                   validation_error_count += len(field[1])
             self.errorCount += (error_count + validation_error_count)
 
-            row_result.warnings = self.rowWarnings.copy()
+            row_result.warnings = self.row_warnings.copy()
         else:
             row_result = self.get_row_result_class()()
             row_result.import_type = RowResult.IMPORT_TYPE_SKIP
