@@ -201,7 +201,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Tissue" {...props("tissue_source")} rules={isTissueEnabled ? requiredRules : undefined}>
+          <Form.Item label="Tissue" {...props("tissue_source")}>
             <Select allowClear disabled={!isTissueEnabled}>
               {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
