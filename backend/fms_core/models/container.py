@@ -73,10 +73,6 @@ class Container(TrackedModel):
 
         self.normalize()
 
-        if check_regexes:
-            container_barcode_validator(self.barcode)
-            name_validator(self.name)
-
         if self.coordinates != "" and self.location is None:
             add_error("coordinates", "Cannot specify coordinates in non-specified container")
 
