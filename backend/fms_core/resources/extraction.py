@@ -126,7 +126,7 @@ class ExtractionResource(GenericResource):
                 )
         else:
             parent = None
-            self.row_warnings.append(f"Parent rack container will not be created if you do not provide [Nucleic Acid Location Barcode].")
+            self.row_warnings.append(f"Parent rack container will not be created if you do not provide [Nucleic Acid Location Barcode, Nucleic Acid Location Coord].")
 
         # Per Alex: We can make new tubes if needed for extractions
 

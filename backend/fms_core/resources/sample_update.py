@@ -8,7 +8,7 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, ForeignKeyWidget
 from django.core.exceptions import ValidationError
 from ._generic import GenericResource
-from ._utils import skip_rows, add_column_to_preview
+from ._utils import skip_rows, add_columns_to_preview
 from ..models import Container, Sample, Protocol, Process, ProcessSample
 from ..utils import (
     blank_str_to_none,
@@ -155,5 +155,5 @@ class SampleUpdateResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            results = add_column_to_preview(results, dataset, "Delta Volume (uL)")
+            results = add_columns_to_preview(results, dataset, ["Delta Volume (uL)", "Update Date"])
         return results

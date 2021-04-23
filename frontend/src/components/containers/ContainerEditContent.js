@@ -14,7 +14,7 @@ import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
-const barcodeRules = [{ pattern: /^[.]{1,200}$/ }]
+const barcodeRules = [{ pattern: /^.{1,200}$/ }]
 
 const searchContainers = (token, input, isParent = false) =>
   withToken(token, api.containers.search)(input, { parent: isParent })
