@@ -204,7 +204,7 @@ const ConfirmationStep = ({isSubmitting, isSubmitted, submitResult}) => (
               Errors were found while submitting your template :(
             </p>
             {wasInterrupted(submitResult)}
-            {renderResult(submitResult)}
+            {renderResultWithErrors(submitResult)}
           </>
         }
         type="error"

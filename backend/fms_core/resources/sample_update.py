@@ -69,18 +69,28 @@ class SampleUpdateResource(GenericResource):
     def import_obj(self, obj, data, dry_run):
         errors = {}
         
+        previous_vol = obj.volume
+
         try:
-            super().import_obj(obj, data, dry_run)
+            super().import_obj(obj, data, dry_run) 
         except ValidationError as e:
             errors = e.update_error_dict(errors).copy()
 
-        self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
-                                              comment="Updated samples (imported from template)")
-
-        previous_vol = obj.volume
-        super().import_obj(obj, data, dry_run)      
         self.volume_used = float_to_decimal(float(previous_vol) - float(obj.volume)) if previous_vol != obj.volume else None
-        
+
+
+        try:
+            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
+                                                  comment="Updated samples (imported from template)")
+
+            self.process_sample = ProcessSample.objects.create(process=self.process,
+                                                               source_sample=obj,
+                                                               volume_used=self.volume_used,
+                                                               execution_date=self.update_date,
+                                                               comment=self.update_comment)
+        except Exception as e:
+            errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
+
         if errors:
             raise ValidationError(errors)
 
@@ -135,15 +145,6 @@ class SampleUpdateResource(GenericResource):
             super().import_field(field, obj, data, is_m2m)
         except Exception as e:
             raise ValidationError(e)
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                           source_sample=instance,
-                                                           volume_used=self.volume_used,
-                                                           execution_date=self.update_date,
-                                                           comment=self.update_comment)
-
-        super().before_save_instance(instance, using_transactions, dry_run)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)

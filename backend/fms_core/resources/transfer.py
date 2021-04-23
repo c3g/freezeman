@@ -168,6 +168,7 @@ class TransferResource(GenericResource):
         super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
+        # Update volume and depletion status of original sample
         if self.transferred_from:
             self.transferred_from.volume = float_to_decimal(self.transferred_from.volume - instance.volume)
             self.transferred_from.save()

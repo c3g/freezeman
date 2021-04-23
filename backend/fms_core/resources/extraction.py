@@ -204,8 +204,6 @@ class ExtractionResource(GenericResource):
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
             self.volume_used = data["Volume Used (uL)"]
-            if self.extracted_from:
-                self.extracted_from.volume -= self.volume_used
 
         if field.column_name == "Comment":
             # Normalize extraction comment
@@ -215,8 +213,10 @@ class ExtractionResource(GenericResource):
         super().import_field(field, obj, data, is_m2m)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
-        # Update depletion status of original sample
-        self.extracted_from.save()
+        # Update volume and depletion status of original sample
+        if self.extracted_from:
+            self.extracted_from.volume -= self.volume_used
+            self.extracted_from.save()
 
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported extracted samples from template.")
