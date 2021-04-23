@@ -13,6 +13,7 @@ export default function preprocessVersions(previousVersions, /* mut */ versions)
   }
 
   return {
+    isFetching: false,
     count: versions.count,
     next: options,
     results: (previousVersions?.results ?? []).concat(versions.results),

@@ -141,7 +141,9 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
   const error = user.error;
   const isFetching = user.isFetching;
   const versions = user.versions;
-  const groups = versions ? groupByRevisionID(versions.results) : [];
+  const hasVersions = versions?.results !== undefined
+  const isFetchingVersions = user.versions?.isFetching;
+  const groups = hasVersions ? groupByRevisionID(versions.results) : [];
 
   const expandAll = () => setExpandedGroups(getTrueByID(groups));
   const closeAll = () => setExpandedGroups({});
@@ -202,11 +204,11 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
                 </Timeline.Item>
               )}
             </Timeline>
-            {versions && versions.next &&
+            {((hasVersions && versions.next) || (!hasVersions && isFetchingVersions)) &&
               <Button
                 block
                 type="link"
-                loading={isFetching}
+                loading={isFetching || isFetchingVersions}
                 onClick={onLoadMore}
               >
                 Load more
