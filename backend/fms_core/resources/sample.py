@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
 from ._generic import GenericResource
-from ._utils import skip_rows
+from ._utils import skip_rows, remove_column_from_preview
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
@@ -186,7 +186,7 @@ class SampleResource(GenericResource):
         # TODO: API-generalized method for doing this (currently not possible for React front-end)
 
         if dry_run and individual and not individual_created:
-            self.row_warnings.append(f"Using existing individual '{individual}' instead of creating a new one")
+            self.row_warnings.append(f"Using existing individual '{individual}' instead of creating a new one.")
 
         if errors:
             raise ValidationError(errors)
@@ -280,3 +280,11 @@ class SampleResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported samples from template.")
+
+    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
+                    **kwargs):
+        results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
+        # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
+        if dry_run and not len(results.invalid_rows) > 0:
+            results = remove_column_from_preview(results, "container__barcode")
+        return results
