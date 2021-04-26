@@ -41,6 +41,11 @@ def remove_column_from_preview(results, column_name: str):
             row.diff.pop(index_column)
     return results
 
+def remove_columns_from_preview(results, column_names: list):
+    for column_name in column_names:
+        results = remove_column_from_preview(results, column_name)
+    return results
+
 
 def add_column_to_preview(results, dataset, column_name: str, column_index: int = None):
     # Check if the column is already in the preview

@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
 from ._generic import GenericResource
-from ._utils import skip_rows, remove_column_from_preview
+from ._utils import skip_rows, remove_columns_from_preview
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
@@ -286,5 +286,6 @@ class SampleResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            results = remove_column_from_preview(results, "container__barcode")
+            COLUMNS_TO_REMOVE = ["container__barcode", "Source Depleted"]
+            results = remove_columns_from_preview(results, COLUMNS_TO_REMOVE)
         return results
