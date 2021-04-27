@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -205,4 +206,28 @@ LOGGING = {
         "handlers": ["console"],
         "level": "DEBUG" if DEBUG else "WARNING",
     },
+}
+
+# Mechanism in order to automatically logout the user after 4 hours
+SIMPLE_JWT = {
+'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
+'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
+'ROTATE_REFRESH_TOKENS': True,
+'BLACKLIST_AFTER_ROTATION': True,
+
+'ALGORITHM': 'HS256',
+'SIGNING_KEY': SECRET_KEY,
+'VERIFYING_KEY': None,
+'AUDIENCE': None,
+'ISSUER': None,
+
+'AUTH_HEADER_TYPES': ('Bearer',),
+'USER_ID_FIELD': 'id',
+'USER_ID_CLAIM': 'user_id',
+
+'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+'TOKEN_TYPE_CLAIM': 'token_type',
+
+'JTI_CLAIM': 'jti',
+'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 }

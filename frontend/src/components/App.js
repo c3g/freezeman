@@ -26,8 +26,11 @@ import UsersPage from "./users/UsersPage";
 
 import PrivateRoute from "./PrivateRoute";
 
+import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
+import {hour} from "../utils/time";
+
+import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
@@ -112,6 +115,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);
+
+  // Logout the user after 12 hours in all cases where the tab stays open
+  useUserInputExpiration(logOut, 12 * hour);
 
   return (
     <Layout style={{height: "100vh"}}>

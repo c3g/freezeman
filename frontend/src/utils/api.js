@@ -1,5 +1,6 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
+import {refreshAuthToken} from "../modules/auth/actions";
 
 const api = {
   auth: {
