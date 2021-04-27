@@ -12,6 +12,7 @@ const About = ({info}) => {
     const version = info.version;
     const repository = info.repository;
     const commit = info.commit;
+    const commitUrl = `${repository}/commit/${commit?.hash_full}`
     return <>
         <div>FreezeMan</div>
         {(version)?
@@ -26,7 +27,7 @@ const About = ({info}) => {
 
         {(repository && commit && info.env != 'PROD' )?
           <div>
-              <a target='_blank' href={`${repository}/commit/${commit.hash_full}`}>{commit.small_hash} </a>
+              <a target='_blank' href={commitUrl}>#{commit.hash_small} </a>
               ({commit.date})
           </div>
         : ""}
