@@ -27,10 +27,10 @@ Python package dependencies are listed in `requirements.txt`.
      dependencies into it:
      
      ```bash
-     cd .. # move into base repository directory
+     cd backend # move into backend repository directory
      virtualenv -p python3.8 ./env
      source env/bin/activate
-     pip3.8 install -r ./backend/requirements.txt
+     pip3.8 install -r requirements.txt
      ```
      
   2. Create a database for the application to use locally in Postgres. The
@@ -144,5 +144,5 @@ algorithm. To manage it, here are the useful commands, to be run in the
  - `sudo make install`: install it in the postgres extension list
  - `sudo make uninstall`: remove it from the postgres extension list
 
-When updating the extension, you might need to run `drop extension fzy;` and
-`create extension fzy;` before uninstalling and after installing it.
+When updating the extension, you might need to run `drop extension fzy;` before uninstalling it and
+`create extension fzy;` after installing it.

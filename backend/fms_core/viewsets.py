@@ -166,7 +166,9 @@ class TemplateActionsMixin:
         result = resource_instance.import_data(dataset, dry_run=True)
 
         return Response({
+            "diff_headers": result.diff_headers,
             "valid": not (result.has_errors() or result.has_validation_errors()),
+            "has_warnings" : any([r.warnings for r in result.rows]),
             "base_errors": [{
                 "error": str(e.error),
                 "traceback": e.traceback if settings.DEBUG else "",
@@ -177,6 +179,7 @@ class TemplateActionsMixin:
                     "traceback": e.traceback if settings.DEBUG else "",
                 } for e in r.errors],
                 "validation_error": r.validation_error,
+                "warnings": r.warnings,
                 "diff": r.diff,
                 "import_type": r.import_type,
             } for r in result.rows],  # TODO

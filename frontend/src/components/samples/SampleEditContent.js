@@ -19,13 +19,13 @@ const {TextArea} = Input
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update} from "../../modules/samples/actions";
+import {add, update, listTable, summary} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
-const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]
+const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/ }]
 
 // API functions
 
@@ -59,9 +59,9 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable, summary};
 
-const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
+const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTable, summary}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -149,6 +149,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
+    .then(() => Promise.all([listTable(), summary()]))
   }
 
 
@@ -201,7 +202,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Tissue" {...props("tissue_source")} rules={isTissueEnabled ? requiredRules : undefined}>
+          <Form.Item label="Tissue" {...props("tissue_source")}>
             <Select allowClear disabled={!isTissueEnabled}>
               {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
@@ -260,7 +261,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update}) => {
               onFocus={onFocusSite}
             />
           </Form.Item>
-          <Form.Item label="Reception/Extraction" {...props("creation_date")} rules={requiredRules}>
+          <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
           <Form.Item label="Phenotype" {...props("phenotype")}>

@@ -187,6 +187,8 @@ export const PROCESS_FILTERS = {
     type: FILTER_TYPE.RANGE,
     key: "volume_used",
     label: "Volume Used",
+    //exception for Process sample update where volume_used might be negative...
+    defaultMin: Number.MIN_SAFE_INTEGER,
   },
 }
 

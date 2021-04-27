@@ -29,6 +29,7 @@ import PrivateRoute from "./PrivateRoute";
 import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {hour} from "../utils/time";
+
 import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
@@ -101,11 +102,11 @@ export const mapStateToProps = state => ({
   user: state.users.itemsByID[state.auth.currentUserID],
 });
 
-export const actionCreators = {fetchInitialData, fetchAuthorizedData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
+const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   useEffect(() => {
-    const interval = setInterval(fetchAuthorizedData, 30000);
+    const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
     return () => clearInterval(interval);
   }, []);

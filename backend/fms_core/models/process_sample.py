@@ -14,12 +14,14 @@ from ._utils import add_error as _add_error
 
 __all__ = ["ProcessSample"]
 
+PROTOCOLS_WITH_VOLUME_USED_REQUIRED = ['Extraction', 'Transfer']
+PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED = ['Update']
 
 @reversion.register()
 class ProcessSample(TrackedModel):
     process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_sample", help_text="Process")
     source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_sample", help_text="Source Sample")
-    execution_date = models.DateField(default=timezone.now, help_text="Date of execution of the process.")
+    execution_date = models.DateField(help_text="Date of execution of the process.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the source sample used, in µL.")
     comment = models.TextField(blank=True, help_text="Relevant information about the process info.")
@@ -39,10 +41,12 @@ class ProcessSample(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         if self.volume_used is None:
-            add_error("volume_used", "volume_used by process must be specified")
+            if self.process and self.protocol_name in PROTOCOLS_WITH_VOLUME_USED_REQUIRED:
+                add_error("volume_used", f'volume_used by processes for protocol {self.protocol_name} must be specified')
 
-        elif self.volume_used <= Decimal("0"):
-            add_error("volume_used", "{:.3f} : volume_used must be positive".format(self.volume_used))
+        else:
+            if self.protocol_name not in PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED and self.volume_used <= Decimal("0"):
+                add_error("volume_used", f'volume_used {self.volume_used} must be positive for protocol {self.protocol_name}')
 
         if errors:
             raise ValidationError(errors)

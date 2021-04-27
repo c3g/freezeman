@@ -1,26 +1,24 @@
 import React, {useState} from "react";
+import {connect} from "react-redux"
 import PropTypes from "prop-types";
-import {Alert, Button, Form, Steps, Upload, Row, Col} from "antd";
+import {Alert, Button, Form, Steps, Upload, Row, Col, Popover} from "antd";
+import {Table} from "antd";
 
 import {
   ArrowRightOutlined,
   ArrowLeftOutlined,
   CheckOutlined,
   UploadOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 
+import {fetchListedData} from "../modules/shared/actions";
+import innerHTMLPurified from "../utils/innerHTMLPurified";
 
-function renderResult(checkResult) {
-  if (checkResult.error)
-    return (
-      <pre>
-        {checkResult.error.message}
-      </pre>
-    )
-
+function renderResultWithErrors(checkResult) {
   const errors = []
 
-  checkResult.rows.forEach((row, index) => {
+  checkResult.rows?.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
@@ -39,17 +37,76 @@ function renderResult(checkResult) {
     })
   })
 
-  return errors
+  return (
+      <>
+      { checkResult.error &&
+        <pre>
+          {checkResult.error.message}
+        </pre>
+      }
+      {errors}
+    </>
+  )
+}
+
+function renderResultOK(checkResult) {
+  const results = []
+  const columns = []
+
+  checkResult.has_warnings && columns.push(
+    {
+      title: 'Warnings',
+      dataIndex: 'warning',
+      key: 'warning',
+      align: "center",  
+      render: content => {
+        return (content &&
+          <Popover content={content} title='Warnings on current row' placement='bottomLeft'>
+            <WarningOutlined style={{fontSize: '16px', color: '#FFBB00'}}/>
+          </Popover>)
+      },
+    })
+
+  checkResult.diff_headers?.forEach((diff_header, index) => {
+    columns.push(
+        {
+          title: diff_header,
+          dataIndex: `column-${index}`,
+          key: `column-${index}`,
+        }
+    )
+  })
+
+  checkResult.rows.forEach((row, index) => {
+    const row_data = {}
+
+    checkResult.has_warnings && row.warnings.length > 0 && (
+      row_data['warning'] = ( 
+        <div key={`warning-${index}`}>
+          {row.warnings.map(warning => <p>{warning}</p>)}
+        </div>
+      )
+    )
+
+    row.diff.forEach((diff, diff_index) => {
+      row_data[`column-${diff_index}`] = innerHTMLPurified(diff)
+    })
+    results.push(row_data)
+  })
+
+  return <>
+    <Table dataSource={results} columns={columns} scroll={{ x: true }} size="small" bordered/>
+  </>
 }
 
 function wasInterrupted(checkResult) {
-  if (checkResult.base_errors.length > 0)
+  if (checkResult.base_errors?.length > 0)
     return (
       <p>
         {checkResult.base_errors[0].error}  
       </p>
     )
-  }
+}
 
 const UploadStep = ({action, onChangeFile}) => (
   <Form layout="vertical">
@@ -88,10 +145,11 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
           <>
             No errors were found while validating your template:
             {checkResult.rows.length} row(s) found
+            {renderResultOK(checkResult)}
           </>
 
         }
-        type="success"
+        type={checkResult.has_warnings?"warning":"success"}
         showIcon
       />
     }
@@ -104,7 +162,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
               Errors were found while validating your template :(
             </p>
             {wasInterrupted(checkResult)}
-            {renderResult(checkResult)}
+            {renderResultWithErrors(checkResult)}
           </>
         }
         type="error"
@@ -146,7 +204,7 @@ const ConfirmationStep = ({isSubmitting, isSubmitted, submitResult}) => (
               Errors were found while submitting your template :(
             </p>
             {wasInterrupted(submitResult)}
-            {renderResult(submitResult)}
+            {renderResultWithErrors(submitResult)}
           </>
         }
         type="error"
@@ -177,7 +235,9 @@ STEPS.UPLOAD  = 0
 STEPS.REVIEW  = 1
 STEPS.CONFIRM = 2
 
-const TemplateFlow = (props) => {
+const actionCreators = {fetchListedData};
+
+const TemplateFlow = ({fetchListedData, ...props}) => {
   const [step, setStep] = useState(0);
   const [file, setFile] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
@@ -219,7 +279,7 @@ const TemplateFlow = (props) => {
     setIsSubmitting(true)
     submitRequest(actionIndex, file)
     .then(response => {
-      setSubmitResult({ valid: true })
+      setSubmitResult({ valid: true });
     })
     .catch(error => {
       setSubmitResult({
@@ -227,7 +287,8 @@ const TemplateFlow = (props) => {
         error,
       })
     })
-    .then(() => {
+    .then(fetchListedData)
+    .finally(() => {
       setIsSubmitted(true)
       setIsSubmitting(false)
     })
@@ -311,4 +372,4 @@ TemplateFlow.propTypes = {
   uploadText: PropTypes.string,
 };
 
-export default TemplateFlow;
+export default connect(undefined, actionCreators)(TemplateFlow);

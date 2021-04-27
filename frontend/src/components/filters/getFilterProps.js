@@ -222,6 +222,7 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
 function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
+  const defaultMin = description.defaultMin ?? 0
   const value = filters[dataIndex]?.value;
   const minValue = value?.min
   const maxValue = value?.max
@@ -249,7 +250,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
           <InputNumber
             ref={inputRef}
             placeholder='From'
-            min={0}
+            min={defaultMin}
             style={{ width: 100 }}
             value={minValue}
             onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
@@ -258,7 +259,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
           />
           <InputNumber
             placeholder='To'
-            min={0}
+            min={defaultMin}
             style={{ width: 100 }}
             value={maxValue}
             onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}

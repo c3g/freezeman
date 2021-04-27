@@ -24,7 +24,7 @@ export const containersTests = () => {
     context('Containers', () => {
       const singleContainerBarcode = 'test-container-add';
       it('creates single container', () => {
-        cy.navigateTo('Container', 'Add')
+        cy.navigateTo('Containers', 'Add')
         const comment = 'This is a comment.'
         cy.get('#name').type(singleContainerBarcode)
         cy.get('#kind').click()
@@ -47,7 +47,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        // cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('body').should('contain', '1-10 of 15 items')
       })
     })
   })
