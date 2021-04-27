@@ -10,6 +10,7 @@ from .info import (
     COPYRIGHT_YEARS,
     REPOSITORY,
     VERSION,
+    ENV
 )
 
 
@@ -27,6 +28,7 @@ class SoftwareInformationView(APIView):
                 "tagged_version": COMMIT_TAGGED_VERSION,
             },
             "branch": BRANCH,
+            "env": ENV,
             "copyright_years": COPYRIGHT_YEARS,
             "repository": REPOSITORY,
             "version": VERSION,

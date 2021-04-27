@@ -1,5 +1,7 @@
 import subprocess
+import os
 from pathlib import Path
+from django.conf import settings
 
 __all__ = [
     "COMMIT_DATE",
@@ -11,6 +13,8 @@ __all__ = [
     "COPYRIGHT_YEARS",
     "REPOSITORY",
     "VERSION",
+    "ENV_HOST",
+    "ENV"
 ]
 
 COMMIT_DATE, COMMIT_FULL_HASH, COMMIT_SMALL_HASH = subprocess.run(
@@ -42,3 +46,15 @@ VERSION_PATH = Path(__file__).parent.parent / "VERSION"
 
 with open(VERSION_PATH, "r") as vf:
     VERSION = vf.read().strip()
+
+
+ENV_HOST = os.environ['FMS_HOST'] if not settings.DEBUG else ''
+
+if ENV_HOST == 'biobank.genome.mcgill.ca':
+    ENV = 'PROD'
+elif ENV_HOST == 'f5kvm-biobank-qc.genome.mcgill.ca':
+    ENV = 'QC'
+elif ENV_HOST == 'f5kvm-biobank-dev.genome.mcgill.ca':
+    ENV = 'DEV'
+else:
+    ENV = "LOCAL"
