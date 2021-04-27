@@ -1,13 +1,12 @@
 import reversion
 
-from django.db.models import Q
 from import_export.fields import Field
 
 from ._generic import GenericResource
 from ._utils import get_container_pk, skip_rows
 from ..models import Container
 from ..utils import get_normalized_str, blank_str_to_none
-from ..models._constants import TEMPORARY_RENAME_SUFFIX
+from django.core.exceptions import ValidationError
 
 __all__ = ["ContainerRenameResource"]
 
@@ -48,7 +47,7 @@ class ContainerRenameResource(GenericResource):
         errors = {}
 
         if not obj.id:
-            self.manuallyExclude.extend(["kind", "name"]) 
+            self.fields_manually_excluded.extend(["kind", "name"])
 
         try:
             super().import_obj(obj, data, dry_run)

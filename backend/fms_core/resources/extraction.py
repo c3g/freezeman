@@ -96,7 +96,7 @@ class ExtractionResource(GenericResource):
             obj.individual = self.extracted_from.individual
             obj.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(self.extracted_from.sample_kind.name, "")
         else:
-            self.manuallyExclude.extend(["name", "collection_site", "individual", "tissue_source"]) 
+            self.fields_manually_excluded.extend(["name", "collection_site", "individual", "tissue_source"])
 
         # This section creates the containers (Tube and Rack) if needed 
 

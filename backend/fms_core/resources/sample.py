@@ -1,8 +1,6 @@
 import json
 import reversion
 
-from crequest.middleware import CrequestMiddleware
-from django.contrib import messages
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
@@ -16,7 +14,6 @@ from ..models import Container, Individual, Sample, SampleKind
 from ..utils import (
     RE_SEPARATOR,
     blank_str_to_none,
-    float_to_decimal,
     get_normalized_str,
     normalize_scientific_name,
     str_cast_and_normalize,

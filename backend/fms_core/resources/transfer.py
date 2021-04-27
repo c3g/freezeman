@@ -1,7 +1,6 @@
 import reversion
 
 from datetime import datetime
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
@@ -98,7 +97,7 @@ class TransferResource(GenericResource):
             obj.individual = self.transferred_from.individual
             obj.concentration = self.transferred_from.concentration
         else:
-            self.manuallyExclude.extend(["name", "sample_kind", "collection_site", "individual", "concentration"]) 
+            self.fields_manually_excluded.extend(["name", "sample_kind", "collection_site", "individual", "concentration"])
 
         # This section creates the container if needed
         get_normalized_str(data, "Destination Parent Container Barcode")

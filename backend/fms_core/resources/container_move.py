@@ -38,7 +38,7 @@ class ContainerMoveResource(GenericResource):
             container = Container.objects.get(barcode=get_normalized_str(data, "Container Barcode to move"))
         except Container.DoesNotExist as e:
             errors["container"] = ValidationError([f"Container Barcode to move was not found."], code="invalid")
-            self.manuallyExclude.extend(["kind", "name", "barcode", "location", "coordinates"]) 
+            self.fields_manually_excluded.extend(["kind", "name", "barcode", "location", "coordinates"])
 
         try:
             super().import_obj(obj, data, dry_run)

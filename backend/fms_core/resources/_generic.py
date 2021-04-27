@@ -8,8 +8,8 @@ from reversion.models import Version
 
 class GenericResource(resources.ModelResource):
     ERROR_CUTOFF = 20
-    errorCount = 0
-    manuallyExclude = []
+    error_count = 0
+    fields_manually_excluded = []
     row_warnings = []
 
     class Meta:
@@ -27,7 +27,7 @@ class GenericResource(resources.ModelResource):
         if self._meta.clean_model_instances:
             try:
                 instance.full_clean(
-                    exclude=self.manuallyExclude + list(errors.keys()),
+                    exclude=self.fields_manually_excluded + list(errors.keys()),
                     validate_unique=validate_unique,
                 )
             except ValidationError as e:
@@ -53,7 +53,7 @@ class GenericResource(resources.ModelResource):
 
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
         self.row_warnings = []
-        if self.errorCount < self.ERROR_CUTOFF:
+        if self.error_count < self.ERROR_CUTOFF:
             row_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
 
             error_count = 0
@@ -64,7 +64,7 @@ class GenericResource(resources.ModelResource):
             if row_result.validation_error:
               for field in row_result.validation_error:
                   validation_error_count += len(field[1])
-            self.errorCount += (error_count + validation_error_count)
+            self.error_count += (error_count + validation_error_count)
 
             row_result.warnings = self.row_warnings.copy()
         else:
@@ -73,5 +73,5 @@ class GenericResource(resources.ModelResource):
         return row_result
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
-       if self.errorCount >= self.ERROR_CUTOFF:
+       if self.error_count >= self.ERROR_CUTOFF:
             raise Exception("Too many errors. Processing interrupted.")
