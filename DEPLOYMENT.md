@@ -34,3 +34,5 @@ On this page we list the various steps needed for deployments. The first section
   * Upgrade python version to 3.8
   * Clone the new repository
   * Modify the nginx and uwsgi for the new locations.
+* Version 3.2 : 
+  * Add FREEZEMAN_SECRET_KEY to env variables through uwsgi.ini
