@@ -25,7 +25,7 @@ import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
-const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,199}$/ }]
+const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/ }]
 
 // API functions
 
