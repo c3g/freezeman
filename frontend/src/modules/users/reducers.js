@@ -106,16 +106,17 @@ export const users = (
       return { ...state, isFetching: false, error: shouldIgnoreError(action) ? undefined : action.error };
 
     case USERS.LIST_VERSIONS.REQUEST:
-      return set(state, ['itemsByID', action.meta.id, 'isFetching'], true);
+      return set(state, ['itemsByID', action.meta.id, 'versions', 'isFetching'], true);
     case USERS.LIST_VERSIONS.RECEIVE:
       return merge(state, ['itemsByID', action.meta.id], {
-        isFetching: false,
-        versions: preprocessVersions(action.data.results),
+        versions: preprocessVersions(
+          state.itemsByID[action.meta.id].versions,
+          action.data
+        ),
       });
     case USERS.LIST_VERSIONS.ERROR:
       return merge(state, ['itemsByID', action.meta.id], {
-        isFetching: false,
-        versions: [],
+        versions: { isFetching: false },
         error: action.error,
       });
 
