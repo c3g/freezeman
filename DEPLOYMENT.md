@@ -1,0 +1,36 @@
+<h1 align="center">
+  Server Deployment checklist
+</h1>
+
+<p>
+On this page we list the various steps needed for deployments. The first section contains the information pertaining to the initial deployment of the production server. The second section contains steps that need to be executed for each release. The last section contains additional steps to be performed for specific releases.
+</p>
+
+
+### Initial deployment
+
+
+
+### Routine deployments
+  * Backup the database (```bash pg_dumpall > backup_release_vX_X_X.pgsql```)
+  * Kill the uwsgi processes (```bash ps -aux | grep uwsgi``` to find, ```bash kill -9 PROCESS_NUMBER``` may need only kill the master)
+  * Move to the repository base directory (```bash cd ./freezeman```) and checkout the release tag from the repository (```bash git checkout vX.X.X```)
+  * Update the submodule pg_fzy (```bash git submodule update --init --recursive```) (if changed)
+  * Move to the frontend (```bash cd frontend```) and install any new dependency (```bash npm install```) and fix security issues (```bash npm audit fix```)
+  * Compile the frontend (```bash npm build```)
+  * Move to the backend directory (```bash cd ../backend```) and activate the the virtual environment (```bash . env/bin/activate```)
+  * Install any new dependency (```bash pip3.8 install -r requirements.txt```) (version of pip may change)
+  * Install pg_fzy (```bash cd backend/dependencies/pg_fzy && make && sudo make install```) (make restore_precompiled_binary to get precompiled binaries) (if needed)
+  * Move back to the backend root (```bash cd ../..```) and migrate the database (```bash python3.8 manage.py migrate```)
+  * Create the first revisions for newly created models (```bash python3.8 manage.py createinitialrevisions```)
+  * Serve new and modified templates (```bash python3.8 manage.py collectstatic```)
+  * Activate the pg_fzy module (```bash psql -u postgres -d fms -c "create extension fzy;"```)
+  * Restart the uwsgi (```bash uwsgi uwsgi.ini &```)
+
+
+### Specific deployments
+
+* Version 3.1 : 
+  * Upgrade python version to 3.8
+  * Clone the new repository
+  * Modify the nginx and uwsgi for the new locations.
