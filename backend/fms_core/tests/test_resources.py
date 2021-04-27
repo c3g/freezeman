@@ -132,7 +132,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(Container.DoesNotExist), open(TEST_DATA_ROOT / "bad_location.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "bad_location.csv") as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
