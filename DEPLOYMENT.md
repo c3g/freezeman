@@ -12,7 +12,8 @@ On this page we list the various steps needed for deployments. The first section
 
 
 ### Routine deployments
-  * backup the database (pg_dumpall > backup_release_vX_X_X.pgsql)
+  * Backup the database (```bash pg_dumpall > backup_release_vX_X_X.pgsql```)
+  * Kill the uwsgi processes (```bash ps -aux | grep uwsgi``` to find, ```bash kill -9 PROCESS_NUMBER``` may need only kill the master)
   * Move to the repository base directory (cd ./freezeman) and checkout the release tag from the repository (git checkout vX.X.X)
   * Update the submodule pg_fzy (git submodule update --init --recursive) (if changed)
   * Move to the frontend (cd frontend) and install any new dependency (npm install) and fix security issues (npm audit fix)
@@ -24,6 +25,7 @@ On this page we list the various steps needed for deployments. The first section
   * Create the first revisions for newly created models (python3.8 manage.py createinitialrevisions)
   * Serve new and modified templates (python3.8 manage.py collectstatic)
   * Activate the pg_fzy module (psql -u postgres -d fms -c "create extension fzy;")
+  * Restart the uwsgi (```bash uwsgi uwsgi.ini &```)
 
 
 ### Specific deployments
