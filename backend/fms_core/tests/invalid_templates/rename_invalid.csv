@@ -5,4 +5,4 @@ Naming Rules,,,,
 ,,,,
 ,,,,
 #,Old Container Barcode,New Container Barcode,New Container Name,Update Comment
-1,box001,box001$,original_box_2,dollars
+1,box001,rack001,original_box_2,dollars

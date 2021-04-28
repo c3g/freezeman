@@ -269,16 +269,16 @@ class ResourcesTestCase(TestCase):
             r = Dataset().load(rf.read())
             self.rr.import_data(r, raise_errors=True)
 
-        ci = Container.objects.get(barcode="box0001")
+        ci = Container.objects.get(barcode="box0001b")
         self.assertEqual(ci.name, "original_box_2")
         self.assertEqual(ci.update_comment, "added 0")
 
         # Samples "swapped" due to rename
 
-        s = Sample.objects.get(container__barcode="tube001")
+        s = Sample.objects.get(container__barcode="tube001b")
         self.assertEqual(s.name, "sample2")
 
-        s = Sample.objects.get(container__barcode="tube002")
+        s = Sample.objects.get(container__barcode="tube002b")
         self.assertEqual(s.name, "sample1")
 
         # Foreign key relationships have been maintained
@@ -298,7 +298,7 @@ class ResourcesTestCase(TestCase):
             ("rename_invalid.csv", ValidationError),
             ("same_rename.csv", ValidationError),
             ("same_rename_2.csv", ValidationError),
-            ("double_rename.csv", ValueError),
+            ("double_rename.csv", (ValidationError, ValueError)),
         ):
             print(f"Testing invalid container rename {f}", flush=True)
 

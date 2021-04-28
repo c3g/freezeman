@@ -5,8 +5,8 @@ Naming Rules,,,,
 ,,,,
 ,,,,
 #,Old Container Barcode,New Container Barcode,New Container Name,Update Comment
-1,box001,box0001,original_box_2,added 0
-2,tube001,tube002,sample1_tube_2,swapped
-3,tube002,tube001,sample2_tube_2,swapped
+1,box001,box0001b,original_box_2,added 0
+2,tube001,tube002b,sample1_tube_2,swapped
+3,tube002,tube001b,sample2_tube_2,swapped
 4,,,,
 5,,,,
