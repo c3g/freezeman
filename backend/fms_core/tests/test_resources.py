@@ -273,13 +273,8 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(ci.name, "original_box_2")
         self.assertEqual(ci.update_comment, "added 0")
 
-        # Samples "swapped" due to rename
-
         s = Sample.objects.get(container__barcode="tube0010")
         self.assertEqual(s.name, "sample1")
-
-        s = Sample.objects.get(container__barcode="tube0020")
-        self.assertEqual(s.name, "sample2")
 
         # Foreign key relationships have been maintained
 
