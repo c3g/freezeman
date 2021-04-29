@@ -30,7 +30,7 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
 import {hour} from "../utils/time";
 
-import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
+import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;

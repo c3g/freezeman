@@ -269,16 +269,11 @@ class ResourcesTestCase(TestCase):
             r = Dataset().load(rf.read())
             self.rr.import_data(r, raise_errors=True)
 
-        ci = Container.objects.get(barcode="box0001")
+        ci = Container.objects.get(barcode="box0010")
         self.assertEqual(ci.name, "original_box_2")
         self.assertEqual(ci.update_comment, "added 0")
 
-        # Samples "swapped" due to rename
-
-        s = Sample.objects.get(container__barcode="tube001")
-        self.assertEqual(s.name, "sample2")
-
-        s = Sample.objects.get(container__barcode="tube002")
+        s = Sample.objects.get(container__barcode="tube0010")
         self.assertEqual(s.name, "sample1")
 
         # Foreign key relationships have been maintained
