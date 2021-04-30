@@ -43,6 +43,10 @@ class SampleUpdateResource(GenericResource):
         )
         exclude = ('container', 'coordinates')
 
+    def __init__(self):
+        super().__init__()
+        self.process = None
+
     @staticmethod
     def _get_sample_pk(**query):
         try:
@@ -65,8 +69,9 @@ class SampleUpdateResource(GenericResource):
 
 
     def import_obj(self, obj, data, dry_run):
-        self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
-                                              comment="Updated samples (imported from template)")
+        if not self.process:
+            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
+                                                  comment="Updated samples (imported from template)")
 
         previous_vol = obj.volume
         super().import_obj(obj, data, dry_run)      
