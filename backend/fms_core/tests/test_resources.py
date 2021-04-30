@@ -190,6 +190,14 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(s.extracted_from.volume, Decimal("0.000"))
         self.assertTrue(s.extracted_from.depleted)
 
+    def test_sample_extractions_mapped_to_one_process(self):
+        self.load_samples_extractions()
+        s1 = Sample.objects.get(container__barcode="tube003")
+        ps1 = ProcessSample.objects.get(source_sample_id=s1.extracted_from.id)
+        s2 = Sample.objects.get(container__barcode="tube004")
+        ps2 = ProcessSample.objects.get(source_sample_id=s2.extracted_from.id)
+        self.assertEqual(ps1.process.id, ps2.process.id)
+
     def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="newtubefortransfer")
@@ -209,6 +217,14 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(ps.process.protocol.name, 'Transfer')
         self.assertEqual(s.volume, Decimal("2.000"))
         self.assertEqual(s.transferred_from.volume, Decimal("13"))
+
+    def test_sample_transfers_mapped_to_one_process(self):
+        self.load_samples_transfers()
+        s1 = Sample.objects.get(container__barcode="newtubefortransfer")
+        ps1 = ProcessSample.objects.get(source_sample_id=s1.transferred_from.id)
+        s2 = Sample.objects.get(container__barcode="plate001", coordinates="B01")
+        ps2 = ProcessSample.objects.get(source_sample_id=s2.transferred_from.id)
+        self.assertEqual(ps1.process.id, ps2.process.id)
 
     def test_sample_update(self):
         self.load_samples()
@@ -234,19 +250,22 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(s.comment, "some fourth comment here")
         self.assertEqual(s.update_comment, "sample 4 updated")
 
-        s = Sample.objects.get(container__barcode="tube001")
-        ps = ProcessSample.objects.get(source_sample_id=s.id)
-        self.assertEqual(ps.process.protocol.name, 'Update')
-        self.assertTrue(s.depleted)
-        self.assertEqual(s.update_comment, "sample 1 depleted")
+        s1 = Sample.objects.get(container__barcode="tube001")
+        ps1 = ProcessSample.objects.get(source_sample_id=s1.id)
+        self.assertEqual(ps1.process.protocol.name, 'Update')
+        self.assertTrue(s1.depleted)
+        self.assertEqual(s1.update_comment, "sample 1 depleted")
 
-        s = Sample.objects.get(container__barcode="plate001", coordinates="A01")
-        ps = ProcessSample.objects.get(source_sample_id=s.id)
-        self.assertEqual(ps.process.protocol.name, 'Update')
-        self.assertEqual(s.volume, Decimal("0.1"))
-        self.assertEqual(s.concentration, Decimal("0.2"))
-        self.assertFalse(s.depleted)
-        self.assertEqual(s.update_comment, "sample 3 updated")
+        s2 = Sample.objects.get(container__barcode="plate001", coordinates="A01")
+        ps2 = ProcessSample.objects.get(source_sample_id=s2.id)
+        self.assertEqual(ps2.process.protocol.name, 'Update')
+        self.assertEqual(s2.volume, Decimal("0.1"))
+        self.assertEqual(s2.concentration, Decimal("0.2"))
+        self.assertFalse(s2.depleted)
+        self.assertEqual(s2.update_comment, "sample 3 updated")
+
+        # Test updates are part of the same process
+        self.assertEqual(ps1.process.id, ps2.process.id)
 
         # TODO: Test leaving coordinate blank not updating container coordinate
 
