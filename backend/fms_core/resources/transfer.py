@@ -61,6 +61,11 @@ class TransferResource(GenericResource):
             'creation_date',
             'comment',
         )
+
+    def __init__(self):
+        super().__init__()
+        self.process = None
+
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
@@ -133,9 +138,11 @@ class TransferResource(GenericResource):
                                                    f"[Destination Container Name, Destination Container Kind, Destination Parent Container Barcode, Destination Parent Container Coord] "], code="invalid")
 
         try:
-            # Create a process for the current transfer
-            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
-                                                  comment="Sample Transfer (imported from template)")
+            if not self.process:
+                # Create a process for the current transfer
+                self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
+                                                      comment="Sample Transfer (imported from template)")
+
             self.process_sample = ProcessSample.objects.create(process=self.process,
                                                                source_sample=self.transferred_from,
                                                                execution_date=obj.creation_date,
