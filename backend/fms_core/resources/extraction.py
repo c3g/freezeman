@@ -65,6 +65,10 @@ class ExtractionResource(GenericResource):
             'comment',
         )
 
+    def __init__(self):
+        super().__init__()
+        self.process = None
+
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
@@ -80,9 +84,10 @@ class ExtractionResource(GenericResource):
         self.extracted_from.depleted = (self.extracted_from.depleted or
                                         check_truth_like(get_normalized_str(data, "Source Depleted")))
 
-        # Create a process for the current extraction
-        self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
-                                              comment="Extracted samples (imported from template)")
+        if not self.process:
+            # Create a process for the current extraction
+            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
+                                                  comment="Extracted samples (imported from template)")
         
         super().import_obj(obj, data, dry_run)
 
