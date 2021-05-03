@@ -1,6 +1,6 @@
 import {parse} from "querystring";
 
-export default function preprocessVersions(previousVersions, /* mut */ versions) {
+export function preprocessUserActionVersions(previousVersions, /* mut */ versions) {
   versions.results.forEach(version => {
     version.key = version.id;
     version.fields = JSON.parse(version.serialized_data)[0].fields;
@@ -18,4 +18,12 @@ export default function preprocessVersions(previousVersions, /* mut */ versions)
     next: options,
     results: (previousVersions?.results ?? []).concat(versions.results),
   }
+}
+
+export function preprocessSampleVersions(/* mut */ versions) {
+  versions.forEach(version => {
+    version.key = version.id;
+    version.fields = JSON.parse(version.serialized_data)[0].fields;
+  });
+  return versions;
 }
