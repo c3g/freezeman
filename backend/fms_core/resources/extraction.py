@@ -66,6 +66,10 @@ class ExtractionResource(GenericResource):
             'comment',
         )
 
+    def __init__(self):
+        super().__init__()
+        self.process = None
+
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)  # Skip preamble
 
@@ -165,10 +169,11 @@ class ExtractionResource(GenericResource):
             errors.update(e.update_error_dict(errors).copy())
 
         try:
-            # Create a process for the current extraction
-            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
-                                                  comment="Extracted samples (imported from template)")
-        
+            if not self.process:
+                # Create a process for the current extraction
+                self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
+                                                      comment="Extracted samples (imported from template)")
+
             self.process_sample = ProcessSample.objects.create(process=self.process,
                                                                source_sample=self.extracted_from,
                                                                execution_date=obj.creation_date,
