@@ -3,7 +3,7 @@ import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 
 import shouldIgnoreError from "../../utils/shouldIgnoreError";
-import preprocessVersions from "../../utils/preprocessVersions";
+import {preprocessUserActionVersions} from "../../utils/preprocessVersions";
 import {resetTable} from "../../utils/reducers";
 import USERS from "./actions";
 
@@ -109,7 +109,7 @@ export const users = (
       return set(state, ['itemsByID', action.meta.id, 'versions', 'isFetching'], true);
     case USERS.LIST_VERSIONS.RECEIVE:
       return merge(state, ['itemsByID', action.meta.id], {
-        versions: preprocessVersions(
+        versions: preprocessUserActionVersions(
           state.itemsByID[action.meta.id].versions,
           action.data
         ),
