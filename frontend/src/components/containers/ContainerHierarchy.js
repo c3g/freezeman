@@ -26,6 +26,8 @@ const iconRules = [
   { match: /tube/i,    icon: () => <ExperimentOutlined /> },
 ];
 
+const isCollapsed = key => /\$(children|samples)/.test(key);
+
 const defaultIcon = <TableOutlined />;
 
 const getIcon = container => {
@@ -35,14 +37,34 @@ const getIcon = container => {
 
 const entryStyle = { marginLeft: '0.5em' };
 
-const loadingEntry = id => ({
-  title: <span style={entryStyle}>
-    <strong>{id}</strong>{' '}
-    <Text type="secondary">loading...</Text>
-  </span>,
-  icon: <LoadingOutlined />,
-  key: id,
-});
+const loadingEntry = id => {
+  return ({
+    title: <span style={entryStyle}>
+      <strong>{id}</strong>{' '}
+      <Text type="secondary">loading...</Text>
+    </span>,
+    icon: <LoadingOutlined />,
+    key: id,
+  })
+};
+
+const renderEntry = content =>
+  <span style={entryStyle}>
+    {content}
+  </span>;
+
+const renderContainer = container =>
+  <span style={entryStyle}>
+    <strong>{container.name}</strong>{' '}
+    <Text type="secondary">
+      {container.kind}
+    </Text>{' '}
+    {container.coordinates &&
+      <Text type="secondary">
+        @ {container.coordinates}
+      </Text>
+    }
+  </span>;
 
 const buildContainerTreeFromPath = (context, path) => {
   if (path.length === 0)
@@ -59,21 +81,12 @@ const buildContainerTreeFromPath = (context, path) => {
     return loadingEntry(id);
   }
 
-  const otherChildren = container.children.filter(id => id !== path[1]);
+  const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
+  otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
   // length - (path.length === 1 ? 0 : 1);
   const samples = container.samples;
 
-  const title = <span style={entryStyle}>
-    <strong>{container.name}</strong>{' '}
-    <Text type="secondary">
-      {container.kind}
-    </Text>{' '}
-    {container.coordinates &&
-      <Text type="secondary">
-        @ {container.coordinates}
-      </Text>
-    }
-  </span>;
+  const title = renderContainer(container);
 
   const icon = getIcon(container);
 
@@ -82,15 +95,27 @@ const buildContainerTreeFromPath = (context, path) => {
   if (otherChildren.length) {
     if (!isExploded) {
       children.push({
-        title: <span style={entryStyle}>
+        title: renderEntry(
           <Text type="secondary">
             {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
             (click to expand)
           </Text>
-        </span>,
+        ),
         icon: isFetching ? <LoadingOutlined /> : <EllipsisOutlined />,
         key: `${container.id}$children`,
       });
+    }
+    else if (isFetching) {
+      children.push({
+        title: renderEntry(
+          <Text type="secondary">
+            {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
+            (loading)
+          </Text>
+        ),
+        icon: <LoadingOutlined />,
+        key: `${container.id}$children`,
+      })
     }
     else {
       children.push(...otherChildren.map(containerId =>
@@ -102,31 +127,43 @@ const buildContainerTreeFromPath = (context, path) => {
   if (samples.length) {
     if (!isExploded) {
       children.push({
-        title: <span style={entryStyle}>
+        title: renderEntry(
           <Text type="secondary">
             {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
             (click to expand)
           </Text>
-        </span>,
+        ),
         icon: <EllipsisOutlined />,
+        key: `${container.id}$samples`,
+      })
+    }
+    else if (isFetching) {
+      children.push({
+        title: renderEntry(
+          <Text type="secondary">
+            {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
+            (loading)
+          </Text>
+        ),
+        icon: <LoadingOutlined />,
         key: `${container.id}$samples`,
       })
     }
     else {
       children.push(...samples.map(sampleId => {
         const sample = context.samplesByID[sampleId];
-        if (!sample)
+        if (!sample || sample.isFetching)
           return loadingEntry(sampleId);
         const sampleKind = context.sampleKinds.itemsByID[sample.sample_kind]?.name
         return {
-          title: <span style={entryStyle}>
+          title: renderEntry(
             <Link to={`/samples/${sample.id}`}>
               <strong>{sample.name}</strong>{' '}
               sample ({sampleKind})
             </Link>
-          </span>,
+          ),
           icon: <CheckOutlined />,
-          key: sampleId,
+          key: `sample-${sampleId}`,
           type: 'sample',
         };
       }));
@@ -193,6 +230,29 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     }
   }
 
+  const onExpand = (_, { expanded, node }) => {
+    if (!expanded) {
+      return;
+    }
+
+    const childrenNodes = node.children.filter(n => isCollapsed(n.key));
+
+    if (childrenNodes.length > 0) {
+      // Explode collapsed nodes
+
+      childrenNodes.forEach(n => {
+        const id = n.key.replace(/\$(children|samples)/, '');
+        const hasChildren = n.key.endsWith('$children');
+        if (hasChildren)
+          listChildren(id, path);
+        else
+          listSamples(id);
+        setExplodedKeys(set(explodedKeys, [id], true));
+      })
+    }
+  }
+
+  console.log({ explodedKeys })
   return (
     <Tree
       showIcon
@@ -203,8 +263,21 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       treeData={tree}
       defaultExpandedKeys={container.parents}
       onSelect={onSelect}
+      onExpand={onExpand}
     />
   );
 };
 
 export default connect(mapStateToProps, actionCreators)(ContainerHierarchy);
+
+// Helpers
+
+function compareCoordinates(a, b) {
+  if (!a || a.isFetching || !b || b.isFetching)
+    return +1
+  if (a.coordinates && !b.coordinates)
+    return -1
+  if (b.coordinates && !a.coordinates)
+    return +1
+  return a.coordinates.localeCompare(b.coordinates)
+}
