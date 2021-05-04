@@ -41,6 +41,10 @@ const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
         title: 'Volume used',
         dataIndex: 'volume_used',
         key: 'volume_used',
+        render: (volumeUsed, _) =>
+            <div>
+              {volumeUsed ? `${parseFloat(volumeUsed).toFixed(3)} µL` : undefined}
+            </div>
       },
       {
         title: 'User',
