@@ -50,8 +50,8 @@ export const containersTests = () => {
         cy.get('body').should('contain', '1-10 of 15 items')
       })
       
-      const moveBarcodeDst = 'freezer-three';
       it('moves containers (template import)', () => {
+        const moveBarcodeDst = 'freezer-three';
         cy.navigateTo('Container', 'Move Containers')
         cy.get('input[type=file]').attachFile('Container_move_v3_2_0_F_A_1.xlsx')
         cy.submitForm()
@@ -63,10 +63,10 @@ export const containersTests = () => {
         cy.get('button').contains('Clear Filters').click()
       })
 
-      const renameBarcodeSrc = 'freezer-three';
-      const renameBarcodeDst = 'freezer-four';
-      const renameNameDst = 'freezer-4';
       it('renames containers (template import)', () => {
+        const renameBarcodeSrc = 'freezer-three';
+        const renameBarcodeDst = 'freezer-four';
+        const renameNameDst = 'freezer-4';
         cy.navigateTo('Container', 'Rename Containers')
         cy.get('input[type=file]').attachFile('Container_rename_v3_2_0_F_A_1.xlsx')
         cy.submitForm()
