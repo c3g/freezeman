@@ -40,13 +40,13 @@ CSV_1 = """#,good 1,good 2,good 3
 APP_DATA_ROOT = Path(__file__).parent / "valid_templates"
 TEST_DATA_ROOT = Path(__file__).parent / "invalid_templates"
 
-CONTAINER_CREATION_CSV = APP_DATA_ROOT / "Container_creation_v3_2_0.csv"
-CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0.csv"
-CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0.csv"
-SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_2_0.csv"
-SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0.csv"
-SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0.csv"
-SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0.csv"
+CONTAINER_CREATION_CSV = APP_DATA_ROOT / "Container_creation_v3_2_0_B_A_1.csv"
+CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0_B_A_1.csv"
+CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0_B_A_1.csv"
+SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_2_0_B_A_1.csv"
+SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
+SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_1.csv"
+SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
 
 
 class ResourcesTestCase(TestCase):
