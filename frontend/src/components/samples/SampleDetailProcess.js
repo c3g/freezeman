@@ -1,16 +1,27 @@
 import React from "react";
+import {connect} from "react-redux";
+import {Link} from "react-router-dom";
 
-import {
-  Table,
-} from "antd";
+import {Table, Tag} from "antd";
+
+import {withUser, withProtocol} from "../../utils/withItem";
 
 
-const SampleDetailProcess = ({processes}) => {
+const mapStateToProps = state => ({
+  usersByID: state.users.itemsByID,
+  protocolsByID: state.protocols.itemsByID,
+});
+
+const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
     const columns = [
       {
-        title: '#',
+        title: '',
         dataIndex: 'id',
         key: 'id',
+        render: (id, _) =>
+          <Link to={`/processes/${id}`}>
+            Process #{id}
+          </Link>,
       },
       {
         title: 'Execution Date',
@@ -21,6 +32,10 @@ const SampleDetailProcess = ({processes}) => {
         title: 'Protocol',
         dataIndex: 'protocol',
         key: 'protocol',
+        render: (protocolID, _) =>
+            <div>
+              {withProtocol(protocolsByID, protocolID, protocol => <Tag>{protocol.name}</Tag>,)}
+            </div>
       },
       {
         title: 'Volume used',
@@ -28,14 +43,13 @@ const SampleDetailProcess = ({processes}) => {
         key: 'volume_used',
       },
       {
-        title: 'Created by',
+        title: 'User',
         dataIndex: 'created_by',
         key: 'created_by',
-      },
-      {
-        title: 'Updated by',
-        dataIndex: 'updated_by',
-        key: 'updated_by',
+        render: (userID, _) =>
+            <div>
+              {withUser(usersByID, userID, user => user.username)}
+            </div>
       },
       {
         title: 'Comment',
@@ -55,4 +69,5 @@ const SampleDetailProcess = ({processes}) => {
     </>
 }
 
-export default SampleDetailProcess;
+
+export default connect(mapStateToProps, undefined)(SampleDetailProcess);
