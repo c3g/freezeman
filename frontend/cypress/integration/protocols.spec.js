@@ -2,8 +2,8 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Sample_extraction_v3_2_0_set_A.xlsx
-//  - Sample_transfer_v3_2_0_set_A.xlsx
+//  - Sample_extraction_v3_2_0_F_A_1.xlsx
+//  - Sample_transfer_v3_2_0_F_A_1.xlsx
 
 // Helpers
 // stored in .../cypress/support/commands.js
@@ -50,7 +50,7 @@ export const protocolsTests = () => {
       it('visits child sample detail page', () => {
         const sampleName = 'Sample_Blood1'
         cy.navigateTo('Protocols')
-        cy.get('.ant-table-tbody .ant-table-row').eq(1).within(() => cy.get('.ant-table-cell').eq(3).contains(sampleName).click())
+        cy.get('.ant-table-tbody .ant-table-row').eq(4).within(() => cy.get('.ant-table-cell').eq(3).contains(sampleName).click())
         cy.get('body').should('contain', `Sample ${sampleName}`)
       })
     })

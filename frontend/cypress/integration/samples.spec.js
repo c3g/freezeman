@@ -2,8 +2,8 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Sample_submission_v3_2_0_F_1.xlsx
-//  - Sample_update_v3_2_0_F_1.xlsx
+//  - Sample_submission_v3_2_0_F_A_1.xlsx
+//  - Sample_update_v3_2_0_F_A_1.xlsx
 
 // Helpers
 // stored in .../cypress/support/commands.js
@@ -36,6 +36,8 @@ export const samplesTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
+        cy.navigateTo('Protocols')
+        cy.get('.ant-table-thead .ant-table-filter-trigger-container').eq(1).click().type('update{enter}') // filter by protocol (column 1)
         cy.get('body').should('contain', '1-2 of 2 items')
       })
 
