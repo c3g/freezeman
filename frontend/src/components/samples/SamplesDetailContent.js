@@ -25,7 +25,7 @@ import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
-import {withContainer, withSample, withIndividual} from "../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcess} from "../../utils/withItem";
 
 const { Title, Text } = Typography;
 
@@ -44,13 +44,14 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
+  processesByID: state.processes.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, processesByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -65,6 +66,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
+  const processes = sample.processes_samples;
+  const isProcessesEmpty = processes && processes.length === 0;
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -196,6 +199,31 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
           </div>
         </Col>
       </Row>
+
+       <Title level={2} style={{ marginTop: '1em' }}>Processes</Title>
+      <Row>
+        <Col sm={24} md={24}>
+          <div>
+            <Card>
+              {
+                isProcessesEmpty ?
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
+                  <div>
+                      {sample.processes_samples && sample.processes_samples.map((processId, i) =>
+                            <>
+                              <Link key={processId} to={`/processes/${processId}`}>
+                                {withProcess(processesByID, processId, process => process.id, <span>Loading…</span>)}
+                              </Link>
+                            </>
+                        )
+                      }
+                  </div>
+              }
+            </Card>
+          </div>
+        </Col>
+      </Row>
+
     </PageContent>
   </>;
 };

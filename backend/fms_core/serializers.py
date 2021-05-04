@@ -84,7 +84,7 @@ class ProcessSampleExportSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
-    process_sample = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    processes_samples = serializers.PrimaryKeyRelatedField(source='process_sample', many=True, read_only=True)
 
     class Meta:
         model = Sample
