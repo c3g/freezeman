@@ -68,6 +68,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const isVersionsEmpty = versions && versions.length === 0;
   const processes = sample.processes_samples;
   const isProcessesEmpty = processes && processes.length === 0;
+  let processSamples = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -75,6 +76,15 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
   if (isLoaded && !sample.versions && !sample.isFetching)
     listVersions(sample.id);
+
+  if (isLoaded && !isProcessesEmpty && !sample.isFetching) {
+     sample.processes_samples.forEach((processId, i) => {
+      withProcess(processesByID, processId, process => process.id);
+    })
+    sample.processes_samples.forEach((processId, i) => {
+      processSamples.push(processesByID[processId])
+    })
+  }
 
   return <>
     <AppPageHeader
@@ -209,11 +219,20 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
                 isProcessesEmpty ?
                   <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
                   <div>
-                      {sample.processes_samples && sample.processes_samples.map((processId, i) =>
+                      {processSamples && processSamples.map((process) =>
                             <>
-                              <Link key={processId} to={`/processes/${processId}`}>
-                                {withProcess(processesByID, processId, process => process.id, <span>Loading…</span>)}
-                              </Link>
+                              {process &&
+                                <div>
+                                  <Link key={process.id} to={`/processes/${process.id}`}>
+                                    Process #{process.id}
+                                  </Link>
+                                  {process.execution_date}
+                                  {process.protocol}
+                                  {process.volume_used}
+                                  {process.created_by}
+                                  {process.comment}
+                                </div>
+                              }
                             </>
                         )
                       }
