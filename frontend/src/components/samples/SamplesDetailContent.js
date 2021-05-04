@@ -24,6 +24,7 @@ import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
+import SampleDetailProcess from "./SampleDetailProcess";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
 import {withContainer, withSample, withIndividual, withProcess} from "../../utils/withItem";
 
@@ -219,22 +220,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
                 isProcessesEmpty ?
                   <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
                   <div>
-                      {processSamples && processSamples.map((process) =>
-                            <>
-                              {process &&
-                                <div>
-                                  <Link key={process.id} to={`/processes/${process.id}`}>
-                                    Process #{process.id}
-                                  </Link>
-                                  {process.execution_date}
-                                  {process.protocol}
-                                  {process.volume_used}
-                                  {process.created_by}
-                                  {process.comment}
-                                </div>
-                              }
-                            </>
-                        )
+                      {processSamples &&
+                           <SampleDetailProcess processes={processSamples}/>
                       }
                   </div>
               }
