@@ -2,6 +2,13 @@ const webpack = require("webpack");
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
+const fs = require('fs');
+const version = fs.readFileSync('../backend/VERSION', 'utf8');
+const child_process = require('child_process')
+const lastUpdate = child_process.execSync('git log -1 --format=%cI').toString().trim()
+
 module.exports = (env, argv) => ({
   entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
   module: {
@@ -45,6 +52,13 @@ module.exports = (env, argv) => ({
     }),
     new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
+    new webpack.DefinePlugin({
+      COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
+      BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
+      VERSION: JSON.stringify(version),
+      LASTUPDATE: JSON.stringify(lastUpdate),
+      ENVTYPE: JSON.stringify(process.env.FMS_ENV || "LOCAL")
+    }),
   ],
 
   devtool: argv.mode === "production" ? "source-map" : "inline-source-map",

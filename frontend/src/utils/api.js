@@ -8,10 +8,6 @@ const api = {
     tokenRefresh: tokens => post("/token/refresh/", tokens),
   },
 
-  base: {
-    info: () => get("/info"),
-  },
-
   containerKinds: {
     list: () => get("/container-kinds/"),
   },

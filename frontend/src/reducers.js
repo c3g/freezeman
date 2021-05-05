@@ -5,7 +5,6 @@ import storage from "redux-persist/lib/storage";
 import {notification} from "antd";
 
 import {auth} from "./modules/auth/reducers";
-import {base} from "./modules/base/reducers";
 import {
   containerKinds,
   containersSummary,
@@ -45,7 +44,6 @@ const recentMessages = new Set();
 
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
-  base,
   containerKinds,
   containersSummary,
   containerTemplateActions,

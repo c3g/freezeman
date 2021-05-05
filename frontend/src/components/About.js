@@ -1,50 +1,50 @@
 import React from "react";
-import {connect} from "react-redux";
-import dateToString from "../utils/dateToString";
 import AppPageHeader from "./AppPageHeader";
 import PageContainer from "./PageContainer";
 import PageContent from "./PageContent";
 import {Card, Col, Row} from "antd";
 
-
-const mapStateToProps = state => ({
-  info: state.base.info,
-});
+const REPOSITORY = "https://github.com/c3g/freezeman"
 
 const CARD_PROPS = {
   size: "small",
 };
 
-const About = ({info}) => {
-    const version = info.version;
-    const repository = info.repository;
-    const branch = info.branch;
-    const commit = info.commit;
-    const commitUrl = `${repository}/commit/${commit?.hash_full}`
-    const branchUrl = `${repository}/tree/${branch}`
+const About = () => {
+    const commit = COMMITHASH
+    const branch = BRANCH
+
+    const commitUrl = `${REPOSITORY}/commit/${commit}`
+    const branchUrl = `${REPOSITORY}/tree/${branch}`
+    const shortCommit = commit.slice(0,8)
+
+    const version = VERSION
+    const lastUpdate = LASTUPDATE
+
+    const env = ENVTYPE;
 
     return <PageContainer>
         <AppPageHeader title="About" />
         <PageContent style={{padding: "0 24px 24px 24px"}}>
-          <Row>
-            <Col style={{marginTop: "16px"}}>
-              <Card title="Information" {...CARD_PROPS}>
-                FreezeMan
-                <br/>
-                {(version ? `Version ${version}` : '')}
-                <br/>
-                Released under GNU LGPL version 3 © C3G, McGill University
-                <br/>
-                {(repository)?
-                    <div>
-                       <a target='_blank' href={repository}>{repository} </a>
-                    </div>
-                : ""}
+            <Row>
+                <Col style={{marginTop: "16px"}}>
+                <Card title="Information" {...CARD_PROPS}>
+                  FreezeMan
+                  <br/>
+                  {(version ? `Version ${version}` : '')}
+                  <br/>
+                  Released under GNU LGPL version {version} © C3G, McGill University
+                  <br/>
+                  { REPOSITORY &&
+                       <div>
+                           <a target='_blank' href={REPOSITORY}>{REPOSITORY} </a>
+                        </div>
+                  }
               </Card>
               <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-              {(repository && commit && info.env != 'PROD' )?
-                <Card title={`Environment ${info.env}`} {...CARD_PROPS}>
-                  Commit: <a target='_blank' href={commitUrl}>#{commit.hash_small} </a>
+              {(REPOSITORY && commit && env != 'PROD' )?
+                <Card title={`Environment ${env}`} {...CARD_PROPS}>
+                  Commit: <a target='_blank' href={commitUrl}>#{shortCommit} </a>
                   <br/>
                     {(branch) ?
                         <>
@@ -53,7 +53,7 @@ const About = ({info}) => {
                         </>
                         : ""
                     }
-                  Last updated: {dateToString(commit.date)}
+                  Last updated: {lastUpdate}
                 </Card>
                 : ""}
             </Col>
@@ -62,4 +62,4 @@ const About = ({info}) => {
   </PageContainer>;
 }
 
-export default connect(mapStateToProps, {})(About);
+export default About;
