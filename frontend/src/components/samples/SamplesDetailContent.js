@@ -67,9 +67,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
-  const processes = sample.processes_samples;
-  const isProcessesEmpty = processes && processes.length === 0;
-  let processSamples = []
+  const isProcessesEmpty = sample.processes_samples && sample.processes_samples.length === 0;
+  let sampleProcesses = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -79,11 +78,11 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
     listVersions(sample.id);
 
   if (isLoaded && !isProcessesEmpty && !sample.isFetching) {
-     sample.processes_samples.forEach((processId, i) => {
-      withProcess(processesByID, processId, process => process.id);
+    sample.processes_samples.forEach((id, i) => {
+      withProcess(processesByID, id, process => process.id);
     })
-    sample.processes_samples.forEach((processId, i) => {
-      processSamples.push(processesByID[processId])
+    sample.processes_samples.forEach((id, i) => {
+      sampleProcesses.push(processesByID[id])
     })
   }
 
@@ -178,6 +177,25 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
       <TrackingFieldsContent entity={sample}/>
 
+      <Title level={2} style={{ marginTop: '1em' }}>Processes</Title>
+      <Row>
+        <Col sm={24} md={24}>
+          <div>
+            <Card>
+              {
+                isProcessesEmpty ?
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
+                  <div>
+                      {sampleProcesses &&
+                           <SampleDetailProcess processSamples={sampleProcesses}/>
+                      }
+                  </div>
+              }
+            </Card>
+          </div>
+        </Col>
+      </Row>
+
       <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
       <Row>
         <Col sm={24} md={24}>
@@ -205,25 +223,6 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
                       )
                     })}
                   </Timeline>
-              }
-            </Card>
-          </div>
-        </Col>
-      </Row>
-
-       <Title level={2} style={{ marginTop: '1em' }}>Processes</Title>
-      <Row>
-        <Col sm={24} md={24}>
-          <div>
-            <Card>
-              {
-                isProcessesEmpty ?
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-                  <div>
-                      {processSamples &&
-                           <SampleDetailProcess processes={processSamples}/>
-                      }
-                  </div>
               }
             </Card>
           </div>

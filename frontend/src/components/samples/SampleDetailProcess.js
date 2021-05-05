@@ -4,27 +4,25 @@ import {Link} from "react-router-dom";
 
 import {Table, Tag} from "antd";
 
-import {withUser, withProtocol} from "../../utils/withItem";
-
 
 const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
   protocolsByID: state.protocols.itemsByID,
 });
 
-const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
+const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: '',
         dataIndex: 'id',
         key: 'id',
-        render: (id, _) =>
+        render: (id, processSample) =>
           <Link to={`/processes/${id}`}>
-            Process #{id}
+            Process {processSample && `#${processSample.process}`}
           </Link>,
       },
       {
-        title: 'Execution Date',
+        title: 'Date processed',
         dataIndex: 'execution_date',
         key: 'execution_date',
       },
@@ -34,7 +32,7 @@ const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
         key: 'protocol',
         render: (protocolID, _) =>
             <div>
-              {withProtocol(protocolsByID, protocolID, protocol => <Tag>{protocol.name}</Tag>,)}
+              {protocolsByID?.[protocolID] && <Tag> {protocolsByID[protocolID].name} </Tag>}
             </div>
       },
       {
@@ -52,7 +50,7 @@ const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
         key: 'created_by',
         render: (userID, _) =>
             <div>
-              {withUser(usersByID, userID, user => user.username)}
+              {usersByID?.[userID] && <span> {usersByID[userID].username} </span>}
             </div>
       },
       {
@@ -68,7 +66,7 @@ const SampleDetailProcess = ({processes, usersByID, protocolsByID,}) => {
         bordered={false}
         pagination={false}
         columns={columns}
-        dataSource={processes}
+        dataSource={processSamples}
       />
     </>
 }
