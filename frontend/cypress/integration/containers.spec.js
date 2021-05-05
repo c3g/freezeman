@@ -2,9 +2,9 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Container_creation_v0.4.xlsx
-//  - Container_move_v0.4.xlsx
-//  - Container_rename_v0.1.xlsx
+//  - Container_creation_v3_2_0_F_A_1.xlsx
+//  - Container_move_v3_2_0_F_A_1.xlsx
+//  - Container_rename_v3_2_0_F_A_1.xlsx
 
 // Helpers
 // stored in .../cypress/support/commands.js
@@ -43,12 +43,47 @@ export const containersTests = () => {
   
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
-        cy.get('input[type=file]').attachFile('Container_creation_v0.4.xlsx')
+        cy.get('input[type=file]').attachFile('Container_creation_v3_2_0_F_A_1.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.get('body').should('contain', '1-10 of 15 items')
       })
+      
+      it('moves containers (template import)', () => {
+        const moveBarcodeDst = 'freezer-three';
+        cy.navigateTo('Container', 'Move Containers')
+        cy.get('input[type=file]').attachFile('Container_move_v3_2_0_F_A_1.xlsx')
+        cy.submitForm()
+        cy.get('.ant-alert-success').should('contain', 'Template submitted')
+        cy.get('button').contains('Go Back').click()
+        cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(moveBarcodeDst) // filter by barcode (column 1)
+        cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(5).should('contain', '2'))
+        cy.get('button').contains('Clear Filters').click()
+      })
+
+      it('renames containers (template import)', () => {
+        const renameBarcodeSrc = 'freezer-three';
+        const renameBarcodeDst = 'freezer-four';
+        const renameNameDst = 'freezer-4';
+        cy.navigateTo('Container', 'Rename Containers')
+        cy.get('input[type=file]').attachFile('Container_rename_v3_2_0_F_A_1.xlsx')
+        cy.submitForm()
+        cy.get('.ant-alert-success').should('contain', 'Template submitted')
+        cy.get('button').contains('Go Back').click()
+        cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeSrc)// filter by barcode (column 1)
+        cy.get('body').should('contain', '0-0 of 0 items')
+        cy.get('button').contains('Clear Filters').click()
+        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeDst) // filter by barcode (column 1)
+        cy.get('body').should('contain', '1-1 of 1 items')
+        cy.get('button').contains('Clear Filters').click()
+        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(0).click().type(renameNameDst) // filter by name (column 0)
+        cy.get('body').should('contain', '1-1 of 1 items')
+        cy.get('button').contains('Clear Filters').click()
+      })
+
     })
   })
 }
