@@ -27,12 +27,12 @@ def fix_process_data(apps, schema_editor):
             if affected_process_samples_ids.count() > 1:
                 process_samples = ProcessSample.objects.filter(id__in=list(affected_process_samples_ids))
 
-                # Getting all Processes related to those ProcessSample
-                process_ids = list(process_samples.values_list('process_id', flat=True))
+                # Getting all distinct Processes related to those ProcessSample
+                list_process_ids = list(process_samples.values_list('process_id', flat=True).distinct())
 
-                if len(process_ids) > 1:
+                if len(list_process_ids) > 1:
                     # First Process; the only one that will be kept
-                    first_process_id = min(process_ids)
+                    first_process_id = min(list_process_ids)
 
                     # Change process_id for ProcessSample now pointing to the wrong processes
                     for ps in process_samples:
@@ -41,7 +41,7 @@ def fix_process_data(apps, schema_editor):
                         reversion.add_to_revision(ps)
 
                     # Delete Processes unused (should not have been created in first place)
-                    Process.objects.filter(pk__in=process_ids).exclude(pk=first_process_id).delete()
+                    Process.objects.filter(pk__in=list_process_ids).exclude(pk=first_process_id).delete()
 
                     # Update First Process for this revision batch with comment reflecting the current curation
                     first_process = Process.objects.get(id=first_process_id)
