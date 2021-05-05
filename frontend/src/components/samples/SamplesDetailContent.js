@@ -185,11 +185,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
               {
                 isProcessesEmpty ?
                   <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-                  <div>
-                      {sampleProcesses &&
-                           <SampleDetailProcess processSamples={sampleProcesses}/>
-                      }
-                  </div>
+                  <SampleDetailProcess processSamples={sampleProcesses}/>
               }
             </Card>
           </div>
