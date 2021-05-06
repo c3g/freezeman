@@ -6,9 +6,13 @@ import {Card, Col, Row} from "antd";
 
 const REPOSITORY = "https://github.com/c3g/freezeman"
 
-const CARD_PROPS = {
-  size: "small",
+
+const COL_LAYOUT = {
+  lg: 8,
+  xs: 24,
+  style: {marginTop: "16px", marginRight: "12px"}
 };
+
 
 const About = () => {
     const commit = COMMITHASH
@@ -27,36 +31,34 @@ const About = () => {
         <AppPageHeader title="About" />
         <PageContent style={{padding: "0 24px 24px 24px"}}>
             <Row>
-                <Col style={{marginTop: "16px"}}>
-                <Card title="Information" {...CARD_PROPS}>
-                  FreezeMan
-                  <br/>
-                  {(version ? `Version ${version}` : '')}
-                  <br/>
-                  Released under GNU LGPL version {version} © C3G, McGill University
-                  <br/>
-                  { REPOSITORY &&
-                       <div>
-                           <a target='_blank' href={REPOSITORY}>{REPOSITORY} </a>
-                        </div>
-                  }
-              </Card>
-              <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-              {(REPOSITORY && commit && env != 'PROD' )?
-                <Card title={`Environment ${env}`} {...CARD_PROPS}>
-                  Commit: <a target='_blank' href={commitUrl}>#{shortCommit} </a>
-                  <br/>
-                    {(branch) ?
-                        <>
-                            Branch: <a target='_blank' href={branchUrl}>{branch} </a>
-                            <br/>
-                        </>
-                        : ""
-                    }
-                  Last updated: {lastUpdate}
-                </Card>
-                : ""}
-            </Col>
+                <Col {...COL_LAYOUT}>
+                    <Card title="Information" size="large">
+                      FreezeMan
+                      <br/>
+                      {(version ? `Version ${version}` : '')}
+                      <br/>
+                      Released under GNU LGPL version {version} © C3G, McGill University
+                      <br/>
+                      { REPOSITORY &&
+                            <a target='_blank' href={REPOSITORY}>{REPOSITORY} </a>
+                      }
+                    </Card>
+                </Col>
+                { REPOSITORY && commit &&
+                    <Col {...COL_LAYOUT}>
+                        <Card title={`Environment ${env}`} size="large">
+                          Commit: <a target='_blank' href={commitUrl}>#{shortCommit} </a>
+                          <br/>
+                            { branch &&
+                                <>
+                                    Branch: <a target='_blank' href={branchUrl}>{branch} </a>
+                                    <br/>
+                                </>
+                            }
+                          Last updated: {lastUpdate}
+                        </Card>
+                    </Col>
+                }
           </Row>
         </PageContent>
   </PageContainer>;
