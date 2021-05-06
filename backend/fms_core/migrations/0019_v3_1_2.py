@@ -4,8 +4,14 @@ from django.contrib.auth.models import User
 import reversion
 import datetime
 
-ADMIN_USERNAME='biobankadmin'
+'''
+This migration will fix an issue that occurred in release 3.1, 
+where multiple Process objects would erroneously be generated for each Sample part of a template 
+(i.e. Transfer, Extraction, etc.)
+There should have only been one Process object created per template.
+'''
 
+ADMIN_USERNAME='biobankadmin'
 
 def fix_process_data(apps, schema_editor):
     Version = apps.get_model("reversion", "Version")
@@ -45,7 +51,8 @@ def fix_process_data(apps, schema_editor):
 
                     # Delete Processes unused (should not have been created in first place)
                     for process in processes_to_delete:
-                        process.comment = f'DELETE in curation {datetime.datetime.now().strftime("%Y-%m-%d")} v3.1.2 combined multiple processes - ' + process.comment
+                        process.comment = f'Deleted in curation {datetime.datetime.now().strftime("%Y-%m-%d")} v3.1.2 combined multiple processes - ' + process.comment
+                        process.deleted = True
                         process.save()
                         reversion.add_to_revision(process)
 
