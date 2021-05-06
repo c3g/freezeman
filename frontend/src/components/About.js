@@ -15,17 +15,15 @@ const COL_LAYOUT = {
 
 
 const About = () => {
-    const commit = COMMITHASH
-    const branch = BRANCH
+    const commit = GIT_COMMITHASH
+    const branch = GIT_BRANCH
+    const lastUpdate = GIT_LASTUPDATE
+    const version = FMS_VERSION
+    const env = FMS_ENV
 
     const commitUrl = `${REPOSITORY}/commit/${commit}`
     const branchUrl = `${REPOSITORY}/tree/${branch}`
     const shortCommit = commit.slice(0,8)
-
-    const version = VERSION
-    const lastUpdate = LASTUPDATE
-
-    const env = ENVTYPE;
 
     return <PageContainer>
         <AppPageHeader title="About" />
