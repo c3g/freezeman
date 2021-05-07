@@ -36,7 +36,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const LoginPage = ({isFetching, isAuthenticated, login}) => {
-  const location = useLocation();
   const history = useHistory();
 
   useEffect(() => {

@@ -149,11 +149,18 @@ REST_FRAMEWORK = {
 
 
 # Email
-# FIXME: change this depending on environment
 
-EMAIL_FROM = os.environ.get('FMS_EMAIL_FROM', 'noreply@example.com')
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+if os.environ.get('FMS_ENV', None) is not None:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_FROM          = os.environ.get('FMS_EMAIL_FROM',     'noreply@example.com')
+EMAIL_HOST          = os.environ.get('FMS_EMAIL_HOST',     'localhost')
+EMAIL_PORT          = int(os.environ.get('FMS_EMAIL_PORT', '587'))
+EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
+EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
