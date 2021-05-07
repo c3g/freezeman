@@ -33,23 +33,23 @@ const About = () => {
                     <Card title="Information" size="large">
                       FreezeMan
                       <br/>
-                      {(version ? `Version ${version}` : '')}
+                      {version && `Version ${version}`}
                       <br/>
-                      Released under GNU LGPL version {version} © C3G, McGill University
+                      Released under GNU LGPL version 3 © C3G, McGill University
                       <br/>
-                      { REPOSITORY &&
-                            <a target='_blank' href={REPOSITORY}>{REPOSITORY} </a>
+                      {REPOSITORY &&
+                            <a target='_blank' href={REPOSITORY} rel="noopener noreferer">{REPOSITORY}</a>
                       }
                     </Card>
                 </Col>
-                { REPOSITORY && commit &&
+                {REPOSITORY && commit &&
                     <Col {...COL_LAYOUT}>
                         <Card title={`Environment ${env}`} size="large">
                           Commit: <a target='_blank' href={commitUrl}>#{shortCommit} </a>
                           <br/>
-                            { branch &&
+                            {branch &&
                                 <>
-                                    Branch: <a target='_blank' href={branchUrl}>{branch} </a>
+                                    Branch: <a target='_blank' href={branchUrl} rel="noopener noreferer">{branch} </a>
                                     <br/>
                                 </>
                             }
