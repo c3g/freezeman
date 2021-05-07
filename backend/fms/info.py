@@ -6,6 +6,7 @@ __all__ = [
     "COMMIT_FULL_HASH",
     "COMMIT_SMALL_HASH",
     "COMMIT_TAGGED_VERSION",
+    "BRANCH",
     "CONTACT_EMAIL",
     "COPYRIGHT_YEARS",
     "REPOSITORY",
@@ -26,9 +27,16 @@ COMMIT_TAGGED_VERSION = subprocess.run(
     encoding="UTF-8",
 ).stdout.strip()
 
+BRANCH = subprocess.run(
+    'git branch --show-current',
+    shell=True,
+    stdout=subprocess.PIPE,
+    encoding="UTF-8",
+).stdout.strip()
+
 CONTACT_EMAIL = "info@computationalgenomics.ca"
 COPYRIGHT_YEARS = "2020"
-REPOSITORY = "https://github.com/c3g/freezeman_server"
+REPOSITORY = "https://github.com/c3g/freezeman"
 
 VERSION_PATH = Path(__file__).parent.parent / "VERSION"
 
