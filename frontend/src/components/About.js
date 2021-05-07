@@ -45,7 +45,7 @@ const About = () => {
                 {REPOSITORY && commit &&
                     <Col {...COL_LAYOUT}>
                         <Card title={`Environment ${env}`} size="large">
-                          Commit: <a target='_blank' href={commitUrl}>#{shortCommit} </a>
+                          Commit: <a target='_blank' href={commitUrl} rel="noopener noreferer">#{shortCommit} </a>
                           <br/>
                             {branch &&
                                 <>
