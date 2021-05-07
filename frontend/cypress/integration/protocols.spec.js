@@ -16,7 +16,7 @@ export const protocolsTests = () => {
   context('protocols section tests', () => {
 
     beforeEach(() => {
-      cy.visit('http://localhost:9000/sign-in')
+      cy.visit('http://localhost:9000/login')
       cy.getCredentials().then(cy.login)
     })
 

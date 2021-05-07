@@ -1,3 +1,4 @@
+from .auth import *
 from .container import Container
 from .container_move import ContainerMove
 from .container_rename import ContainerRename

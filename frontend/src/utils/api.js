@@ -6,6 +6,8 @@ const api = {
   auth: {
     token: credentials => post("/token/", credentials),
     tokenRefresh: tokens => post("/token/refresh/", tokens),
+    resetPassword: email => post("/password_reset/", { email }),
+    changePassword: (token, password) => post("/password_reset/confirm/", { token, password }),
   },
 
   containerKinds: {
