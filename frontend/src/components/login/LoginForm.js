@@ -42,7 +42,7 @@ export default function LoginForm({ isFetching, login }) {
         </Button>
         <div className='flex-row' style={forgotStyle}>
           <div className='flex-fill' />
-          <Link to="/forgot-password">
+          <Link to="/login/forgot-password">
             Forgot password?
           </Link>
         </div>

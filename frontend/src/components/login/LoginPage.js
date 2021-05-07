@@ -1,10 +1,11 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {useHistory, Link} from "react-router-dom";
-import {Card, Button, Form, Input} from "antd";
+import {useHistory, useLocation, Route, Switch} from "react-router-dom";
+import {Card} from "antd";
 
 import {performAuth} from "../../modules/auth/actions";
 import LoginForm from "./LoginForm";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 const containerStyle = {
   width: "100%",
@@ -35,6 +36,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const LoginPage = ({isFetching, isAuthenticated, login}) => {
+  const location = useLocation();
   const history = useHistory();
 
   useEffect(() => {
@@ -46,7 +48,14 @@ const LoginPage = ({isFetching, isAuthenticated, login}) => {
   return (
     <div style={containerStyle}>
       <Card style={cardStyle}>
-        <LoginForm login={login} isFetching={isFetching} />
+        <Switch>
+          <Route exact path="/login">
+            <LoginForm login={login} isFetching={isFetching} />
+          </Route>
+          <Route exact path="/login/forgot-password">
+            <ResetPasswordForm />
+          </Route>
+        </Switch>
       </Card>
     </div>
   );

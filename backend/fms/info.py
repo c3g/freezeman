@@ -1,4 +1,5 @@
 import subprocess
+import datetime
 from pathlib import Path
 
 __all__ = [
@@ -27,7 +28,7 @@ COMMIT_TAGGED_VERSION = subprocess.run(
 ).stdout.strip()
 
 CONTACT_EMAIL = "info@computationalgenomics.ca"
-COPYRIGHT_YEARS = "2020"
+COPYRIGHT_YEARS = str(datetime.datetime.now().year)
 REPOSITORY = "https://github.com/c3g/freezeman_server"
 
 VERSION_PATH = Path(__file__).parent.parent / "VERSION"

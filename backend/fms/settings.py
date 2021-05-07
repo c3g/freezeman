@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'reversion',
     'django_filters',
+    'django_rest_passwordreset',
 
     'fms_core.apps.FmsCoreConfig',
 ]
@@ -145,6 +146,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
 }
+
+
+# Email
+# FIXME: change this depending on environment
+
+EMAIL_FROM = os.environ.get('FMS_EMAIL_FROM', 'noreply@example.com')
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # Internationalization
