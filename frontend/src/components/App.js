@@ -13,9 +13,8 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 
-import SignIn from "./SignIn";
-
 import JumpBar from "./JumpBar";
+import LoginPage from "./login/LoginPage";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesPage from "./samples/SamplesPage";
@@ -162,8 +161,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
         }
         <Layout.Content style={{position: "relative"}}>
           <Switch>
-            <Route path="/sign-in">
-              <SignIn/>
+            <Route path="/login">
+              <LoginPage/>
             </Route>
             <PrivateRoute path="/dashboard">
               <DashboardPage/>
