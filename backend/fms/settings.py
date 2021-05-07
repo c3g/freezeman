@@ -152,7 +152,7 @@ REST_FRAMEWORK = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-if os.environ.get('FMS_ENV', None) is not None:
+if os.environ.get('FMS_EMAIL_HOST', None) is not None:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_FROM          = os.environ.get('FMS_EMAIL_FROM',     'noreply@example.com')
