@@ -526,7 +526,7 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         })
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Sample.objects.all().select_related("individual", "container", "sample_kind")
+    queryset = Sample.objects.select_related("individual", "container", "sample_kind").prefetch_related("process_sample").all()
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
     )
