@@ -16,7 +16,7 @@ const buttonStyle = {
   width: "100%",
 }
 
-export default function ResetPasswordForm({ isFetching }) {
+export default function ResetPasswordForm() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
