@@ -13,10 +13,21 @@ import {
   ExperimentOutlined,
   DatabaseOutlined,
   TableOutlined,
+  CheckCircleTwoTone,
+  CloseCircleTwoTone,
 } from "@ant-design/icons";
 import {get, listChildren, listSamples} from "../../modules/containers/actions";
+import platform, * as PLATFORM from "../../utils/platform";
 
 const {Text} = Typography;
+
+/* interface DataNode {
+ *   key: string;
+ *   title: node;
+ *   icon: node;
+ *   isLeaf?: boolean;
+ *   children?: DataNode[];
+ * } */
 
 const iconRules = [
   { match: /room/i,    icon: () => <HomeOutlined /> },
@@ -26,8 +37,6 @@ const iconRules = [
   { match: /tube/i,    icon: () => <ExperimentOutlined /> },
 ];
 
-const isCollapsed = key => /\$(children|samples)/.test(key);
-
 const defaultIcon = <TableOutlined />;
 
 const getIcon = container => {
@@ -35,17 +44,18 @@ const getIcon = container => {
   return rule ? rule.icon : defaultIcon
 }
 
+const isCollapsed = key => /\$(children|samples)/.test(key);
+
 const entryStyle = { marginLeft: '0.5em' };
 
 const loadingEntry = id => {
-  return ({
+  return {
+    key: id,
     title: <span style={entryStyle}>
-      <strong>{id}</strong>{' '}
-      <Text type="secondary">loading...</Text>
+      <b>{id}</b>{' '}<Text type="secondary">loading...</Text>
     </span>,
     icon: <LoadingOutlined />,
-    key: id,
-  })
+  }
 };
 
 const renderEntry = content =>
@@ -55,16 +65,31 @@ const renderEntry = content =>
 
 const renderContainer = container =>
   <span style={entryStyle}>
-    <strong>{container.name}</strong>{' '}
-    <Text type="secondary">
-      {container.kind}
-    </Text>{' '}
-    {container.coordinates &&
+    <Link to={`/containers/${container.id}`}>
+      <b>{container.name}</b>{' '}
       <Text type="secondary">
-        @ {container.coordinates}
-      </Text>
-    }
+        {container.kind}{' '}
+        {container.children?.length > 0 &&
+          `(${container.children.length} children)`
+        }
+      </Text>{' '}
+      {container.coordinates &&
+        <Text type="secondary">
+          @ {container.coordinates}
+        </Text>
+      }
+    </Link>
   </span>;
+
+const renderSample = (sample, sampleKind) =>
+  renderEntry(
+    <Link to={`/samples/${sample.id}`}>
+      <b>{sample.name}</b> sample ({sampleKind}){' '}
+      {sample.coordinates &&
+        `@ ${sample.coordinates}`
+      }
+    </Link>
+  )
 
 const buildContainerTreeFromPath = (context, path) => {
   if (path.length === 0)
@@ -86,36 +111,23 @@ const buildContainerTreeFromPath = (context, path) => {
   // length - (path.length === 1 ? 0 : 1);
   const samples = container.samples;
 
+  const url = `/containers/${container.id}`
   const title = renderContainer(container);
-
   const icon = getIcon(container);
-
   const children = buildContainerTreeFromPath(context, path.slice(1));
 
   if (otherChildren.length) {
     if (!isExploded) {
       children.push({
-        title: renderEntry(
-          <Text type="secondary">
-            {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
-            (click to expand)
-          </Text>
-        ),
+        key: `${container.id}$children`,
+        isLeaf: false,
         icon: isFetching ? <LoadingOutlined /> : <EllipsisOutlined />,
-        key: `${container.id}$children`,
-      });
-    }
-    else if (isFetching) {
-      children.push({
         title: renderEntry(
           <Text type="secondary">
             {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
-            (loading)
           </Text>
         ),
-        icon: <LoadingOutlined />,
-        key: `${container.id}$children`,
-      })
+      });
     }
     else {
       children.push(...otherChildren.map(containerId =>
@@ -127,26 +139,13 @@ const buildContainerTreeFromPath = (context, path) => {
   if (samples.length) {
     if (!isExploded) {
       children.push({
+        key: `${container.id}$samples`,
         title: renderEntry(
           <Text type="secondary">
             {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
-            (click to expand)
           </Text>
         ),
         icon: <EllipsisOutlined />,
-        key: `${container.id}$samples`,
-      })
-    }
-    else if (isFetching) {
-      children.push({
-        title: renderEntry(
-          <Text type="secondary">
-            {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
-            (loading)
-          </Text>
-        ),
-        icon: <LoadingOutlined />,
-        key: `${container.id}$samples`,
       })
     }
     else {
@@ -156,24 +155,25 @@ const buildContainerTreeFromPath = (context, path) => {
           return loadingEntry(sampleId);
         const sampleKind = context.sampleKinds.itemsByID[sample.sample_kind]?.name
         return {
-          title: renderEntry(
-            <Link to={`/samples/${sample.id}`}>
-              <strong>{sample.name}</strong>{' '}
-              sample ({sampleKind})
-            </Link>
-          ),
-          icon: <CheckOutlined />,
-          key: `sample-${sampleId}`,
+          key: sampleId,
           type: 'sample',
+          url: `/samples/${sampleId}`,
+          isLeaf: true,
+          icon: sample.depleted ?
+            <CloseCircleTwoTone twoToneColor="#eb2f96" /> :
+            <CheckCircleTwoTone twoToneColor="#52c41a" />,
+          title: renderSample(sample, sampleKind),
         };
       }));
     }
   }
 
   return [{
-    title,
-    icon,
     key: container.id,
+    url,
+    icon,
+    title,
+    isLeaf: children.length === 0,
     children,
   }];
 };
@@ -204,55 +204,46 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   const path = container.parents.concat([container.id]);
   const tree = buildContainerTreeFromPath(context, path);
 
-  const onSelect = (selectedKeys, { node }) => {
-    const [selectedKey] = selectedKeys;
-    if (selectedKey === undefined) {
-      // De-selection event; ignore it
-      return;
-    }
-
-    if (/\$(children|samples)/.test(selectedKey)) {
-      // Explode collapsed nodes
-
-      const id = selectedKey.replace(/\$(children|samples)/, '');
-      const hasChildren = selectedKey.endsWith('$children');
-      if (hasChildren)
-        listChildren(id, path);
-      else
-        listSamples(id);
-      setExplodedKeys(set(explodedKeys, [id], true));
-    } else {
-      // Navigate to container
-      if (node.type === 'sample')
-        history.push(`/samples/${selectedKey}`);
-      else
-        history.push(`/containers/${selectedKey}`);
-    }
+  const expandCollapsedNode = async node => {
+    const id = node.key.replace(/\$(children|samples)/, '');
+    const hasChildren = node.key.endsWith('$children');
+    if (hasChildren)
+      await listChildren(id, path);
+    else
+      await listSamples(id);
+    setExplodedKeys(set(explodedKeys, [id], true));
   }
 
-  const onExpand = (_, { expanded, node }) => {
-    if (!expanded) {
-      return;
-    }
-
+  const expandCollapsedChildren = async node => {
     const childrenNodes = node.children.filter(n => isCollapsed(n.key));
 
     if (childrenNodes.length > 0) {
-      // Explode collapsed nodes
-
-      childrenNodes.forEach(n => {
-        const id = n.key.replace(/\$(children|samples)/, '');
-        const hasChildren = n.key.endsWith('$children');
-        if (hasChildren)
-          listChildren(id, path);
-        else
-          listSamples(id);
-        setExplodedKeys(set(explodedKeys, [id], true));
-      })
+      await Promise.all(childrenNodes.map(n =>
+        expandCollapsedNode(n)
+      ))
     }
   }
 
-  console.log({ explodedKeys })
+  const onLoadData = async (node) => {
+    if (isCollapsed(node.key))
+      await expandCollapsedNode(node)
+    else
+      await expandCollapsedChildren(node)
+  }
+
+  const onSelect = (selectedKeys, { selected, node, event, nativeEvent }) => {
+    /* Only ctrl+click event seems to be disabled by ant,
+     * therefore we implement the behavior ourselves. */
+    if (event === 'select') {
+      const isMacOS = platform().os === PLATFORM.OS.MACOS
+      const isOpenInNewTab =
+        isMacOS ? nativeEvent.metaKey : nativeEvent.ctrlKey
+      if (isOpenInNewTab) {
+        window.open(node.url)
+      }
+    }
+  }
+
   return (
     <Tree
       showIcon
@@ -262,8 +253,8 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       selectedKeys={[path[path.length - 1]]}
       treeData={tree}
       defaultExpandedKeys={container.parents}
+      loadData={onLoadData}
       onSelect={onSelect}
-      onExpand={onExpand}
     />
   );
 };
