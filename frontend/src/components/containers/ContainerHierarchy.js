@@ -95,26 +95,21 @@ const buildContainerTreeFromPath = (context, path) => {
     return [];
 
   const id = path[0];
-
   const container = context.containersByID[id];
   const isExploded = context.explodedKeys[id] === true;
   const isLoaded = container && container.isLoaded;
   const isFetching = container && container.isFetching;
-
-  if (!isLoaded) {
-    return loadingEntry(id);
-  }
-
-  const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
-  otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
-  // length - (path.length === 1 ? 0 : 1);
   const samples = container.samples;
+
+  if (!isLoaded)
+    return loadingEntry(id);
 
   const url = `/containers/${container.id}`
   const title = renderContainer(container);
   const icon = getIcon(container);
   const children = buildContainerTreeFromPath(context, path.slice(1));
 
+  const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
   if (otherChildren.length) {
     if (!isExploded) {
       children.push({
@@ -129,6 +124,7 @@ const buildContainerTreeFromPath = (context, path) => {
       });
     }
     else {
+      otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
       children.push(...otherChildren.map(containerId =>
         buildContainerTreeFromPath(context, [containerId])
       ).flat());
@@ -139,6 +135,7 @@ const buildContainerTreeFromPath = (context, path) => {
     if (!isExploded) {
       children.push({
         key: `${container.id}$samples`,
+        isLeaf: false,
         title: renderEntry(
           <Text type="secondary">
             {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
