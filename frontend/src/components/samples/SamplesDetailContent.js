@@ -78,12 +78,10 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
   if (isLoaded && !sample.versions && !sample.isFetching)
     listVersions(sample.id);
 
-  if (isLoaded && !isProcessesEmpty && !sample.isFetching) {
+  if (isLoaded && !isProcessesEmpty) {
     sampleProcessSamples.forEach((id, i) => {
       withProcess(processesByID, id, process => process.id);
-    })
-    sampleProcessSamples.forEach((id, i) => {
-      processSamples.push(processesByID[id])
+      processSamples.push(processesByID[id]);
     })
   }
 

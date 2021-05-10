@@ -17,9 +17,11 @@ const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
         dataIndex: 'id',
         key: 'id',
         render: (id, processSample) =>
-          <Link to={`/processes/${id}`}>
-            Process {processSample && `#${processSample.process}`}
-          </Link>,
+          { id &&
+              <Link to={`/processes/${id}`}>
+                Process {processSample && `#${processSample.process}`}
+              </Link>
+          },
       },
       {
         title: 'Date processed',
