@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'reversion',
     'django_filters',
+    'django_rest_passwordreset',
 
     'fms_core.apps.FmsCoreConfig',
 ]
@@ -146,6 +147,20 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 100,
 }
 
+
+# Email
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+if os.environ.get('FMS_EMAIL_HOST', None) is not None:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_FROM          = os.environ.get('FMS_EMAIL_FROM',     'noreply@example.com')
+EMAIL_HOST          = os.environ.get('FMS_EMAIL_HOST',     'localhost')
+EMAIL_PORT          = int(os.environ.get('FMS_EMAIL_PORT', '587'))
+EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
+EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

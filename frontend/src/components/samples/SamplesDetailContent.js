@@ -24,8 +24,9 @@ import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
+import SampleDetailProcess from "./SampleDetailProcess";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
-import {withContainer, withSample, withIndividual} from "../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcess} from "../../utils/withItem";
 
 const { Title, Text } = Typography;
 
@@ -44,13 +45,14 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
+  processesByID: state.processes.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, processesByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -65,6 +67,9 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
+  const sampleProcessSamples = sample.process_samples
+  const isProcessesEmpty = sampleProcessSamples && sampleProcessSamples.length === 0;
+  let processSamples = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -72,6 +77,13 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
 
   if (isLoaded && !sample.versions && !sample.isFetching)
     listVersions(sample.id);
+
+  if (isLoaded && !isProcessesEmpty) {
+    sampleProcessSamples.forEach((id, i) => {
+      withProcess(processesByID, id, process => process.id);
+      processSamples.push(processesByID[id]);
+    })
+  }
 
   return <>
     <AppPageHeader
@@ -164,6 +176,21 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
 
       <TrackingFieldsContent entity={sample}/>
 
+      <Title level={2} style={{ marginTop: '1em' }}>Processes</Title>
+      <Row>
+        <Col sm={24} md={24}>
+          <div>
+            <Card>
+              {
+                isProcessesEmpty ?
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
+                  <SampleDetailProcess processSamples={processSamples}/>
+              }
+            </Card>
+          </div>
+        </Col>
+      </Row>
+
       <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
       <Row>
         <Col sm={24} md={24}>
@@ -196,6 +223,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, ind
           </div>
         </Col>
       </Row>
+
     </PageContent>
   </>;
 };
