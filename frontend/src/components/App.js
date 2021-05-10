@@ -11,6 +11,7 @@ import {
   TableOutlined,
   TeamOutlined,
   UserOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -22,6 +23,7 @@ import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessesPage from "./processes/ProcessesPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
+import About from "./About";
 
 import PrivateRoute from "./PrivateRoute";
 
@@ -35,6 +37,12 @@ import {logOut} from "../modules/auth/actions";
 const { Title } = Typography;
 
 const getMenuItems = (user, logOut) => [
+  {
+    key: "about",
+    icon: <InfoCircleOutlined />,
+    text: "About",
+    url: "/about",
+  },
   {
     key: "profile-link",
     icon: <UserOutlined />,
@@ -184,6 +192,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             </PrivateRoute>
             <PrivateRoute path="/profile">
               <ProfilePage/>
+            </PrivateRoute>
+            <PrivateRoute path="/about">
+              <About/>
             </PrivateRoute>
             <Redirect from="/" to="/dashboard" />
           </Switch>

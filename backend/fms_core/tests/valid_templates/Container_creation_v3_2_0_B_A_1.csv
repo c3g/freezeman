@@ -1,7 +1,7 @@
 Container Creation Template,,,,,
 ,,,,,
 Naming Rules,,,,,
-"- Only use the following characters for Container name and Barcode: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,
+"- Only use the following characters for Container name: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,
 ,,,,,
 ,,,,,
 #,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coordinate
