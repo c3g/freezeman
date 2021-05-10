@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {Link, useHistory} from "react-router-dom";
+import {Link} from "react-router-dom";
 import {connect} from "react-redux";
 import {set} from "object-path-immutable";
 import {Tree, Typography} from "antd";
 
 import {
   LoadingOutlined,
-  CheckOutlined,
   DownOutlined,
   EllipsisOutlined,
   HomeOutlined,
@@ -149,7 +148,7 @@ const buildContainerTreeFromPath = (context, path) => {
       })
     }
     else {
-      children.push(...samples.map(sampleId => {
+      const childrenSamples = samples.map(sampleId => {
         const sample = context.samplesByID[sampleId];
         if (!sample || sample.isFetching)
           return loadingEntry(sampleId);
@@ -164,7 +163,13 @@ const buildContainerTreeFromPath = (context, path) => {
             <CheckCircleTwoTone twoToneColor="#52c41a" />,
           title: renderSample(sample, sampleKind),
         };
-      }));
+      });
+      childrenSamples.sort((a, b) =>
+        compareCoordinates(
+          context.samplesByID[a.key],
+          context.samplesByID[b.key]
+        ));
+      children.push(...childrenSamples);
     }
   }
 
@@ -189,8 +194,6 @@ const actionCreators = {get, listChildren, listSamples};
 const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listSamples}) => {
   if (!container || !container.parents)
     return <LoadingOutlined />;
-
-  const history = useHistory();
 
   const [explodedKeys, setExplodedKeys] = useState({});
   useEffect(() => { setExplodedKeys({}) }, [container.id]);
