@@ -67,8 +67,9 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
-  const isProcessesEmpty = sample.processes_samples && sample.processes_samples.length === 0;
-  let sampleProcesses = []
+  const sampleProcessSamples = sample.process_samples
+  const isProcessesEmpty = sampleProcessSamples && sampleProcessSamples.length === 0;
+  let processSamples = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -78,11 +79,11 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
     listVersions(sample.id);
 
   if (isLoaded && !isProcessesEmpty && !sample.isFetching) {
-    sample.processes_samples.forEach((id, i) => {
+    sampleProcessSamples.forEach((id, i) => {
       withProcess(processesByID, id, process => process.id);
     })
-    sample.processes_samples.forEach((id, i) => {
-      sampleProcesses.push(processesByID[id])
+    sampleProcessSamples.forEach((id, i) => {
+      processSamples.push(processesByID[id])
     })
   }
 
@@ -185,7 +186,7 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
               {
                 isProcessesEmpty ?
                   <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-                  <SampleDetailProcess processSamples={sampleProcesses}/>
+                  <SampleDetailProcess processSamples={processSamples}/>
               }
             </Card>
           </div>
