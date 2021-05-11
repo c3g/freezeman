@@ -3,11 +3,12 @@ import reversion
 import json
 import logging
 from reversion.models import Version
-from fms_core.models import Sample, Container, Individual, Protocol, SampleKind, SampleLineage, Process, ProcessSample
+from fms_core.models import *
 
 # Parameters required for this curation
-ACTION = "action"                     # = field_value_update
+ACTION = "action"                     # = update_field_value
 CURATION_INDEX = "curation_index"     # Number indicating the order in which this action was performed during the curation.
+COMMENT = "comment"                   # An optional comment to be stored in the logs
 ENTITY_MODEL = "entity_model"         # The name of the model for the target entity.
 ENTITY_DICT_ID = "entity_identifier"  # An array of dictionary that contains the fields required to uniquely identify the targeted entity.
 FIELD_NAME = "field_name"             # The name of the field that need to be updated.
@@ -17,7 +18,8 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 
 # Curation params template
 # { CURATION_INDEX: 1,
-#   ACTION: "field_value_update",
+#   ACTION: "update_field_value",
+#   COMMENT: "Dr. No asled the samples to be changed from BLOOD to PLASMA to correct an error at submission.",
 #   ENTITY_MODEL: "Sample",
 #   ENTITY_DICT_ID: [{"name": "Sample_test", "id": 42, "container_id": 5823}], # Any subset of fields that identifies uniquely the entity
 #   FIELD_NAME: "sample_kind",
@@ -29,8 +31,9 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # ENTITY_DICT_ID is an array to allow an identical change to be performed on multiple entities. If the changes are different,
 # add more field_value_actions to the curation.
 
-def field_value_update(params, log):
-    log.info("Action [" + str(params[CURATION_INDEX]) + "] Field Value Update started.")
+def update_field_value(params, log):
+    log.info("Action [" + str(params[CURATION_INDEX]) + "] Update Field Value started.")
+    log.info("Comment [" + str(params.get(COMMENT, "None")) + "].")
     log.info("Targeted model : " + str(params[ENTITY_MODEL]))
     log.info("Identifier used : " + str(params[ENTITY_DICT_ID]))
     log.info("Field to update : " + str(params[FIELD_NAME]))
