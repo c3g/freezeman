@@ -96,7 +96,7 @@ const IndividualsListContent = ({
   return <>
     <AppPageHeader title="Individuals" extra={[
         <AddButton key='add' url="/individuals/add" />,
-        <ExportButton key='export' exportFunction={listExport} filename="individuals" />,
+        <ExportButton key='export' exportFunction={listExport} filename="individuals"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
