@@ -1,29 +1,48 @@
 import React, {useState} from "react";
 import {downloadFromText} from "../utils/download";
-import {Button, notification} from "antd";
+import {Button, Modal, notification} from "antd";
 
-import { DownloadOutlined } from "@ant-design/icons";
+import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
+const { confirm } = Modal;
 
-const ExportButton = ({ exportFunction, filename, ...rest }) => {
+const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
+  const confirmText = () => {
+    if (itemsCount)
+      return `${itemsCount} items will be exported`
+    return
+  }
+
   const onClick = () => {
     setLoading(true);
-    exportFunction()
-      .then(text => {
-        downloadFromText(name, text)
-      })
-      .catch(err => {
-        notification.error({
-          message: err.message,
-          description: <pre>{err.stack}</pre>,
-        });
-      })
-      .then(() => {
-        setLoading(false);
-      })
+
+    confirm({
+        title: 'Do you want to download this list?',
+        icon: <ExclamationCircleOutlined />,
+        content: confirmText(),
+        onOk() {
+            exportFunction()
+            .then(text => {
+              downloadFromText(name, text)
+            })
+            .catch(err => {
+              notification.error({
+                message: err.message,
+                description: <pre>{err.stack}</pre>,
+              });
+            })
+            .then(() => {
+              setLoading(false);
+            })
+        },
+        onCancel() {
+          setLoading(false);
+        },
+      });
+
   }
   return (
     <Button onClick={onClick} loading={loading} {...rest}>

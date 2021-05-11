@@ -138,7 +138,7 @@ const ContainersListContent = ({
     <AppPageHeader title="Containers" extra={[
       <AddButton key='add' url="/containers/add" />,
       ...actionsToButtonList("/containers", actions),
-      <ExportButton key='export' exportFunction={listExport} filename="containers"/>,
+      <ExportButton key='export' exportFunction={listExport} filename="containers" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
       <div style={{ textAlign: 'right', marginBottom: '1em' }}>

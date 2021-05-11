@@ -162,7 +162,7 @@ const SamplesListContent = ({
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
       ...actionsToButtonList("/samples", actions),
-      <ExportButton key='export' exportFunction={listExport} filename="samples"/>,
+      <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
