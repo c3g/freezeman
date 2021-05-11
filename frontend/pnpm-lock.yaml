@@ -2,6 +2,7 @@ dependencies:
   '@ant-design/icons': 4.5.0_react-dom@16.14.0+react@16.14.0
   '@reduxjs/toolkit': 1.5.0
   antd: 4.12.3_react-dom@16.14.0+react@16.14.0
+  bowser: 2.11.0
   cheerio: 1.0.0-rc.5
   cross-fetch: 3.0.6
   date-fns: 2.17.0
@@ -1839,6 +1840,10 @@ packages:
   /boolbase/1.0.0:
     resolution:
       integrity: sha1-aN/1++YMUes3cl6p4+0xDcwed24=
+  /bowser/2.11.0:
+    dev: false
+    resolution:
+      integrity: sha512-AlcaJBi/pqqJBIQ8U9Mcpc9i8Aqxn88Skv5d+xBX006BY5u8N3mGLHa5Lgppa7L/HfwgwLgZ6NYs+Ag6uUmJRA==
   /brace-expansion/1.1.11:
     dependencies:
       balanced-match: 1.0.0
@@ -7994,6 +7999,7 @@ specifiers:
   babel-loader: ^8.1.0
   babel-plugin-import: ^1.13.3
   babel-polyfill: ^6.26.0
+  bowser: ^2.11.0
   cheerio: ^1.0.0-rc.5
   cross-fetch: ^3.0.6
   css-loader: ^3.5.1
