@@ -24,16 +24,14 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # To delete parents, a first curation need to be run to delete the child individual (or an update), then parents will be unreferenced.
 
 # function that checks the references to an individual and list them.
-def references(individual):
+def list_references(individual):
     links = []
-    children = list(individual.mother_of.all())
-    if children:
-        links.append(f"Mother of {[child.name for child in children]}.")
-        children = None
-    children = list(individual.father_of.all())
-    if children:
-        links.append(f"Father of {[child.name for child in children]}.")
-        children = None
+    mother_of = list(individual.mother_of.all())
+    if mother_of:
+        links.append(f"Mother of {[child.name for child in mother_of]}.")
+    father_of = list(individual.father_of.all())
+    if father_of:
+        links.append(f"Father of {[child.name for child in father_of]}.")
     samples = list(individual.samples.all())
     if samples:
         links.append(f"Has samples {[sample.id for sample in samples]}")
@@ -54,11 +52,11 @@ def delete_individual(params, objects_to_delete, log):
 
     try:
         individual_model = apps.get_model("fms_core", "Individual")
-        count_deletes = 0
+        count_deleted = 0
         for name in name_array:
             try:
                 individual = individual_model.objects.get(name=name)
-                links = references(individual)
+                links = list_references(individual)
                 if links:
                     log.error(f"Individual [{name}] is still referenced. {links}")
                     error_found = True
@@ -70,7 +68,7 @@ def delete_individual(params, objects_to_delete, log):
                     else:
                         individual.save()# save using the default admin user
                     objects_to_delete.append(individual)  # Delay deletion until after the revision block so the object get a version
-                    count_deletes += 1
+                    count_deleted += 1
             except individual_model.DoesNotExist:
                 log.error(f"No individual found for name [{name}].")
                 error_found = True
@@ -82,5 +80,5 @@ def delete_individual(params, objects_to_delete, log):
         error_found = True
     if not error_found:
         curation_code = None
-        log.info(f"Deleted [{count_deletes}] individuals.")
+        log.info(f"Deleted [{count_deleted}] individuals.")
     return curation_code
