@@ -24,7 +24,7 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # To delete parents, a first curation need to be run to delete the child individual (or an update), then parents will be unreferenced.
 
 # function that checks the references to an individual and list them.
-def list_references(individual):
+def list_references_to(individual):
     links = []
     mother_of = list(individual.mother_of.all())
     if mother_of:
@@ -56,7 +56,7 @@ def delete_individual(params, objects_to_delete, log):
         for name in name_array:
             try:
                 individual = individual_model.objects.get(name=name)
-                links = list_references(individual)
+                links = list_references_to(individual)
                 if links:
                     log.error(f"Individual [{name}] is still referenced. {links}")
                     error_found = True
