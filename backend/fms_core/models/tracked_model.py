@@ -19,7 +19,11 @@ class TrackedModel(models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
-        user = get_current_user()
+        requester = kwargs.get("requester_id")
+        if requester:
+            user = User.objects.get(pk=requester)
+        else:
+            user = get_current_user()
         if not user or (user and not user.pk):
             user = User.objects.get(username=ADMIN_USERNAME)
         # if the instance has not been saved to the DB yet
@@ -29,7 +33,7 @@ class TrackedModel(models.Model):
         # Set modified by user each time we save
         self.updated_by = user
 
-        super().save(*args, **kwargs)
+        super().save()
 
     def delete(self, *args, **kwargs):
         user = get_current_user()

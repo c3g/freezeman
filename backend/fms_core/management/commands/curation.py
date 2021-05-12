@@ -13,10 +13,12 @@ from django.contrib.auth.models import User
 # Import the functions of the various curations available.
 from ._rollback_extraction import rollback_extraction
 from ._rollback_curation import rollback_curation
+from ._field_value_update import field_value_update
 
 # Available actions
 ACTION_ROLLBACK_CURATION = "rollback_curation"
 ACTION_ROLLBACK_EXTRACTION = "rollback_extraction"
+ACTION_FIELD_UPDATE = "field_value_update"
 
 # Curation params template
 # [CURATION_ACTION_TEMPLATE_1,CURATION_ACTION_TEMPLATE_2,...]
@@ -35,7 +37,8 @@ class Command(BaseCommand):
 
     curation_switch = {
         ACTION_ROLLBACK_EXTRACTION: rollback_extraction,
-        ACTION_ROLLBACK_CURATION: rollback_curation
+        ACTION_ROLLBACK_CURATION: rollback_curation,
+        ACTION_FIELD_UPDATE: field_value_update,
     }
 
     def init_logging(self, log_name, timestamp):
