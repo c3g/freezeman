@@ -3,7 +3,7 @@ import Individuals from "../individuals/actions";
 import Users from "../users/actions";
 import Groups from "../groups";
 import Samples from "../samples/actions";
-import Processes from "../processes/actions";
+import ProcessesSamples from "../processesSamples/actions";
 import Protocols from "../protocols/actions";
 import {refreshAuthToken} from "../auth/actions";
 
@@ -21,9 +21,9 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listTable,
         Samples.listKinds,
         Samples.summary,
-        Processes.listTable,
+        ProcessesSamples.listTable,
         Protocols.list,
-        Processes.summary,
+        ProcessesSamples.summary,
         Users.listTable,
         Groups.list,
     ].map(a => dispatch(a())))
@@ -32,7 +32,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.listTemplateActions,
         Samples.listTemplateActions,
-        Processes.listTemplateActions,
+        ProcessesSamples.listTemplateActions,
     ].map(a => dispatch(a())))
 }
 
@@ -44,7 +44,7 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
-        Processes.summary,
+        ProcessesSamples.summary,
     ].map(a => dispatch(a())))
 };
 
@@ -59,7 +59,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Containers.listTable,
         Individuals.listTable,
         Samples.listTable,
-        Processes.listTable,
+        ProcessesSamples.listTable,
         Protocols.list,
     ].map(a => dispatch(a())))
 
@@ -67,6 +67,6 @@ export const fetchListedData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
-        Processes.summary,
+        ProcessesSamples.summary,
     ].map(a => dispatch(a())))
 }

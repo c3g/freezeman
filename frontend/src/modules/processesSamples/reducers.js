@@ -6,12 +6,12 @@ import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
-import PROCESSES from "./actions";
+import PROCESSES_SAMPLES from "./actions";
 
-export const processesSummary = summaryReducerFactory(PROCESSES);
-export const processTemplateActions = templateActionsReducerFactory(PROCESSES);
+export const processesSamplesSummary = summaryReducerFactory(PROCESSES_SAMPLES);
+export const processSampleTemplateActions = templateActionsReducerFactory(PROCESSES_SAMPLES);
 
-export const processes = (
+export const processesSamples = (
     state = {
         itemsByID: {},
         items: [],
@@ -25,23 +25,23 @@ export const processes = (
 ) => {
     switch (action.type) {
 
-        case PROCESSES.GET.REQUEST:
+        case PROCESSES_SAMPLES.GET.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case PROCESSES.GET.RECEIVE:
+        case PROCESSES_SAMPLES.GET.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
-        case PROCESSES.GET.ERROR:
+        case PROCESSES_SAMPLES.GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case PROCESSES.SET_SORT_BY:
+        case PROCESSES_SAMPLES.SET_SORT_BY:
             return { ...state, sortBy: action.data };
-        case PROCESSES.SET_FILTER:
+        case PROCESSES_SAMPLES.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 page: set(state.page, ['offset'], 0),
             };
-        case PROCESSES.SET_FILTER_OPTION:
+        case PROCESSES_SAMPLES.SET_FILTER_OPTION:
             return {
                 ...state,
                 filters: set(
@@ -51,26 +51,26 @@ export const processes = (
                 ),
                 page: set(state.page, ['offset'], 0),
             };
-        case PROCESSES.CLEAR_FILTERS:
+        case PROCESSES_SAMPLES.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
                 page: set(state.page, ['offset'], 0),
             };
 
-        case PROCESSES.LIST.REQUEST:
+        case PROCESSES_SAMPLES.LIST.REQUEST:
             return { ...state, isFetching: true, };
-        case PROCESSES.LIST.RECEIVE: {
+        case PROCESSES_SAMPLES.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
-        case PROCESSES.LIST.ERROR:
+        case PROCESSES_SAMPLES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
-        case PROCESSES.LIST_TABLE.REQUEST:
+        case PROCESSES_SAMPLES.LIST_TABLE.REQUEST:
             return { ...state, isFetching: true, };
-        case PROCESSES.LIST_TABLE.RECEIVE: {
+        case PROCESSES_SAMPLES.LIST_TABLE.RECEIVE: {
             const totalCount = action.data.count;
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
@@ -92,7 +92,7 @@ export const processes = (
                 error: undefined,
             };
         }
-        case PROCESSES.LIST_TABLE.ERROR:
+        case PROCESSES_SAMPLES.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         default:
@@ -100,8 +100,8 @@ export const processes = (
     }
 };
 
-function preprocess(process) {
-    process.isFetching = false;
-    process.isLoaded = true;
-    return process
+function preprocess(processSample) {
+    processSample.isFetching = false;
+    processSample.isLoaded = true;
+    return processSample
 }

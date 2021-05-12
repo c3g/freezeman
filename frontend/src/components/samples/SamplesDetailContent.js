@@ -26,7 +26,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import {SampleDepletion} from "./SampleDepletion";
 import SampleDetailProcess from "./SampleDetailProcess";
 import {get as getSample, listVersions} from "../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcess} from "../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcessSample} from "../../utils/withItem";
 
 const { Title, Text } = Typography;
 
@@ -45,14 +45,14 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
-  processesByID: state.processes.itemsByID,
+  processesSamplesByID: state.processesSamples.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, processesByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, processesSamplesByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -80,8 +80,8 @@ const SamplesDetailContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
   if (isLoaded && !isProcessesEmpty) {
     sampleProcessSamples.forEach((id, i) => {
-      withProcess(processesByID, id, process => process.id);
-      processSamples.push(processesByID[id]);
+      withProcessSample(processesSamplesByID, id, process => process.id);
+      processSamples.push(processesSamplesByID[id]);
     })
   }
 

@@ -5,7 +5,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
-import PROCESSES from "../modules/processes/actions";
+import PROCESSES_SAMPLES from "../modules/processesSamples/actions";
 
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
@@ -35,7 +35,7 @@ const WIDE_BUTTON_COL_PROPS = {
 const DashboardPage = ({
   containersSummary,
   samplesSummary,
-  processesSummary,
+  processesSamplesSummary,
   protocolsByID,
   templates,
   listActions,
@@ -43,7 +43,7 @@ const DashboardPage = ({
   useEffect(() => {
     listActions.container();
     listActions.sample();
-    listActions.process();
+    listActions.processSample();
   }, []);
 
   return <PageContainer>
@@ -89,16 +89,16 @@ const DashboardPage = ({
           <Card title="Protocols" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Total Protocols" value={processesSummary.total_count || "—"} />
+                <Statistic title="Total Protocols" value={processesSamplesSummary.total_count || "—"} />
               </Col>
               <Col {...STATS_COL_PROPS}>
-                {((processesSummary.protocol_counts && Object.keys(processesSummary.protocol_counts)) || []).map((protocol) => 
-                  <Statistic title={protocolsByID[protocol]?.name} value={processesSummary.protocol_counts[protocol] || "—"} />
+                {((processesSamplesSummary.protocol_counts && Object.keys(processesSamplesSummary.protocol_counts)) || []).map((protocol) =>
+                  <Statistic title={protocolsByID[protocol]?.name} value={processesSamplesSummary.protocol_counts[protocol] || "—"} />
                 )}
               </Col>
             </Row>
             <Row gutter={16}>
-              {actionsToButtonList("/processes", templates.process, true).map((l, i) =>
+              {actionsToButtonList("/processes-samples", templates.processSample, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>
@@ -122,12 +122,12 @@ const DashboardPage = ({
 const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
-  processesSummary: state.processesSummary.data,
+  processesSamplesSummary: state.processesSamplesSummary.data,
   protocolsByID: state.protocols.itemsByID,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
-    process: state.processTemplateActions,
+    processSample: state.processSampleTemplateActions,
   },
 });
 
@@ -135,7 +135,7 @@ const mapDispatchToProps = dispatch => ({
   listActions: {
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
-    process: () => dispatch(PROCESSES.listTemplateActions()),
+    processSample: () => dispatch(PROCESSES_SAMPLES.listTemplateActions()),
   }
 });
 

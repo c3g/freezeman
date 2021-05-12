@@ -155,7 +155,7 @@ export const INDIVIDUAL_FILTERS = {
   },
 }
 
-export const PROCESS_FILTERS = {
+export const PROCESS_SAMPLE_FILTERS = {
   process: {
     type: FILTER_TYPE.INPUT_NUMBER,
     key: "process",

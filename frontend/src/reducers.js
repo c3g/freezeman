@@ -19,10 +19,10 @@ import {
   samples,
 } from "./modules/samples/reducers";
 import {
-  processesSummary,
-  processTemplateActions,
-  processes,
-} from "./modules/processes/reducers";
+  processesSamplesSummary,
+  processSampleTemplateActions,
+  processesSamples,
+} from "./modules/processesSamples/reducers";
 import {
   protocols,
 } from "./modules/protocols/reducers";
@@ -54,9 +54,9 @@ const allReducers = combineReducers({
   sampleTemplateActions,
   samples,
   protocols,
-  processesSummary,
-  processTemplateActions,
-  processes,
+  processesSamplesSummary,
+  processSampleTemplateActions,
+  processesSamples,
   users,
   groups,
   versions,

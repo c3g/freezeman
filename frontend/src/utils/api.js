@@ -42,7 +42,7 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
-  processes: {
+  processesSamples: {
     get: processSampleId => get(`/processes-samples/${processSampleId}/`),
     list: (options, abort) => get("/processes-samples/", options, { abort }),
     listExport: options => get("/processes-samples/list_export/", {format: "csv", ...options}),
