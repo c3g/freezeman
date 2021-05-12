@@ -63,10 +63,7 @@ def delete_individual(params, objects_to_delete, log):
                 else:
                     log.info(f"Deleted [Individual] name [{individual.name}] id [{individual.id}]].")
                     individual.deleted = True
-                    if user_id:
-                        individual.save(requester_id=user_id) # save using the id of the requester
-                    else:
-                        individual.save()# save using the default admin user
+                    individual.save(requester_id=user_id) # save using the id of the requester (using the default admin user if None)
                     objects_to_delete.append(individual)  # Delay deletion until after the revision block so the object get a version
                     count_deleted += 1
             except individual_model.DoesNotExist:
