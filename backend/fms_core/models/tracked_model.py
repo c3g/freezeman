@@ -36,7 +36,11 @@ class TrackedModel(models.Model):
         super().save()
 
     def delete(self, *args, **kwargs):
-        user = get_current_user()
+        requester = kwargs.get("requester_id")
+        if requester:
+            user = User.objects.get(pk=requester)
+        else:
+            user = get_current_user()
         if user and not user.pk:
             user = User.objects.get(username=ADMIN_USERNAME)
 
@@ -48,7 +52,7 @@ class TrackedModel(models.Model):
             reversion.set_user(user)
             reversion.set_comment(f'Deletion of object id ${self.id}')
 
-        super().delete(*args, **kwargs)
+        super().delete()
 
 
 

@@ -121,7 +121,7 @@ class Sample(TrackedModel):
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
-    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, help_text="Individual associated "
+    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
                                                                                      "with the sample.")
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
@@ -240,11 +240,11 @@ class Sample(TrackedModel):
         return self.extracted_from.depleted if self.extracted_from else None
 
     @property
-    def extracted_from(self) -> ["Sample"]:
+    def extracted_from(self) -> "Sample":
         return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Extraction").first() if self.id else None
 
     @property
-    def transferred_from(self) -> ["Sample"]:
+    def transferred_from(self) -> "Sample":
         return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Transfer").first() if self.id else None
 
     # Representations
