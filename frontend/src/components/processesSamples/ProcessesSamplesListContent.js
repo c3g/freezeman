@@ -26,7 +26,7 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 150,
       render: (_, processSample) =>
-          <Link to={`/processes/${processSample.id}`}>{processSample.process}</Link>
+          <Link to={`/processes-samples/${processSample.id}`}>{processSample.process}</Link>
     },
     {
       title: "Protocol",
