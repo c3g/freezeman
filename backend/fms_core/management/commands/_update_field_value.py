@@ -8,18 +8,18 @@ from fms_core.models import *
 # Parameters required for this curation
 ACTION = "action"                     # = update_field_value
 CURATION_INDEX = "curation_index"     # Number indicating the order in which this action was performed during the curation.
-COMMENT = "comment"                   # An optional comment to be stored in the logs
+COMMENT = "comment"                   # A comment to be stored in the logs. Optional.
 ENTITY_MODEL = "entity_model"         # The name of the model for the target entity.
 ENTITY_DICT_ID = "entity_identifier"  # An array of dictionary that contains the fields required to uniquely identify the targeted entity.
 FIELD_NAME = "field_name"             # The name of the field that need to be updated.
-VALUE_OLD = "value_old"               # The old value of the entity's field (used for validation). Optional, validation skipped if empty.
+VALUE_OLD = "value_old"               # The old value of the entity's field (used for validation). Optional. Validation skipped if empty.
 VALUE_NEW = "value_new"               # The new value of the entity's field.
-USER_ID = "requester_user_id"         # The user id of the person requesting the curation. Optional, if left empty use biobankadmin id.
+USER_ID = "requester_user_id"         # The user id of the person requesting the curation. Optional. If left empty, uses biobankadmin id.
 
 # Curation params template
 # { CURATION_INDEX: 1,
 #   ACTION: "update_field_value",
-#   COMMENT: "Dr. No asled the samples to be changed from BLOOD to PLASMA to correct an error at submission.",
+#   COMMENT: "Dr. No asked the samples to be changed from BLOOD to PLASMA to correct an error at submission.",
 #   ENTITY_MODEL: "Sample",
 #   ENTITY_DICT_ID: [{"name": "Sample_test", "id": 42, "container_id": 5823}], # Any subset of fields that identifies uniquely the entity
 #   FIELD_NAME: "sample_kind",
@@ -31,7 +31,7 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # ENTITY_DICT_ID is an array to allow an identical change to be performed on multiple entities. If the changes are different,
 # add more field_value_actions to the curation.
 
-def update_field_value(params, log):
+def update_field_value(params, objects_to_delete, log):
     log.info("Action [" + str(params[CURATION_INDEX]) + "] Update Field Value started.")
     log.info("Comment [" + str(params.get(COMMENT, "None")) + "].")
     log.info("Targeted model : " + str(params[ENTITY_MODEL]))
