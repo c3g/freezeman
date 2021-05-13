@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
   protocolsByID: state.protocols.itemsByID,
 });
 
-const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
+const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: '',
@@ -74,4 +74,4 @@ const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
 }
 
 
-export default connect(mapStateToProps, undefined)(SampleDetailProcess);
+export default connect(mapStateToProps, undefined)(SampleDetailsProcess);
