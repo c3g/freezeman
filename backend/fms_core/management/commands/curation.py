@@ -14,11 +14,14 @@ from django.contrib.auth.models import User
 from ._rollback_extraction import rollback_extraction
 from ._rollback_curation import rollback_curation
 from ._update_field_value import update_field_value
+from ._delete_individual import delete_individual
+
 
 # Available actions
 ACTION_ROLLBACK_CURATION = "rollback_curation"
 ACTION_ROLLBACK_EXTRACTION = "rollback_extraction"
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
+ACTION_DELETE_INDIVIDUAL = "delete_individual"
 
 # Curation params template
 # [CURATION_ACTION_TEMPLATE_1,CURATION_ACTION_TEMPLATE_2,...]
@@ -39,6 +42,7 @@ class Command(BaseCommand):
         ACTION_ROLLBACK_EXTRACTION: rollback_extraction,
         ACTION_ROLLBACK_CURATION: rollback_curation,
         ACTION_UPDATE_FIELD_VALUE: update_field_value,
+        ACTION_DELETE_INDIVIDUAL: delete_individual,
     }
 
     def init_logging(self, log_name, timestamp):
@@ -84,6 +88,7 @@ class Command(BaseCommand):
             error_found = False
             try:
                 with transaction.atomic():
+                    objects_to_delete = []
                     # Create a curation revision to eventually rollback the current curation
                     with reversion.create_revision():
                         # Launch each individual curation
@@ -91,7 +96,7 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.SUCCESS('Launching action [' + str(curation["curation_index"]) + '] "%s"' % curation["action"]) + '.')
                             action = self.curation_switch.get(curation["action"])
                             if action:
-                                curation_failed = action(curation, log)
+                                curation_failed = action(curation, objects_to_delete, log)
                                 if curation_failed:
                                     self.stdout.write(self.style.ERROR("Action [" + str(curation_failed) + "] failed."))
                                     error_found = True
@@ -104,6 +109,11 @@ class Command(BaseCommand):
                     if error_found:
                         raise IntegrityError
                     else:
+                        # Operate the deletions here instead of inside the revision scope so objects get a version even when deleted
+                        with reversion.create_revision(manage_manually=True):  # Shadowing the revision blocks for deletes to prevent them
+                            for object in objects_to_delete:
+                                log.info(f"Completing deletion of object {object.__class__.__name__} id [{object.id}].")
+                                object.delete()
                         self.stdout.write(self.style.SUCCESS("Completed curation."))
             except IntegrityError:
                 log.info("Curation operation transaction rolled back.")
