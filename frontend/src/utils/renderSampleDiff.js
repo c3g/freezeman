@@ -25,10 +25,11 @@ export default function renderSampleDiff(oldVersion, newVersion, usersByID) {
   if (deltas === undefined)
     return null;
 
-
   const items = Object.entries(deltas).map(([key, delta]) => {
     if (Array.isArray(delta))
       return renderArrayDelta(key, delta, oldVersion, newVersion, usersByID);
+    else if(delta.constructor == Object)
+      return renderJSONDelta(key, delta, oldVersion, newVersion);
 
     return renderUnknownDelta(key, delta, oldVersion, newVersion);
   });
@@ -46,6 +47,19 @@ function renderUnknownDelta(name, delta, oldVersion, newVersion) {
         <Tag color="red" >
           unknown modification (please report this): <code>{JSON.stringify(delta)}</code>
         </Tag>
+    </div>
+  );
+}
+
+function renderJSONDelta(key, delta, oldVersion, newVersion) {
+  const oldValue = oldVersion.fields[key].toString();
+  const newValue = newVersion.fields[key].toString();
+  return (
+    <div key={key}>
+      <code>{key}:</code>{' '}
+      <Tag color="red" style={removedStyle}>{oldValue}</Tag>
+      <SwapRightOutlined style={arrowStyle} />
+      <Tag color="green" className='diff__added'>{newValue}</Tag>
     </div>
   );
 }
