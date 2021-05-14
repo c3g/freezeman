@@ -28,7 +28,7 @@ export default function renderSampleDiff(oldVersion, newVersion, usersByID) {
   const items = Object.entries(deltas).map(([key, delta]) => {
     if (Array.isArray(delta))
       return renderArrayDelta(key, delta, oldVersion, newVersion, usersByID);
-    else if(delta.constructor == Object)
+    else if (delta.constructor == Object)
       return renderJSONDelta(key, delta, oldVersion, newVersion);
 
     return renderUnknownDelta(key, delta, oldVersion, newVersion);
