@@ -9,12 +9,12 @@ const {TextArea} = Input;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update} from "../../modules/containers/actions";
+import {add, update, listTable, summary} from "../../modules/containers/actions";
 import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
-const barcodeRules = [{ pattern: /^[^$]{1,199}$/ }]
+const barcodeRules = [{ pattern: /^.{1,200}$/ }]
 
 const searchContainers = (token, input, isParent = false) =>
   withToken(token, api.containers.search)(input, { parent: isParent })
@@ -26,9 +26,9 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable, summary};
 
-const ContainerEditContent = ({token, containerKinds, containersByID, add, update}) => {
+const ContainerEditContent = ({token, containerKinds, containersByID, add, update, listTable, summary}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -78,6 +78,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     action
     .then(() => { setFormErrors({}) })
     .catch(err => { setFormErrors(err.data || {}) })
+    .then(() => Promise.all([listTable(), summary()]))
   }
 
   /*

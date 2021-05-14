@@ -37,16 +37,16 @@ CSV_1 = """#,good 1,good 2,good 3
 """
 
 
-APP_DATA_ROOT = Path(__file__).parent.parent / "example_data" / "csv"
+APP_DATA_ROOT = Path(__file__).parent / "valid_templates"
 TEST_DATA_ROOT = Path(__file__).parent / "invalid_templates"
 
-CONTAINERS_CSV = APP_DATA_ROOT / "containers.csv"
-CONTAINER_MOVE_CSV = APP_DATA_ROOT / "container_move.csv"
-CONTAINER_RENAME_CSV = APP_DATA_ROOT / "container_rename.csv"
-EXTRACTIONS_CSV = APP_DATA_ROOT / "extractions.csv"
-TRANSFERS_CSV = APP_DATA_ROOT / "samples_transfers.csv"
-SAMPLES_CSV = APP_DATA_ROOT / "samples.csv"
-SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "sample_update.csv"
+CONTAINER_CREATION_CSV = APP_DATA_ROOT / "Container_creation_v3_2_0_B_A_1.csv"
+CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0_B_A_1.csv"
+CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0_B_A_1.csv"
+SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_2_0_B_A_1.csv"
+SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
+SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_1.csv"
+SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
 
 
 class ResourcesTestCase(TestCase):
@@ -60,7 +60,7 @@ class ResourcesTestCase(TestCase):
         self.rr = ContainerRenameResource()
 
     def load_containers(self):
-        with reversion.create_revision(), open(CONTAINERS_CSV) as cf:
+        with reversion.create_revision(), open(CONTAINER_CREATION_CSV) as cf:
             c = Dataset().load(cf.read())
             self.cr.import_data(c, raise_errors=True)
 
@@ -69,21 +69,21 @@ class ResourcesTestCase(TestCase):
     def load_samples(self):
         self.load_containers()
 
-        with reversion.create_revision(), open(SAMPLES_CSV) as sf:
+        with reversion.create_revision(), open(SAMPLE_SUBMISSION_CSV) as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
             reversion.set_comment("Loaded samples")
 
     def load_extractions(self):
-        with reversion.create_revision(), open(EXTRACTIONS_CSV) as ef:
+        with reversion.create_revision(), open(SAMPLE_EXTRACTION_CSV) as ef:
             e = Dataset().load(ef.read())
             self.er.import_data(e, raise_errors=True)
 
             reversion.set_comment("Loaded extractions")
 
     def load_transfers(self):
-        with reversion.create_revision(), open(TRANSFERS_CSV) as ef:
+        with reversion.create_revision(), open(SAMPLE_TRANSFER_CSV) as ef:
             e = Dataset().load(ef.read())
             self.st.import_data(e, raise_errors=True)
             reversion.set_comment("Loaded transfers")
@@ -132,7 +132,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(Container.DoesNotExist), open(TEST_DATA_ROOT / "bad_location.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_bad_location.csv") as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
@@ -140,7 +140,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "dna_no_conc.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_dna_no_conc.csv") as sf:
             s = Dataset().load(sf.read())
             try:
                 self.sr.import_data(s, raise_errors=True)
@@ -264,6 +264,7 @@ class ResourcesTestCase(TestCase):
         self.assertFalse(s2.depleted)
         self.assertEqual(s2.update_comment, "sample 3 updated")
 
+        # Test updates are part of the same process
         self.assertEqual(ps1.process.id, ps2.process.id)
 
         # TODO: Test leaving coordinate blank not updating container coordinate
@@ -287,16 +288,11 @@ class ResourcesTestCase(TestCase):
             r = Dataset().load(rf.read())
             self.rr.import_data(r, raise_errors=True)
 
-        ci = Container.objects.get(barcode="box0001")
+        ci = Container.objects.get(barcode="box0010")
         self.assertEqual(ci.name, "original_box_2")
         self.assertEqual(ci.update_comment, "added 0")
 
-        # Samples "swapped" due to rename
-
-        s = Sample.objects.get(container__barcode="tube001")
-        self.assertEqual(s.name, "sample2")
-
-        s = Sample.objects.get(container__barcode="tube002")
+        s = Sample.objects.get(container__barcode="tube0010")
         self.assertEqual(s.name, "sample1")
 
         # Foreign key relationships have been maintained
@@ -313,10 +309,10 @@ class ResourcesTestCase(TestCase):
 
     def test_invalid_container_rename(self):
         for f, err in (
-            ("rename_invalid.csv", ValidationError),
-            ("same_rename.csv", ValidationError),
-            ("same_rename_2.csv", ValidationError),
-            ("double_rename.csv", ValueError),
+            ("Container_rename_v3_2_0_rename_invalid.csv", ValidationError),
+            ("Container_rename_v3_2_0_same_rename.csv", ValidationError),
+            ("Container_rename_v3_2_0_same_rename_2.csv", ValidationError),
+            ("Container_rename_v3_2_0_double_rename.csv", ValueError),
         ):
             print(f"Testing invalid container rename {f}", flush=True)
 

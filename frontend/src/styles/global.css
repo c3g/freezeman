@@ -13,7 +13,6 @@ select:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
 }
 
-
 .table-column-numbers {
   font-size: 0.9em;
   font-variant-numeric: tabular-nums;
@@ -86,4 +85,26 @@ select:-webkit-autofill:focus {
 }
 .ContainerEditContent__coordinates .ant-form-item-control {
   display: inline-flex;
+}
+
+abbr.--time {
+  text-decoration: none;
+}
+
+
+.site-form-item-icon {
+  color: #aaa;
+}
+
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-fill {
+  flex: 1;
 }

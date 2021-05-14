@@ -6,14 +6,16 @@ from django.utils import timezone
 from decimal import Decimal
 from import_export.fields import Field
 from import_export.widgets import DateWidget, ForeignKeyWidget
+from django.core.exceptions import ValidationError
 from ._generic import GenericResource
-from ._utils import skip_rows, add_column_to_preview
+from ._utils import skip_rows, add_columns_to_preview
 from ..models import Container, Sample, Protocol, Process, ProcessSample
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
     float_to_decimal,
     get_normalized_str,
+    str_cast_and_normalize,
 )
 
 
@@ -52,7 +54,7 @@ class SampleUpdateResource(GenericResource):
         try:
             return Sample.objects.get(**query).pk
         except Sample.DoesNotExist:
-            raise Sample.DoesNotExist(f"Sample matching query {query} does not exist")
+            raise Exception(f"Sample matching query {query} does not exist.")
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 6)  # Skip preamble
@@ -69,13 +71,33 @@ class SampleUpdateResource(GenericResource):
 
 
     def import_obj(self, obj, data, dry_run):
-        if not self.process:
-            self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
-                                                  comment="Updated samples (imported from template)")
-
+        errors = {}
+        
         previous_vol = obj.volume
-        super().import_obj(obj, data, dry_run)      
+
+        try:
+            super().import_obj(obj, data, dry_run) 
+        except ValidationError as e:
+            errors = e.update_error_dict(errors).copy()
+
         self.volume_used = float_to_decimal(float(previous_vol) - float(obj.volume)) if previous_vol != obj.volume else None
+
+        try:
+            if not self.process:
+                self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
+                                                      comment="Updated samples (imported from template)")
+
+            self.process_sample = ProcessSample.objects.create(process=self.process,
+                                                               source_sample=obj,
+                                                               volume_used=self.volume_used,
+                                                               execution_date=self.update_date,
+                                                               comment=self.update_comment)
+        except Exception as e:
+            errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
+
+        if errors:
+            raise ValidationError(errors)
+
 
     def before_import_row(self, row, **kwargs):
         # Ensure that new volume and delta volume do not have both a value for the same row.
@@ -104,19 +126,13 @@ class SampleUpdateResource(GenericResource):
             # Manually process volume history and don't call superclass method
             delta_vol = blank_str_to_none(data.get("Delta Volume (uL)"))  # "" -> None for CSVs
             if delta_vol is not None:  # Only update volume if we got a value
-                # Note: Volume history should never be None, but this prevents
-                #       a bunch of cascading tracebacks if the synthetic "id"
-                #       column created above throws a DoesNotExist error.
                 obj.volume = obj.volume + Decimal(delta_vol)
             return
 
         if field.attribute == 'depleted':
-            depleted = blank_str_to_none(data.get("Depleted"))  # "" -> None for CSVs
+            depleted = blank_str_to_none(str_cast_and_normalize(data.get("Depleted")))  # "" -> None for CSVs
             if depleted is None:
                 return
-
-            if isinstance(depleted, str):  # Strip string values to ensure empty strings get caught
-                depleted = depleted.strip()
 
             # Normalize boolean attribute then proceed normally (only if some value is specified)
             data["Depleted"] = check_truth_like(str(depleted or ""))
@@ -129,16 +145,10 @@ class SampleUpdateResource(GenericResource):
             obj.update_comment = blank_str_to_none(data.get("Update Comment"))
             self.update_comment = obj.update_comment
 
-        super().import_field(field, obj, data, is_m2m)
-
-    def before_save_instance(self, instance, using_transactions, dry_run):
-        self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                           source_sample=instance,
-                                                           volume_used=self.volume_used,
-                                                           execution_date=self.update_date,
-                                                           comment=self.update_comment)
-
-        super().before_save_instance(instance, using_transactions, dry_run)
+        try:
+            super().import_field(field, obj, data, is_m2m)
+        except Exception as e:
+            raise ValidationError(e)
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
@@ -149,5 +159,5 @@ class SampleUpdateResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            results = add_column_to_preview(results, dataset, "Delta Volume (uL)")
+            results = add_columns_to_preview(results, dataset, ["Delta Volume (uL)", "Update Date"])
         return results

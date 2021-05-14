@@ -223,7 +223,6 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const defaultMin = description.defaultMin ?? 0
-
   const value = filters[dataIndex]?.value;
   const minValue = value?.min
   const maxValue = value?.max

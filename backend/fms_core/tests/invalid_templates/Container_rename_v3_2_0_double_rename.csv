@@ -1,0 +1,9 @@
+Container Renaming Template,,,,
+,,,,
+Naming Rules,,,,
+"- Only use the following characters for Container name: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,
+,,,,
+,,,,
+#,Old Container Barcode,New Container Barcode,New Container Name,Update Comment
+1,tube001,tube0002,sample_1_tube_3,oops
+2,tube001,tube0003,sample_2_tube_3,oops

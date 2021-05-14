@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import {Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
-import {fetchAuthorizedData} from "../modules/shared/actions";
+import {fetchSummariesData} from "../modules/shared/actions";
 import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
@@ -77,7 +77,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  fetchAuthorizedData: () => dispatch(fetchAuthorizedData),
+  fetchSummariesData: () => dispatch(fetchSummariesData),
 })
 
 ActionContent.propTypes = {

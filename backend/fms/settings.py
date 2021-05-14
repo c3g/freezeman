@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,7 +21,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '*c##1@2jo)b*_jk5+rdq%4r*sst+r&vhc^43ck900h-35fb-ly'
+SECRET_KEY = os.environ.get(
+    'FREEZEMAN_SECRET_KEY',
+    '*c##1@2jo)b*_jk5+rdq%4r*sst+r&vhc^43ck900h-35fb-ly')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("FMS_DEBUG", "True").lower() == "true"
@@ -47,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'reversion',
     'django_filters',
+    'django_rest_passwordreset',
 
     'fms_core.apps.FmsCoreConfig',
 ]
@@ -143,6 +148,20 @@ REST_FRAMEWORK = {
 }
 
 
+# Email
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+if os.environ.get('FMS_EMAIL_HOST', None) is not None:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_FROM          = os.environ.get('FMS_EMAIL_FROM',     'noreply@example.com')
+EMAIL_HOST          = os.environ.get('FMS_EMAIL_HOST',     'localhost')
+EMAIL_PORT          = int(os.environ.get('FMS_EMAIL_PORT', '587'))
+EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
+EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -205,4 +224,28 @@ LOGGING = {
         "handlers": ["console"],
         "level": "DEBUG" if DEBUG else "WARNING",
     },
+}
+
+# Mechanism in order to automatically logout the user after 4 hours
+SIMPLE_JWT = {
+'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
+'REFRESH_TOKEN_LIFETIME': timedelta(minutes=10),
+'ROTATE_REFRESH_TOKENS': True,
+'BLACKLIST_AFTER_ROTATION': True,
+
+'ALGORITHM': 'HS256',
+'SIGNING_KEY': SECRET_KEY,
+'VERIFYING_KEY': None,
+'AUDIENCE': None,
+'ISSUER': None,
+
+'AUTH_HEADER_TYPES': ('Bearer',),
+'USER_ID_FIELD': 'id',
+'USER_ID_CLAIM': 'user_id',
+
+'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+'TOKEN_TYPE_CLAIM': 'token_type',
+
+'JTI_CLAIM': 'jti',
+'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 }

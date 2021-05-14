@@ -1,7 +1,7 @@
 import {merge, set} from "object-path-immutable";
 import {map} from "rambda"
 
-import preprocessVersions from "../../utils/preprocessVersions";
+import {preprocessSampleVersions} from "../../utils/preprocessVersions";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
@@ -153,7 +153,7 @@ export const samples = (
         case SAMPLES.LIST_VERSIONS.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], {
                 isFetching: false,
-                versions: preprocessVersions(action.data),
+                versions: preprocessSampleVersions(action.data),
             });
         case SAMPLES.LIST_VERSIONS.ERROR:
             return merge(state, ['itemsByID', action.meta.id], {

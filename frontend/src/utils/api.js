@@ -1,13 +1,13 @@
-import cheerio from "cheerio";
 import {stringify as qs} from "querystring";
-import {map} from "rambda";
-
 import {API_BASE_PATH} from "../config";
+import {refreshAuthToken} from "../modules/auth/actions";
 
 const api = {
   auth: {
     token: credentials => post("/token/", credentials),
     tokenRefresh: tokens => post("/token/refresh/", tokens),
+    resetPassword: email => post("/password_reset/", { email }),
+    changePassword: (token, password) => post("/password_reset/confirm/", { token, password }),
   },
 
   containerKinds: {
@@ -86,7 +86,7 @@ const api = {
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
-    listVersions: userId => get(`/versions?revision__user=${userId}&limit=999999`), // TODO: handle versions?
+    listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 
   groups: {

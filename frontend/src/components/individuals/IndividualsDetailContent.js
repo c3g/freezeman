@@ -8,10 +8,19 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import TrackingFieldsContent from "../TrackingFieldsContent";
 import {withIndividual} from "../../utils/withItem";
 import {get} from "../../modules/individuals/actions";
 
-const IndividualsDetailContent = ({individualsByID, get}) => {
+const mapStateToProps = state => ({
+    individualsByID: state.individuals.itemsByID,
+    usersByID: state.users.itemsByID,
+});
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({ get }, dispatch);
+
+const IndividualsDetailContent = ({individualsByID, usersByID, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in individualsByID;
@@ -55,15 +64,9 @@ const IndividualsDetailContent = ({individualsByID, get}) => {
                         "—"}
                 </Descriptions.Item>
             </Descriptions>
+            <TrackingFieldsContent entity={individual}/>
         </PageContent>
     </>;
 };
-
-const mapStateToProps = state => ({
-    individualsByID: state.individuals.itemsByID,
-});
-
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({ get }, dispatch);
 
 export default connect(mapStateToProps, mapDispatchToProps)(IndividualsDetailContent);

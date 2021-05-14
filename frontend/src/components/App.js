@@ -11,11 +11,11 @@ import {
   TableOutlined,
   TeamOutlined,
   UserOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 
-import SignInForm from "./SignInForm";
-
 import JumpBar from "./JumpBar";
+import LoginPage from "./login/LoginPage";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesPage from "./samples/SamplesPage";
@@ -23,16 +23,26 @@ import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessesPage from "./processes/ProcessesPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
+import About from "./About";
 
 import PrivateRoute from "./PrivateRoute";
 
+import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {fetchInitialData, fetchAuthorizedData} from "../modules/shared/actions";
+import {hour} from "../utils/time";
+
+import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 
 const { Title } = Typography;
 
 const getMenuItems = (user, logOut) => [
+  {
+    key: "about",
+    icon: <InfoCircleOutlined />,
+    text: "About",
+    url: "/about",
+  },
   {
     key: "profile-link",
     icon: <UserOutlined />,
@@ -99,11 +109,11 @@ export const mapStateToProps = state => ({
   user: state.users.itemsByID[state.auth.currentUserID],
 });
 
-export const actionCreators = {fetchInitialData, fetchAuthorizedData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
+const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   useEffect(() => {
-    const interval = setInterval(fetchAuthorizedData, 30000);
+    const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
     return () => clearInterval(interval);
   }, []);
@@ -112,6 +122,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);
+
+  // Logout the user after 12 hours in all cases where the tab stays open
+  useUserInputExpiration(logOut, 12 * hour);
 
   return (
     <Layout style={{height: "100vh"}}>
@@ -156,8 +169,8 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
         }
         <Layout.Content style={{position: "relative"}}>
           <Switch>
-            <Route path="/sign-in">
-              <SignInForm/>
+            <Route path="/login">
+              <LoginPage/>
             </Route>
             <PrivateRoute path="/dashboard">
               <DashboardPage/>
@@ -179,6 +192,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchAuthorizedData}) => {
             </PrivateRoute>
             <PrivateRoute path="/profile">
               <ProfilePage/>
+            </PrivateRoute>
+            <PrivateRoute path="/about">
+              <About/>
             </PrivateRoute>
             <Redirect from="/" to="/dashboard" />
           </Switch>

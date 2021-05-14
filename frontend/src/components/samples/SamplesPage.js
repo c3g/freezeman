@@ -3,7 +3,7 @@ import React from "react";
 import {Redirect, Route, Switch} from "react-router-dom";
 
 import SampleEditContent from "./SampleEditContent";
-import SamplesDetailContent from "./SamplesDetailContent";
+import SamplesDetailContent from "./details/SampleDetailsContent";
 import SamplesListContent from "./SamplesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";

@@ -7,7 +7,7 @@ import {withUser} from "../../utils/withItem"
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options"
-import {add, update} from "../../modules/users/actions";
+import {add, update, listTable} from "../../modules/users/actions";
 import {user as EMPTY_USER} from "../../models";
 
 const hiddenField = {
@@ -25,9 +25,9 @@ const mapStateToProps = state => ({
   groups: Object.values(state.groups.itemsByID),
 });
 
-const actionCreators = {add, update};
+const actionCreators = {add, update, listTable};
 
-const UserEditContent = ({isFetching, groups, usersByID, error, add, update}) => {
+const UserEditContent = ({isFetching, groups, usersByID, error, add, update, listTable}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -63,9 +63,8 @@ const UserEditContent = ({isFetching, groups, usersByID, error, add, update}) =>
         update(id, data).then(() => { history.push(`/users/${id}`) })
     action
     .then(() => { setFormErrors({}) })
-    .catch(err => {
-    console.log(err)
-    setFormErrors(err.data || {}) })
+    .catch(err => { setFormErrors(err.data || {}) })
+    .then(listTable)
   }
 
   /*

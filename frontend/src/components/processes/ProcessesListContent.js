@@ -131,7 +131,7 @@ const ProcessesListContent = ({
   return <>
     <AppPageHeader title="Protocols" extra={[
       ...actionsToButtonList("/processes", actions),
-      <ExportButton key='export' exportFunction={listExport} filename="processes"/>,
+      <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
       <div style={{ textAlign: 'right', marginBottom: '1em' }}>

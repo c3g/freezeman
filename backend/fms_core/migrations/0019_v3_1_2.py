@@ -1,6 +1,5 @@
 from django.conf import settings
-from django.db import migrations, models
-import django.db.models.deletion
+from django.db import migrations
 from django.contrib.auth.models import User
 import reversion
 import datetime
@@ -80,10 +79,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             fix_process_data,
             reverse_code=migrations.RunPython.noop,
-        ),
-        migrations.AlterField(
-            model_name='sample',
-            name='individual',
-            field=models.ForeignKey(help_text='Individual associated with the sample.', on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.individual'),
         ),
     ]
