@@ -7,9 +7,9 @@ const defaultStyle = {
   overflow: "auto",
 };
 
-const PageContent = ({children, style, loading = false}) =>
+const PageContent = ({children, style, tabs = false, loading = false}) =>
   <div
-    className='PageContent'
+    className={'PageContent' + (tabs ? ' --with-tabs' : '')}
     style={style ? {...defaultStyle, ...style} : defaultStyle}
   >
     <Spin spinning={loading}>

@@ -119,7 +119,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
       : []}
     />
 
-    <PageContent loading={isFetching} style={pageStyle}>
+    <PageContent loading={isFetching} style={pageStyle} tabs={true}>
       {error &&
         <ErrorMessage error={error} />
       }
