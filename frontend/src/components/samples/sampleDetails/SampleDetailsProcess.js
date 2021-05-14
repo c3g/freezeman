@@ -62,7 +62,10 @@ const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
       },
     ]
 
-    return <>
+    if (processSamples.length === 0)
+      return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+
+    return (
       <Table
         size="small"
         bordered={false}
@@ -70,7 +73,7 @@ const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
         columns={columns}
         dataSource={processSamples}
       />
-    </>
+    );
 }
 
 

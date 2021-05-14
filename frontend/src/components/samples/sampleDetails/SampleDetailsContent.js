@@ -43,6 +43,21 @@ const depletedStyle = {
   marginLeft: "4px",
 };
 
+const pageStyle = {
+  padding: 0,
+  overflow: "hidden",
+}
+
+const tabsStyle = {
+  marginTop: 8,
+}
+
+const tabStyle = {
+  padding: "0 24px 24px 24px",
+  overflow: "auto",
+  height: "100%",
+}
+
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
@@ -103,14 +118,13 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </Space>
       : []}
     />
-    <PageContent loading={isFetching}>
+
+    <PageContent loading={isFetching} style={pageStyle}>
       {error &&
         <ErrorMessage error={error} />
       }
-
-      <Tabs defaultActiveKey="1" size="large" type="card">
-        <TabPane tab="Overview" key="1">
-          <Title level={2}>Overview</Title>
+      <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
+        <TabPane tab="Overview" key="1" style={tabStyle}>
           <Descriptions bordered={true} size="small">
               <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
               <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
@@ -213,25 +227,11 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           </Row>
         </TabPane>
 
-        <TabPane tab="Processes" key="2">
-            <Title level={2} style={{ marginTop: '1em' }}>Processes</Title>
-            <Row>
-              <Col sm={24} md={24}>
-                <div>
-                  <Card>
-                    {
-                      isProcessesEmpty ?
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-                        <SampleDetailProcess processSamples={processSamples}/>
-                    }
-                  </Card>
-                </div>
-              </Col>
-            </Row>
+        <TabPane tab="Processes" key="2" style={tabStyle}>
+          <SampleDetailProcess processSamples={processSamples}/>
         </TabPane>
 
       </Tabs>
-
     </PageContent>
   </>;
 };
