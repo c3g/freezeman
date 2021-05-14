@@ -25,7 +25,7 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import {SampleDepletion} from "../SampleDepletion";
-import SampleDetailProcess from "./SampleDetailsProcess";
+import SampleDetailsProcess from "./SampleDetailsProcess";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {withContainer, withSample, withIndividual, withProcess} from "../../../utils/withItem";
 
@@ -228,7 +228,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
         <TabPane tab="Processes" key="2" style={tabStyle}>
-          <SampleDetailProcess processSamples={processSamples}/>
+          <SampleDetailsProcess processSamples={processSamples}/>
         </TabPane>
 
       </Tabs>
