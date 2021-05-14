@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
   protocolsByID: state.protocols.itemsByID,
 });
 
-const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
+const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: '',
@@ -62,7 +62,10 @@ const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
       },
     ]
 
-    return <>
+    if (processSamples.length === 0)
+      return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
+
+    return (
       <Table
         size="small"
         bordered={false}
@@ -70,8 +73,8 @@ const SampleDetailProcess = ({processSamples, usersByID, protocolsByID,}) => {
         columns={columns}
         dataSource={processSamples}
       />
-    </>
+    );
 }
 
 
-export default connect(mapStateToProps, undefined)(SampleDetailProcess);
+export default connect(mapStateToProps, undefined)(SampleDetailsProcess);
