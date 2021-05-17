@@ -174,7 +174,7 @@ class ExtractionResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
                                                       comment="Extracted samples (imported from template)")
 
-            self.process_sample = ProcessMeasurement.objects.create(process=self.process,
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
                                                                     source_sample=self.extracted_from,
                                                                     execution_date=obj.creation_date,
                                                                     volume_used=self.volume_used,
@@ -227,7 +227,7 @@ class ExtractionResource(GenericResource):
         reversion.set_comment("Imported extracted samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_sample=self.process_sample)
+        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):

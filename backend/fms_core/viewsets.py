@@ -31,7 +31,7 @@ from .serializers import (
     SampleKindSerializer,
     ProtocolSerializer,
     ProcessMeasurementSerializer,
-    ProcessSampleExportSerializer,
+    ProcessMeasurementExportSerializer,
     SampleSerializer,
     SampleExportSerializer,
     NestedSampleSerializer,
@@ -288,7 +288,7 @@ _protocol_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_process_sample_filterset_fields: FiltersetFields = {
+_process_measurement_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "source_sample": FK_FILTERS,
     "execution_date": DATE_FILTERS,
@@ -452,7 +452,7 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated]
 
-class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ProcessMeasurement.objects.all().select_related("process").prefetch_related("lineage")
     queryset = queryset.annotate(child_sample=F("lineage__child"))
     queryset = queryset.annotate(child_sample_name=F("lineage__child__name"))
@@ -461,11 +461,11 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     serializer_class = ProcessMeasurementSerializer
 
     ordering_fields = (
-        *_list_keys(_process_sample_filterset_fields),
+        *_list_keys(_process_measurement_filterset_fields),
     )
 
     filterset_fields = {
-        **_process_sample_filterset_fields,
+        **_process_measurement_filterset_fields,
     }
 
     template_action_list = [
@@ -485,13 +485,13 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = ProcessSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        serializer = ProcessMeasurementExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
-            fields = ProcessSampleExportSerializer.Meta.fields
+            fields = ProcessMeasurementExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
@@ -505,8 +505,8 @@ class ProcessSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         query = Q(id__icontains=search_input)
 
-        process_sample_data = ProcessMeasurement.objects.filter(query)
-        page = self.paginate_queryset(process_sample_data)
+        process_measurement_data = ProcessMeasurement.objects.filter(query)
+        page = self.paginate_queryset(process_measurement_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
 

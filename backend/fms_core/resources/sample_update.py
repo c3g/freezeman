@@ -87,7 +87,7 @@ class SampleUpdateResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
                                                       comment="Updated samples (imported from template)")
 
-            self.process_sample = ProcessMeasurement.objects.create(process=self.process,
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
                                                                     source_sample=obj,
                                                                     volume_used=self.volume_used,
                                                                     execution_date=self.update_date,

@@ -143,7 +143,7 @@ class TransferResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
                                                       comment="Sample Transfer (imported from template)")
 
-            self.process_sample = ProcessMeasurement.objects.create(process=self.process,
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
                                                                     source_sample=self.transferred_from,
                                                                     execution_date=obj.creation_date,
                                                                     volume_used=obj.volume,
@@ -183,8 +183,8 @@ class TransferResource(GenericResource):
         reversion.set_comment("Imported transferred samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        if self.transferred_from and self.process_sample:
-            lineage = SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_sample=self.process_sample)
+        if self.transferred_from and self.process_measurement:
+            lineage = SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
