@@ -15,8 +15,8 @@ class SampleLineage(TrackedModel):
                               on_delete=models.CASCADE, related_name="child_sample")
     parent = models.ForeignKey("Sample", help_text="Parent sample",
                                on_delete=models.CASCADE, related_name="parent_sample")
-    process_sample = models.ForeignKey("ProcessSample", help_text="process used for sample creation",
-                                       on_delete=models.PROTECT, related_name="lineage")
+    process_measurement = models.ForeignKey("ProcessMeasurement", help_text="process used for sample creation",
+                                            on_delete=models.PROTECT, related_name="lineage")
 
     def clean(self):
         super().clean()
@@ -25,7 +25,7 @@ class SampleLineage(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        protocol_name = self.process_sample.process.protocol.name
+        protocol_name = self.process_measurement.process.protocol.name
         if protocol_name == 'Extraction':
             Sample = apps.get_model("fms_core", "Sample")
             if self.child.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:

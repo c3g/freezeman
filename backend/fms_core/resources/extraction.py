@@ -10,7 +10,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -174,11 +174,11 @@ class ExtractionResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
                                                       comment="Extracted samples (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=self.extracted_from,
-                                                               execution_date=obj.creation_date,
-                                                               volume_used=self.volume_used,
-                                                               comment=self.comment)
+            self.process_sample = ProcessMeasurement.objects.create(process=self.process,
+                                                                    source_sample=self.extracted_from,
+                                                                    execution_date=obj.creation_date,
+                                                                    volume_used=self.volume_used,
+                                                                    comment=self.comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 

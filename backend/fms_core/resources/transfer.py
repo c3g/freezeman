@@ -6,7 +6,7 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, add_columns_to_preview
-from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -143,11 +143,11 @@ class TransferResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
                                                       comment="Sample Transfer (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=self.transferred_from,
-                                                               execution_date=obj.creation_date,
-                                                               volume_used=obj.volume,
-                                                               comment=obj.update_comment)
+            self.process_sample = ProcessMeasurement.objects.create(process=self.process,
+                                                                    source_sample=self.transferred_from,
+                                                                    execution_date=obj.creation_date,
+                                                                    volume_used=obj.volume,
+                                                                    comment=obj.update_comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 

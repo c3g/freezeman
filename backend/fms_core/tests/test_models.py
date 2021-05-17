@@ -6,7 +6,7 @@ from django.utils import timezone
 import reversion
 import datetime
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
-from ..models import Container, Sample, Individual, Process, ProcessSample, Protocol,SampleKind, SampleLineage
+from ..models import Container, Sample, Individual, Process, ProcessMeasurement, Protocol,SampleKind, SampleLineage
 from .constants import (
     create_container,
     create_individual,
@@ -203,11 +203,11 @@ class ExtractedSampleTest(TestCase):
                                                             **self.constants))
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_extracted_sample")
 
-        ps = ProcessSample.objects.create(process=p,
-                                          source_sample=parent_sample,
-                                          execution_date=timezone.now(),
-                                          volume_used=volume_used,
-                                          comment="ProcessSample test_extracted_sample")
+        ps = ProcessMeasurement.objects.create(process=p,
+                                               source_sample=parent_sample,
+                                               execution_date=timezone.now(),
+                                               volume_used=volume_used,
+                                               comment="ProcessMeasurement test_extracted_sample")
         SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
         self.assertFalse(s.source_depleted)
         self.assertEqual(Sample.objects.count(), 3)
@@ -227,11 +227,11 @@ class ExtractedSampleTest(TestCase):
                     **{**self.constants, "tissue_source": ""}
                 ))
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_no_tissue_source_extracted_sample")
-                ps = ProcessSample.objects.create(process=p,
-                                                  source_sample=parent_sample,
-                                                  execution_date=timezone.now(),
-                                                  volume_used=volume_used,
-                                                  comment="ProcessSample test_no_tissue_source_extracted_sample")
+                ps = ProcessMeasurement.objects.create(process=p,
+                                                       source_sample=parent_sample,
+                                                       execution_date=timezone.now(),
+                                                       volume_used=volume_used,
+                                                       comment="ProcessMeasurement test_no_tissue_source_extracted_sample")
                 SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
             except ValidationError as e:
                 self.assertIn("tissue_source", e.message_dict)
@@ -247,11 +247,11 @@ class ExtractedSampleTest(TestCase):
                                                                     individual=self.valid_individual,
                                                                     name="test_extracted_sample_11"))
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_original_sample")
-                ps = ProcessSample.objects.create(process=p,
-                                                  source_sample=parent_sample,
-                                                  execution_date=timezone.now(),
-                                                  volume_used=volume_used,
-                                                  comment="ProcessSample test_original_sample")
+                ps = ProcessMeasurement.objects.create(process=p,
+                                                       source_sample=parent_sample,
+                                                       execution_date=timezone.now(),
+                                                       volume_used=volume_used,
+                                                       comment="ProcessMeasurement test_original_sample")
                 SampleLineage.objects.create(parent=parent_sample, child=s, process_sample=ps)
             except ValidationError as e:
                 self.assertIn("extracted_from", e.message_dict)
@@ -278,11 +278,11 @@ class ExtractedSampleTest(TestCase):
                                                                **{**self.constants, "tissue_source": ""}))
         invalid_sample_kind.save()
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
-        ps = ProcessSample.objects.create(process=p,
-                                          source_sample=parent_sample,
-                                          execution_date=timezone.now(),
-                                          volume_used=volume_used,
-                                          comment="ProcessSample test_sample_kind")
+        ps = ProcessMeasurement.objects.create(process=p,
+                                               source_sample=parent_sample,
+                                               execution_date=timezone.now(),
+                                               volume_used=volume_used,
+                                               comment="ProcessMeasurement test_sample_kind")
         with self.assertRaises(ValidationError):
             try:
                 SampleLineage.objects.create(parent=parent_sample, child=invalid_sample_kind, process_sample=ps)
@@ -299,11 +299,11 @@ class ExtractedSampleTest(TestCase):
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_volume_used")
         with self.assertRaises(ValidationError):
             try:
-                ps = ProcessSample.objects.create(process=p,
-                                                  source_sample=self.parent_sample,
-                                                  execution_date=timezone.now(),
-                                                  volume_used=volume_used,
-                                                  comment="ProcessSample test_volume_used")
+                ps = ProcessMeasurement.objects.create(process=p,
+                                                       source_sample=self.parent_sample,
+                                                       execution_date=timezone.now(),
+                                                       volume_used=volume_used,
+                                                       comment="ProcessMeasurement test_volume_used")
                 SampleLineage.objects.create(parent=self.parent_sample, child=sample, process_sample=ps)
             except ValidationError as e:
                 self.assertIn('volume_used', e.message_dict)
@@ -336,11 +336,11 @@ class ExtractedSampleTest(TestCase):
                 negative_volume_used = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
                                                                                        **self.constants))
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_negative_volume")
-                ps = ProcessSample.objects.create(process=p,
-                                                  source_sample=parent_sample,
-                                                  execution_date=timezone.now(),
-                                                  volume_used=volume_used,
-                                                  comment="ProcessSample test_negative_volume")                                                                       
+                ps = ProcessMeasurement.objects.create(process=p,
+                                                       source_sample=parent_sample,
+                                                       execution_date=timezone.now(),
+                                                       volume_used=volume_used,
+                                                       comment="ProcessMeasurement test_negative_volume")
                 SampleLineage.objects.create(parent=parent_sample, child=negative_volume_used, process_sample=ps)
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
@@ -385,11 +385,11 @@ class SampleLineageTest(TestCase):
 
     def test_sample_lineage(self):
         parent_sample = self.parent_sample
-        ps = ProcessSample.objects.create(process=self.valid_process,
-                                          source_sample=parent_sample,
-                                          execution_date=timezone.now(),
-                                          volume_used=Decimal('0.01'),
-                                          comment="ProcessSample test_sample_lineage")          
+        ps = ProcessMeasurement.objects.create(process=self.valid_process,
+                                               source_sample=parent_sample,
+                                               execution_date=timezone.now(),
+                                               volume_used=Decimal('0.01'),
+                                               comment="ProcessMeasurement test_sample_lineage")
         sl = SampleLineage.objects.create(parent=parent_sample, child=self.child_sample, process_sample=ps)
 
         self.assertEqual(self.child_sample.extracted_from.name, "test_sample_11")
@@ -550,11 +550,11 @@ class ProcessSampleTest(TestCase):
 
 
     def test_process_sample(self):
-        ps = ProcessSample.objects.create(process=self.process,
-                                          source_sample=self.source_sample,
-                                          volume_used=None,
-                                          comment="Test comment",
-                                          execution_date=datetime.datetime.today())
+        ps = ProcessMeasurement.objects.create(process=self.process,
+                                               source_sample=self.source_sample,
+                                               volume_used=None,
+                                               comment="Test comment",
+                                               execution_date=datetime.datetime.today())
         self.assertEqual(ps.volume_used, None)
         self.assertEqual(ps.comment, "Test comment")
         self.assertEqual(ps.process.id, self.process.id)
@@ -564,16 +564,16 @@ class ProcessSampleTest(TestCase):
 
     def test_missing_process(self):
         with self.assertRaises(Process.DoesNotExist):
-            ProcessSample.objects.create(source_sample=self.source_sample,
-                                         volume_used=None,
-                                         comment="Test comment")
+            ProcessMeasurement.objects.create(source_sample=self.source_sample,
+                                              volume_used=None,
+                                              comment="Test comment")
 
     def test_missing_source_sample(self):
         with self.assertRaises(ValidationError):
             try:
-                ProcessSample.objects.create(process=self.process,
-                                             volume_used=None,
-                                             comment="Test comment")
+                ProcessMeasurement.objects.create(process=self.process,
+                                                  volume_used=None,
+                                                  comment="Test comment")
             except ValidationError as e:
                 self.assertTrue('source_sample' in e.message_dict)
                 raise e
@@ -583,9 +583,9 @@ class ProcessSampleTest(TestCase):
                                          comment="Process for Protocol Extraction Test")
         with self.assertRaises(ValidationError):
             try:
-                ProcessSample.objects.create(process=process,
-                                             source_sample=self.source_sample,
-                                             comment="Test comment")
+                ProcessMeasurement.objects.create(process=process,
+                                                  source_sample=self.source_sample,
+                                                  comment="Test comment")
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
                 raise e
@@ -595,9 +595,9 @@ class ProcessSampleTest(TestCase):
                                          comment="Process for Protocol Transfer Test")
         with self.assertRaises(ValidationError):
             try:
-                ProcessSample.objects.create(process=process,
-                                             source_sample=self.source_sample,
-                                             comment="Test comment")
+                ProcessMeasurement.objects.create(process=process,
+                                                  source_sample=self.source_sample,
+                                                  comment="Test comment")
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
                 raise e

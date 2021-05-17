@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from reversion.models import Version
 
-from .models import Container, Sample, Individual, Protocol, Process, ProcessSample, SampleKind
+from .models import Container, Sample, Individual, Protocol, Process, ProcessMeasurement, SampleKind
 
 
 __all__ = [
@@ -11,7 +11,7 @@ __all__ = [
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "SampleKindSerializer",
-    "ProcessSampleSerializer",
+    "ProcessMeasurementSerializer",
     "ProcessSampleExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
@@ -63,12 +63,12 @@ class ProtocolSerializer(serializers.ModelSerializer):
         model = Protocol
         fields = "__all__"
 
-class ProcessSampleSerializer(serializers.ModelSerializer):
+class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
     child_sample = serializers.IntegerField(read_only=True)
 
     class Meta:
-      model = ProcessSample
+      model = ProcessMeasurement
       fields = "__all__"
       extra_fields = ('protocol', 'child_sample')
 
@@ -79,12 +79,12 @@ class ProcessSampleExportSerializer(serializers.ModelSerializer):
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
-      model = ProcessSample
+      model = ProcessMeasurement
       fields = ('process_sample_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
-    process_samples = serializers.PrimaryKeyRelatedField(source='process_sample', many=True, read_only=True)
+    process_samples = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
 
     class Meta:
         model = Sample
