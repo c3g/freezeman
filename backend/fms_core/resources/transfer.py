@@ -184,7 +184,7 @@ class TransferResource(GenericResource):
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
         if self.transferred_from and self.process_measurement:
-            lineage = SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_measurement=self.process_measurement)
+            SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
