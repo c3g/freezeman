@@ -79,7 +79,7 @@ const MENU_ITEMS = [
     text: "Individuals",
   },
   {
-    url: "/processes",
+    url: "/process-measurements",
     icon: <ExperimentOutlined />, // ??
     text: "Protocols",
   },
@@ -184,7 +184,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             <PrivateRoute path="/individuals">
               <IndividualsPage/>
             </PrivateRoute>
-            <PrivateRoute path="/processes">
+            <PrivateRoute path="/process-measurements">
               <ProcessMeasurementsPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">

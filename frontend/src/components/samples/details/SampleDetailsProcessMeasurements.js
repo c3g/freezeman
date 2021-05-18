@@ -18,7 +18,7 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         key: 'id',
         render: (id, processMeasurement) =>
           { id &&
-              <Link to={`/processes/${id}`}>
+              <Link to={`/process-measurements/${id}`}>
                 Process {processMeasurement && `#${processMeasurement.process}`}
               </Link>
           },

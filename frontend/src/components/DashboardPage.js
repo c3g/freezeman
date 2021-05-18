@@ -98,7 +98,7 @@ const DashboardPage = ({
               </Col>
             </Row>
             <Row gutter={16}>
-              {actionsToButtonList("/processes", templates.processMeasurement, true).map((l, i) =>
+              {actionsToButtonList("/process-measurements", templates.processMeasurement, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>

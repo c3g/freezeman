@@ -25,8 +25,8 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "process",
       sorter: true,
       width: 150,
-      render: (_, processsample) =>
-          <Link to={`/processes/${processsample.id}`}>{processsample.process}</Link>
+      render: (_, processMeasurement) =>
+          <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.process}</Link>
     },
     {
       title: "Protocol",
@@ -34,15 +34,15 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-      render: (_, processsample) =>
-          <Tag>{protocols?.itemsByID[processsample.protocol]?.name}</Tag>,
+      render: (_, processMeasurement) =>
+          <Tag>{protocols?.itemsByID[processMeasurement.protocol]?.name}</Tag>,
     },
     {
       title: "Source Sample",
       dataIndex: "source_sample__name",
       sorter: true,
-      render: (_, processsample) => {
-        const sample = processsample.source_sample
+      render: (_, processMeasurement) => {
+        const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -53,8 +53,8 @@ const getTableColumns = (samplesByID, protocols) => [
       title: "Generated Sample",
       dataIndex: "lineage__child__name",
       sorter: true,
-      render: (_, processsample) => {
-        const sample = processsample.child_sample
+      render: (_, processMeasurement) => {
+        const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -130,7 +130,7 @@ const ProcessMeasurementsListContent = ({
 
   return <>
     <AppPageHeader title="Protocols" extra={[
-      ...actionsToButtonList("/processes", actions),
+      ...actionsToButtonList("/process-measurements", actions),
       <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

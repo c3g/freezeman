@@ -35,7 +35,7 @@ const ProcessMeasurementsDetailContent = ({processMeasurementsByID, protocolsByI
         `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/processes/list")}/>
+        <AppPageHeader title={title} onBack={() => history.push("/process-measurements/list")}/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small" column={4}>

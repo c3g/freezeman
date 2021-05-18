@@ -9,10 +9,10 @@ import ActionContent from "../ActionContent";
 
 const ProcessMeasurementsPage = () => <PageContainer>
   <Switch>
-    <Route path="/processes/list"><ProcessMeasurementsListContent /></Route>
-    <Route path="/processes/actions/:action"><ActionContent templateType="processMeasurement" /></Route>
-    <Route path="/processes/:id"><ProcessMeasurementsDetailContent /></Route>
-    <Redirect to="/processes/list" />
+    <Route path="/process-measurements/list"><ProcessMeasurementsListContent /></Route>
+    <Route path="/process-measurements/actions/:action"><ActionContent templateType="processMeasurement" /></Route>
+    <Route path="/process-measurements/:id"><ProcessMeasurementsDetailContent /></Route>
+    <Redirect to="/process-measurements/list" />
   </Switch>
 </PageContainer>;
 
