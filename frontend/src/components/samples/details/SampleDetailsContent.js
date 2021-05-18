@@ -27,7 +27,7 @@ import TrackingFieldsContent from "../../TrackingFieldsContent";
 import {SampleDepletion} from "../SampleDepletion";
 import SampleDetailsProcess from "./SampleDetailsProcess";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcess} from "../../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -96,7 +96,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
   if (isLoaded && !isProcessesEmpty) {
     sample.process_measurements.forEach((id, i) => {
-      withProcess(processesByID, id, process => process.id);
+      withProcessMeasurement(processesByID, id, process => process.id);
       processMeasurements.push(processesByID[id]);
     })
   }

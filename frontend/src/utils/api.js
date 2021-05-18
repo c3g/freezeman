@@ -43,7 +43,7 @@ const api = {
   },
 
   processMeasurements: {
-    get: processSampleId => get(`/process-measurements/${processSampleId}/`),
+    get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
     list: (options, abort) => get("/process-measurements/", options, { abort }),
     listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
     search: q => get("/process-measurements/search/", { q }),
