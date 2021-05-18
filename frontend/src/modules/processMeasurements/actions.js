@@ -2,22 +2,22 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {PROCESS_FILTERS} from "../../components/filters/descriptions";
+import {PROCESS_MEASUREMENT_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-export const GET                   = createNetworkActionTypes("PROCESSES.GET");
-export const LIST                  = createNetworkActionTypes("PROCESSES.LIST");
-export const LIST_TABLE            = createNetworkActionTypes("PROCESSES.LIST_TABLE");
-export const SET_SORT_BY           = "PROCESSES.SET_SORT_BY";
-export const SET_FILTER            = "PROCESSES.SET_FILTER";
-export const SET_FILTER_OPTION     = "PROCESSES.SET_FILTER_OPTION"
-export const CLEAR_FILTERS         = "PROCESSES.CLEAR_FILTERS";
-export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROCESSES.LIST_TEMPLATE_ACTIONS");
-export const SUMMARY               = createNetworkActionTypes("PROCESSES.SUMMARY");
+export const GET                   = createNetworkActionTypes("PROCESS_MEASUREMENTS.GET");
+export const LIST                  = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST");
+export const LIST_TABLE            = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST_TABLE");
+export const SET_SORT_BY           = "PROCESS_MEASUREMENTS.SET_SORT_BY";
+export const SET_FILTER            = "PROCESS_MEASUREMENTS.SET_FILTER";
+export const SET_FILTER_OPTION     = "PROCESS_MEASUREMENTS.SET_FILTER_OPTION"
+export const CLEAR_FILTERS         = "PROCESS_MEASUREMENTS.CLEAR_FILTERS";
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST_TEMPLATE_ACTIONS");
+export const SUMMARY               = createNetworkActionTypes("PROCESS_MEASUREMENTS.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
-    const process = getState().processes.itemsByID[id];
-    if (process && process.isFetching)
+    const processMeasurement = getState().processMeasurements.itemsByID[id];
+    if (processMeasurement && processMeasurement.isFetching)
         return;
 
     return await dispatch(networkAction(GET, api.processMeasurements.get(id), { meta: { id } }));
@@ -32,12 +32,12 @@ export const list = (options) => async (dispatch, getState) => {
 };
 
 export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-    const processes = getState().processes
-    if (processes.isFetching && !abort)
+    const processMeasurements = getState().processMeasurements
+    if (processMeasurements.isFetching && !abort)
         return
 
-    const filters = serializeFilterParams(processes.filters, PROCESS_FILTERS)
-    const ordering = serializeSortByParams(processes.sortBy)
+    const filters = serializeFilterParams(processMeasurements.filters, PROCESS_MEASUREMENT_FILTERS)
+    const ordering = serializeSortByParams(processMeasurements.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
     return await dispatch(networkAction(LIST_TABLE,
@@ -74,7 +74,7 @@ export const clearFilters = thenList(() => {
 });
 
 export const listTemplateActions = () => (dispatch, getState) => {
-    if (getState().processTemplateActions.isFetching) return;
+    if (getState().processMeasurementTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.processMeasurements.template.actions()));
 };
 

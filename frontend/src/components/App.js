@@ -20,7 +20,7 @@ import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
-import ProcessesPage from "./processes/ProcessesPage";
+import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
 import About from "./About";
@@ -185,7 +185,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
               <IndividualsPage/>
             </PrivateRoute>
             <PrivateRoute path="/processes">
-              <ProcessesPage/>
+              <ProcessMeasurementsPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>

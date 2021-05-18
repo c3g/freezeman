@@ -10,11 +10,11 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processes/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withSample} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {PROCESS_FILTERS} from "../filters/descriptions";
+import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -79,24 +79,24 @@ const getTableColumns = (samplesByID, protocols) => [
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
-  processesByID: state.processes.itemsByID,
-  processes: state.processes.items,
+  processMeasurementsByID: state.processMeasurements.itemsByID,
+  processMeasurements: state.processMeasurements.items,
   protocols: state.protocols,
-  actions: state.processTemplateActions,
-  page: state.processes.page,
-  totalCount: state.processes.totalCount,
-  isFetching: state.processes.isFetching,
-  filters: state.processes.filters,
+  actions: state.processMeasurementTemplateActions,
+  page: state.processMeasurements.page,
+  totalCount: state.processMeasurements.totalCount,
+  isFetching: state.processMeasurements.isFetching,
+  filters: state.processMeasurements.filters,
   samplesByID: state.samples.itemsByID,
-  sortBy: state.processes.sortBy,
+  sortBy: state.processMeasurements.sortBy,
 });
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ProcessesListContent = ({
+const ProcessMeasurementsListContent = ({
   token,
-  processes,
-  processesByID,
+  processMeasurements,
+  processMeasurementsByID,
   protocols,
   actions,
   isFetching,
@@ -114,13 +114,13 @@ const ProcessesListContent = ({
 
   const listExport = () =>
     withToken(token, api.processMeasurements.listExport)
-    (mergedListQueryParams(PROCESS_FILTERS, filters, sortBy))
+    (mergedListQueryParams(PROCESS_MEASUREMENT_FILTERS, filters, sortBy))
       .then(response => response.data)
 
   const columns = getTableColumns(samplesByID, protocols)
   .map(c => Object.assign(c, getFilterProps(
     c,
-    PROCESS_FILTERS,
+    PROCESS_MEASUREMENT_FILTERS,
     filters,
     setFilter,
     setFilterOption
@@ -138,7 +138,7 @@ const ProcessesListContent = ({
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
-          description={PROCESS_FILTERS}
+          description={PROCESS_MEASUREMENT_FILTERS}
         />
         <Button
           style={{ margin: 6 }}
@@ -150,8 +150,8 @@ const ProcessesListContent = ({
       </div>
       <PaginatedTable
         columns={columns}
-        items={processes}
-        itemsByID={processesByID}
+        items={processMeasurements}
+        itemsByID={processMeasurementsByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
@@ -165,4 +165,4 @@ const ProcessesListContent = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProcessesListContent);
+export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsListContent);

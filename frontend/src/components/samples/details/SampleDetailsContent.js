@@ -25,7 +25,7 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import {SampleDepletion} from "../SampleDepletion";
-import SampleDetailsProcess from "./SampleDetailsProcess";
+import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
 
@@ -62,14 +62,14 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
-  processesByID: state.processes.itemsByID,
+  processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processesByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -96,8 +96,8 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
   if (isLoaded && !isProcessesEmpty) {
     sample.process_measurements.forEach((id, i) => {
-      withProcessMeasurement(processesByID, id, process => process.id);
-      processMeasurements.push(processesByID[id]);
+      withProcessMeasurement(processMeasurementsByID, id, process => process.id);
+      processMeasurements.push(processMeasurementsByID[id]);
     })
   }
 
@@ -227,7 +227,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
         <TabPane tab="Processes" key="2" style={tabStyle}>
-          <SampleDetailsProcess processMeasurements={processMeasurements}/>
+          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
         </TabPane>
 
       </Tabs>

@@ -2,7 +2,7 @@ import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {Table, Tag} from "antd";
+import {Table, Tag, Empty} from "antd";
 
 
 const mapStateToProps = state => ({
@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
   protocolsByID: state.protocols.itemsByID,
 });
 
-const SampleDetailsProcess = ({processMeasurements, usersByID, protocolsByID,}) => {
+const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: '',
@@ -77,4 +77,4 @@ const SampleDetailsProcess = ({processMeasurements, usersByID, protocolsByID,}) 
 }
 
 
-export default connect(mapStateToProps, undefined)(SampleDetailsProcess);
+export default connect(mapStateToProps, undefined)(SampleDetailsProcessMeasurements);

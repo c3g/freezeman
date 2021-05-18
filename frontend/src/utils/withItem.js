@@ -2,7 +2,7 @@ import Container from "../modules/containers/actions.js"
 import Sample from "../modules/samples/actions.js"
 import Individual from "../modules/individuals/actions.js"
 import User from "../modules/users/actions.js"
-import Process from "../modules/processes/actions.js"
+import Process from "../modules/processMeasurements/actions.js"
 import {networkAction} from "./actions";
 import api from ".//api"
 import wait from "./wait"
