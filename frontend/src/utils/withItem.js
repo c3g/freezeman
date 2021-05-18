@@ -81,7 +81,7 @@ export const withContainer = createWithItem(Container, api.containers)
 export const withSample = createWithItem(Sample, api.samples)
 export const withIndividual = createWithItem(Individual, api.individuals)
 export const withUser = createWithItem(User, api.users)
-export const withProcess = createWithItem(Process, api.processes)
+export const withProcess = createWithItem(Process, api.processMeasurements)
 export default {
   withContainer,
   withSample,

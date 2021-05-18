@@ -20,13 +20,13 @@ const LOADING_ACTION = {
 const checkRequests = {
   sample:    api.samples.template.check,
   container: api.containers.template.check,
-  process:   api.processes.template.check,
+  process:   api.processMeasurements.template.check,
 }
 
 const submitRequests = {
   sample:    api.samples.template.submit,
   container: api.containers.template.submit,
-  process:   api.processes.template.submit,
+  process:   api.processMeasurements.template.submit,
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {

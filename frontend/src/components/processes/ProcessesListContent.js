@@ -113,7 +113,7 @@ const ProcessesListContent = ({
 }) => {
 
   const listExport = () =>
-    withToken(token, api.processes.listExport)
+    withToken(token, api.processMeasurements.listExport)
     (mergedListQueryParams(PROCESS_FILTERS, filters, sortBy))
       .then(response => response.data)
 

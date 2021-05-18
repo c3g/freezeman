@@ -20,13 +20,13 @@ export const get = id => async (dispatch, getState) => {
     if (process && process.isFetching)
         return;
 
-    return await dispatch(networkAction(GET, api.processes.get(id), { meta: { id } }));
+    return await dispatch(networkAction(GET, api.processMeasurements.get(id), { meta: { id } }));
 };
 
 export const list = (options) => async (dispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.processes.list(params),
+        api.processMeasurements.list(params),
         { meta: params }
     ));
 };
@@ -41,7 +41,7 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
     const options = { limit, offset, ordering, ...filters}
 
     return await dispatch(networkAction(LIST_TABLE,
-        api.processes.list(options, abort),
+        api.processMeasurements.list(options, abort),
         { meta: { ...options, ignoreError: 'AbortError' } }
     ));
 };
@@ -75,10 +75,10 @@ export const clearFilters = thenList(() => {
 
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().processTemplateActions.isFetching) return;
-    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.processes.template.actions()));
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.processMeasurements.template.actions()));
 };
 
-export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.processes.summary()));
+export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.processMeasurements.summary()));
 
 export default {
     GET,
