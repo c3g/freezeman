@@ -2,7 +2,7 @@ import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 
-import {Table, Tag} from "antd";
+import {Table, Tag, Empty} from "antd";
 
 
 const mapStateToProps = state => ({
