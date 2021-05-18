@@ -84,9 +84,8 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
-  const sampleProcessSamples = sample.process_samples
-  const isProcessesEmpty = sampleProcessSamples && sampleProcessSamples.length === 0;
-  let processSamples = []
+  const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
+  let processMeasurements = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -96,9 +95,9 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
     listVersions(sample.id);
 
   if (isLoaded && !isProcessesEmpty) {
-    sampleProcessSamples.forEach((id, i) => {
+    sample.process_measurements.forEach((id, i) => {
       withProcess(processesByID, id, process => process.id);
-      processSamples.push(processesByID[id]);
+      processMeasurements.push(processesByID[id]);
     })
   }
 
@@ -228,7 +227,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
         <TabPane tab="Processes" key="2" style={tabStyle}>
-          <SampleDetailsProcess processSamples={processSamples}/>
+          <SampleDetailsProcess processMeasurements={processMeasurements}/>
         </TabPane>
 
       </Tabs>

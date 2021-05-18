@@ -10,16 +10,16 @@ const mapStateToProps = state => ({
   protocolsByID: state.protocols.itemsByID,
 });
 
-const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
+const SampleDetailsProcess = ({processMeasurements, usersByID, protocolsByID,}) => {
     const columns = [
       {
         title: '',
         dataIndex: 'id',
         key: 'id',
-        render: (id, processSample) =>
+        render: (id, processMeasurement) =>
           { id &&
               <Link to={`/processes/${id}`}>
-                Process {processSample && `#${processSample.process}`}
+                Process {processMeasurement && `#${processMeasurement.process}`}
               </Link>
           },
       },
@@ -62,7 +62,7 @@ const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
       },
     ]
 
-    if (processSamples.length === 0)
+    if (processMeasurements.length === 0)
       return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />;
 
     return (
@@ -71,7 +71,7 @@ const SampleDetailsProcess = ({processSamples, usersByID, protocolsByID,}) => {
         bordered={false}
         pagination={false}
         columns={columns}
-        dataSource={processSamples}
+        dataSource={processMeasurements}
       />
     );
 }
