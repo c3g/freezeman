@@ -30,4 +30,11 @@ class Migration(migrations.Migration):
             name='name',
             field=models.CharField(help_text='Sample name.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))]),
         ),
+        migrations.AlterField(
+            model_name='sample',
+            name='individual',
+            field=models.ForeignKey(help_text='Individual associated with the sample.',
+                                    on_delete=django.db.models.deletion.PROTECT, related_name='samples',
+                                    to='fms_core.individual'),
+        ),
     ]
