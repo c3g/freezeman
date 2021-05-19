@@ -222,8 +222,8 @@ FiltersetFields = Dict[str, List[str]]
 
 _container_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "name": FREE_TEXT_FILTERS,
-    "barcode": FREE_TEXT_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "barcode": CATEGORICAL_FILTERS_LOOSE,
     "kind": CATEGORICAL_FILTERS,
     "coordinates": FREE_TEXT_FILTERS,
     "comment": FREE_TEXT_FILTERS,

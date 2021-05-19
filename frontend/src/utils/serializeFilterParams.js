@@ -38,10 +38,18 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
-        key = (options && options.exactMatch) ? (key + "__startswith") : (key + "__icontains")
+
+        if (value.includes(',')) {
+          key += "__in"
+        } else if (options?.exactMatch) {
+          key += "__startswith"
+        } else {
+          key += "__icontains"
+        }
 
         if(value)
           params[key] = value
+
 
         break;
       }
