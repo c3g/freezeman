@@ -2,16 +2,25 @@
 
 from django.conf import settings
 from django.db import migrations
+import json
 
 def rename_process_sample_versions(apps, schema_editor):
+    '''
+        In Versions, even though the content_type__model is changed from ProcessSample to ProcessMeasurement,
+        there remains traces of ProcessSample in the serialized_data model field, and in the obj repr text.
+    '''
     Version = apps.get_model("reversion", "Version")
 
-    versions = Version.objects.filter(content_type__model='processsample')
-    for version in versions:
-        version.object_repr.replace("ProcessSample", "ProcessMeasurement")
-        version.serialized_data.replace("processsample", "processmeasurement")
-        version.content_type
+    # Filtering using serialized_data__contains, because content_type model is now ProcessMeasurement due to model rename
+    for version in Version.objects.filter(serialized_data__contains='"model": "fms_core.processsample"'):
+        version.object_repr = version.object_repr.replace("ProcessSample", "ProcessMeasurement")
+
+        data = json.loads(version.serialized_data)
+        data[0]["model"] = "fms_core.processmeasurement"
+        version.serialized_data = json.dumps(data)
+
         version.save()
+
 
 class Migration(migrations.Migration):
 
