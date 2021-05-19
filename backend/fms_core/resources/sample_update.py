@@ -107,7 +107,7 @@ class SampleUpdateResource(GenericResource):
                 # Note: Volume history should never be None, but this prevents
                 #       a bunch of cascading tracebacks if the synthetic "id"
                 #       column created above throws a DoesNotExist error.
-                obj.volume = obj.volume + Decimal(delta_vol)
+                obj.volume = float_to_decimal(obj.volume + Decimal(delta_vol))
             return
 
         if field.attribute == 'depleted':
