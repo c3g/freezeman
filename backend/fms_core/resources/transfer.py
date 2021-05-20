@@ -144,10 +144,10 @@ class TransferResource(GenericResource):
                                                       comment="Sample Transfer (imported from template)")
 
             self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
-                                                                    source_sample=self.transferred_from,
-                                                                    execution_date=obj.creation_date,
-                                                                    volume_used=obj.volume,
-                                                                    comment=obj.update_comment)
+                                                                         source_sample=self.transferred_from,
+                                                                         execution_date=obj.creation_date,
+                                                                         volume_used=obj.volume,
+                                                                         comment=obj.update_comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 

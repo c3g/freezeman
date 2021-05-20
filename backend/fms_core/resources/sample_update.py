@@ -88,10 +88,10 @@ class SampleUpdateResource(GenericResource):
                                                       comment="Updated samples (imported from template)")
 
             self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
-                                                                    source_sample=obj,
-                                                                    volume_used=self.volume_used,
-                                                                    execution_date=self.update_date,
-                                                                    comment=self.update_comment)
+                                                                         source_sample=obj,
+                                                                         volume_used=self.volume_used,
+                                                                         execution_date=self.update_date,
+                                                                         comment=self.update_comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
