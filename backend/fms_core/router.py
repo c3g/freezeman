@@ -8,7 +8,7 @@ from .viewsets import (
     SampleViewSet,
     SampleKindViewSet,
     ProtocolViewSet,
-    ProcessSampleViewSet,
+    ProcessMeasurementViewSet,
     UserViewSet,
     GroupViewSet,
     VersionViewSet,
@@ -21,7 +21,7 @@ router.register(r"container-kinds", ContainerKindViewSet, basename="container-ki
 router.register(r"containers", ContainerViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
-router.register(r"processes-samples", ProcessSampleViewSet)
+router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"samples", SampleViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"query", QueryViewSet, basename="query")

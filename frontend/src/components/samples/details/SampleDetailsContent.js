@@ -25,9 +25,9 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import {SampleDepletion} from "../SampleDepletion";
-import SampleDetailsProcess from "./SampleDetailsProcess";
+import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcess} from "../../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -62,14 +62,14 @@ const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
-  processesByID: state.processes.itemsByID,
+  processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processesByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -84,9 +84,8 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
-  const sampleProcessSamples = sample.process_samples
-  const isProcessesEmpty = sampleProcessSamples && sampleProcessSamples.length === 0;
-  let processSamples = []
+  const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
+  let processMeasurements = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -96,9 +95,9 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
     listVersions(sample.id);
 
   if (isLoaded && !isProcessesEmpty) {
-    sampleProcessSamples.forEach((id, i) => {
-      withProcess(processesByID, id, process => process.id);
-      processSamples.push(processesByID[id]);
+    sample.process_measurements.forEach((id, i) => {
+      withProcessMeasurement(processMeasurementsByID, id, process => process.id);
+      processMeasurements.push(processMeasurementsByID[id]);
     })
   }
 
@@ -228,7 +227,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
         <TabPane tab="Processes" key="2" style={tabStyle}>
-          <SampleDetailsProcess processSamples={processSamples}/>
+          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
         </TabPane>
 
       </Tabs>

@@ -10,11 +10,11 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processes/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {actionsToButtonList} from "../../utils/templateActions";
 import {withSample} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import {PROCESS_FILTERS} from "../filters/descriptions";
+import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -25,8 +25,8 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "process",
       sorter: true,
       width: 150,
-      render: (_, processsample) =>
-          <Link to={`/processes/${processsample.id}`}>{processsample.process}</Link>
+      render: (_, processMeasurement) =>
+          <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.process}</Link>
     },
     {
       title: "Protocol",
@@ -34,15 +34,15 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 200,
       options: protocols.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-      render: (_, processsample) =>
-          <Tag>{protocols?.itemsByID[processsample.protocol]?.name}</Tag>,
+      render: (_, processMeasurement) =>
+          <Tag>{protocols?.itemsByID[processMeasurement.protocol]?.name}</Tag>,
     },
     {
       title: "Source Sample",
       dataIndex: "source_sample__name",
       sorter: true,
-      render: (_, processsample) => {
-        const sample = processsample.source_sample
+      render: (_, processMeasurement) => {
+        const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -53,8 +53,8 @@ const getTableColumns = (samplesByID, protocols) => [
       title: "Generated Sample",
       dataIndex: "lineage__child__name",
       sorter: true,
-      render: (_, processsample) => {
-        const sample = processsample.child_sample
+      render: (_, processMeasurement) => {
+        const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
             {withSample(samplesByID, sample, sample => sample.name, "loading...")}
@@ -79,24 +79,24 @@ const getTableColumns = (samplesByID, protocols) => [
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
-  processesByID: state.processes.itemsByID,
-  processes: state.processes.items,
+  processMeasurementsByID: state.processMeasurements.itemsByID,
+  processMeasurements: state.processMeasurements.items,
   protocols: state.protocols,
-  actions: state.processTemplateActions,
-  page: state.processes.page,
-  totalCount: state.processes.totalCount,
-  isFetching: state.processes.isFetching,
-  filters: state.processes.filters,
+  actions: state.processMeasurementTemplateActions,
+  page: state.processMeasurements.page,
+  totalCount: state.processMeasurements.totalCount,
+  isFetching: state.processMeasurements.isFetching,
+  filters: state.processMeasurements.filters,
   samplesByID: state.samples.itemsByID,
-  sortBy: state.processes.sortBy,
+  sortBy: state.processMeasurements.sortBy,
 });
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ProcessesListContent = ({
+const ProcessMeasurementsListContent = ({
   token,
-  processes,
-  processesByID,
+  processMeasurements,
+  processMeasurementsByID,
   protocols,
   actions,
   isFetching,
@@ -113,14 +113,14 @@ const ProcessesListContent = ({
 }) => {
 
   const listExport = () =>
-    withToken(token, api.processes.listExport)
-    (mergedListQueryParams(PROCESS_FILTERS, filters, sortBy))
+    withToken(token, api.processMeasurements.listExport)
+    (mergedListQueryParams(PROCESS_MEASUREMENT_FILTERS, filters, sortBy))
       .then(response => response.data)
 
   const columns = getTableColumns(samplesByID, protocols)
   .map(c => Object.assign(c, getFilterProps(
     c,
-    PROCESS_FILTERS,
+    PROCESS_MEASUREMENT_FILTERS,
     filters,
     setFilter,
     setFilterOption
@@ -130,7 +130,7 @@ const ProcessesListContent = ({
 
   return <>
     <AppPageHeader title="Protocols" extra={[
-      ...actionsToButtonList("/processes", actions),
+      ...actionsToButtonList("/process-measurements", actions),
       <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
@@ -138,7 +138,7 @@ const ProcessesListContent = ({
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
-          description={PROCESS_FILTERS}
+          description={PROCESS_MEASUREMENT_FILTERS}
         />
         <Button
           style={{ margin: 6 }}
@@ -150,8 +150,8 @@ const ProcessesListContent = ({
       </div>
       <PaginatedTable
         columns={columns}
-        items={processes}
-        itemsByID={processesByID}
+        items={processMeasurements}
+        itemsByID={processMeasurementsByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
@@ -165,4 +165,4 @@ const ProcessesListContent = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProcessesListContent);
+export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsListContent);

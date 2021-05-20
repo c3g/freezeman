@@ -10,7 +10,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -174,11 +174,11 @@ class ExtractionResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
                                                       comment="Extracted samples (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=self.extracted_from,
-                                                               execution_date=obj.creation_date,
-                                                               volume_used=self.volume_used,
-                                                               comment=self.comment)
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
+                                                                    source_sample=self.extracted_from,
+                                                                    execution_date=obj.creation_date,
+                                                                    volume_used=self.volume_used,
+                                                                    comment=self.comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
@@ -227,7 +227,7 @@ class ExtractionResource(GenericResource):
         reversion.set_comment("Imported extracted samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_sample=self.process_sample)
+        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):

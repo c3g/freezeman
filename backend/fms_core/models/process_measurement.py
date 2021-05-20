@@ -12,15 +12,15 @@ from .sample import Sample
 
 from ._utils import add_error as _add_error
 
-__all__ = ["ProcessSample"]
+__all__ = ["ProcessMeasurement"]
 
 PROTOCOLS_WITH_VOLUME_USED_REQUIRED = ['Extraction', 'Transfer']
 PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED = ['Update']
 
 @reversion.register()
-class ProcessSample(TrackedModel):
-    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_sample", help_text="Process")
-    source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_sample", help_text="Source Sample")
+class ProcessMeasurement(TrackedModel):
+    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="process_measurement", help_text="Process")
+    source_sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="process_measurement", help_text="Source Sample")
     execution_date = models.DateField(help_text="Date of execution of the process.")
     volume_used = models.DecimalField(max_digits=20, decimal_places=3, null=True, blank=True,
                                       help_text="Volume of the source sample used, in µL.")

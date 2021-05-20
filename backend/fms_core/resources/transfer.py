@@ -6,7 +6,7 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, add_columns_to_preview
-from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -143,11 +143,11 @@ class TransferResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
                                                       comment="Sample Transfer (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=self.transferred_from,
-                                                               execution_date=obj.creation_date,
-                                                               volume_used=obj.volume,
-                                                               comment=obj.update_comment)
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
+                                                                         source_sample=self.transferred_from,
+                                                                         execution_date=obj.creation_date,
+                                                                         volume_used=obj.volume,
+                                                                         comment=obj.update_comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
@@ -183,8 +183,8 @@ class TransferResource(GenericResource):
         reversion.set_comment("Imported transferred samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        if self.transferred_from and self.process_sample:
-            lineage = SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_sample=self.process_sample)
+        if self.transferred_from and self.process_measurement:
+            SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
