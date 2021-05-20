@@ -126,7 +126,7 @@ class SampleUpdateResource(GenericResource):
             # Manually process volume history and don't call superclass method
             delta_vol = blank_str_to_none(data.get("Delta Volume (uL)"))  # "" -> None for CSVs
             if delta_vol is not None:  # Only update volume if we got a value
-                obj.volume = obj.volume + Decimal(delta_vol)
+                obj.volume = float_to_decimal(obj.volume + Decimal(delta_vol))
             return
 
         if field.attribute == 'depleted':
