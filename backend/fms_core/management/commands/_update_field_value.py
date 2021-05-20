@@ -63,10 +63,7 @@ def update_field_value(params, objects_to_delete, log):
                     if not old_value or old_value == db_old_value:
                         setattr(entity, field, new_value)
                         log.info(f"Updated model [{model}] id [{id} field [{field}] old value [{db_old_value}] new value [{new_value}].")
-                        if user_id:
-                            entity.save(requester_id=user_id) # Save using th id of the requester
-                        else:
-                            entity.save() # Save using the default admin user
+                        entity.save(requester_id=user_id) # Save using the id of the requester if present
                         count_updates += 1
                     else:
                         log.error(f"Value [{db_old_value}] of field [{field}] do not match the old_value expected [{old_value}].")
