@@ -60,16 +60,16 @@ def update_field_value(params, objects_to_delete, log):
                 entity = entity_model.objects.get(**id)
                 try:
                     db_old_value = getattr(entity, field)
-                    if old_value and old_value == db_old_value:
+                    if not old_value or old_value == db_old_value:
                         setattr(entity, field, new_value)
-                        log.info(f"Updated model [{model}] id [{id} field [{field}] old value [{old_value}] new value [{new_value}].")
+                        log.info(f"Updated model [{model}] id [{id} field [{field}] old value [{db_old_value}] new value [{new_value}].")
                         if user_id:
                             entity.save(requester_id=user_id) # Save using th id of the requester
                         else:
                             entity.save() # Save using the default admin user
                         count_updates += 1
                     else:
-                        log.error(f"Content of field [{field}] do not match the old_value expected [{old_value}].")
+                        log.error(f"Value [{db_old_value}] of field [{field}] do not match the old_value expected [{old_value}].")
                         error_found = True    
                 except AttributeError:
                     log.error(f"Field [{field}] does not exist for model [{model}].")
