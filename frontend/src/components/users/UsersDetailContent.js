@@ -3,21 +3,15 @@ import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 import {
   compose,
-  groupBy,
   map,
   path,
   reduce,
-  reverse,
-  sortBy,
-  values,
 } from "rambda";
 import {set} from "object-path-immutable";
 import {
   Button,
   Card,
-  Col,
   Descriptions,
-  Row,
   Space,
   Tag,
   Table,
@@ -25,8 +19,6 @@ import {
   Typography,
 } from "antd";
 import {
-  ArrowsAltOutlined,
-  ShrinkOutlined,
   MinusSquareOutlined,
   PlusSquareOutlined,
   CheckOutlined,
@@ -34,7 +26,6 @@ import {
 } from "@ant-design/icons";
 
 import dateToString from "../../utils/dateToString";
-import weakMapMemoize from "../../utils/weak-map-memoize";
 import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -45,7 +36,6 @@ import routes from "./routes";
 import canWrite from "./canWrite";
 
 const { Title, Text } = Typography;
-
 
 
 const getTrueByID =
@@ -140,9 +130,6 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
   const isFetchingRevisions = user.revisions?.isFetching;
   const groups = hasRevisions ? revisions.results : [];
 
-  const expandAll = () => setExpandedGroups(getTrueByID(groups));
-  const closeAll = () => setExpandedGroups({});
-
   return (
     <>
       {error &&
@@ -164,18 +151,6 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
         History
       </Title>
       <Space direction="vertical" style={{ width: '100%' }}>
-        <Row>
-          <Col sm={24}>
-            <Button.Group>
-              <Button type="secondary" size="small" onClick={expandAll} icon={<ArrowsAltOutlined />}>
-                Expand All
-              </Button>
-              <Button type="secondary" size="small" onClick={closeAll} icon={<ShrinkOutlined />}>
-                Close All
-              </Button>
-            </Button.Group>
-          </Col>
-        </Row>
         <div style={{ width: '100%' }}>
           <Card>
             <Timeline
@@ -263,7 +238,7 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
         >
           <span style={expandIconStyle}>
             {isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
-          </span>{' '}{revision.comment}{`  #${revision.id}`}
+          </span>{' '}{revision.comment}
         </Button>
       </div>
       {isExpanded &&
