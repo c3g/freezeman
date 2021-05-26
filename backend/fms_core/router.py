@@ -12,6 +12,7 @@ from .viewsets import (
     UserViewSet,
     GroupViewSet,
     VersionViewSet,
+    RevisionViewSet,
 )
 
 __all__ = ["router"]
@@ -26,5 +27,6 @@ router.register(r"samples", SampleViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"query", QueryViewSet, basename="query")
 router.register(r"versions", VersionViewSet)
+router.register(r"revisions", RevisionViewSet)
 router.register(r"users", UserViewSet)
 router.register(r"groups", GroupViewSet)

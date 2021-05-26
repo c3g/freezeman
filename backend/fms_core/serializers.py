@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from reversion.models import Version
+from reversion.models import Version, Revision
 
-from .models import Container, Sample, Individual, Protocol, Process, ProcessMeasurement, SampleKind
+from .models import Container, Sample, Individual, Protocol, ProcessMeasurement, SampleKind
 
 
 __all__ = [
@@ -18,6 +18,7 @@ __all__ = [
     "SampleExportSerializer",
     "NestedSampleSerializer",
     "VersionSerializer",
+    "RevisionSerializer",
     "UserSerializer",
     "GroupSerializer",
 ]
@@ -156,6 +157,12 @@ class VersionSerializer(serializers.ModelSerializer):
         model = Version
         fields = "__all__"
         depth = 1
+
+
+class RevisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Revision
+        fields = "__all__"
 
 
 class UserSerializer(serializers.ModelSerializer):

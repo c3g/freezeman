@@ -10,7 +10,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated, DjangoModelPermissions
 from rest_framework.response import Response
-from reversion.models import Version
+from reversion.models import Version, Revision
 from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
@@ -37,6 +37,7 @@ from .serializers import (
     NestedSampleSerializer,
     IndividualSerializer,
     VersionSerializer,
+    RevisionSerializer,
     UserSerializer,
     GroupSerializer,
 )
@@ -61,6 +62,7 @@ __all__ = [
     "UserViewSet",
     "GroupViewSet",
     "VersionViewSet",
+    "RevisionViewSet",
 ]
 
 
@@ -744,6 +746,14 @@ class VersionViewSet(viewsets.ReadOnlyModelViewSet):
         "revision__id": FK_FILTERS,
         "revision__date_created": DATE_FILTERS,
         "revision__user": ["exact"],
+    }
+
+
+class RevisionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Revision.objects.all()
+    serializer_class = RevisionSerializer
+    filterset_fields = {
+        "user_id": FK_FILTERS,
     }
 
 
