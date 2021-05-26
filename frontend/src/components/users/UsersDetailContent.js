@@ -68,6 +68,7 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
   const history = useHistory();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [isLoadRevisions, setIsLoadRevisions] = useState(false);
 
   const user = usersByID[id];
 
@@ -75,7 +76,8 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
     get(id)
   }
 
-  if (user && !user.revisions && !user.isFetching) {
+  if (user && !user.isFetching && !isLoadRevisions) {
+    setIsLoadRevisions(true)
     setTimeout(() => listRevisions(user.id), 0);
   }
 
