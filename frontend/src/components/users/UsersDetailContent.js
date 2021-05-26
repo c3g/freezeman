@@ -46,13 +46,6 @@ import canWrite from "./canWrite";
 
 const { Title, Text } = Typography;
 
-// const groupByRevisionID = weakMapMemoize(
-//   compose(
-//     map(sortBy(path(['content_type', 'id']))),
-//     reverse,
-//     values,
-//     groupBy(path(['revision', 'id']))
-//   ))
 
 
 const getTrueByID =
@@ -92,16 +85,11 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
     get(id)
   }
 
-  // if (user && !user.versions && !user.isFetching) {
-  //   setTimeout(() => listVersions(user.id), 0);
-  // }
-
   if (user && !user.revisions && !user.isFetching) {
     setTimeout(() => listRevisions(user.id), 0);
   }
 
   const onLoadMore = () => {
-    // listVersions(user.id)
     listRevisions(user.id)
   }
 
@@ -134,6 +122,7 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
             onLoadMore={onLoadMore}
+            listVersions={listVersions}
           />
         }
       </PageContent>
@@ -142,14 +131,10 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
 
 };
 
-function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore}) {
+function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore, listVersions}) {
 
   const error = user.error;
   const isFetching = user.isFetching;
-  // const versions = user.versions;
-  // const hasVersions = versions?.results !== undefined
-  // const isFetchingVersions = user.versions?.isFetching;
-  // const groups = hasVersions ? groupByRevisionID(versions.results) : [];
   const revisions = user.revisions;
   const hasRevisions = revisions?.results !== undefined
   const isFetchingRevisions = user.revisions?.isFetching;
@@ -210,6 +195,7 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
                     revision={revision}
                     expandedGroups={expandedGroups}
                     setExpandedGroups={setExpandedGroups}
+                    listVersions={listVersions}
                   />
                 </Timeline.Item>
               )}
@@ -249,8 +235,21 @@ const tableStyle = {
   marginTop: '0.5em',
 }
 
-function TimelineEntry({ revision, expandedGroups, setExpandedGroups }) {
+function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersions }) {
   const isExpanded = expandedGroups[revision.id];
+  const [group, setGroup] = useState([]);
+  const [isLoading, setIsLoading] = useState(undefined);
+
+  const onClick = () => {
+    setIsLoading(true)
+    setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))
+    listVersions(revision.user, revision.id)
+        .then(response => {
+          setGroup(response.results)
+          console.log(response)
+          setIsLoading(false)
+        })
+  }
 
   // noinspection JSUnusedGlobalSymbols
   return (
@@ -260,28 +259,29 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups }) {
           type="link"
           size="small"
           style={expandButtonStyle}
-          onClick={() => setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))}
+          onClick={onClick}
         >
           <span style={expandIconStyle}>
             {isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
-          </span>{' '}{revision.comment}
+          </span>{' '}{revision.comment}{`  #${revision.id}`}
         </Button>
       </div>
-      {/*{isExpanded &&*/}
-      {/*  <Table*/}
-      {/*    size="small"*/}
-      {/*    style={tableStyle}*/}
-      {/*    columns={columns}*/}
-      {/*    expandable={{*/}
-      {/*      expandedRowRender: version =>*/}
-      {/*        <p style={{ margin: 0 }}>*/}
-      {/*          {version.serialized_data}*/}
-      {/*        </p>,*/}
-      {/*      rowExpandable: () => true,*/}
-      {/*    }}*/}
-      {/*    dataSource={group}*/}
-      {/*  />*/}
-      {/*}*/}
+      {isExpanded &&
+        <Table
+          size="small"
+          style={tableStyle}
+          columns={columns}
+          expandable={{
+            expandedRowRender: version =>
+              <p style={{ margin: 0 }}>
+                {version.serialized_data}
+              </p>,
+            rowExpandable: () => true,
+          }}
+          dataSource={group}
+          loading={isLoading}
+        />
+      }
     </>
   )
 }
