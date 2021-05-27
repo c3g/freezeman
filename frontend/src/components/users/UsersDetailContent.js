@@ -1,28 +1,24 @@
 import React, { useState } from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-import {
-  compose,
-  map,
-  path,
-  reduce,
-} from "rambda";
 import {set} from "object-path-immutable";
 import {
   Button,
   Card,
   Descriptions,
-  Space,
   Tag,
   Table,
   Timeline,
   Typography,
+  Row,
+  Col,
 } from "antd";
 import {
   MinusSquareOutlined,
   PlusSquareOutlined,
   CheckOutlined,
-  CloseOutlined
+  CloseOutlined,
+  LoadingOutlined
 } from "@ant-design/icons";
 
 import dateToString from "../../utils/dateToString";
@@ -34,15 +30,10 @@ import EditButton from "../EditButton";
 import {listRevisions, listVersions, get} from "../../modules/users/actions";
 import routes from "./routes";
 import canWrite from "./canWrite";
+import useTimeline from "../../utils/useTimeline";
 
 const { Title, Text } = Typography;
 
-
-const getTrueByID =
-  compose(
-    reduce((acc, cur) => (acc[cur] = true, acc), {}),
-    map(path([0, 'revision', 'id']))
-  )
 
 const route = {
   path: "/user",
@@ -132,6 +123,8 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
   const isFetchingRevisions = user.revisions?.isFetching;
   const groups = hasRevisions ? revisions.results : [];
 
+  const [timelineMarginLeft, timelineRef] = useTimeline();
+
   return (
     <>
       {error &&
@@ -152,44 +145,47 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
       <Title level={2} style={{ marginTop: '1em' }}>
         History
       </Title>
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <div style={{ width: '100%' }}>
-          <Card>
-            <Timeline
-              pending={(isFetching && !revisions) ? "Loading..." : undefined}
-              mode="left"
-              style={{ marginLeft: 0, width: '100%' }}
-            >
-              {revisions === undefined && isFetching &&
-                <Timeline.Item pending={true}>Loading...</Timeline.Item>
+      <Row>
+        <Col sm={24} md={24}>
+          <div ref={timelineRef}>
+            <Card>
+              {
+                  <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                    {revisions === undefined && isFetching &&
+                      <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
+                    }
+                    {revisions && groups.map((revision, i) => {
+                      return (
+                        <Timeline.Item
+                          key={i}
+                          label={renderTimelineLabel(revision)}
+                        >
+                          <TimelineEntry
+                            revision={revision}
+                            expandedGroups={expandedGroups}
+                            setExpandedGroups={setExpandedGroups}
+                            listVersions={listVersions}
+                          />
+                        </Timeline.Item>
+                      )
+                    })}
+                    {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
+                      <Button
+                        block
+                        type="link"
+                        loading={isFetching || isFetchingRevisions}
+                        onClick={onLoadMore}
+                        style={{marginLeft: "20%"}}
+                      >
+                        Load more
+                      </Button>
+                    }
+                  </Timeline>
               }
-              {revisions && groups.map((revision, i) =>
-                <Timeline.Item
-                  key={i}
-                  label={renderTimelineLabel(revision)}
-                >
-                  <TimelineEntry
-                    revision={revision}
-                    expandedGroups={expandedGroups}
-                    setExpandedGroups={setExpandedGroups}
-                    listVersions={listVersions}
-                  />
-                </Timeline.Item>
-              )}
-            </Timeline>
-            {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
-              <Button
-                block
-                type="link"
-                loading={isFetching || isFetchingRevisions}
-                onClick={onLoadMore}
-              >
-                Load more
-              </Button>
-            }
-          </Card>
-        </div>
-      </Space>
+            </Card>
+          </div>
+        </Col>
+      </Row>
     </>
   )
 }
@@ -265,7 +261,9 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
 
 function renderTimelineLabel(revision) {
   return (
-    <Text type="secondary">{dateToString(revision.date_created)}</Text>
+      <div>
+        <Text type="secondary">{dateToString(revision.date_created)}</Text>
+      </div>
   )
 }
 
