@@ -1,5 +1,18 @@
 import {parse} from "querystring";
 
+export function preprocessUserActionRevisions(previousRevisions, /* mut */ revisions) {
+  let options = null
+  if (revisions.next)
+    options = parse(revisions.next.replace(/^.*\?/, ''))
+
+  return {
+    isFetching: false,
+    count: revisions.count,
+    next: options,
+    results: (previousRevisions?.results ?? []).concat(revisions.results),
+  }
+}
+
 export function preprocessUserActionVersions(previousVersions, /* mut */ versions) {
   versions.results.forEach(version => {
     version.key = version.id;

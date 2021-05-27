@@ -86,6 +86,7 @@ const api = {
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
+    listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 
