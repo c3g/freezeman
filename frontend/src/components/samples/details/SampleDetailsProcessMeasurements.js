@@ -17,11 +17,10 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
         dataIndex: 'id',
         key: 'id',
         render: (id, processMeasurement) =>
-          { id &&
-              <Link to={`/process-measurements/${id}`}>
-                Process {processMeasurement && `#${processMeasurement.process}`}
-              </Link>
-          },
+          <Link to={`/process-measurements/${id}`}>
+            Process {processMeasurement && `#${processMeasurement.process}`}
+          </Link>
+
       },
       {
         title: 'Date processed',
