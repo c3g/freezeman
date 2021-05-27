@@ -219,7 +219,6 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
     listVersions(revision.user, revision.id)
         .then(response => {
           setGroup(response.results)
-          console.log(response)
           setIsLoading(false)
         })
   }
@@ -261,9 +260,7 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
 
 function renderTimelineLabel(revision) {
   return (
-      <div>
-        <Text type="secondary">{dateToString(revision.date_created)}</Text>
-      </div>
+      <Text type="secondary">{dateToString(revision.date_created)}</Text>
   )
 }
 
