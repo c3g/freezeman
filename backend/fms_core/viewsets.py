@@ -552,6 +552,30 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         }
     ]
 
+    def get_queryset(self):
+        recursive = self.request.query_params.get("recursive", False)
+        if recursive:
+            container = self.request.query_params.get('container_id')
+
+            parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                               SELECT id, location_id
+                                                               FROM fms_core_container
+                                                               WHERE id = %s
+
+                                                               UNION ALL
+
+                                                               SELECT child.id, child.location_id
+                                                               FROM fms_core_container AS child, parent
+                                                               WHERE child.location_id = parent.id
+                                                           )
+                                                           SELECT * FROM parent''', [container])
+
+            return self.queryset.filter(container__in=parent_containers)
+
+        return self.queryset
+
+
+
     def get_serializer_class(self):
         # If the nested query param is passed in with a non-false-y string
         # value, use the nested sample serializer; this will nest referenced
