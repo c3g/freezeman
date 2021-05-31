@@ -553,14 +553,24 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     def get_queryset(self):
-        recursive = self.request.query_params.get("recursive", False)
+        container_barcode = self.request.query_params.get('container__barcode__recursive')
+        container_name = self.request.query_params.get('container__name__recursive')
+        recursive = container_barcode or container_name
+
         if recursive:
-            container = self.request.query_params.get('container_id')
+            containers = Container.objects.all()
+            if container_barcode:
+                containers = containers.filter(barcode=container_barcode)
+            if container_name:
+                containers = containers.filter(name=container_name)
+
+            container_ids = tuple(containers.values_list('id', flat=True))
+
 
             parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
                                                                SELECT id, location_id
                                                                FROM fms_core_container
-                                                               WHERE id = %s
+                                                               WHERE id IN %s
 
                                                                UNION ALL
 
@@ -568,7 +578,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                                                                FROM fms_core_container AS child, parent
                                                                WHERE child.location_id = parent.id
                                                            )
-                                                           SELECT * FROM parent''', [container])
+                                                           SELECT * FROM parent''', params=[container_ids])
 
             return self.queryset.filter(container__in=parent_containers)
 
