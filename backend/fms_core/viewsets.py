@@ -566,6 +566,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
             container_ids = tuple(containers.values_list('id', flat=True))
 
+            if not container_ids:
+                container_ids = tuple([None])
 
             parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
                                                                SELECT id, location_id
