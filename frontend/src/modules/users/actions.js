@@ -10,6 +10,7 @@ export const ADD = createNetworkActionTypes("USERS.ADD");
 export const UPDATE = createNetworkActionTypes("USERS.UPDATE");
 export const LIST = createNetworkActionTypes("USERS.LIST");
 export const LIST_TABLE = createNetworkActionTypes("USERS.LIST_TABLE");
+export const LIST_REVISIONS = createNetworkActionTypes("USERS.LIST_REVISIONS");
 export const LIST_VERSIONS = createNetworkActionTypes("USERS.LIST_VERSIONS");
 export const SET_SORT_BY = "USERS.SET_SORT_BY";
 export const SET_FILTER = "USERS.SET_FILTER";
@@ -73,19 +74,31 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
     return res
 };
 
-export const listVersions = (id) => (dispatch, getState) => {
+export const listRevisions = (id) => (dispatch, getState) => {
     const user = getState().users.itemsByID[id];
     if (user.isFetching) return Promise.resolve();
     const meta = { id };
     return dispatch(
         networkAction(
-            LIST_VERSIONS,
-            api.users.listVersions(id, user?.versions?.next ?? { limit: 10000 }),
+            LIST_REVISIONS,
+            api.users.listRevisions(id, user?.revisions?.next ?? { limit: 100 }),
             { meta }
         )
     );
 }
 
+export const listVersions = (userId, revisionId) => (dispatch, getState) => {
+    const user = getState().users.itemsByID[userId];
+    if (user.isFetching) return Promise.resolve();
+    const meta = { id: userId };
+    return dispatch(
+        networkAction(
+            LIST_VERSIONS,
+            api.users.listVersions(userId, {revision__id: revisionId, limit: 10000}),
+            { meta }
+        )
+    );
+}
 
 export const setSortBy = thenList((key, order) => {
     return {
@@ -120,6 +133,7 @@ export default {
     UPDATE,
     LIST,
     LIST_TABLE,
+    LIST_REVISIONS,
     LIST_VERSIONS,
     SET_SORT_BY,
     SET_FILTER,
@@ -130,6 +144,7 @@ export default {
     update,
     list,
     listTable,
+    listRevisions,
     listVersions,
     setSortBy,
     setFilter,

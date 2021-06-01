@@ -6,12 +6,12 @@ import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 
-import PROCESSES from "./actions";
+import PROCESS_MEASUREMENTS from "./actions";
 
-export const processesSummary = summaryReducerFactory(PROCESSES);
-export const processTemplateActions = templateActionsReducerFactory(PROCESSES);
+export const processMeasurementsSummary = summaryReducerFactory(PROCESS_MEASUREMENTS);
+export const processMeasurementTemplateActions = templateActionsReducerFactory(PROCESS_MEASUREMENTS);
 
-export const processes = (
+export const processMeasurements = (
     state = {
         itemsByID: {},
         items: [],
@@ -25,23 +25,23 @@ export const processes = (
 ) => {
     switch (action.type) {
 
-        case PROCESSES.GET.REQUEST:
+        case PROCESS_MEASUREMENTS.GET.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case PROCESSES.GET.RECEIVE:
+        case PROCESS_MEASUREMENTS.GET.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
-        case PROCESSES.GET.ERROR:
+        case PROCESS_MEASUREMENTS.GET.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case PROCESSES.SET_SORT_BY:
+        case PROCESS_MEASUREMENTS.SET_SORT_BY:
             return { ...state, sortBy: action.data };
-        case PROCESSES.SET_FILTER:
+        case PROCESS_MEASUREMENTS.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 page: set(state.page, ['offset'], 0),
             };
-        case PROCESSES.SET_FILTER_OPTION:
+        case PROCESS_MEASUREMENTS.SET_FILTER_OPTION:
             return {
                 ...state,
                 filters: set(
@@ -51,26 +51,26 @@ export const processes = (
                 ),
                 page: set(state.page, ['offset'], 0),
             };
-        case PROCESSES.CLEAR_FILTERS:
+        case PROCESS_MEASUREMENTS.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
                 page: set(state.page, ['offset'], 0),
             };
 
-        case PROCESSES.LIST.REQUEST:
+        case PROCESS_MEASUREMENTS.LIST.REQUEST:
             return { ...state, isFetching: true, };
-        case PROCESSES.LIST.RECEIVE: {
+        case PROCESS_MEASUREMENTS.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
-        case PROCESSES.LIST.ERROR:
+        case PROCESS_MEASUREMENTS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
-        case PROCESSES.LIST_TABLE.REQUEST:
+        case PROCESS_MEASUREMENTS.LIST_TABLE.REQUEST:
             return { ...state, isFetching: true, };
-        case PROCESSES.LIST_TABLE.RECEIVE: {
+        case PROCESS_MEASUREMENTS.LIST_TABLE.RECEIVE: {
             const totalCount = action.data.count;
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
@@ -92,7 +92,7 @@ export const processes = (
                 error: undefined,
             };
         }
-        case PROCESSES.LIST_TABLE.ERROR:
+        case PROCESS_MEASUREMENTS.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         default:
@@ -100,8 +100,8 @@ export const processes = (
     }
 };
 
-function preprocess(process) {
-    process.isFetching = false;
-    process.isLoaded = true;
-    return process
+function preprocess(processMeasurement) {
+    processMeasurement.isFetching = false;
+    processMeasurement.isLoaded = true;
+    return processMeasurement
 }

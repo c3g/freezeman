@@ -241,11 +241,11 @@ class Sample(TrackedModel):
 
     @property
     def extracted_from(self) -> "Sample":
-        return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Extraction").first() if self.id else None
+        return self.child_of.filter(parent_sample__child=self, parent_sample__process_measurement__process__protocol__name="Extraction").first() if self.id else None
 
     @property
     def transferred_from(self) -> "Sample":
-        return self.child_of.filter(parent_sample__child=self, parent_sample__process_sample__process__protocol__name="Transfer").first() if self.id else None
+        return self.child_of.filter(parent_sample__child=self, parent_sample__process_measurement__process__protocol__name="Transfer").first() if self.id else None
 
     # Representations
 

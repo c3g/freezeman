@@ -12,7 +12,7 @@ from .sample_lineage import SampleLineage
 from .sample_update import SampleUpdate
 from .protocol import Protocol
 from .process import Process
-from .process_sample import ProcessSample
+from .process_measurement import ProcessMeasurement
 
 __all__ = [
     "Container",
@@ -28,5 +28,5 @@ __all__ = [
     "SampleUpdate",
     "Protocol",
     "Process",
-    "ProcessSample"
+    "ProcessMeasurement"
 ]

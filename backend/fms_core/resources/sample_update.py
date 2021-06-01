@@ -9,7 +9,7 @@ from import_export.widgets import DateWidget, ForeignKeyWidget
 from django.core.exceptions import ValidationError
 from ._generic import GenericResource
 from ._utils import skip_rows, add_columns_to_preview
-from ..models import Container, Sample, Protocol, Process, ProcessSample
+from ..models import Container, Sample, Protocol, Process, ProcessMeasurement
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -87,11 +87,11 @@ class SampleUpdateResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
                                                       comment="Updated samples (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=obj,
-                                                               volume_used=self.volume_used,
-                                                               execution_date=self.update_date,
-                                                               comment=self.update_comment)
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
+                                                                         source_sample=obj,
+                                                                         volume_used=self.volume_used,
+                                                                         execution_date=self.update_date,
+                                                                         comment=self.update_comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
@@ -126,7 +126,7 @@ class SampleUpdateResource(GenericResource):
             # Manually process volume history and don't call superclass method
             delta_vol = blank_str_to_none(data.get("Delta Volume (uL)"))  # "" -> None for CSVs
             if delta_vol is not None:  # Only update volume if we got a value
-                obj.volume = obj.volume + Decimal(delta_vol)
+                obj.volume = float_to_decimal(obj.volume + Decimal(delta_vol))
             return
 
         if field.attribute == 'depleted':

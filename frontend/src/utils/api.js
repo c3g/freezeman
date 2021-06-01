@@ -42,16 +42,16 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
-  processes: {
-    get: processSampleId => get(`/processes-samples/${processSampleId}/`),
-    list: (options, abort) => get("/processes-samples/", options, { abort }),
-    listExport: options => get("/processes-samples/list_export/", {format: "csv", ...options}),
-    search: q => get("/processes-samples/search/", { q }),
-    summary: () => get("/processes-samples/summary/"),
+  processMeasurements: {
+    get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
+    list: (options, abort) => get("/process-measurements/", options, { abort }),
+    listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
+    search: q => get("/process-measurements/search/", { q }),
+    summary: () => get("/process-measurements/summary/"),
     template: {
-      actions: () => get(`/processes-samples/template_actions/`),
-      check:  (action, template) => post(`/processes-samples/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/processes-samples/template_submit/`, form({ action, template })),
+      actions: () => get(`/process-measurements/template_actions/`),
+      check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
   },
 
@@ -86,6 +86,7 @@ const api = {
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
+    listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 

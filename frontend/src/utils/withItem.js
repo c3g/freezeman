@@ -2,7 +2,7 @@ import Container from "../modules/containers/actions.js"
 import Sample from "../modules/samples/actions.js"
 import Individual from "../modules/individuals/actions.js"
 import User from "../modules/users/actions.js"
-import Process from "../modules/processes/actions.js"
+import Process from "../modules/processMeasurements/actions.js"
 import {networkAction} from "./actions";
 import api from ".//api"
 import wait from "./wait"
@@ -81,11 +81,11 @@ export const withContainer = createWithItem(Container, api.containers)
 export const withSample = createWithItem(Sample, api.samples)
 export const withIndividual = createWithItem(Individual, api.individuals)
 export const withUser = createWithItem(User, api.users)
-export const withProcess = createWithItem(Process, api.processes)
+export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export default {
   withContainer,
   withSample,
   withIndividual,
   withUser,
-  withProcess,
+  withProcessMeasurement,
 };

@@ -3,7 +3,7 @@ import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 
 import shouldIgnoreError from "../../utils/shouldIgnoreError";
-import {preprocessUserActionVersions} from "../../utils/preprocessVersions";
+import {preprocessUserActionVersions, preprocessUserActionRevisions} from "../../utils/preprocessRevisions";
 import {resetTable} from "../../utils/reducers";
 import USERS from "./actions";
 
@@ -104,6 +104,21 @@ export const users = (
     }
     case USERS.LIST_TABLE.ERROR:
       return { ...state, isFetching: false, error: shouldIgnoreError(action) ? undefined : action.error };
+
+    case USERS.LIST_REVISIONS.REQUEST:
+      return set(state, ['itemsByID', action.meta.id, 'revisions', 'isFetching'], true);
+    case USERS.LIST_REVISIONS.RECEIVE:
+      return merge(state, ['itemsByID', action.meta.id], {
+        revisions: preprocessUserActionRevisions(
+          state.itemsByID[action.meta.id].revisions,
+          action.data
+        ),
+      });
+    case USERS.LIST_REVISIONS.ERROR:
+      return merge(state, ['itemsByID', action.meta.id], {
+        revisions: { isFetching: false },
+        error: action.error,
+      });
 
     case USERS.LIST_VERSIONS.REQUEST:
       return set(state, ['itemsByID', action.meta.id, 'versions', 'isFetching'], true);
