@@ -1,0 +1,12 @@
+Nucleic Acid Extraction template,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+Extraction destination can be only tube on a 96 positions rack,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+Naming Rules,,,,,,,,,,,,,,,
+"- Only use the follwin caracters for Sample name and Barcode: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,
+#,Extraction Type,Volume Used (uL),Source Container Barcode,Source Container Coord,Destination Container Barcode,Destination Container Coord,Destination Container Name,Destination Container Kind,Destination Parent Container Barcode,Destination Parent Container Coord,Volume (uL),Conc. (ng/uL),Source Depleted,Extraction Date,Comment
+1,DNA,1,tube001,,tube003,,tube003,Tube,rack001,A01,0.5,0.3,False,2021-01-02,comment 3
+2,RNA,15,tube002,,tube004,,tube004,Tube,rack001,B01,1,0.3,True,2021-01-02,comment 4
+3,DNA,2,tube001,,plate002,C04,extract_plate,96-well plate,,,1,0.3,False,2021-01-02,extract in plate
+4,,,,,,,,,,,,,,,

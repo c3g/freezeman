@@ -2,7 +2,7 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Sample_extraction_v3_2_0_F_A_1.xlsx
+//  - Sample_extraction_v3_3_0_F_A_1.xlsx
 //  - Sample_transfer_v3_2_0_F_A_1.xlsx
 
 // Helpers
@@ -31,7 +31,7 @@ export const protocolsTests = () => {
   
       it('extract samples (template import)', () => {
         cy.navigateTo('Protocols', 'Process Extractions')
-        cy.get('input[type=file]').attachFile('Sample_extraction_v3_2_0_F_A_1.xlsx')
+        cy.get('input[type=file]').attachFile('Sample_extraction_v3_3_0_F_A_1.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()

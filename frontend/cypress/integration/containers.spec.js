@@ -2,7 +2,7 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Container_creation_v3_2_0_F_A_1.xlsx
+//  - Container_creation_v3_3_0_F_A_1.xlsx
 //  - Container_move_v3_2_0_F_A_1.xlsx
 //  - Container_rename_v3_2_0_F_A_1.xlsx
 
@@ -43,11 +43,11 @@ export const containersTests = () => {
   
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
-        cy.get('input[type=file]').attachFile('Container_creation_v3_2_0_F_A_1.xlsx')
+        cy.get('input[type=file]').attachFile('Container_creation_v3_3_0_F_A_1.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('body').should('contain', '1-10 of 16 items')
       })
       
       it('moves containers (template import)', () => {
@@ -57,7 +57,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('body').should('contain', '1-10 of 16 items')
         cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(moveBarcodeDst) // filter by barcode (column 1)
         cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(5).should('contain', '2'))
         cy.get('button').contains('Clear Filters').click()
@@ -72,7 +72,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 15 items')
+        cy.get('body').should('contain', '1-10 of 16 items')
         cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeSrc)// filter by barcode (column 1)
         cy.get('body').should('contain', '0-0 of 0 items')
         cy.get('button').contains('Clear Filters').click()
