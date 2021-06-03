@@ -48,12 +48,12 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
       confirm()
   }
 
-  const onToggleSwitch = (checked, option )=> {
-    setFilterOption(dataIndex, option, checked)
+  const onToggleSwitch = (key, checked )=> {
+    setFilterOption(dataIndex, key, checked)
   }
 
   const onChangeRecursive = checked => {
-    onToggleSwitch(checked, 'recursiveMatch')
+    onToggleSwitch( 'recursiveMatch', checked)
     setFilterOption(dataIndex, 'exactMatch', checked)
   }
 
@@ -65,7 +65,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
             ref={inputRef}
             allowClear
             placeholder={`Search ${description.label}`}
-            style={{ marginRight: 8}}
+            style={{ marginRight: 8 }}
             value={value}
             onChange={e => onSearch(e.target.value)}
             onPressEnter={confirm}
@@ -79,7 +79,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
                 unCheckedChildren="Exact"
                 checked={options?.exactMatch ?? false}
                 disabled={options?.recursiveMatch ?? false}
-                onChange={e => onToggleSwitch(e, 'exactMatch')}
+                onChange={e => onToggleSwitch( 'exactMatch', e)}
               />
             </Tooltip>
             {description.recursive &&
