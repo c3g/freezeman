@@ -48,31 +48,52 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
       confirm()
   }
 
-  const onToggleSwitch = checked => {
+  const onToggleSwitch = (key, checked )=> {
+    setFilterOption(dataIndex, key, checked)
+  }
+
+  const onChangeRecursive = checked => {
+    onToggleSwitch( 'recursiveMatch', checked)
     setFilterOption(dataIndex, 'exactMatch', checked)
   }
 
   return {
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm }) => (
-      <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
-        <Input
-          ref={inputRef}
-          allowClear
-          placeholder={`Search ${description.label}`}
-          style={{ marginRight: 8 }}
-          value={value}
-          onChange={e => onSearch(e.target.value)}
-          onPressEnter={confirm}
-          onKeyDown={ev => onKeyDown(ev, confirm)}
-        />
-        <Tooltip title="Exact Match">
-          <Switch
-            size='small'
-            checked={options?.exactMatch ?? false}
-            onChange={e => onToggleSwitch(e, dataIndex)}
+      <div style={{ padding: 8, alignItems: 'center' }}>
+          <Input
+            ref={inputRef}
+            allowClear
+            placeholder={`Search ${description.label}`}
+            style={{ marginRight: 8 }}
+            value={value}
+            onChange={e => onSearch(e.target.value)}
+            onPressEnter={confirm}
+            onKeyDown={ev => onKeyDown(ev, confirm)}
           />
-        </Tooltip>
+          <div style={{ padding: 8, alignItems: 'right' }}>
+            <Tooltip title="Exact Match">
+              <Switch
+                size="large"
+                checkedChildren="Exact"
+                unCheckedChildren="Exact"
+                checked={options?.exactMatch ?? false}
+                disabled={options?.recursiveMatch ?? false}
+                onChange={e => onToggleSwitch( 'exactMatch', e)}
+              />
+            </Tooltip>
+            {description.recursive &&
+              <Tooltip title="Exhaustive">
+                <Switch
+                  checkedChildren="Recursive"
+                  unCheckedChildren="Recursive"
+                  checked={options?.recursiveMatch ?? false}
+                  onChange={onChangeRecursive}
+                />
+              </Tooltip>
+            }
+          </div>
+
       </div>
     ),
     onFilterDropdownVisibleChange: visible => {

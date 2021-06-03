@@ -22,11 +22,13 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "container__name",
     label: "Container Name",
+    recursive: true,
   },
   container__barcode: {
     type: FILTER_TYPE.INPUT,
     key: "container__barcode",
     label: "Container Barcode",
+    recursive: true,
   },
   coordinates: {
     type: FILTER_TYPE.INPUT,
