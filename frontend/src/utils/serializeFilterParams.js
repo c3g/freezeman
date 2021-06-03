@@ -41,9 +41,16 @@ export default function serializeFilterParams(filters, descriptions) {
 
         if (value.includes(',')) {
           key += "__in"
-        } else if (options?.exactMatch) {
-          key += "__startswith"
-        } else {
+        }
+        else if (options) {
+            if (options.recursiveMatch)
+                key += "__recursive"
+            else if (options.exactMatch)
+                key += "__startswith"
+            else
+                key += "__icontains"
+        }
+        else {
           key += "__icontains"
         }
 

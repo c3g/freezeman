@@ -70,6 +70,7 @@ class GenericResource(resources.ModelResource):
         else:
             row_result = self.get_row_result_class()()
             row_result.import_type = RowResult.IMPORT_TYPE_SKIP
+            row_result.warnings = []
         return row_result
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):

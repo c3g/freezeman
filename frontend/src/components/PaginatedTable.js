@@ -87,7 +87,7 @@ function PaginatedTable ({
         columns={columns}
         dataSource={hasUnloadedItems ? [] : dataSource}
         rowKey={rowKey}
-        loading={loading && isCurrentPageUnloaded}
+        loading={loading || isCurrentPageUnloaded}
         childrenColumnName={'UNEXISTENT_KEY'}
         onChange={onChangeTable}
       />

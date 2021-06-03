@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get(
-    'FREEZEMAN_SECRET_KEY',
+    'FMS_SECRET_KEY',
     '*c##1@2jo)b*_jk5+rdq%4r*sst+r&vhc^43ck900h-35fb-ly')
 
 
