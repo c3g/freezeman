@@ -1,6 +1,6 @@
 import React, {useRef} from "react";
 import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
-import {SearchOutlined} from "@ant-design/icons";
+import {SearchOutlined, InfoCircleOutlined} from "@ant-design/icons";
 import moment from 'moment';
 
 import {FILTER_TYPE, DATE_FORMAT} from "../../constants";
@@ -61,6 +61,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm }) => (
       <div style={{ padding: 8, alignItems: 'center' }}>
+        <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
           <Input
             ref={inputRef}
             allowClear
@@ -71,6 +72,12 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
             onPressEnter={confirm}
             onKeyDown={ev => onKeyDown(ev, confirm)}
           />
+          {description.batch &&
+             <Tooltip title="This field can be searched by batch">
+              <InfoCircleOutlined />
+            </Tooltip>
+          }
+        </div>
           <div style={{ padding: 8, alignItems: 'right' }}>
             <Tooltip title="Exact Match">
               <Switch
