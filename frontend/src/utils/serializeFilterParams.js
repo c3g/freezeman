@@ -38,17 +38,18 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
+        const isBatch = description.batch && value.includes(',')
 
-        if (value.includes(',')) {
+        if (isBatch) {
           key += "__in"
         }
         else if (options) {
-            if (options.recursiveMatch)
-                key += "__recursive"
-            else if (options.exactMatch)
-                key += "__startswith"
-            else
-                key += "__icontains"
+          if (options.recursiveMatch)
+              key += "__recursive"
+          else if (options.exactMatch)
+              key += "__startswith"
+          else
+              key += "__icontains"
         }
         else {
           key += "__icontains"
