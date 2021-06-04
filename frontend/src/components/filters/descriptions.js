@@ -12,17 +12,20 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   individual__name: {
     type: FILTER_TYPE.INPUT,
     key: "individual__name",
     label: "Individual Name",
+    batch: true,
   },
   container__name: {
     type: FILTER_TYPE.INPUT,
     key: "container__name",
     label: "Container Name",
     recursive: true,
+    batch: true,
   },
   container__barcode: {
     type: FILTER_TYPE.INPUT,
@@ -103,6 +106,7 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   kind: {
     type: FILTER_TYPE.SELECT,
@@ -120,6 +124,7 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
     label: "Sample name",
+    batch: true,
   },
 }
 
@@ -128,6 +133,7 @@ export const INDIVIDUAL_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   taxon: {
     type: FILTER_TYPE.SELECT,
@@ -174,11 +180,13 @@ export const PROCESS_MEASUREMENT_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "source_sample__name",
     label: "Source Sample",
+    batch: true,
   },
   lineage__child__name: {
     type: FILTER_TYPE.INPUT,
     key: "lineage__child__name",
     label: "Generated Sample",
+    batch: true,
   },
   execution_date: {
     type: FILTER_TYPE.DATE_RANGE,
