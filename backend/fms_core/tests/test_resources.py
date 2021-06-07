@@ -43,7 +43,7 @@ TEST_DATA_ROOT = Path(__file__).parent / "invalid_templates"
 CONTAINER_CREATION_CSV = APP_DATA_ROOT / "Container_creation_v3_2_0_B_A_1.csv"
 CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0_B_A_1.csv"
 CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0_B_A_1.csv"
-SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_2_0_B_A_1.csv"
+SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_3_0_B_A_1.csv"
 SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
 SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_1.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
@@ -90,6 +90,7 @@ class ResourcesTestCase(TestCase):
 
     def load_samples_extractions(self):
         self.load_samples()
+        self.load_containers()
         self.load_extractions()
 
     def load_samples_transfers(self):
@@ -153,8 +154,8 @@ class ResourcesTestCase(TestCase):
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
 
-        self.assertEqual(len(Sample.objects.all()), 6)
-        self.assertEqual(len(ExtractedSample.objects.all()), 2)
+        self.assertEqual(len(Sample.objects.all()), 7)
+        self.assertEqual(len(ExtractedSample.objects.all()), 3)
 
     def test_sample_extracted_from_version_count(self):
         self.load_samples()
@@ -173,10 +174,10 @@ class ResourcesTestCase(TestCase):
         # Test first extraction
         s = Sample.objects.get(container__barcode="tube003")
         sl = SampleLineage.objects.get(parent=s.extracted_from, child=s)
-        ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id)
+        ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id, lineage=sl)
         self.assertEqual(sl.process_measurement_id, ps.id)
         self.assertEqual('Extraction', ps.process.protocol.name)
-        self.assertEqual(s.extracted_from.volume, Decimal("9.000"))
+        self.assertEqual(s.extracted_from.volume, Decimal("7.000"))
         self.assertFalse(s.extracted_from.depleted)
 
     def test_second_sample_extraction_import(self):
@@ -184,18 +185,31 @@ class ResourcesTestCase(TestCase):
         # Test second extraction
         s = Sample.objects.get(container__barcode="tube004")
         sl = SampleLineage.objects.get(parent=s.extracted_from, child=s)
-        ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id)
+        ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id, lineage=sl)
         self.assertEqual(sl.process_measurement_id, ps.id)
         self.assertEqual('Extraction', ps.process.protocol.name)
         self.assertEqual(s.extracted_from.volume, Decimal("0.000"))
         self.assertTrue(s.extracted_from.depleted)
 
+    def test_third_sample_extraction_import(self):
+        self.load_samples_extractions()
+        # Test third extraction
+        s = Sample.objects.get(container__barcode="plate002", coordinates="C04")
+        sl = SampleLineage.objects.get(parent=s.extracted_from, child=s)
+        ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id, lineage=sl)
+        self.assertEqual(sl.process_measurement_id, ps.id)
+        self.assertEqual('Extraction', ps.process.protocol.name)
+        self.assertEqual(s.extracted_from.volume, Decimal("7.000"))
+        self.assertFalse(s.extracted_from.depleted)
+
     def test_sample_extractions_mapped_to_one_process(self):
         self.load_samples_extractions()
         s1 = Sample.objects.get(container__barcode="tube003")
-        ps1 = ProcessMeasurement.objects.get(source_sample_id=s1.extracted_from.id)
+        sl1 = SampleLineage.objects.get(parent=s1.extracted_from, child=s1)
+        ps1 = ProcessMeasurement.objects.get(source_sample_id=s1.extracted_from.id, lineage=sl1)
         s2 = Sample.objects.get(container__barcode="tube004")
-        ps2 = ProcessMeasurement.objects.get(source_sample_id=s2.extracted_from.id)
+        sl2 = SampleLineage.objects.get(parent=s2.extracted_from, child=s2)
+        ps2 = ProcessMeasurement.objects.get(source_sample_id=s2.extracted_from.id, lineage=sl2)
         self.assertEqual(ps1.process.id, ps2.process.id)
 
     def test_sample_transfer_to_new_container_import(self):

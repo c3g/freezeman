@@ -105,8 +105,6 @@ class TransferResource(GenericResource):
             self.fields_manually_excluded.extend(["name", "sample_kind", "collection_site", "individual", "concentration"])
 
         # This section creates the container if needed
-        get_normalized_str(data, "Destination Parent Container Barcode")
-
         parent = None
         destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
 

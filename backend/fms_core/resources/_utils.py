@@ -50,22 +50,34 @@ def remove_columns_from_preview(results, column_names: list):
 def add_column_to_preview(results, dataset, column_name: str, column_index: int = None):
     # Check if the column is already in the preview
     if column_name not in results.diff_headers:  # if absent,
-        if not column_index:  # insert at column_index (there is 2 columns that are inserted by default)
+        if not column_index:  # insert at the end
             results.diff_headers.append(column_name)
             for cnt, row in enumerate(results.rows):
                 if row.diff:
                     row.diff.append(dataset.dict[cnt][column_name])
-        else:  # or insert at the end
+        else:  # insert at column_index (there is 2 columns that are inserted by default)
             results.diff_headers.insert(column_index, column_name)
             index_column = column_index
             for cnt, row in enumerate(results.rows):
                 if row.diff:
                     row.diff.insert(index_column, dataset.dict[cnt][column_name])
-    else:  # If present, insert the values in the existing column
+    else:  # if column already present
         index_column = results.diff_headers.index(column_name)
-        for cnt, row in enumerate(results.rows):
-            if row.diff:
-                row.diff[index_column] = dataset.dict[cnt][column_name]
+        if column_index: # with specific position, remove and set position, else, use existing position
+            results.diff_headers.pop(index_column)
+            for cnt, row in enumerate(results.rows):
+                if row.diff:
+                    row.diff.pop(index_column)
+            results.diff_headers.insert(column_index, column_name)
+            index_column = column_index
+            for cnt, row in enumerate(results.rows):
+                if row.diff:
+                    row.diff.insert(index_column, dataset.dict[cnt][column_name])
+        else: # without specific position, use existing position
+            for cnt, row in enumerate(results.rows):
+                if row.diff:
+                    row.diff[index_column] = dataset.dict[cnt][column_name]
+            
     return results
 
 

@@ -32,7 +32,8 @@ class GenericResource(resources.ModelResource):
                 )
             except ValidationError as e:
                 errors = e.update_error_dict(errors)
-
+                
+        self.fields_manually_excluded = []
         if errors:
             raise ValidationError(errors)
 
