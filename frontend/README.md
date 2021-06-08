@@ -10,6 +10,15 @@ Install the dependencies in the project folder:
 npm install
 ```
 
+## Config
+
+Some env variables need to be set in order to configure the frontend behaviour.
+This can be done by creating .env file in the frontend directory.
+An example .env was included in the repo (example.env) in order to guide de creation of the file.
+
+Here are the variables to define :
+ - FMS_ENV
+
 ## Commands
 
 Here are the different commands for running the frontend:
