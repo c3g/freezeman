@@ -126,11 +126,19 @@ export const listSamples = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
     if (!container || container.isFetching) return;
 
+    const options = {container__barcode__recursive: container.barcode}
+
     return await dispatch(networkAction(
         LIST_SAMPLES,
-        api.containers.listSamples(id),
-        { meta: { id, samples: container.samples } }
+        api.samples.list(options),
+        { meta: { ...options, ignoreError: 'AbortError' } }
     ));
+
+    // return await dispatch(networkAction(
+    //     LIST_SAMPLES,
+    //     api.containers.listSamples(id),
+    //     { meta: { id, samples: container.samples } }
+    // ));
 };
 
 export const listKinds = () => async (dispatch, getState) => {
