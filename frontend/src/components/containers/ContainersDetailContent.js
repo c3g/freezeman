@@ -6,10 +6,11 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
+import ContainerTree from "./ContainerTree";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {get, listParents} from "../../modules/containers/actions";
+import {get, listParents, listChildrenRecursively, listSamplesRecursively} from "../../modules/containers/actions";
 import {withContainer, withSample} from "../../utils/withItem";
 
 const mapStateToProps = state => ({
@@ -32,8 +33,9 @@ const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, l
   if (!isLoaded)
     get(id);
 
-  if (isLoaded && !container.parents)
+  if (isLoaded && !container.parents) {
     listParents(id);
+  }
 
   return (
     <>

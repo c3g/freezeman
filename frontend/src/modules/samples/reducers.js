@@ -166,14 +166,32 @@ export const samples = (
          * NOTE: CONTAINERS.LIST_SAMPLES is handled in samples & containers
          */
         case CONTAINERS.LIST_SAMPLES.REQUEST: {
-            return { ...state, isFetching: true, };
+            const itemsByID = indexByID(
+                action.meta.samples.map(id => ({ id, isFetching: true })))
+            return merge(state, ['itemsByID'], itemsByID);
         }
         case CONTAINERS.LIST_SAMPLES.RECEIVE: {
+            return merge(state, ['itemsByID'], indexByID(action.data.map(preprocess)));
+        }
+        case CONTAINERS.LIST_SAMPLES.ERROR: {
+            const itemsByID =
+                action.meta.samples
+                    .reduce((acc, id) => (acc[id] = undefined, acc), {})
+            return merge(state, ['itemsByID'], itemsByID);
+        }
+
+        /*
+         * NOTE: CONTAINERS.LIST_SAMPLES_RECURSIVELY is handled in samples & containers
+         */
+        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.REQUEST: {
+            return { ...state, isFetching: true, };
+        }
+        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.RECEIVE: {
             const results = action.data.results.map(preprocess)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
-        case CONTAINERS.LIST_SAMPLES.ERROR: {
+        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.ERROR: {
             return { ...state, isFetching: false, error: action.error, };
         }
 
