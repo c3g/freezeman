@@ -214,11 +214,6 @@ export const containers = (
         isFetching: false,
         error: undefined,
       };
-      // const container = state.itemsByID[action.meta.id];
-      // const items = action.data.map(preprocess);
-      // const itemsByID = merge(state.itemsByID, [], indexByID(items))
-      // itemsByID[action.meta.id] = set(container, ['isFetching'], false);
-      // return merge(state, ['itemsByID'], itemsByID);
     }
     case CONTAINERS.LIST_CHILDREN_RECURSIVELY.ERROR:
       return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });

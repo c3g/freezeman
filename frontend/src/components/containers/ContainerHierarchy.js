@@ -15,7 +15,7 @@ import {
   CheckCircleTwoTone,
   CloseCircleTwoTone,
 } from "@ant-design/icons";
-import {get, listChildren, listSamples, listChildrenRecursively, listSamplesRecursively} from "../../modules/containers/actions";
+import {get, listChildren, listSamples} from "../../modules/containers/actions";
 import platform, * as PLATFORM from "../../utils/platform";
 import {withSample} from "../../utils/withItem";
 
@@ -63,16 +63,23 @@ const renderEntry = content =>
     {content}
   </span>;
 
-
-const renderSample = (sample, sampleKind) =>
-  renderEntry(
-    <Link to={`/samples/${sample.id}`}>
-      <b>{sample.name}</b> sample ({sampleKind}){' '}
-      {sample.coordinates &&
-        `@ ${sample.coordinates}`
-      }
-    </Link>
+const renderSample = (sample, sampleKind) => {
+  return (
+    <span style={entryStyle}>
+       <Link to={`/samples/${sample.id}`}>
+         {sample.depleted ?
+            <CloseCircleTwoTone twoToneColor="#eb2f96" /> :
+            <CheckCircleTwoTone twoToneColor="#52c41a" />
+         }
+         {' '}
+        <b>{sample.name}</b> sample ({sampleKind}){' '}
+        {sample.coordinates &&
+          `@ ${sample.coordinates}`
+        }
+      </Link>
+    </span>
   )
+}
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -80,9 +87,9 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {get, listChildren, listSamples, listChildrenRecursively, listSamplesRecursively};
+const actionCreators = {get, listChildren, listSamples};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listSamples, listChildrenRecursively, listSamplesRecursively}) => {
+const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listSamples}) => {
   if (!container || !container.parents)
     return <LoadingOutlined />;
 
@@ -105,14 +112,12 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
           {container.children?.length > 0 &&
             `(${container.children.length} children)`
           }
-
         </Text>{' '}
         {container.coordinates &&
           <Text type="secondary">
             @ {container.coordinates}
           </Text>
         }
-
         <Text type="secondary">
           {container.samples?.length > 0 &&
             ` [${container.samples.length} sample${container.samples.length === 1 ? '' : 's'}]`
@@ -120,25 +125,22 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
         </Text>
       </Link>
 
-      {container.samples?.map(sampleId => {
-        return <div>
-          {withSample(context.samplesByID, sampleId,
-              sample =>
-                  <span style={entryStyle}>
-                     <Link to={`/samples/${sample.id}`}>
-                      <b>{sample.name}</b> sample ({sample.sample_kind}){' '}
-                      {sample.coordinates &&
-                        `@ ${sample.coordinates}`
-                      }
-                    </Link>
-                  </span>
-              ,
-              <span style={entryStyle}>
-                <b>{sampleId}</b>{' '}<Text type="secondary">loading...</Text>
-              </span>
-          )}
-        </div>
-      })}
+      <ul>
+        {container.samples?.map(sampleId => {
+          const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
+          const sample = context.samplesByID[id]
+          const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
+          return <li>
+            { sample ?
+              renderSample(sample, sampleKind) :
+                <span style={entryStyle}>
+                  <b>{sampleId}</b>{' '}<Text type="secondary">loading...</Text>
+                </span>
+            }
+          </li>
+        })}
+      </ul>
+
     </span>;
 
   const buildContainerTreeFromPath = (context, path) => {
@@ -150,7 +152,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     const isExploded = context.explodedKeys[id] === true;
     const isLoaded = container && container.isLoaded;
     const isFetching = container && container.isFetching;
-    const samples = container.samples;
 
     if (!isLoaded)
       return loadingEntry(id);
@@ -182,7 +183,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       }
     }
 
-    const containerNode = [{
+    return [{
       key: container.id,
       url,
       icon,
@@ -190,8 +191,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       isLeaf: children.length === 0,
       children,
     }]
-
-    return containerNode;
   };
 
   const path = container.parents.concat([container.id]);
@@ -220,9 +219,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   }
 
   const onLoadData = async (node) => {
-    // await listChildrenRecursively(container.id)
-    // await listSamplesRecursively(container.id)
-
     if (isCollapsed(node.key))
       await expandCollapsedNode(node)
     else
