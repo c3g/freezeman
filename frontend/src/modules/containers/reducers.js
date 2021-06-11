@@ -182,7 +182,7 @@ export const containers = (
     case CONTAINERS.LIST_CHILDREN.ERROR:
       return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
 
-    /*
+     /*
      * NOTE: CONTAINERS.LIST_SAMPLES is handled in samples & containers
      */
     case CONTAINERS.LIST_SAMPLES.REQUEST:

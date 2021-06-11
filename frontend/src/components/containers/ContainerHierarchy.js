@@ -16,7 +16,6 @@ import {
   CloseCircleTwoTone,
 } from "@ant-design/icons";
 import {get, listChildren} from "../../modules/containers/actions";
-import {list as listContainerSamples} from "../../modules/samples/actions"
 import platform, * as PLATFORM from "../../utils/platform";
 import {withSample} from "../../utils/withItem";
 
@@ -88,9 +87,9 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {get, listChildren, listContainerSamples};
+const actionCreators = {get, listChildren};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listContainerSamples}) => {
+const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
   if (!container || !container.parents)
     return <LoadingOutlined />;
 
@@ -104,18 +103,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     explodedKeys,
   }
 
-  const loadSamples = async (containerId) => {
-    const response = await listContainerSamples({container: containerId})
-    const unorderedSamples = response.results
-
-    return unorderedSamples
-  }
-
   const renderContainer = container => {
-    if (container.samples.length > 0 && !context.samplesByID[container.samples[0]]) {
-      loadSamples(container.id)
-    }
-
     return (
         <span style={entryStyle}>
           <Link to={`/containers/${container.id}`}>
@@ -140,15 +128,17 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
 
           <ul>
             { container.samples?.map(sampleId => {
-              // const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
-              // const sample = context.samplesByID[id]
-              const sample = context.samplesByID[sampleId]
+              const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
+              const sample = context.samplesByID[id]
               const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
               return <li>
                 {sample ?
                     renderSample(sample, sampleKind) :
                     <span style={entryStyle}>
-                      <b>{sampleId}</b>{' '}<Text type="secondary">loading...</Text>
+                      <Link to={`/samples/${sampleId}`}> Sample </Link> {' '}
+                      <Text type="secondary">
+                        loading...
+                      </Text>
                     </span>
                 }
               </li>
@@ -214,9 +204,9 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   const expandCollapsedNode = async node => {
     const id = node.key.replace(/\$(children|samples)/, '');
     const hasChildren = node.key.endsWith('$children');
-    if (hasChildren) {
+    if (hasChildren)
       await listChildren(id, path);
-    }
+
     setExplodedKeys(set(explodedKeys, [id], true));
   }
 
@@ -231,7 +221,8 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   }
 
   const onLoadData = async (node) => {
-    if (isCollapsed(node.key))
+    const id = node.key
+    if (isCollapsed(id))
       await expandCollapsedNode(node)
     else
       await expandCollapsedChildren(node)

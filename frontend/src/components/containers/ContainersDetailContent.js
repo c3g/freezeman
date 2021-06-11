@@ -32,9 +32,9 @@ const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, l
   if (!isLoaded)
     get(id);
 
-  if (isLoaded && !container.parents) {
+  if (isLoaded && !container.parents)
     listParents(id);
-  }
+
 
   return (
     <>

@@ -150,7 +150,7 @@ export const listSamplesRecursively = (id) => async (dispatch, getState) => {
     const container = getState().containers.itemsByID[id];
     if (!container || container.isFetching) return;
 
-    const options = {container__barcode__recursive: container.barcode}
+    const options = {container__barcode__recursive: container.barcode, limit: 10000, offset: 0}
 
     return await dispatch(networkAction(
         LIST_SAMPLES_RECURSIVELY,
