@@ -46,6 +46,19 @@ const getIcon = container => {
 
 const isCollapsed = key => /\$(children|samples)/.test(key);
 
+const onClick = (e) => {
+  if (e) {
+    const nativeEvent = e.nativeEvent
+    const isMacOS = platform().os === PLATFORM.OS.MACOS
+    const isOpenInNewTab =
+      isMacOS ? nativeEvent.metaKey : nativeEvent.ctrlKey
+    if (isOpenInNewTab) {
+      const url = e.currentTarget.href
+      window.open(url)
+    }
+  }
+}
+
 const entryStyle = { marginLeft: '0.5em' };
 
 const loadingEntry = id => {
@@ -66,7 +79,7 @@ const renderEntry = content =>
 const renderSample = (sample, sampleKind) => {
   return (
     <span style={entryStyle}>
-       <Link to={`/samples/${sample.id}`}>
+       <Link to={`/samples/${sample.id}`} onClick={onClick}>
          {sample.depleted ?
             <CloseCircleTwoTone twoToneColor="#eb2f96" /> :
             <CheckCircleTwoTone twoToneColor="#52c41a" />
@@ -106,7 +119,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   const renderContainer = container => {
     return (
         <span style={entryStyle}>
-          <Link to={`/containers/${container.id}`}>
+          <Link to={`/containers/${container.id}`} onClick={onClick}>
             <b>{container.name}</b>{' '}
             <Text type="secondary">
               {container.kind}{' '}
@@ -135,7 +148,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
                 {sample ?
                     renderSample(sample, sampleKind) :
                     <span style={entryStyle}>
-                      <Link to={`/samples/${sampleId}`}> Sample </Link> {' '}
+                      <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}
                       <Text type="secondary">
                         loading...
                       </Text>
@@ -229,19 +242,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   }
 
 
-  const onSelect = (selectedKeys, { selected, node, event, nativeEvent }) => {
-    /* Only ctrl+click event seems to be disabled by ant,
-     * therefore we implement the behavior ourselves. */
-    if (event === 'select') {
-      const isMacOS = platform().os === PLATFORM.OS.MACOS
-      const isOpenInNewTab =
-        isMacOS ? nativeEvent.metaKey : nativeEvent.ctrlKey
-      if (isOpenInNewTab) {
-        window.open(node.url)
-      }
-    }
-  }
-
   return (
     <Tree
       showIcon
@@ -252,7 +252,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       treeData={tree}
       defaultExpandedKeys={container.parents}
       loadData={onLoadData}
-      onSelect={onSelect}
     />
   );
 };
