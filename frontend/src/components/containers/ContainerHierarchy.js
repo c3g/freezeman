@@ -15,8 +15,9 @@ import {
   CheckCircleTwoTone,
   CloseCircleTwoTone,
 } from "@ant-design/icons";
-import {get, listChildren, listSamples} from "../../modules/containers/actions";
+import {get, listChildren} from "../../modules/containers/actions";
 import platform, * as PLATFORM from "../../utils/platform";
+import {withSample} from "../../utils/withItem";
 
 const {Text} = Typography;
 
@@ -45,6 +46,19 @@ const getIcon = container => {
 
 const isCollapsed = key => /\$(children|samples)/.test(key);
 
+const onClick = (e) => {
+  if (e) {
+    const nativeEvent = e.nativeEvent
+    const isMacOS = platform().os === PLATFORM.OS.MACOS
+    const isOpenInNewTab =
+      isMacOS ? nativeEvent.metaKey : nativeEvent.ctrlKey
+    if (isOpenInNewTab) {
+      const url = e.currentTarget.href
+      window.open(url)
+    }
+  }
+}
+
 const entryStyle = { marginLeft: '0.5em' };
 
 const loadingEntry = id => {
@@ -62,123 +76,23 @@ const renderEntry = content =>
     {content}
   </span>;
 
-const renderContainer = container =>
-  <span style={entryStyle}>
-    <Link to={`/containers/${container.id}`}>
-      <b>{container.name}</b>{' '}
-      <Text type="secondary">
-        {container.kind}{' '}
-        {container.children?.length > 0 &&
-          `(${container.children.length} children)`
-        }
-      </Text>{' '}
-      {container.coordinates &&
-        <Text type="secondary">
-          @ {container.coordinates}
-        </Text>
-      }
-    </Link>
-  </span>;
-
-const renderSample = (sample, sampleKind) =>
-  renderEntry(
-    <Link to={`/samples/${sample.id}`}>
-      <b>{sample.name}</b> sample ({sampleKind}){' '}
-      {sample.coordinates &&
-        `@ ${sample.coordinates}`
-      }
-    </Link>
-  )
-
-const buildContainerTreeFromPath = (context, path) => {
-  if (path.length === 0)
-    return [];
-
-  const id = path[0];
-  const container = context.containersByID[id];
-  const isExploded = context.explodedKeys[id] === true;
-  const isLoaded = container && container.isLoaded;
-  const isFetching = container && container.isFetching;
-  const samples = container.samples;
-
-  if (!isLoaded)
-    return loadingEntry(id);
-
-  const url = `/containers/${container.id}`
-  const title = renderContainer(container);
-  const icon = getIcon(container);
-  const children = buildContainerTreeFromPath(context, path.slice(1));
-
-  const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
-  if (otherChildren.length) {
-    if (!isExploded) {
-      children.push({
-        key: `${container.id}$children`,
-        isLeaf: false,
-        icon: isFetching ? <LoadingOutlined /> : <EllipsisOutlined />,
-        title: renderEntry(
-          <Text type="secondary">
-            {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
-          </Text>
-        ),
-      });
-    }
-    else {
-      otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
-      children.push(...otherChildren.map(containerId =>
-        buildContainerTreeFromPath(context, [containerId])
-      ).flat());
-    }
-  }
-
-  if (samples.length) {
-    if (!isExploded) {
-      children.push({
-        key: `${container.id}$samples`,
-        isLeaf: false,
-        title: renderEntry(
-          <Text type="secondary">
-            {samples.length} sample{samples.length === 1 ? '' : 's'}{' '}
-          </Text>
-        ),
-        icon: <EllipsisOutlined />,
-      })
-    }
-    else {
-      const childrenSamples = samples.map(sampleId => {
-        const sample = context.samplesByID[sampleId];
-        if (!sample || sample.isFetching)
-          return loadingEntry(sampleId);
-        const sampleKind = context.sampleKinds.itemsByID[sample.sample_kind]?.name
-        return {
-          key: sampleId,
-          type: 'sample',
-          url: `/samples/${sampleId}`,
-          isLeaf: true,
-          icon: sample.depleted ?
+const renderSample = (sample, sampleKind) => {
+  return (
+    <span style={entryStyle}>
+       <Link to={`/samples/${sample.id}`} onClick={onClick}>
+         {sample.depleted ?
             <CloseCircleTwoTone twoToneColor="#eb2f96" /> :
-            <CheckCircleTwoTone twoToneColor="#52c41a" />,
-          title: renderSample(sample, sampleKind),
-        };
-      });
-      childrenSamples.sort((a, b) =>
-        compareCoordinates(
-          context.samplesByID[a.key],
-          context.samplesByID[b.key]
-        ));
-      children.push(...childrenSamples);
-    }
-  }
-
-  return [{
-    key: container.id,
-    url,
-    icon,
-    title,
-    isLeaf: children.length === 0,
-    children,
-  }];
-};
+            <CheckCircleTwoTone twoToneColor="#52c41a" />
+         }
+         {' '}
+        <b>{sample.name}</b> sample ({sampleKind}){' '}
+        {sample.coordinates &&
+          `@ ${sample.coordinates}`
+        }
+      </Link>
+    </span>
+  )
+}
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -186,9 +100,9 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {get, listChildren, listSamples};
+const actionCreators = {get, listChildren};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren, listSamples}) => {
+const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
   if (!container || !container.parents)
     return <LoadingOutlined />;
 
@@ -201,6 +115,102 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     sampleKinds,
     explodedKeys,
   }
+
+  const renderContainer = container => {
+    return (
+        <span style={entryStyle}>
+          <Link to={`/containers/${container.id}`} onClick={onClick}>
+            <b>{container.name}</b>{' '}
+            <Text type="secondary">
+              {container.kind}{' '}
+              {container.children?.length > 0 &&
+              `(${container.children.length} children)`
+              }
+            </Text>{' '}
+            {container.coordinates &&
+            <Text type="secondary">
+              @ {container.coordinates}
+            </Text>
+            }
+            <Text type="secondary">
+              {container.samples?.length > 0 &&
+              ` [${container.samples.length} sample${container.samples.length === 1 ? '' : 's'}]`
+              }
+            </Text>
+          </Link>
+
+          <ul>
+            { container.samples?.map(sampleId => {
+              const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
+              const sample = context.samplesByID[id]
+              const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
+              return <li>
+                {sample ?
+                    renderSample(sample, sampleKind) :
+                    <span style={entryStyle}>
+                      <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}
+                      <Text type="secondary">
+                        loading...
+                      </Text>
+                    </span>
+                }
+              </li>
+            })}
+          </ul>
+      </span>
+    )
+  }
+
+  const buildContainerTreeFromPath = (context, path) => {
+    if (path.length === 0)
+      return [];
+
+    const id = path[0];
+    const container = context.containersByID[id];
+    const isExploded = context.explodedKeys[id] === true;
+    const isLoaded = container && container.isLoaded;
+    const isFetching = container && container.isFetching;
+
+    if (!isLoaded)
+      return loadingEntry(id);
+
+    const url = `/containers/${container.id}`
+    const title = renderContainer(container);
+    const icon = getIcon(container);
+    const children = buildContainerTreeFromPath(context, path.slice(1));
+
+    const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
+    if (otherChildren.length) {
+      if (!isExploded) {
+        children.push({
+          key: `${container.id}$children`,
+          isLeaf: false,
+          icon: isFetching ? <LoadingOutlined /> : <EllipsisOutlined />,
+          title: renderEntry(
+            <Text type="secondary">
+              {otherChildren.length}{path.length === 1 ? '' : ' other'} container{otherChildren.length === 1 ? '' : 's'}{' '}
+            </Text>
+          ),
+        });
+      }
+      else {
+        otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
+        children.push(...otherChildren.map(containerId =>
+          buildContainerTreeFromPath(context, [containerId])
+        ).flat());
+      }
+    }
+
+    return [{
+      key: container.id,
+      url,
+      icon,
+      title,
+      isLeaf: children.length === 0,
+      children,
+    }]
+  };
+
   const path = container.parents.concat([container.id]);
   const tree = buildContainerTreeFromPath(context, path);
 
@@ -209,8 +219,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     const hasChildren = node.key.endsWith('$children');
     if (hasChildren)
       await listChildren(id, path);
-    else
-      await listSamples(id);
+
     setExplodedKeys(set(explodedKeys, [id], true));
   }
 
@@ -225,24 +234,13 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   }
 
   const onLoadData = async (node) => {
-    if (isCollapsed(node.key))
+    const id = node.key
+    if (isCollapsed(id))
       await expandCollapsedNode(node)
     else
       await expandCollapsedChildren(node)
   }
 
-  const onSelect = (selectedKeys, { selected, node, event, nativeEvent }) => {
-    /* Only ctrl+click event seems to be disabled by ant,
-     * therefore we implement the behavior ourselves. */
-    if (event === 'select') {
-      const isMacOS = platform().os === PLATFORM.OS.MACOS
-      const isOpenInNewTab =
-        isMacOS ? nativeEvent.metaKey : nativeEvent.ctrlKey
-      if (isOpenInNewTab) {
-        window.open(node.url)
-      }
-    }
-  }
 
   return (
     <Tree
@@ -254,7 +252,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       treeData={tree}
       defaultExpandedKeys={container.parents}
       loadData={onLoadData}
-      onSelect={onSelect}
     />
   );
 };

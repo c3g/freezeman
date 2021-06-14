@@ -3,7 +3,7 @@ import json
 from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User, Group
-from django.db.models import Count, Q, Func, F
+from django.db.models import Count, Q, Func, F, Prefetch
 from django.db.models.functions import Greatest
 from django.http.response import HttpResponseNotFound, HttpResponseBadRequest
 from rest_framework import viewsets, status
@@ -303,7 +303,9 @@ _process_measurement_filterset_fields: FiltersetFields = {
 }
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Container.objects.select_related("location").prefetch_related("children", "samples").all()
+    queryset = Container.objects.select_related("location").prefetch_related("children",
+                          Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
+
     serializer_class = ContainerSerializer
     filterset_fields = {
         **_container_filterset_fields,
@@ -407,6 +409,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         # TODO: Can be replaced by ?location=pk query param
         serializer = self.get_serializer(Container.objects.filter(location_id=pk), many=True)
         return Response(serializer.data)
+
 
     @action(detail=True, methods=["get"])
     def list_parents(self, _request, pk=None):
