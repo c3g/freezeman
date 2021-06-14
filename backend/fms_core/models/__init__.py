@@ -14,6 +14,7 @@ from .protocol import Protocol
 from .process import Process
 from .process_measurement import ProcessMeasurement
 from .platform import Platform
+from .instrument_type import InstrumentType
 from .instrument import Instrument
 
 __all__ = [
@@ -32,5 +33,6 @@ __all__ = [
     "Process",
     "ProcessMeasurement",
     "Platform",
-    "Instrument"
+    "InstrumentType",
+    "Instrument",
 ]

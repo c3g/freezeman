@@ -15,6 +15,7 @@ from ..models import (
     Protocol,
     SampleKind,
     SampleLineage,
+    InstrumentType,
     Instrument,
     Platform,
 )
@@ -615,7 +616,8 @@ class ProcessMeasurementTest(TestCase):
 
 class PlatformTest(TestCase):
     def setUp(self):
-        pass
+        self.name = "ILLUMINA"
+        self.platform, _ = Platform.get_or_create(name=self.name)
 
     def test_platform(self):
         name = "OXFORD_NANOPORE"
@@ -638,11 +640,45 @@ class PlatformTest(TestCase):
                 self.assertTrue('name' in e.message_dict)
                 raise e
 
+    def test_duplicate(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Platform.objects.create(name=self.name)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+class InstrumentTypeTest(TestCase):
+    def setUp(self):
+        pass
+
+    def test_instrument_type(self):
+        type = "MinION"
+        it = InstrumentType.objects.create(type=type)
+        self.assertEqual(it.type, type)
+
+    def test_missing_type(self):
+        with self.assertRaises(ValidationError):
+            try:
+                InstrumentType.objects.create()
+            except ValidationError as e:
+                self.assertTrue('type' in e.message_dict)
+                raise e
+
+    def test_incorrect_type(self):
+        with self.assertRaises(ValidationError):
+            try:
+                InstrumentType.objects.create(type="incorrect_type")
+            except ValidationError as e:
+                self.assertTrue('type' in e.message_dict)
+                raise e
+
+
 
 class InstrumentTest(TestCase):
     def setUp(self):
         self.platform, _ = Platform.objects.get_or_create(name="OXFORD_NANOPORE")
-        self.model = "MinION"
+        self.model, _ = InstrumentType.objects.get_or_create(type="MinION")
         self.instrument, _ = Instrument.objects.get_or_create(platform=self.platform,
                                                               name="Instrument1",
                                                               model=self.model)
@@ -664,7 +700,7 @@ class InstrumentTest(TestCase):
     def test_missing_name(self):
         with self.assertRaises(ValidationError):
             try:
-                Instrument.objects.create(platform=self.platform, model="MinION")
+                Instrument.objects.create(platform=self.platform, model=self.model)
             except ValidationError as e:
                 self.assertTrue('name' in e.message_dict)
                 raise e
@@ -689,21 +725,11 @@ class InstrumentTest(TestCase):
                 self.assertTrue('name' in e.message_dict)
                 raise e
 
-    def test_missing_model(self):
+    def test_missing_type(self):
         with self.assertRaises(ValidationError):
             try:
                 Instrument.objects.create(platform=self.platform,
                                           name="Instrument_missing_model")
             except ValidationError as e:
-                self.assertTrue('model' in e.message_dict)
-                raise e
-
-    def test_incorrect_model(self):
-        with self.assertRaises(ValidationError):
-            try:
-                Instrument.objects.create(platform=self.platform,
-                                          name="Instrument_incorrect_model",
-                                          model="incorrect model here")
-            except ValidationError as e:
-                self.assertTrue('model' in e.message_dict)
+                self.assertTrue('type' in e.message_dict)
                 raise e
