@@ -6,7 +6,18 @@ from django.utils import timezone
 import reversion
 import datetime
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
-from ..models import Container, Sample, Individual, Process, ProcessMeasurement, Protocol,SampleKind, SampleLineage
+from ..models import (
+    Container,
+    Sample,
+    Individual,
+    Process,
+    ProcessMeasurement,
+    Protocol,
+    SampleKind,
+    SampleLineage,
+    Instrument,
+    Platform,
+)
 from .constants import (
     create_container,
     create_individual,
@@ -600,4 +611,99 @@ class ProcessMeasurementTest(TestCase):
                                                   comment="Test comment")
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
+                raise e
+
+class PlatformTest(TestCase):
+    def setUp(self):
+        pass
+
+    def test_platform(self):
+        name = "OXFORD_NANOPORE"
+        p = Platform.objects.create(name=name)
+        self.assertEqual(p.name, name)
+
+    def test_missing_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Platform.objects.create()
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_incorrect_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Platform.objects.create(name="invalid_platform_name")
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+
+class InstrumentTest(TestCase):
+    def setUp(self):
+        self.platform, _ = Platform.objects.get_or_create(name="OXFORD_NANOPORE")
+        self.model = "MinION"
+        self.instrument, _ = Instrument.objects.get_or_create(platform=self.platform,
+                                                              name="Instrument1",
+                                                              model=self.model)
+
+    def test_instrument(self):
+        name = "Test"
+        i = Instrument.objects.create(platform=self.platform, name=name, model=self.model)
+        self.assertEqual(i.name, name)
+        self.assertEqual(i.model, self.model)
+
+    def test_missing_platform(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(model=self.model, name="Instrument_missing_platform")
+            except ValidationError as e:
+                self.assertTrue('platform' in e.message_dict)
+                raise e
+
+    def test_missing_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform, model="MinION")
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_invalid_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="name with spaces, and comma",
+                                          model=self.model)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_duplicate_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="Instrument1",
+                                          model=self.model)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_missing_model(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="Instrument_missing_model")
+            except ValidationError as e:
+                self.assertTrue('model' in e.message_dict)
+                raise e
+
+    def test_incorrect_model(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="Instrument_incorrect_model",
+                                          model="incorrect model here")
+            except ValidationError as e:
+                self.assertTrue('model' in e.message_dict)
                 raise e
