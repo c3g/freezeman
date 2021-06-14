@@ -13,7 +13,7 @@ from ..utils import str_cast_and_normalize
 
 from .tracked_model import TrackedModel
 
-from ._constants import BARCODE_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
 from ._validators import name_validator, container_barcode_validator
 
@@ -33,10 +33,10 @@ class Container(TrackedModel):
                   "properties."
     )
 
-    name = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH,
+    name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="Unique name for the container.",
                             validators=[name_validator])
-    barcode = models.CharField(unique=True, max_length=BARCODE_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
+    barcode = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
                                validators=[container_barcode_validator])
 
     # In which container is this container located? i.e. its parent.
