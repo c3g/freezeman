@@ -410,26 +410,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         serializer = self.get_serializer(Container.objects.filter(location_id=pk), many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["get"])
-    def list_children_recursively(self, _request, pk=None):
-        """
-        Lists all containers that are direct or undirect children of a specified container.
-        """
-
-        queryset = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
-                                                               SELECT id, location_id
-                                                               FROM fms_core_container
-                                                               WHERE id = %s
-
-                                                               UNION ALL
-
-                                                               SELECT child.id, child.location_id
-                                                               FROM fms_core_container AS child, parent
-                                                               WHERE child.location_id = parent.id
-                                                           )
-                                                           SELECT * FROM parent''', [pk])
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
     @action(detail=True, methods=["get"])
     def list_parents(self, _request, pk=None):

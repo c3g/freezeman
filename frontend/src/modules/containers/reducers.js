@@ -192,43 +192,6 @@ export const containers = (
     case CONTAINERS.LIST_SAMPLES.ERROR:
       return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
-
-    case CONTAINERS.LIST_CHILDREN_RECURSIVELY.REQUEST:
-       return { ...state, isFetching: true };
-
-    case CONTAINERS.LIST_CHILDREN_RECURSIVELY.RECEIVE: {
-      const totalCount = action.data.count;
-      const hasChanged = state.totalCount !== action.data.count;
-      const currentItems = hasChanged ? [] : state.items;
-      const results = action.data.map(preprocess);
-      const itemsByID = merge(state.itemsByID, [], indexByID(results))
-      const container = state.itemsByID[action.meta.id];
-      itemsByID[action.meta.id] = set(container, ['isFetching'], false);
-      const itemsID = results.map(r => r.id)
-      const items = mergeArray(currentItems, action.meta.offset, itemsID)
-      return {
-        ...state,
-        itemsByID,
-        items,
-        totalCount,
-        isFetching: false,
-        error: undefined,
-      };
-    }
-    case CONTAINERS.LIST_CHILDREN_RECURSIVELY.ERROR:
-      return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true });
-
-
-    /*
-     * NOTE: CONTAINERS.LIST_SAMPLES_RECURSIVELY is handled in samples & containers
-     */
-    case CONTAINERS.LIST_SAMPLES_RECURSIVELY.REQUEST:
-      return merge(state, ['itemsByID', action.meta.id], { isFetching: true });
-    case CONTAINERS.LIST_SAMPLES_RECURSIVELY.RECEIVE:
-      return merge(state, ['itemsByID', action.meta.id], { isFetching: false });
-    case CONTAINERS.LIST_SAMPLES_RECURSIVELY.ERROR:
-      return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
-
     default:
       return state;
   }

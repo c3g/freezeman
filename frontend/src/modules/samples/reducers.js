@@ -180,21 +180,6 @@ export const samples = (
             return merge(state, ['itemsByID'], itemsByID);
         }
 
-        /*
-         * NOTE: CONTAINERS.LIST_SAMPLES_RECURSIVELY is handled in samples & containers
-         */
-        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.REQUEST: {
-            return { ...state, isFetching: true, };
-        }
-        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.RECEIVE: {
-            const results = action.data.results.map(preprocess)
-            const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, isFetching: false, error: undefined };
-        }
-        case CONTAINERS.LIST_SAMPLES_RECURSIVELY.ERROR: {
-            return { ...state, isFetching: false, error: action.error, };
-        }
-
         default:
             return state;
     }

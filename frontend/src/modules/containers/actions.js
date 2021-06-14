@@ -17,8 +17,6 @@ export const LIST_TABLE = createNetworkActionTypes("CONTAINERS.LIST_TABLE");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
 export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
-export const LIST_CHILDREN_RECURSIVELY = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN_RECURSIVELY")
-export const LIST_SAMPLES_RECURSIVELY = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES_RECURSIVELY");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("CONTAINERS.LIST_TEMPLATE_ACTIONS");
 export const SUMMARY = createNetworkActionTypes("CONTAINERS.SUMMARY");
@@ -135,30 +133,6 @@ export const listSamples = (id) => async (dispatch, getState) => {
     ));
 };
 
-export const listChildrenRecursively = (id, excludes = []) => async (dispatch, getState) => {
-    const container = getState().containers.itemsByID[id];
-    if (!container || container.isFetching) return;
-
-    return await dispatch(networkAction(
-        LIST_CHILDREN_RECURSIVELY,
-        api.containers.listChildrenRecursively(id),
-        { meta: { id, excludes } }
-    ));
-};
-
-export const listSamplesRecursively = (id) => async (dispatch, getState) => {
-    const container = getState().containers.itemsByID[id];
-    if (!container || container.isFetching) return;
-
-    const options = {container__barcode__recursive: container.barcode, limit: 10000, offset: 0}
-
-    return await dispatch(networkAction(
-        LIST_SAMPLES_RECURSIVELY,
-        api.samples.list(options),
-        { meta: { ...options, ignoreError: 'AbortError' } }
-    ));
-};
-
 export const listKinds = () => async (dispatch, getState) => {
     // Check if we're already fetching or have fetched container kinds first (they won't change dynamically.)
     if (getState().containerKinds.isFetching || getState().containerKinds.items.length > 0)
@@ -186,9 +160,7 @@ export default {
     LIST_TABLE,
     LIST_PARENTS,
     LIST_CHILDREN,
-    LIST_CHILDREN_RECURSIVELY,
     LIST_SAMPLES,
-    LIST_SAMPLES_RECURSIVELY,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
     SUMMARY,
@@ -204,8 +176,6 @@ export default {
     listParents,
     listChildren,
     listSamples,
-    listChildrenRecursively,
-    listSamplesRecursively,
     listKinds,
     listTemplateActions,
     summary,
