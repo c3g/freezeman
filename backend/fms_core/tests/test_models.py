@@ -617,7 +617,7 @@ class ProcessMeasurementTest(TestCase):
 class PlatformTest(TestCase):
     def setUp(self):
         self.name = "ILLUMINA"
-        self.platform, _ = Platform.get_or_create(name=self.name)
+        self.platform, _ = Platform.objects.get_or_create(name=self.name)
 
     def test_platform(self):
         name = "OXFORD_NANOPORE"
@@ -678,21 +678,21 @@ class InstrumentTypeTest(TestCase):
 class InstrumentTest(TestCase):
     def setUp(self):
         self.platform, _ = Platform.objects.get_or_create(name="OXFORD_NANOPORE")
-        self.model, _ = InstrumentType.objects.get_or_create(type="MinION")
+        self.type, _ = InstrumentType.objects.get_or_create(type="MinION")
         self.instrument, _ = Instrument.objects.get_or_create(platform=self.platform,
                                                               name="Instrument1",
-                                                              model=self.model)
+                                                              type=self.type)
 
     def test_instrument(self):
         name = "Test"
-        i = Instrument.objects.create(platform=self.platform, name=name, model=self.model)
+        i = Instrument.objects.create(platform=self.platform, name=name, type=self.type)
         self.assertEqual(i.name, name)
-        self.assertEqual(i.model, self.model)
+        self.assertEqual(i.type, self.type)
 
     def test_missing_platform(self):
         with self.assertRaises(ValidationError):
             try:
-                Instrument.objects.create(model=self.model, name="Instrument_missing_platform")
+                Instrument.objects.create(type=self.type, name="Instrument_missing_platform")
             except ValidationError as e:
                 self.assertTrue('platform' in e.message_dict)
                 raise e
@@ -700,7 +700,7 @@ class InstrumentTest(TestCase):
     def test_missing_name(self):
         with self.assertRaises(ValidationError):
             try:
-                Instrument.objects.create(platform=self.platform, model=self.model)
+                Instrument.objects.create(platform=self.platform, type=self.type)
             except ValidationError as e:
                 self.assertTrue('name' in e.message_dict)
                 raise e
@@ -710,7 +710,7 @@ class InstrumentTest(TestCase):
             try:
                 Instrument.objects.create(platform=self.platform,
                                           name="name with spaces, and comma",
-                                          model=self.model)
+                                          type=self.type)
             except ValidationError as e:
                 self.assertTrue('name' in e.message_dict)
                 raise e
@@ -720,7 +720,7 @@ class InstrumentTest(TestCase):
             try:
                 Instrument.objects.create(platform=self.platform,
                                           name="Instrument1",
-                                          model=self.model)
+                                          type=self.type)
             except ValidationError as e:
                 self.assertTrue('name' in e.message_dict)
                 raise e
