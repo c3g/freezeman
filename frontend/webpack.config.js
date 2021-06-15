@@ -8,7 +8,7 @@ const fs = require('fs');
 const child_process = require('child_process')
 const dotenv = require('dotenv');
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
 module.exports = (env, argv) => ({
   entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
