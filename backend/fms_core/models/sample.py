@@ -23,7 +23,7 @@ from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
 
-from ._constants import BARCODE_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
 from ._validators import name_validator
 
@@ -117,7 +117,7 @@ class Sample(TrackedModel):
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT,
                                     help_text="Biological material collected from study subject "
                                               "during the conduct of a genomic study project.")
-    name = models.CharField(max_length=BARCODE_NAME_FIELD_LENGTH, validators=[name_validator],
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")

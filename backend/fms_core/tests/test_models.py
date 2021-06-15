@@ -6,7 +6,19 @@ from django.utils import timezone
 import reversion
 import datetime
 from ..containers import NON_SAMPLE_CONTAINER_KINDS
-from ..models import Container, Sample, Individual, Process, ProcessMeasurement, Protocol,SampleKind, SampleLineage
+from ..models import (
+    Container,
+    Sample,
+    Individual,
+    Process,
+    ProcessMeasurement,
+    Protocol,
+    SampleKind,
+    SampleLineage,
+    InstrumentType,
+    Instrument,
+    Platform,
+)
 from .constants import (
     create_container,
     create_individual,
@@ -600,4 +612,117 @@ class ProcessMeasurementTest(TestCase):
                                                   comment="Test comment")
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
+                raise e
+
+class PlatformTest(TestCase):
+    def setUp(self):
+        self.name = "Platform1"
+        self.platform, _ = Platform.objects.get_or_create(name=self.name)
+
+    def test_platform(self):
+        name = "NameFortest_platform"
+        p = Platform.objects.create(name=name)
+        self.assertEqual(p.name, name)
+
+    def test_missing_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Platform.objects.create()
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_duplicate(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Platform.objects.create(name=self.name)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+class InstrumentTypeTest(TestCase):
+    def setUp(self):
+        self.type = "TestType"
+        self.instrument_type, _ = InstrumentType.objects.get_or_create(type=self.type)
+
+    def test_instrument_type(self):
+        type = "Type2"
+        it = InstrumentType.objects.create(type=type)
+        self.assertEqual(it.type, type)
+
+    def test_missing_type(self):
+        with self.assertRaises(ValidationError):
+            try:
+                InstrumentType.objects.create()
+            except ValidationError as e:
+                self.assertTrue('type' in e.message_dict)
+                raise e
+
+    def test_duplicate_type(self):
+        with self.assertRaises(ValidationError):
+            try:
+                InstrumentType.objects.create(type=self.type)
+            except ValidationError as e:
+                self.assertTrue('type' in e.message_dict)
+                raise e
+
+
+class InstrumentTest(TestCase):
+    def setUp(self):
+        self.platform, _ = Platform.objects.get_or_create(name="PlatformTest")
+        self.type, _ = InstrumentType.objects.get_or_create(type="MyType")
+        self.name = "Instrument1"
+        self.instrument, _ = Instrument.objects.get_or_create(platform=self.platform,
+                                                              name=self.name,
+                                                              type=self.type)
+
+    def test_instrument(self):
+        name = "InstrumentTest"
+        i = Instrument.objects.create(platform=self.platform, name=name, type=self.type)
+        self.assertEqual(i.name, name)
+        self.assertEqual(i.type, self.type)
+
+    def test_missing_platform(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(type=self.type, name="Instrument_missing_platform")
+            except ValidationError as e:
+                self.assertTrue('platform' in e.message_dict)
+                raise e
+
+    def test_missing_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform, type=self.type)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_invalid_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="name with spaces, and comma",
+                                          type=self.type)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_duplicate_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name=self.name,
+                                          type=self.type)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
+
+    def test_missing_type(self):
+        with self.assertRaises(ValidationError):
+            try:
+                Instrument.objects.create(platform=self.platform,
+                                          name="Instrument_missing_type")
+            except ValidationError as e:
+                self.assertTrue('type' in e.message_dict)
                 raise e
