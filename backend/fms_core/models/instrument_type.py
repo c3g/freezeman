@@ -13,7 +13,8 @@ __all__ = ["InstrumentType"]
 
 @reversion.register()
 class InstrumentType(TrackedModel):
-    type = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
+    type = models.CharField(unique=True,
+                            max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="The product make. Acceptable values are listed at the ENA: https:\/\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument")
 
     def clean(self):

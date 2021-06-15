@@ -178,6 +178,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('type', models.CharField(
+                    unique=True,
                     help_text='The product make. Acceptable values are listed at the ENA: https:\\/\\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument',
                     max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
