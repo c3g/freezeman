@@ -5,9 +5,13 @@ from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.auth.models import User
+import reversion
 import re
 import json
 
+
+ADMIN_USERNAME='biobankadmin'
 
 def rename_process_sample_versions(apps, schema_editor):
     '''
@@ -25,6 +29,87 @@ def rename_process_sample_versions(apps, schema_editor):
         version.serialized_data = json.dumps(data)
 
         version.save()
+
+
+def create_platforms_and_instrument_types(apps, schema_editor):
+    Platform = apps.get_model("fms_core", "Platform")
+    InstrumentType = apps.get_model("fms_core", "InstrumentType")
+
+    PLATFORM_NAMES = [
+        "LS454",
+        "ILLUMINA",
+        "PACBIO_SMRT",
+        "ION_TORRENT",
+        "CAPILLARY",
+        "OXFORD_NANOPORE",
+        "BGISEQ",
+        "DNBSEQ"
+    ]
+
+    INSTRUMENT_TYPES = [
+        "454 GS",
+        "454 GS 20",
+        "454 GS FLX",
+        "454 GS FLX+",
+        "454 GS FLX Titanium",
+        "454 GS Junior",
+        "HiSeq X Five",
+        "HiSeq X Ten",
+        "Illumina Genome Analyzer",
+        "Illumina Genome Analyzer II",
+        "Illumina Genome Analyzer IIx",
+        "Illumina HiScanSQ",
+        "Illumina HiSeq 1000",
+        "Illumina HiSeq 1500",
+        "Illumina HiSeq 2000",
+        "Illumina HiSeq 2500",
+        "Illumina HiSeq 3000",
+        "Illumina HiSeq 4000",
+        "Illumina iSeq 100",
+        "Illumina MiSeq",
+        "Illumina MiniSeq",
+        "Illumina NovaSeq 6000",
+        "NextSeq 500",
+        "NextSeq 550",
+        "PacBio RS",
+        "PacBio RS II",
+        "Sequel",
+        "Ion Torrent PGM",
+        "Ion Torrent Proton",
+        "Ion Torrent S5",
+        "Ion Torrent S5 XL",
+        "AB 3730xL Genetic Analyzer",
+        "AB 3730 Genetic Analyzer",
+        "AB 3500xL Genetic Analyzer",
+        "AB 3500 Genetic Analyzer",
+        "AB 3130xL Genetic Analyzer",
+        "AB 3130 Genetic Analyzer",
+        "AB 310 Genetic Analyzer",
+        "MinION",
+        "GridION",
+        "PromethION",
+        "BGISEQ-500",
+        "DNBSEQ-T7",
+        "DNBSEQ-G400",
+        "DNBSEQ-G50",
+        "DNBSEQ-G400 FAST"
+    ]
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+    admin_user_id = admin_user.id
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Fill with initial platforms and instrument types")
+        reversion.set_user(admin_user)
+
+        for name in PLATFORM_NAMES:
+            p = Platform(name=name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            p.save()
+            reversion.add_to_revision(p)
+
+        for type in INSTRUMENT_TYPES:
+            it = InstrumentType(type=type, created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            it.save()
+            reversion.add_to_revision(it)
 
 
 class Migration(migrations.Migration):
@@ -72,9 +157,6 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('name', models.CharField(
-                    choices=[('LS454', 'LS454'), ('ILLUMINA', 'ILLUMINA'), ('PACBIO_SMRT', 'PACBIO_SMRT'),
-                             ('ION_TORRENT', 'ION_TORRENT'), ('CAPILLARY', 'CAPILLARY'),
-                             ('OXFORD_NANOPORE', 'OXFORD_NANOPORE'), ('BGISEQ', 'BGISEQ'), ('DNBSEQ', 'DNBSEQ')],
                     help_text='This technology used to measure the library. Acceptable values are listed at the ENA: https:\\/\\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#platform',
                     max_length=200, unique=True)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
@@ -96,34 +178,6 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('type', models.CharField(
-                    choices=[('454 GS', '454 GS'), ('454 GS 20', '454 GS 20'), ('454 GS FLX', '454 GS FLX'),
-                             ('454 GS FLX+', '454 GS FLX+'), ('454 GS FLX Titanium', '454 GS FLX Titanium'),
-                             ('454 GS Junior', '454 GS Junior'), ('HiSeq X Five', 'HiSeq X Five'),
-                             ('HiSeq X Ten', 'HiSeq X Ten'), ('Illumina Genome Analyzer', 'Illumina Genome Analyzer'),
-                             ('Illumina Genome Analyzer II', 'Illumina Genome Analyzer II'),
-                             ('Illumina Genome Analyzer IIx', 'Illumina Genome Analyzer IIx'),
-                             ('Illumina HiScanSQ', 'Illumina HiScanSQ'), ('Illumina HiSeq 1000', 'Illumina HiSeq 1000'),
-                             ('Illumina HiSeq 1500', 'Illumina HiSeq 1500'),
-                             ('Illumina HiSeq 2000', 'Illumina HiSeq 2000'),
-                             ('Illumina HiSeq 2500', 'Illumina HiSeq 2500'),
-                             ('Illumina HiSeq 3000', 'Illumina HiSeq 3000'),
-                             ('Illumina HiSeq 4000', 'Illumina HiSeq 4000'), ('Illumina iSeq 100', 'Illumina iSeq 100'),
-                             ('Illumina MiSeq', 'Illumina MiSeq'), ('Illumina MiniSeq', 'Illumina MiniSeq'),
-                             ('Illumina NovaSeq 6000', 'Illumina NovaSeq 6000'), ('NextSeq 500', 'NextSeq 500'),
-                             ('NextSeq 550', 'NextSeq 550'), ('PacBio RS', 'PacBio RS'),
-                             ('PacBio RS II', 'PacBio RS II'), ('Sequel', 'Sequel'),
-                             ('Ion Torrent PGM', 'Ion Torrent PGM'), ('Ion Torrent Proton', 'Ion Torrent Proton'),
-                             ('Ion Torrent S5', 'Ion Torrent S5'), ('Ion Torrent S5 XL', 'Ion Torrent S5 XL'),
-                             ('AB 3730xL Genetic Analyzer', 'AB 3730xL Genetic Analyzer'),
-                             ('AB 3730 Genetic Analyzer', 'AB 3730 Genetic Analyzer'),
-                             ('AB 3500xL Genetic Analyzer', 'AB 3500xL Genetic Analyzer'),
-                             ('AB 3500 Genetic Analyzer', 'AB 3500 Genetic Analyzer'),
-                             ('AB 3130xL Genetic Analyzer', 'AB 3130xL Genetic Analyzer'),
-                             ('AB 3130 Genetic Analyzer', 'AB 3130 Genetic Analyzer'),
-                             ('AB 310 Genetic Analyzer', 'AB 310 Genetic Analyzer'), ('MinION', 'MinION'),
-                             ('GridION', 'GridION'), ('PromethION', 'PromethION'), ('BGISEQ-500', 'BGISEQ-500'),
-                             ('DNBSEQ-T7', 'DNBSEQ-T7'), ('DNBSEQ-G400', 'DNBSEQ-G400'), ('DNBSEQ-G50', 'DNBSEQ-G50'),
-                             ('DNBSEQ-G400 FAST', 'DNBSEQ-G400 FAST'), ('unspecified', 'unspecified')],
                     help_text='The product make. Acceptable values are listed at the ENA: https:\\/\\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument',
                     max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
@@ -162,6 +216,10 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
+        ),
+        migrations.RunPython(
+            create_platforms_and_instrument_types,
+            reverse_code=migrations.RunPython.noop,
         ),
 
     ]

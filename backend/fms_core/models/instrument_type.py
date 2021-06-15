@@ -10,62 +10,11 @@ from ._utils import add_error as _add_error
 
 __all__ = ["InstrumentType"]
 
-INSTRUMENT_MODEL_CHOICES = [
-    "454 GS",
-    "454 GS 20",
-    "454 GS FLX",
-    "454 GS FLX+",
-    "454 GS FLX Titanium",
-    "454 GS Junior",
-    "HiSeq X Five",
-    "HiSeq X Ten",
-    "Illumina Genome Analyzer",
-    "Illumina Genome Analyzer II",
-    "Illumina Genome Analyzer IIx",
-    "Illumina HiScanSQ",
-    "Illumina HiSeq 1000",
-    "Illumina HiSeq 1500",
-    "Illumina HiSeq 2000",
-    "Illumina HiSeq 2500",
-    "Illumina HiSeq 3000",
-    "Illumina HiSeq 4000",
-    "Illumina iSeq 100",
-    "Illumina MiSeq",
-    "Illumina MiniSeq",
-    "Illumina NovaSeq 6000",
-    "NextSeq 500",
-    "NextSeq 550",
-    "PacBio RS",
-    "PacBio RS II",
-    "Sequel",
-    "Ion Torrent PGM",
-    "Ion Torrent Proton",
-    "Ion Torrent S5",
-    "Ion Torrent S5 XL",
-    "AB 3730xL Genetic Analyzer",
-    "AB 3730 Genetic Analyzer",
-    "AB 3500xL Genetic Analyzer",
-    "AB 3500 Genetic Analyzer",
-    "AB 3130xL Genetic Analyzer",
-    "AB 3130 Genetic Analyzer",
-    "AB 310 Genetic Analyzer",
-    "MinION",
-    "GridION",
-    "PromethION",
-    "BGISEQ-500",
-    "DNBSEQ-T7",
-    "DNBSEQ-G400",
-    "DNBSEQ-G50",
-    "DNBSEQ-G400 FAST",
-    "unspecified"
-]
-
 
 @reversion.register()
 class InstrumentType(TrackedModel):
-    type = models.CharField(choices=tuple((i, i) for i in INSTRUMENT_MODEL_CHOICES),
-                             max_length=STANDARD_NAME_FIELD_LENGTH,
-                             help_text="The product make. Acceptable values are listed at the ENA: https:\/\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument")
+    type = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
+                            help_text="The product make. Acceptable values are listed at the ENA: https:\/\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument")
 
     def clean(self):
         super().clean()
