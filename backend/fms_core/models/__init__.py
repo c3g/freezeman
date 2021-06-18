@@ -16,6 +16,8 @@ from .process_measurement import ProcessMeasurement
 from .platform import Platform
 from .instrument_type import InstrumentType
 from .instrument import Instrument
+from .experiment_type import ExperimentType
+from .experiment_run import ExperimentRun
 
 __all__ = [
     "Container",
@@ -35,4 +37,6 @@ __all__ = [
     "Platform",
     "InstrumentType",
     "Instrument",
+    "ExperimentType",
+    "ExperimentRun",
 ]
