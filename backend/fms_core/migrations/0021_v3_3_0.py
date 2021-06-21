@@ -223,4 +223,53 @@ class Migration(migrations.Migration):
             reverse_code=migrations.RunPython.noop,
         ),
 
+        # ExperimentRun and ExperimentType models
+        migrations.CreateModel(
+            name='ExperimentType',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('workflow',
+                 models.CharField(help_text='Placeholder for a future workflow model implementation.', max_length=200,
+                                  unique=True, validators=[
+                         django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_experimenttype_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_experimenttype_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='ExperimentRun',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('container', models.ForeignKey(help_text='Container', on_delete=django.db.models.deletion.PROTECT,
+                                                related_name='experiment_runs', to='fms_core.container')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_experimentrun_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('experiment_type',
+                 models.ForeignKey(help_text='Experiment type', on_delete=django.db.models.deletion.PROTECT,
+                                   related_name='experiment_runs', to='fms_core.experimenttype')),
+                ('instrument', models.ForeignKey(help_text='Instrument', on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='experiment_runs', to='fms_core.instrument')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_experimentrun_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+
     ]
