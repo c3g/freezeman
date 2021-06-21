@@ -8,12 +8,13 @@ class ExperimentRunTest(TestCase):
     def setUp(self):
         self.experiment_workflow = "WorkflowTest"
         self.experiment_type, _ = ExperimentType.objects.get_or_create(workflow=self.experiment_workflow)
+
         self.container, _ = Container.objects.get_or_create(**create_container(barcode="Flowcell1212testtest"))
-        instrument_platform, _ = Platform.objects.get_or_create(name="PlatformTest")
-        instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest")
+
+        platform, _ = Platform.objects.get_or_create(name="PlatformTest")
+        instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest", platform=platform)
         self.instrument_name = "Instrument1"
-        self.instrument, _ = Instrument.objects.get_or_create(platform=instrument_platform,
-                                                              name=self.instrument_name,
+        self.instrument, _ = Instrument.objects.get_or_create(name=self.instrument_name,
                                                               type=instrument_type)
 
 

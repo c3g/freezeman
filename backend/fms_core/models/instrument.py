@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .tracked_model import TrackedModel
-from .platform import Platform
 from .instrument_type import InstrumentType
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
@@ -15,7 +14,6 @@ __all__ = ["Instrument"]
 
 @reversion.register()
 class Instrument(TrackedModel):
-    platform = models.ForeignKey(Platform, on_delete=models.PROTECT, related_name="instruments", help_text="Platform")
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="Unique name for the instrument instance.",
                             validators=[name_validator])

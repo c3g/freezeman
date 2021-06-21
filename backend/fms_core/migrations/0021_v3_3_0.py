@@ -35,65 +35,70 @@ def create_platforms_and_instrument_types(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
 
-    PLATFORM_NAMES = [
-        "LS454",
-        "ILLUMINA",
-        "PACBIO_SMRT",
-        "ION_TORRENT",
-        "CAPILLARY",
-        "OXFORD_NANOPORE",
-        "BGISEQ",
-        "DNBSEQ"
-    ]
+    INSTRUMENT_TYPES_BY_PLATFORM = {
+        "LS454": ["454 GS",
+                  "454 GS 20",
+                  "454 GS FLX",
+                  "454 GS FLX+",
+                  "454 GS FLX Titanium",
+                  "454 GS Junior",
+                  ],
 
-    INSTRUMENT_TYPES = [
-        "454 GS",
-        "454 GS 20",
-        "454 GS FLX",
-        "454 GS FLX+",
-        "454 GS FLX Titanium",
-        "454 GS Junior",
-        "HiSeq X Five",
-        "HiSeq X Ten",
-        "Illumina Genome Analyzer",
-        "Illumina Genome Analyzer II",
-        "Illumina Genome Analyzer IIx",
-        "Illumina HiScanSQ",
-        "Illumina HiSeq 1000",
-        "Illumina HiSeq 1500",
-        "Illumina HiSeq 2000",
-        "Illumina HiSeq 2500",
-        "Illumina HiSeq 3000",
-        "Illumina HiSeq 4000",
-        "Illumina iSeq 100",
-        "Illumina MiSeq",
-        "Illumina MiniSeq",
-        "Illumina NovaSeq 6000",
-        "NextSeq 500",
-        "NextSeq 550",
-        "PacBio RS",
-        "PacBio RS II",
-        "Sequel",
-        "Ion Torrent PGM",
-        "Ion Torrent Proton",
-        "Ion Torrent S5",
-        "Ion Torrent S5 XL",
-        "AB 3730xL Genetic Analyzer",
-        "AB 3730 Genetic Analyzer",
-        "AB 3500xL Genetic Analyzer",
-        "AB 3500 Genetic Analyzer",
-        "AB 3130xL Genetic Analyzer",
-        "AB 3130 Genetic Analyzer",
-        "AB 310 Genetic Analyzer",
-        "MinION",
-        "GridION",
-        "PromethION",
-        "BGISEQ-500",
-        "DNBSEQ-T7",
-        "DNBSEQ-G400",
-        "DNBSEQ-G50",
-        "DNBSEQ-G400 FAST"
-    ]
+        "ILLUMINA": ["HiSeq X Five",
+                     "HiSeq X Ten",
+                     "Illumina Genome Analyzer",
+                     "Illumina Genome Analyzer II",
+                     "Illumina Genome Analyzer IIx",
+                     "Illumina HiScanSQ",
+                     "Illumina HiSeq 1000",
+                     "Illumina HiSeq 1500",
+                     "Illumina HiSeq 2000",
+                     "Illumina HiSeq 2500",
+                     "Illumina HiSeq 3000",
+                     "Illumina HiSeq 4000",
+                     "Illumina iSeq 100",
+                     "Illumina MiSeq",
+                     "Illumina MiniSeq",
+                     "Illumina NovaSeq 6000",
+                     "NextSeq 500",
+                     "NextSeq 550",
+                     ],
+
+        "PACBIO_SMRT": ["PacBio RS",
+                        "PacBio RS II",
+                        "Sequel",
+                        ],
+
+        "ION_TORRENT": ["Ion Torrent PGM",
+                        "Ion Torrent Proton",
+                        "Ion Torrent S5",
+                        "Ion Torrent S5 XL",
+                        ],
+
+        "CAPILLARY": ["AB 3730xL Genetic Analyzer",
+                      "AB 3730 Genetic Analyzer",
+                      "AB 3500xL Genetic Analyzer",
+                      "AB 3500 Genetic Analyzer",
+                      "AB 3130xL Genetic Analyzer",
+                      "AB 3130 Genetic Analyzer",
+                      "AB 310 Genetic Analyzer",
+                      ],
+
+        "OXFORD_NANOPORE": ["MinION",
+                            "GridION",
+                            "PromethION",
+                            ],
+
+        "BGISEQ": ["BGISEQ-500",],
+
+        "DNBSEQ": ["DNBSEQ-T7",
+                   "DNBSEQ-G400",
+                   "DNBSEQ-G50",
+                   "DNBSEQ-G400 FAST",
+                   ],
+    }
+
+
     admin_user = User.objects.get(username=ADMIN_USERNAME)
     admin_user_id = admin_user.id
 
@@ -101,15 +106,18 @@ def create_platforms_and_instrument_types(apps, schema_editor):
         reversion.set_comment("Fill with initial platforms and instrument types")
         reversion.set_user(admin_user)
 
-        for name in PLATFORM_NAMES:
+        for name in INSTRUMENT_TYPES_BY_PLATFORM.keys():
             p = Platform(name=name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
             p.save()
             reversion.add_to_revision(p)
 
-        for type in INSTRUMENT_TYPES:
-            it = InstrumentType(type=type, created_by_id=admin_user_id, updated_by_id=admin_user_id)
-            it.save()
-            reversion.add_to_revision(it)
+            for instrument_type in INSTRUMENT_TYPES_BY_PLATFORM[name]:
+                it = InstrumentType(type=instrument_type,
+                                    platform=p,
+                                    created_by_id=admin_user_id,
+                                    updated_by_id=admin_user_id)
+                it.save()
+                reversion.add_to_revision(it)
 
 
 class Migration(migrations.Migration):
@@ -181,6 +189,8 @@ class Migration(migrations.Migration):
                     unique=True,
                     help_text='The product make. Acceptable values are listed at the ENA: https:\\/\\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument',
                     max_length=200)),
+                ('platform', models.ForeignKey(help_text='Platform', on_delete=django.db.models.deletion.PROTECT,
+                                               related_name='instrument_types', to='fms_core.platform')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_instrumenttype_creation',
                                                  to=settings.AUTH_USER_MODEL)),
@@ -206,8 +216,6 @@ class Migration(migrations.Migration):
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_instrument_creation',
                                                  to=settings.AUTH_USER_MODEL)),
-                ('platform', models.ForeignKey(help_text='Platform', on_delete=django.db.models.deletion.PROTECT,
-                                               related_name='instruments', to='fms_core.platform')),
                 ('type', models.ForeignKey(help_text='Instrument type', on_delete=django.db.models.deletion.PROTECT,
                                            related_name='instruments', to='fms_core.instrumenttype')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
