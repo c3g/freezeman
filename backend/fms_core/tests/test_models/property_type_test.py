@@ -39,11 +39,11 @@ class PropertyTypeTest(TestCase):
                 raise e
 
     def test_invalid_content_object(self):
-        name = "Test_invalid_value_type"
+        name = "Test invalid content object"
         content_object = Container.objects.create(**create_container(barcode='INVALIDPROPERTYTYPE'))
         with self.assertRaises(ValidationError):
             try:
-                PropertyType.objects.create(name=name, value_type="invalid_content_object", content_object=content_object)
+                PropertyType.objects.create(name=name, value_type="str", content_object=content_object)
             except ValidationError as e:
                 self.assertTrue('content_object' in e.message_dict)
                 raise e
@@ -52,7 +52,7 @@ class PropertyTypeTest(TestCase):
         content_object = self.protocol
         with self.assertRaises(ValidationError):
             try:
-                PropertyType.objects.create(value_type="invalid_content_object", content_object=content_object)
+                PropertyType.objects.create(value_type="str", content_object=content_object)
             except ValidationError as e:
                 self.assertTrue('name' in e.message_dict)
                 raise e
@@ -71,7 +71,7 @@ class PropertyTypeTest(TestCase):
         name = "missing_content_object"
         with self.assertRaises(ValidationError):
             try:
-                PropertyType.objects.create(name=name, value_type="invalid_content_object")
+                PropertyType.objects.create(name=name, value_type="str")
             except ValidationError as e:
                 self.assertTrue('content_type' in e.message_dict)
                 raise e

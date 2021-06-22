@@ -18,8 +18,8 @@ class PropertyValueTest(TestCase):
         content_object = self.process
         value = 10.1
         property_type_with_float = PropertyType.objects.create(name="PropertyNameTestFloat",
-                                                                            value_type="float",
-                                                                            content_object=self.protocol)
+                                                               value_type="float",
+                                                               content_object=self.protocol)
         pv = PropertyValue.objects.create(value=value,
                                           property_type=property_type_with_float,
                                           content_object=content_object)
@@ -35,7 +35,7 @@ class PropertyValueTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 PropertyValue.objects.create(value=[value, value],
-                                             property_type=self.property_type_with_int,
+                                             property_type=self.property_type_with_str,
                                              content_object=content_object)
             except ValidationError as e:
                 self.assertTrue('value' in e.message_dict)
