@@ -290,8 +290,8 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('name', models.CharField(help_text='The name of the property', max_length=200, validators=[
-                    django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('name', models.CharField(help_text='The name of the property', max_length=200, unique=True, validators=[
+                    django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
                 ('value_type',
                  models.CharField(choices=[('int', 'int'), ('float', 'float'), ('bool', 'bool'), ('str', 'str')],
                                   help_text='Enumerated type to define value type', max_length=20)),

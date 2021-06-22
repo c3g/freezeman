@@ -6,15 +6,27 @@ from fms_core.tests.constants import create_container
 class PropertyTypeTest(TestCase):
     def setUp(self):
         self.protocol, _ = Protocol.objects.get_or_create(name="ProtocolTest")
+        self.name = "First property type"
+        self.property_type = PropertyType.objects.create(name=self.name,
+                                                         value_type="str",
+                                                         content_object=self.protocol)
 
     def test_property_type(self):
-        name = "Test_property_type"
+        name = "Test property type"
         content_object = self.protocol
         pt = PropertyType.objects.create(name=name,
                                          value_type="str",
                                          content_object=content_object)
         self.assertEqual(pt.name, name)
         self.assertEqual(pt.content_object, content_object)
+
+    def test_duplicate_name(self):
+        with self.assertRaises(ValidationError):
+            try:
+                PropertyType.objects.create(name=self.name, value_type="str", content_object=self.protocol)
+            except ValidationError as e:
+                self.assertTrue('name' in e.message_dict)
+                raise e
 
     def test_invalid_value_type(self):
         name = "Test_invalid_value_type"

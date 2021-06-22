@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from .tracked_model import TrackedModel
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
-from ._validators import name_validator
+from ._validators import name_validator_with_spaces
 from ._utils import add_error as _add_error
 
 __all__ = ["PropertyType"]
@@ -19,7 +19,8 @@ VALUE_TYPE_CHOICES = ['int', 'float', 'bool', 'str']
 class PropertyType(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="The name of the property",
-                            validators=[name_validator])
+                            unique=True,
+                            validators=[name_validator_with_spaces])
 
     value_type = models.CharField(
         max_length=20,
