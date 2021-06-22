@@ -3,6 +3,7 @@ from rest_framework import routers
 from .viewsets import (
     ContainerKindViewSet,
     ContainerViewSet,
+    ExperimentRunViewSet,
     IndividualViewSet,
     QueryViewSet,
     SampleViewSet,
@@ -20,6 +21,7 @@ __all__ = ["router"]
 router = routers.DefaultRouter()
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
+router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
 router.register(r"process-measurements", ProcessMeasurementViewSet)

@@ -9,6 +9,7 @@ from .models import (
     Container,
     ContainerMove,
     ContainerRename,
+    ExperimentRun,
     Sample,
     SampleKind,
     SampleLineage,
@@ -23,6 +24,7 @@ from .resources import (
     ContainerResource,
     ContainerMoveResource,
     ContainerRenameResource,
+    ExperimentRunResource,
     SampleResource,
     SampleKindResource,
     SampleUpdateResource,
@@ -35,6 +37,7 @@ from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
     CONTAINER_MOVE_TEMPLATE,
     CONTAINER_RENAME_TEMPLATE,
+    EXPERIMENT_INFINIUM_TEMPLATE,
     SAMPLE_EXTRACTION_TEMPLATE,
     SAMPLE_SUBMISSION_TEMPLATE,
     SAMPLE_UPDATE_TEMPLATE,
@@ -371,6 +374,28 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+@admin.register(ExperimentRun)
+class ExperimentRunAdmin(CustomImportMixin, admin.ModelAdmin):
+    resource_class = ExperimentRunResource
+    actions = None
+    list_display_links = None
+
+    def changelist_view(self, request, extra_context=None):
+        return super().changelist_view(request, extra_context={
+            "title": "Experiment run test",
+            "submission_template": EXPERIMENT_INFINIUM_TEMPLATE,
+        })
+
+    def get_queryset(self, request):
+        return super().get_queryset(request) # empty
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 
 class ProtocolForm(forms.ModelForm):

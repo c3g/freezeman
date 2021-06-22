@@ -15,11 +15,23 @@ from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from .models import Container, Sample, Individual, SampleKind, Protocol, ProcessMeasurement, Process, SampleLineage
+from .models import (
+    Container,
+    ExperimentRun,
+    Individual,
+    Process,
+    ProcessMeasurement,
+    Protocol,
+    Sample,
+    SampleKind,
+    SampleLineage,
+)
+
 from .resources import (
     ContainerResource,
     ContainerMoveResource,
     ContainerRenameResource,
+    ExperimentRunResource,
     ExtractionResource,
     TransferResource,
     SampleResource,
@@ -28,6 +40,7 @@ from .resources import (
 from .serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
+    ExperimentRunSerializer,
     SampleKindSerializer,
     ProtocolSerializer,
     ProcessMeasurementSerializer,
@@ -45,6 +58,7 @@ from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
     CONTAINER_MOVE_TEMPLATE,
     CONTAINER_RENAME_TEMPLATE,
+    EXPERIMENT_INFINIUM_TEMPLATE,
     SAMPLE_EXTRACTION_TEMPLATE,
     SAMPLE_TRANSFER_TEMPLATE,
     SAMPLE_SUBMISSION_TEMPLATE,
@@ -849,3 +863,18 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     filterset_fields = _group_filterset_fields
+
+
+class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+    queryset = ExperimentRun.objects.all()
+
+    serializer_class = ExperimentRunSerializer
+
+    template_action_list = [
+        {
+            "name": "Experiment Run",
+            "description": "Upload the provided template with experiment run information.",
+            "template": EXPERIMENT_INFINIUM_TEMPLATE,
+            "resource": ExperimentRunResource,
+        },
+    ]
