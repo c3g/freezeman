@@ -16,13 +16,17 @@ class PropertyValueTest(TestCase):
 
     def test_property_value(self):
         content_object = self.process
-        value = "myvalue"
+        value = 10.1
+        property_type_with_float = PropertyType.objects.create(name="PropertyNameTestFloat",
+                                                                            value_type="float",
+                                                                            content_object=self.protocol)
         pv = PropertyValue.objects.create(value=value,
-                                          property_type=self.property_type_with_str,
+                                          property_type=property_type_with_float,
                                           content_object=content_object)
 
-        self.assertEqual(pv.property_type, self.property_type_with_str)
+        self.assertEqual(pv.property_type, property_type_with_float)
         self.assertEqual(pv.content_object, content_object)
+        self.assertEqual(pv.value, value)
         self.assertEqual(type(pv.value).__name__, pv.property_type.value_type)
 
     def test_incorrect_json_value_schema(self):
