@@ -29,3 +29,28 @@ class PropertyType(TrackedModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        def add_error(field: str, error: str):
+            _add_error(errors, field, ValidationError(error))
+
+
+        if self.content_object:
+            # Check if the content_object is an instance of one of the permitted classes
+            permitted_class_names = ['Protocol']
+            content_object_class_name = self.content_object.__class__.__name__
+            if content_object_class_name not in permitted_class_names:
+                add_error("content_object", f"Object instance of {content_object_class_name} not permitted. Permitted classes are {permitted_class_names}")
+
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        # Normalize and validate before saving, always!
+        self.full_clean()
+        super().save(*args, **kwargs)  # Save the object
