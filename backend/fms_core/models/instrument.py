@@ -12,6 +12,7 @@ from ._utils import add_error as _add_error
 
 __all__ = ["Instrument"]
 
+
 @reversion.register()
 class Instrument(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,

@@ -13,6 +13,7 @@ import json
 
 ADMIN_USERNAME='biobankadmin'
 
+
 def rename_process_sample_versions(apps, schema_editor):
     '''
         In Versions, even though the content_type__model is changed from ProcessSample to ProcessMeasurement,
@@ -36,68 +37,69 @@ def create_platforms_and_instrument_types(apps, schema_editor):
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
 
     INSTRUMENT_TYPES_BY_PLATFORM = {
-        "LS454": ["454 GS",
-                  "454 GS 20",
-                  "454 GS FLX",
-                  "454 GS FLX+",
-                  "454 GS FLX Titanium",
-                  "454 GS Junior",
-                  ],
+        "LS454": [ "454 GS",
+                   "454 GS 20",
+                   "454 GS FLX",
+                   "454 GS FLX+",
+                   "454 GS FLX Titanium",
+                   "454 GS Junior",
+                 ],
 
-        "ILLUMINA": ["HiSeq X Five",
-                     "HiSeq X Ten",
-                     "Illumina Genome Analyzer",
-                     "Illumina Genome Analyzer II",
-                     "Illumina Genome Analyzer IIx",
-                     "Illumina HiScanSQ",
-                     "Illumina HiSeq 1000",
-                     "Illumina HiSeq 1500",
-                     "Illumina HiSeq 2000",
-                     "Illumina HiSeq 2500",
-                     "Illumina HiSeq 3000",
-                     "Illumina HiSeq 4000",
-                     "Illumina iSeq 100",
-                     "Illumina MiSeq",
-                     "Illumina MiniSeq",
-                     "Illumina NovaSeq 6000",
-                     "NextSeq 500",
-                     "NextSeq 550",
+        "ILLUMINA": [ "HiSeq X Five",
+                      "HiSeq X Ten",
+                      "Illumina Genome Analyzer",
+                      "Illumina Genome Analyzer II",
+                      "Illumina Genome Analyzer IIx",
+                      "Illumina HiScanSQ",
+                      "Illumina HiSeq 1000",
+                      "Illumina HiSeq 1500",
+                      "Illumina HiSeq 2000",
+                      "Illumina HiSeq 2500",
+                      "Illumina HiSeq 3000",
+                      "Illumina HiSeq 4000",
+                      "Illumina iSeq 100",
+                      "Illumina MiSeq",
+                      "Illumina MiniSeq",
+                      "Illumina NovaSeq 6000",
+                      "NextSeq 500",
+                      "NextSeq 550",
+                    ],
+
+        "ILLUMINA_ARRAY": [ "iScan System", ],
+
+        "PACBIO_SMRT": [ "PacBio RS",
+                         "PacBio RS II",
+                         "Sequel",
+                       ],
+
+        "ION_TORRENT": [ "Ion Torrent PGM",
+                         "Ion Torrent Proton",
+                         "Ion Torrent S5",
+                         "Ion Torrent S5 XL",
+                       ],
+
+        "CAPILLARY": [ "AB 3730xL Genetic Analyzer",
+                       "AB 3730 Genetic Analyzer",
+                       "AB 3500xL Genetic Analyzer",
+                       "AB 3500 Genetic Analyzer",
+                       "AB 3130xL Genetic Analyzer",
+                       "AB 3130 Genetic Analyzer",
+                       "AB 310 Genetic Analyzer",
                      ],
 
-        "PACBIO_SMRT": ["PacBio RS",
-                        "PacBio RS II",
-                        "Sequel",
-                        ],
+        "OXFORD_NANOPORE": [ "MinION",
+                             "GridION",
+                             "PromethION",
+                           ],
 
-        "ION_TORRENT": ["Ion Torrent PGM",
-                        "Ion Torrent Proton",
-                        "Ion Torrent S5",
-                        "Ion Torrent S5 XL",
-                        ],
+        "BGISEQ": [ "BGISEQ-500",],
 
-        "CAPILLARY": ["AB 3730xL Genetic Analyzer",
-                      "AB 3730 Genetic Analyzer",
-                      "AB 3500xL Genetic Analyzer",
-                      "AB 3500 Genetic Analyzer",
-                      "AB 3130xL Genetic Analyzer",
-                      "AB 3130 Genetic Analyzer",
-                      "AB 310 Genetic Analyzer",
-                      ],
-
-        "OXFORD_NANOPORE": ["MinION",
-                            "GridION",
-                            "PromethION",
-                            ],
-
-        "BGISEQ": ["BGISEQ-500",],
-
-        "DNBSEQ": ["DNBSEQ-T7",
-                   "DNBSEQ-G400",
-                   "DNBSEQ-G50",
-                   "DNBSEQ-G400 FAST",
-                   ],
+        "DNBSEQ": [ "DNBSEQ-T7",
+                    "DNBSEQ-G400",
+                    "DNBSEQ-G50",
+                    "DNBSEQ-G400 FAST",
+                  ],
     }
-
 
     admin_user = User.objects.get(username=ADMIN_USERNAME)
     admin_user_id = admin_user.id
@@ -118,6 +120,57 @@ def create_platforms_and_instrument_types(apps, schema_editor):
                                     updated_by_id=admin_user_id)
                 it.save()
                 reversion.add_to_revision(it)
+
+
+def create_instruments(apps, schema_editor):
+    InstrumentType = apps.get_model("fms_core", "InstrumentType")
+    Instrument = apps.get_model("fms_core", "Instrument")
+    
+    # Instrument dictionary {NAME: TYPE} for creation
+    INSTRUMENTS = {
+        "iScan_1": "iScan System",
+    }
+
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+    admin_user_id = admin_user.id
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Populate instruments")
+        reversion.set_user(admin_user)
+
+        for name in INSTRUMENTS.keys():
+            it = InstrumentType.objects.get(type=INSTRUMENTS[name])
+            i = Instrument.objects.create(name=name,
+                                          type=it,
+                                          created_by_id=admin_user_id,
+                                          updated_by_id=admin_user_id)
+            reversion.add_to_revision(i)
+
+
+def create_infinium_protocols(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+
+    PROTOCOLS = [ "Illumina Infinium Preparation",
+                  "Infinium: Amplification",
+                  "Infinium: Fragmentation",
+                  "Infinium: Precipitation",
+                  "Infinium: Hybridization",
+                  "Infinium: Wash Beadchip",
+                  "Infinium: Extend and Stain",
+                  "Infinium: Scan Preparation"]
+
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+    admin_user_id = admin_user.id
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Creates protocols for Infinium Experiment")
+        reversion.set_user(admin_user)
+        
+        for name in PROTOCOLS:
+            p = Protocol.objects.create(name=name,
+                                        created_by_id=admin_user_id,
+                                        updated_by_id=admin_user_id)
+            reversion.add_to_revision(p)
 
 
 class Migration(migrations.Migration):
@@ -230,6 +283,10 @@ class Migration(migrations.Migration):
             create_platforms_and_instrument_types,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.RunPython(
+            create_instruments,
+            reverse_code=migrations.RunPython.noop,
+        ),
 
         # ExperimentRun and ExperimentType models
         migrations.CreateModel(
@@ -271,6 +328,7 @@ class Migration(migrations.Migration):
                                    related_name='experiment_runs', to='fms_core.experimenttype')),
                 ('instrument', models.ForeignKey(help_text='Instrument', on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='experiment_runs', to='fms_core.instrument')),
+                ('start_date', models.DateField(help_text='Date the run was started.')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_experimentrun_modification',
                                                  to=settings.AUTH_USER_MODEL)),
@@ -280,4 +338,14 @@ class Migration(migrations.Migration):
             },
         ),
 
+        # Parent process, creation of Infinium protocol and sub-protocols
+        migrations.AddField(
+            model_name='process',
+            name='parent_process',
+            field=models.ForeignKey(blank=True, help_text='Process in which this sub-process is contained', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='child_process', to='fms_core.process'),
+        ),
+        migrations.RunPython(
+            create_infinium_protocols,
+            reverse_code=migrations.RunPython.noop,
+        ),
     ]
