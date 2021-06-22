@@ -35,10 +35,19 @@ class PropertyValue(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        value_type = type(self.value).__name__
-        property_type_value_type = self.property_type.value_type
-        if value_type != property_type_value_type:
-            add_error("value", f"Value type {value_type} does not match property type {property_type_value_type}")
+        if self.property_type:
+            # Check if the property value data type matches the property type 'value_type' attribute
+            value_type = type(self.value).__name__
+            property_type_value_type = self.property_type.value_type
+            if value_type != property_type_value_type:
+                add_error("value", f"Value type {value_type} does not match property type {property_type_value_type}")
+
+        if self.content_object:
+            # Check if the content_object is an instance of one of the permitted classes
+            permitted_class_names = ['Process', 'ProcessMeasurement']
+            content_object_class_name = self.content_object.__class__.__name__
+            if content_object_class_name not in permitted_class_names:
+                add_error("content_object", f"Object instance of {content_object_class_name} not permitted. Permitted classes are {permitted_class_names}")
 
 
         if errors:
