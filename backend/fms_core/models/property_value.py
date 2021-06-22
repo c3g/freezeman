@@ -24,7 +24,7 @@ class PropertyValue(TrackedModel):
     property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_type",
                                   help_text="Property type")
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 

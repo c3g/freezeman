@@ -27,7 +27,7 @@ class PropertyType(TrackedModel):
         choices=((type, type) for type in VALUE_TYPE_CHOICES),
         help_text="Enumerated type to define value type"
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
