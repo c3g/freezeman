@@ -23,7 +23,7 @@ class ExperimentRunTest(TestCase):
         my_experiment_run = ExperimentRun.objects.create(experiment_type=self.experiment_type,
                                                          container=self.container,
                                                          instrument=self.instrument,
-                                                         start_date = self.start_date)
+                                                         start_date=self.start_date)
         self.assertEqual(my_experiment_run.experiment_type.workflow, self.experiment_workflow)                                               
         self.assertEqual(my_experiment_run.container.barcode, "Flowcell1212testtest")
         self.assertEqual(my_experiment_run.instrument.name, self.instrument_name)
@@ -34,7 +34,7 @@ class ExperimentRunTest(TestCase):
             try:
                 er_without_et = ExperimentRun.objects.create(container=self.container,
                                                              instrument=self.instrument,
-                                                             start_date = self.start_date)
+                                                             start_date=self.start_date)
             except ValidationError as e:
                 self.assertTrue("experiment_type" in e.message_dict)
                 raise e
@@ -44,7 +44,7 @@ class ExperimentRunTest(TestCase):
             try:
                 er_without_container = ExperimentRun.objects.create(experiment_type=self.experiment_type,
                                                                     instrument=self.instrument,
-                                                                    start_date = self.start_date)
+                                                                    start_date=self.start_date)
             except ValidationError as e:
                 self.assertTrue("container" in e.message_dict)
                 raise e
@@ -54,7 +54,7 @@ class ExperimentRunTest(TestCase):
             try:
                 er_without_instrument = ExperimentRun.objects.create(container=self.container,
                                                                      experiment_type=self.experiment_type,
-                                                                     start_date = self.start_date)
+                                                                     start_date=self.start_date)
             except ValidationError as e:
                 self.assertTrue("instrument" in e.message_dict)
                 raise e
