@@ -27,7 +27,9 @@ class PropertyType(TrackedModel):
         choices=((type, type) for type in VALUE_TYPE_CHOICES),
         help_text="Enumerated type to define value type"
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+
+    content_type_choices = models.Q(app_label = 'fms_core', model = 'protocol')
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, limit_choices_to=content_type_choices)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
@@ -38,15 +40,6 @@ class PropertyType(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
-
-
-        if self.content_object:
-            # Check if the content_object is an instance of one of the permitted classes
-            permitted_class_names = ['Protocol']
-            content_object_class_name = self.content_object.__class__.__name__
-            if content_object_class_name not in permitted_class_names:
-                add_error("content_object", f"Object instance of {content_object_class_name} not permitted. Permitted classes are {permitted_class_names}")
-
 
         if errors:
             raise ValidationError(errors)

@@ -290,14 +290,16 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('name', models.CharField(help_text='The name of the property', max_length=200, unique=True, validators=[
-                    django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
+                ('name', models.CharField(help_text='The name of the property', max_length=200, unique=True,
+                                          validators=[django.core.validators.RegexValidator(
+                                              re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
                 ('value_type',
                  models.CharField(choices=[('int', 'int'), ('float', 'float'), ('bool', 'bool'), ('str', 'str')],
                                   help_text='Enumerated type to define value type', max_length=20)),
                 ('object_id', models.PositiveIntegerField()),
                 ('content_type',
-                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.contenttype')),
+                 models.ForeignKey(limit_choices_to=models.Q(('app_label', 'fms_core'), ('model', 'protocol')),
+                                   on_delete=django.db.models.deletion.PROTECT, to='contenttypes.contenttype')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_propertytype_creation',
                                                  to=settings.AUTH_USER_MODEL)),
@@ -309,6 +311,7 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+
         migrations.CreateModel(
             name='PropertyValue',
             fields=[
@@ -323,8 +326,11 @@ class Migration(migrations.Migration):
                          'title': 'PropertyValue value schema', 'type': ['number', 'string', 'boolean']},
                         formats=['date-time'])], verbose_name='Property value')),
                 ('object_id', models.PositiveIntegerField()),
-                ('content_type',
-                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='contenttypes.contenttype')),
+                ('content_type', models.ForeignKey(
+                    limit_choices_to=models.Q(models.Q(('app_label', 'fms_core'), ('model', 'process')),
+                                              models.Q(('app_label', 'fms_core'), ('model', 'processmeasurement')),
+                                              _connector='OR'), on_delete=django.db.models.deletion.PROTECT,
+                    to='contenttypes.contenttype')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_propertyvalue_creation',
                                                  to=settings.AUTH_USER_MODEL)),
@@ -339,5 +345,6 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+
 
     ]

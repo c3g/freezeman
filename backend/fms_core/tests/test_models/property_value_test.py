@@ -91,8 +91,8 @@ class PropertyValueTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 PropertyValue.objects.create(value=value,
-                                             property_type=self.property_type_with_int,
+                                             property_type=self.property_type_with_str,
                                              content_object=content_object)
             except ValidationError as e:
-                self.assertTrue('content_object' in e.message_dict)
+                self.assertTrue('content_type' in e.message_dict)
                 raise e

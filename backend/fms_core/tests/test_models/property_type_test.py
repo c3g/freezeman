@@ -45,7 +45,7 @@ class PropertyTypeTest(TestCase):
             try:
                 PropertyType.objects.create(name=name, value_type="str", content_object=content_object)
             except ValidationError as e:
-                self.assertTrue('content_object' in e.message_dict)
+                self.assertTrue('content_type' in e.message_dict)
                 raise e
 
     def test_missing_name(self):
