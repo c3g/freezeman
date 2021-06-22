@@ -10,6 +10,8 @@ import reversion
 import re
 import json
 
+import fms_core.schema_validators
+
 
 ADMIN_USERNAME='biobankadmin'
 
@@ -273,6 +275,64 @@ class Migration(migrations.Migration):
                                                  related_name='experiment_runs', to='fms_core.instrument')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_experimentrun_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+
+        # PropertyType and PropertyValue
+        migrations.CreateModel(
+            name='PropertyType',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('name', models.CharField(help_text='The name of the property', max_length=200, validators=[
+                    django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('value_type',
+                 models.CharField(choices=[('int', 'int'), ('float', 'float'), ('bool', 'bool'), ('str', 'str')],
+                                  help_text='Enumerated type to define value type', max_length=20)),
+                ('object_id', models.PositiveIntegerField()),
+                ('content_type',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_propertytype_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_propertytype_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='PropertyValue',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('value', models.JSONField(help_text='Property value', validators=[
+                    fms_core.schema_validators.JsonSchemaValidator(
+                        {'$id': 'fms:property_value', '$schema': 'http://json-schema.org/draft-07/schema#',
+                         'description': 'Schema used to define the value in PropertyValue.',
+                         'title': 'PropertyValue value schema', 'type': ['number', 'string', 'boolean']},
+                        formats=['date-time'])], verbose_name='Property value')),
+                ('object_id', models.PositiveIntegerField()),
+                ('content_type',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_propertyvalue_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('property_type',
+                 models.ForeignKey(help_text='Property type', on_delete=django.db.models.deletion.PROTECT,
+                                   related_name='property_type', to='fms_core.propertytype')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_propertyvalue_modification',
                                                  to=settings.AUTH_USER_MODEL)),
             ],
             options={

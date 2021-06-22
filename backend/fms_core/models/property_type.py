@@ -13,7 +13,7 @@ from ._utils import add_error as _add_error
 
 __all__ = ["PropertyType"]
 
-VALUE_TYPE_CHOICES = ['TEXT', 'DECIMAL', 'BOOL']
+VALUE_TYPE_CHOICES = ['int', 'float', 'bool', 'str']
 
 @reversion.register()
 class PropertyType(TrackedModel):
@@ -24,7 +24,7 @@ class PropertyType(TrackedModel):
     value_type = models.CharField(
         max_length=20,
         choices=((type, type) for type in VALUE_TYPE_CHOICES),
-        help_text="Enumerated type to define text, decimal and bool values"
+        help_text="Enumerated type to define value type"
     )
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
