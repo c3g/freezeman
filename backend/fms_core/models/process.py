@@ -13,6 +13,8 @@ __all__ = ["Process"]
 
 @reversion.register()
 class Process(TrackedModel):
+    parent_process = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="child_process",
+                                       help_text="Process in which this sub-process is contained")
     protocol = models.ForeignKey(Protocol, on_delete=models.PROTECT, related_name="processes", help_text="Protocol")
     comment = models.TextField(blank=True, help_text="Relevant information about the process.")
 
