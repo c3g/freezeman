@@ -142,6 +142,20 @@ def create_instruments(apps, schema_editor):
             reversion.add_to_revision(i)
 
 
+def create_infinium_experiment_type(apps, schema_editor):
+    ExperimentType = apps.get_model("fms_core", "ExperimentType")
+    admin_user = User.objects.get(username=ADMIN_USERNAME)
+    admin_user_id = admin_user.id
+
+    with reversion.create_revision(manage_manually=True):
+        reversion.set_comment("Creates Experiment Type Infinium")
+        reversion.set_user(admin_user)
+        et = ExperimentType.objects.create(workflow="Infinium Global Screening Array-24 Kit",
+                                           created_by_id=admin_user_id,
+                                           updated_by_id=admin_user_id)
+        reversion.add_to_revision(et)
+
+
 def create_infinium_protocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
 
@@ -331,6 +345,11 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
+        ),
+
+        migrations.RunPython(
+            create_infinium_experiment_type,
+            reverse_code=migrations.RunPython.noop,
         ),
 
         # Parent process, creation of Infinium protocol and sub-protocols
