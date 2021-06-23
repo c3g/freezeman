@@ -5,6 +5,7 @@ from .coordinates import CoordinateSpec, alphas, ints, validate_and_normalize_co
 __all__ = [
     "ContainerSpec",
 
+    "CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -100,6 +101,17 @@ class ContainerSpec:
         return self.container_kind_id
 
 
+# Run Containers
+
+CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
+    container_kind_id="Infinium Global Screening Array-24 BeadChip",
+    coordinate_spec=(alphas(4), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+)
+
+# Containers
+
 CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
     container_kind_id="96-well plate",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
@@ -157,6 +169,7 @@ CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
 )
 
 COMMON_CHILDREN = (
+    CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_96_WELL_PLATE,
     CONTAINER_SPEC_384_WELL_PLATE,
     CONTAINER_SPEC_TUBE_BOX_6X6,
