@@ -33,6 +33,8 @@ class PropertyType(TrackedModel):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    def __str__(self):
+        return self.name
 
     def clean(self):
         super().clean()

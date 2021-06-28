@@ -19,6 +19,9 @@ class InstrumentType(TrackedModel):
                             max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="The product make. Acceptable values are listed at the ENA: https:\/\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#permitted-values-for-instrument")
 
+    def __str__(self):
+        return self.type
+
     def clean(self):
         super().clean()
         errors = {}

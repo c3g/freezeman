@@ -18,6 +18,9 @@ class Platform(TrackedModel):
                             max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="This technology used to measure the library. Acceptable values are listed at the ENA: https:\/\/ena-docs.readthedocs.io/en/latest/submit/reads/webin-cli.html?highlight=library_strategy#platform")
 
+    def __str__(self):
+        return self.name
+
     def clean(self):
         super().clean()
         errors = {}
