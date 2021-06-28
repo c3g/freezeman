@@ -347,12 +347,15 @@ class Migration(migrations.Migration):
             },
         ),
 
+
         migrations.RunPython(
             create_infinium_experiment_type,
             reverse_code=migrations.RunPython.noop,
         ),
 
+
         # Parent process, creation of Infinium protocol and sub-protocols
+
         migrations.AddField(
             model_name='process',
             name='parent_process',
@@ -361,6 +364,13 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_infinium_protocols,
             reverse_code=migrations.RunPython.noop,
+        ),
+
+        # Create new container kind for infinium and increase the max length of the container kind field.
+        migrations.AlterField(
+            model_name='container',
+            name='kind',
+            field=models.CharField(choices=[('infinium gs 24 beadchip', 'infinium gs 24 beadchip'), ('96-well plate', '96-well plate'), ('384-well plate', '384-well plate'), ('tube', 'tube'), ('tube box 6x6', 'tube box 6x6'), ('tube box 8x8', 'tube box 8x8'), ('tube box 9x9', 'tube box 9x9'), ('tube box 10x10', 'tube box 10x10'), ('tube rack 8x12', 'tube rack 8x12'), ('drawer', 'drawer'), ('freezer rack 4x4', 'freezer rack 4x4'), ('freezer rack 7x4', 'freezer rack 7x4'), ('freezer rack 8x6', 'freezer rack 8x6'), ('freezer rack 11x6', 'freezer rack 11x6'), ('freezer 3 shelves', 'freezer 3 shelves'), ('freezer 5 shelves', 'freezer 5 shelves'), ('room', 'room'), ('box', 'box')], help_text='What kind of container this is. Dictates the coordinate system and other container-specific properties.', max_length=25),
         ),
 
         # PropertyType and PropertyValue
