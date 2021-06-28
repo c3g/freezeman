@@ -375,15 +375,52 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+class ExperimentRunForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentRun
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
 @admin.register(ExperimentRun)
 class ExperimentRunAdmin(CustomImportMixin, admin.ModelAdmin):
     resource_class = ExperimentRunResource
-    actions = None
-    list_display_links = None
+    form = ExperimentRunForm
+
+    list_display = (
+        "id",
+        "instrument",
+        "experiment_type",
+        "container"
+    )
+
+    list_select_related = (
+        "instrument",
+        "experiment_type",
+        "container",
+    )
+
+    list_filter = (
+        "instrument__name",
+        "experiment_type__workflow",
+    )
+
+    search_fields = (
+        "container__barcode",
+    )
+
+    fieldsets = (
+        (None, {"fields": ["start_date", "container", "instrument", "experiment_type"]}),
+    )
 
     def changelist_view(self, request, extra_context=None):
         return super().changelist_view(request, extra_context={
-            "title": "Experiment run test",
+            "title": "Experiment run submission",
             "submission_template": EXPERIMENT_INFINIUM_TEMPLATE,
         })
 

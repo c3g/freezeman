@@ -866,9 +866,10 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = ExperimentRun.objects.all()
-
+    queryset = ExperimentRun.objects.select_related("experiment_type", "container", "instrument")
     serializer_class = ExperimentRunSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
 
     template_action_list = [
         {
