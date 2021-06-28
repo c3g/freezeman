@@ -18,6 +18,9 @@ class ExperimentType(TrackedModel):
                             help_text="Placeholder for a future workflow model implementation.",
                             validators=[name_validator])
 
+    def __str__(self):
+        return self.workflow
+
     def clean(self):
         super().clean()
         errors = {}
