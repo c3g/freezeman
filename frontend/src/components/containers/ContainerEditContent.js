@@ -119,7 +119,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           <Item label="Kind" {...props("kind")} rules={requiredRules}>
             <Select>
               {containerKinds.map(kind =>
-                <Option key={kind.id} value={kind.id}>{kind.id}</Option>
+                kind.is_run_container || <Option key={kind.id} value={kind.id}>{kind.id}</Option>
               )}
             </Select>
           </Item>

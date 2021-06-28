@@ -27,7 +27,7 @@ class Container(TrackedModel):
 
     # TODO: Model for choices?
     kind = models.CharField(
-        max_length=20,
+        max_length=25,
         choices=CONTAINER_KIND_CHOICES,
         help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
                   "properties."

@@ -19,7 +19,7 @@ class ExperimentRun(TrackedModel):
     experiment_type = models.ForeignKey(ExperimentType, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Experiment type")
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Container")
     instrument = models.ForeignKey(Instrument, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Instrument")
-    start_date = models.DateField(help_text="Date when the run was started.")
+    start_date = models.DateField(help_text="Date the run was started.")
 
     def clean(self):
         super().clean()
