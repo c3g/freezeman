@@ -20,6 +20,9 @@ class Instrument(TrackedModel):
                             validators=[name_validator])
     type = models.ForeignKey(InstrumentType, on_delete=models.PROTECT, related_name="instruments", help_text="Instrument type")
 
+    def __str__(self):
+        return self.name
+
     def clean(self):
         super().clean()
         errors = {}
