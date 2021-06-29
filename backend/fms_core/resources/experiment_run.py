@@ -136,17 +136,18 @@ class ExperimentRunResource(GenericResource):
             # Slicing columns not containing properties
             if i < self.protocols_starting_idx or i >= self.protocols_ending_idx:
                 pass
-            elif value:
-                pt = self.property_types_by_name[property]
-                process = experiment_run_processes_by_protocol_id[pt.object_id]
-                PropertyValue.objects.create(value=value,
-                                             property_type=pt,
-                                             content_type=process_content_type,
-                                             object_id=process.id)
-            # else:
-            #     errors[property] = ValidationError([f"Value cannot be blank"],
-            #                                            code="invalid")
-
+            else:
+                property_type = self.property_types_by_name[property]
+                if value:
+                    process = experiment_run_processes_by_protocol_id[property_type.object_id]
+                    PropertyValue.objects.create(value=value,
+                                                 property_type=property_type,
+                                                 content_type=process_content_type,
+                                                 object_id=process.id)
+                # Comments are the only non-mandatory fields
+                elif 'comment' not in property.lower():
+                    errors[property] = ValidationError([f"Value cannot be blank"],
+                                                           code="invalid")
 
 
         if errors:
