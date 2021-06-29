@@ -122,9 +122,12 @@ class ExperimentRunResource(GenericResource):
         experiment_run_processes_by_protocol_id = {}
         # Create processes for ExperimentRun
         for protocol in self.protocols_dict.keys():
-            parent_process = Process.objects.create(protocol=protocol)
+            parent_process = Process.objects.create(protocol=protocol,
+                                                    comment="Experiment (imported from template)")
             for subprotocol in self.protocols_dict[protocol]:
-                sp = Process.objects.create(protocol=subprotocol, parent_process=parent_process)
+                sp = Process.objects.create(protocol=subprotocol,
+                                            parent_process=parent_process,
+                                            comment="Experiment (imported from template)")
                 experiment_run_processes_by_protocol_id[subprotocol.id] = sp
 
 
@@ -133,17 +136,16 @@ class ExperimentRunResource(GenericResource):
             # Slicing columns not containing properties
             if i < self.protocols_starting_idx or i >= self.protocols_ending_idx:
                 pass
-            elif not value:
-                errors[property] = ValidationError([f"Value cannot be blank"],
-                                                       code="invalid")
-
-            else:
+            elif value:
                 pt = self.property_types_by_name[property]
                 process = experiment_run_processes_by_protocol_id[pt.object_id]
                 PropertyValue.objects.create(value=value,
                                              property_type=pt,
                                              content_type=process_content_type,
                                              object_id=process.id)
+            # else:
+            #     errors[property] = ValidationError([f"Value cannot be blank"],
+            #                                            code="invalid")
 
 
 
