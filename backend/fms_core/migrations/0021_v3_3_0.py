@@ -174,6 +174,7 @@ def create_infinium_property_types_and_protocols(apps, schema_editor):
     PropertyType = apps.get_model("fms_core", "PropertyType")
 
     PROPERTY_TYPES_BY_PROTOCOL = {
+        "Illumina Infinium Preparation": [],
         "Infinium: Amplification": ["MSA3 Plate Barcode",
                                     "0.1N NaOH formulation date",
                                     "Reagent MA1 Barcode",
