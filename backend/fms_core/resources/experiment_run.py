@@ -1,15 +1,32 @@
+from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
 import reversion
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget, DateWidget
-from ._generic import GenericResource
-from ._utils import skip_rows, add_columns_to_preview
-from ..models import ExperimentRun, Container, Instrument, ExperimentType
-from ..utils import get_normalized_str
-from django.core.exceptions import ValidationError
 from datetime import datetime
+from itertools import accumulate, islice
 
+from ..models import (
+    ExperimentRun,
+    Container,
+    Instrument,
+    ExperimentType,
+    Protocol,
+    Process,
+    PropertyType,
+    PropertyValue
+)
+from ._generic import GenericResource
+
+from ._utils import skip_rows, add_columns_to_preview
+from ..utils import get_normalized_str
+
+from ..experiments import PROTOCOLS_BY_EXPERIMENT_TYPE_NAME
 
 __all__ = ["ExperimentRunResource"]
+
+
+process_content_type = ContentType.objects.get(app_label="fms_core", model="process")
 
 
 class ExperimentRunResource(GenericResource):
@@ -19,6 +36,10 @@ class ExperimentRunResource(GenericResource):
     instrument_name = Field(column_name='Instrument Name',
                               widget=ForeignKeyWidget(Instrument, field='name'))
     start_date = Field(attribute='start_date', column_name='Experiment Start Date', widget=DateWidget())
+
+
+    ERROR_CUTOFF = 500
+
 
     class Meta:
         model = ExperimentRun
@@ -33,6 +54,29 @@ class ExperimentRunResource(GenericResource):
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         self.experiment_type_name = dataset[1][2]
+
+        # at index 6 is the first process name
+        self.protocols_starting_idx = 6
+
+        self.properties_row = list(filter(None, dataset[9][self.protocols_starting_idx:]))
+
+        self.protocols_ending_idx = self.protocols_starting_idx + len(self.properties_row)
+
+
+        # Preload PropertyType objects for this experiment type in a dictionary for faster access
+        self.property_types_by_name = {}
+        for property_column in self.properties_row:
+            self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
+
+        # Preload Protocols objects for this  experiment type in a dictionary for faster access
+        self.protocols_dict = {}
+        protocols_for_experiment_type = PROTOCOLS_BY_EXPERIMENT_TYPE_NAME[self.experiment_type_name]
+        for protocol_name in protocols_for_experiment_type.keys():
+            p = Protocol.objects.get(name=protocol_name)
+            subprotocol_names = protocols_for_experiment_type[protocol_name]
+            self.protocols_dict[p] = map(lambda x: Protocol.objects.get(name=x), subprotocol_names)
+
+
         skip_rows(dataset, 10)  # Skip preamble
 
 
@@ -74,6 +118,35 @@ class ExperimentRunResource(GenericResource):
             except Exception as e:
                 errors["instrument"] = ValidationError([f"No instrument named {instrument_name} could be found."], code="invalid")
 
+
+        experiment_run_processes_by_protocol_id = {}
+        # Create processes for ExperimentRun
+        for protocol in self.protocols_dict.keys():
+            parent_process = Process.objects.create(protocol=protocol)
+            for subprotocol in self.protocols_dict[protocol]:
+                sp = Process.objects.create(protocol=subprotocol, parent_process=parent_process)
+                experiment_run_processes_by_protocol_id[subprotocol.id] = sp
+
+
+        # Create property values for ExperimentRun
+        for i, (property, value) in enumerate(data.items()):
+            # Slicing columns not containing properties
+            if i < self.protocols_starting_idx or i >= self.protocols_ending_idx:
+                pass
+            elif not value:
+                errors[property] = ValidationError([f"Value cannot be blank"],
+                                                       code="invalid")
+
+            else:
+                pt = self.property_types_by_name[property]
+                process = experiment_run_processes_by_protocol_id[pt.object_id]
+                PropertyValue.objects.create(value=value,
+                                             property_type=pt,
+                                             content_type=process_content_type,
+                                             object_id=process.id)
+
+
+
         if errors:
             raise ValidationError(errors)
 
@@ -87,6 +160,10 @@ class ExperimentRunResource(GenericResource):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            COLUMNS_TO_ADD = ['Experiment Container Barcode', 'Experiment Container Kind', 'Instrument Name']
+            COLUMNS_TO_ADD = ['Experiment Container Barcode',
+                              'Experiment Container Kind',
+                              'Instrument Name']\
+                             + self.properties_row
+
             results = add_columns_to_preview(results, dataset, COLUMNS_TO_ADD)
         return results
