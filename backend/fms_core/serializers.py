@@ -2,12 +2,13 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from reversion.models import Version, Revision
 
-from .models import Container, Sample, Individual, Protocol, ProcessMeasurement, SampleKind
+from .models import Container, ExperimentRun, Sample, Individual, Protocol, ProcessMeasurement, SampleKind
 
 
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "ExperimentRunSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "SampleKindSerializer",
@@ -46,6 +47,12 @@ class ContainerExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Container
         fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
+
+
+class ExperimentRunSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExperimentRun
+        fields = "__all__"
 
 
 class IndividualSerializer(serializers.ModelSerializer):

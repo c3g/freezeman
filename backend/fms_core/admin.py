@@ -9,6 +9,7 @@ from .models import (
     Container,
     ContainerMove,
     ContainerRename,
+    ExperimentRun,
     Sample,
     SampleKind,
     SampleLineage,
@@ -371,6 +372,55 @@ class SampleUpdateAdmin(CustomImportMixin, admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+class ExperimentRunForm(forms.ModelForm):
+    class Meta:
+        model = ExperimentRun
+        exclude = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if kwargs.get("instance"):
+            # If we're in edit mode
+            return
+
+@admin.register(ExperimentRun)
+class ExperimentRunAdmin(admin.ModelAdmin):
+    form = ExperimentRunForm
+
+    list_display = (
+        "id",
+        "instrument",
+        "experiment_type",
+        "container"
+    )
+
+    list_select_related = (
+        "instrument",
+        "experiment_type",
+        "container",
+    )
+
+    list_filter = (
+        "instrument__name",
+        "experiment_type__workflow",
+    )
+
+    search_fields = (
+        "container__barcode",
+    )
+
+    fieldsets = (
+        (None, {"fields": ["start_date", "container", "instrument", "experiment_type"]}),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 
 class ProtocolForm(forms.ModelForm):
