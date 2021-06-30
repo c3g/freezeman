@@ -14,6 +14,7 @@ export const SET_SORT_BY           = "EXPERIMENT_RUNS.SET_SORT_BY";
 export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
 export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
+export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
 
 
 export const get = id => async (dispatch, getState) => {
@@ -74,6 +75,13 @@ export const clearFilters = thenList(() => {
     }
 });
 
+export const listTypes = () => async (dispatch, getState) => {
+    if (getState().experimentTypes.isFetching || getState().experimentTypes.items.length > 0)
+        return;
+
+    return await dispatch(networkAction(LIST_TYPES, api.experimentTypes.list()));
+};
+
 
 export default {
     GET,
@@ -83,6 +91,7 @@ export default {
     CLEAR_FILTERS,
     LIST,
     LIST_TABLE,
+    LIST_TYPES,
     get,
     setSortBy,
     setFilter,
@@ -90,6 +99,7 @@ export default {
     clearFilters,
     list,
     listTable,
+    listTypes,
 };
 
 // Helper to call list() after another action

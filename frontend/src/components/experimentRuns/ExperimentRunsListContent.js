@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button} from "antd";
+import {Button, Tag} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -18,7 +18,7 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 
 
-const getTableColumns = (containersByID) => [
+const getTableColumns = (containersByID, experimentTypes) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -28,6 +28,9 @@ const getTableColumns = (containersByID) => [
     title: "Experiment Type",
     dataIndex: "experiment_type",
     sorter: true,
+    options: experimentTypes.items.map(x => ({ label: x.workflow, value: x.workflow })), // for getFilterProps
+    render: (_, experimentRun) =>
+      <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type].workflow}</Tag>,
   },
   {
     title: "Instrument",
@@ -60,6 +63,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentRuns: state.experimentRuns.items,
+  experimentTypes: state.experimentTypes,
   page: state.experimentRuns.page,
   totalCount: state.experimentRuns.totalCount,
   isFetching: state.experimentRuns.isFetching,
@@ -74,6 +78,7 @@ const ExperimentRunsListContent = ({
   containersByID,
   experimentRuns,
   experimentRunsByID,
+  experimentTypes,
   isFetching,
   page,
   totalCount,
@@ -91,7 +96,7 @@ const ExperimentRunsListContent = ({
       .then(response => response.data)
 
 
-  const columns = getTableColumns(containersByID)
+  const columns = getTableColumns(containersByID, experimentTypes)
   .map(c => Object.assign(c, getFilterProps(
     c,
     EXPERIMENT_RUN_FILTERS,

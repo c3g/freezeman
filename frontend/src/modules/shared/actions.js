@@ -19,6 +19,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Containers.listTable,
         Containers.summary,
         ExperimentRuns.listTable,
+        ExperimentRuns.listTypes,
         Individuals.listTable,
         Samples.listTable,
         Samples.listKinds,

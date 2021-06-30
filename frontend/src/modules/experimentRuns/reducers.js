@@ -5,7 +5,40 @@ import mergeArray from "../../utils/mergeArray";
 import EXPERIMENT_RUNS from "./actions";
 import {map} from "rambda";
 
+
 // TODO: template and summary
+
+export const experimentTypes = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case EXPERIMENT_RUNS.LIST_TYPES.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case EXPERIMENT_RUNS.LIST_TYPES.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case EXPERIMENT_RUNS.LIST_TYPES.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
 
 export const experimentRuns = (
     state = {

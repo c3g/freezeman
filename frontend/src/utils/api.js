@@ -40,6 +40,10 @@ const api = {
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
   },
 
+  experimentTypes: {
+    list: () => get("/experiment-types/"),
+  },
+
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
