@@ -16,19 +16,23 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     // Higher priority
     await Promise.all([
         Containers.listKinds,
-        Containers.listTable,
         Containers.summary,
-        ExperimentRuns.listTable,
+        ExperimentRuns.listInstruments,
         ExperimentRuns.listTypes,
-        Individuals.listTable,
-        Samples.listTable,
         Samples.listKinds,
         Samples.summary,
-        ProcessMeasurements.listTable,
         Protocols.list,
         ProcessMeasurements.summary,
         Users.listTable,
         Groups.list,
+    ].map(a => dispatch(a())))
+
+    await Promise.all([
+        Containers.listTable,
+        ExperimentRuns.listTable,
+        Individuals.listTable,
+        Samples.listTable,
+        ProcessMeasurements.listTable,
     ].map(a => dispatch(a())))
 
     // Lower priority

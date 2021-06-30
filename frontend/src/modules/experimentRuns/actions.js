@@ -15,6 +15,7 @@ export const SET_FILTER            = "EXPERIMENT_RUNS.SET_FILTER";
 export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
+export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
 
 
 export const get = id => async (dispatch, getState) => {
@@ -82,6 +83,13 @@ export const listTypes = () => async (dispatch, getState) => {
     return await dispatch(networkAction(LIST_TYPES, api.experimentTypes.list()));
 };
 
+export const listInstruments = () => async (dispatch, getState) => {
+    if (getState().instruments.isFetching || getState().instruments.items.length > 0)
+        return;
+
+    return await dispatch(networkAction(LIST_INSTRUMENTS, api.instruments.list()));
+};
+
 
 export default {
     GET,
@@ -92,6 +100,7 @@ export default {
     LIST,
     LIST_TABLE,
     LIST_TYPES,
+    LIST_INSTRUMENTS,
     get,
     setSortBy,
     setFilter,
@@ -100,6 +109,7 @@ export default {
     list,
     listTable,
     listTypes,
+    listInstruments,
 };
 
 // Helper to call list() after another action

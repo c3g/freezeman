@@ -53,6 +53,10 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
+  instruments: {
+    list: () => get("/instruments/"),
+  },
+
   processMeasurements: {
     get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
     list: (options, abort) => get("/process-measurements/", options, { abort }),

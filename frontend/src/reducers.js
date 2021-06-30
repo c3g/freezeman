@@ -29,6 +29,7 @@ import {
 import {
   experimentTypes,
   experimentRuns,
+  instruments,
 } from "./modules/experimentRuns/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
@@ -55,6 +56,7 @@ const allReducers = combineReducers({
   experimentRuns,
   experimentTypes,
   individuals,
+  instruments,
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,

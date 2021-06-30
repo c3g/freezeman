@@ -18,7 +18,7 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 
 
-const getTableColumns = (containersByID, experimentTypes) => [
+const getTableColumns = (containersByID, experimentTypes, instruments) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -30,12 +30,15 @@ const getTableColumns = (containersByID, experimentTypes) => [
     sorter: true,
     options: experimentTypes.items.map(x => ({ label: x.workflow, value: x.workflow })), // for getFilterProps
     render: (_, experimentRun) =>
-      <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type].workflow}</Tag>,
+      <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>,
   },
   {
     title: "Instrument",
     dataIndex: "instrument",
     sorter: true,
+    options: instruments.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+    render: (_, experimentRun) =>
+      <div>{instruments.itemsByID[experimentRun.instrument]?.name}</div>,
   },
   {
     title: "Container Name",
@@ -54,8 +57,13 @@ const getTableColumns = (containersByID, experimentTypes) => [
         {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
       </Link>),
   },
+  {
+    title: "Start Date",
+    dataIndex: "start_date",
+    sorter: true,
+    width: 180,
+  },
 
-  // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
 ];
 
 const mapStateToProps = state => ({
@@ -64,6 +72,7 @@ const mapStateToProps = state => ({
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentRuns: state.experimentRuns.items,
   experimentTypes: state.experimentTypes,
+  instruments: state.instruments,
   page: state.experimentRuns.page,
   totalCount: state.experimentRuns.totalCount,
   isFetching: state.experimentRuns.isFetching,
@@ -79,6 +88,7 @@ const ExperimentRunsListContent = ({
   experimentRuns,
   experimentRunsByID,
   experimentTypes,
+  instruments,
   isFetching,
   page,
   totalCount,
@@ -96,7 +106,7 @@ const ExperimentRunsListContent = ({
       .then(response => response.data)
 
 
-  const columns = getTableColumns(containersByID, experimentTypes)
+  const columns = getTableColumns(containersByID, experimentTypes, instruments)
   .map(c => Object.assign(c, getFilterProps(
     c,
     EXPERIMENT_RUN_FILTERS,

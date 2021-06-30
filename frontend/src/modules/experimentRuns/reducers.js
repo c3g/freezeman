@@ -40,6 +40,39 @@ export const experimentTypes = (
     }
 };
 
+export const instruments = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case EXPERIMENT_RUNS.LIST_INSTRUMENTS.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
+
+
 export const experimentRuns = (
     state = {
         itemsByID: {},
