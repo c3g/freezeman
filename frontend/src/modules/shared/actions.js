@@ -5,6 +5,7 @@ import Groups from "../groups";
 import Samples from "../samples/actions";
 import ProcessMeasurements from "../processMeasurements/actions";
 import Protocols from "../protocols/actions";
+import ExperimentRuns from "../experimentRuns/actions";
 import {refreshAuthToken} from "../auth/actions";
 
 export const fetchInitialData = () => async (dispatch, getState) => {
@@ -17,6 +18,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Containers.listKinds,
         Containers.listTable,
         Containers.summary,
+        ExperimentRuns.listTable,
         Individuals.listTable,
         Samples.listTable,
         Samples.listKinds,
@@ -57,6 +59,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
     // Higher priority
     await Promise.all([
         Containers.listTable,
+        ExperimentRuns.listTable,
         Individuals.listTable,
         Samples.listTable,
         ProcessMeasurements.listTable,

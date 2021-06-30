@@ -34,6 +34,11 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding }),
   },
 
+  experimentRuns: {
+    get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
+    list: (options, abort) => get("/experiment-runs/", options, {abort})
+  },
+
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),

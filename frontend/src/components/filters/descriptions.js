@@ -194,6 +194,8 @@ export const PROCESS_MEASUREMENT_FILTERS = {
   },
 }
 
+export const EXPERIMENT_RUN_FILTERS = {}
+
 export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,
