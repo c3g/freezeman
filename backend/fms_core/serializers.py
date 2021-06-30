@@ -19,6 +19,7 @@ __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
     "ExperimentRunSerializer",
+    "ExperimentRunExportSerializer",
     "ExperimentTypeSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
@@ -65,6 +66,18 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExperimentRun
         fields = "__all__"
+
+class ExperimentRunExportSerializer(serializers.ModelSerializer):
+    experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
+    instrument = serializers.CharField(read_only=True, source="instrument.name")
+    container_kind = serializers.CharField(read_only=True, source="container.kind")
+    container_name = serializers.CharField(read_only=True, source="container.name")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+
+    class Meta:
+        model = ExperimentRun
+        fields = ('experiment_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+
 
 class ExperimentTypeSerializer(serializers.ModelSerializer):
     class Meta:

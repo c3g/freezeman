@@ -42,6 +42,7 @@ from .serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
     ExperimentRunSerializer,
+    ExperimentRunExportSerializer,
     ExperimentTypeSerializer,
     SampleKindSerializer,
     ProtocolSerializer,
@@ -894,6 +895,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ExperimentRun.objects.select_related("experiment_type", "container", "instrument")
     serializer_class = ExperimentRunSerializer
+    serializer_export_class = ExperimentRunExportSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
 
@@ -904,6 +906,19 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     filterset_fields = {
         **_experiment_run_filterset_fields,
     }
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            fields = self.serializer_export_class.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        return context
+
+    @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
+        return Response(serializer.data)
 
 class ExperimentTypeViewSet(viewsets.ModelViewSet):
     queryset = ExperimentType.objects.all()
