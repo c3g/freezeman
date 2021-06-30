@@ -9,11 +9,23 @@ from django.contrib.auth.models import User
 import reversion
 import re
 import json
-
 import fms_core.schema_validators
 
 
 ADMIN_USERNAME='biobankadmin'
+
+'''
+    - Models created in this migration:
+        ExperimentRun, ExperimentType, Instrument, InstrumentType, Platform, PropertyType, PropertyValue
+     
+    - Creation of InstrumentTypes by Platform
+    
+    - For Illumina Infinium: 
+        - Creation of instrument "iScan_1" of type "iScan System"
+        - Creation of Infinium Global Screening Array-24 experiment type
+        - Creation of Illumina Infinium (...) related Protocols
+        - Creation of Illumina Infinium property types by Infinium protocol
+'''
 
 
 def rename_process_sample_versions(apps, schema_editor):
@@ -156,30 +168,80 @@ def create_infinium_experiment_type(apps, schema_editor):
         reversion.add_to_revision(et)
 
 
-def create_infinium_protocols(apps, schema_editor):
-    Protocol = apps.get_model("fms_core", "Protocol")
 
-    PROTOCOLS = [ "Illumina Infinium Preparation",
-                  "Infinium: Amplification",
-                  "Infinium: Fragmentation",
-                  "Infinium: Precipitation",
-                  "Infinium: Hybridization",
-                  "Infinium: Wash Beadchip",
-                  "Infinium: Extend and Stain",
-                  "Infinium: Scan Preparation"]
+def create_infinium_property_types_and_protocols(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+
+    PROPERTY_TYPES_BY_PROTOCOL = {
+        "Illumina Infinium Preparation": [],
+        "Infinium: Amplification": [("MSA3 Plate Barcode", "str"),
+                                    ("0.1N NaOH formulation date", "str"),
+                                    ("Reagent MA1 Barcode", "str"),
+                                    ("Reagent MA2 Barcode", "str"),
+                                    ("Reagent MSM Barcode", "str"),
+                                    ("Incubation time In Amplification", "float"),
+                                    ("Incubation time Out Amplification", "float"),
+                                    ("Comment Amplification", "str"),
+                                    ],
+        "Infinium: Fragmentation": [("Reagent FMS Barcode",  "str"),
+                                    ("Comment Fragmentation", "str"),
+                                    ],
+        "Infinium: Precipitation": [("Reagent PM1 Barcode", "str"),
+                                    ("Reagent RA1 Barcode Precipitation", "str"),
+                                    ("Comment Precipitation", "str"),
+                                    ],
+        "Infinium: Hybridization": [("Hybridization Chip Barcodes", "str"),
+                                    ("Hybridization Chamber Barcode", "str"),
+                                    ("Reagent PB2 Barcode", "str"),
+                                    ("Reagent XC4 Barcode Hybridization", "str"),
+                                    ("Incubation time In Hybridization", "float"),
+                                    ("Incubation time Out Hybridization", "float"),
+                                    ("Comment Hybridization", "str"),
+                                    ],
+        "Infinium: Wash Beadchip": [("Reagent PB1 Barcode Wash", "str"),
+                                    ("Comment Wash", "str"),
+                                    ],
+        "Infinium: Extend and Stain": [("95% form/EDTA", "str"),
+                                       ("Reagent ATM Barcode", "str"),
+                                       ("Reagent EML Barcode", "str"),
+                                       ("Reagent LX1 Barcode", "str"),
+                                       ("Reagent LX2 Barcode", "str"),
+                                       ("Reagent PB1 Barcode Stain", "str"),
+                                       ("Reagent RA1 Barcode Stain", "str"),
+                                       ("Reagent SML Barcode", "str"),
+                                       ("Reagent XC3 Barcode", "str"),
+                                       ("Reagent XC4 Barcode Stain", "str"),
+                                       ("Comment Stain", "str"),
+                                       ],
+        "Infinium: Scan Preparation": [("SentrixBarcode_A", "str"),
+                                       ("Scan Chip Rack Barcode", "str"),
+                                       ("Comment Scan", "str"),
+                                       ],
+    }
 
     admin_user = User.objects.get(username=ADMIN_USERNAME)
     admin_user_id = admin_user.id
 
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+    protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
     with reversion.create_revision(manage_manually=True):
         reversion.set_comment("Creates protocols for Infinium Experiment")
         reversion.set_user(admin_user)
-        
-        for name in PROTOCOLS:
-            p = Protocol.objects.create(name=name,
-                                        created_by_id=admin_user_id,
-                                        updated_by_id=admin_user_id)
-            reversion.add_to_revision(p)
+
+        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
+            protocol = Protocol.objects.create(name=protocol_name,
+                                               created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            reversion.add_to_revision(protocol)
+
+            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                pt = PropertyType.objects.create(name=property,
+                                                 object_id=protocol.id,
+                                                 content_type=protocol_content_type,
+                                                 value_type=value_type,
+                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
+                reversion.add_to_revision(pt)
 
 
 class Migration(migrations.Migration):
@@ -361,10 +423,7 @@ class Migration(migrations.Migration):
             name='parent_process',
             field=models.ForeignKey(blank=True, help_text='Process in which this sub-process is contained', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='child_process', to='fms_core.process'),
         ),
-        migrations.RunPython(
-            create_infinium_protocols,
-            reverse_code=migrations.RunPython.noop,
-        ),
+
 
         # Create new container kind for infinium and increase the max length of the container kind field.
         migrations.AlterField(
@@ -435,6 +494,10 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
+        ),
+        migrations.RunPython(
+            create_infinium_property_types_and_protocols,
+            reverse_code=migrations.RunPython.noop,
         ),
 
     ]
