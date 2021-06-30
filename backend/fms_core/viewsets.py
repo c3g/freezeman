@@ -18,7 +18,9 @@ from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KI
 from .models import (
     Container,
     ExperimentRun,
+    ExperimentType,
     Individual,
+    Instrument,
     Process,
     ProcessMeasurement,
     Protocol,
@@ -40,6 +42,7 @@ from .serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
     ExperimentRunSerializer,
+    ExperimentTypeSerializer,
     SampleKindSerializer,
     ProtocolSerializer,
     ProcessMeasurementSerializer,
@@ -48,6 +51,7 @@ from .serializers import (
     SampleExportSerializer,
     NestedSampleSerializer,
     IndividualSerializer,
+    InstrumentSerializer,
     VersionSerializer,
     RevisionSerializer,
     UserSerializer,
@@ -66,7 +70,10 @@ from .template_paths import (
 __all__ = [
     "ContainerKindViewSet",
     "ContainerViewSet",
+    "ExperimentTypeViewSet",
+    "ExperimentRunViewSet",
     "IndividualViewSet",
+    "InstrumentViewSet",
     "QueryViewSet",
     "SampleViewSet",
     "SampleKindViewSet",
@@ -866,5 +873,17 @@ class GroupViewSet(viewsets.ModelViewSet):
 class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ExperimentRun.objects.select_related("experiment_type", "container", "instrument")
     serializer_class = ExperimentRunSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
+
+class ExperimentTypeViewSet(viewsets.ModelViewSet):
+    queryset = ExperimentType.objects.all()
+    serializer_class = ExperimentTypeSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
+
+class InstrumentViewSet(viewsets.ModelViewSet):
+    queryset = Instrument.objects.all()
+    serializer_class = InstrumentSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
