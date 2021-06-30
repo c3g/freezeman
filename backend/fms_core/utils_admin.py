@@ -69,7 +69,10 @@ class PaddedXLSX(TablibFormat):
         xlsx_book = openpyxl.load_workbook(BytesIO(in_stream), read_only=True)
 
         dataset = tablib.Dataset()
-        sheet = xlsx_book.active
+        
+        sheets = xlsx_book._sheets
+        # Using first sheet by default is safer than using the currently active sheet.. 
+        sheet = sheets[0]
 
         # obtain generator
         rows = sheet.rows
