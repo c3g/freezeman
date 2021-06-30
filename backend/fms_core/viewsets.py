@@ -321,6 +321,27 @@ _process_measurement_filterset_fields: FiltersetFields = {
     **_prefix_keys("lineage__child__", _sample_minimal_filterset_fields),
 }
 
+_instrument_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_experiment_type_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "workflow": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_experiment_run_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "start_date": DATE_FILTERS,
+
+    "experiment_type": FK_FILTERS,
+    "instrument": FK_FILTERS,
+    "container": FK_FILTERS,
+
+    **_prefix_keys("container__", _container_filterset_fields),
+}
+
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
                           Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
@@ -875,6 +896,14 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     serializer_class = ExperimentRunSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
+
+    ordering_fields = (
+        *_list_keys(_experiment_run_filterset_fields),
+    )
+
+    filterset_fields = {
+        **_experiment_run_filterset_fields,
+    }
 
 class ExperimentTypeViewSet(viewsets.ModelViewSet):
     queryset = ExperimentType.objects.all()
