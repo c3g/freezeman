@@ -36,7 +36,8 @@ const api = {
 
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
-    list: (options, abort) => get("/experiment-runs/", options, {abort})
+    list: (options, abort) => get("/experiment-runs/", options, {abort}),
+    listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
   },
 
   individuals: {

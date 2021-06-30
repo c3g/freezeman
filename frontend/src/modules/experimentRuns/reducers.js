@@ -67,8 +67,8 @@ export const experimentRuns = (
         case EXPERIMENT_RUNS.LIST_TABLE.REQUEST:
             return { ...state, isFetching: true, };
         case EXPERIMENT_RUNS.LIST_TABLE.RECEIVE: {
-            const totalCount = action.data.count;
-            const hasChanged = state.totalCount !== action.data.count;
+            const totalCount = action.data.length;
+            const hasChanged = state.totalCount !== action.data.length;
             const currentItems = hasChanged ? [] : state.items;
 
             const results = action.data

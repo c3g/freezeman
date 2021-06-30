@@ -18,6 +18,7 @@ import JumpBar from "./JumpBar";
 import LoginPage from "./login/LoginPage";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
+import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
@@ -82,6 +83,11 @@ const MENU_ITEMS = [
     url: "/process-measurements",
     icon: <ExperimentOutlined />, // ??
     text: "Protocols",
+  },
+  {
+    url: "/experiment-runs",
+    icon: <ExperimentOutlined />, // ??
+    text: "Experiments",
   },
   {
     url: "/users",
@@ -186,6 +192,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             </PrivateRoute>
             <PrivateRoute path="/process-measurements">
               <ProcessMeasurementsPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/experiment-runs">
+              <ExperimentRunsPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>
