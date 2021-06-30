@@ -15,7 +15,18 @@ from tablib import Dataset
 from typing import Any, Dict, List, Tuple, Union
 
 from .containers import ContainerSpec, CONTAINER_KIND_SPECS, PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
-from .models import Container, Sample, Individual, SampleKind, Protocol, ProcessMeasurement, Process, SampleLineage
+from .models import (
+    Container,
+    ExperimentRun,
+    Individual,
+    Process,
+    ProcessMeasurement,
+    Protocol,
+    Sample,
+    SampleKind,
+    SampleLineage,
+)
+
 from .resources import (
     ContainerResource,
     ContainerMoveResource,
@@ -28,6 +39,7 @@ from .resources import (
 from .serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
+    ExperimentRunSerializer,
     SampleKindSerializer,
     ProtocolSerializer,
     ProcessMeasurementSerializer,
@@ -849,3 +861,10 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     filterset_fields = _group_filterset_fields
+
+
+class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+    queryset = ExperimentRun.objects.select_related("experiment_type", "container", "instrument")
+    serializer_class = ExperimentRunSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
