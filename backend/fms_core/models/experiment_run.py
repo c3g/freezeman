@@ -8,6 +8,7 @@ from .tracked_model import TrackedModel
 from .experiment_type import ExperimentType
 from .container import Container
 from .instrument import Instrument
+from .process import Process
 
 from ._utils import add_error as _add_error
 
@@ -20,6 +21,8 @@ class ExperimentRun(TrackedModel):
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Container")
     instrument = models.ForeignKey(Instrument, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Instrument")
     start_date = models.DateField(help_text="Date the run was started.")
+    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="experiment_runs",
+                                        help_text="Main process associated to this experiment")
 
     def clean(self):
         super().clean()
