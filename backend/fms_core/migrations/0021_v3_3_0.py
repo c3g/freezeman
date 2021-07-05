@@ -180,8 +180,8 @@ def create_infinium_property_types_and_protocols(apps, schema_editor):
                                     ("Reagent MA1 Barcode", "str"),
                                     ("Reagent MA2 Barcode", "str"),
                                     ("Reagent MSM Barcode", "str"),
-                                    ("Incubation time In Amplification", "float"),
-                                    ("Incubation time Out Amplification", "float"),
+                                    ("Incubation time In Amplification", "str"),
+                                    ("Incubation time Out Amplification", "str"),
                                     ("Comment Amplification", "str"),
                                     ],
         "Infinium: Fragmentation": [("Reagent FMS Barcode",  "str"),
@@ -195,8 +195,8 @@ def create_infinium_property_types_and_protocols(apps, schema_editor):
                                     ("Hybridization Chamber Barcode", "str"),
                                     ("Reagent PB2 Barcode", "str"),
                                     ("Reagent XC4 Barcode Hybridization", "str"),
-                                    ("Incubation time In Hybridization", "float"),
-                                    ("Incubation time Out Hybridization", "float"),
+                                    ("Incubation time In Hybridization", "str"),
+                                    ("Incubation time Out Hybridization", "str"),
                                     ("Comment Hybridization", "str"),
                                     ],
         "Infinium: Wash Beadchip": [("Reagent PB1 Barcode Wash", "str"),
@@ -224,7 +224,7 @@ def create_infinium_property_types_and_protocols(apps, schema_editor):
     admin_user_id = admin_user.id
 
     ContentType = apps.get_model('contenttypes', 'ContentType')
-    protocol_content_type = ContentType.objects.get(app_label="fms_core", model="protocol")
+    protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
     with reversion.create_revision(manage_manually=True):
         reversion.set_comment("Creates protocols for Infinium Experiment")
@@ -400,6 +400,9 @@ class Migration(migrations.Migration):
                 ('instrument', models.ForeignKey(help_text='Instrument', on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='experiment_runs', to='fms_core.instrument')),
                 ('start_date', models.DateField(help_text='Date the run was started.')),
+                ('process',
+                 models.ForeignKey(help_text='Main process associated to this experiment', on_delete=django.db.models.deletion.PROTECT,
+                                   related_name='experiment_runs', to='fms_core.process')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_experimentrun_modification',
                                                  to=settings.AUTH_USER_MODEL)),

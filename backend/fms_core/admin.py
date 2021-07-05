@@ -427,11 +427,12 @@ class ExperimentRunAdmin(CustomImportMixin, admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request) # empty
 
+
     def has_add_permission(self, request):
-        return False
+        return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return True
 
 
 
