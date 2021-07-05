@@ -48,7 +48,8 @@ class ExperimentRunResource(GenericResource):
         )
         excluded = (
             'container',
-            'instrument'
+            'instrument',
+            'process',
         )
 
 
@@ -122,11 +123,11 @@ class ExperimentRunResource(GenericResource):
         experiment_run_processes_by_protocol_id = {}
         # Create processes for ExperimentRun
         for protocol in self.protocols_dict.keys():
-            parent_process = Process.objects.create(protocol=protocol,
+            obj.process = Process.objects.create(protocol=protocol,
                                                     comment="Experiment (imported from template)")
             for subprotocol in self.protocols_dict[protocol]:
                 sp = Process.objects.create(protocol=subprotocol,
-                                            parent_process=parent_process,
+                                            parent_process=obj.process,
                                             comment="Experiment (imported from template)")
                 experiment_run_processes_by_protocol_id[subprotocol.id] = sp
 
