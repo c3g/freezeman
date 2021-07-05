@@ -10,6 +10,7 @@ import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
+import ExperimentRunsProperties from "./ExperimentRunsProperties";
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -88,25 +89,20 @@ const ExperimentRunsDetailContent = ({
 
         <Title level={3} style={{marginTop: "30px"}}>Experiment Protocols</Title>
         {isLoaded && experimentRun.children_processes &&
-          <Collapse>
+          <div>
             {experimentRun.children_processes.map((id, i) => {
               const process = processesByID[id]
               return ( process &&
-                  <Panel header={protocolsByID[process.protocol]?.name} key={`panel-${i}`}>
-                    {process.children_properties.map((id, i) => {
-                      const propertyValue = propertyValuesByID[id]
-                      return ( propertyValue &&
-                              <div>
-                                <b>{propertyValue.property_name}</b>: {propertyValue.value}
-                              </div>
-                      )
-                    })}
-
-                  </Panel>
+                  <>
+                    <ExperimentRunsProperties
+                        propertyIDs={process.children_properties}
+                        protocolName={protocolsByID[process.protocol]?.name}
+                    />
+                  </>
               )
             })
             }
-          </Collapse>
+          </div>
         }
 
       </PageContent>
