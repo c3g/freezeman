@@ -219,7 +219,7 @@ export const EXPERIMENT_RUN_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "container__barcode",
     label: "Container Barcode",
-    recursive: true,
+    recursive: false,
   },
   start_date: {
     type: FILTER_TYPE.DATE_RANGE,
