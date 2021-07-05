@@ -8,6 +8,7 @@ from .models import (
     ExperimentType,
     Individual,
     Instrument,
+    PropertyValue,
     Protocol,
     Process,
     ProcessMeasurement,
@@ -26,6 +27,7 @@ __all__ = [
     "IndividualSerializer",
     "InstrumentSerializer",
     "SampleKindSerializer",
+    "PropertyValueSerializer",
     "ProcessSerializer",
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
@@ -137,6 +139,15 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
     class Meta:
       model = ProcessMeasurement
       fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+class PropertyValueSerializer(serializers.ModelSerializer):
+    property_name = serializers.CharField(read_only=True, source="property_type.name")
+
+    class Meta:
+      model = PropertyValue
+      fields = "__all__"
+      extra_fields = ('property_name')
+
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()

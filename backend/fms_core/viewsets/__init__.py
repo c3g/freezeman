@@ -7,6 +7,7 @@ from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
 from .process import ProcessViewSet
 from .process_measurement import ProcessMeasurementViewSet
+from .property_value import PropertyValueViewSet
 from .protocol import ProtocolViewSet
 from .query import QueryViewSet
 from .revision import RevisionViewSet
@@ -26,6 +27,7 @@ __all__ = [
     "ProcessViewSet",
     "ProcessMeasurementViewSet",
     "ProtocolViewSet",
+    "PropertyValueViewSet",
     "QueryViewSet",
     "RevisionViewSet",
     "SampleViewSet",
