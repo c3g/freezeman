@@ -72,6 +72,39 @@ export const instruments = (
     }
 };
 
+export const processes = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case EXPERIMENT_RUNS.LIST_PROCESSES.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case EXPERIMENT_RUNS.LIST_PROCESSES.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case EXPERIMENT_RUNS.LIST_PROCESSES.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
+
+
 
 export const experimentRuns = (
     state = {

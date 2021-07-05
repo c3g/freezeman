@@ -46,6 +46,7 @@ from .serializers import (
     ExperimentTypeSerializer,
     SampleKindSerializer,
     ProtocolSerializer,
+    ProcessSerializer,
     ProcessMeasurementSerializer,
     ProcessMeasurementExportSerializer,
     SampleSerializer,
@@ -79,6 +80,7 @@ __all__ = [
     "SampleViewSet",
     "SampleKindViewSet",
     "ProtocolViewSet",
+    "ProcessViewSet",
     "UserViewSet",
     "GroupViewSet",
     "VersionViewSet",
@@ -310,6 +312,11 @@ _protocol_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_process_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "parent_process": FK_FILTERS,
+}
+
 _process_measurement_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "source_sample": FK_FILTERS,
@@ -497,6 +504,17 @@ class ProtocolViewSet(viewsets.ModelViewSet):
     serializer_class = ProtocolSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
+
+class ProcessViewSet(viewsets.ModelViewSet):
+    queryset = Process.objects.all()
+    serializer_class = ProcessSerializer
+    pagination_class = None
+    permission_classes = [IsAuthenticated]
+
+    filterset_fields = {
+        **_process_filterset_fields,
+    }
+
 
 class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = ProcessMeasurement.objects.all().select_related("process").prefetch_related("lineage")

@@ -11,6 +11,7 @@ from .viewsets import (
     SampleViewSet,
     SampleKindViewSet,
     ProtocolViewSet,
+    ProcessViewSet,
     ProcessMeasurementViewSet,
     UserViewSet,
     GroupViewSet,
@@ -27,6 +28,7 @@ router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"experiment-types", ExperimentTypeViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
+router.register(r"processes", ProcessViewSet)
 router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"samples", SampleViewSet)
 router.register(r"individuals", IndividualViewSet)

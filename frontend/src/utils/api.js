@@ -57,6 +57,10 @@ const api = {
     list: () => get("/instruments/"),
   },
 
+  processes: {
+    list: (options, abort) => get("/processes", options, { abort }),
+  },
+
   processMeasurements: {
     get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
     list: (options, abort) => get("/process-measurements/", options, { abort }),

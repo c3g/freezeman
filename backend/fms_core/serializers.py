@@ -9,6 +9,7 @@ from .models import (
     Individual,
     Instrument,
     Protocol,
+    Process,
     ProcessMeasurement,
     Sample,
     SampleKind
@@ -25,6 +26,7 @@ __all__ = [
     "IndividualSerializer",
     "InstrumentSerializer",
     "SampleKindSerializer",
+    "ProcessSerializer",
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
     "ProtocolSerializer",
@@ -63,9 +65,16 @@ class ContainerExportSerializer(serializers.ModelSerializer):
 
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
+    children_processes = serializers.SerializerMethodField()
+
     class Meta:
         model = ExperimentRun
         fields = "__all__"
+        extra_fields = ('children_processes')
+
+
+    def get_children_processes(self, obj):
+        return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
@@ -103,6 +112,11 @@ class SampleKindSerializer(serializers.ModelSerializer):
 class ProtocolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Protocol
+        fields = "__all__"
+
+class ProcessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Process
         fields = "__all__"
 
 class ProcessMeasurementSerializer(serializers.ModelSerializer):

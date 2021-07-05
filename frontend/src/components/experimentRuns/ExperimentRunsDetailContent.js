@@ -7,7 +7,7 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {get} from "../../modules/experimentRuns/actions";
+import {get, listProcesses} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
 
 const mapStateToProps = state => ({
@@ -15,11 +15,21 @@ const mapStateToProps = state => ({
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentTypes: state.experimentTypes,
   instruments: state.instruments,
+  processesByID: state.processes.itemsByID,
 });
 
-const actionCreators = {get};
+const actionCreators = {get, listProcesses};
 
-const ExperimentRunsDetailContent = ({containersByID, experimentRunsByID, experimentTypes, instruments, get}) => {
+const ExperimentRunsDetailContent = ({
+  containersByID,
+  experimentRunsByID,
+  experimentTypes,
+  instruments,
+  processesByID,
+  get,
+  listProcesses,
+
+}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -27,8 +37,15 @@ const ExperimentRunsDetailContent = ({containersByID, experimentRunsByID, experi
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
   const isLoaded = experimentRunsByID[id];
 
-  if (!isLoaded)
+  if (!isLoaded) {
     get(id);
+  }
+
+  if (isLoaded && !processesByID[experimentRun.process]) {
+    const childrenProcessesAsStr = experimentRun.children_processes.join()
+    listProcesses({id__in: childrenProcessesAsStr});
+  }
+
 
   return (
     <>

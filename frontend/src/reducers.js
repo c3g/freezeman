@@ -30,6 +30,7 @@ import {
   experimentTypes,
   experimentRuns,
   instruments,
+  processes,
 } from "./modules/experimentRuns/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
@@ -62,6 +63,7 @@ const allReducers = combineReducers({
   sampleTemplateActions,
   samples,
   protocols,
+  processes,
   processMeasurementsSummary,
   processMeasurementTemplateActions,
   processMeasurements,
