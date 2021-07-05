@@ -1,7 +1,8 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Space, Tag, Typography} from "antd";
+import {Descriptions, Space, Tag, Typography, Collapse} from "antd";
+const {Panel} = Collapse;
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
@@ -16,6 +17,7 @@ const mapStateToProps = state => ({
   experimentTypes: state.experimentTypes,
   instruments: state.instruments,
   processesByID: state.processes.itemsByID,
+  protocolsByID: state.protocols.itemsByID,
 });
 
 const actionCreators = {get, listProcesses};
@@ -26,6 +28,7 @@ const ExperimentRunsDetailContent = ({
   experimentTypes,
   instruments,
   processesByID,
+  protocolsByID,
   get,
   listProcesses,
 
@@ -42,8 +45,9 @@ const ExperimentRunsDetailContent = ({
   }
 
   if (isLoaded && !processesByID[experimentRun.process]) {
-    const childrenProcessesAsStr = experimentRun.children_processes.join()
-    listProcesses({id__in: childrenProcessesAsStr});
+    const processes = [experimentRun.process].concat(experimentRun.children_processes)
+    // Need to be queried as a string, not as an array in order to work with DRF filters
+    listProcesses({id__in: processes.join()});
   }
 
 
@@ -75,6 +79,22 @@ const ExperimentRunsDetailContent = ({
         </Descriptions>
 
         <TrackingFieldsContent entity={experimentRun}/>
+
+        <Title level={3} style={{marginTop: "30px"}}>Experiment Protocols</Title>
+        {isLoaded && experimentRun.children_processes &&
+          <Collapse>
+            {experimentRun.children_processes.map((id, i) => {
+              const process = processesByID[id]
+              return ( process &&
+                  <Panel header={protocolsByID[process.protocol]?.name} key={`panel-${i}`}>
+                    <p>{id}</p>
+                  </Panel>
+              )
+            })
+            }
+          </Collapse>
+        }
+
       </PageContent>
     </>
   );
