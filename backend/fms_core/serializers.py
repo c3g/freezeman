@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 
@@ -117,9 +118,17 @@ class ProtocolSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ProcessSerializer(serializers.ModelSerializer):
+    children_properties = serializers.SerializerMethodField()
+
     class Meta:
         model = Process
         fields = "__all__"
+        extra_fields = ('children_processes')
+
+
+    def get_children_properties(self, obj):
+        process_content_type = ContentType.objects.get_for_model(Process)
+        return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
 
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")

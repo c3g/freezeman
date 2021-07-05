@@ -8,7 +8,7 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {get, listProcesses} from "../../modules/experimentRuns/actions";
+import {get, listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
 
 const mapStateToProps = state => ({
@@ -17,10 +17,11 @@ const mapStateToProps = state => ({
   experimentTypes: state.experimentTypes,
   instruments: state.instruments,
   processesByID: state.processes.itemsByID,
+  propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {get, listProcesses};
+const actionCreators = {get, listProcesses, listPropertyValues};
 
 const ExperimentRunsDetailContent = ({
   containersByID,
@@ -28,10 +29,11 @@ const ExperimentRunsDetailContent = ({
   experimentTypes,
   instruments,
   processesByID,
+  propertyValuesByID,
   protocolsByID,
   get,
   listProcesses,
-
+  listPropertyValues,
 }) => {
   const history = useHistory();
   const {id} = useParams();
@@ -39,15 +41,19 @@ const ExperimentRunsDetailContent = ({
   const experimentRun = experimentRunsByID[id] || {};
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
   const isLoaded = experimentRunsByID[id];
+  let processIDS = []
+
 
   if (!isLoaded) {
     get(id);
   }
 
   if (isLoaded && !processesByID[experimentRun.process]) {
-    const processes = [experimentRun.process].concat(experimentRun.children_processes)
+    processIDS = [experimentRun.process].concat(experimentRun.children_processes)
     // Need to be queried as a string, not as an array in order to work with DRF filters
-    listProcesses({id__in: processes.join()});
+    const processIDSAsStr = processIDS.join()
+    listProcesses({id__in: processIDSAsStr});
+    listPropertyValues({object_id__in: processesByID, content_type__model: "process"})
   }
 
 
@@ -87,7 +93,15 @@ const ExperimentRunsDetailContent = ({
               const process = processesByID[id]
               return ( process &&
                   <Panel header={protocolsByID[process.protocol]?.name} key={`panel-${i}`}>
-                    <p>{id}</p>
+                    {process.children_properties.map((id, i) => {
+                      const propertyValue = propertyValuesByID[id]
+                      return ( propertyValue &&
+                              <div>
+                                <b>{propertyValue.property_name}</b>: {propertyValue.value}
+                              </div>
+                      )
+                    })}
+
                   </Panel>
               )
             })

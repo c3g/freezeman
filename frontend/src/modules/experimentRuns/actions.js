@@ -17,7 +17,7 @@ export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
 export const LIST_PROCESSES        = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROCESSES");
-
+export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
 
 export const get = id => async (dispatch, getState) => {
     const experimentRun = getState().experimentRuns.itemsByID[id];
@@ -101,6 +101,19 @@ export const listProcesses = (options) => async (dispatch, getState) => {
     ));
 };
 
+export const listPropertyValues = (options) => async (dispatch, getState) => {
+    if (getState().propertyValues.isFetching || getState().propertyValues.items.length > 0)
+        return;
+
+    const options = {content_type__app_label: "fms_core", ...options}
+
+    return await dispatch(networkAction(LIST_PROPERTY_VALUES,
+        api.propertyValues.list(options),
+        { meta: { ...options} }
+    ));
+};
+
+
 
 export default {
     GET,
@@ -113,6 +126,7 @@ export default {
     LIST_TYPES,
     LIST_INSTRUMENTS,
     LIST_PROCESSES,
+    LIST_PROPERTY_VALUES,
     get,
     setSortBy,
     setFilter,
@@ -123,6 +137,7 @@ export default {
     listTypes,
     listInstruments,
     listProcesses,
+    listPropertyValues,
 };
 
 // Helper to call list() after another action

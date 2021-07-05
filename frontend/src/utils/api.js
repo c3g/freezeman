@@ -74,6 +74,10 @@ const api = {
     },
   },
 
+  propertyValues: {
+    list: (options, abort) => get("/property-values/", options, { abort }),
+  },
+
   protocols: {
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },

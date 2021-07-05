@@ -31,6 +31,7 @@ import {
   experimentRuns,
   instruments,
   processes,
+  propertyValues,
 } from "./modules/experimentRuns/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
@@ -67,6 +68,7 @@ const allReducers = combineReducers({
   processMeasurementsSummary,
   processMeasurementTemplateActions,
   processMeasurements,
+  propertyValues,
   users,
   groups,
   versions,

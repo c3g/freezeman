@@ -104,7 +104,37 @@ export const processes = (
     }
 };
 
-
+export const propertyValues = (
+  state = {
+      items: [],
+      itemsByID: {},
+      isFetching: false,
+  },
+  action
+) => {
+    switch (action.type) {
+        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.REQUEST:
+            return {
+                ...state,
+                isFetching: true,
+            };
+        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.RECEIVE:
+            return {
+                ...state,
+                items: action.data,
+                itemsByID: indexByID(action.data, "id"),
+                isFetching: false,
+            };
+        case EXPERIMENT_RUNS.LIST_PROPERTY_VALUES.ERROR:
+            return {
+                ...state,
+                isFetching: false,
+                error: action.error,
+            };
+        default:
+            return state;
+    }
+};
 
 export const experimentRuns = (
     state = {
