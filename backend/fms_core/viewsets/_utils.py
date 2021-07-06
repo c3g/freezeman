@@ -3,6 +3,9 @@ from tablib import Dataset
 from django.db.models import Count, Q, Func, F, Prefetch
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from reversion.models import Version
+
+from fms_core.serializers import VersionSerializer
 
 
 def versions_detail(obj):
