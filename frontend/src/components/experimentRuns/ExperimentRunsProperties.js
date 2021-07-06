@@ -44,8 +44,8 @@ const ExperimentRunsProperties = ({
 
   return (
     <>
-     <Title level={5} style={{marginTop: "20px"}}>{protocolName} </Title>
-     <Table columns={columns} dataSource={data} pagination={false}/>
+     <Title level={5} style={{marginTop: "20px"}}> {protocolName} </Title>
+     <Table columns={columns} dataSource={data} pagination={false} className="table-min-width"/>
     </>
   );
 };

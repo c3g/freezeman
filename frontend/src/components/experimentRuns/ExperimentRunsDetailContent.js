@@ -1,9 +1,10 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Space, Tag, Typography, Collapse} from "antd";
+import {Descriptions, Space, Tag, Typography, Collapse, Tabs} from "antd";
 const {Panel} = Collapse;
 const {Title} = Typography;
+const { TabPane } = Tabs;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -11,6 +12,21 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
 import ExperimentRunsProperties from "./ExperimentRunsProperties";
+
+const pageStyle = {
+  padding: 0,
+  overflow: "hidden",
+}
+
+const tabsStyle = {
+  marginTop: 8,
+}
+
+const tabStyle = {
+  padding: "0 24px 24px 24px",
+  overflow: "auto",
+  height: "100%",
+}
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
@@ -65,45 +81,49 @@ const ExperimentRunsDetailContent = ({
         onBack={() => history.push("/experiment-runs/list")}
       />
 
-      <PageContent loading={!isLoaded && isFetching}>
-        <Title level={2}>Overview</Title>
-        <Descriptions bordered={true} size="small">
-          <Descriptions.Item label="Experiment Type" span={3}>
-            <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="Instrument" span={3}>
-              {instruments.itemsByID[experimentRun.instrument]?.name}
-          </Descriptions.Item>
-          <Descriptions.Item label="Experiment Start Date" span={3}>
-              {experimentRun.start_date}
-          </Descriptions.Item>
-          <Descriptions.Item label="Container Barcode">
-              {experimentRun.container &&
-                  <Link to={`/containers/${experimentRun.container}`}>
-                      {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
-                  </Link>}
-          </Descriptions.Item>
-        </Descriptions>
+      <PageContent loading={!isLoaded && isFetching} style={pageStyle} tabs={true}>
+        <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
+          <TabPane tab="Overview" key="1" style={tabStyle}>
+            <Descriptions bordered={true} size="small">
+              <Descriptions.Item label="Experiment Type" span={3}>
+                <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Instrument" span={3}>
+                  {instruments.itemsByID[experimentRun.instrument]?.name}
+              </Descriptions.Item>
+              <Descriptions.Item label="Experiment Start Date" span={3}>
+                  {experimentRun.start_date}
+              </Descriptions.Item>
+              <Descriptions.Item label="Container Barcode">
+                  {experimentRun.container &&
+                      <Link to={`/containers/${experimentRun.container}`}>
+                          {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+                      </Link>}
+              </Descriptions.Item>
+            </Descriptions>
 
-        <TrackingFieldsContent entity={experimentRun}/>
+          <TrackingFieldsContent entity={experimentRun}/>
+          </TabPane>
 
-        <Title level={3} style={{marginTop: "30px"}}>Experiment Protocols</Title>
-        {isLoaded && experimentRun.children_processes &&
-          <div>
-            {experimentRun.children_processes.map((id, i) => {
-              const process = processesByID[id]
-              return ( process &&
-                  <>
-                    <ExperimentRunsProperties
-                        propertyIDs={process.children_properties}
-                        protocolName={protocolsByID[process.protocol]?.name}
-                    />
-                  </>
-              )
-            })
+          <TabPane tab="Steps" key="2" style={tabStyle}>
+            {isLoaded && experimentRun.children_processes &&
+              <div>
+                {experimentRun.children_processes.map((id, i) => {
+                  const process = processesByID[id]
+                  return ( process &&
+                      <>
+                        <ExperimentRunsProperties
+                            propertyIDs={process.children_properties}
+                            protocolName={protocolsByID[process.protocol]?.name}
+                        />
+                      </>
+                  )
+                })
+                }
+              </div>
             }
-          </div>
-        }
+          </TabPane>
+        </Tabs>
 
       </PageContent>
     </>
