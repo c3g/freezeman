@@ -11,8 +11,8 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listParents} from "../../modules/containers/actions";
-import {list as listExperimentRuns} from "../../modules/experimentRuns/actions"
 import {withContainer} from "../../utils/withItem";
+import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
 
 
 const pageStyle = {
@@ -32,18 +32,12 @@ const tabStyle = {
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
-  experimentRunsByID: state.experimentRuns.itemsByID,
-  experimentTypesByID: state.experimentTypes.itemsByID,
-  instrumentsByID: state.instruments.itemsByID,
 });
 
 const actionCreators = {get, listParents};
 
 const ContainersDetailContent = ({
   containersByID,
-  experimentRunsByID,
-  experimentTypesByID,
-  instrumentsByID,
   get,
   listParents
 }) => {
@@ -54,12 +48,7 @@ const ContainersDetailContent = ({
   // const error = container.error;
   const isFetching = !containersByID[id] || container.isFetching;
   const isLoaded = containersByID[id] && container.isLoaded;
-
-  const hasExperimentRuns = isLoaded && container.experiment_runs.length
-  const hasNoExperimentRuns = isLoaded && !container.experiment_runs.length
-  const experimentRunsLoaded = hasExperimentRuns && experimentRunsByID[container.experiment_runs[0]]
-  const experimentRunsReady = hasNoExperimentRuns || experimentRunsLoaded
-  let experimentRuns = []
+  let experimentRunsIDs = undefined
 
   if (!isLoaded)
     get(id);
@@ -67,11 +56,8 @@ const ContainersDetailContent = ({
   if (isLoaded && !container.parents)
     listParents(id);
 
-  if (hasExperimentRuns && !experimentRunsLoaded)
-    listExperimentRuns({container__id__in: container.experiment_runs.join()})
-
-  if (experimentRunsLoaded)
-    experimentRuns = container.experiment_runs?.map(erID => experimentRunsByID[erID])
+  if (isLoaded)
+    experimentRunsIDs = container.experiment_runs
 
 
   return (
@@ -113,22 +99,7 @@ const ContainersDetailContent = ({
           </TabPane>
 
           <TabPane tab={`Experiments (${container.experiment_runs?.length})`} key="2" style={tabStyle}>
-            <List
-              bordered
-              dataSource={experimentRuns}
-              loading={!experimentRunsReady}
-              renderItem={experimentRun => (
-                <List.Item>
-                  {`${experimentRun.start_date}  -  `}
-                  <Link to={`/experiment-runs/${experimentRun.id}`}>
-                     {`[Experiment #${experimentRun.id}]  `}
-                  </Link>
-                  {experimentTypesByID[experimentRun.experiment_type]?.workflow}
-                  {` (${instrumentsByID[experimentRun.instrument]?.name})`}
-
-                </List.Item>
-              )}
-            />
+            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
           </TabPane>
         </Tabs>
 
