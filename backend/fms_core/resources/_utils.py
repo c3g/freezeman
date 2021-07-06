@@ -1,4 +1,5 @@
 from tablib import Dataset
+from import_export.results import RowResult
 from ..models import Container
 from ..utils import str_normalize
 
@@ -31,6 +32,19 @@ def skip_rows(dataset: Dataset, num_rows: int = 0, col_skip: int = 1) -> None:
         if len(vals) == 1 and "" in vals:
             continue
         dataset.append(tuple(str_normalize(c) if isinstance(c, str) else ("" if c is None else c) for c in r))
+
+def wipe_import_row_result(import_result, row):
+    # Clear all the values in the row
+    import_result.diff = ['' for val in row]
+    # Add a column with the error message
+    import_result.diff.append('Errors: {}'.format([err.error for err in import_result.errors]))
+    # Clear all the errors and validation errors
+    import_result.errors = []
+    import_result.validation_error = []
+    # Skip this record
+    import_result.import_type = RowResult.IMPORT_TYPE_SKIP
+
+    return import_result
 
 
 def remove_column_from_preview(results, column_name: str):

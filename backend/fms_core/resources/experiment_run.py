@@ -13,13 +13,20 @@ from ..models import (
     ExperimentType,
     Protocol,
     Process,
+    ProcessMeasurement,
     PropertyType,
-    PropertyValue
+    PropertyValue,
+    Sample,
+    SampleLineage
 )
 from ._generic import GenericResource
 
-from ._utils import skip_rows, add_columns_to_preview
-from ..utils import get_normalized_str
+from ._utils import skip_rows, add_columns_to_preview, wipe_import_row_result
+from ..utils import (
+    blank_str_to_none,
+    float_to_decimal,
+    get_normalized_str,
+)
 
 from ..experiments import PROTOCOLS_BY_EXPERIMENT_TYPE_NAME
 
@@ -30,6 +37,7 @@ process_content_type = ContentType.objects.get(app_label="fms_core", model="proc
 
 
 class ExperimentRunResource(GenericResource):
+    experiment_id = Field(column_name='Experiment ID')
     container_barcode = Field(column_name='Experiment Container Barcode',
                               widget=ForeignKeyWidget(Container, field='barcode'))
     container_kind = Field(column_name='Experiment Container Kind')
@@ -54,6 +62,11 @@ class ExperimentRunResource(GenericResource):
 
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
+        self.sample_rows = []
+        self.experiments = {}
+        self.temporary_experiment_id = None
+        self.transfer_process_by_experiment_id = {}
+
         self.experiment_type_name = dataset[1][2]
 
         # at index 6 is the first process name
@@ -79,6 +92,39 @@ class ExperimentRunResource(GenericResource):
 
 
         skip_rows(dataset, 10)  # Skip preamble
+
+
+    def before_import_row(self, row, **kwargs):
+        self.temporary_experiment_id = row.get("Experiment ID")
+
+        super().before_import_row(row, **kwargs)
+
+
+
+    def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
+        import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
+
+        row_id = row.get("#")
+
+        # We are in the Sample section
+        if isinstance(row_id, int) and row_id > 100:
+            sample_row = {
+                "experiment_id": row.get("Experiment ID"),
+                "source_container_barcode": row.get("Experiment Container Barcode"),
+                "source_container_position": row.get("Experiment Container Kind"),
+                "source_sample_volume_used": float_to_decimal(blank_str_to_none(row.get("Instrument Name"))),
+                "experiment_container_position": row.get("Experiment Start Date"),
+             }
+            self.sample_rows.append(sample_row)
+
+            import_result = wipe_import_row_result(import_result, row)
+
+        # If our row is not an ExperimentRun row...
+        elif not isinstance(row_id, int) or isinstance(row_id, int) and row_id > 100:
+            import_result = wipe_import_row_result(import_result, row)
+
+
+        return import_result
 
 
     def import_obj(self, obj, data, dry_run):
@@ -171,3 +217,55 @@ class ExperimentRunResource(GenericResource):
 
             results = add_columns_to_preview(results, dataset, COLUMNS_TO_ADD)
         return results
+
+    def after_save_instance(self, instance, using_transactions, dry_run):
+        super().after_save_instance(instance, using_transactions, dry_run)
+        reversion.set_comment("Imported ExperimentRun from template.")
+
+        self.experiments.update({self.temporary_experiment_id: instance.id})
+
+
+    def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
+        super().after_import(dataset, result, using_transactions, dry_run, **kwargs)
+
+        if not dry_run:
+            transfer_protocol = Protocol.objects.get(name="Transfer")
+
+
+            for temporary_experiment_id in self.experiments:
+                experiment_id = self.experiments[temporary_experiment_id]
+                self.transfer_process_by_experiment_id[experiment_id] = Process.objects.create(protocol=transfer_protocol,
+                                                                                               comment="Created during ExperimentRun template import")
+
+            for sample_row in self.sample_rows:
+                experiment_run = ExperimentRun.objects.get(id=self.experiments[sample_row["experiment_id"]])
+                process = experiment_run.process
+
+                source_container = Container.objects.get(barcode=sample_row["source_container_barcode"])
+                source_sample = Sample.objects.get(container=source_container, coordinates=sample_row["source_container_position"])
+
+                # Create transferred sample
+                transferred_sample = source_sample
+                transferred_sample.pk = None
+                transferred_sample.container = experiment_run.container
+                transferred_sample.coordinates = sample_row["experiment_container_position"]
+                transferred_sample.save()
+
+                # Transfer process and lineage
+                transfer_process = ProcessMeasurement.objects.create(
+                    process=self.transfer_process_by_experiment_id[experiment_run.id],
+                    source_sample=source_sample,
+                    execution_date=experiment_run.start_date,
+                    volume_used=source_sample.volume
+                )
+
+                SampleLineage.objects.create(process_measurement=transfer_process,
+                                             parent=source_sample,
+                                             child=transferred_sample)
+
+                # ProcessMeasurement for ExperimentRun on Sample
+
+                ProcessMeasurement.objects.create(process=process,
+                                                  source_sample=transferred_sample,
+                                                  volume_used=sample_row["source_sample_volume_used"],
+                                                  execution_date=experiment_run.start_date)
