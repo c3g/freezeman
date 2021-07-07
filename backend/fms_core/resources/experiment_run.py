@@ -5,6 +5,7 @@ from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget, DateWidget
 from datetime import datetime
 from itertools import accumulate, islice
+import json
 
 from ..models import (
     ExperimentRun,
@@ -187,10 +188,17 @@ class ExperimentRunResource(GenericResource):
                 property_type = self.property_types_by_name[property]
                 if value:
                     process = experiment_run_processes_by_protocol_id[property_type.object_id]
+
+                    if type(value).__name__ in ('datetime','time'):
+                        value = value.isoformat() + "Z"
+                        value = json.dumps(value, default=str)
+
+
                     PropertyValue.objects.create(value=value,
                                                  property_type=property_type,
                                                  content_type=process_content_type,
                                                  object_id=process.id)
+
                 # Comments are the only non-mandatory fields
                 elif 'comment' not in property.lower():
                     errors[property] = ValidationError([f"Value cannot be blank"],
