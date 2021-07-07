@@ -32,7 +32,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     template_action_list = [
         {
-            "name": "Experiment Run",
+            "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
             "template": EXPERIMENT_INFINIUM_TEMPLATE,
             "resource": ExperimentRunResource,

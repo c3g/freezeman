@@ -18,6 +18,7 @@ export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.L
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
 export const LIST_PROCESSES        = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROCESSES");
 export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
 
 export const get = id => async (dispatch, getState) => {
     const experimentRun = getState().experimentRuns.itemsByID[id];
@@ -113,6 +114,11 @@ export const listPropertyValues = (options) => async (dispatch, getState) => {
     ));
 };
 
+export const listTemplateActions = () => (dispatch, getState) => {
+    if (getState().experimentRunTemplateActions.isFetching) return;
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.experimentRuns.template.actions()));
+};
+
 
 
 export default {
@@ -127,6 +133,7 @@ export default {
     LIST_INSTRUMENTS,
     LIST_PROCESSES,
     LIST_PROPERTY_VALUES,
+    LIST_TEMPLATE_ACTIONS,
     get,
     setSortBy,
     setFilter,
@@ -138,6 +145,7 @@ export default {
     listInstruments,
     listProcesses,
     listPropertyValues,
+    listTemplateActions,
 };
 
 // Helper to call list() after another action

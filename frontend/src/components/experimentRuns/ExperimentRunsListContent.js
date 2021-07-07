@@ -16,6 +16,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
+import {actionsToButtonList} from "../../utils/templateActions";
 
 
 const getTableColumns = (containersByID, experimentTypes, instruments) => [
@@ -82,6 +83,7 @@ const mapStateToProps = state => ({
   isFetching: state.experimentRuns.isFetching,
   filters: state.experimentRuns.filters,
   sortBy: state.experimentRuns.sortBy,
+  actions: state.experimentRunTemplateActions,
 });
 
 const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
@@ -98,6 +100,7 @@ const ExperimentRunsListContent = ({
   totalCount,
   filters,
   sortBy,
+  actions,
   listTable,
   setFilter,
   setFilterOption,
@@ -123,6 +126,7 @@ const ExperimentRunsListContent = ({
 
   return <>
     <AppPageHeader title="Experiments" extra={[
+        ...actionsToButtonList("/experiment-runs", actions),
         <ExportButton key='export' exportFunction={listExport} filename="experiments"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

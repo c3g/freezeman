@@ -4,9 +4,11 @@ import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import EXPERIMENT_RUNS from "./actions";
 import {map} from "rambda";
+import {templateActionsReducerFactory} from "../../utils/templateActions";
 
 
-// TODO: template and summary
+// TODO: summary
+export const experimentRunTemplateActions = templateActionsReducerFactory(EXPERIMENT_RUNS);
 
 export const experimentTypes = (
   state = {

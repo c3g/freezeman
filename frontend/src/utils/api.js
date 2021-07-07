@@ -38,6 +38,11 @@ const api = {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),
     listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
+    template: {
+      actions: () => get(`/experiment-runs/template_actions/`),
+      check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
+    },
   },
 
   experimentTypes: {
