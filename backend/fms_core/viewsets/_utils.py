@@ -4,6 +4,7 @@ from django.db.models import Count, Q, Func, F, Prefetch
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
+from import_export.results import RowResult
 
 from fms_core.serializers import VersionSerializer
 
@@ -120,7 +121,7 @@ class TemplateActionsMixin:
                 "warnings": r.warnings,
                 "diff": r.diff,
                 "import_type": r.import_type,
-            } for r in result.rows],  # TODO
+            } for r in result.rows if r.import_type != RowResult.IMPORT_TYPE_SKIP],
         })
 
     @action(detail=False, methods=["post"])
