@@ -65,7 +65,7 @@ const ExperimentRunsDetailContent = ({
     get(id);
   }
 
-  if (isLoaded && !processesByID[experimentRun.process]) {
+  if (isLoaded && experimentRun.children_processes?.length > 0 && !processesByID[experimentRun.children_processes[0]]) {
     processIDS = [experimentRun.process].concat(experimentRun.children_processes)
     // Need to be queried as a string, not as an array in order to work with DRF filters
     const processIDSAsStr = processIDS.join()

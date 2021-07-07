@@ -93,7 +93,7 @@ export const listInstruments = () => async (dispatch, getState) => {
 };
 
 export const listProcesses = (options) => async (dispatch, getState) => {
-    if (getState().processes.isFetching || getState().processes.items.length > 0)
+    if (getState().processes.isFetching)
         return;
 
     return await dispatch(networkAction(LIST_PROCESSES,
@@ -103,7 +103,7 @@ export const listProcesses = (options) => async (dispatch, getState) => {
 };
 
 export const listPropertyValues = (options) => async (dispatch, getState) => {
-    if (getState().propertyValues.isFetching || getState().propertyValues.items.length > 0)
+    if (getState().propertyValues.isFetching)
         return;
 
     const options = {content_type__app_label: "fms_core", ...options}
