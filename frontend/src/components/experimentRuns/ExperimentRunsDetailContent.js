@@ -12,6 +12,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
 import ExperimentRunsProperties from "./ExperimentRunsProperties";
+import ExperimentRunsSamples from "./ExperimentRunsSamples";
 
 const pageStyle = {
   padding: 0,
@@ -107,7 +108,7 @@ const ExperimentRunsDetailContent = ({
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
             {isLoaded && experimentRun.children_processes &&
-              <div>
+              <>
                 {experimentRun.children_processes.map((id, i) => {
                   const process = processesByID[id]
                   return ( process &&
@@ -120,9 +121,14 @@ const ExperimentRunsDetailContent = ({
                   )
                 })
                 }
-              </div>
+              </>
             }
           </TabPane>
+
+          <TabPane tab="Samples" key="3" style={tabStyle}>
+              <ExperimentRunsSamples containerID={isLoaded ? experimentRun.container : undefined}/>
+          </TabPane>
+
         </Tabs>
 
       </PageContent>
