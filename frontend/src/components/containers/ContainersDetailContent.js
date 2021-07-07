@@ -1,8 +1,9 @@
 import React from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams, Link} from "react-router-dom";
-import {Space, Descriptions, Typography} from "antd";
+import {Space, Descriptions, Typography, List, Tabs} from "antd";
 const {Title} = Typography;
+const {TabPane} = Tabs;
 
 import AppPageHeader from "../AppPageHeader";
 import ContainerHierarchy from "./ContainerHierarchy";
@@ -11,16 +12,35 @@ import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listParents} from "../../modules/containers/actions";
 import {withContainer} from "../../utils/withItem";
+import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
+
+
+const pageStyle = {
+  padding: 0,
+  overflow: "hidden",
+}
+
+const tabsStyle = {
+  marginTop: 8,
+}
+
+const tabStyle = {
+  padding: "0 24px 24px 24px",
+  overflow: "auto",
+  height: "100%",
+}
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
-  samplesByID: state.samples.itemsByID,
-  usersByID: state.users.itemsByID,
 });
 
 const actionCreators = {get, listParents};
 
-const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, listParents}) => {
+const ContainersDetailContent = ({
+  containersByID,
+  get,
+  listParents
+}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -28,12 +48,16 @@ const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, l
   // const error = container.error;
   const isFetching = !containersByID[id] || container.isFetching;
   const isLoaded = containersByID[id] && container.isLoaded;
+  let experimentRunsIDs = undefined
 
   if (!isLoaded)
     get(id);
 
   if (isLoaded && !container.parents)
     listParents(id);
+
+  if (isLoaded)
+    experimentRunsIDs = container.experiment_runs
 
 
   return (
@@ -47,30 +71,39 @@ const ContainersDetailContent = ({containersByID, samplesByID, usersByID, get, l
             <EditButton url={`/containers/${id}/update`} />
           </Space>
       } />
-      <PageContent loading={!isLoaded && isFetching}>
-        <Title level={2}>Overview</Title>
-        <Descriptions bordered={true} size="small">
-          <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
-          <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
-          <Descriptions.Item label="Location" span={2}>
-            {container.location ?
-              <Link to={`/containers/${container.location}`}>
-                {withContainer(containersByID, container.location, container => container.barcode, "Loading...")}
-              </Link>
-              : "—"}
-            {container.coordinates && ` at ${container.coordinates}`}
-          </Descriptions.Item>
-          <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
-          <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
-        </Descriptions>
+      <PageContent loading={!isLoaded && isFetching} style={pageStyle}>
+        <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
+          <TabPane tab="Overview" key="1" style={tabStyle}>
+              <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
+                <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
+                <Descriptions.Item label="Location" span={2}>
+                  {container.location ?
+                    <Link to={`/containers/${container.location}`}>
+                      {withContainer(containersByID, container.location, container => container.barcode, "Loading...")}
+                    </Link>
+                    : "—"}
+                  {container.coordinates && ` at ${container.coordinates}`}
+                </Descriptions.Item>
+                <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
+                <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
+              </Descriptions>
 
-        <TrackingFieldsContent entity={container}/>
+            <TrackingFieldsContent entity={container}/>
 
-        <Descriptions bordered={true} size="small" title="Content Details" style={{marginTop: "24px"}}>
-          <Descriptions.Item span={3}>
-            <ContainerHierarchy key={id} container={isLoaded ? container : null} />
-          </Descriptions.Item>
-        </Descriptions>
+            <Descriptions bordered={true} size="small" title="Content Details" style={{marginTop: "24px"}}>
+              <Descriptions.Item span={3}>
+                <ContainerHierarchy key={id} container={isLoaded ? container : null} />
+              </Descriptions.Item>
+            </Descriptions>
+          </TabPane>
+
+          <TabPane tab={`Experiments (${container.experiment_runs?.length})`} key="2" style={tabStyle}>
+            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+          </TabPane>
+        </Tabs>
+
+
       </PageContent>
     </>
   );

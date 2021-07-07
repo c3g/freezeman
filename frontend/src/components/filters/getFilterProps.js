@@ -176,7 +176,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
       <div style={{ padding: 8 }}>
         <Select
           ref={selectRef}
-          style={{ width: 188, display: 'block' }}
+          style={{ width: 200, display: 'block' }}
           placeholder={`Select ${column.title}`}
           mode='multiple'
           allowClear

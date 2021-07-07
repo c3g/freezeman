@@ -81,6 +81,11 @@ _protocol_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_process_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "parent_process": FK_FILTERS,
+}
+
 _process_measurement_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "source_sample": FK_FILTERS,
@@ -91,4 +96,25 @@ _process_measurement_filterset_fields: FiltersetFields = {
     **_prefix_keys("process__protocol__", _protocol_filterset_fields),
     **_prefix_keys("source_sample__", _sample_minimal_filterset_fields),
     **_prefix_keys("lineage__child__", _sample_minimal_filterset_fields),
+}
+
+_instrument_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_experiment_type_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "workflow": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_experiment_run_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "start_date": DATE_FILTERS,
+
+    "experiment_type": FK_FILTERS,
+    "instrument": FK_FILTERS,
+    "container": FK_FILTERS,
+
+    **_prefix_keys("container__", _container_filterset_fields),
 }

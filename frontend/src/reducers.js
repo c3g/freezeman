@@ -26,6 +26,13 @@ import {
 import {
   protocols,
 } from "./modules/protocols/reducers";
+import {
+  experimentTypes,
+  experimentRuns,
+  instruments,
+  processes,
+  propertyValues,
+} from "./modules/experimentRuns/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
@@ -48,15 +55,20 @@ const allReducers = combineReducers({
   containersSummary,
   containerTemplateActions,
   containers,
+  experimentRuns,
+  experimentTypes,
   individuals,
+  instruments,
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,
   samples,
   protocols,
+  processes,
   processMeasurementsSummary,
   processMeasurementTemplateActions,
   processMeasurements,
+  propertyValues,
   users,
   groups,
   versions,
