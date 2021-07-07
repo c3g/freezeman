@@ -117,12 +117,19 @@ class Sample(TrackedModel):
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT,
                                     help_text="Biological material collected from study subject "
                                               "during the conduct of a genomic study project.")
-    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
-                            help_text="Sample name.")
+
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
+                            validators=[name_validator],
+                            help_text="Sample name.",
+                            error_messages={'blank': 'Sample name cannot be blank'})
+
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
-    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
-                                                                                     "with the sample.")
+    individual = models.ForeignKey("Individual",
+                                    on_delete=models.PROTECT,
+                                    related_name="samples",
+                                    help_text="Individual associated with the sample.",
+                                    error_messages={'null': 'Individual could not be processed due to missing information. Taxon, ID and Sex are necessary.'})
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
 
@@ -157,7 +164,9 @@ class Sample(TrackedModel):
     # TODO: I would prefer consistent terminology with Container if possible for this heirarchy
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples",
                                   limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
-                                  help_text="Designated location of the sample.")
+                                  help_text="Designated location of the sample.",
+                                  error_messages={'null': 'Container could not be processed due to missing information. Kind, Name and Barcode are necessary.'})
+
     # Location within the container, specified by coordinates
     # TODO list of choices ?
     coordinates = models.CharField(max_length=10, blank=True,

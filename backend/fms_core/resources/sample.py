@@ -175,7 +175,26 @@ class SampleResource(GenericResource):
         except Exception as e:
             individual_created = False
             individual = None
-            errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
+
+        #Individual field errors
+        if not data["Taxon"]:
+            errors["taxon"] = ValidationError("This field cannot be blank.", code="invalid")
+
+        if not data["Individual ID"]:
+            errors["individual_id"] = ValidationError("This field cannot be blank.", code="invalid")
+
+        if not data["Sex"]:
+            errors["sex"] = ValidationError("This field cannot be blank.", code="invalid")
+
+        #Container field errors
+        if not data["Container Kind"]:
+            errors["container_kind"] = ValidationError("This field cannot be blank.", code="invalid")
+
+        if not data["Container Name"]:
+            errors["container_name"] = ValidationError("This field cannot be blank.", code="invalid")
+
+        if not data["Container Barcode"]:
+            errors["container_barcode"] = ValidationError("This field cannot be blank.", code="invalid")
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
@@ -198,9 +217,13 @@ class SampleResource(GenericResource):
             obj.collection_site = get_normalized_str(data, "Collection Site")
 
         elif field.attribute == "sample_kind_name":
-            obj.sample_kind = SampleKind.objects.get(name=data["Sample Kind"])
+            try:
+                obj.sample_kind = SampleKind.objects.get(name=data["Sample Kind"])
+            except Exception as e:
+                pass
 
         elif field.attribute == "container_barcode":
+
             normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS:
                 # Oddly enough, Location Coord is contextual - when Container Kind
@@ -244,8 +267,12 @@ class SampleResource(GenericResource):
                 # This will throw an error if the kind specified mismatches with an
                 # existing barcode record in the database, which serves as an
                 # ad-hoc additional validation step.
-                container, _ = Container.objects.get_or_create(**container_data)
-                obj.container = container
+
+                try:
+                    container, _ = Container.objects.get_or_create(**container_data)
+                    obj.container = container
+                except:
+                    pass
 
                 return
 
@@ -272,7 +299,11 @@ class SampleResource(GenericResource):
             # Ignore importing this, since it's a computed property.
             return
 
-        super().import_field(field, obj, data, is_m2m)
+        try:
+            super().import_field(field, obj, data, is_m2m)
+        except Exception as e:
+            pass
+
 
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
