@@ -1,9 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Space, Tag, Typography, Collapse, Tabs} from "antd";
-const {Panel} = Collapse;
-const {Title} = Typography;
+import {Descriptions, Tag, Tabs} from "antd";
 const { TabPane } = Tabs;
 
 import AppPageHeader from "../AppPageHeader";
@@ -13,6 +11,7 @@ import {get, listProcesses, listPropertyValues} from "../../modules/experimentRu
 import {withContainer} from "../../utils/withItem";
 import ExperimentRunsProperties from "./ExperimentRunsProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
+
 
 const pageStyle = {
   padding: 0,
@@ -47,7 +46,6 @@ const ExperimentRunsDetailContent = ({
   experimentTypes,
   instruments,
   processesByID,
-  propertyValuesByID,
   protocolsByID,
   get,
   listProcesses,
@@ -59,17 +57,18 @@ const ExperimentRunsDetailContent = ({
   const experimentRun = experimentRunsByID[id] || {};
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
   const isLoaded = experimentRunsByID[id];
-  let processIDS = []
-
 
   if (!isLoaded) {
     get(id);
   }
 
-  if (isLoaded && experimentRun.children_processes?.length > 0 && !processesByID[experimentRun.children_processes[0]]) {
-    processIDS = [experimentRun.process].concat(experimentRun.children_processes)
+  const isContainerLoaded = isLoaded && containersByID[experimentRun.container]?.isLoaded
+
+  const container = isContainerLoaded ? containersByID[experimentRun.container] : null
+
+  if (isLoaded && !processesByID[experimentRun.process]) {
     // Need to be queried as a string, not as an array in order to work with DRF filters
-    const processIDSAsStr = processIDS.join()
+    const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
     listProcesses({id__in: processIDSAsStr});
     listPropertyValues({object_id__in: processesByID, content_type__model: "process"})
   }
@@ -107,26 +106,22 @@ const ExperimentRunsDetailContent = ({
           </TabPane>
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
-            {isLoaded && experimentRun.children_processes &&
-              <>
-                {experimentRun.children_processes.map((id, i) => {
-                  const process = processesByID[id]
-                  return ( process &&
-                      <>
-                        <ExperimentRunsProperties
-                            propertyIDs={process.children_properties}
-                            protocolName={protocolsByID[process.protocol]?.name}
-                        />
-                      </>
-                  )
-                })
-                }
-              </>
+            {experimentRun.children_processes?.map((id, i) => {
+                const process = processesByID[id]
+                return ( process &&
+                    <>
+                      <ExperimentRunsProperties
+                          propertyIDs={process.children_properties}
+                          protocolName={protocolsByID[process.protocol]?.name}
+                      />
+                    </>
+                )
+              })
             }
           </TabPane>
 
-          <TabPane tab="Samples" key="3" style={tabStyle}>
-              <ExperimentRunsSamples containerID={isLoaded ? experimentRun.container : undefined}/>
+          <TabPane tab={`Samples (${container ? container.samples.length : '' })`} key="3" style={tabStyle}>
+            <ExperimentRunsSamples container={container}/>
           </TabPane>
 
         </Tabs>
