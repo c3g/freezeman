@@ -129,7 +129,7 @@ class Sample(TrackedModel):
                                     on_delete=models.PROTECT,
                                     related_name="samples",
                                     help_text="Individual associated with the sample.",
-                                    error_messages={'null': 'Individual could not be processed due to missing information. Taxon, ID and Sex are necessary.'})
+                                    error_messages={'null': 'Individual could not be processed due to missing information. Taxon and ID are necessary.'})
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
 

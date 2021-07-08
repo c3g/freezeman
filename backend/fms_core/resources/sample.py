@@ -183,9 +183,6 @@ class SampleResource(GenericResource):
         if not data["Individual ID"]:
             errors["individual_id"] = ValidationError("This field cannot be blank.", code="invalid")
 
-        if not data["Sex"]:
-            errors["sex"] = ValidationError("This field cannot be blank.", code="invalid")
-
         #Container field errors
         if not data["Container Kind"]:
             errors["container_kind"] = ValidationError("This field cannot be blank.", code="invalid")
