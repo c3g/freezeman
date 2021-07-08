@@ -121,7 +121,7 @@ const ExperimentRunsDetailContent = ({
           </TabPane>
 
           <TabPane tab={`Samples (${container ? container.samples.length : '' })`} key="3" style={tabStyle}>
-            <ExperimentRunsSamples container={container}/>
+            <ExperimentRunsSamples container={container} experimentRun={experimentRun}/>
           </TabPane>
 
         </Tabs>
