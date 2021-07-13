@@ -99,12 +99,15 @@ function renderResultOK(checkResult) {
   </>
 }
 
-function wasInterrupted(checkResult) {
-  if (checkResult.base_errors?.length > 0)
+const wasInterrupted = checkResult => {
     return (
-      <p>
-        {checkResult.base_errors[0].error}  
-      </p>
+        <>
+          { checkResult.base_errors.map(baseError =>
+              <p>
+                {baseError.error}
+              </p>)
+          }
+        </>
     )
 }
 

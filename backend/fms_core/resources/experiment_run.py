@@ -5,6 +5,7 @@ from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget, DateWidget
 from datetime import datetime
 from itertools import accumulate, islice
+import traceback
 import json
 
 from ..models import (
@@ -66,7 +67,6 @@ class ExperimentRunResource(GenericResource):
         self.sample_rows = []
         self.experiments = {}
         self.temporary_experiment_id = None
-        self.transfer_process_by_experiment_id = {}
 
         self.experiment_type_name = dataset[1][2]
 
@@ -238,44 +238,72 @@ class ExperimentRunResource(GenericResource):
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
         super().after_import(dataset, result, using_transactions, dry_run, **kwargs)
 
-        if not dry_run:
-            transfer_protocol = Protocol.objects.get(name="Transfer")
+        for sample_row in self.sample_rows:
+            data_experiment_id = sample_row["experiment_id"]
+            data_barcode = sample_row["source_container_barcode"]
+            data_coordinates = sample_row["source_container_position"]
+
+            source_container = None
+            source_sample = None
+            experiment_run = None
+
+            sample_data_errors = []
+
+            try:
+                experiment_run = ExperimentRun.objects.get(id=self.experiments[data_experiment_id])
+            except Exception as e:
+                sample_data_errors.append(f"Experiment associated to temporary identifier {data_experiment_id} not found in this template")
+
+            try:
+                source_container = Container.objects.get(barcode=data_barcode)
+            except Exception as e:
+                sample_data_errors.append(f"Container with barcode {data_barcode} not found")
 
 
-            for temporary_experiment_id in self.experiments:
-                experiment_id = self.experiments[temporary_experiment_id]
-                self.transfer_process_by_experiment_id[experiment_id] = Process.objects.create(protocol=transfer_protocol,
-                                                                                               comment="Created during ExperimentRun template import")
+            if source_container:
+                try:
+                    source_sample = Sample.objects.get(container=source_container,
+                                                       coordinates=data_coordinates)
+                except Exception as e:
+                    sample_data_errors.append(f"Sample from container {data_barcode} at coordinates {data_coordinates} not found")
 
-            for sample_row in self.sample_rows:
-                experiment_run = ExperimentRun.objects.get(id=self.experiments[sample_row["experiment_id"]])
-                process = experiment_run.process
 
-                source_container = Container.objects.get(barcode=sample_row["source_container_barcode"])
-                source_sample = Sample.objects.get(container=source_container, coordinates=sample_row["source_container_position"])
+            volume_used = float_to_decimal(blank_str_to_none(sample_row["source_sample_volume_used"]))
+            if volume_used <= 0:
+                sample_data_errors.append(f"Volume used ({volume_used}) is invalid ")
+            elif source_sample and volume_used > source_sample.volume:
+                sample_data_errors.append(f"Volume used ({volume_used}) exceeds the volume of the sample ({source_sample.volume})")
 
+
+            if len(sample_data_errors) > 0:
+                error = ValidationError(
+                    sample_data_errors, code="invalid")
+                result.append_base_error(self.get_error_result_class()(error, ''))
+
+
+            #TODO: check that 2 samples are not put in the same experiment container position
+
+
+            if not dry_run and len(sample_data_errors) == 0:
                 # Create transferred sample
                 transferred_sample = source_sample
                 transferred_sample.pk = None
                 transferred_sample.container = experiment_run.container
                 transferred_sample.coordinates = sample_row["experiment_container_position"]
+                transferred_sample.volume = source_sample.volume - volume_used
                 transferred_sample.save()
 
-                # Transfer process and lineage
-                transfer_process = ProcessMeasurement.objects.create(
-                    process=self.transfer_process_by_experiment_id[experiment_run.id],
-                    source_sample=source_sample,
-                    execution_date=experiment_run.start_date,
-                    volume_used=source_sample.volume
-                )
-
-                SampleLineage.objects.create(process_measurement=transfer_process,
-                                             parent=source_sample,
-                                             child=transferred_sample)
+                #TODO: handle the depletion logic
 
                 # ProcessMeasurement for ExperimentRun on Sample
 
-                ProcessMeasurement.objects.create(process=process,
-                                                  source_sample=transferred_sample,
-                                                  volume_used=sample_row["source_sample_volume_used"],
-                                                  execution_date=experiment_run.start_date)
+                process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
+                                                                        source_sample=transferred_sample,
+                                                                        volume_used=volume_used,
+                                                                        execution_date=experiment_run.start_date)
+
+
+                SampleLineage.objects.create(process_measurement=process_measurement,
+                                             parent=source_sample,
+                                             child=transferred_sample)
+
