@@ -83,7 +83,7 @@ class ExperimentRunResource(GenericResource):
         for property_column in self.properties_row:
             self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
 
-        # Preload Protocols objects for this  experiment type in a dictionary for faster access
+        # Preload Protocols objects for this experiment type in a dictionary for faster access
         self.protocols_dict = {}
         protocols_for_experiment_type = PROTOCOLS_BY_EXPERIMENT_TYPE_NAME[self.experiment_type_name]
         for protocol_name in protocols_for_experiment_type.keys():
@@ -97,9 +97,7 @@ class ExperimentRunResource(GenericResource):
 
     def before_import_row(self, row, **kwargs):
         self.temporary_experiment_id = row.get("Experiment ID")
-
         super().before_import_row(row, **kwargs)
-
 
 
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
@@ -285,15 +283,18 @@ class ExperimentRunResource(GenericResource):
 
 
             if not dry_run and len(sample_data_errors) == 0:
+                source_sample.volume = source_sample.volume - volume_used
+                source_sample.save()
+
                 # Create transferred sample
                 transferred_sample = source_sample
                 transferred_sample.pk = None
                 transferred_sample.container = experiment_run.container
                 transferred_sample.coordinates = sample_row["experiment_container_position"]
-                transferred_sample.volume = source_sample.volume - volume_used
+                transferred_sample.volume = volume_used
+                transferred_sample.depleted = True
                 transferred_sample.save()
 
-                #TODO: handle the depletion logic
 
                 # ProcessMeasurement for ExperimentRun on Sample
 
