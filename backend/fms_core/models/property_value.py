@@ -45,7 +45,7 @@ class PropertyValue(TrackedModel):
 
             # Check if the property value data type matches the property type 'value_type' attribute
             if type(self.value).__name__ != property_type_value_type:
-                add_error("value", f"Value type {value_type} does not match property type {property_type_value_type}")
+                add_error("value", f"Value type {type(self.value).__name__} does not match property type's value type {property_type_value_type}")
 
 
         if errors:

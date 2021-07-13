@@ -34,9 +34,6 @@ from ..experiments import PROTOCOLS_BY_EXPERIMENT_TYPE_NAME
 __all__ = ["ExperimentRunResource"]
 
 
-process_content_type = ContentType.objects.get(app_label="fms_core", model="process")
-
-
 class ExperimentRunResource(GenericResource):
     experiment_id = Field(column_name='Experiment ID')
     container_barcode = Field(column_name='Experiment Container Barcode',
@@ -47,7 +44,10 @@ class ExperimentRunResource(GenericResource):
     start_date = Field(attribute='start_date', column_name='Experiment Start Date', widget=DateWidget())
 
 
+    # Arbitrary value much higher than the regular error cutoff
     ERROR_CUTOFF = 500
+
+    process_content_type = ContentType.objects.get(app_label="fms_core", model="process")
 
 
     class Meta:
@@ -108,6 +108,8 @@ class ExperimentRunResource(GenericResource):
         row_id = row.get("#")
 
         # We are in the Sample section
+        # Columns from the Experiment section are mapped to the ones in the Sample section
+        # This is hacky, and has to be replaced when we use a different tool for importing the data
         if isinstance(row_id, int) and row_id > 100:
             sample_row = {
                 "experiment_id": row.get("Experiment ID"),
@@ -196,7 +198,7 @@ class ExperimentRunResource(GenericResource):
 
                     PropertyValue.objects.create(value=value,
                                                  property_type=property_type,
-                                                 content_type=process_content_type,
+                                                 content_type=self.process_content_type,
                                                  object_id=process.id)
 
                 # Comments are the only non-mandatory fields

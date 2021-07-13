@@ -38,9 +38,10 @@ def wipe_import_row_result(import_result, row):
     import_result.diff = ['' for val in row]
     # Add a column with the error message
     import_result.diff.append('Errors: {}'.format([err.error for err in import_result.errors]))
-    # Clear all the errors and validation errors
+    # Clear all the errors and warnings
     import_result.errors = []
     import_result.validation_error = []
+    import_result.warnings = []
     # Skip this record
     import_result.import_type = RowResult.IMPORT_TYPE_SKIP
 
