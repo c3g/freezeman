@@ -103,6 +103,11 @@ _instrument_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_instrument_type_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "type": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _experiment_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "workflow": CATEGORICAL_FILTERS_LOOSE,
@@ -117,4 +122,5 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "container": FK_FILTERS,
 
     **_prefix_keys("container__", _container_filterset_fields),
+    **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),
 }

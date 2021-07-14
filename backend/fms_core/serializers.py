@@ -71,15 +71,22 @@ class ContainerExportSerializer(serializers.ModelSerializer):
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
     children_processes = serializers.SerializerMethodField()
+    instrument_type = serializers.SerializerMethodField()
+    platform = serializers.SerializerMethodField()
 
     class Meta:
         model = ExperimentRun
         fields = "__all__"
-        extra_fields = ('children_processes')
-
+        extra_fields = ('children_processes', 'instrument_type', 'platform')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
+
+    def get_instrument_type(self, obj):
+        return obj.instrument.type.type
+
+    def get_platform(self, obj):
+        return obj.instrument.type.platform.name
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
     experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
