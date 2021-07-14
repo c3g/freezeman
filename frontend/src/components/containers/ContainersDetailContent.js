@@ -32,12 +32,14 @@ const tabStyle = {
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
+  containerKindsByID: state.containerKinds.itemsByID,
 });
 
 const actionCreators = {get, listParents};
 
 const ContainersDetailContent = ({
   containersByID,
+  containerKindsByID,
   get,
   listParents
 }) => {
@@ -99,7 +101,13 @@ const ContainersDetailContent = ({
           </TabPane>
 
           <TabPane tab={`Experiments (${container.experiment_runs?.length})`} key="2" style={tabStyle}>
-            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+
+            {containerKindsByID[container.kind] && containerKindsByID[container.kind].is_run_container ?
+              <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+                :
+              <div> Experiments are not run directly on containers of kind {container.kind} </div>
+            }
+
           </TabPane>
         </Tabs>
 

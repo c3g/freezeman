@@ -35,7 +35,10 @@ const renderListHeader = (container) => {
   return (
       <>
         <Title level={5}>
-          Samples from <Link to={`/containers/${container.id}`}> {container.name} </Link>
+            Samples inside container <Link to={`/containers/${container.id}`}> {container.name} </Link>
+        </Title>
+        <Title level={5} style={{textAlign: 'right'}}>
+            Volume used
         </Title>
       </>
   )

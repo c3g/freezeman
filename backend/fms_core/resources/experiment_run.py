@@ -70,6 +70,8 @@ class ExperimentRunResource(GenericResource):
 
         self.experiment_type_name = dataset[1][2]
 
+        self.is_in_samples_section = False
+
         # at index 6 is the first process name
         self.protocols_starting_idx = 6
 
@@ -108,8 +110,11 @@ class ExperimentRunResource(GenericResource):
         # We are in the Sample section
         # Columns from the Experiment section are mapped to the ones in the Sample section
         # This is hacky, and has to be replaced when we use a different tool for importing the data
-        if isinstance(row_id, int) and row_id > 100:
+
+
+        if self.is_in_samples_section:
             sample_row = {
+                "#": row.get("#"),
                 "experiment_id": row.get("Experiment ID"),
                 "source_container_barcode": row.get("Experiment Container Barcode"),
                 "source_container_position": row.get("Experiment Container Kind"),
@@ -121,8 +126,12 @@ class ExperimentRunResource(GenericResource):
             import_result = wipe_import_row_result(import_result, row)
 
         # If our row is not an ExperimentRun row...
-        elif not isinstance(row_id, int) or isinstance(row_id, int) and row_id > 100:
+        elif not isinstance(row_id, int):
             import_result = wipe_import_row_result(import_result, row)
+
+
+        if row.get("Experiment Container Barcode") == "Source Container Barcode":
+            self.is_in_samples_section = True
 
 
         return import_result
@@ -298,7 +307,7 @@ class ExperimentRunResource(GenericResource):
                     transferred_sample.pk = None
                     transferred_sample.container = experiment_run.container
                     transferred_sample.coordinates = data_experiment_container_coordinates
-                    transferred_sample.volume = volume_used
+                    transferred_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
                     transferred_sample.depleted = True
                     transferred_sample.save()
 
@@ -317,6 +326,7 @@ class ExperimentRunResource(GenericResource):
 
 
             if len(sample_data_errors) > 0:
+                sample_data_errors.insert(0, f"Row #{sample_row['#']}: ")
                 error = ValidationError(
                     sample_data_errors, code="invalid")
                 result.append_base_error(self.get_error_result_class()(error, ''))

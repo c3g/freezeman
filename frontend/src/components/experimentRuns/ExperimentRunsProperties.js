@@ -19,7 +19,9 @@ const ExperimentRunsProperties = ({
   let columns = []
   let data = []
 
-  if ( propertyValuesByID[propertyIDs[0]]) {
+  const propertiesAreLoaded = propertyValuesByID[propertyIDs[0]]
+
+  if (propertiesAreLoaded) {
     properties = propertyIDs.map((id, i) => propertyValuesByID[id])
 
     columns = properties.map((propertyValue, i) => {
@@ -45,7 +47,11 @@ const ExperimentRunsProperties = ({
   return (
     <>
      <Title level={5} style={{marginTop: "20px"}}> {protocolName} </Title>
-     <Table columns={columns} dataSource={data} pagination={false} className="table-min-width"/>
+      {propertiesAreLoaded ?
+        <Table columns={columns} dataSource={data} pagination={false} className="table-min-width"/>
+          :
+        <div>Loading...</div>
+      }
     </>
   );
 };
