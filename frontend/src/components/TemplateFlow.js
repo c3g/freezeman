@@ -351,7 +351,7 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
           step === STEPS.REVIEW &&
             <Button
               type="primary"
-              disabled={false}
+              disabled={!checkResult || !checkResult.valid}
               onClick={onSubmit}
             >
               <CheckOutlined /> Submit
