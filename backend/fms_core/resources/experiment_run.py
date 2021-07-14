@@ -236,10 +236,13 @@ class ExperimentRunResource(GenericResource):
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
         super().after_import(dataset, result, using_transactions, dry_run, **kwargs)
 
+        positions_by_experiment_temporary_id = {}
+
         for sample_row in self.sample_rows:
             data_experiment_id = sample_row["experiment_id"]
             data_barcode = sample_row["source_container_barcode"]
             data_coordinates = sample_row["source_container_position"]
+            data_experiment_container_coordinates = sample_row["experiment_container_position"]
 
             source_container = None
             source_sample = None
@@ -273,38 +276,47 @@ class ExperimentRunResource(GenericResource):
                 sample_data_errors.append(f"Volume used ({volume_used}) exceeds the volume of the sample ({source_sample.volume})")
 
 
+            # Checks that 2 samples are not put in the same experiment container position
+            if data_experiment_id not in positions_by_experiment_temporary_id.keys():
+                positions_by_experiment_temporary_id[data_experiment_id] = [data_experiment_container_coordinates]
+            else:
+                if data_experiment_container_coordinates in positions_by_experiment_temporary_id[data_experiment_id]:
+                    sample_data_errors.append(
+                        f"Coordinates {data_experiment_container_coordinates} already used for the container associated to the experiment named {data_experiment_id}")
+                else:
+                    positions_by_experiment_temporary_id[data_experiment_id].append(data_experiment_container_coordinates)
+
+
+            # Creates the new objects
+            if len(sample_data_errors) == 0:
+                try:
+                    source_sample.volume = source_sample.volume - volume_used
+                    source_sample.save()
+
+                    # Create transferred sample
+                    transferred_sample = source_sample
+                    transferred_sample.pk = None
+                    transferred_sample.container = experiment_run.container
+                    transferred_sample.coordinates = data_experiment_container_coordinates
+                    transferred_sample.volume = volume_used
+                    transferred_sample.depleted = True
+                    transferred_sample.save()
+
+                    # ProcessMeasurement for ExperimentRun on Sample
+                    process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
+                                                                            source_sample=transferred_sample,
+                                                                            volume_used=volume_used,
+                                                                            execution_date=experiment_run.start_date)
+
+                    SampleLineage.objects.create(process_measurement=process_measurement,
+                                                 parent=source_sample,
+                                                 child=transferred_sample)
+
+                except Exception as e:
+                    sample_data_errors.append(e)
+
+
             if len(sample_data_errors) > 0:
                 error = ValidationError(
                     sample_data_errors, code="invalid")
                 result.append_base_error(self.get_error_result_class()(error, ''))
-
-
-            #TODO: check that 2 samples are not put in the same experiment container position
-
-
-            if not dry_run and len(sample_data_errors) == 0:
-                source_sample.volume = source_sample.volume - volume_used
-                source_sample.save()
-
-                # Create transferred sample
-                transferred_sample = source_sample
-                transferred_sample.pk = None
-                transferred_sample.container = experiment_run.container
-                transferred_sample.coordinates = sample_row["experiment_container_position"]
-                transferred_sample.volume = volume_used
-                transferred_sample.depleted = True
-                transferred_sample.save()
-
-
-                # ProcessMeasurement for ExperimentRun on Sample
-
-                process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
-                                                                        source_sample=transferred_sample,
-                                                                        volume_used=volume_used,
-                                                                        execution_date=experiment_run.start_date)
-
-
-                SampleLineage.objects.create(process_measurement=process_measurement,
-                                             parent=source_sample,
-                                             child=transferred_sample)
-
