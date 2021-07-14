@@ -1,6 +1,7 @@
 from tablib import Dataset
 from ..models import Container
 from ..utils import str_normalize
+from django.core.exceptions import ValidationError
 
 
 __all__ = [
@@ -77,7 +78,7 @@ def add_column_to_preview(results, dataset, column_name: str, column_index: int 
             for cnt, row in enumerate(results.rows):
                 if row.diff:
                     row.diff[index_column] = dataset.dict[cnt][column_name]
-            
+
     return results
 
 
@@ -85,3 +86,7 @@ def add_columns_to_preview(results, dataset, column_names: list):
     for column_name in column_names:
         results = add_column_to_preview(results, dataset, column_name)
     return results
+
+def validate_specific_field(errors: dict, field: str, error_field: str, data: dict):
+    if not data[field]:
+        errors[error_field] = ValidationError("This field cannot be blank.", code="invalid")

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
 from ._generic import GenericResource
-from ._utils import skip_rows, remove_columns_from_preview
+from ._utils import skip_rows, remove_columns_from_preview, validate_specific_field
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
@@ -175,23 +175,25 @@ class SampleResource(GenericResource):
         except Exception as e:
             individual_created = False
             individual = None
+            errors["individual"] = ValidationError("Individual could not be processed due to missing or invalid information.", code="invalid")
 
         #Individual field errors
-        if not data["Taxon"]:
-            errors["taxon"] = ValidationError("This field cannot be blank.", code="invalid")
+        validate_specific_field(errors, "Taxon", "taxon", data)
 
-        if not data["Individual ID"]:
-            errors["individual_id"] = ValidationError("This field cannot be blank.", code="invalid")
+        validate_specific_field(errors, "Individual ID", "individual_id", data)
 
         #Container field errors
-        if not data["Container Kind"]:
-            errors["container_kind"] = ValidationError("This field cannot be blank.", code="invalid")
+        validate_specific_field(errors, "Container Kind", "container_kind", data)
 
-        if not data["Container Name"]:
-            errors["container_name"] = ValidationError("This field cannot be blank.", code="invalid")
+        validate_specific_field(errors, "Container Name", "container_name", data)
 
-        if not data["Container Barcode"]:
-            errors["container_barcode"] = ValidationError("This field cannot be blank.", code="invalid")
+        validate_specific_field(errors, "Container Barcode", "container_barcode", data)
+
+        #Detailed messages for any problem with the container
+        try:
+            obj.container is None
+        except Exception:
+            errors["container"] = ValidationError("Container could not be processed due to missing or invalid information.", code="invalid")
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
@@ -221,7 +223,12 @@ class SampleResource(GenericResource):
 
         elif field.attribute == "container_barcode":
 
-            normalized_container_kind = get_normalized_str(data, "Container Kind").lower()
+            normalized_container_kind = get_normalized_str(data, "Container Kind").lower();
+
+            if not normalized_container_kind:
+                raise ValueError("Container could not be processed because the container kind is invalid. ")
+                return
+
             if normalized_container_kind in SAMPLE_CONTAINER_KINDS:
                 # Oddly enough, Location Coord is contextual - when Container Kind
                 # is one with coordinates, this specifies the sample's location
@@ -268,9 +275,8 @@ class SampleResource(GenericResource):
                 try:
                     container, _ = Container.objects.get_or_create(**container_data)
                     obj.container = container
-                except:
-                    pass
-
+                except ValidationError as e:
+                    raise ValueError(f"{e.messages}")
                 return
 
         elif field.attribute == "experimental_group":
@@ -296,10 +302,7 @@ class SampleResource(GenericResource):
             # Ignore importing this, since it's a computed property.
             return
 
-        try:
-            super().import_field(field, obj, data, is_m2m)
-        except Exception as e:
-            pass
+        super().import_field(field, obj, data, is_m2m)
 
 
     def after_save_instance(self, instance, using_transactions, dry_run):
