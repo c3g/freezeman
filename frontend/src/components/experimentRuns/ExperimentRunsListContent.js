@@ -46,6 +46,13 @@ const getTableColumns = (containersByID, experimentTypes, instruments) => [
       <div>{instruments.itemsByID[experimentRun.instrument]?.name}</div>,
   },
   {
+    title: "Instrument Type",
+    dataIndex: "instrument_type",
+    sorter: true,
+    render: (_, experimentRun) =>
+      <div>{experimentRun.instrument_type}</div>,
+  },
+  {
     title: "Container Name",
     dataIndex: "container__name",
     sorter: true,

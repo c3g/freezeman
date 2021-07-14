@@ -91,6 +91,12 @@ const ExperimentRunsDetailContent = ({
               <Descriptions.Item label="Instrument" span={3}>
                   {instruments.itemsByID[experimentRun.instrument]?.name}
               </Descriptions.Item>
+              <Descriptions.Item label="Instrument Type" span={3}>
+                  {experimentRun.instrument_type}
+              </Descriptions.Item>
+              <Descriptions.Item label="Platform" span={3}>
+                  {experimentRun.platform}
+              </Descriptions.Item>
               <Descriptions.Item label="Experiment Start Date" span={3}>
                   {experimentRun.start_date}
               </Descriptions.Item>

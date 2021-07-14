@@ -209,6 +209,12 @@ export const EXPERIMENT_RUN_FILTERS = {
     mode: "multiple",
     placeholder: "All"
   },
+  instrument_type: {
+    type: FILTER_TYPE.INPUT,
+    key: "instrument__type__type",
+    label: "Instrument Type",
+    recursive: false,
+  },
   container__name: {
     type: FILTER_TYPE.INPUT,
     key: "container__name",
