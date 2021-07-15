@@ -47,11 +47,11 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+export const listTable = ({ offset = 0 } = {}, abort) => async (dispatch, getState) => {
     const {individuals} = getState();
     if (individuals.isFetching && !abort)
         return
-        
+
     const limit = getState().pagination.pageSize;
     const filters = serializeFilterParams(individuals.filters, INDIVIDUAL_FILTERS)
     const ordering = serializeSortByParams(individuals.sortBy)
