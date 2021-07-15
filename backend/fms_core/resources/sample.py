@@ -178,14 +178,14 @@ class SampleResource(GenericResource):
             errors["individual"] = ValidationError("Individual could not be processed due to missing or invalid information.", code="invalid")
 
         #Individual field errors
-        fields = {
+        attribute_with_field_name = {
             "Taxon": "taxon",
             "Individual ID": "individual_id",
             "Container Kind":"container_kind",
             "Container Name": "container_name",
             "Container Barcode": "container_barcode"
         }
-        
+
         validate_specific_fields(data, errors, fields)
 
         #Detailed messages for any problem with the container
