@@ -10,6 +10,7 @@ __all__ = [
     "remove_column_from_preview",
     "add_column_to_preview",
     "add_columns_to_preview",
+    "validate_specific_fields"
 ]
 
 
@@ -87,6 +88,7 @@ def add_columns_to_preview(results, dataset, column_names: list):
         results = add_column_to_preview(results, dataset, column_name)
     return results
 
-def validate_specific_field(errors: dict, field: str, error_field: str, data: dict):
-    if not data[field]:
-        errors[error_field] = ValidationError("This field cannot be blank.", code="invalid")
+def validate_specific_fields(data: dict, errors: dict, fields: dict):
+    for field, error_field in fields.items():
+        if not data[field]:
+            errors[error_field] = ValidationError("This field cannot be blank.", code="invalid")

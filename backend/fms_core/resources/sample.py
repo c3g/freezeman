@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
 from ._generic import GenericResource
-from ._utils import skip_rows, remove_columns_from_preview, validate_specific_field
+from ._utils import skip_rows, remove_columns_from_preview, validate_specific_fields
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
@@ -178,16 +178,15 @@ class SampleResource(GenericResource):
             errors["individual"] = ValidationError("Individual could not be processed due to missing or invalid information.", code="invalid")
 
         #Individual field errors
-        validate_specific_field(errors, "Taxon", "taxon", data)
-
-        validate_specific_field(errors, "Individual ID", "individual_id", data)
-
-        #Container field errors
-        validate_specific_field(errors, "Container Kind", "container_kind", data)
-
-        validate_specific_field(errors, "Container Name", "container_name", data)
-
-        validate_specific_field(errors, "Container Barcode", "container_barcode", data)
+        fields = {
+            "Taxon": "taxon",
+            "Individual ID": "individual_id",
+            "Container Kind":"container_kind",
+            "Container Name": "container_name",
+            "Container Barcode": "container_barcode"
+        }
+        
+        validate_specific_fields(data, errors, fields)
 
         #Detailed messages for any problem with the container
         try:
@@ -219,7 +218,7 @@ class SampleResource(GenericResource):
             try:
                 obj.sample_kind = SampleKind.objects.get(name=data["Sample Kind"])
             except Exception as e:
-                pass
+                raise ValueError("Sample kind name cannot be blank.")
 
         elif field.attribute == "container_barcode":
 
