@@ -29,6 +29,7 @@ import {
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
+import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 
@@ -59,6 +60,7 @@ const allReducers = combineReducers({
   processMeasurements,
   users,
   groups,
+  pagination,
   versions,
 });
 
