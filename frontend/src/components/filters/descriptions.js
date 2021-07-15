@@ -194,6 +194,46 @@ export const PROCESS_MEASUREMENT_FILTERS = {
   },
 }
 
+export const EXPERIMENT_RUN_FILTERS = {
+  experiment_type: {
+    type: FILTER_TYPE.SELECT,
+    key: "experiment_type__workflow",
+    label: "Experiment Type",
+    mode: "multiple",
+    placeholder: "All"
+  },
+  instrument: {
+    type: FILTER_TYPE.SELECT,
+    key: "instrument__name",
+    label: "Instrument",
+    mode: "multiple",
+    placeholder: "All"
+  },
+  instrument_type: {
+    type: FILTER_TYPE.INPUT,
+    key: "instrument__type__type",
+    label: "Instrument Type",
+    recursive: false,
+  },
+  container__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "container__name",
+    label: "Container Name",
+    recursive: false,
+  },
+  container__barcode: {
+    type: FILTER_TYPE.INPUT,
+    key: "container__barcode",
+    label: "Container Barcode",
+    recursive: false,
+  },
+  start_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "start_date",
+    label: "Experiment Start Date",
+  },
+}
+
 export const USER_FILTERS = {
   username: {
     type: FILTER_TYPE.INPUT,

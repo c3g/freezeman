@@ -37,11 +37,16 @@ class PropertyValue(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         if self.property_type:
-            # Check if the property value data type matches the property type 'value_type' attribute
-            value_type = type(self.value).__name__
             property_type_value_type = self.property_type.value_type
-            if value_type != property_type_value_type:
-                add_error("value", f"Value type {value_type} does not match property type {property_type_value_type}")
+
+            # Exception applies to float values which might be entered as ints
+            if property_type_value_type == 'float' and type(self.value).__name__ == 'int':
+                self.value = float(self.value)
+
+            # Check if the property value data type matches the property type 'value_type' attribute
+            if type(self.value).__name__ != property_type_value_type:
+                add_error("value", f"Value type {type(self.value).__name__} does not match property type's value type {property_type_value_type}")
+
 
         if errors:
             raise ValidationError(errors)

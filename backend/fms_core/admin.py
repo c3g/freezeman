@@ -24,6 +24,7 @@ from .resources import (
     ContainerResource,
     ContainerMoveResource,
     ContainerRenameResource,
+    ExperimentRunResource,
     SampleResource,
     SampleKindResource,
     SampleUpdateResource,
@@ -36,6 +37,7 @@ from .template_paths import (
     CONTAINER_CREATION_TEMPLATE,
     CONTAINER_MOVE_TEMPLATE,
     CONTAINER_RENAME_TEMPLATE,
+    EXPERIMENT_INFINIUM_TEMPLATE,
     SAMPLE_EXTRACTION_TEMPLATE,
     SAMPLE_SUBMISSION_TEMPLATE,
     SAMPLE_UPDATE_TEMPLATE,
@@ -386,7 +388,8 @@ class ExperimentRunForm(forms.ModelForm):
             return
 
 @admin.register(ExperimentRun)
-class ExperimentRunAdmin(admin.ModelAdmin):
+class ExperimentRunAdmin(CustomImportMixin, admin.ModelAdmin):
+    resource_class = ExperimentRunResource
     form = ExperimentRunForm
 
     list_display = (
@@ -415,11 +418,21 @@ class ExperimentRunAdmin(admin.ModelAdmin):
         (None, {"fields": ["start_date", "container", "instrument", "experiment_type"]}),
     )
 
+    def changelist_view(self, request, extra_context=None):
+        return super().changelist_view(request, extra_context={
+            "title": "Experiment run submission",
+            "submission_template": EXPERIMENT_INFINIUM_TEMPLATE,
+        })
+
+    def get_queryset(self, request):
+        return super().get_queryset(request) # empty
+
+
     def has_add_permission(self, request):
-        return False
+        return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return True
 
 
 

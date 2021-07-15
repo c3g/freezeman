@@ -18,6 +18,10 @@ select:-webkit-autofill:focus {
   font-variant-numeric: tabular-nums;
 }
 
+.table-min-width .ant-table table{
+  width: auto !important;
+}
+
 .input-dropdown-visible .ant-table-filter-dropdown {
   opacity: 0.9 !important;
 }

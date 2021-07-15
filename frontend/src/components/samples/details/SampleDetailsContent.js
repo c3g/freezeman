@@ -28,6 +28,7 @@ import {SampleDepletion} from "../SampleDepletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
+import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -81,11 +82,13 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
   const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
+  const container = containersByID[sample.container]
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
   let processMeasurements = []
+  let experimentRunsIDs = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -99,6 +102,10 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
       withProcessMeasurement(processMeasurementsByID, id, process => process.id);
       processMeasurements.push(processMeasurementsByID[id]);
     })
+  }
+
+  if (isLoaded && container) {
+    experimentRunsIDs = container.experiment_runs
   }
 
   return <>
@@ -226,8 +233,12 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           </Row>
         </TabPane>
 
-        <TabPane tab="Processes" key="2" style={tabStyle}>
+        <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
           <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
+        </TabPane>
+
+        <TabPane tab={`Experiments (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
+           <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
       </Tabs>

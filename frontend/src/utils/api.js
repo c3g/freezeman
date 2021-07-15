@@ -34,6 +34,21 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding }),
   },
 
+  experimentRuns: {
+    get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
+    list: (options, abort) => get("/experiment-runs/", options, {abort}),
+    listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
+    template: {
+      actions: () => get(`/experiment-runs/template_actions/`),
+      check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
+    },
+  },
+
+  experimentTypes: {
+    list: () => get("/experiment-types/"),
+  },
+
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
@@ -41,6 +56,14 @@ const api = {
     list: (options, abort) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
     search: q => get("/individuals/search/", { q }),
+  },
+
+  instruments: {
+    list: () => get("/instruments/"),
+  },
+
+  processes: {
+    list: (options, abort) => get("/processes", options, { abort }),
   },
 
   processMeasurements: {
@@ -54,6 +77,10 @@ const api = {
       check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
+  },
+
+  propertyValues: {
+    list: (options, abort) => get("/property-values/", options, { abort }),
   },
 
   protocols: {
