@@ -186,7 +186,7 @@ class SampleResource(GenericResource):
             "Container Barcode": "container_barcode"
         }
 
-        validate_specific_fields(data, errors, attribute_with_field_name)
+        validate_specific_fields(data, errors, attribute_with_field_name) 
 
         #Detailed messages for any problem with the container
         try:
