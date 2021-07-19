@@ -9,7 +9,7 @@ export const individuals = (
     state = {
         itemsByID: {},
         items: [],
-        page: { limit: 0, offset: 0 },
+        page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
         filters: {},
