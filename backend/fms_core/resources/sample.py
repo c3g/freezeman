@@ -175,7 +175,7 @@ class SampleResource(GenericResource):
         except Exception as e:
             individual_created = False
             individual = None
-            errors["individual"] = ValidationError("Individual could not be processed due to missing or invalid information.", code="invalid")
+            errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
 
         #Individual field errors
         attribute_with_field_name = {
@@ -186,7 +186,7 @@ class SampleResource(GenericResource):
             "Container Barcode": "container_barcode"
         }
 
-        validate_specific_fields(data, errors, fields)
+        validate_specific_fields(data, errors, attribute_with_field_name)
 
         #Detailed messages for any problem with the container
         try:
