@@ -23,7 +23,7 @@ from ..models import (
 )
 from ._generic import GenericResource
 
-from ._utils import skip_rows, add_columns_to_preview, wipe_import_row_result
+from ._utils import skip_rows, is_data_row, add_columns_to_preview, wipe_import_row_result
 from ..utils import (
     blank_str_to_none,
     float_to_decimal,
@@ -48,7 +48,7 @@ class ExperimentRunResource(GenericResource):
     # Arbitrary value much higher than the regular error cutoff
     ERROR_CUTOFF = 500
 
-    process_content_type = ContentType.objects.get(app_label="fms_core", model="process")
+    process_content_type = ContentType.objects.get_for_model(Process)
 
 
     class Meta:
@@ -91,42 +91,42 @@ class ExperimentRunResource(GenericResource):
         for protocol_name in protocols_for_experiment_type.keys():
             p = Protocol.objects.get(name=protocol_name)
             subprotocol_names = protocols_for_experiment_type[protocol_name]
-            self.protocols_dict[p] = map(lambda x: Protocol.objects.get(name=x), subprotocol_names)
+            subprotocols = []
+            for subprotocol_name in subprotocol_names:
+               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
+            self.protocols_dict[p] = subprotocols.copy()
 
 
         skip_rows(dataset, 10)  # Skip preamble
 
 
-    def before_import_row(self, row, **kwargs):
-        self.temporary_experiment_id = row.get("Experiment ID")
-        super().before_import_row(row, **kwargs)
-
-
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
-        import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
-
         row_id = row.get("#")
+        import_result = self.get_row_result_class()()
+        if row_id.isnumeric(): # Uses row ID to identify what are the data rows (compared to title or empty rows)
+            self.temporary_experiment_id = row.get("Experiment ID")
 
-        # We are in the Sample section
-        # Columns from the Experiment section are mapped to the ones in the Sample section
-        # This is hacky, and has to be replaced when we use a different tool for importing the data
+            # We are in the Sample section
+            # Columns from the Experiment section are mapped to the ones in the Sample section
+            # This is hacky, and has to be replaced when we use a different tool for importing the data
 
+            if self.is_in_samples_section:
+                sample_row = {
+                    "#": row_id,
+                    "experiment_id": self.temporary_experiment_id,
+                    "source_container_barcode": row.get("Experiment Container Barcode"),
+                    "source_container_position": row.get("Experiment Container Kind"),
+                    "source_sample_volume_used": float_to_decimal(blank_str_to_none(row.get("Instrument Name"))),
+                    "experiment_container_position": row.get("Experiment Start Date"),
+                }
+                self.sample_rows.append(sample_row)
 
-        if self.is_in_samples_section:
-            sample_row = {
-                "#": row.get("#"),
-                "experiment_id": row.get("Experiment ID"),
-                "source_container_barcode": row.get("Experiment Container Barcode"),
-                "source_container_position": row.get("Experiment Container Kind"),
-                "source_sample_volume_used": float_to_decimal(blank_str_to_none(row.get("Instrument Name"))),
-                "experiment_container_position": row.get("Experiment Start Date"),
-             }
-            self.sample_rows.append(sample_row)
-
-            import_result = wipe_import_row_result(import_result, row)
+                import_result = wipe_import_row_result(import_result, row)
+            else:
+                import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
 
         # If our row is not an ExperimentRun row...
-        elif not isinstance(row_id, int):
+        else:
             import_result = wipe_import_row_result(import_result, row)
 
 
@@ -180,34 +180,44 @@ class ExperimentRunResource(GenericResource):
         # Create processes for ExperimentRun
         for protocol in self.protocols_dict.keys():
             obj.process = Process.objects.create(protocol=protocol,
-                                                    comment="Experiment (imported from template)")
+                                                 comment="Experiment (imported from template)")
+            print("Create main process", obj.process.id)
+            print(protocol.id)
             for subprotocol in self.protocols_dict[protocol]:
+                print("sub protocol", subprotocol)
+                print("sub before", subprotocol.id)
                 sp = Process.objects.create(protocol=subprotocol,
                                             parent_process=obj.process,
                                             comment="Experiment (imported from template)")
                 experiment_run_processes_by_protocol_id[subprotocol.id] = sp
-
+                print("Create subprocess", sp.id)
 
         # Create property values for ExperimentRun
         for i, (property, value) in enumerate(data.items()):
             # Slicing columns not containing properties
             if i < self.protocols_starting_idx or i >= self.protocols_ending_idx:
+                print("pass")
                 pass
             else:
                 property_type = self.property_types_by_name[property]
+                print(property_type.name)
+                print(property_type.object_id)
+                print(value)
                 if value:
                     process = experiment_run_processes_by_protocol_id[property_type.object_id]
 
+                    print(process.id)
+                    print(self.process_content_type.id)
                     if type(value).__name__ in ('datetime','time'):
                         value = value.isoformat() + "Z"
                         value = json.dumps(value, default=str)
 
-
-                    PropertyValue.objects.create(value=value,
-                                                 property_type=property_type,
-                                                 content_type=self.process_content_type,
-                                                 object_id=process.id)
-
+                    try:
+                        PropertyValue.objects.create(value=value,
+                                                     property_type=property_type,
+                                                     content_object=process)
+                    except Exception as e:
+                        print("Boop", e)
                 # Comments are the only non-mandatory fields
                 elif 'comment' not in property.lower():
                     errors[property] = ValidationError([f"Value cannot be blank"],
