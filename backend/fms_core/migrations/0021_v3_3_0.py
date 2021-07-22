@@ -489,7 +489,7 @@ class Migration(migrations.Migration):
                                                  to=settings.AUTH_USER_MODEL)),
                 ('property_type',
                  models.ForeignKey(help_text='Property type', on_delete=django.db.models.deletion.PROTECT,
-                                   related_name='property_type', to='fms_core.propertytype')),
+                                   related_name='property_values', to='fms_core.propertytype')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_propertyvalue_modification',
                                                  to=settings.AUTH_USER_MODEL)),

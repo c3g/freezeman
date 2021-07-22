@@ -8,7 +8,8 @@ from pathlib import Path
 from reversion.models import Version
 from tablib import Dataset
 
-from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyValue
+from django.contrib.contenttypes.models import ContentType
+from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyType, PropertyValue
 from ..resources import (
     ContainerResource,
     ExtractionResource,
@@ -54,6 +55,8 @@ EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_3_0_B_A_1.c
 
 class ResourcesTestCase(TestCase):
     def setUp(self) -> None:
+        ContentType.objects.clear_cache()
+
         self.cr = ContainerResource()
         self.sr = SampleResource()
         self.er = ExtractionResource()
@@ -257,27 +260,28 @@ class ResourcesTestCase(TestCase):
     def test_experiment_run_infinium_import(self):
         self.load_samples_experiments_infinium()
 
+        content_type_process = ContentType.objects.get_for_model(Process)
         # Test first experiment run
         er1 = ExperimentRun.objects.get(container__barcode="XPBARCODE1")
         p1 = Process.objects.get(experiment_runs=er1)
-        c1 = Container.objects.get(container__barcode="XPBARCODE1")
+        c1 = Container.objects.get(barcode="XPBARCODE1")
         # Experiment Run tests
-        self.assertEqual(er1.experiment_type.worflow, 'Infinium Global Screening Array-24')
+        self.assertEqual(er1.experiment_type.workflow, 'Infinium Global Screening Array-24')
         self.assertEqual(er1.instrument.name, 'iScan_1')
-        self.assertEqual(er1.start_date, datetime('2021-07-13'))
+        self.assertEqual(er1.start_date, datetime.date(2021,7,13))
         # Process Tests
-        self.assertEqual(len(p1.child_processes), 7)
+        self.assertEqual(p1.child_process.count(), 7)
         self.assertEqual(p1.protocol.name, 'Illumina Infinium Preparation')
         # Sub-process Tests (check properties for one process and sub-processes in depth)
         cp1_1 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Amplification')
-        cp1_1_p1 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='MSA3 Plate Barcode')
-        cp1_1_p2 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='0.1N NaOH formulation date')
-        cp1_1_p3 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Reagent MA1 Barcode')
-        cp1_1_p4 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Reagent MA2 Barcode')
-        cp1_1_p5 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Reagent MSM Barcode')
-        cp1_1_p6 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Incubation time In Amplification')
-        cp1_1_p7 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Incubation time Out Amplification')
-        cp1_1_p8 = PropertyValue.objects.get(content_object=cp1_1, property_type__name='Comment Amplification')
+        cp1_1_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type=PropertyType.objects.get(name='MSA3 Plate Barcode'))
+        cp1_1_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='0.1N NaOH formulation date')
+        cp1_1_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Reagent MA1 Barcode')
+        cp1_1_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Reagent MA2 Barcode')
+        cp1_1_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Reagent MSM Barcode')
+        cp1_1_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Incubation time In Amplification')
+        cp1_1_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Incubation time Out Amplification')
+        cp1_1_p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id, property_type__name='Comment Amplification')
         # Check property values for Amplification sub-process
         self.assertEqual(cp1_1_p1.value, 'plate01')
         self.assertEqual(cp1_1_p2.value, '2021-06-13')
@@ -289,29 +293,29 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(cp1_1_p8.value, 'Comment 1')
 
         cp1_2 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Fragmentation')
-        cp1_2_p1 = PropertyValue.objects.get(content_object=cp1_2, property_type__name='Reagent FMS Barcode')
-        cp1_2_p2 = PropertyValue.objects.get(content_object=cp1_2, property_type__name='Comment Fragmentation')
+        cp1_2_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id, property_type__name='Reagent FMS Barcode')
+        cp1_2_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id, property_type__name='Comment Fragmentation')
         # Check property values for Fragmentation sub-process
         self.assertEqual(cp1_2_p1.value, 'FMS_1')
         self.assertEqual(cp1_2_p2.value, 'Comment 5')
         
         cp1_3 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Precipitation')
-        cp1_3_p1 = PropertyValue.objects.get(content_object=cp1_3, property_type__name='Reagent PM1 Barcode')
-        cp1_3_p2 = PropertyValue.objects.get(content_object=cp1_3, property_type__name='Reagent RA1 Barcode Precipitation')
-        cp1_3_p3 = PropertyValue.objects.get(content_object=cp1_3, property_type__name='Comment Precipitation')
+        cp1_3_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id, property_type__name='Reagent PM1 Barcode')
+        cp1_3_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id, property_type__name='Reagent RA1 Barcode Precipitation')
+        cp1_3_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id, property_type__name='Comment Precipitation')
         # Check property values for Precipitation sub-process
         self.assertEqual(cp1_3_p1.value, 'PM1_1')
         self.assertEqual(cp1_3_p2.value, 'RA1_P_1')
         self.assertEqual(cp1_3_p3.value, 'Comment 9')
         
         cp1_4 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Hybridization')
-        cp1_4_p1 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Hybridization Chip Barcodes')
-        cp1_4_p2 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Hybridization Chamber Barcode')
-        cp1_4_p3 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Reagent PB2 Barcode')
-        cp1_4_p4 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Reagent XC4 Barcode Hybridization')
-        cp1_4_p5 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Incubation time In Hybridization')
-        cp1_4_p6 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Incubation time Out Hybridization')
-        cp1_4_p7 = PropertyValue.objects.get(content_object=cp1_4, property_type__name='Comment Hybridization')
+        cp1_4_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Hybridization Chip Barcodes')
+        cp1_4_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Hybridization Chamber Barcode')
+        cp1_4_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Reagent PB2 Barcode')
+        cp1_4_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Reagent XC4 Barcode Hybridization')
+        cp1_4_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Incubation time In Hybridization')
+        cp1_4_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Incubation time Out Hybridization')
+        cp1_4_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id, property_type__name='Comment Hybridization')
         # Check property values for Hybridization sub-process
         self.assertEqual(cp1_4_p1.value, 'H_CHIP_1')
         self.assertEqual(cp1_4_p2.value, 'H_CHAMBER_1')
@@ -322,24 +326,24 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(cp1_4_p7.value, 'Comment 13')
 
         cp1_5 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Wash Beadchip')
-        cp1_5_p1 = PropertyValue.objects.get(content_object=cp1_5, property_type__name='Reagent PB1 Barcode Wash')
-        cp1_5_p2 = PropertyValue.objects.get(content_object=cp1_5, property_type__name='Comment Wash')
+        cp1_5_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_5.id, property_type__name='Reagent PB1 Barcode Wash')
+        cp1_5_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_5.id, property_type__name='Comment Wash')
         # Check property values for Wash Beadchip sub-process
         self.assertEqual(cp1_5_p1.value, 'PB1_W_1')
         self.assertEqual(cp1_5_p2.value, 'Comment 17')
 
         cp1_6 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Extend and Stain')
-        cp1_6_p1 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='95% form/EDTA')
-        cp1_6_p2 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent ATM Barcode')
-        cp1_6_p3 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent EML Barcode')
-        cp1_6_p4 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent LX1 Barcode')
-        cp1_6_p5 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent LX2 Barcode')
-        cp1_6_p6 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent PB1 Barcode Stain')
-        cp1_6_p7 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent RA1 Barcode Stain')
-        cp1_6_p8 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent SML Barcode')
-        cp1_6_p9 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent XC3 Barcode')
-        cp1_6_p10 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Reagent XC4 Barcode Stain')
-        cp1_6_p11 = PropertyValue.objects.get(content_object=cp1_6, property_type__name='Comment Stain')
+        cp1_6_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='95% form/EDTA')
+        cp1_6_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent ATM Barcode')
+        cp1_6_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent EML Barcode')
+        cp1_6_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent LX1 Barcode')
+        cp1_6_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent LX2 Barcode')
+        cp1_6_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent PB1 Barcode Stain')
+        cp1_6_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent RA1 Barcode Stain')
+        cp1_6_p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent SML Barcode')
+        cp1_6_p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent XC3 Barcode')
+        cp1_6_p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Reagent XC4 Barcode Stain')
+        cp1_6_p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id, property_type__name='Comment Stain')
         # Check property values for Extend and Stain sub-process
         self.assertEqual(cp1_6_p1.value, 'EDTA_1')
         self.assertEqual(cp1_6_p2.value, 'ATM_1')
@@ -354,9 +358,9 @@ class ResourcesTestCase(TestCase):
         self.assertEqual(cp1_6_p11.value, 'Comment 21')
 
         cp1_7 = Process.objects.get(parent_process=p1, protocol__name='Infinium: Scan Preparation')
-        cp1_7_p1 = PropertyValue.objects.get(content_object=cp1_7, property_type__name='SentrixBarcode_A')
-        cp1_7_p2 = PropertyValue.objects.get(content_object=cp1_7, property_type__name='Scan Chip Rack Barcode')
-        cp1_7_p3 = PropertyValue.objects.get(content_object=cp1_7, property_type__name='Comment Scan')
+        cp1_7_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id, property_type__name='SentrixBarcode_A')
+        cp1_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id, property_type__name='Scan Chip Rack Barcode')
+        cp1_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id, property_type__name='Comment Scan')
         # Check property values for Scan Preparation sub-process
         self.assertEqual(cp1_7_p1.value, 'XPBARCODE1')
         self.assertEqual(cp1_7_p2.value, 'CHIP_RACK_1')
@@ -386,14 +390,113 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se2.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se2.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se2.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        # Tests related to third sample
+        ss3 = Sample.objects.get(container__barcode="Infinium001", coordinates="C10")
+        pm3 = ProcessMeasurement.objects.get(process=p1, source_sample=ss3)
+        sl3 = SampleLineage.objects.get(process_measurement=pm3)
+      
+        self.assertEqual(pm3.volume_used, Decimal(22))
+      
+        se3 = sl3.child
+        self.assertEqual(ss3, sl3.parent) # Source sample of the ProcessMeasurement is the same as parent sample of lineage
+        self.assertTrue(se3.is_depleted) # Samples used in an experiment run are depleted by default
+        self.assertEqual(se3.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
+        self.assertEqual(se3.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        # Tests related to fourth sample
+        ss4 = Sample.objects.get(container__barcode="Infinium001", coordinates="D01")
+        pm4 = ProcessMeasurement.objects.get(process=p1, source_sample=ss4)
+        sl4 = SampleLineage.objects.get(process_measurement=pm4)
+      
+        self.assertEqual(pm4.volume_used, Decimal(23))
+      
+        se4 = sl4.child
+        self.assertEqual(ss4, sl4.parent) # Source sample of the ProcessMeasurement is the same as parent sample of lineage
+        self.assertTrue(se4.is_depleted) # Samples used in an experiment run are depleted by default
+        self.assertEqual(se4.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
+        self.assertEqual(se4.container, c1) # Child Sample is in the experimental container XPBARCODE1
 
         # Test second experiment run
+        er2 = ExperimentRun.objects.get(container__barcode="XPBARCODE2")
+        p2 = Process.objects.get(experiment_runs=er2)
+        c2 = Container.objects.get(barcode="XPBARCODE2")
+        # Experiment Run tests
+        self.assertEqual(er2.experiment_type.workflow, 'Infinium Global Screening Array-24')
+        self.assertEqual(er2.instrument.name, 'iScan_1')
+        self.assertEqual(er2.start_date, datetime.date(2021,7,13))
+        # Process Tests
+        self.assertEqual(p2.child_process.count(), 7)
+        self.assertEqual(p2.protocol.name, 'Illumina Infinium Preparation')
+         # Tests related to sixth sample (from a tube)
+        ss6 = Sample.objects.get(container__barcode="tube005")
+        pm6 = ProcessMeasurement.objects.get(process=p2, source_sample=ss6)
+        sl6 = SampleLineage.objects.get(process_measurement=pm6)
+      
+        self.assertEqual(pm6.volume_used, Decimal(25))
+      
+        se6= sl6.child
+        self.assertEqual(ss6, sl6.parent) # Source sample of the ProcessMeasurement is the same as parent sample of lineage
+        self.assertTrue(se6.is_depleted) # Samples used in an experiment run are depleted by default
+        self.assertEqual(se6.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
+        self.assertEqual(se6.container, c2) # Child Sample is in the experimental container XPBARCODE2
 
 
         # Test third experiment run
-
+        er3 = ExperimentRun.objects.get(container__barcode="XPBARCODE3")
+        p3 = Process.objects.get(experiment_runs=er3)
+        c3 = Container.objects.get(barcode="XPBARCODE3")
+        # Experiment Run tests
+        self.assertEqual(er3.experiment_type.workflow, 'Infinium Global Screening Array-24')
+        self.assertEqual(er3.instrument.name, 'iScan_1')
+        self.assertEqual(er3.start_date, datetime.date(2021,7,13))
+        # Process Tests
+        self.assertEqual(p3.child_process.count(), 7)
+        self.assertEqual(p3.protocol.name, 'Illumina Infinium Preparation')
+         # Tests related to seventh sample
+        ss7 = Sample.objects.get(container__barcode="Infinium003", coordinates="E01")
+        pm7 = ProcessMeasurement.objects.get(process=p3, source_sample=ss7)
+        sl7 = SampleLineage.objects.get(process_measurement=pm7)
+      
+        self.assertEqual(pm7.volume_used, Decimal(26))
+      
+        se7= sl7.child
+        self.assertEqual(ss7, sl7.parent) # Source sample of the ProcessMeasurement is the same as parent sample of lineage
+        self.assertTrue(se7.is_depleted) # Samples used in an experiment run are depleted by default
+        self.assertEqual(se7.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
+        self.assertEqual(se7.container, c3) # Child Sample is in the experimental container XPBARCODE3
 
         # Test fourth experiment run
+        er4 = ExperimentRun.objects.get(container__barcode="XPBARCODE4")
+        p4 = Process.objects.get(experiment_runs=er4)
+        c4 = Container.objects.get(barcode="XPBARCODE4")
+        # Experiment Run tests
+        self.assertEqual(er4.experiment_type.workflow, 'Infinium Global Screening Array-24')
+        self.assertEqual(er4.instrument.name, 'iScan_1')
+        self.assertEqual(er4.start_date, datetime.date(2021,7,13))
+        # Process Tests
+        self.assertEqual(p4.child_process.count(), 7)
+        self.assertEqual(p4.protocol.name, 'Illumina Infinium Preparation')
+
+        cp4_7 = Process.objects.get(parent_process=p4, protocol__name='Infinium: Scan Preparation')
+        cp4_7_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='SentrixBarcode_A')
+        cp4_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='Scan Chip Rack Barcode')
+        with self.assertRaises(PropertyValue.DoesNotExist):
+            cp4_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='Comment Scan')
+        # Check property values for Scan Preparation sub-process
+        self.assertEqual(cp4_7_p1.value, 'XPBARCODE4')
+        self.assertEqual(cp4_7_p2.value, 'CHIP_RACK_1')
+         # Tests related to ninth sample
+        ss9 = Sample.objects.get(container__barcode="Infinium003", coordinates="H12")
+        pm9 = ProcessMeasurement.objects.get(process=p4, source_sample=ss9)
+        sl9 = SampleLineage.objects.get(process_measurement=pm9)
+      
+        self.assertEqual(pm9.volume_used, Decimal(28))
+      
+        se9= sl9.child
+        self.assertEqual(ss9, sl9.parent) # Source sample of the ProcessMeasurement is the same as parent sample of lineage
+        self.assertTrue(se9.is_depleted) # Samples used in an experiment run are depleted by default
+        self.assertEqual(se9.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
+        self.assertEqual(se9.container, c4) # Child Sample is in the experimental container XPBARCODE4
+
 
     def test_sample_update(self):
         self.load_samples()
