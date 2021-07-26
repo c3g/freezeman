@@ -41,14 +41,14 @@ class ExperimentRunResource(GenericResource):
                               widget=ForeignKeyWidget(Container, field='barcode'))
     container_kind = Field(column_name='Experiment Container Kind')
     instrument_name = Field(column_name='Instrument Name',
-                              widget=ForeignKeyWidget(Instrument, field='name'))
+                            widget=ForeignKeyWidget(Instrument, field='name'))
     start_date = Field(attribute='start_date', column_name='Experiment Start Date', widget=DateWidget())
 
 
     # Arbitrary value much higher than the regular error cutoff
     ERROR_CUTOFF = 500
 
-    process_content_type = ContentType.objects.get(app_label="fms_core", model="process")
+    process_content_type = ContentType.objects.get_for_model(Process)
 
 
     class Meta:
@@ -91,42 +91,41 @@ class ExperimentRunResource(GenericResource):
         for protocol_name in protocols_for_experiment_type.keys():
             p = Protocol.objects.get(name=protocol_name)
             subprotocol_names = protocols_for_experiment_type[protocol_name]
-            self.protocols_dict[p] = map(lambda x: Protocol.objects.get(name=x), subprotocol_names)
+            subprotocols = []
+            for subprotocol_name in subprotocol_names:
+               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
+            self.protocols_dict[p] = subprotocols.copy()
 
 
         skip_rows(dataset, 10)  # Skip preamble
 
 
-    def before_import_row(self, row, **kwargs):
-        self.temporary_experiment_id = row.get("Experiment ID")
-        super().before_import_row(row, **kwargs)
-
-
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
-        import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
+        row_id = str(row.get("#", ""))
+        self.temporary_experiment_id = row.get("Experiment ID", None)
+        import_result = self.get_row_result_class()()
+        if row_id.isnumeric() and self.temporary_experiment_id: # Uses row ID to identify what are the data rows (compared to title or empty rows)
+            # We are in the Sample section
+            # Columns from the Experiment section are mapped to the ones in the Sample section
+            # This is hacky, and has to be replaced when we use a different tool for importing the data
 
-        row_id = row.get("#")
+            if self.is_in_samples_section:
+                sample_row = {
+                    "#": row_id,
+                    "experiment_id": self.temporary_experiment_id,
+                    "source_container_barcode": row.get("Experiment Container Barcode"),
+                    "source_container_position": row.get("Experiment Container Kind"),
+                    "source_sample_volume_used": float_to_decimal(blank_str_to_none(row.get("Instrument Name"))),
+                    "experiment_container_position": row.get("Experiment Start Date"),
+                }
+                self.sample_rows.append(sample_row)
 
-        # We are in the Sample section
-        # Columns from the Experiment section are mapped to the ones in the Sample section
-        # This is hacky, and has to be replaced when we use a different tool for importing the data
-
-
-        if self.is_in_samples_section:
-            sample_row = {
-                "#": row.get("#"),
-                "experiment_id": row.get("Experiment ID"),
-                "source_container_barcode": row.get("Experiment Container Barcode"),
-                "source_container_position": row.get("Experiment Container Kind"),
-                "source_sample_volume_used": float_to_decimal(blank_str_to_none(row.get("Instrument Name"))),
-                "experiment_container_position": row.get("Experiment Start Date"),
-             }
-            self.sample_rows.append(sample_row)
-
-            import_result = wipe_import_row_result(import_result, row)
+                import_result = wipe_import_row_result(import_result, row)
+            else:
+                import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
 
         # If our row is not an ExperimentRun row...
-        elif not isinstance(row_id, int):
+        else:
             import_result = wipe_import_row_result(import_result, row)
 
 
@@ -157,7 +156,7 @@ class ExperimentRunResource(GenericResource):
 
         if barcode and kind:
             try:
-                obj.container, container_created = Container.objects.get_or_create(
+                obj.container, _ = Container.objects.get_or_create(
                     barcode=barcode,
                     kind=kind,
                     defaults={'comment': f"Automatically generated via experiment run template import on "
@@ -180,13 +179,12 @@ class ExperimentRunResource(GenericResource):
         # Create processes for ExperimentRun
         for protocol in self.protocols_dict.keys():
             obj.process = Process.objects.create(protocol=protocol,
-                                                    comment="Experiment (imported from template)")
+                                                 comment="Experiment (imported from template)")
             for subprotocol in self.protocols_dict[protocol]:
                 sp = Process.objects.create(protocol=subprotocol,
                                             parent_process=obj.process,
                                             comment="Experiment (imported from template)")
                 experiment_run_processes_by_protocol_id[subprotocol.id] = sp
-
 
         # Create property values for ExperimentRun
         for i, (property, value) in enumerate(data.items()):
@@ -202,12 +200,11 @@ class ExperimentRunResource(GenericResource):
                         value = value.isoformat() + "Z"
                         value = json.dumps(value, default=str)
 
-
+                    
                     PropertyValue.objects.create(value=value,
                                                  property_type=property_type,
-                                                 content_type=self.process_content_type,
-                                                 object_id=process.id)
-
+                                                 content_object=process)
+                    
                 # Comments are the only non-mandatory fields
                 elif 'comment' not in property.lower():
                     errors[property] = ValidationError([f"Value cannot be blank"],
@@ -269,14 +266,12 @@ class ExperimentRunResource(GenericResource):
             except Exception as e:
                 sample_data_errors.append(f"Container with barcode {data_barcode} not found")
 
-
             if source_container:
                 try:
                     source_sample = Sample.objects.get(container=source_container,
                                                        coordinates=data_coordinates)
                 except Exception as e:
                     sample_data_errors.append(f"Sample from container {data_barcode} at coordinates {data_coordinates} not found")
-
 
             volume_used = float_to_decimal(blank_str_to_none(sample_row["source_sample_volume_used"]))
             if volume_used <= 0:
@@ -302,24 +297,24 @@ class ExperimentRunResource(GenericResource):
                     source_sample.volume = source_sample.volume - volume_used
                     source_sample.save()
 
-                    # Create transferred sample
-                    transferred_sample = source_sample
-                    transferred_sample.pk = None
-                    transferred_sample.container = experiment_run.container
-                    transferred_sample.coordinates = data_experiment_container_coordinates
-                    transferred_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
-                    transferred_sample.depleted = True
-                    transferred_sample.save()
+                    # Create experiment run sample
+                    experiment_run_sample = Sample.objects.get(id=source_sample.id)
+                    experiment_run_sample.pk = None
+                    experiment_run_sample.container = experiment_run.container
+                    experiment_run_sample.coordinates = data_experiment_container_coordinates
+                    experiment_run_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
+                    experiment_run_sample.depleted = True
+                    experiment_run_sample.save()
 
                     # ProcessMeasurement for ExperimentRun on Sample
                     process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
-                                                                            source_sample=transferred_sample,
+                                                                            source_sample=source_sample,
                                                                             volume_used=volume_used,
                                                                             execution_date=experiment_run.start_date)
 
                     SampleLineage.objects.create(process_measurement=process_measurement,
                                                  parent=source_sample,
-                                                 child=transferred_sample)
+                                                 child=experiment_run_sample)
 
                 except Exception as e:
                     sample_data_errors.append(e)

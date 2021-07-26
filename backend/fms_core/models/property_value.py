@@ -21,7 +21,7 @@ __all__ = ["PropertyValue"]
 class PropertyValue(TrackedModel):
     value = models.JSONField("Property value", validators=[PROPERTY_VALUE_VALIDATOR],
                                       help_text="Property value")
-    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_type",
+    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_values",
                                   help_text="Property type")
 
     content_type_choices = models.Q(app_label='fms_core', model='process') | models.Q(app_label='fms_core', model='processmeasurement')

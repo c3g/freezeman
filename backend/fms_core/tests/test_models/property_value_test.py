@@ -1,20 +1,23 @@
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.test import TestCase
 from fms_core.models import PropertyValue, PropertyType, Protocol, Process
+from django.contrib.contenttypes.models import ContentType
 
 
 class PropertyValueTest(TestCase):
     def setUp(self):
+        ContentType.objects.clear_cache()
         self.protocol, _ = Protocol.objects.get_or_create(name="ProtocolTest")
         self.property_type_with_str = PropertyType.objects.create(name="PropertyNameTestStr",
-                                                                   value_type="str",
-                                                                   content_object=self.protocol)
+                                                                  value_type="str",
+                                                                  content_object=self.protocol)
         self.property_type_with_int = PropertyType.objects.create(name="PropertyNameTestInt",
-                                                                            value_type="int",
-                                                                            content_object=self.protocol)
-        self.process, _ = Process.objects.get_or_create(protocol=self.protocol)
+                                                                  value_type="int",
+                                                                  content_object=self.protocol)
+        self.process, _ = Process.objects.get_or_create(protocol=self.protocol, comment="Test Process")
 
     def test_property_value(self):
+        print(ContentType.objects.get_for_model(Process).id)
         content_object = self.process
         value = 10.1
         property_type_with_float = PropertyType.objects.create(name="PropertyNameTestFloat",
@@ -22,7 +25,8 @@ class PropertyValueTest(TestCase):
                                                                content_object=self.protocol)
         pv = PropertyValue.objects.create(value=value,
                                           property_type=property_type_with_float,
-                                          content_object=content_object)
+                                          content_type_id=ContentType.objects.get_for_model(Process).id,
+                                          object_id=self.process.id)
 
         self.assertEqual(pv.property_type, property_type_with_float)
         self.assertEqual(pv.content_object, content_object)
