@@ -11,5 +11,6 @@ context('All tests', () => {
   containersTests()
   individualsTests()
   samplesTests()
+  protocolsTests()
   paginationTests()
 })
