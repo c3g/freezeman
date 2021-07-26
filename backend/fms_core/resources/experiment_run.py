@@ -48,7 +48,6 @@ class ExperimentRunResource(GenericResource):
     # Arbitrary value much higher than the regular error cutoff
     ERROR_CUTOFF = 500
 
-    process_content_type = ContentType.objects.get_for_model(Process)
 
 
     class Meta:
