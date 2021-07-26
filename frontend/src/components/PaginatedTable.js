@@ -1,14 +1,22 @@
 import React, {useState, useRef} from "react";
+import {connect, useDispatch } from "react-redux";
 import prop from "prop-types";
 import {Pagination, Table} from "antd";
 
 
-const pageSize = 10;
+import {setPageSize} from "../modules/pagination";
 
 const propTypes = {
  filters: prop.object.isRequired,
  sortBy: prop.object.isRequired,
+ pageSize : prop.number.isRequired
 };
+
+const mapStateToProps = state => ({
+  pageSize: state.pagination.pageSize,
+});
+
+const actionCreators = {setPageSize};
 
 function PaginatedTable ({
     columns,
@@ -20,10 +28,12 @@ function PaginatedTable ({
     page,
     filters,
     sortBy,
+    pageSize,
     onLoad,
     onChangeSort,
   }) {
 
+  const dispatch  = useDispatch();
   const filtersRef = useRef(filters);
   const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,6 +88,11 @@ function PaginatedTable ({
       onChangeSort(key, order)
   };
 
+  const onChangeSizeChange = (newPageSize) => {
+    dispatch(setPageSize(newPageSize));
+    onLoad();
+  };
+
   return (
     <>
       <Table
@@ -93,13 +108,14 @@ function PaginatedTable ({
       />
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"
-        showSizeChanger={false}
+        showSizeChanger={true}
         showQuickJumper={true}
         showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
         current={currentPage}
         pageSize={pageSize}
         total={totalCount}
         onChange={onChangePage}
+        onShowSizeChange={(current, newPageSize) => onChangeSizeChange(newPageSize)}
       />
     </>
   );
@@ -107,4 +123,4 @@ function PaginatedTable ({
 
 PaginatedTable.propTypes = propTypes;
 
-export default PaginatedTable;
+export default connect(mapStateToProps, actionCreators)(PaginatedTable);
