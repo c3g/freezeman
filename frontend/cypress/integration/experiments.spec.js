@@ -25,7 +25,6 @@ export const experimentsTests = () => {
         cy.navigateTo('Experiments')
         cy.wait(1000)
         cy.get('button').contains('Add Experiments').click()
-        //cy.get('.ant-btn').first().click()
         cy.get('input[type=file]').attachFile('Experiment_submission_v3_3_0_F_A_1.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
