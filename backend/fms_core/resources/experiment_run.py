@@ -101,7 +101,7 @@ class ExperimentRunResource(GenericResource):
 
 
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
-        row_id = row.get("#", "")
+        row_id = str(row.get("#", ""))
         self.temporary_experiment_id = row.get("Experiment ID", None)
         import_result = self.get_row_result_class()()
         if row_id.isnumeric() and self.temporary_experiment_id: # Uses row ID to identify what are the data rows (compared to title or empty rows)
