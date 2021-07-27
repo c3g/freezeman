@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.test import TestCase
 from django.utils import timezone
@@ -67,3 +68,17 @@ class SampleLineageTest(TestCase):
         sl = SampleLineage.objects.create(parent=parent_sample, child=self.child_sample, process_measurement=pm)
 
         self.assertEqual(self.child_sample.extracted_from.name, "test_sample_11")
+
+    def test_sample_lineage_same_sample(self):
+        parent_sample = self.parent_sample
+        pm = ProcessMeasurement.objects.create(process=self.valid_process,
+                                               source_sample=parent_sample,
+                                               execution_date=timezone.now(),
+                                               volume_used=Decimal('0.01'),
+                                               comment="ProcessMeasurement test_sample_lineage_same_sample")
+        with self.assertRaises(ValidationError):
+            try:
+                sl = SampleLineage.objects.create(parent=parent_sample, child=parent_sample, process_measurement=pm)
+            except ValidationError as e:
+                self.assertTrue('child' in e.message_dict)
+                raise e

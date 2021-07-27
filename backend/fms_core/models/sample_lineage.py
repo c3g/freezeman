@@ -39,6 +39,9 @@ class SampleLineage(TrackedModel):
                 add_error("tissue_source", "Extracted sample need to have a tissue source.")
             elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
                 add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
+        
+        if self.child == self.parent:
+            add_error("child", "A sample cannot have itself as child.")
 
 
         if errors:
