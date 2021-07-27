@@ -236,10 +236,13 @@ def create_infinium_property_types_and_protocols(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                is_optional = True if 'comment' in property.lower() else False
+
                 pt = PropertyType.objects.create(name=property,
                                                  object_id=protocol.id,
                                                  content_type=protocol_content_type,
                                                  value_type=value_type,
+                                                 is_optional=is_optional,
                                                  created_by_id=admin_user_id, updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
 
@@ -449,6 +452,7 @@ class Migration(migrations.Migration):
                 ('value_type',
                  models.CharField(choices=[('int', 'int'), ('float', 'float'), ('bool', 'bool'), ('str', 'str')],
                                   help_text='Enumerated type to define value type', max_length=20)),
+                ('is_optional', models.BooleanField(default=False, help_text='Whether this property is optional or not')),
                 ('object_id', models.PositiveIntegerField()),
                 ('content_type',
                  models.ForeignKey(limit_choices_to=models.Q(('app_label', 'fms_core'), ('model', 'protocol')),

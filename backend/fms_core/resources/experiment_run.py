@@ -211,8 +211,8 @@ class ExperimentRunResource(GenericResource):
                                                  property_type=property_type,
                                                  content_object=process)
                     
-                # Comments are the only non-mandatory fields
-                elif 'comment' not in property.lower():
+                # For mandatory properties
+                elif not property_type.is_optional:
                     errors[property] = ValidationError([f"Value cannot be blank"],
                                                            code="invalid")
 
