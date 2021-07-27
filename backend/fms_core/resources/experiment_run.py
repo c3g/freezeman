@@ -66,6 +66,7 @@ class ExperimentRunResource(GenericResource):
         self.sample_rows = []
         self.experiments = {}
         self.temporary_experiment_id = None
+        self.temporary_experiment_ids_without_samples = []
 
         self.experiment_type_name = dataset[1][2]
 
@@ -102,12 +103,14 @@ class ExperimentRunResource(GenericResource):
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
         row_id = str(row.get("#", ""))
         self.temporary_experiment_id = row.get("Experiment ID", None)
+
+
         import_result = self.get_row_result_class()()
         if row_id.isnumeric() and self.temporary_experiment_id: # Uses row ID to identify what are the data rows (compared to title or empty rows)
+
             # We are in the Sample section
             # Columns from the Experiment section are mapped to the ones in the Sample section
             # This is hacky, and has to be replaced when we use a different tool for importing the data
-
             if self.is_in_samples_section:
                 sample_row = {
                     "#": row_id,
@@ -120,8 +123,12 @@ class ExperimentRunResource(GenericResource):
                 self.sample_rows.append(sample_row)
 
                 import_result = wipe_import_row_result(import_result, row)
+
+            # ExperimentRun section
             else:
+                self.temporary_experiment_ids_without_samples.append(self.temporary_experiment_id)
                 import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
+
 
         # If our row is not an ExperimentRun row...
         else:
@@ -255,10 +262,12 @@ class ExperimentRunResource(GenericResource):
 
             sample_data_errors = []
 
+
             try:
                 experiment_run = ExperimentRun.objects.get(id=self.experiments[data_experiment_id])
             except Exception as e:
                 sample_data_errors.append(f"Experiment associated to temporary identifier {data_experiment_id} not found in this template")
+
 
             try:
                 source_container = Container.objects.get(barcode=data_barcode)
@@ -305,6 +314,9 @@ class ExperimentRunResource(GenericResource):
                     experiment_run_sample.depleted = True
                     experiment_run_sample.save()
 
+                    # There exists a sample for that experiment_id
+                    self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
+
                     # ProcessMeasurement for ExperimentRun on Sample
                     process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
                                                                             source_sample=source_sample,
@@ -324,3 +336,9 @@ class ExperimentRunResource(GenericResource):
                 error = ValidationError(
                     sample_data_errors, code="invalid")
                 result.append_base_error(self.get_error_result_class()(error, ''))
+
+
+        # Validates that the experiments are all associated to at least 1 sample
+        for experiment_id in self.temporary_experiment_ids_without_samples:
+            error = ValidationError(f"Error: Experiment {experiment_id} has no associated sample", code="invalid")
+            result.append_base_error(self.get_error_result_class()(error, ''))
