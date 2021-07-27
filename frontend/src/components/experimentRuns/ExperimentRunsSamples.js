@@ -72,7 +72,7 @@ const ExperimentRunsSamples = ({
 
   const renderPMsForSampleID = (sampleID) => {
       if (isProcessMeasurementsLoaded && sampleID && processMeasurements) {
-          return processMeasurements.filter(pm => pm.source_sample == sampleID).map(pm => renderProcessMeasurement(pm))
+          return processMeasurements.filter(pm => pm.child_sample == sampleID).map(pm => renderProcessMeasurement(pm))
       }
       else
           return [<></>]
