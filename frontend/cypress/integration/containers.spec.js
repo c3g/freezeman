@@ -34,22 +34,23 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('body').should('contain', `Container ${name}`) // Details title
       })
-  
+
       it('visit container detail page', () => {
          cy.navigateTo('Containers')
+         cy.wait(4000)
          cy.get('.ant-table-cell').contains(singleContainerBarcode).click()
          cy.get('body').should('contain', `Container ${singleContainerBarcode}`)
       })
-  
+
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
         cy.get('input[type=file]').attachFile('Container_creation_v3_2_0_F_A_2.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 16 items')
+        cy.get('body').should('contain', '1-16 of 16 items')
       })
-      
+
       it('moves containers (template import)', () => {
         const moveBarcodeDst = 'freezer-three';
         cy.navigateTo('Container', 'Move Containers')
@@ -57,7 +58,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 16 items')
+        cy.get('body').should('contain', '1-16 of 16 items')
         cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(moveBarcodeDst) // filter by barcode (column 1)
         cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(5).should('contain', '2'))
         cy.get('button').contains('Clear Filters').click()
@@ -72,7 +73,7 @@ export const containersTests = () => {
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
-        cy.get('body').should('contain', '1-10 of 16 items')
+        cy.get('body').should('contain', '1-16 of 16 items')
         cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeSrc)// filter by barcode (column 1)
         cy.get('body').should('contain', '0-0 of 0 items')
         cy.get('button').contains('Clear Filters').click()

@@ -33,6 +33,7 @@ export const individualsTests = () => {
 
       it('visit individuals detail page', () => {
          cy.navigateTo('Individuals')
+         cy.wait(4000)
          cy.get('.ant-table-cell').contains(singleIndividualName).click()
          cy.get('body').should('contain', `${singleIndividualName}`)
       })

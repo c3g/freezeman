@@ -28,7 +28,7 @@ export const protocolsTests = () => {
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
       })
-  
+
       it('extract samples (template import)', () => {
         cy.navigateTo('Protocols', 'Process Extractions')
         cy.get('input[type=file]').attachFile('Sample_extraction_v3_3_0_F_A_1.xlsx')
@@ -44,6 +44,7 @@ export const protocolsTests = () => {
       it('visits parent sample detail page', () => {
         const sampleName = 'Sample_DNA1'
         cy.navigateTo('Protocols')
+        cy.wait(4000)
         cy.get('.ant-table-tbody .ant-table-cell').contains(sampleName).click()
         cy.get('body').should('contain', `Sample ${sampleName}`)
       })

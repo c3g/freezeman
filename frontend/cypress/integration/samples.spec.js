@@ -37,7 +37,8 @@ export const samplesTests = () => {
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.navigateTo('Protocols')
-        cy.get('.ant-table-thead .ant-table-filter-trigger-container').eq(1).click().type('update{enter}') // filter by protocol (column 1)
+        cy.wait(4000)
+        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type('update{enter}') // filter by protocol (column 1)
         cy.get('body').should('contain', '1-2 of 2 items')
       })
 
