@@ -20,7 +20,7 @@ __all__ = ["PropertyValue"]
 @reversion.register()
 class PropertyValue(TrackedModel):
     value = models.JSONField("Property value", validators=[PROPERTY_VALUE_VALIDATOR],
-                                      help_text="Property value")
+                                      help_text="Property value", blank=True)
     property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_values",
                                   help_text="Property type")
 
@@ -43,8 +43,11 @@ class PropertyValue(TrackedModel):
             if property_type_value_type == 'float' and type(self.value).__name__ == 'int':
                 self.value = float(self.value)
 
+            # Checks for mandatory property
+            if self.property_type.is_optional == False and self.value == '':
+                add_error("value", f"Value for property {self.property_type.name} cannot be blank")
             # Check if the property value data type matches the property type 'value_type' attribute
-            if type(self.value).__name__ != property_type_value_type:
+            elif type(self.value).__name__ != property_type_value_type:
                 add_error("value", f"Value type {type(self.value).__name__} does not match property type's value type {property_type_value_type}")
 
 
