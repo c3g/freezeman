@@ -106,7 +106,6 @@ class ExperimentRunResource(GenericResource):
         self.temporary_experiment_id = row.get("Experiment ID", None)
 
 
-
         import_result = self.get_row_result_class()()
         if row_id.isnumeric() and self.temporary_experiment_id: # Uses row ID to identify what are the data rows (compared to title or empty rows)
 
@@ -267,7 +266,6 @@ class ExperimentRunResource(GenericResource):
 
             try:
                 experiment_run = ExperimentRun.objects.get(id=self.experiments[data_experiment_id])
-                self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
             except Exception as e:
                 sample_data_errors.append(f"Experiment associated to temporary identifier {data_experiment_id} not found in this template")
 
@@ -316,6 +314,9 @@ class ExperimentRunResource(GenericResource):
                     experiment_run_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
                     experiment_run_sample.depleted = True
                     experiment_run_sample.save()
+
+                    # There exists a sample for that experiment_id
+                    self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
 
                     # ProcessMeasurement for ExperimentRun on Sample
                     process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
