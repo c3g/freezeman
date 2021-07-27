@@ -21,8 +21,9 @@ export const experimentsTests = () => {
     })
 
     context('Experiments', () => {
-      const experimentBarcode1 = 'CONTAINERFOREXPMULTIPLE7';
-      const experimentBarcode2 = 'CONTAINERFOREXPMULTIPLE8';
+      const experimentBarcode1 = 'test_abc1';
+      const experimentBarcode2 = 'test_qwe2';
+      const experimentType = 'Infinium Global Screening Array-24 (iScan_1)';
 
       it('creates experiments (template import)', () => {
         cy.navigateTo('Experiments')
@@ -38,7 +39,7 @@ export const experimentsTests = () => {
         cy.get('body').should('contain', experimentBarcode2)
       });
 
-      it('visits experiment detail page and checks the existence of the first experiment', () => {
+      it('visits experiment detail page and checks the existence of the first experiment and validates it', () => {
         cy.navigateTo('Experiments')
         cy.wait(5000)
         cy.get('td.ant-table-cell').contains(experimentBarcode1)
@@ -47,9 +48,13 @@ export const experimentsTests = () => {
             cy.get('td').contains('Experiment').click()
         });
         cy.get('body').should('contain', experimentBarcode1)
+        cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
+        cy.get('body').should('contain', 'Sample_DNA1 sample (DNA) @ A01')
+        cy.get('body').should('contain', 'Sample_RNA1 sample (RNA) @ A02')
+        cy.get('body').should('contain', 'Sample_DNA1 sample (DNA) @ B02')
       });
 
-      it('visits experiment detail page and checks the existence of the second experiment', () => {
+      it('visits experiment detail page and checks the existence of the second experiment and validates it', () => {
         cy.navigateTo('Experiments')
         cy.wait(5000)
         cy.get('td.ant-table-cell').contains(experimentBarcode2)
@@ -58,6 +63,30 @@ export const experimentsTests = () => {
             cy.get('td').contains('Experiment').click()
         });
         cy.get('body').should('contain', experimentBarcode2)
+        cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
+        cy.get('body').should('contain', 'Sample_Blood1 sample (BLOOD) @ A01')
+        cy.get('body').should('contain', 'Sample_Expectoration1 sample (EXPECTORATION) @ A02')
+        cy.get('body').should('contain', 'Sample_gargle1 sample (GARGLE) @ A03')
+        cy.get('body').should('contain', 'Sample_plasma1 sample (PLASMA) @ A04')
+        cy.get('body').should('contain', 'Sample_saliva1 sample (SALIVA) @ A05')
+        cy.get('body').should('contain', 'Sample_swab1 sample (SWAB) @ A06')
+        cy.get('body').should('contain', 'Sample_Blood1 sample (BLOOD) @ B03')
+      });
+
+      it('visits a particular sample detailed page to ensure the first experiment is there', () => {
+        cy.navigateTo('Samples')
+        cy.wait(5000)
+        cy.get('[data-row-key="27"] > :nth-child(2) > a > div').click()
+        cy.get('#rc-tabs-0-tab-3').click()
+        cy.get('body').should('contain', experimentType)
+      });
+
+      it('visits a particular sample detailed page to ensure the second experiment is there', () => {
+        cy.navigateTo('Samples')
+        cy.wait(5000)
+        cy.get('[data-row-key="28"] > :nth-child(2) > a > div').click()
+        cy.get('#rc-tabs-0-tab-3').click()
+        cy.get('body').should('contain', experimentType)
       });
     });
   })
