@@ -162,6 +162,8 @@ EMAIL_HOST_USER     = os.environ.get('FMS_EMAIL_USER',     'noreply@example.com'
 EMAIL_HOST_PASSWORD = os.environ.get('FMS_EMAIL_PASSWORD', 'secret')
 EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
 
+FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -204,6 +206,33 @@ TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 
 
 # Logging
+handler = {}
+logger = {}
+if FMS_ENV == "PROD":
+    handler = {
+        "console": {
+            "formatter": "fms",
+            "class": "logging.StreamHandler",
+        },
+    }
+    logger = {
+        "handlers": ["console"],
+        "level": "WARNING",
+    }
+else:
+    handler = {
+        "file": {
+            "level": "DEBUG",
+            "class": 'logging.FileHandler',
+            "filename": "fms.log",
+            "formatter": "fms"
+        },
+    }
+    logger = {
+        "handlers": ["file"],
+        "level": "DEBUG",
+        "propagate": True,
+    }
 
 LOGGING = {
     "version": 1,
@@ -214,15 +243,9 @@ LOGGING = {
             "style": "{",
         }
     },
-    "handlers": {
-        "console": {
-            "formatter": "fms",
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG" if DEBUG else "WARNING",
+    "handlers": handler,
+    "loggers": {
+        "django": logger,
     },
 }
 
