@@ -203,10 +203,8 @@ class ExperimentRunResource(GenericResource):
                     process = experiment_run_processes_by_protocol_id[property_type.object_id]
 
                     if type(value).__name__ in ('datetime','time'):
-                        value = value.isoformat() + "Z"
-                        value = json.dumps(value, default=str)
+                        value = value.isoformat().replace("T00:00:00", "")
 
-                    
                     PropertyValue.objects.create(value=value,
                                                  property_type=property_type,
                                                  content_object=process)
@@ -315,7 +313,8 @@ class ExperimentRunResource(GenericResource):
                     experiment_run_sample.save()
 
                     # There exists a sample for that experiment_id
-                    self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
+                    if data_experiment_id in self.temporary_experiment_ids_without_samples: 
+                        self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
 
                     # ProcessMeasurement for ExperimentRun on Sample
                     process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
