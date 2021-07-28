@@ -78,7 +78,11 @@ export const experimentsTests = () => {
       it('visits a particular sample detailed page to ensure the first experiment is there', () => {
         cy.navigateTo('Samples')
         cy.wait(WAIT_TIME)
-        cy.get('[data-row-key="27"] > :nth-child(2) > a > div').click()
+        cy.get('td.ant-table-cell').contains(experimentBarcode1)
+          .parent().parent().should('have.class', 'ant-table-row')
+          .within(() => {
+            cy.get('td').contains('Sample_DNA1').click()
+        });
         cy.get('#rc-tabs-0-tab-3').click()
         cy.get('body').should('contain', experimentType)
       });
@@ -86,7 +90,11 @@ export const experimentsTests = () => {
       it('visits a particular sample detailed page to ensure the second experiment is there', () => {
         cy.navigateTo('Samples')
         cy.wait(WAIT_TIME)
-        cy.get('[data-row-key="28"] > :nth-child(2) > a > div').click()
+        cy.get('td.ant-table-cell').contains(experimentBarcode2)
+          .parent().parent().should('have.class', 'ant-table-row')
+          .within(() => {
+            cy.get('td').contains('Sample_Blood1').click()
+        });
         cy.get('#rc-tabs-0-tab-3').click()
         cy.get('body').should('contain', experimentType)
       });
