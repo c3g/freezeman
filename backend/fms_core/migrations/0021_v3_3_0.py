@@ -393,7 +393,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('container', models.OneToOneField(help_text='Container', on_delete=django.db.models.deletion.PROTECT,
-                                                to='fms_core.container', related_name="experiment_runs")),
+                                                to='fms_core.container', related_name="experiment_run")),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_experimentrun_creation',
                                                  to=settings.AUTH_USER_MODEL)),

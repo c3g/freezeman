@@ -18,7 +18,7 @@ __all__ = ["ExperimentRun"]
 @reversion.register()
 class ExperimentRun(TrackedModel):
     experiment_type = models.ForeignKey(ExperimentType, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Experiment type")
-    container = models.OneToOneField(Container, related_name="experiment_runs", on_delete=models.PROTECT, help_text="Container")
+    container = models.OneToOneField(Container, related_name="experiment_run", on_delete=models.PROTECT, help_text="Container")
     instrument = models.ForeignKey(Instrument, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Instrument")
     start_date = models.DateField(help_text="Date the run was started.")
     process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="experiment_runs",

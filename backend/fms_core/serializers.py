@@ -46,12 +46,12 @@ __all__ = [
 class ContainerSerializer(serializers.ModelSerializer):
     children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    experiment_runs = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    experiment_run = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
         model = Container
         fields = "__all__"
-        extra_fields = ('experiment_runs')
+        extra_fields = ('experiment_run')
 
 
 class SimpleContainerSerializer(serializers.ModelSerializer):

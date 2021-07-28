@@ -104,8 +104,8 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
     })
   }
 
-  if (isLoaded && container?.experiment_runs) {
-    experimentRunsIDs.push(container.experiment_runs)
+  if (isLoaded && container?.experiment_run) {
+    experimentRunsIDs.push(container.experiment_run)
   }
 
   return <>

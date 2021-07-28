@@ -59,8 +59,8 @@ const ContainersDetailContent = ({
     listParents(id);
 
   if (isLoaded)
-    if (container.experiment_runs)
-      experimentRunsIDs.push(container.experiment_runs)
+    if (container.experiment_run)
+      experimentRunsIDs.push(container.experiment_run)
 
 
   return (
