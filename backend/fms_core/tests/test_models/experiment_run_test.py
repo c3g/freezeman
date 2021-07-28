@@ -65,6 +65,27 @@ class ExperimentRunTest(TestCase):
                 self.assertTrue("container" in e.message_dict)
                 raise e
 
+    def test_duplicate_experiment_run_with_container(self):
+        with self.assertRaises(ValidationError):
+            # First ExperimentRun is valid
+            ExperimentRun.objects.create(experiment_type=self.experiment_type,
+                                         container=self.container,
+                                         instrument=self.instrument,
+                                         process=self.process,
+                                         start_date=self.start_date)
+
+            try:
+                process_2 = Process.objects.create(protocol=self.protocol, comment="Process test 2")
+                # Second ExperimentRun has the same Container, should be invalid
+                ExperimentRun.objects.create(experiment_type=self.experiment_type,
+                                             container=self.container,
+                                             instrument=self.instrument,
+                                             process=process_2,
+                                             start_date=self.start_date)
+            except ValidationError as e:
+                self.assertTrue("container" in e.message_dict)
+                raise e
+
     def test_missing_instrument(self):
         with self.assertRaises(ValidationError):
             try:

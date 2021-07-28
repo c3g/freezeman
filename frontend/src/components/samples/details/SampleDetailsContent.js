@@ -104,8 +104,8 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
     })
   }
 
-  if (isLoaded && container) {
-    experimentRunsIDs = container.experiment_runs
+  if (isLoaded && container?.experiment_run) {
+    experimentRunsIDs.push(container.experiment_run)
   }
 
   return <>
@@ -237,7 +237,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
         </TabPane>
 
-        <TabPane tab={`Experiments (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
+        <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 

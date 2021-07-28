@@ -50,7 +50,7 @@ const ContainersDetailContent = ({
   // const error = container.error;
   const isFetching = !containersByID[id] || container.isFetching;
   const isLoaded = containersByID[id] && container.isLoaded;
-  let experimentRunsIDs = undefined
+  let experimentRunsIDs = []
 
   if (!isLoaded)
     get(id);
@@ -59,7 +59,8 @@ const ContainersDetailContent = ({
     listParents(id);
 
   if (isLoaded)
-    experimentRunsIDs = container.experiment_runs
+    if (container.experiment_run)
+      experimentRunsIDs.push(container.experiment_run)
 
 
   return (
@@ -100,7 +101,7 @@ const ContainersDetailContent = ({
             </Descriptions>
           </TabPane>
 
-          <TabPane tab={`Experiments (${container.experiment_runs?.length})`} key="2" style={tabStyle}>
+          <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="2" style={tabStyle}>
 
             {containerKindsByID[container.kind] && containerKindsByID[container.kind].is_run_container ?
               <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
