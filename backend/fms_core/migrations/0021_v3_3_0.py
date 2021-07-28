@@ -476,7 +476,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('value', models.JSONField(help_text='Property value', validators=[
+                ('value', models.JSONField(help_text='Property value', blank=True, validators=[
                     fms_core.schema_validators.JsonSchemaValidator(
                         {'$id': 'fms:property_value', '$schema': 'http://json-schema.org/draft-07/schema#',
                          'description': 'Schema used to define the value in PropertyValue.',

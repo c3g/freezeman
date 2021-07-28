@@ -479,11 +479,11 @@ class ResourcesTestCase(TestCase):
         cp4_7 = Process.objects.get(parent_process=p4, protocol__name='Infinium: Scan Preparation')
         cp4_7_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='SentrixBarcode_A')
         cp4_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='Scan Chip Rack Barcode')
-        with self.assertRaises(PropertyValue.DoesNotExist):
-            cp4_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='Comment Scan')
+        cp4_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp4_7.id, property_type__name='Comment Scan')
         # Check property values for Scan Preparation sub-process
         self.assertEqual(cp4_7_p1.value, 'XPBARCODE4')
         self.assertEqual(cp4_7_p2.value, 'CHIP_RACK_1')
+        self.assertEqual(cp4_7_p3.value, '')
          # Tests related to ninth sample
         ss9 = Sample.objects.get(container__barcode="Infinium003", coordinates="H12")
         pm9 = ProcessMeasurement.objects.get(process=p4, source_sample=ss9)

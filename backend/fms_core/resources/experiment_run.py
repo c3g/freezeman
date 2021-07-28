@@ -199,20 +199,17 @@ class ExperimentRunResource(GenericResource):
                 pass
             else:
                 property_type = self.property_types_by_name[property]
-                if value:
-                    process = experiment_run_processes_by_protocol_id[property_type.object_id]
+                process = experiment_run_processes_by_protocol_id[property_type.object_id]
 
-                    if type(value).__name__ in ('datetime','time'):
-                        value = value.isoformat().replace("T00:00:00", "")
+                if type(value).__name__ in ('datetime','time'):
+                    value = value.isoformat().replace("T00:00:00", "")
 
+                try:
                     PropertyValue.objects.create(value=value,
                                                  property_type=property_type,
                                                  content_object=process)
-                    
-                # For mandatory properties
-                elif not property_type.is_optional:
-                    errors[property] = ValidationError([f"Value cannot be blank"],
-                                                           code="invalid")
+                except Exception as e:
+                    errors[property] = e.error_dict['value']
 
 
         if errors:
