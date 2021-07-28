@@ -12,6 +12,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import { WAIT_TIME } from '../constants';
+
 export const protocolsTests = () => {
   context('protocols section tests', () => {
 
@@ -44,7 +46,7 @@ export const protocolsTests = () => {
       it('visits parent sample detail page', () => {
         const sampleName = 'Sample_DNA1'
         cy.navigateTo('Protocols')
-        cy.wait(4000)
+        cy.wait(WAIT_TIME)
         cy.get('.ant-table-tbody .ant-table-cell').contains(sampleName).click()
         cy.get('body').should('contain', `Sample ${sampleName}`)
       })

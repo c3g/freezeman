@@ -12,6 +12,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import { WAIT_TIME } from '../constants';
+
 export const samplesTests = () => {
   context('samples section tests', () => {
 
@@ -37,7 +39,7 @@ export const samplesTests = () => {
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.navigateTo('Protocols')
-        cy.wait(4000)
+        cy.wait(WAIT_TIME)
         cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type('update{enter}') // filter by protocol (column 1)
         cy.get('body').should('contain', '1-2 of 2 items')
       })

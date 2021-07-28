@@ -13,6 +13,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import { WAIT_TIME } from '../constants';
+
 export const containersTests = () => {
   context('contrainers section tests', () => {
 
@@ -37,7 +39,7 @@ export const containersTests = () => {
 
       it('visit container detail page', () => {
          cy.navigateTo('Containers')
-         cy.wait(4000)
+         cy.wait(WAIT_TIME)
          cy.get('.ant-table-cell').contains(singleContainerBarcode).click()
          cy.get('body').should('contain', `Container ${singleContainerBarcode}`)
       })

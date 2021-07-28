@@ -10,6 +10,8 @@
 // cy.navigateTo
 // cy.submitForm
 
+import { WAIT_TIME } from '../constants';
+
 export const individualsTests = () => {
   context('individuals section tests', () => {
 
@@ -33,7 +35,7 @@ export const individualsTests = () => {
 
       it('visit individuals detail page', () => {
          cy.navigateTo('Individuals')
-         cy.wait(4000)
+         cy.wait(WAIT_TIME)
          cy.get('.ant-table-cell').contains(singleIndividualName).click()
          cy.get('body').should('contain', `${singleIndividualName}`)
       })
