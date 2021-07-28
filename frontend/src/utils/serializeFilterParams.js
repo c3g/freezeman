@@ -7,6 +7,10 @@ import {FILTER_TYPE} from "../constants"
 export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
+  function hasWhiteSpace(s) {
+    return /\s/g.test(s);
+  }
+
   Object.keys(filters).forEach(field => {
     const value = filters[field]?.value
     const description = descriptions[field]
@@ -38,7 +42,7 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
-        const isBatch = description.batch && value.includes(',')
+        const isBatch = description.batch && hasWhiteSpace(value) //value.includes(',')
 
         if (isBatch) {
           key += "__in"
@@ -55,9 +59,15 @@ export default function serializeFilterParams(filters, descriptions) {
           key += "__icontains"
         }
 
-        if(value)
+        if(value && isBatch){
+          const items = value.split(' ') //expected CHUM-2015201670A RIM-8143272302
+          console.log(items)
+          console.log(items.join())
+          params[key] = items.join() //joins elements as a string with ',' as delimiter i.e. CHUM-2015201670A, RIM-8143272302
+        }
+        else if(value) {
           params[key] = value
-
+        }
 
         break;
       }

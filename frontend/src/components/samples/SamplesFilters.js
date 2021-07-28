@@ -30,7 +30,7 @@ const SamplesFilters = ({
           header='Show advanced filters'
         >
           <FilterGroup
-            descriptions={filterObject(f => f.detached, SAMPLE_FILTERS)}
+            descriptions={SAMPLE_FILTERS}
             values={filters}
             onChangeFilter={onChangeFilter}
           />
