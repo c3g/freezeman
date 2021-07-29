@@ -76,7 +76,7 @@ that can create new databases (in order to create the test-specific database.)
 Then, run the following command:
 
 ```bash
-coverage run ./manage.py test
+coverage run ./manage.py test -v 2
 ```
 
 ## Creating releases
