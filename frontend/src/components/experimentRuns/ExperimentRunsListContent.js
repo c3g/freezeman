@@ -70,7 +70,7 @@ const getTableColumns = (containersByID, experimentTypes, instruments) => [
       </Link>),
   },
   {
-    title: "Experiment Start Date",
+    title: "Start Date",
     dataIndex: "start_date",
     sorter: true,
     width: 180,

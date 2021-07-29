@@ -37,12 +37,13 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
             </div>
       },
       {
-        title: 'Volume used',
+        title: 'Volume used (µL)',
         dataIndex: 'volume_used',
         key: 'volume_used',
+        align: 'right',
         render: (volumeUsed, _) =>
             <div>
-              {volumeUsed ? `${parseFloat(volumeUsed).toFixed(3)} µL` : undefined}
+              {volumeUsed ? `${parseFloat(volumeUsed).toFixed(3)}` : undefined}
             </div>
       },
       {
