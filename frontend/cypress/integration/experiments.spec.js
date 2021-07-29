@@ -108,7 +108,7 @@ export const experimentsTests = () => {
             cy.get('td').contains('Experiment').click()
         });
         cy.get('tr').contains(experimentBarcode1).click()
-        cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiments (1)')
+        cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')
       });
 
       it('visits the second experiment\'s container to ensure the experiment is there', () => {
@@ -120,7 +120,7 @@ export const experimentsTests = () => {
             cy.get('td').contains('Experiment').click()
         });
         cy.get('tr').contains(experimentBarcode2).click()
-        cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiments (1)')
+        cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')
       });
     });
   })
