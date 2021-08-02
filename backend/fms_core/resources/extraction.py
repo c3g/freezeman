@@ -10,7 +10,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Process, ProcessSample, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -23,15 +23,17 @@ class ExtractionResource(GenericResource):
     sample_kind = Field(attribute="sample_kind_name", column_name='Extraction Type')
     volume_used = Field(column_name='Volume Used (uL)', widget=DecimalWidget())
     # parent sample container
-    sample_container = Field(column_name='Container Barcode')
-    sample_container_coordinates = Field(column_name='Location Coord')
+    sample_container = Field(column_name='Source Container Barcode')
+    sample_container_coordinates = Field(column_name='Source Container Coord')
     # Computed fields
-    container = Field(attribute='container', column_name='Nucleic Acid Container Barcode',
-                      widget=ForeignKeyWidget(Container, field='barcode'))
+    destination_container = Field(attribute='container', column_name='Destination Container Barcode',
+                                  widget=ForeignKeyWidget(Container, field='barcode'))
+    destination_container_coord = Field(attribute='coordinates', column_name='Destination Container Coord')
+    destination_container_name = Field(column_name='Destination Container Name')
+    destination_container_kind = Field(column_name='Destination Container Kind')
     # Non-attribute fields
-    location = Field(attribute='location', column_name='Nucleic Acid Location Barcode',
-                     widget=ForeignKeyWidget(Container, field='barcode'))
-    location_coordinates = Field(attribute='context_sensitive_coordinates', column_name='Nucleic Acid Location Coord')
+    destination_parent_container = Field(column_name='Destination Parent Container Barcode', widget=ForeignKeyWidget(Container, field='barcode'))
+    destination_parent_container_coordinates = Field(column_name='Destination Parent Container Coord')
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
     concentration = Field(attribute='concentration', column_name='Conc. (ng/uL)', widget=DecimalWidget())
     source_depleted = Field(attribute='source_depleted', column_name='Source Depleted')
@@ -48,18 +50,23 @@ class ExtractionResource(GenericResource):
             'volume'
         )
         excluded = (
-            'container',
+            'destination_container',
             'individual',
             'child_of',
             'comment',
         )
-        export_order = (
+        export_order = (  # Export order regulate the column order of the diff output as well as cleaning order during validation.
             'sample_kind',
+            'volume_used',
             'sample_container',
             'sample_container_coordinates',
-            'container',
-            'location',
-            'location_coordinates',
+            'destination_container',
+            'destination_container_coord',
+            'destination_container_name',
+            'destination_container_kind',
+            'destination_parent_container',
+            'destination_parent_container_coordinates',
+            'volume',
             'concentration',
             'source_depleted',
             'creation_date',
@@ -80,8 +87,8 @@ class ExtractionResource(GenericResource):
         # This section fetch the source sample that is to be transfered
         try:
             self.extracted_from = Sample.objects.get(
-                container__barcode=get_normalized_str(data, "Container Barcode"),
-                coordinates=get_normalized_str(data, "Location Coord"),
+                container__barcode=get_normalized_str(data, "Source Container Barcode"),
+                coordinates=get_normalized_str(data, "Source Container Coord"),
             )
             # Cast the "Source Depleted" cell to a Python Boolean value and
             # update the original sample if needed. This is the act of the
@@ -90,7 +97,7 @@ class ExtractionResource(GenericResource):
             self.extracted_from.depleted = (self.extracted_from.depleted or
                                             check_truth_like(get_normalized_str(data, "Source Depleted")))
         except Sample.DoesNotExist as e:
-            errors["source sample"] = ValidationError([f"Source Container Barcode and Source Location Coord do not exist or do not contain a sample."], code="invalid")
+            errors["source sample"] = ValidationError([f"Source Container Barcode and Source Container Coord do not exist or do not contain a sample."], code="invalid")
         
         if self.extracted_from:
             obj.name = self.extracted_from.name
@@ -102,67 +109,34 @@ class ExtractionResource(GenericResource):
         else:
             self.fields_manually_excluded.extend(["name", "collection_site", "individual", "tissue_source"])
 
-        # This section creates the containers (Tube and Rack) if needed 
-
-        # Per Alex: We can make new tube racks (8x12) automatically if
-        # needed for extractions, using the inputted barcode for the new
-        # object.
-
-        shared_parent_info = dict(
-            barcode=get_normalized_str(data, "Nucleic Acid Location Barcode"),
-            # TODO: Currently can only extract into tube racks 8x12
-            #  - otherwise this logic will fall apart
-            kind=CONTAINER_SPEC_TUBE_RACK_8X12.container_kind_id
-        )
-        if shared_parent_info["barcode"]:
+        # This section creates the containers if needed 
+        parent = None
+        destination_parent_container_barcode = get_normalized_str(data, "Destination Parent Container Barcode")
+        if destination_parent_container_barcode:
             try:
-                parent = Container.objects.get(**shared_parent_info)
+                parent = Container.objects.get(barcode=destination_parent_container_barcode)
             except Container.DoesNotExist:
-                parent = Container.objects.create(
-                    **shared_parent_info,
-                    # Below is creation-specific data
-                    # Leave coordinates blank if creating
-                    # Per Alex: Container name = container barcode if we
-                    #           auto-generate the container
-                    name=shared_parent_info["barcode"],
-                    comment=f"Automatically generated via extraction template import on "
-                            f"{datetime.utcnow().isoformat()}Z"
-                )
-        else:
-            parent = None
-            self.row_warnings.append(f"Parent rack container will not be created if you do not provide [Nucleic Acid Location Barcode, Nucleic Acid Location Coord].")
+                errors["destination parent container"] = ValidationError(["The destination parent container does not exist."], code="invalid")
 
-        # Per Alex: We can make new tubes if needed for extractions
-
-        # Information that can be used to either retrieve or create a new
-        # tube container. It is of type tube specifically because, as
-        # mentioned above, extractions currently only occur into 8x12 tube
-        # racks.
-        shared_container_info = dict(
-            barcode=get_normalized_str(data, "Nucleic Acid Container Barcode"),
-            # TODO: Currently can only extract into tubes
-            #  - otherwise this logic will fall apart
-            kind=CONTAINER_SPEC_TUBE.container_kind_id,
-            location=parent,
-            coordinates=get_normalized_str(data, "Nucleic Acid Location Coord"),
-        )
-
+        shared_container_info = dict(barcode=get_normalized_str(data, "Destination Container Barcode"))
+        if parent:
+            shared_container_info['location'] = parent
+        if get_normalized_str(data, "Destination Container Name"):
+            shared_container_info['name'] = get_normalized_str(data, "Destination Container Name")
+        if get_normalized_str(data, "Destination Container Kind"):
+            shared_container_info['kind'] = get_normalized_str(data, "Destination Container Kind")
+        if get_normalized_str(data, "Destination Parent Container Coord"):
+            shared_container_info['coordinates'] = get_normalized_str(data, "Destination Parent Container Coord")
         try:
-            obj.container = Container.objects.get(**shared_container_info)
-        except Container.DoesNotExist:
-            try:
-                obj.container = Container.objects.create(
-                    **shared_container_info,
-                    # Below is creation-specific data
-                    # Per Alex: Container name = container barcode if we
-                    #           auto-generate the container
-                    name=shared_container_info["barcode"],
-                    comment=f"Automatically generated via extraction template import on "
-                            f"{datetime.utcnow().isoformat()}Z"
-                )
-            except Exception as e:
-                errors["container"] = ValidationError([f"Could not create destination container. " + e.messages.pop()], code="invalid")
-                
+            obj.container, _ = Container.objects.get_or_create(
+                **shared_container_info,
+                defaults={'comment': f"Automatically generated via extraction template import on "
+                        f"{datetime.utcnow().isoformat()}Z"},
+            )
+        except Exception as e:
+            errors["container"] = ValidationError([f"Could not create destination container. Destination Container Barcode already exists and related fields do not match: "
+                                                   f"[Destination Container Name, Destination Container Kind, Destination Parent Container Barcode, Destination Parent Container Coord] "], code="invalid")
+
         try:
             super().import_obj(obj, data, dry_run)
         except ValidationError as e:
@@ -174,11 +148,11 @@ class ExtractionResource(GenericResource):
                 self.process = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
                                                       comment="Extracted samples (imported from template)")
 
-            self.process_sample = ProcessSample.objects.create(process=self.process,
-                                                               source_sample=self.extracted_from,
-                                                               execution_date=obj.creation_date,
-                                                               volume_used=self.volume_used,
-                                                               comment=self.comment)
+            self.process_measurement = ProcessMeasurement.objects.create(process=self.process,
+                                                                         source_sample=self.extracted_from,
+                                                                         execution_date=obj.creation_date,
+                                                                         volume_used=self.volume_used,
+                                                                         comment=self.comment)
         except Exception as e:
             errors["process"] = ValidationError([f"Cannot create process. Fix other errors to resolve this."], code="invalid")
 
@@ -188,12 +162,17 @@ class ExtractionResource(GenericResource):
     def import_field(self, field, obj, data, is_m2m=False):
         # More!! ugly hacks
 
-        if field.attribute in ('source_depleted', 'context_sensitive_coordinates', 'child_of'):
+        if field.attribute in ('source_depleted', 'container', 'child_of'):
             # Computed field, skip importing it.
+            return
+
+        if field.attribute == 'coordinates':
+            obj.coordinates = get_normalized_str(data, "Destination Container Coord")
             return
 
         if field.attribute == "sample_kind_name":
             obj.sample_kind = SampleKind.objects.get(name=data["Extraction Type"])
+            return
 
         if field.attribute == 'volume':
             vol = blank_str_to_none(data.get("Volume (uL)"))  # "" -> None for CSVs
@@ -202,18 +181,21 @@ class ExtractionResource(GenericResource):
 
         if field.attribute == "concentration":
             conc = blank_str_to_none(data.get("Conc. (ng/uL)"))  # "" -> None for CSVs
-            data["Conc. (ng/uL)"] = float_to_decimal(conc) if conc is not None else None
+            obj.concentration = float_to_decimal(conc) if conc is not None else None
+            return
 
         if field.column_name == "Volume Used (uL)":
             # Normalize volume used
             vu = blank_str_to_none(data.get("Volume Used (uL)"))  # "" -> None for CSVs
             data["Volume Used (uL)"] = float_to_decimal(vu) if vu is not None else None
             self.volume_used = data["Volume Used (uL)"]
+            return
 
         if field.column_name == "Comment":
             # Normalize extraction comment
             data["Comment"] = get_normalized_str(data, "Comment")
             self.comment = data["Comment"]
+            return
 
         super().import_field(field, obj, data, is_m2m)
 
@@ -227,14 +209,22 @@ class ExtractionResource(GenericResource):
         reversion.set_comment("Imported extracted samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_sample=self.process_sample)
+        lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_measurement=self.process_measurement)
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run
         if dry_run and not len(results.invalid_rows) > 0:
-            missing_columns = ['Volume Used (uL)', 'Container Barcode', 'Location Coord', 'Comment']
+            missing_columns = [ 'Extraction Type',
+                                'Volume Used (uL)',
+                                'Source Container Barcode',
+                                'Source Container Coord',
+                                'Destination Container Coord',
+                                'Destination Container Name',
+                                'Destination Container Kind',
+                                'Destination Parent Container Barcode',
+                                'Destination Parent Container Coord',
+                                'Comment']
             results = add_columns_to_preview(results, dataset, missing_columns)
-
         return results

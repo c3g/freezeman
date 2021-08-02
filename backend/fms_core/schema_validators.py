@@ -8,6 +8,8 @@ __all__ = [
     "VOLUME_SCHEMA",
     "VOLUME_VALIDATOR",
     "EXPERIMENTAL_GROUP_SCHEMA",
+    "PROPERTY_VALUE_SCHEMA",
+    "PROPERTY_VALUE_VALIDATOR",
 ]
 
 
@@ -84,3 +86,14 @@ EXPERIMENTAL_GROUP_SCHEMA = {
     },
     "uniqueItems": True
 }
+
+
+PROPERTY_VALUE_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:property_value",
+    "title": "PropertyValue value schema",
+    "description": "Schema used to define the value in PropertyValue.",
+    "type": ["number", "string", "boolean"],
+}
+
+PROPERTY_VALUE_VALIDATOR = JsonSchemaValidator(PROPERTY_VALUE_SCHEMA, formats=["date-time"])

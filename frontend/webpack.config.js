@@ -6,7 +6,9 @@ const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
 const fs = require('fs');
 const child_process = require('child_process')
+const dotenv = require('dotenv');
 
+dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
 module.exports = (env, argv) => ({
   entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
@@ -25,6 +27,12 @@ module.exports = (env, argv) => ({
         test: /\.scss$/i,
         use: ["style-loader", "css-loader", "sass-loader"],
       },
+      {
+        test: /\.m?js/,
+        resolve: {
+            fullySpecified: false
+        }
+    },
     ]
   },
   resolve: {
@@ -33,7 +41,7 @@ module.exports = (env, argv) => ({
   output: {
     path: path.resolve(__dirname, "dist"),
     publicPath: "/",
-    filename: "bundle.js",
+    filename: "[name].js",
     chunkFilename: "[name].bundle.js"
   },
   optimization: {
@@ -49,7 +57,6 @@ module.exports = (env, argv) => ({
       template: path.resolve(__dirname, "./src/template.html"),
       hash: true,
     }),
-    new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),

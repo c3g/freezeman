@@ -1,23 +1,43 @@
 from django.contrib.auth.models import User, Group
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
-from reversion.models import Version
+from reversion.models import Version, Revision
 
-from .models import Container, Sample, Individual, Protocol, Process, ProcessSample, SampleKind
+from .models import (
+    Container,
+    ExperimentRun,
+    ExperimentType,
+    Individual,
+    Instrument,
+    PropertyValue,
+    Protocol,
+    Process,
+    ProcessMeasurement,
+    Sample,
+    SampleKind
+)
 
 
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "ExperimentRunSerializer",
+    "ExperimentRunExportSerializer",
+    "ExperimentTypeSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
+    "InstrumentSerializer",
     "SampleKindSerializer",
-    "ProcessSampleSerializer",
-    "ProcessSampleExportSerializer",
+    "PropertyValueSerializer",
+    "ProcessSerializer",
+    "ProcessMeasurementSerializer",
+    "ProcessMeasurementExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
     "VersionSerializer",
+    "RevisionSerializer",
     "UserSerializer",
     "GroupSerializer",
 ]
@@ -26,10 +46,12 @@ __all__ = [
 class ContainerSerializer(serializers.ModelSerializer):
     children = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     samples = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    experiment_run = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
         model = Container
         fields = "__all__"
+        extra_fields = ('experiment_run')
 
 
 class SimpleContainerSerializer(serializers.ModelSerializer):
@@ -47,9 +69,50 @@ class ContainerExportSerializer(serializers.ModelSerializer):
         fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
 
 
+class ExperimentRunSerializer(serializers.ModelSerializer):
+    children_processes = serializers.SerializerMethodField()
+    instrument_type = serializers.SerializerMethodField()
+    platform = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ExperimentRun
+        fields = "__all__"
+        extra_fields = ('children_processes', 'instrument_type', 'platform')
+
+    def get_children_processes(self, obj):
+        return Process.objects.filter(parent_process=obj.process).values_list('id', flat=True)
+
+    def get_instrument_type(self, obj):
+        return obj.instrument.type.type
+
+    def get_platform(self, obj):
+        return obj.instrument.type.platform.name
+
+class ExperimentRunExportSerializer(serializers.ModelSerializer):
+    experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
+    instrument = serializers.CharField(read_only=True, source="instrument.name")
+    container_kind = serializers.CharField(read_only=True, source="container.kind")
+    container_name = serializers.CharField(read_only=True, source="container.name")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+
+    class Meta:
+        model = ExperimentRun
+        fields = ('experiment_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+
+
+class ExperimentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExperimentType
+        fields = "__all__"
+
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = Individual
+        fields = "__all__"
+
+class InstrumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Instrument
         fields = "__all__"
 
 
@@ -63,28 +126,50 @@ class ProtocolSerializer(serializers.ModelSerializer):
         model = Protocol
         fields = "__all__"
 
-class ProcessSampleSerializer(serializers.ModelSerializer):
+class ProcessSerializer(serializers.ModelSerializer):
+    children_properties = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Process
+        fields = "__all__"
+        extra_fields = ('children_processes')
+
+
+    def get_children_properties(self, obj):
+        process_content_type = ContentType.objects.get_for_model(Process)
+        return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
+
+class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
     child_sample = serializers.IntegerField(read_only=True)
 
     class Meta:
-      model = ProcessSample
+      model = ProcessMeasurement
       fields = "__all__"
       extra_fields = ('protocol', 'child_sample')
 
-class ProcessSampleExportSerializer(serializers.ModelSerializer):
-    process_sample_id = serializers.IntegerField(read_only=True, source="id")
+class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
+    process_measurement_id = serializers.IntegerField(read_only=True, source="id")
     protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
     child_sample_name = serializers.CharField(read_only=True)
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
-      model = ProcessSample
-      fields = ('process_sample_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+      model = ProcessMeasurement
+      fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+class PropertyValueSerializer(serializers.ModelSerializer):
+    property_name = serializers.CharField(read_only=True, source="property_type.name")
+
+    class Meta:
+      model = PropertyValue
+      fields = "__all__"
+      extra_fields = ('property_name')
+
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
-    process_samples = serializers.PrimaryKeyRelatedField(source='process_sample', many=True, read_only=True)
+    process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
 
     class Meta:
         model = Sample
@@ -158,6 +243,12 @@ class VersionSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class RevisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Revision
+        fields = "__all__"
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -167,7 +258,6 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        print(validated_data)
         user = super(UserSerializer, self).create(validated_data)
         user.set_password(validated_data['password'])
         user.save()

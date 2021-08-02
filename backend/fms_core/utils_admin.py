@@ -69,7 +69,10 @@ class PaddedXLSX(TablibFormat):
         xlsx_book = openpyxl.load_workbook(BytesIO(in_stream), read_only=True)
 
         dataset = tablib.Dataset()
-        sheet = xlsx_book.active
+        
+        sheets = xlsx_book._sheets
+        # Using first sheet by default is safer than using the currently active sheet.. 
+        sheet = sheets[0]
 
         # obtain generator
         rows = sheet.rows
@@ -129,7 +132,7 @@ class CustomImportMixin(ImportMixin):
             with open(f"{file_path}", "wb" if as_xlsx else "w") as f_output:
                 f_output.write(dataset.export("xlsx" if as_xlsx else "csv"))
                 # save record about file to db
-                ImportedFile.objects.create(filename=new_file_name, location=file_path, imported_by=request.user)
+                ImportedFile.objects.create(filename=new_file_name, location=file_path)
 
             result = self.process_dataset(dataset, confirm_form, request, *args, **kwargs)
             tmp_storage.remove()

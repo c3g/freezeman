@@ -22,6 +22,7 @@ const api = {
     listExport: options => get("/containers/list_export/", {format: "csv", ...options}),
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
+    listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),
     listSamples: id => get(`/containers/${id}/list_samples/`),
     summary: () => get("/containers/summary/"),
     template: {
@@ -33,6 +34,21 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding }),
   },
 
+  experimentRuns: {
+    get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
+    list: (options, abort) => get("/experiment-runs/", options, {abort}),
+    listExport: options => get("/experiment-runs/list_export/", {format: "csv", ...options}),
+    template: {
+      actions: () => get(`/experiment-runs/template_actions/`),
+      check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
+    },
+  },
+
+  experimentTypes: {
+    list: () => get("/experiment-types/"),
+  },
+
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
@@ -42,17 +58,29 @@ const api = {
     search: q => get("/individuals/search/", { q }),
   },
 
+  instruments: {
+    list: () => get("/instruments/"),
+  },
+
   processes: {
-    get: processSampleId => get(`/processes-samples/${processSampleId}/`),
-    list: (options, abort) => get("/processes-samples/", options, { abort }),
-    listExport: options => get("/processes-samples/list_export/", {format: "csv", ...options}),
-    search: q => get("/processes-samples/search/", { q }),
-    summary: () => get("/processes-samples/summary/"),
+    list: (options, abort) => get("/processes", options, { abort }),
+  },
+
+  processMeasurements: {
+    get: processMeasurementId => get(`/process-measurements/${processMeasurementId}/`),
+    list: (options, abort) => get("/process-measurements/", options, { abort }),
+    listExport: options => get("/process-measurements/list_export/", {format: "csv", ...options}),
+    search: q => get("/process-measurements/search/", { q }),
+    summary: () => get("/process-measurements/summary/"),
     template: {
-      actions: () => get(`/processes-samples/template_actions/`),
-      check:  (action, template) => post(`/processes-samples/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/processes-samples/template_submit/`, form({ action, template })),
+      actions: () => get(`/process-measurements/template_actions/`),
+      check:  (action, template) => post(`/process-measurements/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
+  },
+
+  propertyValues: {
+    list: (options, abort) => get("/property-values/", options, { abort }),
   },
 
   protocols: {
@@ -86,6 +114,7 @@ const api = {
     update: user => patch(`/users/${user.id}/`, user),
     updateSelf: user => patch(`/users/update_self/`, user),
     list: (options, abort) => get("/users", options, { abort }),
+    listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 

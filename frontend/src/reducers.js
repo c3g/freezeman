@@ -19,16 +19,25 @@ import {
   samples,
 } from "./modules/samples/reducers";
 import {
-  processesSummary,
-  processTemplateActions,
-  processes,
-} from "./modules/processes/reducers";
+  processMeasurementsSummary,
+  processMeasurementTemplateActions,
+  processMeasurements,
+} from "./modules/processMeasurements/reducers";
 import {
   protocols,
 } from "./modules/protocols/reducers";
+import {
+  experimentTypes,
+  experimentRuns,
+  instruments,
+  processes,
+  propertyValues,
+  experimentRunTemplateActions,
+} from "./modules/experimentRuns/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
+import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 
@@ -48,17 +57,24 @@ const allReducers = combineReducers({
   containersSummary,
   containerTemplateActions,
   containers,
+  experimentRuns,
+  experimentRunTemplateActions,
+  experimentTypes,
   individuals,
+  instruments,
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,
   samples,
   protocols,
-  processesSummary,
-  processTemplateActions,
   processes,
+  processMeasurementsSummary,
+  processMeasurementTemplateActions,
+  processMeasurements,
+  propertyValues,
   users,
   groups,
+  pagination,
   versions,
 });
 

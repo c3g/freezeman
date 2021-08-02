@@ -8,6 +8,7 @@ from .sample import SampleResource
 from .sample_kind import SampleKindResource
 from .sample_update import SampleUpdateResource
 from .protocol import ProtocolResource
+from .experiment_run import ExperimentRunResource
 
 __all__ = [
     "ContainerResource",
@@ -20,4 +21,5 @@ __all__ = [
     "SampleKindResource",
     "SampleUpdateResource",
     "ProtocolResource",
+    "ExperimentRunResource",
 ]

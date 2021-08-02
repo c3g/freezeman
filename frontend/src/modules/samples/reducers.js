@@ -1,7 +1,7 @@
 import {merge, set} from "object-path-immutable";
 import {map} from "rambda"
 
-import {preprocessSampleVersions} from "../../utils/preprocessVersions";
+import {preprocessSampleVersions} from "../../utils/preprocessRevisions";
 import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
@@ -50,7 +50,7 @@ export const samples = (
     state = {
         itemsByID: {},
         items: [],
-        page: { limit: 0, offset: 0 },
+        page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
         filters: {},

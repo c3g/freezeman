@@ -58,6 +58,7 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
     if (containers.isFetching && !abort)
         return
 
+    const limit = getState().pagination.pageSize;
     const filters = serializeFilterParams(containers.filters, CONTAINER_FILTERS)
     const ordering = serializeSortByParams(containers.sortBy)
     const options = { limit, offset, ordering, ...filters}

@@ -126,7 +126,7 @@ On this page we list the various steps needed for deployments. The first section
   * Move to the repository base directory (`cd ./freezeman`) and checkout the release tag from the repository (`git checkout vX.X.X`)
   * Update the submodule pg_fzy (`git submodule update --init --recursive`) (if changed)
   * Move to the frontend (`cd frontend`) and install any new dependency (`npm install`) and fix security issues (`npm audit fix`)
-  * Compile the frontend (`npm run build`)
+  * Compile the frontend (`npm build run`)
   * Move to the backend directory (`cd ../backend`) and activate the the virtual environment (`. env/bin/activate`)
   * Install any new dependency (`pip3.8 install -r requirements.txt`) (version of pip may change)
   * Install pg_fzy (`cd backend/dependencies/pg_fzy && make && sudo make install`) (`make restore_precompiled_binary` to get precompiled binaries) (if needed)
@@ -149,3 +149,5 @@ On this page we list the various steps needed for deployments. The first section
   * Modify the nginx and uwsgi for the new locations.
 * Version 3.2 : 
   * Add FMS_SECRETKEY, FMS_ENV ("DEV", "QC", "PROD"), FMS_EMAIL_HOST, FMS_EMAIL_PORT, FMS_EMAIL_FROM, FMS_EMAIL_USER, FMS_EMAIL_USER, FMS_EMAIL_PASSWORD, FMS_EMAIL_TLS to env variables through uwsgi.ini
+* Version 3.3 :
+  * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).

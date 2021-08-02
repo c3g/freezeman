@@ -22,11 +22,13 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "container__name",
     label: "Container Name",
+    recursive: true,
   },
   container__barcode: {
     type: FILTER_TYPE.INPUT,
     key: "container__barcode",
     label: "Container Barcode",
+    recursive: true,
   },
   coordinates: {
     type: FILTER_TYPE.INPUT,
@@ -155,7 +157,7 @@ export const INDIVIDUAL_FILTERS = {
   },
 }
 
-export const PROCESS_FILTERS = {
+export const PROCESS_MEASUREMENT_FILTERS = {
   process: {
     type: FILTER_TYPE.INPUT_NUMBER,
     key: "process",
@@ -189,6 +191,46 @@ export const PROCESS_FILTERS = {
     label: "Volume Used",
     //exception for Process sample update where volume_used might be negative...
     defaultMin: Number.MIN_SAFE_INTEGER,
+  },
+}
+
+export const EXPERIMENT_RUN_FILTERS = {
+  experiment_type: {
+    type: FILTER_TYPE.SELECT,
+    key: "experiment_type__workflow",
+    label: "Experiment Type",
+    mode: "multiple",
+    placeholder: "All"
+  },
+  instrument: {
+    type: FILTER_TYPE.SELECT,
+    key: "instrument__name",
+    label: "Instrument",
+    mode: "multiple",
+    placeholder: "All"
+  },
+  instrument_type: {
+    type: FILTER_TYPE.INPUT,
+    key: "instrument__type__type",
+    label: "Instrument Type",
+    recursive: false,
+  },
+  container__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "container__name",
+    label: "Container Name",
+    recursive: false,
+  },
+  container__barcode: {
+    type: FILTER_TYPE.INPUT,
+    key: "container__barcode",
+    label: "Container Barcode",
+    recursive: false,
+  },
+  start_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "start_date",
+    label: "Experiment Start Date",
   },
 }
 

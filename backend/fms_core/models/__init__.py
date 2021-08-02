@@ -12,7 +12,14 @@ from .sample_lineage import SampleLineage
 from .sample_update import SampleUpdate
 from .protocol import Protocol
 from .process import Process
-from .process_sample import ProcessSample
+from .process_measurement import ProcessMeasurement
+from .platform import Platform
+from .instrument_type import InstrumentType
+from .instrument import Instrument
+from .experiment_type import ExperimentType
+from .experiment_run import ExperimentRun
+from .property_type import PropertyType
+from .property_value import PropertyValue
 
 __all__ = [
     "Container",
@@ -28,5 +35,12 @@ __all__ = [
     "SampleUpdate",
     "Protocol",
     "Process",
-    "ProcessSample"
+    "ProcessMeasurement",
+    "Platform",
+    "InstrumentType",
+    "Instrument",
+    "ExperimentType",
+    "ExperimentRun",
+    "PropertyType",
+    "PropertyValue",
 ]

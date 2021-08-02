@@ -1,64 +1,39 @@
 import React, { useState } from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-import {
-  compose,
-  groupBy,
-  map,
-  path,
-  reduce,
-  reverse,
-  sortBy,
-  values,
-} from "rambda";
 import {set} from "object-path-immutable";
 import {
   Button,
   Card,
-  Col,
   Descriptions,
-  Row,
-  Space,
   Tag,
   Table,
   Timeline,
   Typography,
+  Row,
+  Col,
 } from "antd";
 import {
-  ArrowsAltOutlined,
-  ShrinkOutlined,
   MinusSquareOutlined,
   PlusSquareOutlined,
   CheckOutlined,
-  CloseOutlined
+  CloseOutlined,
+  LoadingOutlined
 } from "@ant-design/icons";
 
 import dateToString from "../../utils/dateToString";
-import weakMapMemoize from "../../utils/weak-map-memoize";
 import itemRender from "../../utils/breadcrumbItemRender";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
-import {listVersions, get} from "../../modules/users/actions";
+import {listRevisions, listVersions, get} from "../../modules/users/actions";
 import routes from "./routes";
 import canWrite from "./canWrite";
+import useTimeline from "../../utils/useTimeline";
 
 const { Title, Text } = Typography;
 
-const groupByRevisionID = weakMapMemoize(
-  compose(
-    map(sortBy(path(['content_type', 'id']))),
-    reverse,
-    values,
-    groupBy(path(['revision', 'id']))
-  ))
-
-const getTrueByID =
-  compose(
-    reduce((acc, cur) => (acc[cur] = true, acc), {}),
-    map(path([0, 'revision', 'id']))
-  )
 
 const route = {
   path: "/user",
@@ -78,12 +53,13 @@ const mapStateToProps = state => ({
   groupsByID: state.groups.itemsByID,
 });
 
-const mapDispatchToProps = {get, listVersions};
+const mapDispatchToProps = {get, listRevisions, listVersions};
 
-const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groupsByID, get, listVersions}) => {
+const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [isLoadRevisions, setIsLoadRevisions] = useState(false);
 
   const user = usersByID[id];
 
@@ -91,12 +67,13 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
     get(id)
   }
 
-  if (user && !user.versions && !user.isFetching) {
-    setTimeout(() => listVersions(user.id), 0);
+  if (user && !user.isFetching && !isLoadRevisions) {
+    setIsLoadRevisions(true)
+    setTimeout(() => listRevisions(user.id), 0);
   }
 
   const onLoadMore = () => {
-    listVersions(user.id)
+    listRevisions(user.id)
   }
 
   return (
@@ -128,6 +105,7 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
             onLoadMore={onLoadMore}
+            listVersions={listVersions}
           />
         }
       </PageContent>
@@ -136,17 +114,16 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
 
 };
 
-function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore}) {
+function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore, listVersions}) {
 
   const error = user.error;
   const isFetching = user.isFetching;
-  const versions = user.versions;
-  const hasVersions = versions?.results !== undefined
-  const isFetchingVersions = user.versions?.isFetching;
-  const groups = hasVersions ? groupByRevisionID(versions.results) : [];
+  const revisions = user.revisions;
+  const hasRevisions = revisions?.results !== undefined
+  const isFetchingRevisions = user.revisions?.isFetching;
+  const groups = hasRevisions ? revisions.results : [];
 
-  const expandAll = () => setExpandedGroups(getTrueByID(groups));
-  const closeAll = () => setExpandedGroups({});
+  const [timelineMarginLeft, timelineRef] = useTimeline();
 
   return (
     <>
@@ -168,55 +145,47 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
       <Title level={2} style={{ marginTop: '1em' }}>
         History
       </Title>
-      <Space direction="vertical" style={{ width: '100%' }}>
-        <Row>
-          <Col sm={24}>
-            <Button.Group>
-              <Button type="secondary" size="small" onClick={expandAll} icon={<ArrowsAltOutlined />}>
-                Expand All
-              </Button>
-              <Button type="secondary" size="small" onClick={closeAll} icon={<ShrinkOutlined />}>
-                Close All
-              </Button>
-            </Button.Group>
-          </Col>
-        </Row>
-        <div style={{ width: '100%' }}>
-          <Card>
-            <Timeline
-              pending={(isFetching && !versions) ? "Loading..." : undefined}
-              mode="left"
-              style={{ marginLeft: 0, width: '100%' }}
-            >
-              {versions === undefined && isFetching &&
-                <Timeline.Item pending={true}>Loading...</Timeline.Item>
+      <Row>
+        <Col sm={24} md={24}>
+          <div ref={timelineRef}>
+            <Card>
+              {
+                  <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                    {revisions === undefined && isFetching &&
+                      <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
+                    }
+                    {revisions && groups.map((revision, i) => {
+                      return (
+                        <Timeline.Item
+                          key={i}
+                          label={renderTimelineLabel(revision)}
+                        >
+                          <TimelineEntry
+                            revision={revision}
+                            expandedGroups={expandedGroups}
+                            setExpandedGroups={setExpandedGroups}
+                            listVersions={listVersions}
+                          />
+                        </Timeline.Item>
+                      )
+                    })}
+                    {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
+                      <Button
+                        block
+                        type="link"
+                        loading={isFetching || isFetchingRevisions}
+                        onClick={onLoadMore}
+                        style={{marginLeft: "20%"}}
+                      >
+                        Load more
+                      </Button>
+                    }
+                  </Timeline>
               }
-              {versions && groups.map((group, i) =>
-                <Timeline.Item
-                  key={i}
-                  label={renderTimelineLabel(group[0].revision)}
-                >
-                  <TimelineEntry
-                    group={group}
-                    expandedGroups={expandedGroups}
-                    setExpandedGroups={setExpandedGroups}
-                  />
-                </Timeline.Item>
-              )}
-            </Timeline>
-            {((hasVersions && versions.next) || (!hasVersions && isFetchingVersions)) &&
-              <Button
-                block
-                type="link"
-                loading={isFetching || isFetchingVersions}
-                onClick={onLoadMore}
-              >
-                Load more
-              </Button>
-            }
-          </Card>
-        </div>
-      </Space>
+            </Card>
+          </div>
+        </Col>
+      </Row>
     </>
   )
 }
@@ -239,9 +208,20 @@ const tableStyle = {
   marginTop: '0.5em',
 }
 
-function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
-  const revision = group[0].revision
+function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersions }) {
   const isExpanded = expandedGroups[revision.id];
+  const [group, setGroup] = useState([]);
+  const [isLoading, setIsLoading] = useState(undefined);
+
+  const onClick = () => {
+    setIsLoading(true)
+    setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))
+    listVersions(revision.user, revision.id)
+        .then(response => {
+          setGroup(response.results)
+          setIsLoading(false)
+        })
+  }
 
   // noinspection JSUnusedGlobalSymbols
   return (
@@ -251,7 +231,7 @@ function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
           type="link"
           size="small"
           style={expandButtonStyle}
-          onClick={() => setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))}
+          onClick={onClick}
         >
           <span style={expandIconStyle}>
             {isExpanded ? <MinusSquareOutlined /> : <PlusSquareOutlined />}
@@ -271,6 +251,7 @@ function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
             rowExpandable: () => true,
           }}
           dataSource={group}
+          loading={isLoading}
         />
       }
     </>
@@ -279,7 +260,7 @@ function TimelineEntry({ group, expandedGroups, setExpandedGroups }) {
 
 function renderTimelineLabel(revision) {
   return (
-    <Text type="secondary">{dateToString(revision.date_created)}</Text>
+      <Text type="secondary">{dateToString(revision.date_created)}</Text>
   )
 }
 

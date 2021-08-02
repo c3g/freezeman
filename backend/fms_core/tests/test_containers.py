@@ -16,6 +16,7 @@ class AdminUtilsTestCase(TestCase):
             "coordinate_overlap_allowed": False,
             "children_ids": [],
             "is_source": False,
+            "is_run_container": False,
         })
 
         self.assertTrue(CONTAINER_SPEC_ROOM.is_source)
