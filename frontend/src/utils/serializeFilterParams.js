@@ -63,7 +63,7 @@ export default function serializeFilterParams(filters, descriptions) {
           const items = value.split(' ') //expected CHUM-2015201670A RIM-8143272302
           console.log(items)
           console.log(items.join())
-          params[key] = items.join() //joins elements as a string with ',' as delimiter i.e. CHUM-2015201670A, RIM-8143272302
+          params[key] = value //joins elements as a string with ',' as delimiter i.e. CHUM-2015201670A, RIM-8143272302
         }
         else if(value) {
           params[key] = value
