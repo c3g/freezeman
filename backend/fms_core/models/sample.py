@@ -22,6 +22,7 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
+from .project import Project
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -166,6 +167,9 @@ class Sample(TrackedModel):
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
+
+    project = models.ForeignKey(Project, null=True, on_delete=models.PROTECT,
+                                related_name="samples", help_text="Project associated with the sample.")
 
     class Meta:
         unique_together = ("container", "coordinates")
