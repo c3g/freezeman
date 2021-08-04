@@ -102,7 +102,7 @@ function renderResultOK(checkResult) {
 const wasInterrupted = checkResult => {
     return (
         <>
-          { checkResult?.base_errors.length > 0 && checkResult.base_errors.map(baseError =>
+          { checkResult?.base_errors?.length > 0 && checkResult.base_errors.map(baseError =>
               <p>
                 {baseError.error}
               </p>)
