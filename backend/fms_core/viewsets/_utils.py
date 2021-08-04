@@ -13,6 +13,8 @@ import json
 
 from fms_core.serializers import VersionSerializer
 
+from fms_core.import_tool.importers import ExperimentRunImporter
+
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -77,6 +79,19 @@ class TemplateActionsMixin:
 
         xlsx = template_file.name.endswith("xlsx")
         file_bytes = template_file.read()
+
+        # from pandas import pandas as pd
+        # excel_raw_data = pd.read_excel(request.FILES.get('template'), header=10)
+        # import ipdb; ipdb.sset_trace()
+
+        try:
+            eri = ExperimentRunImporter(file=request.FILES.get('template'), format='xlsx')
+            eri.import_template()
+        except Exception as e:
+            print(e)
+
+
+        import ipdb; ipdb.sset_trace();
 
         dataset = Dataset().load(file_bytes if xlsx else file_bytes.decode("utf-8"), format="xlsx" if xlsx else "csv")
 
