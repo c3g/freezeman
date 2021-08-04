@@ -12,10 +12,12 @@ from ._validators import name_validator, email_validator
 
 __all__ = ["Project"]
 
+STATUS_CHOICES = ["Completed", "Completed"]
 
 @reversion.register()
 class Project(TrackedModel):
-    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
+    name = models.CharField(unique=True,
+                            max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="The name of the project.",
                             validators=[name_validator])
 
@@ -29,15 +31,9 @@ class Project(TrackedModel):
 
     targeted_end_date = models.DateTimeField(blank=True, help_text="Targeted date to conclude the project.")
 
-    IN_PROCESS = "In Process"
-    FINISHED = "Finished"
-
-    STATUS_CHOICES = (
-        (IN_PROCESS, IN_PROCESS),
-        (FINISHED, FINISHED),
-    )
-
-    status = models.CharField(choices=STATUS_CHOICES, max_length=20, help_text="The status of the project.")
+    status = models.CharField(choices=((type, type) for type in STATUS_CHOICES),
+                              max_length=20,
+                              help_text="The status of the project.")
 
     comments = models.TextField(blank=True, help_text="Other relevant information about the project.")
 
