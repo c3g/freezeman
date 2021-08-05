@@ -1,11 +1,12 @@
 from ._generic import GenericImporter
-from fms_core.import_tool.object_creators import create_experiment_run
+from fms_core.import_tool.creators import create_experiment_run
+from .._utils import data_row_ids_range
 
 class ExperimentRunImporter(GenericImporter):
-    sheet_names = ['Experiments', 'Sample Preparation']
     base_errors = []
 
     def __init__(self, file, format):
+        self.sheet_names = ['Experiments', 'Samples']
         super().__init__(file, format)
 
     def import_template(self):
@@ -13,11 +14,21 @@ class ExperimentRunImporter(GenericImporter):
 
         # For the Experiments sheet
         experiments_sheet = self.sheets['Experiments']
-        for row_id in range(len(experiments_sheet)):
-            properties = {}
 
+        # Getting single cell data for Experiment Type workflow value
+        experiment_type = {'workflow': experiments_sheet.values[1][2]}
+
+
+        # Experiments rows
+
+        # Setting headers for Experiments sheet Experiments rows
+        experiments_row_header = 8
+        experiments_sheet.columns = experiments_sheet.values[experiments_row_header]
+
+        # Iterate through experiment rows
+        for row_id in data_row_ids_range(experiments_row_header+1, experiments_sheet):
+            properties = {}
             for i, (key, val) in enumerate(experiments_sheet.iloc[row_id].items()):
-                print('experiment sheet key ', key)
                 if i < 6:
                     experiment_run_dict[key] = experiments_sheet.iloc[row_id][key]
                 else:
@@ -33,13 +44,12 @@ class ExperimentRunImporter(GenericImporter):
 
             experiment_temporary_id = experiment_run_dict['Experiment ID']
 
+            # Handle Samples sheet
+            samples_sheet = self.sheets['Samples']
+            samples_row_header = 2
+            samples_sheet.columns = samples_sheet.values[samples_row_header]
 
-            print('experiment temporary id', experiment_temporary_id)
-
-
-            samples_sheet = self.sheets['Sample Preparation']
-            for row_id in range(len(samples_sheet)):
-
+            for row_id in data_row_ids_range(samples_row_header+1, samples_sheet):
                 if samples_sheet.iloc[row_id]['Experiment ID'] == experiment_temporary_id:
                     row_data = samples_sheet.iloc[row_id]
                     sample = {'row_id': row_id,
@@ -49,7 +59,9 @@ class ExperimentRunImporter(GenericImporter):
                               'experiment_container_position': row_data['Experiment Container Position']}
                     samples.append(sample)
 
-            create_experiment_run(instrument=instrument,
+
+            create_experiment_run(experiment_type=experiment_type,
+                                  instrument=instrument,
                                   container=container,
                                   start_date=start_date,
                                   samples=samples,

@@ -16,6 +16,7 @@ class GenericImporter():
                 self.base_errors.append(e)
 
 
+
     ''' 
         Custom import for each template
     '''
