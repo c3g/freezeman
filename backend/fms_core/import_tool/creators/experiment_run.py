@@ -1,14 +1,14 @@
 from django.core.exceptions import ValidationError
+from django.conf import settings
+from pandas import pandas as pd
 from datetime import datetime
 from ...models import (
     ExperimentRun,
     Container,
     Instrument,
     ExperimentType,
-    Protocol,
     Process,
     ProcessMeasurement,
-    PropertyType,
     PropertyValue,
     Sample,
     SampleLineage
@@ -28,9 +28,9 @@ class ExperimentRunCreator():
 
         self.errors = {}
 
-        self.pre_validation(start_date, container, samples)
+        is_valid = self.pre_validation(start_date, container, samples)
 
-        if(self.errors == {}):
+        if(is_valid):
             self.get_experiment_type(experiment_type)
             self.get_instrument(instrument)
             self.handle_container(container)
@@ -47,10 +47,25 @@ class ExperimentRunCreator():
                 except Exception as e:
                     self.errors['experiment_run'] = e
 
+    def get_result(self):
+        validation_error = None
+        if (self.errors != {}):
+            validation_error = ValidationError(self.errors)
+
+        row_dict = {'errors': [],
+                    'validation_error': validation_error,
+                    'warnings': [],
+                    'import_type': 'new'}
+        return row_dict
+
     def pre_validation(self, start_date, container, samples):
         # Pre-verification
-        if start_date is None or container['barcode'] is None:
-            self.errors["experiment_run"] = ValidationError([f"Empty row or not enough information"], code="invalid")
+        if pd.isnull(start_date) or pd.isnull(container['barcode']) :
+            # self.errors["experiment_run"] = ValidationError([f"Empty row or not enough information"], code="invalid")
+            return False
+
+        return True;
+
 
         # if len(samples) <= 0:
         #     self.errors["samples"] = ValidationError([f"No samples were associated to this experiment"], code="invalid")
@@ -113,7 +128,7 @@ class ExperimentRunCreator():
                 value = value.isoformat().replace("T00:00:00", "")
 
             try:
-                PropertyValue.objects.create(value=value,
+                PropertyValue.objects.create(value=str(value),
                                              property_type=property_type,
                                              content_object=process)
             except Exception as e:

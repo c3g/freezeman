@@ -1,7 +1,8 @@
+from django.conf import settings
 from ._generic import GenericImporter
 from fms_core.import_tool.creators import ExperimentRunCreator
 from fms_core.models import Protocol, PropertyType
-from .._utils import data_row_ids_range
+from .._utils import data_row_ids_range, convert_property_value_to_str
 
 
 PROTOCOLS_BY_EXPERIMENT_TYPE_NAME = {
@@ -23,12 +24,17 @@ class ExperimentRunImporter(GenericImporter):
     base_errors = []
     protocols_dict = {}
     property_types_by_name = {}
+    rows = []
 
     def __init__(self, file, format):
         self.sheet_names = ['Experiments', 'Samples']
         super().__init__(file, format)
 
-    def import_template(self):
+    def import_template(self, dry_run):
+        result =  super().import_template(dry_run)
+        return result
+
+    def import_template_inner(self):
         experiment_run_dict = {}
 
         # For the Experiments sheet
@@ -58,9 +64,10 @@ class ExperimentRunImporter(GenericImporter):
         # Iterate through experiment rows
         for row_id in data_row_ids_range(experiments_row_header+1, experiments_sheet):
             properties = {}
-            for i, (key, val) in enumerate(experiments_sheet.iloc[row_id].items()):
+            row = experiments_sheet.iloc[row_id]
+            for i, (key, val) in enumerate(row.items()):
                 if i < 6:
-                    experiment_run_dict[key] = experiments_sheet.iloc[row_id][key]
+                    experiment_run_dict[key] = row[key]
                 else:
                     properties[key] = experiments_sheet.iloc[row_id][key]
 
@@ -71,10 +78,11 @@ class ExperimentRunImporter(GenericImporter):
             start_date = experiment_run_dict['Experiment Start Date']
 
             # Preload PropertyType objects for this experiment type in a dictionary for faster access
-            for property_column in enumerate(properties.keys()):
+            for i, (property_column, v) in enumerate(properties.items()):
                 try:
                     self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
                 except Exception as e:
+                    import ipdb; ipdb.sset_trace()
                     self.base_errors.append(f"Property Type {property_column} could not be found")
 
 
@@ -98,7 +106,7 @@ class ExperimentRunImporter(GenericImporter):
                     samples.append(sample)
 
 
-            ExperimentRunCreator(experiment_type=experiment_type,
+            experiment_run_creator = ExperimentRunCreator(experiment_type=experiment_type,
                                  instrument=instrument,
                                  container=container,
                                  start_date=start_date,
@@ -107,3 +115,25 @@ class ExperimentRunImporter(GenericImporter):
                                  protocols_objs_dict=self.protocols_dict,
                                  property_types_objs_dict=self.property_types_by_name,
                                  )
+            result = experiment_run_creator.get_result()
+
+            row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))
+
+            result['diff'] = row_list_str
+
+            self.rows.append(result)
+
+
+        return {
+            "diff_headers": experiments_sheet.columns.tolist(),
+            #"valid": not (result.has_errors() or result.has_validation_errors()),
+            "valid": True,
+            # "has_warnings": any([r.warnings for r in result.rows]),
+            "has_warnings": False,
+            # "base_errors": [{
+            #     "error": e,
+            #     "traceback": 'e.traceback' if settings.DEBUG else "",
+            # } for e in self.base_errors],
+            "base_errors": [],
+            "rows": self.rows,
+        }

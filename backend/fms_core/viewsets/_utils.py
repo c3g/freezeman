@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Tuple, Union
 from tablib import Dataset
+from django.db import transaction
 from django.db.models import Count, Q, Func, F, Prefetch
 from django.conf import settings
 from django.http import HttpResponseBadRequest
@@ -8,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
 from import_export.results import RowResult
+from datetime import datetime
 
 import json
 
@@ -77,25 +79,15 @@ class TemplateActionsMixin:
         # There are only two file types accepted; .xlsx and .csv. XLSX files
         # must be treated differently since it's binary data.
 
-        xlsx = template_file.name.endswith("xlsx")
-        file_bytes = template_file.read()
-
-        # from pandas import pandas as pd
-        # excel_raw_data = pd.read_excel(request.FILES.get('template'), header=10)
-        # import ipdb; ipdb.sset_trace()
-
-        try:
-            eri = ExperimentRunImporter(file=request.FILES.get('template'), format='xlsx')
-            eri.import_template()
-        except Exception as e:
-            print(e)
+        # xlsx = template_file.name.endswith("xlsx")
+        # file_bytes = template_file.read()
 
 
-        import ipdb; ipdb.sset_trace();
+        #dataset = Dataset().load(file_bytes if xlsx else file_bytes.decode("utf-8"), format="xlsx" if xlsx else "csv")
 
-        dataset = Dataset().load(file_bytes if xlsx else file_bytes.decode("utf-8"), format="xlsx" if xlsx else "csv")
+        #return False, (action_def, dataset)
 
-        return False, (action_def, dataset)
+        return False, (action_def, template_file)
 
     @action(detail=False, methods=["get"])
     def template_actions(self, request):
@@ -119,30 +111,45 @@ class TemplateActionsMixin:
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
-        action_def, dataset = action_data
+        action_def, file = action_data
 
         resource_instance = action_def["resource"]()
-        result = resource_instance.import_data(dataset, dry_run=True)
 
-        return Response({
-            "diff_headers": result.diff_headers,
-            "valid": not (result.has_errors() or result.has_validation_errors()),
-            "has_warnings" : any([r.warnings for r in result.rows]),
-            "base_errors": [{
-                "error": str(e.error),
-                "traceback": e.traceback if settings.DEBUG else "",
-            } for e in result.base_errors],
-            "rows": [{
-                "errors": [{
-                    "error": str(e.error),
-                    "traceback": e.traceback if settings.DEBUG else "",
-                } for e in r.errors],
-                "validation_error": r.validation_error,
-                "warnings": r.warnings,
-                "diff": r.diff,
-                "import_type": r.import_type,
-            } for r in result.rows if r.import_type != RowResult.IMPORT_TYPE_SKIP],
-        })
+        # result = resource_instance.import_data(dataset, dry_run=True)
+
+        eri = ExperimentRunImporter(file=file, format='xlsx')
+        result = eri.import_template(dry_run=True)
+
+        res = {'diff_headers': result['diff_headers'],
+               'valid': True,
+               'has_warnings': any([r['warnings'] for r in result['rows']]),
+               'base_errors': [],
+               'rows': result['rows'],
+               }
+
+        return Response(res)
+
+
+
+        # return Response({
+        #     "diff_headers": result.diff_headers,
+        #     "valid": not (result.has_errors() or result.has_validation_errors()),
+        #     "has_warnings" : any([r.warnings for r in result.rows]),
+        #     "base_errors": [{
+        #         "error": str(e.error),
+        #         "traceback": e.traceback if settings.DEBUG else "",
+        #     } for e in result.base_errors],
+        #     "rows": [{
+        #         "errors": [{
+        #             "error": str(e.error),
+        #             "traceback": e.traceback if settings.DEBUG else "",
+        #         } for e in r.errors],
+        #         "validation_error": r.validation_error,
+        #         "warnings": r.warnings,
+        #         "diff": r.diff,
+        #         "import_type": r.import_type,
+        #     } for r in result.rows if r.import_type != RowResult.IMPORT_TYPE_SKIP],
+        # })
 
     @action(detail=False, methods=["post"])
     def template_submit(self, request):

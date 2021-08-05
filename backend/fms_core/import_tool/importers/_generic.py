@@ -1,5 +1,5 @@
 from pandas import pandas as pd
-
+from django.db import transaction
 
 class GenericImporter():
     base_errors = []
@@ -16,13 +16,16 @@ class GenericImporter():
                 self.base_errors.append(e)
 
 
+    def import_template(self, dry_run):
+        with transaction.atomic():
+            import_result = self.import_template_inner()
+            # result = import_result.copy()
 
-    ''' 
-        Custom import for each template
-    '''
+            if dry_run:
+                transaction.set_rollback(True)
+
+            return import_result
 
 
-    def import_template(self):
-        return
 
 
