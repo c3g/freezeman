@@ -252,6 +252,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
       treeData={tree}
       defaultExpandedKeys={container.parents}
       loadData={onLoadData}
+      height={400}
     />
   );
 };
