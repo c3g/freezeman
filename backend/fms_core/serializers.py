@@ -273,8 +273,6 @@ class GroupSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ProjectSerializer(serializers.ModelSerializer):
-    targeted_end_date = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
-
     class Meta:
         model = Project
         fields = "__all__"
