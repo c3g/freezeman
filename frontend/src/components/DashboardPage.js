@@ -6,6 +6,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
 import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
+import PROJECTS from "../modules/projects/actions";
 
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
@@ -36,6 +37,7 @@ const DashboardPage = ({
   containersSummary,
   samplesSummary,
   processMeasurementsSummary,
+  projectsSummary,
   protocolsByID,
   templates,
   listActions,
@@ -64,6 +66,12 @@ const DashboardPage = ({
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>
+          </Card>
+          <Card title="Projects" {...CARD_PROPS} style={{marginTop: "1rem"}}>
+            <Statistic title="Total Projects" value={projectsSummary.total_count || "—"} />
+            <Statistic title="Ongoing Projects" value={projectsSummary.ongoing_count || "—"} />
+            <Statistic title="Completed Projects" value={projectsSummary.completed_count || "—"} />
+            {/* TODO: Root containers */}
           </Card>
         </Col>
         <Col {...COL_LAYOUT}>
@@ -123,6 +131,7 @@ const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
   processMeasurementsSummary: state.processMeasurementsSummary.data,
+  projectsSummary: state.projectsSummary.data,
   protocolsByID: state.protocols.itemsByID,
   templates: {
     container: state.containerTemplateActions,

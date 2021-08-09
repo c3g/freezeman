@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, TAXON} from "../../constants";
+import {FILTER_TYPE, SEX, TAXON, STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   sample_kind__name: {
@@ -244,5 +244,31 @@ export const USER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "email",
     label: "Email"
-  }, 
+  },
+}
+
+export const PROJECT_FILTERS = {
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+  },
+  principal_investigator: {
+    type: FILTER_TYPE.INPUT,
+    key: "principal_investigator",
+    label: "Principal Investigator",
+  },
+  status: {
+    type: FILTER_TYPE.SELECT,
+    key: "status",
+    label: "Status",
+    mode: "multiple",
+    placeholder: "All",
+    options: STATUS.map(x => ({ label: x, value: x })),
+  },
+  requestor_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "requestor_name",
+    label: "Requestor Name",
+  },
 }
