@@ -12,7 +12,7 @@ from ._validators import name_validator, email_validator
 
 __all__ = ["Project"]
 
-STATUS_CHOICES = ["In Progress", "Completed"]
+STATUS_CHOICES = ["Ongoing", "Completed"]
 
 @reversion.register()
 class Project(TrackedModel):
