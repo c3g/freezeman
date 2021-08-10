@@ -18,7 +18,6 @@ import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
-import ProjectsFilters from "./ProjectsFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = () => [
@@ -28,7 +27,7 @@ const getTableColumns = () => [
       sorter: true,
       width: 80,
       render: (id, project) =>
-        <Link to={`/project/${project.id}`}>
+        <Link to={`/projects/${project.id}`}>
           <div>{id}</div>
         </Link>,
     },
@@ -38,7 +37,7 @@ const getTableColumns = () => [
       sorter: true,
       width: 80,
       render: (name, project) =>
-        <Link to={`/project/${project.id}`}>
+        <Link to={`/projects/${project.id}`}>
           <div>{name}</div>
         </Link>,
     },
@@ -78,14 +77,7 @@ const getTableColumns = () => [
       align: "right",
       className: "table-column-numbers",
       width: 115,
-    },
-    {
-      title: "Comments",
-      dataIndex: "comments",
-      align: "right",
-      className: "table-column-numbers",
-      width: 115,
-    },
+    }
   ];
 
 const mapStateToProps = state => ({
@@ -141,7 +133,7 @@ const ProjectsListContent = ({
     ]}/>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
-        <ProjectsFilters style={{ flex: 1 }} />
+        <div style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}

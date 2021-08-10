@@ -271,4 +271,9 @@ export const PROJECT_FILTERS = {
     key: "requestor_name",
     label: "Requestor Name",
   },
+  targeted_end_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "targeted_end_date",
+    label: "Targeted End Date",
+  },
 }

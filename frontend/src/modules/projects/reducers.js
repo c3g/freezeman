@@ -69,7 +69,6 @@ export const projects = (
         case PROJECTS.LIST.REQUEST:
             return { ...state, isFetching: true, };
         case PROJECTS.LIST.RECEIVE: {
-            /* samples[].container stored in ../containers/reducers.js */
             const results = action.data.results.map(preprocess)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return { ...state, itemsByID, isFetching: false, error: undefined };
@@ -83,7 +82,6 @@ export const projects = (
             const totalCount = action.data.count;
             const hasChanged = state.totalCount !== action.data.count;
             const currentItems = hasChanged ? [] : state.items;
-            /* samples[].container stored in ../containers/reducers.js */
             const results = action.data.results.map(preprocess)
             const newItemsByID = map(
                 s => ({ ...s, container: s.container }),

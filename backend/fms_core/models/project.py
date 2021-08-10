@@ -29,7 +29,7 @@ class Project(TrackedModel):
                                        help_text="The email of the requestor of the project.",
                                        validators=[email_validator])
 
-    targeted_end_date = models.DateTimeField(blank=True, help_text="Targeted date to conclude the project.")
+    targeted_end_date = models.DateField(blank=True, help_text="Targeted date to conclude the project.")
 
     status = models.CharField(choices=((type, type) for type in STATUS_CHOICES),
                               max_length=20,

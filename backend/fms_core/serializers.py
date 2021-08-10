@@ -282,7 +282,7 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     updated_by = serializers.CharField(read_only=True, source="updated_by.name")
     created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
     updated_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
-    targeted_end_date = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
+    targeted_end_date = serializers.DateField(read_only=True, format="%Y-%m-%d")
 
     class Meta:
         model = Project
