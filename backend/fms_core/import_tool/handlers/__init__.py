@@ -1,5 +1,5 @@
-from .experiment_run import ExperimentRunCreator
+from .experiment_run import ExperimentRunHandler
 
 __all__ = [
-    "ExperimentRunCreator",
+    "ExperimentRunHandler",
 ]

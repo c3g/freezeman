@@ -51,6 +51,7 @@ class ExperimentType(TrackedModel):
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
 
+    @property
     def get_protocols_dict(self):
         protocols_dict = {}
 

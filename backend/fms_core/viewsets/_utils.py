@@ -117,8 +117,13 @@ class TemplateActionsMixin:
 
         # result = resource_instance.import_data(dataset, dry_run=True)
 
-        eri = ExperimentRunImporter(file=file, format='xlsx')
-        result = eri.import_template(dry_run=True)
+        try:
+            eri = ExperimentRunImporter(file=file, format='xlsx')
+            result = eri.import_template(dry_run=True)
+        except Exception as e:
+            print(e)
+
+
 
         res = {'diff_headers': result['diff_headers'],
                'valid': True,

@@ -1,4 +1,5 @@
 from datetime import datetime
+from pandas import pandas as pd
 
 from fms_core.models import ExperimentType, PropertyType, Instrument, Container
 from ._generic import GenericHandler
@@ -6,15 +7,11 @@ from ...services import create_experiment_run
 
 
 class ExperimentRunHandler(GenericHandler):
-    property_types_by_name = {}
-
-
     def __init__(self, experiment_type_obj, instrument, container, start_date,
                  samples, properties, protocols_dict, properties_by_name_dict):
 
         self.experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
                                'process': None, 'start_date': start_date}
-
 
         # Get Instrument
         instrument_name = instrument['name']
@@ -43,17 +40,25 @@ class ExperimentRunHandler(GenericHandler):
 
 
         # Calling the service creator for ExperimentRun
-        experiment_creator = create_experiment_run(self.experiment_run['experiment_type'],
-                                                   self.experiment_run['instrument'],
-                                                   self.experiment_run['container'],
-                                                   self.experiment_run['start_date'],
-                                                   samples,
-                                                   properties,
-                                                   protocols_dict,
-                                                   properties_by_name_dict)
 
-        self.errors = experiment_creator.errors
+        try:
+            result = create_experiment_run(self.experiment_run['experiment_type'],
+                                                       self.experiment_run['instrument'],
+                                                       self.experiment_run['container'],
+                                                       self.experiment_run['start_date'],
+                                                       samples,
+                                                       properties,
+                                                       protocols_dict,
+                                                       properties_by_name_dict)
+
+            if result['errors'] != {}:
+                self.errors = result['errors']
+
+        except Exception as e:
+            self.errors["experiment_run"] = e
+
+
 
 
     def get_result(self):
-        super().get_result()
+        return super().get_result()

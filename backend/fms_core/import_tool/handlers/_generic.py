@@ -15,4 +15,5 @@ class GenericHandler():
                     'validation_error': validation_error,
                     'warnings': [],
                     'import_type': 'new'}
+
         return row_dict

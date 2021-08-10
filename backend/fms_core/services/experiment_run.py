@@ -15,12 +15,13 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
                  samples, properties,
                  protocols_objs_dict, property_types_objs_dict):
     errors = {}
+    experiment_run = None
 
-    parent_process, process_ids = create_processes_from_protocols(protocols_objs_dict)
+    parent_process, processes_by_protocol_id = create_processes_from_protocols(protocols_objs_dict)
 
     try:
         # Order is important; top process will be part of the ExperimentRun attr
-        ExperimentRun.objects.create(experiment_type=experiment_type,
+        experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type,
                                      instrument=instrument,
                                      container=container,
                                      process=parent_process,
@@ -28,24 +29,27 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
     except Exception as e:
         errors['experiment_run'] = e
 
-    create_properties(properties, property_types_objs_dict, process_ids)
+    result = create_properties(properties, property_types_objs_dict, processes_by_protocol_id)
+    if result['errors'] != {}:
+        errors.append(result['errors'])
+
+    return {'object': experiment_run, 'errors': errors}
 
 def create_processes_from_protocols(protocols_objs_dict):
-    process_ids_list = []
+    processes_by_protocol_id = {}
     for protocol in protocols_objs_dict.keys():
         parent_process = Process.objects.create(protocol=protocol, comment="")
         for subprotocol in protocols_objs_dict[protocol]:
             sp = Process.objects.create(protocol=subprotocol,
                                         parent_process=parent_process,
                                         comment="Experiment")
-            process_ids_list.append(sp.id)
+            processes_by_protocol_id[subprotocol.id] = sp
 
-    return (parent_process, process_ids_list)
+    return (parent_process, processes_by_protocol_id)
 
 
-def create_properties(properties, property_types_objs_dict, process_ids_list):
+def create_properties(properties, property_types_objs_dict, processes_by_protocol_id):
     errors = {}
-    processes_by_protocol_id = Process.objects.in_bulk(process_ids_list, field_name="protocol_id")
     # Create property values for ExperimentRun
     for i, (property, value) in enumerate(properties.items()):
         property_type = property_types_objs_dict[property]
@@ -61,4 +65,6 @@ def create_properties(properties, property_types_objs_dict, process_ids_list):
                                          content_object=process)
         except Exception as e:
             errors[property] = e.error_dict['value']
+
+    return {'errors': errors}
 
