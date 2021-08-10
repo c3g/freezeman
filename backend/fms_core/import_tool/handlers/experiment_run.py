@@ -1,50 +1,56 @@
-from fms_core.models import Protocol, PropertyType
+from datetime import datetime
+
+from fms_core.models import ExperimentType, PropertyType, Instrument, Container
 from ._generic import GenericHandler
 from ...services import create_experiment_run
 
 
-PROTOCOLS_BY_EXPERIMENT_TYPE_NAME = {
-    'Infinium Global Screening Array-24':
-        { 'Illumina Infinium Preparation': [ 'Infinium: Amplification',
-                                             'Infinium: Fragmentation',
-                                             'Infinium: Precipitation',
-                                             'Infinium: Hybridization',
-                                             'Infinium: Wash Beadchip',
-                                             'Infinium: Extend and Stain',
-                                             'Infinium: Scan Preparation'
-                                             ]
-        }
-
-}
-
 class ExperimentRunHandler(GenericHandler):
-    protocols_dict = {}
     property_types_by_name = {}
 
-    def __init__(self, experiment_type, instrument, container, start_date,
-                 samples, properties):
 
-        # Preload Protocols objects for this experiment type in a dictionary for faster access
-        protocols_for_experiment_type = PROTOCOLS_BY_EXPERIMENT_TYPE_NAME[experiment_type['workflow']]
-        for protocol_name in protocols_for_experiment_type.keys():
-            p = Protocol.objects.get(name=protocol_name)
-            subprotocol_names = protocols_for_experiment_type[protocol_name]
-            subprotocols = []
-            for subprotocol_name in subprotocol_names:
-               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
-            self.protocols_dict[p] = subprotocols.copy()
+    def __init__(self, experiment_type_obj, instrument, container, start_date,
+                 samples, properties, protocols_dict, properties_by_name_dict):
 
-        # Preload PropertyType objects for this experiment type in a dictionary for faster access
-        for i, (property_column, v) in enumerate(properties.items()):
+        self.experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
+                               'process': None, 'start_date': start_date}
+
+
+        # Get Instrument
+        instrument_name = instrument['name']
+        if instrument_name:
             try:
-                self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
+                self.experiment_run['instrument'] = Instrument.objects.get(name=instrument_name)
             except Exception as e:
-                self.errors.append(f"Property Type {property_column} could not be found")
+                self.errors["instrument"] = f"No instrument named {instrument_name} could be found."
+
+        # Get or Create Container
+        barcode = container['barcode']
+        kind = container['kind']
+        if barcode and kind:
+            try:
+                self.experiment_run['container'], _ = Container.objects.get_or_create(
+                    barcode=barcode,
+                    kind=kind,
+                    defaults={'comment': f"Automatically generated via experiment run creation on "
+                                         f"{datetime.utcnow().isoformat()}Z",
+                              'name': barcode},
+                )
+            except Exception as e:
+                self.errors[
+                    "container"] = f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match."
 
 
-        experiment_creator = create_experiment_run(experiment_type, instrument, container, start_date,
-                 samples, properties,
-                 self.protocols_dict, self.property_types_objs_dict)
+
+        # Calling the service creator for ExperimentRun
+        experiment_creator = create_experiment_run(self.experiment_run['experiment_type'],
+                                                   self.experiment_run['instrument'],
+                                                   self.experiment_run['container'],
+                                                   self.experiment_run['start_date'],
+                                                   samples,
+                                                   properties,
+                                                   protocols_dict,
+                                                   properties_by_name_dict)
 
         self.errors = experiment_creator.errors
 

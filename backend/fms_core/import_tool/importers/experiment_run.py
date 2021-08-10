@@ -1,3 +1,4 @@
+from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.handlers import ExperimentRunHandler
 from .._utils import data_row_ids_range, convert_property_value_to_str
@@ -6,23 +7,35 @@ from .._utils import data_row_ids_range, convert_property_value_to_str
 class ExperimentRunImporter(GenericImporter):
     base_errors = []
     rows = []
+    global_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
     def __init__(self, file, format):
         self.sheet_names = ['Experiments', 'Samples']
         super().__init__(file, format)
 
-    def import_template(self, dry_run):
-        result =  super().import_template(dry_run)
-        return result
+    # has to be declared ?? or can directly inherit from its parent?
+    # def import_template(self, dry_run):
+    #     result = super().import_template(dry_run)
+    #     return result
+
+
+    def import_global_data_from_template(self, workflow):
+        # Preload ExperimentType and Protocols dict
+        try:
+            self.global_data['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
+
+            # Preload Protocols objects for this experiment type in a dictionary for faster access
+            self.global_data['protocols_dict'] = self.global_data['experiment_type'].get_protocols_dict
+        except Exception as e:
+            self.base_errors = f"No experiment type with workflow {workflow} could be found."
+
 
     def import_template_inner(self):
-        experiment_run_dict = {}
-
         # For the Experiments sheet
         experiments_sheet = self.sheets['Experiments']
 
-        # Getting single cell data for Experiment Type workflow value
-        experiment_type = {'workflow': experiments_sheet.values[1][2]}
+        # Import Global Data from the template
+        self.import_global_data_from_template(workflow=experiments_sheet.values[1][2])
 
 
         # Experiments rows
@@ -33,6 +46,7 @@ class ExperimentRunImporter(GenericImporter):
 
         # Iterate through experiment rows
         for row_id in data_row_ids_range(experiments_row_header+1, experiments_sheet):
+            experiment_run_dict = {}
             properties = {}
             row = experiments_sheet.iloc[row_id]
             for i, (key, val) in enumerate(row.items()):
@@ -47,7 +61,13 @@ class ExperimentRunImporter(GenericImporter):
 
             start_date = experiment_run_dict['Experiment Start Date']
 
-
+            # Preload PropertyType objects for this experiment type in a dictionary for faster access
+            #TODO: move this out to the import_global_data_from_template function, and get property columns directly
+            for i, (property_column, v) in enumerate(properties.items()):
+                try:
+                    self.global_data['property_types_by_name'][property_column] = PropertyType.objects.get(name=property_column)
+                except Exception as e:
+                    self.base_errors.append(f"Property Type {property_column} could not be found")
 
             samples = []
 
@@ -69,13 +89,17 @@ class ExperimentRunImporter(GenericImporter):
                     samples.append(sample)
 
 
-            experiment_run_handler = ExperimentRunHandler(experiment_type=experiment_type,
-                                 instrument=instrument,
-                                 container=container,
-                                 start_date=start_date,
-                                 samples=samples,
-                                 properties=properties,
-                                 )
+            experiment_run_handler = ExperimentRunHandler(
+                experiment_type_obj=self.global_data['experiment_type'],
+                instrument=instrument,
+                container=container,
+                start_date=start_date,
+                samples=samples,
+                properties=properties,
+                protocols_dict=self.global_data['protocols_dict'],
+                properties_by_name_dict=self.global_data['property_types_by_name'],
+            )
+
             result = experiment_run_handler.get_result()
 
             row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))

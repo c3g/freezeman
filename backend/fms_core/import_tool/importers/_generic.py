@@ -3,6 +3,7 @@ from django.db import transaction
 
 class GenericImporter():
     base_errors = []
+    global_data = {}
 
     def __init__(self, file, format):
         self.file = file
@@ -26,6 +27,9 @@ class GenericImporter():
 
             return import_result
 
+
+    def import_global_data_from_template(self, **args):
+        pass
 
 
 

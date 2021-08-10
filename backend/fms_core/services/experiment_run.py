@@ -15,49 +15,19 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
                  samples, properties,
                  protocols_objs_dict, property_types_objs_dict):
     errors = {}
-    experiment_run = {'experiment_type': None, 'instrument': None, 'container': None,
-                      'process': None, 'start_date': start_date}
 
-    # Get ExperimentType
+    parent_process, process_ids = create_processes_from_protocols(protocols_objs_dict)
+
     try:
-        workflow = experiment_type['workflow']
-        experiment_run['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
+        # Order is important; top process will be part of the ExperimentRun attr
+        ExperimentRun.objects.create(experiment_type=experiment_type,
+                                     instrument=instrument,
+                                     container=container,
+                                     process=parent_process,
+                                     start_date=start_date)
     except Exception as e:
-        errors["experiment_type"] = f"No experiment type with workflow {workflow} could be found."
+        errors['experiment_run'] = e
 
-
-    # Get Instrument
-    instrument_name = instrument['name']
-    if instrument_name:
-        try:
-            experiment_run['instrument'] = Instrument.objects.get(name=instrument_name)
-        except Exception as e:
-            errors["instrument"] = f"No instrument named {instrument_name} could be found."
-
-    # Get or Create Container
-    barcode = container['barcode']
-    kind = container['kind']
-    if barcode and kind:
-        try:
-            experiment_run['container'], _ = Container.objects.get_or_create(
-                barcode=barcode,
-                kind=kind,
-                defaults={'comment': f"Automatically generated via experiment run creation on "
-                                     f"{datetime.utcnow().isoformat()}Z",
-                          'name': barcode},
-            )
-        except Exception as e:
-            errors["container"] = f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match."
-
-    if (errors == {}):
-        try:
-            # Order is important; top process will be part of the ExperimentRun attr
-            ExperimentRun.objects.create(**experiment_run)
-            create_properties(properties, property_types_objs_dict)
-        except Exception as e:
-            errors['experiment_run'] = e
-
-    process_ids = create_processes_from_protocols(protocols_objs_dict)
     create_properties(properties, property_types_objs_dict, process_ids)
 
 def create_processes_from_protocols(protocols_objs_dict):
@@ -70,7 +40,7 @@ def create_processes_from_protocols(protocols_objs_dict):
                                         comment="Experiment")
             process_ids_list.append(sp.id)
 
-    return process_ids_list
+    return (parent_process, process_ids_list)
 
 
 def create_properties(properties, property_types_objs_dict, process_ids_list):
