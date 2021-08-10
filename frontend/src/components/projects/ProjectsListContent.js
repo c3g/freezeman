@@ -51,31 +51,23 @@ const getTableColumns = () => [
       title: "Requestor Name",
       dataIndex: "requestor_name",
       sorter: true,
-      align: "right",
-      className: "table-column-numbers",
       width: 100,
     },
     {
       title: "Requestor Email",
       dataIndex: "requestor_email",
-      align: "right",
-      className: "table-column-numbers",
       width: 115,
     },
     {
       title: "Targeted End Date",
       dataIndex: "targeted_end_date",
       sorter: true,
-      align: "right",
-      className: "table-column-numbers",
       width: 115,
     },
     {
       title: "Status",
       dataIndex: "status",
       sorter: true,
-      align: "right",
-      className: "table-column-numbers",
       width: 115,
     }
   ];

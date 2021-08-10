@@ -278,13 +278,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class ProjectExportSerializer(serializers.ModelSerializer):
-    created_by = serializers.CharField(read_only=True, source="created_by.username")
-    updated_by = serializers.CharField(read_only=True, source="updated_by.name")
-    created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
-    updated_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d")
-    targeted_end_date = serializers.DateField(read_only=True, format="%Y-%m-%d")
-
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "created_by", "created_at", "updated_by", "updated_at", "comments" )
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
 

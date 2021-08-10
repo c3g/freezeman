@@ -68,10 +68,22 @@ const DashboardPage = ({
             </Row>
           </Card>
           <Card title="Projects" {...CARD_PROPS} style={{marginTop: "1rem"}}>
-            <Statistic title="Total Projects" value={projectsSummary.total_count || "—"} />
-            <Statistic title="Ongoing Projects" value={projectsSummary.ongoing_count || "—"} />
-            <Statistic title="Completed Projects" value={projectsSummary.completed_count || "—"} />
-            {/* TODO: Root containers */}
+            <Row gutter={16}>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Total Projects" value={projectsSummary.total_count || "—"} />
+              </Col>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Ongoing Projects" value={projectsSummary.ongoing_count || "—"} />
+                <Statistic title="Completed Projects" value={projectsSummary.completed_count || "—"} />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to='/projects/add/'>
+                  <Button icon={actionIcon('Add')} style={{width: "100%"}}>Add One Project</Button>
+                </Link>
+              </Col>
+            </Row>
           </Card>
         </Col>
         <Col {...COL_LAYOUT}>

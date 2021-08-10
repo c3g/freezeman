@@ -161,16 +161,16 @@ function deserialize(values) {
     return undefined
   const newValues = {...values}
 
-  if (newValues.creation_date)
-    newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+  if (newValues.targeted_end_date)
+    newValues.targeted_end_date = moment(newValues.targeted_end_date, 'YYYY-MM-DD')
   return newValues
 }
 
 function serialize(values) {
   const newValues = {...values}
 
-  if (newValues.creation_date)
-    newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')
+  if (newValues.targeted_end_date)
+    newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
 
   return newValues
 }
