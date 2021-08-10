@@ -1,29 +1,10 @@
-from django.conf import settings
 from ._generic import GenericImporter
-from fms_core.import_tool.creators import ExperimentRunCreator
-from fms_core.models import Protocol, PropertyType
+from fms_core.import_tool.handlers import ExperimentRunHandler
 from .._utils import data_row_ids_range, convert_property_value_to_str
-
-
-PROTOCOLS_BY_EXPERIMENT_TYPE_NAME = {
-    'Infinium Global Screening Array-24':
-        { 'Illumina Infinium Preparation': [ 'Infinium: Amplification',
-                                             'Infinium: Fragmentation',
-                                             'Infinium: Precipitation',
-                                             'Infinium: Hybridization',
-                                             'Infinium: Wash Beadchip',
-                                             'Infinium: Extend and Stain',
-                                             'Infinium: Scan Preparation'
-                                             ]
-        }
-
-}
 
 
 class ExperimentRunImporter(GenericImporter):
     base_errors = []
-    protocols_dict = {}
-    property_types_by_name = {}
     rows = []
 
     def __init__(self, file, format):
@@ -42,17 +23,6 @@ class ExperimentRunImporter(GenericImporter):
 
         # Getting single cell data for Experiment Type workflow value
         experiment_type = {'workflow': experiments_sheet.values[1][2]}
-
-
-        # Preload Protocols objects for this experiment type in a dictionary for faster access
-        protocols_for_experiment_type = PROTOCOLS_BY_EXPERIMENT_TYPE_NAME[experiment_type['workflow']]
-        for protocol_name in protocols_for_experiment_type.keys():
-            p = Protocol.objects.get(name=protocol_name)
-            subprotocol_names = protocols_for_experiment_type[protocol_name]
-            subprotocols = []
-            for subprotocol_name in subprotocol_names:
-               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
-            self.protocols_dict[p] = subprotocols.copy()
 
 
         # Experiments rows
@@ -77,13 +47,6 @@ class ExperimentRunImporter(GenericImporter):
 
             start_date = experiment_run_dict['Experiment Start Date']
 
-            # Preload PropertyType objects for this experiment type in a dictionary for faster access
-            for i, (property_column, v) in enumerate(properties.items()):
-                try:
-                    self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
-                except Exception as e:
-                    import ipdb; ipdb.sset_trace()
-                    self.base_errors.append(f"Property Type {property_column} could not be found")
 
 
             samples = []
@@ -106,19 +69,16 @@ class ExperimentRunImporter(GenericImporter):
                     samples.append(sample)
 
 
-            experiment_run_creator = ExperimentRunCreator(experiment_type=experiment_type,
+            experiment_run_handler = ExperimentRunHandler(experiment_type=experiment_type,
                                  instrument=instrument,
                                  container=container,
                                  start_date=start_date,
                                  samples=samples,
                                  properties=properties,
-                                 protocols_objs_dict=self.protocols_dict,
-                                 property_types_objs_dict=self.property_types_by_name,
                                  )
-            result = experiment_run_creator.get_result()
+            result = experiment_run_handler.get_result()
 
             row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))
-
             result['diff'] = row_list_str
 
             self.rows.append(result)
