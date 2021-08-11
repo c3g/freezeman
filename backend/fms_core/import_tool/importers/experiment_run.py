@@ -2,12 +2,13 @@ from pandas import pandas as pd
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.handlers import ExperimentRunHandler
-from .._utils import data_row_ids_range, convert_property_value_to_str
+from .._utils import (data_row_ids_range,
+                      convert_property_value_to_str,
+                      blank_and_nan_to_none)
 
 
 class ExperimentRunImporter(GenericImporter):
     base_errors = []
-    rows = []
     global_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
     def __init__(self, file, format):
@@ -40,22 +41,43 @@ class ExperimentRunImporter(GenericImporter):
 
 
     def import_template_inner(self):
-        # For the Experiments sheet
+        """
+            SAMPLES SHEET
+        """
+        samples_sheet = self.sheets['Samples']
+        samples_row_header = 2
+        samples_sheet.columns = samples_sheet.values[samples_row_header]
+
+        sample_rows_data = []
+
+        for row_id in data_row_ids_range(samples_row_header + 1, samples_sheet):
+            row_data = samples_sheet.iloc[row_id]
+            sample = {'row_id': row_id,
+                      'experiment_id': blank_and_nan_to_none(row_data['Experiment ID']),
+                      'container_barcode': blank_and_nan_to_none(row_data['Source Container Barcode']),
+                      'container_coordinates': blank_and_nan_to_none(row_data['Source Container Position']),
+                      'volume_used': blank_and_nan_to_none(row_data['Source Sample Volume Used']),
+                      'experiment_container_coordinates': blank_and_nan_to_none(row_data['Experiment Container Position'])}
+            sample_rows_data.append(sample)
+
+
+        """
+            EXPERIMENTS SHEET
+        """
         experiments_sheet = self.sheets['Experiments']
         properties_starting_index = 6
         experiments_header_row_nb = 8
-
-        workflow_value = experiments_sheet.values[1][2]
-
-        # Set values for global data
-        self.import_global_data_from_template(workflow=workflow_value,
-                                              properties=experiments_sheet.values[experiments_header_row_nb][properties_starting_index:].tolist())
-
-
-
         # Setting headers for Experiments sheet Experiments rows
         experiments_sheet.columns = experiments_sheet.values[experiments_header_row_nb]
 
+
+        workflow_value = blank_and_nan_to_none(experiments_sheet.values[1][2])
+
+        # PRELOADING - Set values for global data
+        self.import_global_data_from_template(workflow=workflow_value,
+                                              properties=experiments_sheet.values[experiments_header_row_nb][properties_starting_index:].tolist())
+
+        experiment_rows_data = []
         # Iterate through experiment rows
         for row_id in data_row_ids_range(experiments_header_row_nb+1, experiments_sheet):
             experiment_run_dict = {}
@@ -65,57 +87,40 @@ class ExperimentRunImporter(GenericImporter):
                 if i < properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
-                    properties[key] = experiments_sheet.iloc[row_id][key]
+                    properties[key] = blank_and_nan_to_none(experiments_sheet.iloc[row_id][key])
 
-            container = {'barcode': experiment_run_dict['Experiment Container Barcode'],
-                         'kind': experiment_run_dict['Experiment Container Kind']}
-            instrument = {'name': experiment_run_dict['Instrument Name']}
+            container = {'barcode': blank_and_nan_to_none(experiment_run_dict['Experiment Container Barcode']),
+                         'kind': blank_and_nan_to_none(experiment_run_dict['Experiment Container Kind'])}
+            instrument = {'name': blank_and_nan_to_none(experiment_run_dict['Instrument Name'])}
 
-            start_date = experiment_run_dict['Experiment Start Date']
+            start_date = blank_and_nan_to_none(experiment_run_dict['Experiment Start Date'])
 
             required_data = [container['barcode'], instrument['name'], start_date]
             if self.is_empty_row(required_data):
                 pass
             else:
-                samples = []
+                experiment_temporary_id = blank_and_nan_to_none(experiment_run_dict['Experiment ID'])
+                filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
+                experiment_sample_rows_data = list(filtered_data)
 
-                experiment_temporary_id = experiment_run_dict['Experiment ID']
-
-                # Handle Samples sheet
-                samples_sheet = self.sheets['Samples']
-                samples_row_header = 2
-                samples_sheet.columns = samples_sheet.values[samples_row_header]
-
-                for row_id in data_row_ids_range(samples_row_header+1, samples_sheet):
-                    if samples_sheet.iloc[row_id]['Experiment ID'] == experiment_temporary_id:
-                        row_data = samples_sheet.iloc[row_id]
-                        sample = {'row_id': row_id,
-                                  'container_barcode': row_data['Source Container Barcode'],
-                                  'container position': row_data['Source Container Position'],
-                                  'volume_used': row_data['Source Sample Volume Used'],
-                                  'experiment_container_position': row_data['Experiment Container Position']}
-                        samples.append(sample)
-
+                print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
 
                 experiment_run_handler = ExperimentRunHandler(
                     experiment_type_obj=self.global_data['experiment_type'],
                     instrument=instrument,
                     container=container,
                     start_date=start_date,
-                    samples=samples,
+                    sample_rows=experiment_sample_rows_data,
                     properties=properties,
                     protocols_dict=self.global_data['protocols_dict'],
                     properties_by_name_dict=self.global_data['property_types_by_name'],
                 )
 
                 result = experiment_run_handler.get_result()
-
                 row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))
-
-
                 result['diff'] = row_list_str
 
-                self.rows.append(result)
+                experiment_rows_data.append(result)
 
 
         return {
@@ -129,5 +134,5 @@ class ExperimentRunImporter(GenericImporter):
             #     "traceback": 'e.traceback' if settings.DEBUG else "",
             # } for e in self.base_errors],
             "base_errors": [],
-            "rows": self.rows,
+            "rows": experiment_rows_data,
         }

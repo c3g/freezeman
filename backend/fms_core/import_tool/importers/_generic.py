@@ -31,8 +31,8 @@ class GenericImporter():
     def import_global_data_from_template(self, **args):
         pass
 
-    def is_empty_row(self, required_values_list):
-        return any(list(map(lambda x: pd.isnull(x), required_values_list)))
+    def is_empty_row(self, non_empty_values_list):
+        return any(list(map(lambda x: x is None, non_empty_values_list)))
 
 
 

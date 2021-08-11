@@ -121,7 +121,7 @@ class TemplateActionsMixin:
             eri = ExperimentRunImporter(file=file, format='xlsx')
             result = eri.import_template(dry_run=True)
         except Exception as e:
-            print(e)
+            print('utils viewsets ', e)
 
 
 
@@ -168,14 +168,27 @@ class TemplateActionsMixin:
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
-        action_def, dataset = action_data
+        # action_def, dataset = action_data
+        action_def, file = action_data
 
         resource_instance = action_def["resource"]()
-        result = resource_instance.import_data(dataset)
+        # result = resource_instance.import_data(dataset)
+        try:
+            eri = ExperimentRunImporter(file=file, format='xlsx')
+            result = eri.import_template(dry_run=False)
 
-        if result.has_errors() or result.has_validation_errors():
-            # TODO: Better message
-            return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
-                                          content_type="application/json")
+            # has_errors = result.has_errors() or result.has_validation_errors()
+            has_errors = False
+
+            if has_errors:
+                return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
+                                              content_type="application/json")
+        except Exception as e:
+            print('utils viewsets ', e)
+
+        # if result.has_errors() or result.has_validation_errors():
+        #     # TODO: Better message
+        #     return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
+        #                                   content_type="application/json")
 
         return Response(status=204)

@@ -1,14 +1,16 @@
 from datetime import datetime
 from pandas import pandas as pd
 
-from fms_core.models import ExperimentType, PropertyType, Instrument, Container
+from fms_core.models import ExperimentType, PropertyType, Instrument, Container, Sample
 from ._generic import GenericHandler
 from ...services import create_experiment_run
 
 
+
+
 class ExperimentRunHandler(GenericHandler):
     def __init__(self, experiment_type_obj, instrument, container, start_date,
-                 samples, properties, protocols_dict, properties_by_name_dict):
+                 sample_rows, properties, protocols_dict, properties_by_name_dict):
 
         self.experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
                                'process': None, 'start_date': start_date}
@@ -38,24 +40,25 @@ class ExperimentRunHandler(GenericHandler):
                     "container"] = f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match."
 
 
+        if len(sample_rows) < 1:
+            self.errors['samples'] = f"No samples are associated to this experiment"
 
         # Calling the service creator for ExperimentRun
+        if self.errors == {}:
+            try:
+                result = create_experiment_run(self.experiment_run['experiment_type'],
+                                                           self.experiment_run['instrument'],
+                                                           self.experiment_run['container'],
+                                                           self.experiment_run['start_date'],
+                                                           sample_rows,
+                                                           properties,
+                                                           protocols_dict,
+                                                           properties_by_name_dict)
 
-        try:
-            result = create_experiment_run(self.experiment_run['experiment_type'],
-                                                       self.experiment_run['instrument'],
-                                                       self.experiment_run['container'],
-                                                       self.experiment_run['start_date'],
-                                                       samples,
-                                                       properties,
-                                                       protocols_dict,
-                                                       properties_by_name_dict)
-
-            if result['errors'] != {}:
                 self.errors = result['errors']
 
-        except Exception as e:
-            self.errors["experiment_run"] = e
+            except Exception as e:
+                self.errors["experiment_run"] = e
 
 
 
