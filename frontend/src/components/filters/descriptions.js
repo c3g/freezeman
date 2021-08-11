@@ -1,6 +1,11 @@
 import {FILTER_TYPE, SEX, TAXON} from "../../constants";
 
 export const SAMPLE_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Sample ID",
+  },
   sample_kind__name: {
     type: FILTER_TYPE.SELECT,
     key: "sample_kind__name",
@@ -244,5 +249,5 @@ export const USER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "email",
     label: "Email"
-  }, 
+  },
 }
