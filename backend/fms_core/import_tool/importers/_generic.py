@@ -1,5 +1,6 @@
 from pandas import pandas as pd
 from django.db import transaction
+from .._utils import blank_and_nan_to_none
 
 class GenericImporter():
     base_errors = []
@@ -13,7 +14,9 @@ class GenericImporter():
         self.sheets = {}
         for name in self.sheet_names:
             try:
-                self.sheets[name] = pd.read_excel(file, sheet_name=name)
+                sheet = pd.read_excel(file, sheet_name=name)
+                # Convert blank and NaN cells to None and Store it in self.sheets
+                self.sheets[name] = sheet.applymap(lambda x: blank_and_nan_to_none(x))
             except Exception as e:
                 self.base_errors.append(e)
 

@@ -3,8 +3,7 @@ from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.handlers import ExperimentRunHandler
 from .._utils import (data_row_ids_range,
-                      convert_property_value_to_str,
-                      blank_and_nan_to_none)
+                      convert_property_value_to_str)
 
 
 class ExperimentRunImporter(GenericImporter):
@@ -53,11 +52,12 @@ class ExperimentRunImporter(GenericImporter):
         for row_id in data_row_ids_range(samples_row_header + 1, samples_sheet):
             row_data = samples_sheet.iloc[row_id]
             sample = {'row_id': row_id,
-                      'experiment_id': blank_and_nan_to_none(row_data['Experiment ID']),
-                      'container_barcode': blank_and_nan_to_none(row_data['Source Container Barcode']),
-                      'container_coordinates': blank_and_nan_to_none(row_data['Source Container Position']),
-                      'volume_used': blank_and_nan_to_none(row_data['Source Sample Volume Used']),
-                      'experiment_container_coordinates': blank_and_nan_to_none(row_data['Experiment Container Position'])}
+                      'experiment_id': row_data['Experiment ID'],
+                      'container_barcode': row_data['Source Container Barcode'],
+                      'container_coordinates': row_data['Source Container Position'],
+                      'volume_used': row_data['Source Sample Volume Used'],
+                      'experiment_container_coordinates': row_data['Experiment Container Position']
+                      }
             sample_rows_data.append(sample)
 
 
@@ -71,7 +71,7 @@ class ExperimentRunImporter(GenericImporter):
         experiments_sheet.columns = experiments_sheet.values[experiments_header_row_nb]
 
 
-        workflow_value = blank_and_nan_to_none(experiments_sheet.values[1][2])
+        workflow_value = experiments_sheet.values[1][2]
 
         # PRELOADING - Set values for global data
         self.import_global_data_from_template(workflow=workflow_value,
@@ -87,19 +87,21 @@ class ExperimentRunImporter(GenericImporter):
                 if i < properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
-                    properties[key] = blank_and_nan_to_none(experiments_sheet.iloc[row_id][key])
+                    properties[key] = experiments_sheet.iloc[row_id][key]
 
-            container = {'barcode': blank_and_nan_to_none(experiment_run_dict['Experiment Container Barcode']),
-                         'kind': blank_and_nan_to_none(experiment_run_dict['Experiment Container Kind'])}
-            instrument = {'name': blank_and_nan_to_none(experiment_run_dict['Instrument Name'])}
+            container = {
+                'barcode': experiment_run_dict['Experiment Container Barcode'],
+                'kind': experiment_run_dict['Experiment Container Kind']
+            }
+            instrument = {'name': experiment_run_dict['Instrument Name']}
 
-            start_date = blank_and_nan_to_none(experiment_run_dict['Experiment Start Date'])
+            start_date = experiment_run_dict['Experiment Start Date']
 
             required_data = [container['barcode'], instrument['name'], start_date]
             if self.is_empty_row(required_data):
                 pass
             else:
-                experiment_temporary_id = blank_and_nan_to_none(experiment_run_dict['Experiment ID'])
+                experiment_temporary_id = experiment_run_dict['Experiment ID']
                 filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
                 experiment_sample_rows_data = list(filtered_data)
 
