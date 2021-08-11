@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from fms_core.models import Protocol
-
 from .tracked_model import TrackedModel
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
@@ -51,6 +50,8 @@ class ExperimentType(TrackedModel):
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
 
+
+    # This method should be moved out of ExperimentType when Workflows are implemented in FreezeMan
     @property
     def get_protocols_dict(self):
         protocols_dict = {}

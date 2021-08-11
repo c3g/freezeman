@@ -4,7 +4,7 @@ from .._utils import blank_and_nan_to_none
 
 class GenericImporter():
     base_errors = []
-    global_data = {}
+    preloaded_data = {}
 
     def __init__(self):
         pass
@@ -23,7 +23,6 @@ class GenericImporter():
 
         with transaction.atomic():
             import_result = self.import_template_inner()
-            # result = import_result.copy()
 
             if dry_run:
                 transaction.set_rollback(True)
@@ -31,7 +30,7 @@ class GenericImporter():
             return import_result
 
 
-    def import_global_data_from_template(self, **args):
+    def preload_data_from_template(self, **args):
         pass
 
     def is_empty_row(self, non_empty_values_list):

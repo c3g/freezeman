@@ -1,5 +1,4 @@
 from datetime import datetime
-from pandas import pandas as pd
 
 from fms_core.models import ExperimentType, PropertyType, Instrument, Container, Sample
 from ._generic import GenericHandler
@@ -12,14 +11,14 @@ class ExperimentRunHandler(GenericHandler):
     def __init__(self, experiment_type_obj, instrument, container, start_date,
                  sample_rows, properties, protocols_dict, properties_by_name_dict):
 
-        self.experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
-                               'process': None, 'start_date': start_date}
+        experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
+                          'process': None, 'start_date': start_date}
 
         # Get Instrument
         instrument_name = instrument['name']
         if instrument_name:
             try:
-                self.experiment_run['instrument'] = Instrument.objects.get(name=instrument_name)
+                experiment_run['instrument'] = Instrument.objects.get(name=instrument_name)
             except Exception as e:
                 self.errors["instrument"] = f"No instrument named {instrument_name} could be found."
 
@@ -28,7 +27,7 @@ class ExperimentRunHandler(GenericHandler):
         kind = container['kind']
         if barcode and kind:
             try:
-                self.experiment_run['container'], _ = Container.objects.get_or_create(
+                experiment_run['container'], _ = Container.objects.get_or_create(
                     barcode=barcode,
                     kind=kind,
                     defaults={'comment': f"Automatically generated via experiment run creation on "
@@ -46,14 +45,14 @@ class ExperimentRunHandler(GenericHandler):
         # Calling the service creator for ExperimentRun
         if self.errors == {}:
             try:
-                result = create_experiment_run(self.experiment_run['experiment_type'],
-                                                           self.experiment_run['instrument'],
-                                                           self.experiment_run['container'],
-                                                           self.experiment_run['start_date'],
-                                                           sample_rows,
-                                                           properties,
-                                                           protocols_dict,
-                                                           properties_by_name_dict)
+                result = create_experiment_run(experiment_run['experiment_type'],
+                                               experiment_run['instrument'],
+                                               experiment_run['container'],
+                                               experiment_run['start_date'],
+                                               sample_rows,
+                                               properties,
+                                               protocols_dict,
+                                               properties_by_name_dict)
 
                 self.errors = result['errors']
 

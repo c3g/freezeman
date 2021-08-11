@@ -15,8 +15,6 @@ import json
 
 from fms_core.serializers import VersionSerializer
 
-from fms_core.import_tool.importers import ExperimentRunImporter
-
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -76,17 +74,6 @@ class TemplateActionsMixin:
             # If the action index is out of bounds or not int-castable, return an error.
             return True, f"Action {action_id} not found"
 
-        # There are only two file types accepted; .xlsx and .csv. XLSX files
-        # must be treated differently since it's binary data.
-
-        # xlsx = template_file.name.endswith("xlsx")
-        # file_bytes = template_file.read()
-
-
-        #dataset = Dataset().load(file_bytes if xlsx else file_bytes.decode("utf-8"), format="xlsx" if xlsx else "csv")
-
-        #return False, (action_def, dataset)
-
         return False, (action_def, template_file)
 
     @action(detail=False, methods=["get"])
@@ -113,17 +100,12 @@ class TemplateActionsMixin:
 
         action_def, file = action_data
 
-        # resource_instance = action_def["resource"]()
-
-        # result = resource_instance.import_data(dataset, dry_run=True)
-
         importer_instance = action_def["importer"]()
 
         try:
             result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
         except Exception as e:
             print('utils viewsets ', e)
-
 
 
         res = {'diff_headers': result['diff_headers'],
@@ -134,7 +116,6 @@ class TemplateActionsMixin:
                }
 
         return Response(res)
-
 
 
         # return Response({
@@ -169,28 +150,18 @@ class TemplateActionsMixin:
         if error:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
-        # action_def, dataset = action_data
         action_def, file = action_data
 
-        # resource_instance = action_def["resource"]()
-        # result = resource_instance.import_data(dataset)
         importer_instance = action_def["importer"]()
 
         try:
             result = importer_instance.import_template(file=file, format='xlsx', dry_run=False)
-
             # has_errors = result.has_errors() or result.has_validation_errors()
             has_errors = False
-
             if has_errors:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                               content_type="application/json")
         except Exception as e:
             print('utils viewsets ', e)
-
-        # if result.has_errors() or result.has_validation_errors():
-        #     # TODO: Better message
-        #     return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
-        #                                   content_type="application/json")
 
         return Response(status=204)

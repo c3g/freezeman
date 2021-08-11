@@ -1,4 +1,3 @@
-from pandas import pandas as pd
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.handlers import ExperimentRunHandler
@@ -8,32 +7,28 @@ from .._utils import (data_row_ids_range,
 
 class ExperimentRunImporter(GenericImporter):
     base_errors = []
-    global_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
+    preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
+
 
     def __init__(self):
         self.sheet_names = ['Experiments', 'Samples']
         super().__init__()
 
-    # has to be declared ?? or can directly inherit from its parent?
-    def import_template(self, file, format, dry_run):
-        result = super().import_template(file, format, dry_run)
-        return result
 
-
-    def import_global_data_from_template(self, workflow, properties):
+    def preload_data_from_template(self, workflow, properties):
         # Preload ExperimentType and Protocols dict
         try:
-            self.global_data['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
+            self.preloaded_data['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
 
             # Preload Protocols objects for this experiment type in a dictionary for faster access
-            self.global_data['protocols_dict'] = self.global_data['experiment_type'].get_protocols_dict
+            self.preloaded_data['protocols_dict'] = self.preloaded_data['experiment_type'].get_protocols_dict
         except Exception as e:
             self.base_errors.append(f"No experiment type with workflow {workflow} could be found.")
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
         for property_column in properties:
             try:
-                self.global_data['property_types_by_name'][property_column] = PropertyType.objects.get(
+                self.preloaded_data['property_types_by_name'][property_column] = PropertyType.objects.get(
                     name=property_column)
             except Exception as e:
                 self.base_errors.append(f"Property Type {property_column} could not be found")
@@ -74,8 +69,9 @@ class ExperimentRunImporter(GenericImporter):
         workflow_value = experiments_sheet.values[1][2]
 
         # PRELOADING - Set values for global data
-        self.import_global_data_from_template(workflow=workflow_value,
-                                              properties=experiments_sheet.values[experiments_header_row_nb][properties_starting_index:].tolist())
+        self.preload_data_from_template(workflow=workflow_value,
+                                        properties=experiments_sheet.values[experiments_header_row_nb][properties_starting_index:].tolist())
+
 
         experiment_rows_data = []
         # Iterate through experiment rows
@@ -108,14 +104,14 @@ class ExperimentRunImporter(GenericImporter):
                 print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
 
                 experiment_run_handler = ExperimentRunHandler(
-                    experiment_type_obj=self.global_data['experiment_type'],
+                    experiment_type_obj=self.preloaded_data['experiment_type'],
                     instrument=instrument,
                     container=container,
                     start_date=start_date,
                     sample_rows=experiment_sample_rows_data,
                     properties=properties,
-                    protocols_dict=self.global_data['protocols_dict'],
-                    properties_by_name_dict=self.global_data['property_types_by_name'],
+                    protocols_dict=self.preloaded_data['protocols_dict'],
+                    properties_by_name_dict=self.preloaded_data['property_types_by_name'],
                 )
 
                 result = experiment_run_handler.get_result()
