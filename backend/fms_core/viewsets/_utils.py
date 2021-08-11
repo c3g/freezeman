@@ -113,13 +113,14 @@ class TemplateActionsMixin:
 
         action_def, file = action_data
 
-        resource_instance = action_def["resource"]()
+        # resource_instance = action_def["resource"]()
 
         # result = resource_instance.import_data(dataset, dry_run=True)
 
+        importer_instance = action_def["importer"]()
+
         try:
-            eri = ExperimentRunImporter(file=file, format='xlsx')
-            result = eri.import_template(dry_run=True)
+            result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
         except Exception as e:
             print('utils viewsets ', e)
 
@@ -171,11 +172,12 @@ class TemplateActionsMixin:
         # action_def, dataset = action_data
         action_def, file = action_data
 
-        resource_instance = action_def["resource"]()
+        # resource_instance = action_def["resource"]()
         # result = resource_instance.import_data(dataset)
+        importer_instance = action_def["importer"]()
+
         try:
-            eri = ExperimentRunImporter(file=file, format='xlsx')
-            result = eri.import_template(dry_run=False)
+            result = importer_instance.import_template(file=file, format='xlsx', dry_run=False)
 
             # has_errors = result.has_errors() or result.has_validation_errors()
             has_errors = False

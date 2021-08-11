@@ -11,13 +11,13 @@ class ExperimentRunImporter(GenericImporter):
     base_errors = []
     global_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
-    def __init__(self, file, format):
+    def __init__(self):
         self.sheet_names = ['Experiments', 'Samples']
-        super().__init__(file, format)
+        super().__init__()
 
     # has to be declared ?? or can directly inherit from its parent?
-    def import_template(self, dry_run):
-        result = super().import_template(dry_run)
+    def import_template(self, file, format, dry_run):
+        result = super().import_template(file, format, dry_run)
         return result
 
 
