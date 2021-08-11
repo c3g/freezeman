@@ -44,7 +44,7 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
         print('SERVICES - samples/result: ', result)
 
     except Exception as e:
-        errors['experiment_run'] = e
+        errors['experiment_run'] = ';'.join(e.messages)
         print('SERVICES - experiment_run/exception: ', e)
 
 
@@ -149,7 +149,7 @@ def handle_samples(experiment_run, samples):
 
                     except Exception as e:
                         print('in sample in services ', e)
-                        sample_data_errors.append(e)
+                        sample_data_errors.append(e.messages)
 
 
             except Exception as e:

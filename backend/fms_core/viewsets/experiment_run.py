@@ -36,7 +36,6 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
             "template": EXPERIMENT_INFINIUM_TEMPLATE,
-            "resource": ExperimentRunResource,
             "importer": ExperimentRunImporter,
         },
     ]

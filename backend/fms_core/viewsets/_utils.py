@@ -83,7 +83,7 @@ class TemplateActionsMixin:
         actions, converting paths to URIs for better RESTyness.
         """
         return Response([
-            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "resource"}
+            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "importer"}
             for a in self.template_action_list
         ])
 
