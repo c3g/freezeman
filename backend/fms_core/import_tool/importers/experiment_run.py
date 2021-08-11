@@ -6,7 +6,6 @@ from .._utils import (data_row_ids_range,
 
 
 class ExperimentRunImporter(GenericImporter):
-    base_errors = []
     preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
 
@@ -114,23 +113,23 @@ class ExperimentRunImporter(GenericImporter):
                     properties_by_name_dict=self.preloaded_data['property_types_by_name'],
                 )
 
+                if experiment_run_handler.has_errors():
+                    self.is_valid = False
+
                 result = experiment_run_handler.get_result()
                 row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))
                 result['diff'] = row_list_str
 
                 experiment_rows_data.append(result)
 
+        if self.base_errors != []:
+            self.is_valid = False
+
 
         return {
-            "diff_headers": experiments_sheet.columns.tolist(),
-            #"valid": not (result.has_errors() or result.has_validation_errors()),
-            "valid": True,
-            # "has_warnings": any([r.warnings for r in result.rows]),
+            "headers": experiments_sheet.columns.tolist(),
+            "valid": self.is_valid,
             "has_warnings": False,
-            # "base_errors": [{
-            #     "error": e,
-            #     "traceback": 'e.traceback' if settings.DEBUG else "",
-            # } for e in self.base_errors],
-            "base_errors": [],
+            "base_errors": self.base_errors,
             "rows": experiment_rows_data,
         }

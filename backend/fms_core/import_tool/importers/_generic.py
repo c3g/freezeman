@@ -5,6 +5,7 @@ from .._utils import blank_and_nan_to_none
 class GenericImporter():
     base_errors = []
     preloaded_data = {}
+    is_valid = True
 
     def __init__(self):
         pass

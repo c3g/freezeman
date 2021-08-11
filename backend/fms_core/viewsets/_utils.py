@@ -108,35 +108,18 @@ class TemplateActionsMixin:
             print('utils viewsets ', e)
 
 
-        res = {'diff_headers': result['diff_headers'],
-               'valid': True,
+        res = {'diff_headers': result['headers'],
+               'valid': result['valid'],
                'has_warnings': any([r['warnings'] for r in result['rows']]),
-               'base_errors': [],
+               'base_errors': [{
+                    "error": str(e),
+                    "traceback": 'e.traceback' if settings.DEBUG else "",
+                } for e in result['base_errors']],
                'rows': result['rows'],
                }
 
         return Response(res)
 
-
-        # return Response({
-        #     "diff_headers": result.diff_headers,
-        #     "valid": not (result.has_errors() or result.has_validation_errors()),
-        #     "has_warnings" : any([r.warnings for r in result.rows]),
-        #     "base_errors": [{
-        #         "error": str(e.error),
-        #         "traceback": e.traceback if settings.DEBUG else "",
-        #     } for e in result.base_errors],
-        #     "rows": [{
-        #         "errors": [{
-        #             "error": str(e.error),
-        #             "traceback": e.traceback if settings.DEBUG else "",
-        #         } for e in r.errors],
-        #         "validation_error": r.validation_error,
-        #         "warnings": r.warnings,
-        #         "diff": r.diff,
-        #         "import_type": r.import_type,
-        #     } for r in result.rows if r.import_type != RowResult.IMPORT_TYPE_SKIP],
-        # })
 
     @action(detail=False, methods=["post"])
     def template_submit(self, request):
@@ -156,9 +139,7 @@ class TemplateActionsMixin:
 
         try:
             result = importer_instance.import_template(file=file, format='xlsx', dry_run=False)
-            # has_errors = result.has_errors() or result.has_validation_errors()
-            has_errors = False
-            if has_errors:
+            if not result['valid']:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                               content_type="application/json")
         except Exception as e:
