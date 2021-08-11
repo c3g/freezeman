@@ -84,8 +84,7 @@ const api = {
     update: project => patch(`/projects/${project.id}/`, project),
     list: (options, abort) => get("/projects", options, { abort }),
     listExport: options => get("/project/list_export/", {format: "csv", ...options}),
-    summary: () => get("/projects/summary"),
-    search: q => get("/projets/search/", { q }),
+    summary: () => get("/projects/summary")
   },
   propertyValues: {
     list: (options, abort) => get("/property-values/", options, { abort }),

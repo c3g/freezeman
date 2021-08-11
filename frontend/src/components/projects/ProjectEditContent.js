@@ -171,7 +171,9 @@ function serialize(values) {
 
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
-
+  else
+    newValues.targeted_end_date = null
+    
   return newValues
 }
 
