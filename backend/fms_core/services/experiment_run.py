@@ -20,13 +20,13 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
     errors = {}
     experiment_run = None
 
-    parent_process, processes_by_protocol_id = create_processes_from_protocols(protocols_objs_dict)
+    top_process, processes_by_protocol_id = create_processes_from_protocols(protocols_objs_dict)
 
     try:
         experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type,
                                      instrument=instrument,
                                      container=container,
-                                     process=parent_process,
+                                     process=top_process,
                                      start_date=start_date)
 
         print('SERVICES - experiment_run: ', experiment_run)
@@ -37,7 +37,7 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
 
         print('SERVICES - properties/result: ', result)
 
-        result = handle_samples(experiment_run, sample_rows_for_experiment)
+        result = get_and_associate_samples_to_experiment_run(experiment_run, sample_rows_for_experiment)
         if result['errors'] != {}:
             errors['samples'] = result['errors']
 
@@ -53,14 +53,14 @@ def create_experiment_run(experiment_type, instrument, container, start_date,
 def create_processes_from_protocols(protocols_objs_dict):
     processes_by_protocol_id = {}
     for protocol in protocols_objs_dict.keys():
-        parent_process = Process.objects.create(protocol=protocol, comment="")
+        top_process = Process.objects.create(protocol=protocol, comment="")
         for subprotocol in protocols_objs_dict[protocol]:
             sp = Process.objects.create(protocol=subprotocol,
-                                        parent_process=parent_process,
+                                        parent_process=top_process,
                                         comment="Experiment")
             processes_by_protocol_id[subprotocol.id] = sp
 
-    return (parent_process, processes_by_protocol_id)
+    return (top_process, processes_by_protocol_id)
 
 
 def create_properties(properties, property_types_objs_dict, processes_by_protocol_id):
@@ -84,7 +84,7 @@ def create_properties(properties, property_types_objs_dict, processes_by_protoco
     return {'errors': errors}
 
 
-def handle_samples(experiment_run, samples):
+def get_and_associate_samples_to_experiment_run(experiment_run, samples):
     errors = []
     for sample in samples:
         # TODO: handle sample_data_errors
