@@ -132,6 +132,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
       <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
         <TabPane tab="Overview" key="1" style={tabStyle}>
           <Descriptions bordered={true} size="small">
+              <Descriptions.Item label="Sample ID">{sample.id}</Descriptions.Item>
               <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
               <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
               <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
