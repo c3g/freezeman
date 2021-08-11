@@ -209,7 +209,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" {...props("individual")} rules={requiredRules}>
+          <Form.Item label="Individual" {...props("individual")}>
             <Select
               showSearch
               allowClear

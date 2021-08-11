@@ -175,7 +175,6 @@ class SampleResource(GenericResource):
         except Exception as e:
             individual_created = False
             individual = None
-            errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
