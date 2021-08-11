@@ -69,6 +69,7 @@ export default function serializeFilterParams(filters, descriptions) {
           params[key] = value
         }
 
+
         break;
       }
 
