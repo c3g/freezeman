@@ -129,7 +129,6 @@ class ExperimentRunImporter(GenericImporter):
         return {
             "headers": experiments_sheet.columns.tolist(),
             "valid": self.is_valid,
-            "has_warnings": False,
             "base_errors": self.base_errors,
             "rows": experiment_rows_data,
         }
