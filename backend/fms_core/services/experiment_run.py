@@ -14,78 +14,63 @@ from ..utils import (
     get_normalized_str,
 )
 
-def create_experiment_run(experiment_type, instrument, container, start_date,
-                 sample_rows_for_experiment, properties,
-                 protocols_objs_dict, property_types_objs_dict):
-    errors = {}
-    experiment_run = None
+from ..services import (
+    get_instrument,
+    get_or_create_container,
+    create_processes_for_experiment_from_protocols_dict,
+    create_properties_from_values_and_types
+)
 
-    top_process, processes_by_protocol_id = create_processes_from_protocols(protocols_objs_dict)
+
+def create_experiment_run_complete(experiment_type_obj, instrument, container, start_date,
+                 sample_rows, properties, protocols_dict, properties_by_name_dict):
+    experiment_run = None
+    errors = {}
+
+    if len(sample_rows) < 1:
+        errors['samples'] = f"No samples are associated to this experiment"
+
+    instrument, errors['instrument'] = get_instrument(instrument['name'])
+
+    comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
+
+    container, errors['container'] = get_or_create_container(barcode=container['barcode'],
+                                                                  kind=container['kind'],
+                                                                  creation_comment=comment)
+
+    top_process, experiment_processes_by_protocol_id, errors['process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
+                                                                         creation_comment=comment)
 
     try:
-        experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type,
-                                     instrument=instrument,
-                                     container=container,
-                                     process=top_process,
-                                     start_date=start_date)
+        experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type_obj,
+                                                      instrument=instrument,
+                                                      container=container,
+                                                      process=top_process,
+                                                      start_date=start_date)
 
         print('SERVICES - experiment_run: ', experiment_run)
 
-        result = create_properties(properties, property_types_objs_dict, processes_by_protocol_id)
-        if result['errors'] != {}:
-            errors['properties'] = result['errors']
+        _, errors['properties'] = create_properties_from_values_and_types(properties, properties_by_name_dict,
+                                                                               experiment_processes_by_protocol_id)
 
-        print('SERVICES - properties/result: ', result)
+        samples, errors['samples'] = get_and_associate_samples_to_experiment_run(experiment_run, sample_rows)
 
-        result = get_and_associate_samples_to_experiment_run(experiment_run, sample_rows_for_experiment)
-        if result['errors'] != {}:
-            errors['samples'] = result['errors']
+        print('SERVICES - samples/result: ', samples)
 
-        print('SERVICES - samples/result: ', result)
 
     except Exception as e:
         errors['experiment_run'] = ';'.join(e.messages)
         print('SERVICES - experiment_run/exception: ', e)
 
-
-    return {'object': experiment_run, 'errors': errors}
-
-def create_processes_from_protocols(protocols_objs_dict):
-    processes_by_protocol_id = {}
-    for protocol in protocols_objs_dict.keys():
-        top_process = Process.objects.create(protocol=protocol, comment="")
-        for subprotocol in protocols_objs_dict[protocol]:
-            sp = Process.objects.create(protocol=subprotocol,
-                                        parent_process=top_process,
-                                        comment="Experiment")
-            processes_by_protocol_id[subprotocol.id] = sp
-
-    return (top_process, processes_by_protocol_id)
+    return (experiment_run, errors)
 
 
-def create_properties(properties, property_types_objs_dict, processes_by_protocol_id):
-    errors = {}
-    # Create property values for ExperimentRun
-    for i, (property, value) in enumerate(properties.items()):
-        property_type = property_types_objs_dict[property]
-        protocol_id = property_type.object_id
-        process = processes_by_protocol_id[protocol_id]
-
-        if type(value).__name__ in ('datetime', 'time'):
-            value = value.isoformat().replace("T00:00:00", "")
-
-        try:
-            PropertyValue.objects.create(value=str(value),
-                                         property_type=property_type,
-                                         content_object=process)
-        except Exception as e:
-            errors[property] = e.error_dict['value']
-
-    return {'errors': errors}
 
 
 def get_and_associate_samples_to_experiment_run(experiment_run, samples):
+    sample_objs = []
     errors = []
+
     for sample in samples:
         # TODO: handle sample_data_errors
         sample_data_errors = []
@@ -137,6 +122,8 @@ def get_and_associate_samples_to_experiment_run(experiment_run, samples):
                         experiment_run_sample.depleted = True
                         experiment_run_sample.save()
 
+                        sample_objs.append(experiment_run_sample)
+
                         # ProcessMeasurement for ExperimentRun on Sample
                         process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
                                                                                 source_sample=source_sample,
@@ -167,4 +154,4 @@ def get_and_associate_samples_to_experiment_run(experiment_run, samples):
         #         sample_data_errors, code="invalid")
         #     result.append_base_error(self.get_error_result_class()(error, ''))
 
-    return {'errors': errors}
+    return (sample_objs, errors)
