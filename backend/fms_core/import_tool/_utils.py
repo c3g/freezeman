@@ -4,9 +4,8 @@ from typing import Any
 def data_row_ids_range(starting_row, df):
     return range(starting_row, len(df.loc[starting_row:]))
 
-
-def convert_property_value_to_str(val):
-    return '' if pd.isnull(val) else str(val)
+def panda_values_to_str_list(row_data):
+    return list(map(lambda x: str(x), row_data.values.flatten().tolist()))
 
 
 def blank_and_nan_to_none(s: Any):

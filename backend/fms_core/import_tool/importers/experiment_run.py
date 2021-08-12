@@ -1,20 +1,22 @@
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.handlers import ExperimentRunHandler
-from .._utils import (data_row_ids_range,
-                      convert_property_value_to_str)
+from .._utils import (data_row_ids_range, panda_values_to_str_list)
 
 
 class ExperimentRunImporter(GenericImporter):
-    preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
-
+    SHEETS_INFO = [
+        {'name': 'Experiments', 'header_row_nb': 8},
+        {'name': 'Samples', 'header_row_nb': 2},
+    ]
 
     def __init__(self):
-        self.sheet_names = ['Experiments', 'Samples']
         super().__init__()
 
 
     def preload_data_from_template(self, workflow, properties):
+        self.preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
+
         # Preload ExperimentType and Protocols dict
         try:
             self.preloaded_data['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
@@ -38,14 +40,9 @@ class ExperimentRunImporter(GenericImporter):
             SAMPLES SHEET
         """
         samples_sheet = self.sheets['Samples']
-        samples_row_header = 2
-        samples_sheet.columns = samples_sheet.values[samples_row_header]
-
         sample_rows_data = []
-
-        for row_id in data_row_ids_range(samples_row_header + 1, samples_sheet):
-            row_data = samples_sheet.iloc[row_id]
-            sample = {'row_id': row_id,
+        for i, row_data in enumerate(samples_sheet.rows):
+            sample = {'row_id': i,
                       'experiment_id': row_data['Experiment ID'],
                       'container_barcode': row_data['Source Container Barcode'],
                       'container_coordinates': row_data['Source Container Position'],
@@ -59,30 +56,27 @@ class ExperimentRunImporter(GenericImporter):
             EXPERIMENTS SHEET
         """
         experiments_sheet = self.sheets['Experiments']
-        properties_starting_index = 6
-        experiments_header_row_nb = 8
-        # Setting headers for Experiments sheet Experiments rows
-        experiments_sheet.columns = experiments_sheet.values[experiments_header_row_nb]
+        experiments_df = experiments_sheet.dataframe
 
-
-        workflow_value = experiments_sheet.values[1][2]
 
         # PRELOADING - Set values for global data
+        properties_starting_index = 6
+        workflow_value = experiments_df.values[1][2]
+
         self.preload_data_from_template(workflow=workflow_value,
-                                        properties=experiments_sheet.values[experiments_header_row_nb][properties_starting_index:].tolist())
+                                        properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
 
 
-        experiment_rows_data = []
+
         # Iterate through experiment rows
-        for row_id in data_row_ids_range(experiments_header_row_nb+1, experiments_sheet):
+        for row_id, row in enumerate(experiments_sheet.rows):
             experiment_run_dict = {}
             properties = {}
-            row = experiments_sheet.iloc[row_id]
             for i, (key, val) in enumerate(row.items()):
                 if i < properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
-                    properties[key] = experiments_sheet.iloc[row_id][key]
+                    properties[key] = experiments_df.iloc[row_id][key]
 
             container = {
                 'barcode': experiment_run_dict['Experiment Container Barcode'],
@@ -117,18 +111,16 @@ class ExperimentRunImporter(GenericImporter):
                     self.is_valid = False
 
                 result = experiment_run_handler.get_result()
-                row_list_str = list(map(lambda x: convert_property_value_to_str(x), row.values.flatten().tolist()))
-                result['diff'] = row_list_str
+                experiments_sheet.rows_results[row_id].update(**result)
 
-                experiment_rows_data.append(result)
 
         if self.base_errors != []:
             self.is_valid = False
 
 
         return {
-            "headers": experiments_sheet.columns.tolist(),
+            "headers": experiments_sheet.headers,
             "valid": self.is_valid,
             "base_errors": self.base_errors,
-            "rows": experiment_rows_data,
+            "rows": experiments_sheet.rows_results,
         }

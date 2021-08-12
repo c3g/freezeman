@@ -5,11 +5,11 @@ from ._generic import GenericHandler
 from ...services import create_experiment_run
 
 
-
-
 class ExperimentRunHandler(GenericHandler):
     def __init__(self, experiment_type_obj, instrument, container, start_date,
                  sample_rows, properties, protocols_dict, properties_by_name_dict):
+
+        super().__init__()
 
         experiment_run = {'experiment_type': experiment_type_obj, 'instrument': None, 'container': None,
                           'process': None, 'start_date': start_date}

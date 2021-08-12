@@ -1,26 +1,25 @@
 from pandas import pandas as pd
 from django.db import transaction
-from .._utils import blank_and_nan_to_none
+
+from ..sheet_data import SheetData
+from .._utils import blank_and_nan_to_none, data_row_ids_range
 
 class GenericImporter():
-    base_errors = []
-    preloaded_data = {}
-    is_valid = True
-
     def __init__(self):
-        pass
+        self.base_errors = []
+        self.preloaded_data = {}
+        self.is_valid = True
+        self.file = None
+        self.sheets = {}
 
 
     def import_template(self, file, format, dry_run):
-        self.sheets = {}
-        for name in self.sheet_names:
-            try:
-                sheet = pd.read_excel(file, sheet_name=name)
-                # Convert blank and NaN cells to None and Store it in self.sheets
-                self.sheets[name] = sheet.applymap(lambda x: blank_and_nan_to_none(x))
-            except Exception as e:
-                self.base_errors.append(e)
+        self.file = file
 
+        for sheet_info in self.SHEETS_INFO:
+            sheet_name = sheet_info['name']
+            self.sheets[sheet_name] = self.create_sheet_data(sheet_name=sheet_name,
+                                                             header_row_nb=sheet_info['header_row_nb'])
 
         with transaction.atomic():
             import_result = self.import_template_inner()
@@ -31,7 +30,19 @@ class GenericImporter():
             return import_result
 
 
-    def preload_data_from_template(self, **args):
+    def create_sheet_data(self, sheet_name, header_row_nb):
+        try:
+            pd_sheet = pd.read_excel(self.file, sheet_name=sheet_name)
+            # Convert blank and NaN cells to None and Store it in self.sheets
+            dataframe = pd_sheet.applymap(lambda x: blank_and_nan_to_none(x))
+            return SheetData(dataframe=dataframe, header_row_nb=header_row_nb)
+
+        except Exception as e:
+            self.base_errors.append(e)
+            print('Importers/Generic create_sheet_data exception ', e)
+
+
+    def preload_data_from_template(self, **kwargs):
         pass
 
     def is_empty_row(self, non_empty_values_list):
