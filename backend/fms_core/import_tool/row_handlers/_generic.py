@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-class GenericHandler():
+class GenericRowHandler():
     def __init__(self, **kwargs):
         self.errors = {}
 

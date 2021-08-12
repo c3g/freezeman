@@ -1,6 +1,6 @@
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
-from fms_core.import_tool.handlers import ExperimentRunHandler
+from fms_core.import_tool.row_handlers import ExperimentRunRowHandler
 from .._utils import (data_row_ids_range, panda_values_to_str_list)
 
 
@@ -96,7 +96,7 @@ class ExperimentRunImporter(GenericImporter):
 
                 print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
 
-                experiment_run_handler = ExperimentRunHandler(
+                er_row_handler = ExperimentRunRowHandler(
                     experiment_type_obj=self.preloaded_data['experiment_type'],
                     instrument=instrument,
                     container=container,
@@ -107,10 +107,10 @@ class ExperimentRunImporter(GenericImporter):
                     properties_by_name_dict=self.preloaded_data['property_types_by_name'],
                 )
 
-                if experiment_run_handler.has_errors():
+                if er_row_handler.has_errors():
                     self.is_valid = False
 
-                result = experiment_run_handler.get_result()
+                result = er_row_handler.get_result()
                 experiments_sheet.rows_results[row_id].update(**result)
 
 

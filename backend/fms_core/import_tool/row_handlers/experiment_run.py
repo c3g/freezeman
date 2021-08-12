@@ -1,11 +1,11 @@
 from datetime import datetime
 
 from fms_core.models import ExperimentType, PropertyType, Instrument, Container, Sample
-from ._generic import GenericHandler
+from ._generic import GenericRowHandler
 from ...services import create_experiment_run
 
 
-class ExperimentRunHandler(GenericHandler):
+class ExperimentRunRowHandler(GenericRowHandler):
     def __init__(self, experiment_type_obj, instrument, container, start_date,
                  sample_rows, properties, protocols_dict, properties_by_name_dict):
 
