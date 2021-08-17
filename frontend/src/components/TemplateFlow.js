@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
-import {Alert, Button, Form, Steps, Upload, Row, Col, Popover} from "antd";
+import {Alert, Button, Form, Steps, Upload, Row, Col, Popover, Tabs} from "antd";
 import {Table} from "antd";
 
 import {
@@ -14,11 +14,28 @@ import {
 
 import {fetchListedData} from "../modules/shared/actions";
 import innerHTMLPurified from "../utils/innerHTMLPurified";
+import PageContent from "./PageContent";
 
-function renderResultWithErrors(checkResult) {
+const {TabPane} = Tabs;
+
+
+function renderSheetsinTabs(checkResult) {
+ return <Tabs size="large" type="card">
+   {checkResult.result_previews.map((preview, index) =>
+       <TabPane tab={preview.name} key={index}>
+         { checkResult.valid &&
+            renderResultOK(preview)
+         }
+         { !checkResult.valid && renderResultWithErrors(preview)}
+       </TabPane>
+   )}
+ </Tabs>
+}
+
+function renderResultWithErrors(previewSheetInfo) {
   const errors = []
 
-  checkResult.rows?.forEach((row, index) => {
+  previewSheetInfo.rows?.forEach((row, index) => {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
@@ -39,9 +56,9 @@ function renderResultWithErrors(checkResult) {
 
   return (
       <>
-      { checkResult.error &&
+      { previewSheetInfo.error &&
         <pre>
-          {checkResult.error.message}
+          {previewSheetInfo.error.message}
         </pre>
       }
       {errors}
@@ -49,11 +66,11 @@ function renderResultWithErrors(checkResult) {
   )
 }
 
-function renderResultOK(checkResult) {
+function renderResultOK(previewSheetInfo) {
   const results = []
   const columns = []
 
-  checkResult.has_warnings && columns.push(
+  previewSheetInfo.has_warnings && columns.push(
     {
       title: 'Warnings',
       dataIndex: 'warning',
@@ -67,7 +84,7 @@ function renderResultOK(checkResult) {
       },
     })
 
-  checkResult.diff_headers?.forEach((diff_header, index) => {
+  previewSheetInfo.headers?.forEach((diff_header, index) => {
     columns.push(
         {
           title: diff_header,
@@ -77,10 +94,10 @@ function renderResultOK(checkResult) {
     )
   })
 
-  checkResult.rows.forEach((row, index) => {
+  previewSheetInfo.rows.forEach((row, index) => {
     const row_data = {}
 
-    checkResult.has_warnings && row.warnings.length > 0 && (
+    previewSheetInfo.has_warnings && row.warnings.length > 0 && (
       row_data['warning'] = ( 
         <div key={`warning-${index}`}>
           {row.warnings.map(warning => <p>{warning}</p>)}
@@ -147,8 +164,8 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
         description={
           <>
             No errors were found while validating your template:
-            {checkResult.rows.length} row(s) found
-            {renderResultOK(checkResult)}
+            {/*{checkResult.rows.length} row(s) found*/}
+            {renderSheetsinTabs(checkResult)}
           </>
 
         }
@@ -165,7 +182,7 @@ const ReviewStep = ({action, actionIndex, isChecking, isChecked, checkResult}) =
               Errors were found while validating your template :(
             </p>
             {wasInterrupted(checkResult)}
-            {renderResultWithErrors(checkResult)}
+            {renderSheetsinTabs(checkResult)}
           </>
         }
         type="error"

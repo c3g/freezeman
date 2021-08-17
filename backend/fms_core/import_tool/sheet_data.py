@@ -2,15 +2,16 @@ from django.core.exceptions import ValidationError
 from ._utils import data_row_ids_range, panda_values_to_str_list
 
 class SheetData():
-    def __init__(self, dataframe, header_row_nb, minimum_required_columns):
+    def __init__(self, name, dataframe, header_row_nb, minimum_required_columns):
+        self.name = name
         self.dataframe = dataframe
         self.header_row_nb = header_row_nb
         self.minimum_required_columns = minimum_required_columns
 
+        self.dataframe.columns = self.dataframe.values[self.header_row_nb]
+
         self.base_errors = []
         self.is_valid = None
-
-        self.dataframe.columns = self.dataframe.values[self.header_row_nb]
 
         self.prepare_rows()
 
@@ -47,6 +48,7 @@ class SheetData():
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
         return {
+            "name": self.name,
             "headers": self.headers,
             "valid": self.is_valid,
             "base_errors": self.base_errors,

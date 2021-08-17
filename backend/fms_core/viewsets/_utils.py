@@ -103,20 +103,20 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
-        result = result[0]
-        is_import_valid = importer_instance.is_valid
+        # result = result[0]
+        # is_import_valid = importer_instance.is_valid
+        #
+        # res = {'diff_headers': result['headers'],
+        #        'valid': is_import_valid,
+        #        'has_warnings': any([r['warnings'] for r in result['rows']]),
+        #        'base_errors': [{
+        #             "error": str(e),
+        #             "traceback": 'e.traceback' if settings.DEBUG else "",
+        #         } for e in result['base_errors']],
+        #        'rows': result['rows'],
+        #        }
 
-        res = {'diff_headers': result['headers'],
-               'valid': is_import_valid,
-               'has_warnings': any([r['warnings'] for r in result['rows']]),
-               'base_errors': [{
-                    "error": str(e),
-                    "traceback": 'e.traceback' if settings.DEBUG else "",
-                } for e in result['base_errors']],
-               'rows': result['rows'],
-               }
-
-        return Response(res)
+        return Response(result)
 
 
     @action(detail=False, methods=["post"])
