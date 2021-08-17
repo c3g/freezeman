@@ -6,6 +6,7 @@ import { samplesTests } from "./samples.spec"
 import { protocolsTests } from "./protocols.spec"
 import { paginationTests } from "./pagination.spec"
 import { experimentsTests } from "./experiments.spec"
+import { projectsTests } from "./projects.spec"
 
 // Tests
 context('All tests', () => {
@@ -15,4 +16,5 @@ context('All tests', () => {
   protocolsTests()
   paginationTests()
   experimentsTests()
+  projectsTests()
 })

@@ -14,7 +14,8 @@ from .models import (
     Process,
     ProcessMeasurement,
     Sample,
-    SampleKind
+    SampleKind,
+    Project,
 )
 
 
@@ -40,6 +41,8 @@ __all__ = [
     "RevisionSerializer",
     "UserSerializer",
     "GroupSerializer",
+    "ProjectSerializer",
+    "ProjectExportSerializer",
 ]
 
 
@@ -268,3 +271,14 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ("id", "name", "permissions")
         depth = 1
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+class ProjectExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
+
