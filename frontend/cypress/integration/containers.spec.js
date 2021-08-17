@@ -2,7 +2,7 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Container_creation_v3_2_0_F_A_2.xlsx
+//  - Container_creation_v3_4_0_F_A_2.xlsx
 //  - Container_move_v3_2_0_F_A_1.xlsx
 //  - Container_rename_v3_2_0_F_A_1.xlsx
 
@@ -46,7 +46,7 @@ export const containersTests = () => {
 
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
-        cy.get('input[type=file]').attachFile('Container_creation_v3_2_0_F_A_2.xlsx')
+        cy.get('input[type=file]').attachFile('Container_creation_v3_4_0_F_A_2.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
