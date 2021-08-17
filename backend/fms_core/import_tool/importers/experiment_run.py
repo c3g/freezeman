@@ -106,20 +106,3 @@ class ExperimentRunImporter(GenericImporter):
             )
             experiments_sheet.rows_results[row_id].update(**result)
 
-
-        result_previews = self.preview_sheets_results()
-
-
-        result = {'valid': self.is_valid,
-               # 'has_warnings': any([r['warnings'] for r in result['rows']]),
-               'base_errors': [{
-                    "error": str(e),
-                    # "traceback": 'e.traceback' if settings.DEBUG else "",
-                } for e in self.base_errors],
-               'result_previews': result_previews,
-               }
-
-
-
-        return result
-

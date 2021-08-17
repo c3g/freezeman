@@ -21,7 +21,7 @@ const {TabPane} = Tabs;
 
 function renderSheetsinTabs(checkResult) {
  return <Tabs size="large" type="card">
-   {checkResult.result_previews.map((preview, index) =>
+   {checkResult.result_previews?.map((preview, index) =>
        <TabPane tab={preview.name} key={index}>
          { checkResult.valid &&
             renderResultOK(preview)

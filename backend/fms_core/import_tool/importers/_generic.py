@@ -24,24 +24,30 @@ class GenericImporter():
                                                              minimum_required_columns=sheet_info['minimum_required_columns'])
 
         if len(self.base_errors) > 0:
-            return [{"headers": [],
-                     "valid": False,
-                     "base_errors": self.base_errors,
-                     "rows": [],
-                     }]
+            result_previews = []
         else:
             with transaction.atomic():
                 if dry_run:
                     # This ensures that only one reversion is created, and is rollbacked in a dry_run
                     with reversion.create_revision(manage_manually=True):
-                        import_result = self.import_template_inner()
+                        self.import_template_inner()
                         reversion.set_comment("Template import - dry run")
                     transaction.set_rollback(True)
                 else:
-                    import_result = self.import_template_inner()
+                    self.import_template_inner()
                     reversion.set_comment("Template import")
 
-                return import_result
+                result_previews = self.preview_sheets_results()
+
+
+        import_result = {'valid': self.is_valid,
+                         # 'has_warnings': any([r['warnings'] for r in result['rows']]),
+                         'base_errors': [{
+                             "error": str(e),
+                             } for e in self.base_errors],
+                         'result_previews': result_previews,
+                         }
+        return import_result
 
 
     def create_sheet_data(self, sheet_name, header_row_nb, minimum_required_columns):
