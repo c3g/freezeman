@@ -17,4 +17,4 @@ class GenericRowHandler():
 
 
     def has_errors(self):
-        return False if (self.errors == {}) else True
+        return True if any(a != [] for a in self.errors.values()) else True

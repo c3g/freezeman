@@ -1,3 +1,5 @@
+from datetime import datetime
+from django.core.exceptions import ValidationError
 from fms_core.models import Container
 
 def get_or_create_container(barcode=None, kind=None, name=None,
@@ -23,7 +25,7 @@ def get_or_create_container(barcode=None, kind=None, name=None,
             defaults={'comment': f"{comment}",
                       'name': barcode or name},
         )
-    except Exception as e:
+    except ValidationError as e:
         errors.append(f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match.")
 
     return (container, errors)

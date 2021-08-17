@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from fms_core.models import PropertyValue
 
 def create_properties_from_values_and_types(properties, property_types_objs_dict, processes_by_protocol_id):
@@ -16,7 +17,7 @@ def create_properties_from_values_and_types(properties, property_types_objs_dict
         try:
             pv = PropertyValue.objects.create(value=str(value), property_type=property_type, content_object=process)
             property_values.append(pv)
-        except Exception as e:
-            errors.append(e.error_dict['value'])
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
 
     return (property_values, errors)

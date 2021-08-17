@@ -5,7 +5,7 @@ def get_instrument(name):
     errors = []
     try:
         instrument = Instrument.objects.get(name=name)
-    except Exception as e:
+    except Instrument.DoesNotExist as e:
         errors.append(f"No instrument named {name} could be found.")
 
     return (instrument, errors)

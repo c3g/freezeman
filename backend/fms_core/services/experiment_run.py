@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from datetime import datetime
 from ..models import (
     ExperimentRun,
@@ -48,6 +49,12 @@ def create_experiment_run_complete(experiment_type_obj, instrument, container, s
 
         print('SERVICES - experiment_run: ', experiment_run)
 
+    except ValidationError as e:
+        errors['experiment_run'] = ';'.join(e.messages)
+        print('SERVICES - experiment_run/exception: ', e)
+
+
+    if experiment_run:
         _, errors['properties'] = create_properties_from_values_and_types(properties, properties_by_name_dict,
                                                                                experiment_processes_by_protocol_id)
 
@@ -55,10 +62,6 @@ def create_experiment_run_complete(experiment_type_obj, instrument, container, s
 
         print('SERVICES - samples/result: ', samples)
 
-
-    except Exception as e:
-        errors['experiment_run'] = ';'.join(e.messages)
-        print('SERVICES - experiment_run/exception: ', e)
 
     return (experiment_run, errors)
 

@@ -21,13 +21,20 @@ class GenericImporter():
             self.sheets[sheet_name] = self.create_sheet_data(sheet_name=sheet_name,
                                                              header_row_nb=sheet_info['header_row_nb'])
 
-        with transaction.atomic():
-            import_result = self.import_template_inner()
+        if len(self.base_errors) > 0:
+            return {"headers": [],
+                    "valid": False,
+                    "base_errors": self.base_errors,
+                    "rows": [],
+                    }
+        else:
+            with transaction.atomic():
+                import_result = self.import_template_inner()
 
-            if dry_run:
-                transaction.set_rollback(True)
+                if dry_run:
+                    transaction.set_rollback(True)
 
-            return import_result
+                return import_result
 
 
     def create_sheet_data(self, sheet_name, header_row_nb):

@@ -102,10 +102,8 @@ class TemplateActionsMixin:
 
         importer_instance = action_def["importer"]()
 
-        try:
-            result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
-        except Exception as e:
-            print('utils viewsets ', e)
+        result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
+
 
 
         res = {'diff_headers': result['headers'],
