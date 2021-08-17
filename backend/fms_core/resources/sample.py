@@ -164,7 +164,9 @@ class SampleResource(GenericResource):
 
         # If there's the individual's complete information then get/create
         individual_is_complete = True if data["Individual ID"] and data["Sex"] and taxon else False
+        partial_individual = True if data["Individual ID"] or data["Sex"] or mother or father or taxon or pedigree or cohort else False
         individual = None
+
         if individual_is_complete:
             try:
                 individual, individual_created = Individual.objects.get_or_create(
@@ -180,8 +182,8 @@ class SampleResource(GenericResource):
             except Exception as e:
                 individual_created = False
                 errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
-        elif data["Individual ID"] or data["Sex"] or taxon and not individual_is_complete:
-            errors["individual"] = ValidationError("In order to save the individual's information all the fields are required (Taxon, Sex and ID)", code="invalid")
+        elif partial_individual and not individual_is_complete:
+            errors["individual"] = ValidationError("In order to save the individual's information, these fields are required: Taxon, Sex and Individual ID", code="invalid")
 
 
 
