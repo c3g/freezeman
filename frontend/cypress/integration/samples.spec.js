@@ -40,7 +40,7 @@ export const samplesTests = () => {
         cy.get('button').contains('Go Back').click()
         cy.navigateTo('Protocols')
         cy.wait(WAIT_TIME)
-        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type('update{enter}') // filter by protocol (column 1)
+        cy.get('.ant-table-cell').contains('Protocol').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type('update{enter}')) // filter by protocol
         cy.get('body').should('contain', '1-2 of 2 items')
       })
 
