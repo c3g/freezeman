@@ -161,20 +161,29 @@ class SampleResource(GenericResource):
 
         # TODO: This should throw a nicer warning if the individual already exists
         # TODO: Warn if the individual exists but pedigree/cohort is different
-        try:
-            individual, individual_created = Individual.objects.get_or_create(
-                name=get_normalized_str(data, "Individual ID"),
-                sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
-                taxon=taxon,
-                **({"pedigree": pedigree} if pedigree else {}),
-                **({"cohort": cohort} if cohort else {}),
-                **({"mother": mother} if mother else {}),
-                **({"father": father} if father else {}),
-            )
-            obj.individual = individual
-        except Exception as e:
-            individual_created = False
-            individual = None
+
+        # If there's the individual's complete information then get/create
+        individual_is_complete = True if data["Individual ID"] and data["Sex"] and taxon else False
+        individual = None
+        if individual_is_complete:
+            try:
+                individual, individual_created = Individual.objects.get_or_create(
+                    name=get_normalized_str(data, "Individual ID"),
+                    sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
+                    taxon=taxon,
+                    **({"pedigree": pedigree} if pedigree else {}),
+                    **({"cohort": cohort} if cohort else {}),
+                    **({"mother": mother} if mother else {}),
+                    **({"father": father} if father else {}),
+                )
+                obj.individual = individual
+            except Exception as e:
+                individual_created = False
+                errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
+        elif data["Individual ID"] or data["Sex"] or taxon and not individual_is_complete:
+            errors["individual"] = ValidationError("In order to save the individual's information all the fields are required (Taxon, Sex and ID)", code="invalid")
+
+
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
