@@ -1,8 +1,9 @@
 from pandas import pandas as pd
 from django.db import transaction
+import reversion
 
 from ..sheet_data import SheetData
-from .._utils import blank_and_nan_to_none, data_row_ids_range
+from .._utils import blank_and_nan_to_none
 
 class GenericImporter():
     def __init__(self):
@@ -30,10 +31,15 @@ class GenericImporter():
                      }]
         else:
             with transaction.atomic():
-                import_result = self.import_template_inner()
-
                 if dry_run:
+                    # This ensures that only one reversion is created, and is rollbacked in a dry_run
+                    with reversion.create_revision(manage_manually=True):
+                        import_result = self.import_template_inner()
+                        reversion.set_comment("Template import - dry run")
                     transaction.set_rollback(True)
+                else:
+                    import_result = self.import_template_inner()
+                    reversion.set_comment("Template import")
 
                 return import_result
 

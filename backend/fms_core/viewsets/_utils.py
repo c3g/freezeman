@@ -136,8 +136,8 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         try:
-            result = importer_instance.import_template(file=file, format='xlsx', dry_run=False)
-            if not result['valid']:
+            importer_instance.import_template(file=file, format='xlsx', dry_run=False)
+            if not importer_instance.is_valid:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                               content_type="application/json")
         except Exception as e:

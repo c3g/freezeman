@@ -1,7 +1,6 @@
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.import_tool.row_handlers import ExperimentRunRowHandler
-from .._utils import (data_row_ids_range, panda_values_to_str_list)
 
 
 class ExperimentRunImporter(GenericImporter):

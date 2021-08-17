@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from ._generic import GenericRowHandler
 from ...services import (
     create_experiment_run_complete,
