@@ -103,11 +103,11 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
-
-
+        result = result[0]
+        is_import_valid = importer_instance.is_valid
 
         res = {'diff_headers': result['headers'],
-               'valid': result['valid'],
+               'valid': is_import_valid,
                'has_warnings': any([r['warnings'] for r in result['rows']]),
                'base_errors': [{
                     "error": str(e),

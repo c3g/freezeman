@@ -7,9 +7,12 @@ from ...services import (
 
 
 class ExperimentRunRowHandler(GenericRowHandler):
-    def __init__(self, experiment_type_obj, instrument, container, start_date,
-                 sample_rows, properties, protocols_dict, properties_by_name_dict):
-        super().__init__()
+    def __init__(self, row_identifier):
+        super().__init__(row_identifier)
+
+
+    def process_row(self, experiment_type_obj, instrument, container, start_date,
+                    sample_rows, properties, protocols_dict, properties_by_name_dict):
 
         # Calling the service creator for ExperimentRun
         if self.errors == {}:
@@ -22,6 +25,4 @@ class ExperimentRunRowHandler(GenericRowHandler):
                                                                          protocols_dict,
                                                                          properties_by_name_dict)
 
-
-    def get_result(self):
         return super().get_result()

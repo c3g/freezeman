@@ -6,8 +6,10 @@ from .._utils import (data_row_ids_range, panda_values_to_str_list)
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'Experiments', 'header_row_nb': 8},
-        {'name': 'Samples', 'header_row_nb': 2},
+        {'name': 'Experiments', 'header_row_nb': 8,
+         'minimum_required_columns': ['Experiment ID', 'Experiment Container Barcode']},
+        {'name': 'Samples', 'header_row_nb': 2,
+         'minimum_required_columns': ['Experiment ID', 'Source Container Barcode']},
     ]
 
     def __init__(self):
@@ -67,7 +69,6 @@ class ExperimentRunImporter(GenericImporter):
                                         properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
 
 
-
         # Iterate through experiment rows
         for row_id, row in enumerate(experiments_sheet.rows):
             experiment_run_dict = {}
@@ -86,41 +87,25 @@ class ExperimentRunImporter(GenericImporter):
 
             start_date = experiment_run_dict['Experiment Start Date']
 
-            required_data = [container['barcode'], instrument['name'], start_date]
-            if self.is_empty_row(required_data):
-                pass
-            else:
-                experiment_temporary_id = experiment_run_dict['Experiment ID']
-                filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
-                experiment_sample_rows_data = list(filtered_data)
 
-                print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
+            experiment_temporary_id = experiment_run_dict['Experiment ID']
+            filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
+            experiment_sample_rows_data = list(filtered_data)
 
-                er_row_handler = ExperimentRunRowHandler(
-                    experiment_type_obj=self.preloaded_data['experiment_type'],
-                    instrument=instrument,
-                    container=container,
-                    start_date=start_date,
-                    sample_rows=experiment_sample_rows_data,
-                    properties=properties,
-                    protocols_dict=self.preloaded_data['protocols_dict'],
-                    properties_by_name_dict=self.preloaded_data['property_types_by_name'],
-                )
+            print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
 
-                if er_row_handler.has_errors():
-                    self.is_valid = False
-
-                result = er_row_handler.get_result()
-                experiments_sheet.rows_results[row_id].update(**result)
+            er_row_handler = ExperimentRunRowHandler(row_identifier=row_id+1)
+            result = er_row_handler.process_row(
+                experiment_type_obj=self.preloaded_data['experiment_type'],
+                instrument=instrument,
+                container=container,
+                start_date=start_date,
+                sample_rows=experiment_sample_rows_data,
+                properties=properties,
+                protocols_dict=self.preloaded_data['protocols_dict'],
+                properties_by_name_dict=self.preloaded_data['property_types_by_name'],
+            )
+            experiments_sheet.rows_results[row_id].update(**result)
 
 
-        if self.base_errors != []:
-            self.is_valid = False
-
-
-        return {
-            "headers": experiments_sheet.headers,
-            "valid": self.is_valid,
-            "base_errors": self.base_errors,
-            "rows": experiments_sheet.rows_results,
-        }
+        return self.preview_sheets_results()
