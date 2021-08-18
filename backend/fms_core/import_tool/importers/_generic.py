@@ -21,7 +21,7 @@ class GenericImporter():
             sheet_name = sheet_info['name']
             sheet_created = self.create_sheet_data(sheet_name=sheet_name,
                                                    header_row_nb=sheet_info['header_row_nb'],
-                                                   minimum_required_columns=sheet_info['minimum_required_columns'])
+                                                   minimally_required_columns=sheet_info['minimally_required_columns'])
 
             if sheet_created is not None:
                 self.sheets[sheet_name] = sheet_created
@@ -41,7 +41,7 @@ class GenericImporter():
 
             # Add processed rows with errors/warnings/diffs to self.previews_info list
             for sheet in list(self.sheets.values()):
-                preview_info = sheet.preview_info_for_rows_results(rows_results=sheet.rows_results)
+                preview_info = sheet.generate_preview_info_from_rows_results(rows_results=sheet.rows_results)
                 self.previews_info.append(preview_info)
 
 
@@ -55,7 +55,7 @@ class GenericImporter():
         return import_result
 
 
-    def create_sheet_data(self, sheet_name, header_row_nb, minimum_required_columns):
+    def create_sheet_data(self, sheet_name, header_row_nb, minimally_required_columns):
         try:
             pd_sheet = pd.read_excel(self.file, sheet_name=sheet_name)
             # Convert blank and NaN cells to None and Store it in self.sheets
@@ -63,7 +63,7 @@ class GenericImporter():
             return SheetData(name=sheet_name,
                              dataframe=dataframe,
                              header_row_nb=header_row_nb,
-                             minimum_required_columns=minimum_required_columns)
+                             minimally_required_columns=minimally_required_columns)
 
         except Exception as e:
             self.base_errors.append(e)
@@ -81,9 +81,6 @@ class GenericImporter():
                             f"Importer property is_valid can only be obtained after all its sheets are validated.")
         else:
             return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
-
-    def is_empty_row(self, non_empty_values_list):
-        return any(list(map(lambda x: x is None, non_empty_values_list)))
 
 
 

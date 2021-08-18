@@ -18,7 +18,6 @@ class ExperimentRunRowHandler(GenericRowHandler):
         if len(sample_rows_info) < 1:
             self.errors['samples'] = f"No samples are associated to this experiment"
 
-        # Calling the service creator for ExperimentRun
         if self.errors == {}:
             top_process_obj, experiment_processes_by_protocol_id, self.errors[
                 'process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,

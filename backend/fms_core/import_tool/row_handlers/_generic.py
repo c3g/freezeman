@@ -1,5 +1,14 @@
 from django.core.exceptions import ValidationError
 
+'''
+    RowHandler objects
+    
+    attributes (input): 
+        row data obtained from the Importer objects.
+    get_result (output): 
+        A row result dictionary containing errors, validation error, warnings, and row data 
+'''
+
 class GenericRowHandler():
     def __init__(self, row_identifier):
         self.row_identifier = row_identifier
