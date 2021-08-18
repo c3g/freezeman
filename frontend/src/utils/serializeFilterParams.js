@@ -42,33 +42,23 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
-        const isBatch = description.batch && hasWhiteSpace(value) //value.includes(',')
+        const isBatch = description.batch && hasWhiteSpace(value)
 
-        if (isBatch) {
-          key += "__in"
-        }
-        else if (options) {
-          if (options.recursiveMatch)
-              key += "__recursive"
-          else if (options.exactMatch)
-              key += "__startswith"
-          else
-              key += "__icontains"
-        }
-        else {
-          key += "__icontains"
-        }
-
-        if(value && isBatch){
-          const items = value.split(' ') //expected CHUM-2015201670A RIM-8143272302
-          console.log(items)
-          console.log(items.join())
-          params[key] = value //joins elements as a string with ',' as delimiter i.e. CHUM-2015201670A, RIM-8143272302
-        }
-        else if(value) {
-          params[key] = value
+        if(!isBatch){
+          if (options) {
+            if (options.recursiveMatch)
+                key += "__recursive"
+            else if (options.exactMatch)
+                key += "__startswith"
+            else
+                key += "__icontains"
+          }
+          else{
+            key += "__icontains"
+          }
         }
 
+        params[key] = value
 
         break;
       }

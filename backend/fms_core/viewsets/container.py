@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from fms_core.models import Container, Sample
+from fms_core.filters import ContainerBatchFilter
 
 from fms_core.resources import (
     ContainerResource,
@@ -43,6 +44,8 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         **_prefix_keys("location__", _container_filterset_fields),
         **_prefix_keys("samples__", _sample_minimal_filterset_fields),
     }
+
+    filter_class = ContainerBatchFilter
 
     template_action_list = [
         {

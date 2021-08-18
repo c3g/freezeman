@@ -11,6 +11,7 @@ from fms_core.models import Sample
 from fms_core.serializers import SampleSerializer
 from fms_core.resources import SampleResource, SampleUpdateResource
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
+from fms_core.filters import SampleBatchFilter
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
@@ -27,6 +28,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     filterset_fields = {
         **_sample_filterset_fields,
     }
+
+    filter_class = SampleBatchFilter
 
     template_action_list = [
         {

@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 
 from fms_core.models import Individual
 from fms_core.serializers import IndividualSerializer
+from fms_core.filters import IndividualBatchFilter
 
 from ._utils import TemplateActionsMixin, versions_detail
 from ._constants import _individual_filterset_fields
@@ -16,6 +17,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
     queryset = Individual.objects.all()
     serializer_class = IndividualSerializer
     filterset_fields = _individual_filterset_fields
+    filter_class = IndividualBatchFilter
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

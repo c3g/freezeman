@@ -25,7 +25,6 @@ export const SAMPLE_FILTERS = {
     key: "container__name",
     label: "Container Name",
     recursive: true,
-    batch: true,
   },
   container__barcode: {
     type: FILTER_TYPE.INPUT,
@@ -101,6 +100,7 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "barcode",
     label: "Barcode",
+    batch: true,
   },
   name: {
     type: FILTER_TYPE.INPUT,
@@ -252,5 +252,5 @@ export const USER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "email",
     label: "Email"
-  }, 
+  },
 }
