@@ -1,7 +1,6 @@
 from collections import Counter
 
 from django.db.models import Count
-from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -22,8 +21,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
     )
-
-    filter_backends = [DjangoFilterBackend]
 
     filterset_fields = {
         **_sample_filterset_fields,
@@ -50,9 +47,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
-        batch = self.request.query_params.get('name__in')
-
-        print(batch)
 
         if recursive:
             containers = Container.objects.all()
