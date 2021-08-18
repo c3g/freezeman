@@ -18,6 +18,7 @@ from .viewsets import (
     GroupViewSet,
     VersionViewSet,
     RevisionViewSet,
+    ProjectViewSet,
 )
 
 __all__ = ["router"]
@@ -27,6 +28,7 @@ router.register(r"container-kinds", ContainerKindViewSet, basename="container-ki
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"experiment-types", ExperimentTypeViewSet)
+router.register(r"projects", ProjectViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
 router.register(r"processes", ProcessViewSet)

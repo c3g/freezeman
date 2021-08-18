@@ -20,6 +20,7 @@ from .experiment_type import ExperimentType
 from .experiment_run import ExperimentRun
 from .property_type import PropertyType
 from .property_value import PropertyValue
+from .project import Project
 
 __all__ = [
     "Container",
@@ -43,4 +44,5 @@ __all__ = [
     "ExperimentRun",
     "PropertyType",
     "PropertyValue",
+    "Project",
 ]
