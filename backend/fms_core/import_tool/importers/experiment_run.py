@@ -1,6 +1,6 @@
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
-from fms_core.import_tool.row_handlers import ExperimentRunRowHandler
+from fms_core.import_tool.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
 
 
 class ExperimentRunImporter(GenericImporter):
@@ -43,15 +43,20 @@ class ExperimentRunImporter(GenericImporter):
         samples_sheet = self.sheets['Samples']
         sample_rows_data = []
         for i, row_data in enumerate(samples_sheet.rows):
-            sample = {'row_id': i,
-                      'experiment_id': row_data['Experiment ID'],
-                      'container_barcode': row_data['Source Container Barcode'],
-                      'container_coordinates': row_data['Source Container Position'],
+            sample = {'experiment_id': row_data['Experiment ID'],
                       'volume_used': row_data['Source Sample Volume Used'],
                       'experiment_container_coordinates': row_data['Experiment Container Position']
                       }
-            sample_rows_data.append(sample)
 
+            sample_row_handler = SampleRowHandler(row_identifier=i+1)
+            result = sample_row_handler.process_row(barcode=row_data['Source Container Barcode'],
+                                                    coordinates=row_data['Source Container Position'],
+                                                    volume_used=sample['volume_used'])
+
+            samples_sheet.rows_results[i].update(**result)
+
+            sample['sample_obj'] = sample_row_handler.row_object
+            sample_rows_data.append(sample)
 
         """
             EXPERIMENTS SHEET
@@ -89,9 +94,9 @@ class ExperimentRunImporter(GenericImporter):
 
             experiment_temporary_id = experiment_run_dict['Experiment ID']
             filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
-            experiment_sample_rows_data = list(filtered_data)
+            experiment_sample_rows_info = list(filtered_data)
 
-            print('importers exp run - sample rows for exp ', experiment_sample_rows_data)
+            print('importers exp run - sample rows for exp ', experiment_sample_rows_info)
 
             er_row_handler = ExperimentRunRowHandler(row_identifier=row_id+1)
             result = er_row_handler.process_row(
@@ -99,7 +104,7 @@ class ExperimentRunImporter(GenericImporter):
                 instrument=instrument,
                 container=container,
                 start_date=start_date,
-                sample_rows=experiment_sample_rows_data,
+                sample_rows_info=experiment_sample_rows_info,
                 properties=properties,
                 protocols_dict=self.preloaded_data['protocols_dict'],
                 properties_by_name_dict=self.preloaded_data['property_types_by_name'],

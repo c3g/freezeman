@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 class GenericRowHandler():
     def __init__(self, row_identifier):
         self.row_identifier = row_identifier
+        self.row_object = None
         self.errors = {}
 
     def process_row(self, **kwargs):
