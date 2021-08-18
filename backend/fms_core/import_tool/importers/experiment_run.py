@@ -49,7 +49,7 @@ class ExperimentRunImporter(GenericImporter):
                       'experiment_container_coordinates': row_data['Experiment Container Position']
                       }
 
-            sample_row_handler = SampleRowHandler(row_identifier=i+1)
+            sample_row_handler = SampleRowHandler()
             result = sample_row_handler.process_row(barcode=row_data['Source Container Barcode'],
                                                     coordinates=row_data['Source Container Position'],
                                                     volume_used=sample['volume_used'])
@@ -68,8 +68,8 @@ class ExperimentRunImporter(GenericImporter):
 
 
         # PRELOADING - Set values for global data
-        properties_starting_index = 6
-        workflow_value = experiments_df.values[1][2]
+        properties_starting_index = 5
+        workflow_value = experiments_df.values[1][1]
 
         self.preload_data_from_template(workflow=workflow_value,
                                         properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
@@ -100,7 +100,7 @@ class ExperimentRunImporter(GenericImporter):
 
             print('importers exp run - sample rows for exp ', experiment_sample_rows_info)
 
-            er_row_handler = ExperimentRunRowHandler(row_identifier=row_id+1)
+            er_row_handler = ExperimentRunRowHandler()
             result = er_row_handler.process_row(
                 experiment_type_obj=self.preloaded_data['experiment_type'],
                 instrument=instrument,

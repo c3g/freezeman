@@ -55,13 +55,20 @@ function renderResultWithErrors(previewSheetInfo) {
 
   return (
       <>
-      { previewSheetInfo.error &&
-        <pre>
-          {previewSheetInfo.error.message}
-        </pre>
-      }
-      {errors}
-      {renderPreviewSheetTable(previewSheetInfo)}
+        { previewSheetInfo.error &&
+          <pre>
+            {previewSheetInfo.error.message}
+          </pre>
+        }
+        { errors.length > 0 &&
+          <p>
+            <h4>ERRORS: </h4>
+            {errors}
+          </p>
+        }
+        <p>
+          {renderPreviewSheetTable(previewSheetInfo)}
+        </p>
     </>
   )
 }

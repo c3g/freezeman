@@ -33,6 +33,8 @@ class SheetData():
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
 
+            print('row_data', row_data)
+
             required_values = [row_data[key] for key in self.minimally_required_columns]
             if any(list(map(lambda x: x is None, required_values))):
                 # Skipped row because minimally required cell values are not filled

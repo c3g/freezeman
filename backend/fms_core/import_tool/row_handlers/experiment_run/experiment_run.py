@@ -8,8 +8,8 @@ from fms_core.services.experiment_run import (create_experiment_run, associate_s
 
 
 class ExperimentRunRowHandler(GenericRowHandler):
-    def __init__(self, row_identifier):
-        super().__init__(row_identifier)
+    def __init__(self):
+        super().__init__()
 
 
     def process_row(self, experiment_type_obj, instrument, container, start_date,

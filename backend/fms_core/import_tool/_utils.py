@@ -2,7 +2,7 @@ from pandas import pandas as pd
 from typing import Any
 
 def data_row_ids_range(starting_row, df):
-    return range(starting_row, len(df.loc[starting_row:]))
+    return range(starting_row, len(df))
 
 def panda_values_to_str_list(row_data):
     return list(map(lambda x: '' if x is None else str(x), row_data.values.flatten().tolist()))

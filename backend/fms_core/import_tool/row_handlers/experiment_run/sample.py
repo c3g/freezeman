@@ -4,8 +4,8 @@ from fms_core.services.sample import get_sample_from_container
 
 
 class SampleRowHandler(GenericRowHandler):
-    def __init__(self, row_identifier):
-        super().__init__(row_identifier)
+    def __init__(self):
+        super().__init__()
 
 
     def process_row(self, barcode, coordinates, volume_used):
