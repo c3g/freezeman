@@ -69,7 +69,7 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
             sample_data_errors.append(f"Volume used ({volume_used}) is invalid ")
         if source_sample and volume_used > source_sample.volume:
             sample_data_errors.append(
-                f"Volume used ({volume_used}) exceeds the volume of the sample ({source_sample.volume})")
+                f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample.volume})")
 
         print('sample data errors in services ', sample_data_errors)
         # Creates the new objects

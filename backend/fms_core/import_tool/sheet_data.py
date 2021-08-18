@@ -40,12 +40,16 @@ class SheetData():
             else:
                 self.rows.append(row_data)
 
-                result = {'diff': panda_values_to_str_list(row_data),
-                          'errors': [],
-                          'validation_error': ValidationError([]),
-                          'warnings': [],
-                          'import_type': 'new',
-                          }
+                row_repr = f"#{row_id + 2}"
+
+                result = {
+                    'row_repr': row_repr,
+                    'diff': [row_repr] + panda_values_to_str_list(row_data),
+                    'errors': [],
+                    'validation_error': ValidationError([]),
+                    'warnings': [],
+                    # 'import_type': 'new',
+                }
                 self.rows_results.append(result)
 
 
@@ -58,9 +62,11 @@ class SheetData():
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
+        headers_for_preview = [''] + self.headers
+
         return {
             "name": self.name,
-            "headers": self.headers,
+            "headers": headers_for_preview,
             "valid": self.is_valid,
             "base_errors": self.base_errors,
             "rows": rows_results,

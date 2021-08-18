@@ -19,6 +19,6 @@ class SampleRowHandler(GenericRowHandler):
             if not volume_used:
                 self.errors['volume_used'] = f"Volume used must be entered"
             elif sample and volume_used > sample.volume:
-                self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the volume of the sample ({sample.volume})"
+                self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample.volume})"
 
         return super().get_result()

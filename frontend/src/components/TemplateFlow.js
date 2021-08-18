@@ -1,8 +1,7 @@
 import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
-import {Alert, Button, Form, Steps, Upload, Row, Col, Popover, Tabs} from "antd";
-import {Table} from "antd";
+import {Alert, Button, Form, Steps, Upload, Row, Col, Popover, Tabs, Table} from "antd";
 
 import {
   ArrowRightOutlined,
@@ -24,7 +23,7 @@ function renderSheetsinTabs(checkResult) {
    {checkResult.result_previews?.map((preview, index) =>
        <TabPane tab={preview.name} key={index}>
          { checkResult.valid &&
-            renderResultOK(preview)
+            renderPreviewSheetTable(preview)
          }
          { !checkResult.valid && renderResultWithErrors(preview)}
        </TabPane>
@@ -39,7 +38,7 @@ function renderResultWithErrors(previewSheetInfo) {
     row.errors.forEach(e => {
       errors.push(
         <div key={'row-' + index}>
-          Row {index}: {e.error}
+          Row {row.row_repr}: {e.error}
         </div>
       )
     })
@@ -47,7 +46,7 @@ function renderResultWithErrors(previewSheetInfo) {
       field[1].forEach(reason => {
         errors.push(
           <div key={'row-' + index + field[0] + reason}>
-            Row {index}: {field[0]} - {reason}
+            Row {row.row_repr}: {field[0]} - {reason}
           </div>
         )
       })
@@ -62,11 +61,12 @@ function renderResultWithErrors(previewSheetInfo) {
         </pre>
       }
       {errors}
+      {renderPreviewSheetTable(previewSheetInfo)}
     </>
   )
 }
 
-function renderResultOK(previewSheetInfo) {
+function renderPreviewSheetTable(previewSheetInfo) {
   const results = []
   const columns = []
 
@@ -85,13 +85,16 @@ function renderResultOK(previewSheetInfo) {
     })
 
   previewSheetInfo.headers?.forEach((diff_header, index) => {
-    columns.push(
-        {
-          title: diff_header,
-          dataIndex: `column-${index}`,
-          key: `column-${index}`,
-        }
-    )
+    let columnContent = {
+      title: diff_header,
+      dataIndex: `column-${index}`,
+      key: `column-${index}`,
+    }
+    if (index == 0) {
+      columnContent.fixed = 'left'
+    }
+
+    columns.push(columnContent)
   })
 
   previewSheetInfo.rows.forEach((row, index) => {
