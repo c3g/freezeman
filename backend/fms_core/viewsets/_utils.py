@@ -1,15 +1,13 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
-from django.db import transaction
-from django.db.models import Count, Q, Func, F, Prefetch
+from django.db.models import Func
 from django.conf import settings
 from django.http import HttpResponseBadRequest
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
-from import_export.results import RowResult
-from datetime import datetime
+
 
 import json
 
@@ -108,12 +106,10 @@ class TemplateActionsMixin:
             result = {
                 'valid': False,
                 'base_errors': [{
-                    "error": str(e)
+                    "error": str(e.error),
+                    "traceback": e.traceback if settings.DEBUG else "",
                     }],
             }
-
-        return Response(result)
-
 
         return Response(result)
 

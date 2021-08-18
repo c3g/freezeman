@@ -19,13 +19,15 @@ class GenericImporter():
 
         for sheet_info in self.SHEETS_INFO:
             sheet_name = sheet_info['name']
-            self.sheets[sheet_name] = self.create_sheet_data(sheet_name=sheet_name,
-                                                             header_row_nb=sheet_info['header_row_nb'],
-                                                             minimum_required_columns=sheet_info['minimum_required_columns'])
+            sheet_created = self.create_sheet_data(sheet_name=sheet_name,
+                                                   header_row_nb=sheet_info['header_row_nb'],
+                                                   minimum_required_columns=sheet_info['minimum_required_columns'])
 
-        if len(self.base_errors) > 0:
-            result_previews = []
-        else:
+            if sheet_created is not None:
+                self.sheets[sheet_name] = sheet_created
+
+
+        if len(self.base_errors) == 0:
             with transaction.atomic():
                 if dry_run:
                     # This ensures that only one reversion is created, and is rollbacked in a dry_run
@@ -37,7 +39,10 @@ class GenericImporter():
                     self.import_template_inner()
                     reversion.set_comment("Template import")
 
-                result_previews = self.preview_sheets_results()
+            # Add processed rows with errors/warnings/diffs to self.previews_info list
+            for sheet in list(self.sheets.values()):
+                preview_info = sheet.preview_info_for_rows_results(rows_results=sheet.rows_results)
+                self.previews_info.append(preview_info)
 
 
         import_result = {'valid': self.is_valid,
@@ -45,7 +50,7 @@ class GenericImporter():
                          'base_errors': [{
                              "error": str(e),
                              } for e in self.base_errors],
-                         'result_previews': result_previews,
+                         'result_previews': self.previews_info,
                          }
         return import_result
 
@@ -63,22 +68,19 @@ class GenericImporter():
         except Exception as e:
             self.base_errors.append(e)
             print('Importers/Generic create_sheet_data exception ', e)
+            return None
 
 
     def preload_data_from_template(self, **kwargs):
         pass
 
-    def preview_sheets_results(self):
-        for (_, sheet_name) in enumerate(self.sheets):
-            sheet = self.sheets[sheet_name]
-            preview_info = sheet.preview_info_for_rows_results(rows_results=sheet.rows_results)
-            self.previews_info.append(preview_info)
-
-        return self.previews_info
-
     @property
     def is_valid(self):
-        return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
+        if any(s.is_valid is None for s in list(self.sheets.values())):
+            raise Exception(f"Some data sheets were not validated yet. "
+                            f"Importer property is_valid can only be obtained after all its sheets are validated.")
+        else:
+            return len(self.base_errors) == 0 and all(s.is_valid == True for s in list(self.sheets.values()))
 
     def is_empty_row(self, non_empty_values_list):
         return any(list(map(lambda x: x is None, non_empty_values_list)))

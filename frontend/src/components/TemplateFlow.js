@@ -119,6 +119,9 @@ function renderResultOK(previewSheetInfo) {
 const wasInterrupted = checkResult => {
     return (
         <>
+          <p>
+              {checkResult?.error?.message}
+          </p>
           { checkResult?.base_errors?.length > 0 && checkResult.base_errors.map(baseError =>
               <p>
                 {baseError.error}
@@ -224,7 +227,7 @@ const ConfirmationStep = ({isSubmitting, isSubmitted, submitResult}) => (
               Errors were found while submitting your template :(
             </p>
             {wasInterrupted(submitResult)}
-            {renderResultWithErrors(submitResult)}
+            {renderSheetsinTabs(checkResult)}
           </>
         }
         type="error"
