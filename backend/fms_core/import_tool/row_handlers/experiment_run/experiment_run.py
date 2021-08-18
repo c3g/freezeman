@@ -24,7 +24,7 @@ class ExperimentRunRowHandler(GenericRowHandler):
                 'process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
                                                                                  creation_comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z")
 
-            experiment_run, self.errors = create_experiment_run(experiment_type_obj,
+            experiment_run, self.errors['experiment_run'] = create_experiment_run(experiment_type_obj,
                                                                 top_process_obj,
                                                                 instrument,
                                                                 container,

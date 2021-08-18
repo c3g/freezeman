@@ -10,6 +10,7 @@ class GenericRowHandler():
         pass
 
     def get_result(self):
+        print('ROW_HANDLER get_result errors', self.errors)
         return {'errors': [],
                 'validation_error': ValidationError(self.errors),
                 'warnings': [],

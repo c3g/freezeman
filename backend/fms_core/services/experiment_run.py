@@ -17,15 +17,19 @@ from .container import get_or_create_container
 
 def create_experiment_run(experiment_type_obj, process_obj, instrument, container, start_date):
     experiment_run = None
-    errors = {}
+    errors = []
 
-    instrument, errors['instrument'] = get_instrument(instrument['name'])
+    instrument, instrument_errors = get_instrument(instrument['name'])
+    if instrument_errors:
+        errors.append(instrument_errors)
 
     comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
 
-    container, errors['container'] = get_or_create_container(barcode=container['barcode'],
-                                                                  kind=container['kind'],
-                                                                  creation_comment=comment)
+    container, container_errors = get_or_create_container(barcode=container['barcode'],
+                                                          kind=container['kind'],
+                                                          creation_comment=comment)
+    if container_errors:
+        errors.append(container_errors)
 
     try:
         experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type_obj,
@@ -37,7 +41,7 @@ def create_experiment_run(experiment_type_obj, process_obj, instrument, containe
         print('SERVICES - experiment_run: ', experiment_run)
 
     except ValidationError as e:
-        errors['experiment_run'] = ';'.join(e.messages)
+        errors.append(';'.join(e.messages))
         print('SERVICES - experiment_run/exception: ', e)
 
 

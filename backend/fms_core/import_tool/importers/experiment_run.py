@@ -40,6 +40,7 @@ class ExperimentRunImporter(GenericImporter):
         """
             SAMPLES SHEET
         """
+        print('START SAMPLE SHEET')
         samples_sheet = self.sheets['Samples']
         sample_rows_data = []
         for i, row_data in enumerate(samples_sheet.rows):
@@ -61,6 +62,7 @@ class ExperimentRunImporter(GenericImporter):
         """
             EXPERIMENTS SHEET
         """
+        print('START EXPERIMETN SHEET')
         experiments_sheet = self.sheets['Experiments']
         experiments_df = experiments_sheet.dataframe
 
