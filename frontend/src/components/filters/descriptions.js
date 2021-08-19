@@ -17,6 +17,7 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   individual__name: {
     type: FILTER_TYPE.INPUT,
@@ -124,11 +125,13 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "barcode",
     label: "Barcode",
+    batch: true,
   },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   kind: {
     type: FILTER_TYPE.SELECT,
@@ -164,6 +167,7 @@ export const INDIVIDUAL_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   taxon: {
     type: FILTER_TYPE.SELECT,
