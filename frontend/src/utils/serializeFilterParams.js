@@ -7,9 +7,9 @@ import {FILTER_TYPE} from "../constants"
 export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
-  function hasWhiteSpace(s) {
-    return /\s/g.test(s);
-  }
+  function hasSpaces(string) {
+      return string.indexOf(' ') >= 1;
+  };
 
   Object.keys(filters).forEach(field => {
     const value = filters[field]?.value
@@ -41,7 +41,7 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
-        const isBatch = description.batch && hasWhiteSpace(value)
+        const isBatch = description.batch && hasSpaces(value)
 
         if(!isBatch){
           if (options) {

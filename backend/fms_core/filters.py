@@ -8,15 +8,22 @@ from .viewsets._constants import (
  _container_filterset_fields,
  _sample_filterset_fields,
  _individual_filterset_fields,
+ _sample_minimal_filterset_fields,
 )
 
-class ContainerBatchFilter(django_filters.FilterSet):
+from .viewsets._utils import _prefix_keys
+
+class ContainerFilter(django_filters.FilterSet):
  barcode = django_filters.CharFilter(field_name="barcode", method="batch_barcode_filter")
  name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
  class Meta:
      model = Container
-     fields = _container_filterset_fields
+     fields = {
+         **_container_filterset_fields,
+         **_prefix_keys("location__", _container_filterset_fields),
+         **_prefix_keys("samples__", _sample_minimal_filterset_fields),
+     }
 
  def batch_barcode_filter(self, queryset, name, value):
      query = Q()
@@ -30,7 +37,7 @@ class ContainerBatchFilter(django_filters.FilterSet):
          query |= Q(name__contains=name)
      return queryset.filter(query)
 
-class SampleBatchFilter(django_filters.FilterSet):
+class SampleFilter(django_filters.FilterSet):
  barcode = django_filters.CharFilter(field_name="barcode", method="batch_name_filter")
  name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
@@ -44,7 +51,7 @@ class SampleBatchFilter(django_filters.FilterSet):
          query |= Q(name__contains=name)
      return queryset.filter(query)
 
-class IndividualBatchFilter(django_filters.FilterSet):
+class IndividualFilter(django_filters.FilterSet):
  name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
  class Meta:
