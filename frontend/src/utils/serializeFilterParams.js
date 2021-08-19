@@ -51,9 +51,9 @@ export default function serializeFilterParams(filters, descriptions) {
                 key += "__startswith"
             else
                 key += "__icontains"
-        } else{
-           key += "__icontains"
-         }
+          } else {
+            key += "__icontains"
+          }
        }
 
        if(value)
