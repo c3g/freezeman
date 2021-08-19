@@ -39,4 +39,26 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.AlterField(
+            model_name='container',
+            name='kind',
+            field=models.CharField(choices=[('infinium gs 24 beadchip', 'infinium gs 24 beadchip'), ('96-well plate', '96-well plate'), ('384-well plate', '384-well plate'), ('tube', 'tube'), ('tube box 6x6', 'tube box 6x6'), ('tube box 7x7', 'tube box 7x7'), ('tube box 8x8', 'tube box 8x8'), ('tube box 9x9', 'tube box 9x9'), ('tube box 10x10', 'tube box 10x10'), ('tube rack 8x12', 'tube rack 8x12'), ('drawer', 'drawer'), ('freezer rack 4x4', 'freezer rack 4x4'), ('freezer rack 7x4', 'freezer rack 7x4'), ('freezer rack 8x6', 'freezer rack 8x6'), ('freezer rack 11x6', 'freezer rack 11x6'), ('freezer 3 shelves', 'freezer 3 shelves'), ('freezer 5 shelves', 'freezer 5 shelves'), ('room', 'room'), ('box', 'box')], help_text='What kind of container this is. Dictates the coordinate system and other container-specific properties.', max_length=25),
+        ),
+        migrations.CreateModel(
+            name='SampleByProject',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplebyproject_creation', to=settings.AUTH_USER_MODEL)),
+                ('project', models.ForeignKey(help_text='Project to which the sample is associated.', on_delete=django.db.models.deletion.CASCADE, related_name='sample_association', to='fms_core.project')),
+                ('sample', models.ForeignKey(help_text='Sample assigned to a project.', on_delete=django.db.models.deletion.CASCADE, related_name='project_association', to='fms_core.sample')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplebyproject_modification', to=settings.AUTH_USER_MODEL)),
+            ],
+        ),
+        migrations.AddConstraint(
+            model_name='samplebyproject',
+            constraint=models.UniqueConstraint(fields=('sample', 'project'), name='sample_by_project_unique'),
+        ),
     ]
