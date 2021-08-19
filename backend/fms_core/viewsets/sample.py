@@ -7,9 +7,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.models import Sample, Container, DerivedSample, Biosample
-from fms_core.serializers import SampleSerializer, SampleExportSerializer
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter
-from fms_core.filters import SampleBatchFilter
+from fms_core.models import Sample, Container
+from fms_core.serializers import SampleSerializer, SampleExportSerializer
+from fms_core.filters import SampleFilter
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
@@ -23,12 +24,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
     )
-
-    filterset_fields = {
-        **_sample_filterset_fields,
-    }
-
-    filter_class = SampleBatchFilter
+    filter_class = SampleFilter
 
     template_action_list = [
         {
