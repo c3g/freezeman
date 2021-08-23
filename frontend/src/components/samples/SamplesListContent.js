@@ -24,7 +24,17 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
     {
-      title: "Sample Kind",
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      width: 90,
+      render: (_, sample) =>
+        <Link to={`/samples/${sample.id}`}>
+          <div>{sample.id}</div>
+        </Link>,
+    },
+    {
+      title: "Kind",
       dataIndex: "sample_kind__name",
       sorter: true,
       width: 80,

@@ -20,6 +20,12 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const TABLE_COLUMNS = [
   {
+    title: "ID",
+    dataIndex: "id",
+    sorter: true,
+    render: (id, individual) => <Link to={`/individuals/${individual.id}`}>{id}</Link>,
+  },
+  {
     title: "Name",
     dataIndex: "name",
     sorter: true,

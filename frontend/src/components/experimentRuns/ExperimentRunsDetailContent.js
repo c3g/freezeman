@@ -85,6 +85,9 @@ const ExperimentRunsDetailContent = ({
         <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
           <TabPane tab="Overview" key="1" style={tabStyle}>
             <Descriptions bordered={true} size="small">
+              <Descriptions.Item label="ID" span={3}>
+                  {experimentRun.id}
+              </Descriptions.Item>
               <Descriptions.Item label="Experiment Type" span={3}>
                 <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>
               </Descriptions.Item>

@@ -43,4 +43,9 @@ class Migration(migrations.Migration):
             name='individual',
             field=models.ForeignKey(blank=True, help_text='Individual associated with the sample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.individual'),
         ),
+        migrations.AlterField(
+             model_name='container',
+             name='kind',
+             field=models.CharField(choices=[('infinium gs 24 beadchip', 'infinium gs 24 beadchip'), ('96-well plate', '96-well plate'), ('384-well plate', '384-well plate'), ('tube', 'tube'), ('tube box 6x6', 'tube box 6x6'), ('tube box 7x7', 'tube box 7x7'), ('tube box 8x8', 'tube box 8x8'), ('tube box 9x9', 'tube box 9x9'), ('tube box 10x10', 'tube box 10x10'), ('tube rack 8x12', 'tube rack 8x12'), ('drawer', 'drawer'), ('freezer rack 4x4', 'freezer rack 4x4'), ('freezer rack 7x4', 'freezer rack 7x4'), ('freezer rack 8x6', 'freezer rack 8x6'), ('freezer rack 11x6', 'freezer rack 11x6'), ('freezer 3 shelves', 'freezer 3 shelves'), ('freezer 5 shelves', 'freezer 5 shelves'), ('room', 'room'), ('box', 'box')], help_text='What kind of container this is. Dictates the coordinate system and other container-specific properties.', max_length=25),
+         ),
     ]
