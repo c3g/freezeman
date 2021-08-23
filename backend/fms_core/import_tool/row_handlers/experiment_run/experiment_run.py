@@ -11,29 +11,28 @@ class ExperimentRunRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-
-    def process_row(self, experiment_type_obj, instrument, container, start_date,
-                    sample_rows_info, properties, protocols_dict, properties_by_name_dict):
-
-        if len(sample_rows_info) < 1:
+    def process_row(self, **kwargs):
+        if len(kwargs['sample_rows_info']) < 1:
             self.errors['samples'] = f"No samples are associated to this experiment"
 
-        if self.errors == {}:
-            top_process_obj, experiment_processes_by_protocol_id, self.errors[
-                'process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
-                                                                                 creation_comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z")
+        return super(self.__class__, self).process_row(**kwargs)
 
-            experiment_run, self.errors['experiment'] = create_experiment_run(experiment_type_obj,
-                                                                              top_process_obj,
-                                                                              instrument,
-                                                                              container,
-                                                                              start_date,)
 
-            if experiment_run:
-                _, self.errors['properties'] = create_properties_from_values_and_types(properties, properties_by_name_dict,
-                                                                                  experiment_processes_by_protocol_id)
-                print('experiment_run row-handler - properties/errors', self.errors['properties'])
-                samples, self.errors['samples'] = associate_samples_to_experiment_run(experiment_run, sample_rows_info)
-                print('experiment_run row-handler- samples/errors', self.errors['samples'])
+    def process_row_inner(self, experiment_type_obj, instrument, container, start_date,
+                    sample_rows_info, properties, protocols_dict, properties_by_name_dict):
+        top_process_obj, experiment_processes_by_protocol_id, self.errors[
+            'process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
+                                                                             creation_comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z")
 
-        return super().get_result()
+        experiment_run, self.errors['experiment'] = create_experiment_run(experiment_type_obj,
+                                                                          top_process_obj,
+                                                                          instrument,
+                                                                          container,
+                                                                          start_date,)
+
+        if experiment_run:
+            _, self.errors['properties'] = create_properties_from_values_and_types(properties, properties_by_name_dict,
+                                                                              experiment_processes_by_protocol_id)
+            print('experiment_run row-handler - properties/errors', self.errors['properties'])
+            samples, self.errors['samples'] = associate_samples_to_experiment_run(experiment_run, sample_rows_info)
+            print('experiment_run row-handler- samples/errors', self.errors['samples'])

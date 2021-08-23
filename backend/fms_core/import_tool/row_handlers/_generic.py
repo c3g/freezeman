@@ -11,12 +11,19 @@ from django.core.exceptions import ValidationError
 
 class GenericRowHandler():
     def __init__(self):
+        # optional - in case the Importer needs the current row main object from the RowHandler
         self.row_object = None
+
         self.errors = {}
 
 
     def process_row(self, **kwargs):
-        pass
+        print('process row generic')
+        if self.errors == {}:
+            print('self errors == {}')
+            self.process_row_inner(**kwargs)
+
+        return self.get_result()
 
 
     def get_result(self):
@@ -25,6 +32,7 @@ class GenericRowHandler():
                 'validation_error': ValidationError(self.errors),
                 'warnings': [],
                 }
+
 
     def has_errors(self):
         return True if any(a != [] for a in self.errors.values()) else True
