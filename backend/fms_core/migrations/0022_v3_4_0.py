@@ -4,7 +4,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 import re
 
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -38,5 +37,10 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='individual',
+            field=models.ForeignKey(blank=True, help_text='Individual associated with the sample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.individual'),
         ),
     ]
