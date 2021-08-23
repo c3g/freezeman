@@ -25,6 +25,12 @@ const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
 const getTableColumns = (samplesByID, containersByID, containerKinds) => [
     {
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      render: (id, container) => <Link to={`/containers/${container.id}`}>{id}</Link>,
+    },
+    {
       title: "Name",
       dataIndex: "name",
       sorter: true,
@@ -39,7 +45,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       title: "Sample(s)",
       dataIndex: "samples",
       render: (samples, container) =>
-        (CONTAINER_KIND_SHOW_SAMPLE.includes(container.kind) && samples.length > 0 && 
+        (CONTAINER_KIND_SHOW_SAMPLE.includes(container.kind) && samples.length > 0 &&
           <>
             {samples.map((id, i) =>
               <React.Fragment key={id}>

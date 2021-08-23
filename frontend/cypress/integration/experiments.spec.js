@@ -47,7 +47,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode1)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('body').should('contain', experimentBarcode1)
         cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
@@ -62,7 +62,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode2)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('body').should('contain', experimentBarcode2)
         cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
@@ -105,7 +105,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode1)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('tr').contains(experimentBarcode1).click()
         cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')
@@ -117,7 +117,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode2)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('tr').contains(experimentBarcode2).click()
         cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')
