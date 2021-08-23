@@ -280,3 +280,19 @@ class ExtractedSampleTest(TestCase):
             except ValidationError as e:
                 self.assertTrue('volume_used' in e.message_dict)
                 raise e
+
+    def test_no_individual(self):
+        valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTubeNoIndividual',
+                                                                                  barcode='TParentNoIndividual'))
+        sample_no_individual = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_DNA,
+                                                                    concentration=Decimal('1.0'),
+                                                                    container=valid_container,
+                                                                    individual=None,
+                                                                    name="test_sample_no_individual"))
+
+        self.assertEqual(sample_no_individual.name, "test_sample_no_individual")
+        self.assertEqual(sample_no_individual.is_depleted, "no")
+        self.assertEqual(sample_no_individual.volume, Decimal("5000.000"))
+        self.assertEqual(sample_no_individual.container_kind, "tube")
+        self.assertEqual(sample_no_individual.container_name, "TestTubeNoIndividual")
+        self.assertIsNone(sample_no_individual.container_location)
