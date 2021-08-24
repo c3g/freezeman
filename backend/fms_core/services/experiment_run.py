@@ -27,6 +27,7 @@ def create_experiment_run(experiment_type_obj, process_obj, instrument, containe
 
     container, container_errors = get_or_create_container(barcode=container['barcode'],
                                                           kind=container['kind'],
+                                                          coordinates=None,
                                                           creation_comment=comment)
     if container_errors:
         errors.append(container_errors)

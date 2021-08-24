@@ -15,6 +15,7 @@ class GenericRowHandler():
         self.row_object = None
 
         self.errors = {}
+        self.warnings = {}
 
 
     def process_row(self, **kwargs):
@@ -28,6 +29,7 @@ class GenericRowHandler():
 
     def get_result(self):
         print('ROW_HANDLER get_result errors', self.errors)
+        #TODO: include warnings from self.warnings
         return {'errors': [],
                 'validation_error': ValidationError(self.errors),
                 'warnings': [],

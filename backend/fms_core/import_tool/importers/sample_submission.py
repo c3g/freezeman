@@ -1,3 +1,4 @@
+from fms_core.models import SampleKind
 from ._generic import GenericImporter
 from fms_core.import_tool.row_handlers.sample_submission import SampleRowHandler
 
@@ -9,6 +10,15 @@ class SampleSubmissionImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
+        # Preload objects accessible to the whole template (not only by row)
+        self.preload_data_from_template()
+
+    def preload_data_from_template(self):
+        self.sample_kind_objects_by_kind = {}
+
+        for sample_kind in SampleKind.objects.all():
+            self.sample_kind_objects_by_kind.update({sample_kind.kind: sample_kind})
+
 
     def import_template_inner(self):
         samples_sheet = self.sheets['SampleSubmission']
@@ -58,7 +68,8 @@ class SampleSubmissionImporter(GenericImporter):
                 parent_container=parent_container,
                 individual=individual,
                 individual_mother=individual_mother,
-                individual_father=individual_father
+                individual_father=individual_father,
+                sample_kind_objects_by_kind=self.sample_kind_objects_by_kind,
             )
 
             samples_sheet.rows_result[row_id].update(**result)

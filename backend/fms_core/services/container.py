@@ -2,7 +2,19 @@ from datetime import datetime
 from django.core.exceptions import ValidationError
 from fms_core.models import Container
 
-def get_or_create_container(barcode=None, kind=None, name=None,
+def get_container(barcode=None):
+    container = None
+    errors = []
+
+    try:
+        container = Container.objects.get(barcode=barcode)
+    except Container.DoesNotExist:
+        errors.append(f"Could not find Container with barcode {barcode}")
+
+    return (container, errors)
+
+
+def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None,
                             container_parent=None,
                             creation_comment=None):
     container = None
@@ -15,8 +27,13 @@ def get_or_create_container(barcode=None, kind=None, name=None,
         container_data['barcode'] = barcode
     if name:
         container_data['name'] = name
+    if coordinates:
+        container_data['coordinates'] = coordinates
     if kind:
         container_data['kind'] = kind
+
+    #TODO: Container Kind Str Normalization
+    #TODO: handle parent container / coordinates presence logic
 
     comment = creation_comment if creation_comment else f"Automatically generated on {datetime.utcnow().isoformat()}Z"
     try:

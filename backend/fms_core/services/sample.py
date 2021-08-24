@@ -1,5 +1,18 @@
 from fms_core.models import Sample, Container
 
+
+def create_sample(name=None, volume=None, collection_site=None, creation_date=None,
+                  container=None, individual=None, sample_kind=None,
+                  coordinates=None,
+                  alias=None, concentration=None, experimental_group=None, tissue_source=None, phenotype=None,
+                  comment=None):
+    sample = None
+    errors = []
+
+
+
+
+
 def get_sample_from_container(barcode=None, coordinates=None):
     errors = []
     sample = None

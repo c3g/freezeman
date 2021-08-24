@@ -38,6 +38,7 @@ class SheetData():
             required_values = [row_data[key] for key in self.minimally_required_columns]
             if any(list(map(lambda x: x is None, required_values))):
                 # Skipped row because minimally required cell values are not filled
+                #TODO: possibly warnings for skipped row ??
                 pass
             else:
                 self.rows.append(row_data)
@@ -50,7 +51,6 @@ class SheetData():
                     'errors': [],
                     'validation_error': ValidationError([]),
                     'warnings': [],
-                    # 'import_type': 'new',
                 }
                 self.rows_results.append(result)
 
