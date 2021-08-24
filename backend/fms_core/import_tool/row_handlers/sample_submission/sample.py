@@ -1,4 +1,4 @@
-from datatime import datetime
+from datetime import datetime
 
 from fms_core.models import Individual
 
@@ -6,7 +6,7 @@ from fms_core.import_tool.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.samples import create_sample
+from fms_core.services.sample import create_sample
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
