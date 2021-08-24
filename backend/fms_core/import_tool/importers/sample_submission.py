@@ -14,10 +14,10 @@ class SampleSubmissionImporter(GenericImporter):
         self.preload_data_from_template()
 
     def preload_data_from_template(self):
-        self.sample_kind_objects_by_kind = {}
+        self.preloaded_data = {'sample_kind_objects_by_kind': {}}
 
         for sample_kind in SampleKind.objects.all():
-            self.sample_kind_objects_by_kind.update({sample_kind.kind: sample_kind})
+            self.preloaded_data['sample_kind_objects_by_kind'].update({sample_kind.kind: sample_kind})
 
 
     def import_template_inner(self):
@@ -69,7 +69,8 @@ class SampleSubmissionImporter(GenericImporter):
                 individual=individual,
                 individual_mother=individual_mother,
                 individual_father=individual_father,
-                sample_kind_objects_by_kind=self.sample_kind_objects_by_kind,
+                # Preloaded data
+                sample_kind_objects_by_kind=self.preloaded_data['sample_kind_objects_by_kind'],
             )
 
             samples_sheet.rows_result[row_id].update(**result)

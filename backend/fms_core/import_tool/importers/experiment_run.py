@@ -102,12 +102,15 @@ class ExperimentRunImporter(GenericImporter):
 
             er_row_handler = ExperimentRunRowHandler()
             result = er_row_handler.process_row(
-                experiment_type_obj=self.preloaded_data['experiment_type'],
+                # ExperimentRun attributes data dictionaries
                 instrument=instrument,
                 container=container,
                 start_date=start_date,
+                # Additional data for this row
                 sample_rows_info=experiment_sample_rows_info,
                 properties=properties,
+                # Preloaded data
+                experiment_type_obj=self.preloaded_data['experiment_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],
                 properties_by_name_dict=self.preloaded_data['property_types_by_name'],
             )
