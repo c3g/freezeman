@@ -44,6 +44,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listTemplateActions,
         ProcessMeasurements.listTemplateActions,
         ExperimentRuns.listTemplateActions,
+        Projects.listTemplateActions,
     ].map(a => dispatch(a())))
 }
 

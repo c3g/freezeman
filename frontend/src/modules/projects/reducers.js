@@ -11,6 +11,7 @@ import {resetTable} from "../../utils/reducers";
 import PROJECTS from "./actions";
 
 export const projectsSummary = summaryReducerFactory(PROJECTS);
+export const projectTemplateActions = templateActionsReducerFactory(PROJECTS);
 
 export const projects = (
     state = {

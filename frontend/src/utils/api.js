@@ -84,7 +84,12 @@ const api = {
     update: project => patch(`/projects/${project.id}/`, project),
     list: (options, abort) => get("/projects", options, { abort }),
     listExport: options => get("/project/list_export/", {format: "csv", ...options}),
-    summary: () => get("/projects/summary")
+    summary: () => get("/projects/summary"),
+    template: {
+      actions: () => get(`/projects/template_actions/`),
+      check:  (action, template) => post(`/projects/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
+    },
   },
   propertyValues: {
     list: (options, abort) => get("/property-values/", options, { abort }),

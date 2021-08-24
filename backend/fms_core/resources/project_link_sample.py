@@ -39,7 +39,7 @@ class ProjectLinkSampleResource(GenericResource):
         try:
             obj.sample = Sample.objects.get(name=data["Sample Name"],
                                             container__barcode=data["Sample Container Barcode"],
-                                            container__coordinates=data["Sample Container Coord"])
+                                            coordinates=data["Sample Container Coord"])
         except Sample.DoesNotExist:
             obj.sample = None
             errors["sample"] = ValidationError([f"No sample with name [{data['Sample Name']}] at those container coordinates."], code="invalid")
@@ -84,7 +84,7 @@ class ProjectLinkSampleResource(GenericResource):
             super().instance.delete() # Delete without creating a new deleted version
         reversion.set_comment("Updated project link to samples from template.")
 
-    def import_data(self, dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs):
+    def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
 
         # This is a section meant to simplify the preview offered to the user before confirmation after a dry run

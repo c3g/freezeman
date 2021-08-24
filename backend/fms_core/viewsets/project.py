@@ -8,6 +8,8 @@ from rest_framework.response import Response
 
 from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
+from fms_core.resources import ProjectLinkSampleResource
+from fms_core.template_paths import PROJECT_LINK_SAMPLES_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
 from ._constants import _project_filterset_fields
@@ -23,6 +25,15 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     filterset_fields = {
         **_project_filterset_fields,
     }
+
+    template_action_list = [
+        {
+            "name": "Link Projects with Samples",
+            "description": "Upload the provided template with up to 384 links between projects and samples.",
+            "template": PROJECT_LINK_SAMPLES_TEMPLATE,
+            "resource": ProjectLinkSampleResource,
+        }
+    ]
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
