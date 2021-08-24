@@ -5,7 +5,8 @@ from fms_core.models import Sample, Container
 def create_sample(name=None, volume=None, collection_site=None, creation_date=None,
                   container=None, individual=None, sample_kind=None,
                   coordinates=None,
-                  alias=None, concentration=None, experimental_group=None, tissue_source=None, phenotype=None,
+                  alias=None, concentration=None, tissue_source=None, phenotype=None,
+                  experimental_group=None,
                   comment=None):
     sample = None
     errors = []
@@ -21,9 +22,15 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
         container=container,
         individual=individual,
         sample_kind=sample_kind,
+        # Optional attributes
+        **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+        **(dict(alias=alias) if alias is not None else dict()),
+        **(dict(concentration=concentration) if concentration is not None else dict()),
+        **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
+        **(dict(phenotype=phenotype) if phenotype is not None else dict()),
     )
 
-    #TODO: add optional attributes to sample_data dict
+    #TODO: experimental group and comment attributes
 
     try:
         sample = Sample.objects.create(**sample_data)

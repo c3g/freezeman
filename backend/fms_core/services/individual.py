@@ -11,16 +11,16 @@ def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, 
 
     #TODO: Normalize str for Individual sex and taxon
 
-    individual_data = dict(name=name, sex=sex, taxon=taxon)
-
-    if pedigree:
-        individual_data['pedigree'] = pedigree
-    if cohort:
-        individual_data['cohort'] = cohort
-    if mother:
-        individual_data['mother'] = mother
-    if father:
-        individual_data['father'] = father
+    individual_data = dict(
+        name=name,
+        sex=sex,
+        taxon=taxon,
+        # Optional
+        **(dict(pedigree=pedigree) if pedigree is not None else dict()),
+        **(dict(cohort=cohort) if cohort is not None else dict()),
+        **(dict(mother=mother) if mother is not None else dict()),
+        **(dict(father=father) if father is not None else dict()),
+    )
 
     try:
         individual, individual_created = Individual.objects.get_or_create(**individual_data)

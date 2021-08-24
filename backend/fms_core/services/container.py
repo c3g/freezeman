@@ -24,16 +24,13 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
 
     container_data = dict(
         **(dict(location=container_parent) if container_parent else dict(location__isnull=True)),
+        **(dict(barcode=barcode) if barcode is not None else dict()),
+        **(dict(name=name) if name is not None else dict()),
+        **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+        **(dict(kind=kind) if kind is not None else dict()),
     )
-    if barcode:
-        container_data['barcode'] = barcode
-    if name:
-        container_data['name'] = name
-    if coordinates:
-        container_data['coordinates'] = coordinates
-    if kind:
-        container_data['kind'] = kind
 
+    #TODO: check sample or container creation templates where only barcode OR name is required
     #TODO: Container Kind Str Normalization
     #TODO: handle parent container / coordinates presence logic
 
