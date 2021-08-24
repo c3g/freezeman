@@ -80,8 +80,10 @@ class TemplateActionsMixin:
         Endpoint off of the parent viewset for listing available template
         actions, converting paths to URIs for better RESTyness.
         """
+
+        # not very readable... should be rewritten!
         return Response([
-            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if k != "importer"}
+            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if (k != "importer" and k != "resource")}
             for a in self.template_action_list
         ])
 
