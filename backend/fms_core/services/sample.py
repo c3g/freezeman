@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from fms_core.models import Sample, Container
 
 
@@ -8,14 +9,34 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
                   comment=None):
     sample = None
     errors = []
+    warnings = []
 
+    #TODO normalize attributes
 
+    sample_data = dict(
+        name=name,
+        volume=volume,
+        collection_site=collection_site,
+        creation_date=creation_date,
+        container=container,
+        individual=individual,
+        sample_kind=sample_kind,
+    )
 
+    #TODO: add optional attributes to sample_data dict
+
+    try:
+        sample = Sample.objects.create(**sample_data)
+    except ValidationError as e:
+        errors.append(';'.join(e.messages))
+
+    return (sample, errors, warnings)
 
 
 def get_sample_from_container(barcode=None, coordinates=None):
-    errors = []
     sample = None
+    errors = []
+    warnings = []
 
     try:
         container = Container.objects.get(barcode=barcode)
@@ -33,4 +54,4 @@ def get_sample_from_container(barcode=None, coordinates=None):
         except Sample.DoesNotExist as e:
             errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found")
 
-    return (sample, errors)
+    return (sample, errors, warnings)

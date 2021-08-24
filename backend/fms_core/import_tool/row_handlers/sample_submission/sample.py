@@ -22,15 +22,16 @@ class SampleRowHandler(GenericRowHandler):
 
         parent_container_obj = None
         if parent_container['barcode']:
-            parent_container_obj, self.errors['parent_container'] = get_container(barcode=parent_container['barcode'])
+            parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
 
-        container, self.errors['container'] = get_or_create_container(barcode=container['barcode'],
-                                                                      kind=container['kind'],
-                                                                      name=container['name'],
-                                                                      coordinates=container['coordinates'],
-                                                                      container_parent=parent_container_obj,
-                                                                      creation_comment=comment,
-                                                                      )
+        container_obj, self.errors['container'], self.warnings['container'] = \
+            get_or_create_container(barcode=container['barcode'],
+                                    kind=container['kind'],
+                                    name=container['name'],
+                                    coordinates=container['coordinates'],
+                                    container_parent=parent_container_obj,
+                                    creation_comment=comment,
+                                    )
 
 
         # Individual related section

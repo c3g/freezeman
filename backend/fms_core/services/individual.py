@@ -11,11 +11,7 @@ def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, 
 
     #TODO: Normalize str for Individual sex and taxon
 
-    individual_data = {
-        'name': name,
-        'sex': sex,
-        'taxon': taxon,
-    }
+    individual_data = dict(name=name, sex=sex, taxon=taxon)
 
     if pedigree:
         individual_data['pedigree'] = pedigree

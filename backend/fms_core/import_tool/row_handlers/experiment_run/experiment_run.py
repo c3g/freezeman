@@ -20,19 +20,27 @@ class ExperimentRunRowHandler(GenericRowHandler):
 
     def process_row_inner(self, experiment_type_obj, instrument, container, start_date,
                     sample_rows_info, properties, protocols_dict, properties_by_name_dict):
-        top_process_obj, experiment_processes_by_protocol_id, self.errors[
-            'process'] = create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
-                                                                             creation_comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z")
 
-        experiment_run, self.errors['experiment'] = create_experiment_run(experiment_type_obj,
-                                                                          top_process_obj,
-                                                                          instrument,
-                                                                          container,
-                                                                          start_date,)
+        comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
+
+        top_process_obj, experiment_processes_by_protocol_id, self.errors['process'], self.warnings['process'] = \
+            create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
+                                                                creation_comment=comment)
+
+        experiment_run, self.errors['experiment'], self.warnings['experiment'] = \
+            create_experiment_run(experiment_type_obj,
+                                  top_process_obj,
+                                  instrument,
+                                  container,
+                                  start_date,
+                                  )
 
         if experiment_run:
-            _, self.errors['properties'] = create_properties_from_values_and_types(properties, properties_by_name_dict,
-                                                                              experiment_processes_by_protocol_id)
+            _, self.errors['properties'], self.warnings['properties'] = \
+                create_properties_from_values_and_types(properties, properties_by_name_dict,
+                                                        experiment_processes_by_protocol_id)
             print('experiment_run row-handler - properties/errors', self.errors['properties'])
-            samples, self.errors['samples'] = associate_samples_to_experiment_run(experiment_run, sample_rows_info)
+
+            samples, self.errors['samples'], self.warnings['samples'] = \
+                associate_samples_to_experiment_run(experiment_run, sample_rows_info)
             print('experiment_run row-handler- samples/errors', self.errors['samples'])

@@ -18,41 +18,46 @@ from .container import get_or_create_container
 def create_experiment_run(experiment_type_obj, process_obj, instrument, container, start_date):
     experiment_run = None
     errors = []
+    warnings = []
 
-    instrument, instrument_errors = get_instrument(instrument['name'])
-    if instrument_errors:
-        errors.append(instrument_errors)
+
+    instrument, instrument_errors, instrument_warnings = get_instrument(instrument['name'])
 
     comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
 
-    container, container_errors = get_or_create_container(barcode=container['barcode'],
-                                                          kind=container['kind'],
-                                                          coordinates=None,
-                                                          creation_comment=comment)
-    if container_errors:
-        errors.append(container_errors)
+    container, container_errors, container_warnings = \
+        get_or_create_container(barcode=container['barcode'],
+                                kind=container['kind'],
+                                coordinates=None,
+                                creation_comment=comment
+                                )
 
-    try:
-        experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type_obj,
-                                                      instrument=instrument,
-                                                      container=container,
-                                                      process=process_obj,
-                                                      start_date=start_date)
+    errors += instrument_errors + container_errors
+    warnings += instrument_warnings + container_warnings
 
-        print('SERVICES - experiment_run: ', experiment_run)
+    if not errors:
+        try:
+            experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type_obj,
+                                                          instrument=instrument,
+                                                          container=container,
+                                                          process=process_obj,
+                                                          start_date=start_date)
 
-    except ValidationError as e:
-        errors.append(';'.join(e.messages))
-        print('SERVICES - experiment_run/exception: ', e)
+            print('SERVICES - experiment_run: ', experiment_run)
+
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
+            print('SERVICES - experiment_run/exception: ', e)
 
 
-    return (experiment_run, errors)
+    return (experiment_run, errors, warnings)
 
 
 
 def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
     sample_objs = []
     errors = []
+    warnings = []
 
     print('SERVICES - experiment_run - associate_samples_to_experiment_run - samples info ',
           samples_rows_info)
@@ -74,7 +79,7 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
 
         print('sample data errors in services ', sample_data_errors)
         # Creates the new objects
-        if len(sample_data_errors) == 0:
+        if not sample_data_errors:
             try:
                 source_sample.volume = source_sample.volume - volume_used
                 source_sample.save()
@@ -108,8 +113,8 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
                 sample_data_errors.append(e.messages)
 
 
-        if len(sample_data_errors) > 0:
+        if not sample_data_errors:
             errors.append(sample_data_errors)
 
 
-    return (sample_objs, errors)
+    return (sample_objs, errors, warnings)

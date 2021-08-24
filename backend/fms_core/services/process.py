@@ -6,6 +6,7 @@ def create_processes_for_experiment_from_protocols_dict(protocols_objs_dict,
     top_process = None
     processes_by_protocol_id = {}
     errors = []
+    warnings = []
 
     comment = creation_comment if creation_comment else ''
     for protocol in protocols_objs_dict.keys():
@@ -19,4 +20,4 @@ def create_processes_for_experiment_from_protocols_dict(protocols_objs_dict,
             except ValidationError as e:
                errors.append(';'.join(e.messages))
 
-    return (top_process, processes_by_protocol_id, errors)
+    return (top_process, processes_by_protocol_id, errors, warnings)
