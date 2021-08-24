@@ -36,12 +36,16 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
 
     comment = creation_comment if creation_comment else f"Automatically generated on {datetime.utcnow().isoformat()}Z"
     try:
-        container, _ = Container.objects.get_or_create(
+        container, is_container_created = Container.objects.get_or_create(
             **container_data,
             defaults={'comment': f"{comment}",
                       'name': barcode or name},
         )
+        if not is_container_created:
+            warnings.append(f"Using existing Container with barcode '{container.barcode}'.")
+
     except ValidationError as e:
         errors.append(f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match.")
+
 
     return (container, errors, warnings)

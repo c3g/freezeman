@@ -23,12 +23,11 @@ def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, 
     )
 
     try:
-        individual, individual_created = Individual.objects.get_or_create(**individual_data)
+        individual, is_individual_created = Individual.objects.get_or_create(**individual_data)
+        if not is_individual_created:
+            warnings.append(f"Using existing individual '{individual}'.")
     except ValidationError as e:
-        individual_created = False
         errors.append(';'.join(e.messages))
 
-    if individual and not individual_created:
-        warnings.append(f"Using existing individual '{individual}' instead of creating a new one.")
 
     return (individual, errors, warnings)
