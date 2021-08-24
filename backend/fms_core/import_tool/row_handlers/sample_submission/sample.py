@@ -6,6 +6,7 @@ from fms_core.import_tool.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
+from fms_core.services.samples import create_sample
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -36,36 +37,45 @@ class SampleRowHandler(GenericRowHandler):
 
         # Individual related section
 
-        mother = None
+        mother_obj = None
         if individual_mother['name']:
-            mother, self.errors['individual_mother'], self.warnings['individual_mother'] = \
+            mother_boj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_FEMALE,
                                          )
-        father = None
+        father_obj = None
         if individual_father['name']:
-            father, self.errors['individual_father'], self.warnings['individual_father'] = \
+            father_obj, self.errors['individual_father'], self.warnings['individual_father'] = \
                 get_or_create_individual(name=individual_father['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_MALE,
                                          )
 
-        individual = None
-        individual, self.errors['individual'], self.warnings['individual'] = \
+        individual_obj, self.errors['individual'], self.warnings['individual'] = \
             get_or_create_individual(name=individual['name'],
                                      taxon=individual['taxon'],
                                      sex=individual['sex'],
                                      pedigree=individual['pedigree'],
                                      cohort=individual['cohort'],
-                                     mother=mother,
-                                     father=father,
+                                     mother=mother_obj,
+                                     father=father_obj,
                                      )
 
-        sample_kind_object = sample_kind_objects_by_kind[sample['sample_kind']]
+        # Sample related section
+
+        sample_kind_obj = sample_kind_objects_by_kind[sample['sample_kind']]
         #TODO: sample kind str normalization and check if it fits one of the sample kinds, otherwise add error
 
-        sample = None
+        sample_obj, self.errors['sample'], self.warnings['sample'] = \
+            create_sample(
+                name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                concentration=sample['concentration'], tissue_source=sample['tissue_source'], phenotype=sample['phenotype'],
+                experimental_group=sample['experiment_group'],
+                container=container_obj, individual=individual_obj, sample_kind=sample_kind_obj,
+                comment=comment
+            )
 
 
 

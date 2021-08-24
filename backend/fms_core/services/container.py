@@ -34,7 +34,7 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
     #TODO: Container Kind Str Normalization
     #TODO: handle parent container / coordinates presence logic
 
-    comment = creation_comment if creation_comment else f"Automatically generated on {datetime.utcnow().isoformat()}Z"
+    comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
     try:
         container, is_container_created = Container.objects.get_or_create(
             **container_data,
@@ -45,7 +45,7 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
             warnings.append(f"Using existing Container with barcode '{container.barcode}'.")
 
     except ValidationError as e:
-        errors.append(f"Could not create experiment container. Barcode {barcode} and kind {kind} are existing and do not match.")
+        errors.append(f"Could not create Container. Barcode {barcode} and kind {kind} are existing and do not match.")
 
 
     return (container, errors, warnings)

@@ -1,5 +1,8 @@
+import json
+from datetime import datetime
 from django.core.exceptions import ValidationError
 from fms_core.models import Sample, Container
+from ..utils import RE_SEPARATOR
 
 
 def create_sample(name=None, volume=None, collection_site=None, creation_date=None,
@@ -22,6 +25,7 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
         container=container,
         individual=individual,
         sample_kind=sample_kind,
+        comment=(comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
         # Optional attributes
         **(dict(coordinates=coordinates) if coordinates is not None else dict()),
         **(dict(alias=alias) if alias is not None else dict()),
@@ -30,7 +34,12 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
         **(dict(phenotype=phenotype) if phenotype is not None else dict()),
     )
 
-    #TODO: experimental group and comment attributes
+    if experimental_group:
+        sample_data['experimental_group'] = json.dumps([
+                g.strip()
+                for g in RE_SEPARATOR.split(experimental_group)
+                if g.strip()
+            ])
 
     try:
         sample = Sample.objects.create(**sample_data)
