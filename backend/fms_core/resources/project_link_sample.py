@@ -1,7 +1,7 @@
 import reversion
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from ._generic import GenericResource
 from ._utils import skip_rows, add_columns_to_preview
 from ..models import Project, Sample, Container, SampleByProject
@@ -49,8 +49,14 @@ class ProjectLinkSampleResource(GenericResource):
         except Project.DoesNotExist:
             obj.project = None
             errors["project"] = ValidationError([f"No project with name [{data['Project Name']}]"], code="invalid")
+
         # Set object for deletion if REMOVE_ACTION
-        link_exists = SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists()
+        try:
+            link_exists = SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists()
+        except ObjectDoesNotExist:
+            link_exists = False
+
+        # Perform the desired action
         if data["Action"] == REMOVE_ACTION:
             if link_exists:
                 obj.deleted = True

@@ -9,7 +9,7 @@ from reversion.models import Version
 from tablib import Dataset
 
 from django.contrib.contenttypes.models import ContentType
-from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyType, PropertyValue
+from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyType, PropertyValue, Project, SampleByProject
 from ..resources import (
     ContainerResource,
     ExtractionResource,
@@ -19,6 +19,7 @@ from ..resources import (
     ContainerRenameResource,
     SampleResource,
     SampleUpdateResource,
+    ProjectLinkSampleResource,
 )
 # noinspection PyProtectedMember
 from ..resources._utils import skip_rows
@@ -51,6 +52,8 @@ SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
 SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_2.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
 EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_3_0_B_A_1.csv"
+PROJECT_LINK_SAMPLES_CSV = APP_DATA_ROOT / "Project_link_samples_v3_4_0_B_A_1.csv"
+PROJECT_UNLINK_SAMPLES_CSV = APP_DATA_ROOT / "Project_link_samples_v3_4_0_B_A_2.csv"
 
 
 class ResourcesTestCase(TestCase):
@@ -65,6 +68,7 @@ class ResourcesTestCase(TestCase):
         self.ur = SampleUpdateResource()
         self.mr = ContainerMoveResource()
         self.rr = ContainerRenameResource()
+        self.pr = ProjectLinkSampleResource()
 
     def load_containers(self):
         with reversion.create_revision(), open(CONTAINER_CREATION_CSV) as cf:
@@ -595,3 +599,57 @@ class ResourcesTestCase(TestCase):
                 self._test_invalid_rename_template(rf, err)
 
             transaction.savepoint_rollback(s)
+
+    def create_projects(self):
+        self.project1, _ = Project.objects.get_or_create(name="TestProject1", status="Ongoing")
+        self.project2, _ = Project.objects.get_or_create(name="TestProject2", status="Ongoing")
+
+    def link_projects_to_samples(self):
+        self.load_samples()
+        self.create_projects()
+
+        with reversion.create_revision(), open(PROJECT_LINK_SAMPLES_CSV) as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
+
+            reversion.set_comment("Linked projects with samples")
+
+    def test_link_projects_to_samples_import(self):
+        self.link_projects_to_samples()
+        sample1 = Sample.objects.get(name="sample1", container__barcode="tube001")
+        sample2 = Sample.objects.get(name="sample2", container__barcode="tube002")
+
+        # Test basic import success
+        self.assertEqual(len(SampleByProject.objects.all()), 2)
+
+        # Test parent record auto-generation
+        self.assertTrue(SampleByProject.objects.filter(sample=sample1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())
+
+    def unlink_projects_to_samples(self):
+        self.link_projects_to_samples()
+        with reversion.create_revision(), open(PROJECT_UNLINK_SAMPLES_CSV) as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
+
+            reversion.set_comment("Unlinked projects with samples")
+
+    '''def test_unlink_projects_to_samples_import(self):
+        self.unlink_projects_to_samples()
+        sample1 = Sample.objects.get(name="sample1", container__barcode="tube001")
+        sample2 = Sample.objects.get(name="sample2", container__barcode="tube002")
+
+        # Test basic import success
+        self.assertEqual(len(SampleByProject.objects.all()), 1)
+
+        # Test parent record auto-generation
+        self.assertFalse(SampleByProject.objects.filter(sample=sample1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())'''
+
+    def test_invalid_link_project_sample(self):
+        self.load_samples()
+        self.create_projects()
+
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
