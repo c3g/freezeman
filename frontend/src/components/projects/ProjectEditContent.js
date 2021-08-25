@@ -116,11 +116,8 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
           <Form.Item label="Requestor Email" {...props("requestor_email")} rules={emailRules} >
             <Input />
           </Form.Item>
-          <Form.Item label="Status" {...props("status")} rules={requiredRules}>
-            <Select>
-              <Option key="Ongoing" value="Ongoing" > Ongoing </Option>
-              <Option key="Completed" value="Completed" > Completed </Option>
-            </Select>
+          <Form.Item label="Status" {...props("status")} >
+            <Switch style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked/>
           </Form.Item>
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
@@ -169,11 +166,14 @@ function deserialize(values) {
 function serialize(values) {
   const newValues = {...values}
 
+  if (newValues.status === false) newValues.status = "Closed"
+  else newValues.status = "Open"
+
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
   else
     newValues.targeted_end_date = null
-    
+
   return newValues
 }
 
