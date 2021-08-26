@@ -8,6 +8,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
+import LinkButton from "../LinkButton";
 
 import api, {withToken}  from "../../utils/api"
 
@@ -121,6 +122,7 @@ const ProjectsListContent = ({
   return <>
     <AppPageHeader title="Projects" extra={[
       <AddButton key='add' url="/projects/add" />,
+      <LinkButton key="link" url="/projects/actions/0" />,
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

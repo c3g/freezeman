@@ -16,6 +16,7 @@ from .models import (
     Sample,
     SampleKind,
     Project,
+    SampleByProject,
 )
 
 
@@ -169,15 +170,15 @@ class PropertyValueSerializer(serializers.ModelSerializer):
       fields = "__all__"
       extra_fields = ('property_name')
 
-
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
+    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Sample
         fields = "__all__"
-        extra_fields = ('extracted_from')
+        extra_fields = ('extracted_from', 'projects')
 
     def get_extracted_from(self, obj):
         if obj.extracted_from is None:
@@ -273,12 +274,16 @@ class GroupSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ProjectSerializer(serializers.ModelSerializer):
+    samples = SampleSerializer(read_only=True, many=True)
     class Meta:
         model = Project
         fields = "__all__"
+        extra_fields = ('samples')
 
 class ProjectExportSerializer(serializers.ModelSerializer):
+    samples = SampleSerializer(read_only=True, many=True)
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments", "samples")
 
+SampleSerializer.projects  = ProjectSerializer(many=True, read_only=True)

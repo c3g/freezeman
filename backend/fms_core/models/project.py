@@ -37,6 +37,8 @@ class Project(TrackedModel):
 
     comments = models.TextField(blank=True, help_text="Other relevant information about the project.")
 
+    samples = models.ManyToManyField("sample", blank=True, through="SampleByProject", related_name="projects")
+
     def clean(self):
         super().clean()
         errors = {}

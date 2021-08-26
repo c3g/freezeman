@@ -46,6 +46,11 @@ const ProjectsDetailedContent = ({projects, projectsByID, isFetching, get}) => {
                 <Descriptions.Item label="Targeted End Date" span={2}>{project.targeted_end_date}</Descriptions.Item>
                 <Descriptions.Item label="Comments" span={4}>{project.comments}</Descriptions.Item>
             </Descriptions>
+            <Descriptions bordered={true} size="small" title="Associated Samples" style={{marginTop: "24px"}}>
+                {project.samples && project.samples.map(sample => {
+                  return (<div> <Link to={`/samples/${sample.id}`}> • {sample.name} </Link> </div>);
+                })}
+            </Descriptions>
             <TrackingFieldsContent entity={project}/>
         </PageContent>
     </>;
