@@ -10,7 +10,7 @@ from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from ..models import Container, Individual, Sample, SampleKind
+from ..models import Container, Individual, Sample, SampleKind, Project
 from ..utils import (
     RE_SEPARATOR,
     blank_str_to_none,
@@ -58,6 +58,8 @@ class SampleResource(GenericResource):
     father_name = Field(attribute='individual_father', column_name='Father ID')
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
+
+    projects = Field(attribute='projects', column_name='Project')
 
     COMPUTED_FIELDS = frozenset((
         "individual_id",
@@ -176,6 +178,13 @@ class SampleResource(GenericResource):
             individual_created = False
             individual = None
             errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
+
+        if data["Project"]:
+            try:
+                project, _ = Project.objects.get(name=get_normalized_str(data, "Project"))
+                obj.projects.set(project)
+            except Exception as e:
+                errors["project"] = ValidationError(e.message.pop(), code="invalid")
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
