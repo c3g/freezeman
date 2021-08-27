@@ -30,9 +30,14 @@ class GenericRowHandler():
     def get_result(self):
         print('ROW_HANDLER get_result errors', self.errors)
 
+        warnings = []
+        for (k, v) in (self.warnings).items():
+            if v:
+                warnings.append(f"{k} : {v}")
+
         return {'errors': [],
                 'validation_error': ValidationError(self.errors),
-                'warnings': [f"{k} - {v}" for (k, v) in (self.warnings).items()],
+                'warnings': warnings,
                 }
 
 

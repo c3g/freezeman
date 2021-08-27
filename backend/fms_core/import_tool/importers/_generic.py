@@ -51,9 +51,14 @@ class GenericImporter():
                 preview_info = sheet.generate_preview_info_from_rows_results(rows_results=sheet.rows_results)
                 self.previews_info.append(preview_info)
 
+        has_warnings = False
+        for sheet_preview in self.previews_info:
+            if any([r['warnings'] for r in sheet_preview['rows']]):
+                has_warnings = True
+                break;
 
         import_result = {'valid': self.is_valid,
-                         # 'has_warnings': any([r['warnings'] for r in result['rows']]),
+                         'has_warnings': has_warnings,
                          'base_errors': [{
                              "error": str(e),
                              } for e in self.base_errors],

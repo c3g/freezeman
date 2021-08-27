@@ -39,7 +39,8 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
             defaults={'comment': f"{comment}",
                       'name': name or barcode},
         )
-        if not is_container_created:
+
+        if not is_container_created and container.kind == "tube":
             warnings.append(f"Using existing Container with barcode '{container.barcode}'.")
 
     except ValidationError as e:
