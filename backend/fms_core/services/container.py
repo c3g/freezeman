@@ -31,15 +31,13 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
     )
 
     #TODO: check sample or container creation templates where only barcode OR name is required
-    #TODO: Container Kind Str Normalization
-    #TODO: handle parent container / coordinates presence logic
 
     comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
     try:
         container, is_container_created = Container.objects.get_or_create(
             **container_data,
             defaults={'comment': f"{comment}",
-                      'name': barcode or name},
+                      'name': name or barcode},
         )
         if not is_container_created:
             warnings.append(f"Using existing Container with barcode '{container.barcode}'.")

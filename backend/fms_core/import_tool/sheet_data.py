@@ -20,6 +20,7 @@ class SheetData():
         self.minimally_required_columns = minimally_required_columns
 
         self.dataframe.columns = self.dataframe.values[self.header_row_nb]
+        print('SheetData columns: ', self.dataframe.columns)
 
         self.base_errors = []
         self.is_valid = None
@@ -28,6 +29,7 @@ class SheetData():
 
 
     def prepare_rows(self):
+        print('SheetData - start preparing rows')
         self.rows = []
         self.rows_results = []
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):

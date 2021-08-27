@@ -13,18 +13,25 @@ class GenericImporter():
         self.sheets = {}
         self.previews_info = []
 
+        print('Generic Importer - __init__ successful')
+
 
     def import_template(self, file, format, dry_run):
         self.file = file
 
+        print('file', file)
+
         for sheet_info in self.SHEETS_INFO:
             sheet_name = sheet_info['name']
+            print('sheet_name', sheet_name)
             sheet_created = self.create_sheet_data(sheet_name=sheet_name,
                                                    header_row_nb=sheet_info['header_row_nb'],
                                                    minimally_required_columns=sheet_info['minimally_required_columns'])
 
             if sheet_created is not None:
                 self.sheets[sheet_name] = sheet_created
+
+        print('sheets')
 
 
         if len(self.base_errors) == 0:

@@ -15,8 +15,6 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
     errors = []
     warnings = []
 
-    #TODO normalize attributes
-
     sample_data = dict(
         name=name,
         volume=volume,
@@ -44,7 +42,7 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
     try:
         sample = Sample.objects.create(**sample_data)
     except ValidationError as e:
-        errors.append(';'.join(e.messages))
+        errors.append(str(e))
 
     return (sample, errors, warnings)
 

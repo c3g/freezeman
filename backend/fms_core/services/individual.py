@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 
 from fms_core.models import Individual
 
+from ..utils import normalize_scientific_name
+
 
 def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, pedigree=None, cohort=None,
                              mother=None, father=None):
@@ -9,12 +11,10 @@ def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, 
     errors = []
     warnings = []
 
-    #TODO: Normalize str for Individual sex and taxon
-
     individual_data = dict(
         name=name,
         sex=sex,
-        taxon=taxon,
+        taxon=normalize_scientific_name(taxon),
         # Optional
         **(dict(pedigree=pedigree) if pedigree is not None else dict()),
         **(dict(cohort=cohort) if cohort is not None else dict()),

@@ -4,7 +4,7 @@ from fms_core.import_tool.row_handlers.sample_submission import SampleRowHandler
 
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleSubmission', 'header_row_nb': 6,
+        {'name': 'SampleSubmission', 'header_row_nb': 5,
          'minimally_required_columns': ['Sample Kind', 'Sample Name']},
     ]
 
@@ -14,13 +14,13 @@ class SampleSubmissionImporter(GenericImporter):
         self.preload_data_from_template()
 
     def preload_data_from_template(self):
-        self.preloaded_data = {'sample_kind_objects_by_kind': {}}
+        self.preloaded_data = {'sample_kind_objects_by_name': {}}
 
         for sample_kind in SampleKind.objects.all():
-            self.preloaded_data['sample_kind_objects_by_kind'].update({sample_kind.kind: sample_kind})
-
+            self.preloaded_data['sample_kind_objects_by_name'].update({sample_kind.name: sample_kind})
 
     def import_template_inner(self):
+        print('Import Sample Submission Sheet - import template inner')
         samples_sheet = self.sheets['SampleSubmission']
 
         for row_id, row_data in enumerate(samples_sheet.rows):
@@ -28,7 +28,6 @@ class SampleSubmissionImporter(GenericImporter):
                 'kind': row_data['Container Kind'],
                 'name': row_data['Container Name'],
                 'barcode': row_data['Container Barcode'],
-                'coordinates': row_data['Location Coord'],
             }
             parent_container = {
                 'barcode': row_data['Location Barcode'],
@@ -37,7 +36,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'name': row_data['Individual ID'],
                 'sex': row_data['Sex'],
                 'pedigree': row_data['Pedigree'],
-                'taxon': row_data['taxon'],
+                'taxon': row_data['Taxon'],
                 'cohort': row_data['Cohort'],
             }
             individual_mother = {
@@ -70,10 +69,10 @@ class SampleSubmissionImporter(GenericImporter):
                 individual_mother=individual_mother,
                 individual_father=individual_father,
                 # Preloaded data
-                sample_kind_objects_by_kind=self.preloaded_data['sample_kind_objects_by_kind'],
+                sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )
 
-            samples_sheet.rows_result[row_id].update(**result)
+            samples_sheet.rows_results[row_id].update(**result)
 
 
 
