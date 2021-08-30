@@ -24,9 +24,7 @@ class GenericImporter():
         for sheet_info in self.SHEETS_INFO:
             sheet_name = sheet_info['name']
             print('sheet_name', sheet_name)
-            sheet_created = self.create_sheet_data(sheet_name=sheet_name,
-                                                   header_row_nb=sheet_info['header_row_nb'],
-                                                   minimally_required_columns=sheet_info['minimally_required_columns'])
+            sheet_created = self.create_sheet_data(sheet_name=sheet_name, header_row_nb=sheet_info['header_row_nb'])
 
             if sheet_created is not None:
                 self.sheets[sheet_name] = sheet_created
@@ -67,15 +65,12 @@ class GenericImporter():
         return import_result
 
 
-    def create_sheet_data(self, sheet_name, header_row_nb, minimally_required_columns):
+    def create_sheet_data(self, sheet_name, header_row_nb):
         try:
             pd_sheet = pd.read_excel(self.file, sheet_name=sheet_name)
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = pd_sheet.applymap(lambda x: blank_and_nan_to_none(x))
-            return SheetData(name=sheet_name,
-                             dataframe=dataframe,
-                             header_row_nb=header_row_nb,
-                             minimally_required_columns=minimally_required_columns)
+            return SheetData(name=sheet_name, dataframe=dataframe, header_row_nb=header_row_nb)
 
         except Exception as e:
             self.base_errors.append(e)

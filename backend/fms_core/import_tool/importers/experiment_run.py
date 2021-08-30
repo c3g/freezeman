@@ -5,10 +5,8 @@ from fms_core.import_tool.row_handlers.experiment_run import ExperimentRunRowHan
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'Experiments', 'header_row_nb': 8,
-         'minimally_required_columns': ['Experiment ID', 'Experiment Container Barcode']},
-        {'name': 'Samples', 'header_row_nb': 2,
-         'minimally_required_columns': ['Experiment ID', 'Source Container Barcode']},
+        {'name': 'Experiments', 'header_row_nb': 8},
+        {'name': 'Samples', 'header_row_nb': 2},
     ]
 
     def __init__(self):

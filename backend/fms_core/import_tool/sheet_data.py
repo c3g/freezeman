@@ -5,7 +5,7 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
     SheetData objects
 
     attributes (input): 
-        name, pandas dataframe, header row number, list of minimally required columns
+        name, pandas dataframe, header row number
         
     preview info from rows results (output): 
         a dictionary with the sheet name, list of column headers, data sheet validity, 
@@ -13,11 +13,10 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 '''
 
 class SheetData():
-    def __init__(self, name, dataframe, header_row_nb, minimally_required_columns):
+    def __init__(self, name, dataframe, header_row_nb):
         self.name = name
         self.dataframe = dataframe
         self.header_row_nb = header_row_nb
-        self.minimally_required_columns = minimally_required_columns
 
         self.dataframe.columns = self.dataframe.values[self.header_row_nb]
         print('SheetData columns: ', self.dataframe.columns)
@@ -34,27 +33,20 @@ class SheetData():
         self.rows_results = []
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
+            self.rows.append(row_data)
 
             print('row_data', row_data)
 
-            required_values = [row_data[key] for key in self.minimally_required_columns]
-            if any(list(map(lambda x: x is None, required_values))):
-                # Skipped row because minimally required cell values are not filled
-                #TODO: possibly warnings for skipped row ??
-                pass
-            else:
-                self.rows.append(row_data)
+            row_repr = f"#{row_id + 2}"
 
-                row_repr = f"#{row_id + 2}"
-
-                result = {
-                    'row_repr': row_repr,
-                    'diff': [row_repr] + panda_values_to_str_list(row_data),
-                    'errors': [],
-                    'validation_error': ValidationError([]),
-                    'warnings': [],
-                }
-                self.rows_results.append(result)
+            result = {
+                'row_repr': row_repr,
+                'diff': [row_repr] + panda_values_to_str_list(row_data),
+                'errors': [],
+                'validation_error': ValidationError([]),
+                'warnings': [],
+            }
+            self.rows_results.append(result)
 
 
     @property

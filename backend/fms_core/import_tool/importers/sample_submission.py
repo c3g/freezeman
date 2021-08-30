@@ -4,8 +4,7 @@ from fms_core.import_tool.row_handlers.sample_submission import SampleRowHandler
 
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleSubmission', 'header_row_nb': 5,
-         'minimally_required_columns': ['Sample Kind', 'Sample Name']},
+        {'name': 'SampleSubmission', 'header_row_nb': 5},
     ]
 
     def __init__(self):
