@@ -70,15 +70,11 @@ class SampleSubmissionImporter(GenericImporter):
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )
 
-            self.handle_row(
+            (result, _) = self.handle_row(
                 row_handler_class=SampleRowHandler,
                 sheet=samples_sheet,
                 row_i=row_id,
                 **sample_kwargs,
             )
 
-
-
-
-
-
+            print('sample submission end of processing row ', row_id)

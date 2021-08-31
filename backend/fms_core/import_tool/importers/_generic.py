@@ -6,8 +6,12 @@ from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
 
 class GenericImporter():
+    ERRORS_CUTOFF = 2
+
     def __init__(self):
         self.base_errors = []
+        self.errors_count = 0
+
         self.preloaded_data = {}
         self.file = None
         self.sheets = {}
@@ -30,7 +34,6 @@ class GenericImporter():
                 self.sheets[sheet_name] = sheet_created
 
         print('sheets')
-
 
         if len(self.base_errors) == 0:
             with transaction.atomic():
@@ -83,11 +86,16 @@ class GenericImporter():
 
     def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
         row_handler_obj = row_handler_class()
-        result = row_handler_obj.process_row(kwargs)
+        result = row_handler_obj.process_row(**kwargs)
         sheet.rows_results[row_i].update(**result)
 
-        row_obj = row_handler_obj.row_object
+        if result['validation_error']:
+            self.errors_count += 1
 
+        if self.errors_count >= self.ERRORS_CUTOFF:
+            raise ValueError('Too many errors. Template validation was stopped.')
+
+        row_obj = row_handler_obj.row_object
         return (result, row_obj)
 
 

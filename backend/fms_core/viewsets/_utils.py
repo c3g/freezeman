@@ -108,11 +108,11 @@ class TemplateActionsMixin:
             result = {
                 'valid': False,
                 'base_errors': [{
-                    "error": str(e.error),
-                    "traceback": e.traceback if settings.DEBUG else "",
+                    "error": str(e),
                     }],
             }
 
+        print('viewsets util result', result)
         return Response(result)
 
 

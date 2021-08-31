@@ -24,7 +24,9 @@ class GenericRowHandler():
             print('self errors == {}')
             self.process_row_inner(**kwargs)
 
-        return self.get_result()
+        result = self.get_result()
+        print('ROW_HANDLER generic result: ', result)
+        return result
 
 
     def get_result(self):

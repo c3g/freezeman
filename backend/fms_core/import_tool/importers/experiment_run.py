@@ -53,7 +53,7 @@ class ExperimentRunImporter(GenericImporter):
                 volume_used=sample['volume_used']
             )
 
-            _, sample['sample_obj'] = self.handle_row(
+            (result, sample['sample_obj']) = self.handle_row(
                 row_handler_class=SampleRowHandler,
                 sheet=samples_sheet,
                 row_i=i,
@@ -61,7 +61,6 @@ class ExperimentRunImporter(GenericImporter):
             )
 
             sample_rows_data.append(sample)
-
 
         """
             EXPERIMENTS SHEET
@@ -115,7 +114,7 @@ class ExperimentRunImporter(GenericImporter):
                 properties_by_name_dict=self.preloaded_data['property_types_by_name'],
             )
 
-            self.handle_row(
+            (result, _) = self.handle_row(
                 row_handler_class=ExperimentRunRowHandler,
                 sheet=experiments_sheet,
                 row_i=row_id,
