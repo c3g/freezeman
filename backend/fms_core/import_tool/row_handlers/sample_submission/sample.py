@@ -33,16 +33,20 @@ class SampleRowHandler(GenericRowHandler):
                                     creation_comment=comment,
                                     )
 
+        print('Container', container_obj)
+
 
         # Individual related section
 
         mother_obj = None
         if individual_mother['name']:
-            mother_boj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
+            mother_obj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_FEMALE,
                                          )
+        print('Mother', mother_obj)
+
         father_obj = None
         if individual_father['name']:
             father_obj, self.errors['individual_father'], self.warnings['individual_father'] = \
@@ -50,6 +54,7 @@ class SampleRowHandler(GenericRowHandler):
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_MALE,
                                          )
+        print('Father', father_obj)
 
         individual_obj, self.errors['individual'], self.warnings['individual'] = \
             get_or_create_individual(name=individual['name'],
@@ -60,11 +65,17 @@ class SampleRowHandler(GenericRowHandler):
                                      mother=mother_obj,
                                      father=father_obj,
                                      )
+        print('Individual', individual_obj)
 
         # Sample related section
 
-        sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
-        #TODO: sample kind str normalization and check if it fits one of the sample kinds, otherwise add error
+        sample_kind_obj = None
+        try:
+            sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
+        except KeyError as e:
+            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found"]
+        #TODO: sample kind str normalization
+
 
         sample_obj, self.errors['sample'], self.warnings['sample'] = \
             create_sample(
@@ -75,6 +86,7 @@ class SampleRowHandler(GenericRowHandler):
                 container=container_obj, individual=individual_obj, sample_kind=sample_kind_obj,
                 comment=comment
             )
+        print('SAMPLE OBJ', sample_obj)
 
         print('sample_submission/sample row handler ERRORS: ', self.errors)
 
