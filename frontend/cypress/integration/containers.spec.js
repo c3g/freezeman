@@ -2,7 +2,7 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Container_creation_v3_2_0_F_A_2.xlsx
+//  - Container_creation_v3_4_0_F_A_2.xlsx
 //  - Container_move_v3_2_0_F_A_1.xlsx
 //  - Container_rename_v3_2_0_F_A_1.xlsx
 
@@ -46,7 +46,7 @@ export const containersTests = () => {
 
       it('creates multiple containers (template import)', () => {
         cy.navigateTo('Container', 'Add Containers')
-        cy.get('input[type=file]').attachFile('Container_creation_v3_2_0_F_A_2.xlsx')
+        cy.get('input[type=file]').attachFile('Container_creation_v3_4_0_F_A_2.xlsx')
         cy.submitForm()
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
@@ -61,8 +61,11 @@ export const containersTests = () => {
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.get('body').should('contain', '1-16 of 16 items')
-        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(moveBarcodeDst) // filter by barcode (column 1)
-        cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(5).should('contain', '2'))
+        cy.get('.ant-table-cell').contains('Barcode').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type(moveBarcodeDst)) // filter by barcode (column 1)
+        cy.get('.ant-table-cell').contains(moveBarcodeDst).parents('.ant-table-row').should('contain', '0')
+        cy.contains('th', 'Children').invoke('index').then((i) => {
+          cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(i).should('contain', '2'))
+        })
         cy.get('button').contains('Clear Filters').click()
       })
 
@@ -76,13 +79,13 @@ export const containersTests = () => {
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.get('body').should('contain', '1-16 of 16 items')
-        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeSrc)// filter by barcode (column 1)
+        cy.get('.ant-table-cell').contains('Barcode').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type(renameBarcodeSrc)) // filter by barcode (column 1)
         cy.get('body').should('contain', '0-0 of 0 items')
         cy.get('button').contains('Clear Filters').click()
-        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(1).click().type(renameBarcodeDst) // filter by barcode (column 1)
+        cy.get('.ant-table-cell').contains('Barcode').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type(renameBarcodeDst)) // filter by barcode (column 1)
         cy.get('body').should('contain', '1-1 of 1 items')
         cy.get('button').contains('Clear Filters').click()
-        cy.get('.ant-table-thead .ant-table-filter-trigger').eq(0).click().type(renameNameDst) // filter by name (column 0)
+        cy.get('.ant-table-cell').contains('Name').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type(renameNameDst)) // filter by barcode (column 1)
         cy.get('body').should('contain', '1-1 of 1 items')
         cy.get('button').contains('Clear Filters').click()
       })

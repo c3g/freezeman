@@ -121,7 +121,7 @@ class Sample(TrackedModel):
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
-    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
+    individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
                                                                                      "with the sample.")
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")

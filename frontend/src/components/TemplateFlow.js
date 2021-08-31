@@ -132,6 +132,7 @@ const wasInterrupted = checkResult => {
           <p>
               {checkResult?.error?.message}
           </p>
+
           { checkResult?.base_errors?.length > 0 && checkResult.base_errors.map(baseError =>
               <p>
                 {baseError.error}

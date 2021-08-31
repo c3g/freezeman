@@ -37,4 +37,9 @@ export const TAXON = [
   "Sars-Cov-2",
 ]
 
+export const STATUS = [
+  "Ongoing",
+  "Completed",
+]
+
 export const DATE_FORMAT = "YYYY-MM-DD"

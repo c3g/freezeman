@@ -1,6 +1,11 @@
-import {FILTER_TYPE, SEX, TAXON} from "../../constants";
+import {FILTER_TYPE, SEX, TAXON, STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Sample ID",
+  },
   sample_kind__name: {
     type: FILTER_TYPE.SELECT,
     key: "sample_kind__name",
@@ -94,6 +99,11 @@ export const SAMPLE_FILTERS = {
 }
 
 export const CONTAINER_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "id",
+  },
   barcode: {
     type: FILTER_TYPE.INPUT,
     key: "barcode",
@@ -124,6 +134,11 @@ export const CONTAINER_FILTERS = {
 }
 
 export const INDIVIDUAL_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
@@ -158,6 +173,11 @@ export const INDIVIDUAL_FILTERS = {
 }
 
 export const PROCESS_MEASUREMENT_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   process: {
     type: FILTER_TYPE.INPUT_NUMBER,
     key: "process",
@@ -195,6 +215,11 @@ export const PROCESS_MEASUREMENT_FILTERS = {
 }
 
 export const EXPERIMENT_RUN_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   experiment_type: {
     type: FILTER_TYPE.SELECT,
     key: "experiment_type__workflow",
@@ -235,6 +260,11 @@ export const EXPERIMENT_RUN_FILTERS = {
 }
 
 export const USER_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "User ID"
+  },
   username: {
     type: FILTER_TYPE.INPUT,
     key: "username",
@@ -244,5 +274,36 @@ export const USER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "email",
     label: "Email"
-  }, 
+  },
+}
+
+export const PROJECT_FILTERS = {
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+  },
+  principal_investigator: {
+    type: FILTER_TYPE.INPUT,
+    key: "principal_investigator",
+    label: "Principal Investigator",
+  },
+  status: {
+    type: FILTER_TYPE.SELECT,
+    key: "status",
+    label: "Status",
+    mode: "multiple",
+    placeholder: "All",
+    options: STATUS.map(x => ({ label: x, value: x })),
+  },
+  requestor_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "requestor_name",
+    label: "Requestor Name",
+  },
+  targeted_end_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "targeted_end_date",
+    label: "Targeted End Date",
+  },
 }
