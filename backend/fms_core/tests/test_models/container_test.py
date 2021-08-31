@@ -16,6 +16,33 @@ class ContainerTest(TestCase):
         created_valid_container = Container.objects.get(name='TestRack001')
         self.assertEqual(created_valid_container.barcode, 'R123456')
 
+    def test_invalid_barcode_space(self):
+        with self.assertRaises(ValidationError):
+            try:
+                # Test space in barcode
+                Container.objects.create(**create_container(barcode='R 123456'))
+            except ValidationError as e:
+                self.assertIn("barcode", e.message_dict)
+                raise e
+
+    def test_invalid_barcode_tab(self):
+        with self.assertRaises(ValidationError):
+            try:
+                # Test tab in barcode
+                Container.objects.create(**create_container(barcode='R\t23456'))
+            except ValidationError as e:
+                self.assertIn("barcode", e.message_dict)
+                raise e
+
+    def test_invalid_barcode_newline(self):
+        with self.assertRaises(ValidationError):
+            try:
+                # Test newline in barcode
+                Container.objects.create(**create_container(barcode='R\n23456'))
+            except ValidationError as e:
+                self.assertIn("barcode", e.message_dict)
+                raise e
+
     def test_same_coordinates(self):
         rack = Container.objects.create(**create_container(barcode='R123456'))
         Container.objects.create(**create_container(location=rack, barcode='R123457', coordinates="A01", kind="tube",

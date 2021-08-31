@@ -16,7 +16,7 @@ __all__ = [
     "SAMPLE_TRANSFER_TEMPLATE",
 ]
 
-CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_v3_2_0.xlsx")
+CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_v3_4_0.xlsx")
 CONTAINER_MOVE_TEMPLATE = static("submission_templates/Container_move_v3_2_0.xlsx")
 CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v3_2_0.xlsx")
 EXPERIMENT_INFINIUM_TEMPLATE = static("submission_templates/Experiment_Infinium_24_vtest.xlsx")

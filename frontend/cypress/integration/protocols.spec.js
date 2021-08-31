@@ -53,7 +53,9 @@ export const protocolsTests = () => {
       it('visits child sample detail page', () => {
         const sampleName = 'Sample_Blood1'
         cy.navigateTo('Protocols')
-        cy.get('.ant-table-tbody .ant-table-row').eq(4).within(() => cy.get('.ant-table-cell').eq(3).contains(sampleName).click())
+        cy.contains('th', 'Source Sample').invoke('index').then((i) => {
+          cy.get('.ant-table-tbody .ant-table-row').eq(4).within(() => cy.get('.ant-table-cell').eq(i).contains(sampleName).click())
+        })
         cy.get('body').should('contain', `Sample ${sampleName}`)
       })
     })

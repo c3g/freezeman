@@ -18,6 +18,12 @@ import canWrite from "./canWrite";
 
 const getTableColumns = (groupsByID) => [
     {
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      render: (_, user) => <Link to={`/users/${user.id}`}> <div>{user.id}</div> </Link>,
+    },
+    {
       title: "Username",
       dataIndex: "username",
       sorter: true,

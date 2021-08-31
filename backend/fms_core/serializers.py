@@ -14,7 +14,8 @@ from .models import (
     Process,
     ProcessMeasurement,
     Sample,
-    SampleKind
+    SampleKind,
+    Project,
 )
 
 
@@ -40,6 +41,8 @@ __all__ = [
     "RevisionSerializer",
     "UserSerializer",
     "GroupSerializer",
+    "ProjectSerializer",
+    "ProjectExportSerializer",
 ]
 
 
@@ -183,6 +186,7 @@ class SampleSerializer(serializers.ModelSerializer):
             return obj.extracted_from.id
 
 class SampleExportSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(read_only=True, source="id")
     sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
     sample_name = serializers.CharField(source="name")
     individual_id = serializers.CharField(read_only=True, source="individual.name")
@@ -201,7 +205,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = ('sample_kind', 'sample_name', 'alias', 'cohort', 'taxon',
+        fields = ('sample_id','sample_kind', 'sample_name', 'alias', 'cohort', 'taxon',
                   'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
                   'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
                   'current_volume', 'concentration', 'collection_site', 'tissue_source', 'creation_date', 'phenotype',
@@ -268,3 +272,14 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ("id", "name", "permissions")
         depth = 1
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+class ProjectExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
+

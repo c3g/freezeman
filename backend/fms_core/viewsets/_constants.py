@@ -124,3 +124,11 @@ _experiment_run_filterset_fields: FiltersetFields = {
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),
 }
+
+_project_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
+    "requestor_name": CATEGORICAL_FILTERS_LOOSE,
+    "status": CATEGORICAL_FILTERS,
+}

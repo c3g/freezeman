@@ -26,7 +26,7 @@ const getTableColumns = (containersByID, experimentTypes, instruments) => [
     sorter: true,
     render: (_, experimentRun) => (experimentRun.id &&
       <Link to={`/experiment-runs/${experimentRun.id}`}>
-        Experiment {experimentRun.id}
+        {experimentRun.id}
       </Link>),
   },
   {
