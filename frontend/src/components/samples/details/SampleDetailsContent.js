@@ -197,6 +197,13 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
             </Descriptions>
           ) : null}
 
+          <Descriptions bordered={true} size="small" title="Associtated Projects" style={{marginTop: "24px"}}>
+              {sample.projects && sample.projects.map(project => {
+                const projectInformation = project.split(":")
+                return (<div> <Link to={`/projects/${projectInformation[0]}`}> • {projectInformation[1]} </Link> </div>);
+              })}
+          </Descriptions>
+
           <TrackingFieldsContent entity={sample}/>
 
           <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>

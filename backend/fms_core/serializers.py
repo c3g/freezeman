@@ -173,7 +173,7 @@ class PropertyValueSerializer(serializers.ModelSerializer):
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    projects = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Sample
@@ -202,6 +202,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
+    projects = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Sample
@@ -210,7 +211,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
                   'current_volume', 'concentration', 'collection_site', 'tissue_source', 'creation_date', 'phenotype',
                   'depleted', 'coordinates',
-                  'comment')
+                  'comment', 'projects')
 
     def get_location_barcode(self, obj):
         if obj.container.location is None:
@@ -285,5 +286,3 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments", "samples")
-
-SampleSerializer.projects  = ProjectSerializer(many=True, read_only=True)

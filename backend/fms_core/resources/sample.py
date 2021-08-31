@@ -3,14 +3,14 @@ import reversion
 
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
-from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
+from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, remove_columns_from_preview
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from ..models import Container, Individual, Sample, SampleKind, Project
+from ..models import Container, Individual, Sample, SampleKind, Project, SampleByProject
 from ..utils import (
     RE_SEPARATOR,
     blank_str_to_none,
@@ -59,7 +59,7 @@ class SampleResource(GenericResource):
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 
-    projects = Field(attribute='projects', column_name='Project')
+    project = Field(attribute='projects', column_name='Project', widget=ManyToManyWidget(Project))
 
     COMPUTED_FIELDS = frozenset((
         "individual_id",
@@ -120,6 +120,7 @@ class SampleResource(GenericResource):
 
     def import_obj(self, obj, data, dry_run):
         errors = {}
+        self.project = {}
         try:
             super().import_obj(obj, data, dry_run)
         except ValidationError as e:
@@ -181,10 +182,9 @@ class SampleResource(GenericResource):
 
         if data["Project"]:
             try:
-                project, _ = Project.objects.get(name=get_normalized_str(data, "Project"))
-                obj.projects.set(project)
-            except Exception as e:
-                errors["project"] = ValidationError(e.message.pop(), code="invalid")
+                self.project = Project.objects.get(name=get_normalized_str(data, "Project"))
+            except Project.DoesNotExist:
+                errors["project "] = ValidationError("Project does not exist.", code="invalid")
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
@@ -286,6 +286,11 @@ class SampleResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported samples from template.")
+
+    def save_m2m(self, obj, data, using_transactions, dry_run):
+        sampleByProject = SampleByProject.objects.create(project=self.project, sample=obj)
+        data["Project"] = self.project.id
+        super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
                     **kwargs):
