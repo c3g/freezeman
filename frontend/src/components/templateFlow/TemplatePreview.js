@@ -18,10 +18,10 @@ export const TemplatePreview = ({checkResult}) => {
     <Tabs size="large" type="card">
       {checkResult.result_previews?.map((preview, index) =>
          <TabPane tab={preview.name} key={index}>
-           { checkResult.valid &&
-              renderPreviewSheetTable(preview)
-           }
-           { !checkResult.valid && renderResultWithErrors(preview)}
+                {!checkResult.valid && renderResultWithErrors(preview)}
+            <p>
+                {renderPreviewSheetTable(preview)}
+            </p>
          </TabPane>
       )}
     </Tabs>
@@ -64,9 +64,6 @@ const renderResultWithErrors = (previewSheetInfo) => {
             {errors}
           </p>
         }
-        <p>
-          {renderPreviewSheetTable(previewSheetInfo)}
-        </p>
     </>
   )
 }
@@ -75,12 +72,13 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
   const results = []
   const columns = []
 
-  previewSheetInfo.has_warnings && columns.push(
+  columns.push(
     {
-      title: 'Warnings',
+      title: '',
       dataIndex: 'warning',
       key: 'warning',
-      align: "center",  
+      align: "center",
+      fixed: "left",
       render: content => {
         return (content &&
           <Popover content={content} title='Warnings on current row' placement='bottomLeft'>
@@ -106,15 +104,15 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
     let row_data = {}
 
     row.warnings.length > 0 && (
-        row_data['warning'] = () => {
-          <div key={`warning-${index}`}>
-            {row.warnings.map(warning => <p>{warning}</p>)}
-          </div>
-        }
+      row_data['warning'] = (
+        <div key={`warning-${index}`}>
+          {row.warnings.map(warning => <p>{warning}</p>)}
+        </div>
+      )
     )
 
     console.log(row)
-    console.log(row_data['warning'])
+    console.log(row.diff)
 
     row.diff.forEach((diff, diff_index) => {
       row_data[`column-${diff_index}`] = innerHTMLPurified(diff)
