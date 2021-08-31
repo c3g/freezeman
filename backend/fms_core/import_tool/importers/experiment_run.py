@@ -47,20 +47,26 @@ class ExperimentRunImporter(GenericImporter):
                       'experiment_container_coordinates': row_data['Experiment Container Position']
                       }
 
-            sample_row_handler = SampleRowHandler()
-            result = sample_row_handler.process_row(barcode=row_data['Source Container Barcode'],
-                                                    coordinates=row_data['Source Container Position'],
-                                                    volume_used=sample['volume_used'])
+            sample_kargs = dict(
+                barcode=row_data['Source Container Barcode'],
+                coordinates=row_data['Source Container Position'],
+                volume_used=sample['volume_used']
+            )
 
-            samples_sheet.rows_results[i].update(**result)
+            _, sample['sample_obj'] = self.handle_row(
+                row_handler_class=SampleRowHandler,
+                sheet=samples_sheet,
+                row_i=i,
+                **sample_kargs,
+            )
 
-            sample['sample_obj'] = sample_row_handler.row_object
             sample_rows_data.append(sample)
+
 
         """
             EXPERIMENTS SHEET
         """
-        print('START EXPERIMETN SHEET')
+        print('START EXPERIMENT SHEET')
         experiments_sheet = self.sheets['Experiments']
         experiments_df = experiments_sheet.dataframe
 
@@ -83,14 +89,6 @@ class ExperimentRunImporter(GenericImporter):
                 else:
                     properties[key] = experiments_df.iloc[row_id][key]
 
-            container = {
-                'barcode': experiment_run_dict['Experiment Container Barcode'],
-                'kind': experiment_run_dict['Experiment Container Kind']
-            }
-            instrument = {'name': experiment_run_dict['Instrument Name']}
-
-            start_date = experiment_run_dict['Experiment Start Date']
-
 
             experiment_temporary_id = experiment_run_dict['Experiment ID']
             filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
@@ -98,12 +96,16 @@ class ExperimentRunImporter(GenericImporter):
 
             print('importers exp run - sample rows for exp ', experiment_sample_rows_info)
 
-            er_row_handler = ExperimentRunRowHandler()
-            result = er_row_handler.process_row(
+            experiment_run_kwargs = dict(
                 # ExperimentRun attributes data dictionaries
-                instrument=instrument,
-                container=container,
-                start_date=start_date,
+                instrument={
+                    'name': experiment_run_dict['Instrument Name']
+                },
+                container={
+                    'barcode': experiment_run_dict['Experiment Container Barcode'],
+                    'kind': experiment_run_dict['Experiment Container Kind']
+                },
+                start_date=experiment_run_dict['Experiment Start Date'],
                 # Additional data for this row
                 sample_rows_info=experiment_sample_rows_info,
                 properties=properties,
@@ -112,5 +114,10 @@ class ExperimentRunImporter(GenericImporter):
                 protocols_dict=self.preloaded_data['protocols_dict'],
                 properties_by_name_dict=self.preloaded_data['property_types_by_name'],
             )
-            experiments_sheet.rows_results[row_id].update(**result)
 
+            self.handle_row(
+                row_handler_class=ExperimentRunRowHandler,
+                sheet=experiments_sheet,
+                row_i=row_id,
+                **experiment_run_kwargs,
+            )

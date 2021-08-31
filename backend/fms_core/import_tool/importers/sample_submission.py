@@ -59,8 +59,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'sample_kind': row_data['Sample Kind'],
             }
 
-            sample_row_handler = SampleRowHandler()
-            result = sample_row_handler.process_row(
+            sample_kwargs = dict(
                 sample=sample,
                 container=container,
                 parent_container=parent_container,
@@ -71,7 +70,12 @@ class SampleSubmissionImporter(GenericImporter):
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )
 
-            samples_sheet.rows_results[row_id].update(**result)
+            self.handle_row(
+                row_handler_class=SampleRowHandler,
+                sheet=samples_sheet,
+                row_i=row_id,
+                **sample_kwargs,
+            )
 
 
 

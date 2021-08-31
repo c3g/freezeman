@@ -81,6 +81,16 @@ class GenericImporter():
     def preload_data_from_template(self, **kwargs):
         pass
 
+    def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
+        row_handler_obj = row_handler_class()
+        result = row_handler_obj.process_row(kwargs)
+        sheet.rows_results[row_i].update(**result)
+
+        row_obj = row_handler_obj.row_object
+
+        return (result, row_obj)
+
+
     @property
     def is_valid(self):
         if any(s.is_valid is None for s in list(self.sheets.values())):
