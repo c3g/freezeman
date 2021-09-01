@@ -17,13 +17,13 @@ class GenericFilter(django_filters.FilterSet):
     def batch_barcode_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
-            query |= Q(barcode__contains=v)
+            query |= Q(barcode=v)
         return queryset.filter(query)
 
     def batch_name_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
-            query |= Q(name__contains=v)
+            query |= Q(name=v)
         return queryset.filter(query)
 
 
