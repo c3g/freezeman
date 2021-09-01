@@ -51,19 +51,19 @@ class ProjectLinkSampleResource(GenericResource):
             errors["project"] = ValidationError([f"No project with name [{data['Project Name']}]"], code="invalid")
 
         # Set object for deletion if REMOVE_ACTION
-        try:
-            link_exists = SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists()
-        except ObjectDoesNotExist:
-            link_exists = False
+        if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists():
+            # Perform the desired action
+            if data["Action"] == REMOVE_ACTION:
+                    obj.deleted = True
+            elif data["Action"] == ADD_ACTION:
+                errors["link"] = ValidationError(
+                    [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
+                    code="invalid")
 
-        # Perform the desired action
-        if data["Action"] == REMOVE_ACTION:
-            if link_exists:
-                obj.deleted = True
-            else:
-                errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."], code="invalid")
-        elif data["Action"] == ADD_ACTION and link_exists:
-                errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."], code="invalid")
+        else:
+            if data["Action"] == REMOVE_ACTION:
+                errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."],
+                                                 code="invalid")
 
         if errors:
             raise ValidationError(errors)
