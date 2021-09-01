@@ -27,7 +27,7 @@ import TrackingFieldsContent from "../../TrackingFieldsContent";
 import {SampleDepletion} from "../SampleDepletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcessMeasurement, withProject} from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
@@ -66,11 +66,12 @@ const mapStateToProps = state => ({
   processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
+  projectsByID: state.projects.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, projectsByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -87,8 +88,10 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
+  const isProjectsEmpty = sample.projects && sample.projects.length === 0;
   let processMeasurements = []
   let experimentRunsIDs = []
+  let projects = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -106,6 +109,14 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
   if (isLoaded && container?.experiment_run) {
     experimentRunsIDs.push(container.experiment_run)
+  }
+
+  if (isLoaded && !isProjectsEmpty) {
+    console.log(projects)
+    sample.projects.forEach((id, i) => {
+      withProject(projectsByID, id, project => project.id);
+      projects.push(projectsByID[id]);
+    })
   }
 
   return <>
@@ -178,7 +189,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               <Descriptions.Item label="Update Comment" span={3}>{sample.update_comment}</Descriptions.Item>
               {/*TODO: Extracted from*/}
           </Descriptions>
-
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
               <Descriptions.Item label="Extracted From">
@@ -198,10 +208,12 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           ) : null}
 
           <Descriptions bordered={true} size="small" title="Associtated Projects" style={{marginTop: "24px"}}>
-              {sample.projects && sample.projects.map(project => {
-                const projectInformation = project.split(":")
-                return (<div> <Link to={`/projects/${projectInformation[0]}`}> • {projectInformation[1]} </Link> </div>);
-              })}
+            {
+              projects.length !== 0 && projects.map(project => {
+                if (project)
+                  return (<Descriptions.Item> <Link to={`/projects/${project.id}`}>  {project.name} </Link> </Descriptions.Item>);
+              })
+            }
           </Descriptions>
 
           <TrackingFieldsContent entity={sample}/>

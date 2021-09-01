@@ -22,16 +22,15 @@ import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getProjectLinks = (projects) => {
+const getProjectLinks = (ids, projectsByID) => {
   return (
-    projects.map(project => {
-      const projectInformation = project.split(":")
-      return (<div> <Link to={`/projects/${projectInformation[0]}`}> {projectInformation[1]} </Link> </div>);
+    ids.map(id => {
+      return (<div> <Link to={`/projects/${projectsByID[id].id}`}> {projectsByID[id].name} </Link> </div>);
     })
   )
 }
 
-const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
       title: "Sample Kind",
       dataIndex: "sample_kind__name",
@@ -86,7 +85,7 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
       title: "Projects",
       dataIndex: "projects",
       sorter: true,
-      render: (_, sample) => (sample.projects && getProjectLinks(sample.projects)),
+      render: (_, sample) => (sample.projects && getProjectLinks(sample.projects, projectsByID)),
     },
     {
       title: "Coords",
@@ -132,6 +131,7 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
   containersByID: state.containers.itemsByID,
   individualsByID: state.individuals.itemsByID,
+  projectsByID: state.projects.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -149,6 +149,7 @@ const SamplesListContent = ({
   filters,
   containersByID,
   individualsByID,
+  projectsByID,
   sortBy,
   listTable,
   setFilter,
@@ -162,7 +163,7 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-  const columns = getTableColumns(containersByID, individualsByID, sampleKinds)
+  const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,

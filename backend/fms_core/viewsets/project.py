@@ -29,7 +29,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     template_action_list = [
         {
             "name": "Link Projects with Samples",
-            "description": "Upload the provided template with up to 384 links between projects and samples.",
+            "description": "Upload the provided template with links between projects and samples.",
             "template": PROJECT_LINK_SAMPLES_TEMPLATE,
             "resource": ProjectLinkSampleResource,
         }

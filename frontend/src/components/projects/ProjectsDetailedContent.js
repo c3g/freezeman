@@ -2,7 +2,7 @@ import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography} from "antd";
+import {Descriptions, Typography, Spin} from "antd";
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
@@ -14,17 +14,27 @@ import {get} from "../../modules/projects/actions";
 const mapStateToProps = state => ({
     projects: state.projects.items,
     isFetching: state.projects.isFetching,
-    projectsByID: state.projects.itemsByID
+    projectsByID: state.projects.itemsByID,
+    samplesByID: state.samples.itemsByID,
 });
 
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-const ProjectsDetailedContent = ({projects, projectsByID, isFetching, get}) => {
+const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetching, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};
+    const isSamplesEmpty = project.samples && project.samples.length === 0;
+    let samples = []
+
+    if (isLoaded && !isSamplesEmpty) {
+      project.samples && project.samples.forEach((id, i) => {
+        withSample(samplesByID, id, sample => sample.id);
+        samples.push(samplesByID[id]);
+      })
+    }
 
     if (!isLoaded)
         get(id);
@@ -47,9 +57,12 @@ const ProjectsDetailedContent = ({projects, projectsByID, isFetching, get}) => {
                 <Descriptions.Item label="Comments" span={4}>{project.comments}</Descriptions.Item>
             </Descriptions>
             <Descriptions bordered={true} size="small" title="Associated Samples" style={{marginTop: "24px"}}>
-                {project.samples && project.samples.map(sample => {
-                  return (<div> <Link to={`/samples/${sample.id}`}> • {sample.name} </Link> </div>);
-                })}
+              {
+                samples.length !== 0 && samples.map(sample => {
+                  if (sample)
+                    return (<Descriptions.Item> <Link to={`/samples/${sample.id}`}>  {sample.name} </Link> </Descriptions.Item>);
+                })
+              }
             </Descriptions>
             <TrackingFieldsContent entity={project}/>
         </PageContent>

@@ -173,7 +173,7 @@ class PropertyValueSerializer(serializers.ModelSerializer):
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.StringRelatedField(many=True)
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
@@ -202,7 +202,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
-    projects = serializers.StringRelatedField(many=True)
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
@@ -275,14 +275,14 @@ class GroupSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ProjectSerializer(serializers.ModelSerializer):
-    samples = SampleSerializer(read_only=True, many=True)
+    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
         fields = "__all__"
         extra_fields = ('samples')
 
 class ProjectExportSerializer(serializers.ModelSerializer):
-    samples = SampleSerializer(read_only=True, many=True)
+    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments", "samples")

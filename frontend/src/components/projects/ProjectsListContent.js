@@ -77,6 +77,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   projectsById: state.projects.itemsByID,
   projects: state.projects.items,
+  actions: state.projectTemplateActions,
   page: state.projects.page,
   totalCount: state.projects.totalCount,
   isFetching: state.projects.isFetching,
@@ -122,7 +123,7 @@ const ProjectsListContent = ({
   return <>
     <AppPageHeader title="Projects" extra={[
       <AddButton key='add' url="/projects/add" />,
-      <LinkButton key="link" url="/projects/actions/0" />,
+      ...actionsToButtonList("/projects", actions),
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

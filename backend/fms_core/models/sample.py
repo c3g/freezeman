@@ -168,8 +168,6 @@ class Sample(TrackedModel):
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage",
                                       symmetrical=False, related_name="parent_of")
 
-    projects = models.ManyToManyField("project", blank=True, through="SampleByProject", related_name="samples")
-
     class Meta:
         unique_together = ("container", "coordinates")
 
