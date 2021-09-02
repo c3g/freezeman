@@ -50,7 +50,7 @@ SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_3_0_B_A_1.csv"
 SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
 SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_2.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
-EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_3_0_B_A_1.csv"
+EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_4_0_B_A_1.csv"
 
 
 class ResourcesTestCase(TestCase):
