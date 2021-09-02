@@ -24,6 +24,7 @@ import PageContent from "../../PageContent";
 import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
+import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import {SampleDepletion} from "../SampleDepletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
@@ -112,12 +113,13 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   }
 
   if (isLoaded && !isProjectsEmpty) {
-    console.log(projects)
     sample.projects.forEach((id, i) => {
       withProject(projectsByID, id, project => project.id);
-      projects.push(projectsByID[id]);
+      projects[id] = projectsByID[id];
     })
   }
+
+  let isFetchingProjects = projects.every(project =>  project ? project.isFetching : true)
 
   return <>
     <AppPageHeader
@@ -207,16 +209,17 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
             </Descriptions>
           ) : null}
 
-          <Descriptions bordered={true} size="small" title="Associtated Projects" style={{marginTop: "24px"}}>
-            {
-              projects.length !== 0 && projects.map(project => {
-                if (project)
-                  return (<Descriptions.Item> <Link to={`/projects/${project.id}`}>  {project.name} </Link> </Descriptions.Item>);
-              })
-            }
-          </Descriptions>
-
           <TrackingFieldsContent entity={sample}/>
+
+          <Title level={4} style={{marginTop: '2rem'}}> Associated Projects </Title>
+          {!isFetchingProjects &&
+            <SamplesAssociatedProjects
+              projects={sample.projects}
+              projectsByID={projects}
+              totalCount={sample.projects.length}
+              isFetching={isFetchingProjects}
+            />
+          }
 
           <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
           <Row>
@@ -261,6 +264,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
       </Tabs>
+
     </PageContent>
   </>;
 };

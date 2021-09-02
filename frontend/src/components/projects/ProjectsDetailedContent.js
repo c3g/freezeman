@@ -8,6 +8,7 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
+import ProjectsAssociatedSamples from "./ProjectsAssociatedSamples";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/projects/actions";
 
@@ -29,10 +30,10 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
     const isSamplesEmpty = project.samples && project.samples.length === 0;
     let samples = []
 
-    if (isLoaded && !isSamplesEmpty) {
+    if (isLoaded) {
       project.samples && project.samples.forEach((id, i) => {
         withSample(samplesByID, id, sample => sample.id);
-        samples.push(samplesByID[id]);
+        samples[id] = (samplesByID[id]);
       })
     }
 
@@ -42,6 +43,8 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
     const isLoading = !isLoaded || isFetching;
     const title =
         `Project ${project.name}`;
+
+    let  isFetchingSamples = samples.every(sample =>  sample ? sample.isFetching : true)
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/projects/list")}/>
@@ -56,15 +59,16 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
                 <Descriptions.Item label="Targeted End Date" span={2}>{project.targeted_end_date}</Descriptions.Item>
                 <Descriptions.Item label="Comments" span={4}>{project.comments}</Descriptions.Item>
             </Descriptions>
-            <Descriptions bordered={true} size="small" title="Associated Samples" style={{marginTop: "24px"}}>
-              {
-                samples.length !== 0 && samples.map(sample => {
-                  if (sample)
-                    return (<Descriptions.Item> <Link to={`/samples/${sample.id}`}>  {sample.name} </Link> </Descriptions.Item>);
-                })
-              }
-            </Descriptions>
             <TrackingFieldsContent entity={project}/>
+            <Title level={4} style={{marginTop: '2rem'}}> Associated Samples </Title>
+            {!isFetchingSamples &&
+              <ProjectsAssociatedSamples
+                samples={project.samples}
+                samplesByID={samples}
+                totalCount={project.samples.length}
+                isFetching={isFetchingSamples}
+              />
+            }
         </PageContent>
     </>;
 };
