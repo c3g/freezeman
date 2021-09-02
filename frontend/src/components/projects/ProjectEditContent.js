@@ -166,8 +166,10 @@ function deserialize(values) {
 function serialize(values) {
   const newValues = {...values}
 
-  if (newValues.status === false) newValues.status = "Closed"
-  else newValues.status = "Open"
+  if (newValues.status === false)
+    newValues.status = "Closed"
+  else
+    newValues.status = "Open"
 
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
