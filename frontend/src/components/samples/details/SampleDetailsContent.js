@@ -92,7 +92,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const isProjectsEmpty = sample.projects && sample.projects.length === 0;
   let processMeasurements = []
   let experimentRunsIDs = []
-  let projects = []
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -111,15 +110,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   if (isLoaded && container?.experiment_run) {
     experimentRunsIDs.push(container.experiment_run)
   }
-
-  if (isLoaded && !isProjectsEmpty) {
-    sample.projects.forEach((id, i) => {
-      withProject(projectsByID, id, project => project.id);
-      projects[id] = projectsByID[id];
-    })
-  }
-
-  let isFetchingProjects = projects.every(project =>  project ? project.isFetching : true)
 
   return <>
     <AppPageHeader
@@ -212,14 +202,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           <TrackingFieldsContent entity={sample}/>
 
           <Title level={4} style={{marginTop: '2rem'}}> Associated Projects </Title>
-          {!isFetchingProjects &&
-            <SamplesAssociatedProjects
-              projects={sample.projects}
-              projectsByID={projects}
-              totalCount={sample.projects.length}
-              isFetching={isFetchingProjects}
-            />
-          }
+          <SamplesAssociatedProjects sampleName={sample.name} />
 
           <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
           <Row>

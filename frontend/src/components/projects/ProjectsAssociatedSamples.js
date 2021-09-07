@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -9,6 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
+import filterSamplesByProject from "../../utils/filterSamplesByProject";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -66,28 +67,43 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   sampleKinds: state.sampleKinds,
   page: state.samples.page,
+  samples: state.samples.items,
+  samplesByID: state.samples.itemsByID,
+  totalCount: state.samples.totalCount,
+  isFetching: state.samples.isFetching,
+  filters: state.samples.filters,
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
+const actionCreators = {listTable, setFilter, clearFilters, setSortBy};
 
 const ProjectsAssociatedSamples = ({
   token,
+  projectName,
   samples,
   samplesByID,
   sampleKinds,
   isFetching,
   page,
+  filters,
   totalCount,
   sortBy,
   listTable,
   setFilter,
-  setFilterOption,
   clearFilters,
   setSortBy,
 }) => {
 
-  const filters = {}
+  useEffect(() => {
+    //will be called on component will mount
+    clearFilters()
+    // returned function will be called on component unmount
+    return () => {
+      clearFilters()
+    }
+  }, [])
+
+  filterSamplesByProject(setFilter, filters, projectName, clearFilters)
 
   const columns = getTableColumns(sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
@@ -95,46 +111,43 @@ const ProjectsAssociatedSamples = ({
     SAMPLE_FILTERS,
     filters,
     setFilter,
-    setFilterOption
+    setFilterOption,
   )))
+
 
   const nFilters = getNFilters(filters)
 
-  const isDoneFetchingSamples = samplesByID.every(sample => sample && !sample.isFetching)
-
-  if(isDoneFetchingSamples)
-    return <>
-      <PageContent>
-        <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
-          <FiltersWarning
-            nFilters={nFilters}
-            filters={filters}
-            description={SAMPLE_FILTERS}
-          />
-          <Button
-            style={{ margin: 6 }}
-            disabled={nFilters === 0}
-            onClick={clearFilters}
-          >
-            Clear Filters
-          </Button>
-        </div>
-        <PaginatedTable
-          columns={columns}
-          items={samples}
-          itemsByID={samplesByID}
-          rowKey="id"
-          loading={!isDoneFetchingSamples}
-          totalCount={totalCount}
-          page={page}
+  return <>
+    <PageContent>
+      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+        <FiltersWarning
+          nFilters={nFilters}
           filters={filters}
-          sortBy={sortBy}
-          onChangeSort={setSortBy}
+          description={SAMPLE_FILTERS}
         />
-      </PageContent>
-    </>;
-  else
-    return null
+        <Button
+          style={{ margin: 6 }}
+          disabled={nFilters === 1}
+          onClick={clearFilters}
+        >
+          Clear Filters
+        </Button>
+      </div>
+      <PaginatedTable
+        columns={columns}
+        items={samples}
+        itemsByID={samplesByID}
+        rowKey="id"
+        loading={isFetching}
+        totalCount={totalCount}
+        page={page}
+        filters={filters}
+        sortBy={sortBy}
+        onLoad={listTable}
+        onChangeSort={setSortBy}
+      />
+    </PageContent>
+  </>;
 }
 
 export default connect(mapStateToProps, actionCreators)(ProjectsAssociatedSamples);

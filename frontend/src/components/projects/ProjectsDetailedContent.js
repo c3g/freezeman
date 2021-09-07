@@ -61,14 +61,7 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
             </Descriptions>
             <TrackingFieldsContent entity={project}/>
             <Title level={4} style={{marginTop: '2rem'}}> Associated Samples </Title>
-            {!isFetchingSamples &&
-              <ProjectsAssociatedSamples
-                samples={project.samples}
-                samplesByID={samples}
-                totalCount={project.samples.length}
-                isFetching={isFetchingSamples}
-              />
-            }
+            <ProjectsAssociatedSamples projectName={project.name} />
         </PageContent>
     </>;
 };

@@ -30,6 +30,12 @@ export const SAMPLE_FILTERS = {
     label: "Container Barcode",
     recursive: true,
   },
+  projects: {
+    type: FILTER_TYPE.INPUT,
+    key: "projects",
+    label: "Projects",
+    many_to_many: true,
+  },
   coordinates: {
     type: FILTER_TYPE.INPUT,
     key: "coordinates",
@@ -275,5 +281,11 @@ export const PROJECT_FILTERS = {
     type: FILTER_TYPE.DATE_RANGE,
     key: "targeted_end_date",
     label: "Targeted End Date",
+  },
+  samples: {
+    type: FILTER_TYPE.INPUT,
+    key: "samples",
+    label: "Samples",
+    many_to_many: true,
   },
 }

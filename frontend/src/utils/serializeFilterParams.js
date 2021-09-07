@@ -16,7 +16,6 @@ export default function serializeFilterParams(filters, descriptions) {
       return
 
     switch (description.type) {
-      
       case FILTER_TYPE.DATE_RANGE:
       case FILTER_TYPE.RANGE: {
         if (value) {
@@ -44,10 +43,13 @@ export default function serializeFilterParams(filters, descriptions) {
             key += "__recursive"
           else if (options.exactMatch)
             key += "__startswith"
+          else if (options.many_to_many)
+            key = key
           else
             key += "__icontains"
         } else {
-          key += "__icontains"
+          if(!description.many_to_many)
+            key += "__icontains"
         }
 
         if(value)

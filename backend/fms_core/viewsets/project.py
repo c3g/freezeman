@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
+from fms_core.filters import ProjectFilter
 from fms_core.resources import ProjectLinkSampleResource
 from fms_core.template_paths import PROJECT_LINK_SAMPLES_TEMPLATE
 
@@ -18,13 +19,10 @@ from ._constants import _project_filterset_fields
 class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    filter_class = ProjectFilter
     ordering_fields = (
         *_list_keys(_project_filterset_fields),
     )
-
-    filterset_fields = {
-        **_project_filterset_fields,
-    }
 
     template_action_list = [
         {
