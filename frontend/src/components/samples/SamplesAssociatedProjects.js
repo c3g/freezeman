@@ -96,6 +96,7 @@ const SamplesAssociatedProjects = ({
   }, [])
 
   filterProjectsBySample(setFilter, filters, sampleName, clearFilters)
+  let {samples, ...filtersForWarning} = filters
 
   const columns = getTableColumns()
   .map(c => Object.assign(c, getFilterProps(
@@ -106,20 +107,20 @@ const SamplesAssociatedProjects = ({
     setFilterOption,
   )))
 
-
   const nFilters = getNFilters(filters)
+  const nFiltersForWarning = nFilters - 1
 
   return <>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
         <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
+          nFilters={nFiltersForWarning}
+          filters={filtersForWarning}
           description={PROJECT_FILTERS}
         />
         <Button
           style={{ margin: 6 }}
-          disabled={nFilters === 1}
+          disabled={nFiltersForWarning === 0}
           onClick={clearFilters}
         >
           Clear Filters
