@@ -63,8 +63,10 @@ export const containersTests = () => {
         cy.get('body').should('contain', '1-16 of 16 items')
         cy.get('.ant-table-cell').contains('Barcode').parents('.ant-table-filter-column').within(() => cy.get('.ant-dropdown-trigger').click().type(moveBarcodeDst)) // filter by barcode (column 1)
         cy.get('.ant-table-cell').contains(moveBarcodeDst).parents('.ant-table-row').should('contain', '0')
-        cy.contains('th', 'Children').invoke('index').then((i) => {
-          cy.get('.ant-table-tbody .ant-table-row').within(() => cy.get('.ant-table-cell').eq(i).should('contain', '2'))
+        cy.contains('th', 'Children').invoke('index').then((column) => {
+          cy.contains('.ant-table-cell', moveBarcodeDst).parents('.ant-table-row').within(() => {
+            cy.get('.ant-table-cell').eq(column).should('contain', '2')
+          })
         })
         cy.get('button').contains('Clear Filters').click()
       })
