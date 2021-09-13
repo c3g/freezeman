@@ -78,7 +78,7 @@ class ExperimentRunResource(GenericResource):
         self.protocols_ending_idx = self.protocols_starting_idx + len(self.properties_row)
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
-        self.property_types_by_name = PropertyType.objects.filter(name__in=self.properties_row).in_bulk(field_name="name")
+        self.property_types_by_name = dict((o.name, o) for o in PropertyType.objects.filter(name__in=self.properties_row))
 
         # Preload Protocols objects for this experiment type in a dictionary for faster access
         self.protocols_dict = {}
@@ -177,9 +177,7 @@ class ExperimentRunResource(GenericResource):
         # Create property values for ExperimentRun
         for i, (property, value) in enumerate(data.items()):
             # Slicing columns not containing properties
-            if i < self.protocols_starting_idx or i >= self.protocols_ending_idx:
-                pass
-            else:
+            if i >= self.protocols_starting_idx and i < self.protocols_ending_idx:
                 property_type = self.property_types_by_name[property]
                 process = experiment_run_processes_by_protocol_id[property_type.object_id]
 
@@ -192,6 +190,8 @@ class ExperimentRunResource(GenericResource):
                                                  content_object=process)
                 except Exception as e:
                     errors[property] = e.error_dict['value']
+            elif i >= self.protocols_ending_idx:
+                break
 
         if errors:
             raise ValidationError(errors)
@@ -219,7 +219,7 @@ class ExperimentRunResource(GenericResource):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported ExperimentRun from template.")
 
-        self.experiments_objs_by_temporary_id.update({self.temporary_experiment_id: instance})
+        self.experiments_objs_by_temporary_id[self.temporary_experiment_id] = instance
 
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
@@ -233,28 +233,20 @@ class ExperimentRunResource(GenericResource):
             data_coordinates = sample_row["source_container_position"]
             data_experiment_container_coordinates = sample_row["experiment_container_position"]
 
-            source_container = None
-            source_sample = None
-            experiment_run = None
-
             sample_data_errors = []
 
             try:
                 experiment_run = self.experiments_objs_by_temporary_id[data_experiment_id]
             except Exception as e:
+                experiment_run = None
                 sample_data_errors.append(f"Experiment associated to temporary identifier {data_experiment_id} not found in this template")
 
             try:
-                source_container = Container.objects.get(barcode=data_barcode)
+                source_sample = Sample.objects.get(container__barcode=data_barcode,
+                                                   coordinates=data_coordinates)
             except Exception as e:
-                sample_data_errors.append(f"Container with barcode {data_barcode} not found")
-
-            if source_container:
-                try:
-                    source_sample = Sample.objects.get(container=source_container,
-                                                       coordinates=data_coordinates)
-                except Exception as e:
-                    sample_data_errors.append(f"Sample from container {data_barcode} at coordinates {data_coordinates} not found")
+                source_sample = None
+                sample_data_errors.append(f"Sample from container {data_barcode} at coordinates {data_coordinates} not found")
 
             volume_used = float_to_decimal(blank_str_to_none(sample_row["source_sample_volume_used"]))
             if volume_used <= 0:
@@ -273,7 +265,7 @@ class ExperimentRunResource(GenericResource):
                     positions_by_experiment_temporary_id[data_experiment_id].append(data_experiment_container_coordinates)
 
             # Creates the new objects
-            if len(sample_data_errors) == 0:
+            if not sample_data_errors:
                 try:
                     source_sample.volume = source_sample.volume - volume_used
                     source_sample.save()
@@ -281,7 +273,7 @@ class ExperimentRunResource(GenericResource):
                     # Create experiment run sample
                     experiment_run_sample = Sample.objects.get(id=source_sample.id)
                     experiment_run_sample.pk = None
-                    experiment_run_sample.container = experiment_run.container
+                    experiment_run_sample.container_id = experiment_run.container_id
                     experiment_run_sample.coordinates = data_experiment_container_coordinates
                     experiment_run_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
                     experiment_run_sample.depleted = True
@@ -292,7 +284,7 @@ class ExperimentRunResource(GenericResource):
                         self.temporary_experiment_ids_without_samples.remove(data_experiment_id)
 
                     # ProcessMeasurement for ExperimentRun on Sample
-                    process_measurement = ProcessMeasurement.objects.create(process=experiment_run.process,
+                    process_measurement = ProcessMeasurement.objects.create(process_id=experiment_run.process_id,
                                                                             source_sample=source_sample,
                                                                             volume_used=volume_used,
                                                                             execution_date=experiment_run.start_date)
