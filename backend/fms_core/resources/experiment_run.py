@@ -1,12 +1,8 @@
 from django.core.exceptions import ValidationError
-from django.contrib.contenttypes.models import ContentType
 import reversion
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget, DateWidget
 from datetime import datetime
-from itertools import accumulate, islice
-import traceback
-import json
 
 from ..models import (
     ExperimentRun,
@@ -44,11 +40,8 @@ class ExperimentRunResource(GenericResource):
                             widget=ForeignKeyWidget(Instrument, field='name'))
     start_date = Field(attribute='start_date', column_name='Experiment Start Date', widget=DateWidget())
 
-
     # Arbitrary value much higher than the regular error cutoff
     ERROR_CUTOFF = 500
-
-
 
     class Meta:
         model = ExperimentRun
@@ -64,11 +57,16 @@ class ExperimentRunResource(GenericResource):
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         self.sample_rows = []
-        self.experiments = {}
+        self.experiments_objs_by_temporary_id = {}
+
         self.temporary_experiment_id = None
         self.temporary_experiment_ids_without_samples = []
 
         self.experiment_type_name = dataset[1][2]
+        try:
+            self.experiment_type = ExperimentType.objects.get(workflow=self.experiment_type_name)
+        except Exception as e:
+            raise Exception(f"No experiment type with workflow {self.experiment_type_name} could be found.")
 
         self.is_in_samples_section = False
 
@@ -79,23 +77,16 @@ class ExperimentRunResource(GenericResource):
 
         self.protocols_ending_idx = self.protocols_starting_idx + len(self.properties_row)
 
-
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
-        self.property_types_by_name = {}
-        for property_column in self.properties_row:
-            self.property_types_by_name[property_column] = PropertyType.objects.get(name=property_column)
+        self.property_types_by_name = PropertyType.objects.filter(name__in=self.properties_row).in_bulk(field_name="name")
 
         # Preload Protocols objects for this experiment type in a dictionary for faster access
         self.protocols_dict = {}
         protocols_for_experiment_type = PROTOCOLS_BY_EXPERIMENT_TYPE_NAME[self.experiment_type_name]
         for protocol_name in protocols_for_experiment_type.keys():
             p = Protocol.objects.get(name=protocol_name)
-            subprotocol_names = protocols_for_experiment_type[protocol_name]
-            subprotocols = []
-            for subprotocol_name in subprotocol_names:
-               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
-            self.protocols_dict[p] = subprotocols.copy()
-
+            # Store subprotocols under main protocol 'p'
+            self.protocols_dict[p] = list(Protocol.objects.filter(name__in=protocols_for_experiment_type[protocol_name]))
 
         skip_rows(dataset, 10)  # Skip preamble
 
@@ -103,7 +94,6 @@ class ExperimentRunResource(GenericResource):
     def import_row(self, row, instance_loader, using_transactions=True, dry_run=False, raise_errors=False, **kwargs):
         row_id = str(row.get("#", ""))
         self.temporary_experiment_id = row.get("Experiment ID", None)
-
 
         import_result = self.get_row_result_class()()
         if row_id.isnumeric() and self.temporary_experiment_id: # Uses row ID to identify what are the data rows (compared to title or empty rows)
@@ -121,7 +111,6 @@ class ExperimentRunResource(GenericResource):
                     "experiment_container_position": row.get("Experiment Start Date"),
                 }
                 self.sample_rows.append(sample_row)
-
                 import_result = wipe_import_row_result(import_result, row)
 
             # ExperimentRun section
@@ -129,15 +118,12 @@ class ExperimentRunResource(GenericResource):
                 self.temporary_experiment_ids_without_samples.append(self.temporary_experiment_id)
                 import_result = super().import_row(row, instance_loader, using_transactions, dry_run, raise_errors, **kwargs)
 
-
         # If our row is not an ExperimentRun row...
         else:
             import_result = wipe_import_row_result(import_result, row)
 
-
         if row.get("Experiment Container Barcode") == "Source Container Barcode":
             self.is_in_samples_section = True
-
 
         return import_result
 
@@ -151,10 +137,7 @@ class ExperimentRunResource(GenericResource):
             errors = e.update_error_dict(errors).copy()
 
         # Getting experiment_type
-        try:
-            obj.experiment_type = ExperimentType.objects.get(workflow=self.experiment_type_name)
-        except Exception as e:
-            errors["experiment_type"] = ValidationError([f"No experiment type with workflow {self.experiment_type_name} could be found."], code="invalid")
+        obj.experiment_type = self.experiment_type
 
         # Getting container
         barcode = get_normalized_str(data, "Experiment Container Barcode")
@@ -180,17 +163,16 @@ class ExperimentRunResource(GenericResource):
             except Exception as e:
                 errors["instrument"] = ValidationError([f"No instrument named {instrument_name} could be found."], code="invalid")
 
-
         experiment_run_processes_by_protocol_id = {}
         # Create processes for ExperimentRun
         for protocol in self.protocols_dict.keys():
             obj.process = Process.objects.create(protocol=protocol,
                                                  comment="Experiment (imported from template)")
             for subprotocol in self.protocols_dict[protocol]:
-                sp = Process.objects.create(protocol=subprotocol,
-                                            parent_process=obj.process,
-                                            comment="Experiment (imported from template)")
-                experiment_run_processes_by_protocol_id[subprotocol.id] = sp
+                experiment_run_processes_by_protocol_id[subprotocol.id] = \
+                    Process.objects.create(protocol=subprotocol,
+                                           parent_process=obj.process,
+                                           comment="Experiment (imported from template)")
 
         # Create property values for ExperimentRun
         for i, (property, value) in enumerate(data.items()):
@@ -210,7 +192,6 @@ class ExperimentRunResource(GenericResource):
                                                  content_object=process)
                 except Exception as e:
                     errors[property] = e.error_dict['value']
-
 
         if errors:
             raise ValidationError(errors)
@@ -233,11 +214,12 @@ class ExperimentRunResource(GenericResource):
             results = add_columns_to_preview(results, dataset, COLUMNS_TO_ADD)
         return results
 
+
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported ExperimentRun from template.")
 
-        self.experiments.update({self.temporary_experiment_id: instance.id})
+        self.experiments_objs_by_temporary_id.update({self.temporary_experiment_id: instance})
 
 
     def after_import(self, dataset, result, using_transactions, dry_run, **kwargs):
@@ -257,12 +239,10 @@ class ExperimentRunResource(GenericResource):
 
             sample_data_errors = []
 
-
             try:
-                experiment_run = ExperimentRun.objects.get(id=self.experiments[data_experiment_id])
+                experiment_run = self.experiments_objs_by_temporary_id[data_experiment_id]
             except Exception as e:
                 sample_data_errors.append(f"Experiment associated to temporary identifier {data_experiment_id} not found in this template")
-
 
             try:
                 source_container = Container.objects.get(barcode=data_barcode)
@@ -282,7 +262,6 @@ class ExperimentRunResource(GenericResource):
             elif source_sample and volume_used > source_sample.volume:
                 sample_data_errors.append(f"Volume used ({volume_used}) exceeds the volume of the sample ({source_sample.volume})")
 
-
             # Checks that 2 samples are not put in the same experiment container position
             if data_experiment_id not in positions_by_experiment_temporary_id.keys():
                 positions_by_experiment_temporary_id[data_experiment_id] = [data_experiment_container_coordinates]
@@ -292,7 +271,6 @@ class ExperimentRunResource(GenericResource):
                         f"Coordinates {data_experiment_container_coordinates} already used for the container associated to the experiment named {data_experiment_id}")
                 else:
                     positions_by_experiment_temporary_id[data_experiment_id].append(data_experiment_container_coordinates)
-
 
             # Creates the new objects
             if len(sample_data_errors) == 0:
@@ -326,13 +304,11 @@ class ExperimentRunResource(GenericResource):
                 except Exception as e:
                     sample_data_errors.append(e)
 
-
             if len(sample_data_errors) > 0:
                 sample_data_errors.insert(0, f"Row #{sample_row['#']}: ")
                 error = ValidationError(
                     sample_data_errors, code="invalid")
                 result.append_base_error(self.get_error_result_class()(error, ''))
-
 
         # Validates that the experiments are all associated to at least 1 sample
         for experiment_id in self.temporary_experiment_ids_without_samples:
