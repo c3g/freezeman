@@ -3,6 +3,8 @@ import reversion
 from import_export.fields import Field
 from import_export.widgets import ForeignKeyWidget, DateWidget
 from datetime import datetime
+from collections import OrderedDict
+from itertools import islice
 
 from ..models import (
     ExperimentRun,
@@ -175,23 +177,19 @@ class ExperimentRunResource(GenericResource):
                                            comment="Experiment (imported from template)")
 
         # Create property values for ExperimentRun
-        for i, (property, value) in enumerate(data.items()):
-            # Slicing columns not containing properties
-            if i >= self.protocols_starting_idx and i < self.protocols_ending_idx:
-                property_type = self.property_types_by_name[property]
-                process = experiment_run_processes_by_protocol_id[property_type.object_id]
+        properties_sliced = islice(data.items(), self.protocols_starting_idx, self.protocols_ending_idx)
+        for i, (property, value) in enumerate(OrderedDict(properties_sliced).items()):
+            property_type = self.property_types_by_name[property]
 
-                if type(value).__name__ in ('datetime','time'):
-                    value = value.isoformat().replace("T00:00:00", "")
+            if type(value).__name__ in ('datetime','time'):
+                value = value.isoformat().replace("T00:00:00", "")
 
-                try:
-                    PropertyValue.objects.create(value=value,
-                                                 property_type=property_type,
-                                                 content_object=process)
-                except Exception as e:
-                    errors[property] = e.error_dict['value']
-            elif i >= self.protocols_ending_idx:
-                break
+            try:
+                PropertyValue.objects.create(value=value,
+                                             property_type=property_type,
+                                             content_object=experiment_run_processes_by_protocol_id[property_type.object_id]) # process
+            except Exception as e:
+                errors[property] = e.error_dict['value']
 
         if errors:
             raise ValidationError(errors)
@@ -296,7 +294,7 @@ class ExperimentRunResource(GenericResource):
                 except Exception as e:
                     sample_data_errors.append(e)
 
-            if len(sample_data_errors) > 0:
+            if sample_data_errors:
                 sample_data_errors.insert(0, f"Row #{sample_row['#']}: ")
                 error = ValidationError(
                     sample_data_errors, code="invalid")
