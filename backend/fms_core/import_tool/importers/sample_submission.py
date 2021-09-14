@@ -14,9 +14,7 @@ class SampleSubmissionImporter(GenericImporter):
 
     def preload_data_from_template(self):
         self.preloaded_data = {'sample_kind_objects_by_name': {}}
-
-        for sample_kind in SampleKind.objects.all():
-            self.preloaded_data['sample_kind_objects_by_name'].update({sample_kind.name: sample_kind})
+        self.preloaded_data['sample_kind_objects_by_name'] = {sample_kind.name: sample_kind for sample_kind in SampleKind.objects.all()}
 
     def import_template_inner(self):
         print('Import Sample Submission Sheet - import template inner')

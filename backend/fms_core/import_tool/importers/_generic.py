@@ -35,7 +35,7 @@ class GenericImporter():
 
         print('sheets')
 
-        if len(self.base_errors) == 0:
+        if not self.base_errors:
             with transaction.atomic():
                 if dry_run:
                     # This ensures that only one reversion is created, and is rollbacked in a dry_run
@@ -56,7 +56,7 @@ class GenericImporter():
         for sheet_preview in self.previews_info:
             if any([r['warnings'] for r in sheet_preview['rows']]):
                 has_warnings = True
-                break;
+                break
 
         import_result = {'valid': self.is_valid,
                          'has_warnings': has_warnings,

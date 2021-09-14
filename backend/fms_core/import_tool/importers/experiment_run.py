@@ -26,13 +26,10 @@ class ExperimentRunImporter(GenericImporter):
             self.base_errors.append(f"No experiment type with workflow {workflow} could be found.")
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
-        for property_column in properties:
-            try:
-                self.preloaded_data['property_types_by_name'][property_column] = PropertyType.objects.get(
-                    name=property_column)
-            except Exception as e:
-                self.base_errors.append(f"Property Type {property_column} could not be found")
-
+        try:
+            self.preloaded_data['property_types_by_name'] = {o.name: o for o in list(PropertyType.objects.filter(name__in=properties))}
+        except Exception as e:
+            self.base_errors.append(f"Property Type could not be found. {e}")
 
     def import_template_inner(self):
         """
@@ -88,11 +85,8 @@ class ExperimentRunImporter(GenericImporter):
                 else:
                     properties[key] = experiments_df.iloc[row_id][key]
 
-
             experiment_temporary_id = experiment_run_dict['Experiment ID']
-            filtered_data = filter(lambda x: x['experiment_id'] == experiment_temporary_id, sample_rows_data)
-            experiment_sample_rows_info = list(filtered_data)
-
+            experiment_sample_rows_info = [row_data for row_data in sample_rows_data if row_data['experiment_id'] == experiment_temporary_id ]
             print('importers exp run - sample rows for exp ', experiment_sample_rows_info)
 
             experiment_run_kwargs = dict(
