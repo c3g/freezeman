@@ -7,7 +7,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.models import Sample, Container
-from fms_core.serializers import SampleSerializer, NestedSampleSerializer, SampleExportSerializer
+
+from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.template_importer.importers import SampleSubmissionImporter
+
 from fms_core.resources import SampleResource, SampleUpdateResource
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
 
@@ -31,7 +34,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Add Samples",
             "description": "Upload the provided template with up to 384 new samples.",
             "template": SAMPLE_SUBMISSION_TEMPLATE,
-            "resource": SampleResource,
+            "importer": SampleSubmissionImporter,
         },
         {
             "name": "Update Samples",
@@ -62,9 +65,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                                                                SELECT id, location_id
                                                                FROM fms_core_container
                                                                WHERE id IN %s
-
                                                                UNION ALL
-
                                                                SELECT child.id, child.location_id
                                                                FROM fms_core_container AS child, parent
                                                                WHERE child.location_id = parent.id
