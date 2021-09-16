@@ -27,7 +27,6 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
     const {id} = useParams();
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};
-    const isSamplesEmpty = project.samples && project.samples.length === 0;
     let samples = []
 
     if (isLoaded) {
@@ -43,8 +42,6 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
     const isLoading = !isLoaded || isFetching;
     const title =
         `Project ${project.name}`;
-
-    let  isFetchingSamples = samples.every(sample =>  sample ? sample.isFetching : true)
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/projects/list")}/>

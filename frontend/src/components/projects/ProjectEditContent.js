@@ -4,14 +4,11 @@ import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 import {
   Alert,
-  AutoComplete,
   Button,
   DatePicker,
   Form,
   Input,
-  InputNumber,
   Select,
-  Switch,
 } from "antd";
 const {Option} = Select
 const {TextArea} = Input
@@ -173,7 +170,7 @@ function serialize(values) {
     newValues.targeted_end_date = newValues.targeted_end_date.format('YYYY-MM-DD')
   else
     newValues.targeted_end_date = null
-    
+
   return newValues
 }
 
