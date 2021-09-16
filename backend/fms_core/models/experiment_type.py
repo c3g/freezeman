@@ -60,9 +60,6 @@ class ExperimentType(TrackedModel):
         for protocol_name in exp_type_protocols.keys():
             p = Protocol.objects.get(name=protocol_name)
             subprotocol_names = exp_type_protocols[protocol_name]
-            subprotocols = []
-            for subprotocol_name in subprotocol_names:
-               subprotocols.append(Protocol.objects.get(name=subprotocol_name))
-            protocols_dict[p] = subprotocols.copy()
+            protocols_dict[p] = list(Protocol.objects.filter(name__in=subprotocol_names))
 
         return protocols_dict

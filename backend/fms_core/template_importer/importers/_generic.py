@@ -6,7 +6,7 @@ from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
 
 class GenericImporter():
-    ERRORS_CUTOFF = 2
+    ERRORS_CUTOFF = 20
 
     def __init__(self):
         self.base_errors = []
