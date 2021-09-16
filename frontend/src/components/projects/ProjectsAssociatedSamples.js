@@ -9,7 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
-import filterSamplesByProject from "../../utils/filterSamplesByProject";
+import setDefaultFilter from "../../utils/setDefaultFilter";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -42,7 +42,7 @@ const getTableColumns = (sampleKinds) => [
     },
     {
       title: "Cohort",
-      dataIndex: "cohort",
+      dataIndex: "individual__cohort",
       sorter: true,
       width: 130,
     },
@@ -103,7 +103,7 @@ const ProjectsAssociatedSamples = ({
     }
   }, [])
 
-  filterSamplesByProject(setFilter, filters, projectName, clearFilters)
+  setDefaultFilter(SAMPLE_FILTERS.projects__name.key, projectName, setFilter, filters, clearFilters)
   let {projects, ...filtersForWarning} = filters
 
 

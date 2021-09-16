@@ -9,7 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
-import filterProjectsBySample from "../../utils/filterProjectsBySample";
+import setDefaultFilter from "../../utils/setDefaultFilter";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -95,7 +95,7 @@ const SamplesAssociatedProjects = ({
     }
   }, [])
 
-  filterProjectsBySample(setFilter, filters, sampleName, clearFilters)
+  setDefaultFilter(PROJECT_FILTERS.samples__name.key, sampleName, setFilter, filters, clearFilters)
   let {samples, ...filtersForWarning} = filters
 
   const columns = getTableColumns()

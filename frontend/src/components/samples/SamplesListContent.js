@@ -83,7 +83,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Projects",
-      dataIndex: "projects",
+      dataIndex: "projects__name",
       sorter: true,
       render: (_, sample) => (sample.projects && getProjectLinks(sample.projects, projectsByID)),
     },

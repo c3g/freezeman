@@ -8,6 +8,8 @@ export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
   Object.keys(filters).forEach(field => {
+    console.log(descriptions)
+    console.log(filters)
     const value = filters[field]?.value
     const description = descriptions[field]
     let key = description.key
@@ -43,12 +45,9 @@ export default function serializeFilterParams(filters, descriptions) {
             key += "__recursive"
           else if (options.exactMatch)
             key += "__startswith"
-          else if (options.many_to_many)
-            key = key
           else
             key += "__icontains"
         } else {
-          if(!description.many_to_many)
             key += "__icontains"
         }
 

@@ -1,6 +1,6 @@
 from collections import Counter
 
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from fms_core.models import Sample, Container
 from fms_core.serializers import SampleSerializer, NestedSampleSerializer, SampleExportSerializer
 from fms_core.resources import SampleResource, SampleUpdateResource
-from fms_core.filters import SampleFilter
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
@@ -17,11 +16,15 @@ from ._constants import _sample_filterset_fields
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Sample.objects.select_related("individual", "container", "sample_kind").prefetch_related("process_measurement").all()
-    filter_class = SampleFilter
+    queryset = Sample.objects.select_related("individual", "container", "sample_kind").prefetch_related("process_measurement", "projects").all()
+
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),
     )
+
+    filterset_fields = {
+        **_sample_filterset_fields,
+    }
 
     template_action_list = [
         {
