@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
 from fms_core.resources import ExperimentRunResource
+from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.template_paths import EXPERIMENT_INFINIUM_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys
@@ -35,7 +36,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
             "template": EXPERIMENT_INFINIUM_TEMPLATE,
-            "resource": ExperimentRunResource,
+            "importer": ExperimentRunImporter,
         },
     ]
 
@@ -51,4 +52,3 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
-
