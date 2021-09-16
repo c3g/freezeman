@@ -200,10 +200,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           ) : null}
 
           <TrackingFieldsContent entity={sample}/>
-
-          <Title level={4} style={{marginTop: '2rem'}}> Associated Projects </Title>
-          <SamplesAssociatedProjects sampleName={sample.name} />
-
           <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
@@ -244,6 +240,10 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
         <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+        </TabPane>
+
+        <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
+          <SamplesAssociatedProjects sampleName={sample.name} />
         </TabPane>
 
       </Tabs>
