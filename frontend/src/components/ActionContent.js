@@ -9,7 +9,7 @@ import {fetchSummariesData} from "../modules/shared/actions";
 import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
-import TemplateFlow from "./TemplateFlow";
+import TemplateFlow from "./templateFlow/TemplateFlow";
 
 const LOADING_ACTION = {
   name: 'Loading...',
