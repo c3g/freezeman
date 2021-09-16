@@ -1,0 +1,21 @@
+Sample Submission Template,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+Naming Rules,,,,,,,,,,,,,,,,,,,,,,,,
+"- Only use the follwin caracters for Sample name and Barcode: a-z, A-Z, 0-9, period (.), dash (-), underscore ( _ )",,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,
+#,Sample Kind,Sample Name,Alias,Project,Cohort,Experimental Group,Taxon,Container Kind,Container Name,Container Barcode,Location Barcode,Location Coord,Individual ID,Sex,Pedigree,Mother ID,Father ID,Volume (uL),Conc. (ng/uL),Collection Site,Tissue Source,Reception Date,Phenotype,Comment
+1,BLOOD,sample1,first sample,,cohort1,group1,Homo sapiens,tube,sample1_tube,tube001,box001,,David Lougheed,M,pedigree1,DLMother,DLFather,10,,site1,,2020-03-03,phenotype1,some comment here
+2,BLOOD,sample2,second sample,,cohort1,group1,Homo sapiens,tube,sample2_tube,tube002,box001,,Ksenia Zaytseva,F,pedigree2,,,15,,site2,,2020-04-03,phenotype2,some other comment here
+3,SALIVA,sample3,third sample,,cohort1,group1,Homo sapiens,96-well plate,sample_plate,plate001,,A01,David Bujold,M,pedigree3,,,16,,site3,,2020-05-08,phenotype3,some third comment here
+4,DNA,sample4,fourth sample,,cohort2,"group2,group4",Homo sapiens,tube,sample4_tube,tube005,rack002,B01,John Doe,M,pedigree4,,,200,8.5,site4,,2020-08-12,phenotype4,some fourth comment here
+5,DNA,sample5,,,infinium,,Homo sapiens,96-well plate,Infinium001,Infinium001,,A01,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+6,DNA,sample6,,,infinium,,Homo sapiens,96-well plate,Infinium001,Infinium001,,A05,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+7,DNA,sample7,,,infinium,,Homo sapiens,96-well plate,Infinium001,Infinium001,,D01,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+8,DNA,sample8,,,infinium,,Homo sapiens,96-well plate,Infinium001,Infinium001,,C10,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+9,DNA,sample9,,,infinium,,Homo sapiens,96-well plate,Infinium002,Infinium002,,A01,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+10,DNA,sample10,,,infinium,,Homo sapiens,96-well plate,Infinium002,Infinium002,,A07,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+11,DNA,sample11,,,infinium,,Homo sapiens,96-well plate,Infinium003,Infinium003,,E01,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+12,DNA,sample12,,,infinium,,Homo sapiens,96-well plate,Infinium003,Infinium003,,F01,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+13,DNA,sample13,,,infinium,,Homo sapiens,96-well plate,Infinium003,Infinium003,,H12,Bob,M,BobPedigree,,,200,8.5,site4,,2021-07-12,,These Were Added to test infinium
+14,,,,,,,,,,,,,,,,,,,,,,,,

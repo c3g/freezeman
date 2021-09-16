@@ -1,7 +1,7 @@
 import reversion
 from decimal import Decimal
 import datetime
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from pathlib import Path
@@ -49,7 +49,7 @@ CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0_B_A_1.csv"
 CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0_B_A_1.csv"
 SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_3_0_B_A_1.csv"
 SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
-SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_2.csv"
+SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_4_0_B_A_2.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
 EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_3_0_B_A_1.csv"
 PROJECT_LINK_SAMPLES_CSV = APP_DATA_ROOT / "Project_link_samples_v3_4_0_B_A_1.csv"
@@ -154,7 +154,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_bad_location.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_4_0_bad_location.csv") as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
@@ -162,7 +162,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_dna_no_conc.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_4_0_dna_no_conc.csv") as sf:
             s = Dataset().load(sf.read())
             try:
                 self.sr.import_data(s, raise_errors=True)
@@ -634,7 +634,7 @@ class ResourcesTestCase(TestCase):
 
             reversion.set_comment("Unlinked projects with samples")
 
-    '''def test_unlink_projects_to_samples_import(self):
+    def test_unlink_projects_to_samples_import(self):
         self.unlink_projects_to_samples()
         sample1 = Sample.objects.get(name="sample1", container__barcode="tube001")
         sample2 = Sample.objects.get(name="sample2", container__barcode="tube002")
@@ -644,12 +644,12 @@ class ResourcesTestCase(TestCase):
 
         # Test parent record auto-generation
         self.assertFalse(SampleByProject.objects.filter(sample=sample1, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())'''
+        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())
 
     def test_invalid_link_project_sample(self):
         self.load_samples()
         self.create_projects()
 
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
+        with self.assertRaises(ObjectDoesNotExist), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
             s = Dataset().load(sf.read())
             self.pr.import_data(s, raise_errors=True)
