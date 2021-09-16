@@ -5,8 +5,7 @@ def data_row_ids_range(starting_row, df):
     return range(starting_row, len(df))
 
 def panda_values_to_str_list(row_data):
-    return list(map(lambda x: '' if x is None else str(x), row_data.values.flatten().tolist()))
-
+    return ['' if x is None else str(x) for x in row_data.values.flatten().tolist()]
 
 def blank_and_nan_to_none(s: Any):
     """
