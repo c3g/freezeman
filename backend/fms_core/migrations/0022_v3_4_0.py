@@ -61,4 +61,10 @@ class Migration(migrations.Migration):
             model_name='samplebyproject',
             constraint=models.UniqueConstraint(fields=('sample', 'project'), name='sample_by_project_unique'),
         ),
+        migrations.AddField(
+            model_name='project',
+            name='samples',
+            field=models.ManyToManyField(blank=True, related_name='projects', through='fms_core.SampleByProject',
+                                         to='fms_core.Sample'),
+        ),
     ]
