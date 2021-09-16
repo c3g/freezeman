@@ -23,7 +23,10 @@ class ProjectLinkSampleResource(GenericResource):
 
     class Meta:
         model = SampleByProject
-        export_order = ('action', 'project_name', 'sample_name', 'barcode', 'coordinates',)
+        fields = (
+            "id",
+        )
+
 
     def before_import(self, dataset, using_transactions, dry_run, **kwargs):
         skip_rows(dataset, 7)
@@ -50,16 +53,18 @@ class ProjectLinkSampleResource(GenericResource):
             obj.project = None
             errors["project"] = ValidationError([f"No project with name [{data['Project Name']}]"], code="invalid")
 
-        # Set object for deletion if REMOVE_ACTION
+        # Ensure link exists
         if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists():
-            # Perform the desired action
+            # Remove action is valid if the link already exists
             if data["Action"] == REMOVE_ACTION:
-                    obj.deleted = True
+                obj.deleted = True
+            # Otherwise we have a duplicated association
             elif data["Action"] == ADD_ACTION:
                 errors["link"] = ValidationError(
                     [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
                     code="invalid")
 
+        # If the link doesn't exists we can't perform a remove action
         else:
             if data["Action"] == REMOVE_ACTION:
                 errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."],
@@ -82,13 +87,10 @@ class ProjectLinkSampleResource(GenericResource):
             data["Sample Container Coord"] = get_normalized_str(data, "Sample Container Coord").upper()
         super().import_field(field, obj, data, is_m2m)
 
-    def after_save_instance(self, instance, using_transactions, dry_run):
-        super().after_save_instance(instance, using_transactions, dry_run)
-        # If the instance is deleted (saved version), delete the instance
-        instance.refresh_from_db()
+    def skip_row(self, instance, original):
         if instance.deleted:
-            super().instance.delete() # Delete without creating a new deleted version
-        reversion.set_comment("Updated project link to samples from template.")
+            SampleByProject.objects.get(project=instance.project, sample=instance.sample).delete()
+            return True
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)

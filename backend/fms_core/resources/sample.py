@@ -59,7 +59,7 @@ class SampleResource(GenericResource):
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 
-    project = Field(attribute='projects', column_name='Project', widget=ManyToManyWidget(Project))
+    project = Field(column_name='Project')
 
     COMPUTED_FIELDS = frozenset((
         "individual_id",
@@ -93,6 +93,7 @@ class SampleResource(GenericResource):
             "sample_kind",
             "name",
             "alias",
+            "project",
             "cohort",
             "experimental_group",
             "taxon",
@@ -120,7 +121,6 @@ class SampleResource(GenericResource):
 
     def import_obj(self, obj, data, dry_run):
         errors = {}
-        self.project = {}
         try:
             super().import_obj(obj, data, dry_run)
         except ValidationError as e:
@@ -137,6 +137,7 @@ class SampleResource(GenericResource):
 
         mother = None
         father = None
+        self.project_object = None
 
         if data["Mother ID"]:
             try:
@@ -181,10 +182,11 @@ class SampleResource(GenericResource):
             errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
 
         if data["Project"]:
-            try:
-                self.project = Project.objects.get(name=get_normalized_str(data, "Project"))
-            except Project.DoesNotExist:
-                errors["project "] = ValidationError("Project does not exist.", code="invalid")
+            project_name = get_normalized_str(data, "Project")
+            if not Project.objects.filter(name=project_name).exists():
+                errors["project"] = ValidationError(f"Project with name {project_name} does not exist.", code="invalid")
+            else:
+                self.project_object = Project.objects.get(name=get_normalized_str(data, "Project"))
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
@@ -288,9 +290,8 @@ class SampleResource(GenericResource):
         reversion.set_comment("Imported samples from template.")
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
-        sampleByProject = SampleByProject.objects.create(project=self.project, sample=obj)
-        data["Project"] = self.project.id
-        super().save_m2m(obj, data, using_transactions, dry_run)
+        if self.project_object:
+            SampleByProject.objects.create(project=self.project_object, sample=obj)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
                     **kwargs):
