@@ -87,9 +87,12 @@ class ProjectLinkSampleResource(GenericResource):
             data["Sample Container Coord"] = get_normalized_str(data, "Sample Container Coord").upper()
         super().import_field(field, obj, data, is_m2m)
 
-    def after_save_instance(self, instance, using_transactions, dry_run):
-        if instance.deleted:
-            SampleByProject.objects.get(project=instance.project, sample=instance.sample).delete()
+    def for_delete(self, row, instance):
+        #We already have an initialized instance because we overloaded get_or_init_instance
+        if instance.id:
+            return True
+        else:
+            return False
 
     def get_or_init_instance(self, instance_loader, row):
         action = row["Action"].upper()
