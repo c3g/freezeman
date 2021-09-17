@@ -87,10 +87,28 @@ class ProjectLinkSampleResource(GenericResource):
             data["Sample Container Coord"] = get_normalized_str(data, "Sample Container Coord").upper()
         super().import_field(field, obj, data, is_m2m)
 
-    def skip_row(self, instance, original):
+    def after_save_instance(self, instance, using_transactions, dry_run):
         if instance.deleted:
             SampleByProject.objects.get(project=instance.project, sample=instance.sample).delete()
-            return True
+
+    def get_or_init_instance(self, instance_loader, row):
+        action = row["Action"].upper()
+        if action == REMOVE_ACTION:
+            try:
+                sample = Sample.objects.get(name=row["Sample Name"],
+                                                container__barcode=row["Sample Container Barcode"],
+                                                coordinates=row["Sample Container Coord"])
+                project = Project.objects.get(name=row["Project Name"])
+
+                #Try to get the
+                association_instance = SampleByProject.objects.get(project=project, sample=sample)
+
+                return association_instance, False
+            #Continue with validation in case one of the previous queries fails
+            except ObjectDoesNotExist:
+                return super().init_instance(row), True
+        else:
+            return super().init_instance(row), True
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)
