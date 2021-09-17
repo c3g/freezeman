@@ -73,7 +73,7 @@ const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, set
 
 const SamplesAssociatedProjects = ({
   token,
-  sampleName,
+  sampleID,
   projects,
   projectsByID,
   isFetching,
@@ -95,7 +95,7 @@ const SamplesAssociatedProjects = ({
     }
   }, [])
 
-  setDefaultFilter(PROJECT_FILTERS.samples__name.key, sampleName, setFilter, filters, clearFilters)
+  setDefaultFilter(PROJECT_FILTERS.samples__id.key, sampleID, setFilter, filters, clearFilters)
   let {samples, ...filtersForWarning} = filters
 
   const columns = getTableColumns()

@@ -11,13 +11,14 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import setDefaultFilter from "../../utils/setDefaultFilter";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
+import {withIndividual} from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import {SampleDepletion} from "../samples/SampleDepletion";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (sampleKinds) => [
+const getTableColumns = (sampleKinds, individualsByID) => [
     {
       title: "Sample Kind",
       dataIndex: "sample_kind__name",
@@ -45,6 +46,13 @@ const getTableColumns = (sampleKinds) => [
       dataIndex: "individual__cohort",
       sorter: true,
       width: 130,
+      render: (_, sample) => {
+        const individual = sample.individual
+        return (individual &&
+          <Link to={`/individuals/${individual}`}>
+            {withIndividual(individualsByID, individual, individual => individual.cohort, "loading...")}
+          </Link>)
+      }
     },
     {
       title: "Vol. (µL)",
@@ -69,6 +77,7 @@ const mapStateToProps = state => ({
   page: state.samples.page,
   samples: state.samples.items,
   samplesByID: state.samples.itemsByID,
+  individualsByID: state.individuals.itemsByID,
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
   filters: state.samples.filters,
@@ -79,9 +88,10 @@ const actionCreators = {listTable, setFilter, clearFilters, setSortBy};
 
 const ProjectsAssociatedSamples = ({
   token,
-  projectName,
+  projectID,
   samples,
   samplesByID,
+  individualsByID,
   sampleKinds,
   isFetching,
   page,
@@ -103,11 +113,11 @@ const ProjectsAssociatedSamples = ({
     }
   }, [])
 
-  setDefaultFilter(SAMPLE_FILTERS.projects__name.key, projectName, setFilter, filters, clearFilters)
+  setDefaultFilter(SAMPLE_FILTERS.projects__id.key, projectID, setFilter, filters, clearFilters)
   let {projects, ...filtersForWarning} = filters
 
 
-  const columns = getTableColumns(sampleKinds)
+  const columns = getTableColumns(sampleKinds, individualsByID)
   .map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,

@@ -13,7 +13,6 @@ import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/projects/actions";
 
 const mapStateToProps = state => ({
-    projects: state.projects.items,
     isFetching: state.projects.isFetching,
     projectsByID: state.projects.itemsByID,
     samplesByID: state.samples.itemsByID,
@@ -22,7 +21,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetching, get}) => {
+const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in projectsByID;
@@ -58,7 +57,7 @@ const ProjectsDetailedContent = ({projects, projectsByID, samplesByID, isFetchin
             </Descriptions>
             <TrackingFieldsContent entity={project}/>
             <Title level={4} style={{marginTop: '2rem'}}> Associated Samples </Title>
-            <ProjectsAssociatedSamples projectName={project.name} />
+            <ProjectsAssociatedSamples projectID={project.id} />
         </PageContent>
     </>;
 };

@@ -243,7 +243,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
         </TabPane>
 
         <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
-          <SamplesAssociatedProjects sampleName={sample.name} />
+          <SamplesAssociatedProjects sampleID={sample.id} />
         </TabPane>
 
       </Tabs>

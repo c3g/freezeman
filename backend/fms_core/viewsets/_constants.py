@@ -80,6 +80,7 @@ _sample_filterset_fields: FiltersetFields = {
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 

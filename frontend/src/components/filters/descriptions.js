@@ -35,6 +35,12 @@ export const SAMPLE_FILTERS = {
     key: "projects__name",
     label: "Projects",
   },
+  projects__id: {
+    type: FILTER_TYPE.SELECT,
+    key: "projects__id",
+    label: "Projects ID",
+    mode: "multiple",
+  },
   coordinates: {
     type: FILTER_TYPE.INPUT,
     key: "coordinates",
@@ -285,5 +291,11 @@ export const PROJECT_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
     label: "Samples",
+  },
+  samples__id: {
+    type: FILTER_TYPE.SELECT,
+    key: "samples__id",
+    label: "Samples ID",
+    mode: "multiple",
   },
 }
