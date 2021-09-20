@@ -53,16 +53,11 @@ class ProjectLinkSampleResource(GenericResource):
             obj.project = None
             errors["project"] = ValidationError([f"No project with name [{data['Project Name']}]"], code="invalid")
 
-        # Ensure link exists
-        if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists():
-            # Remove action is valid if the link already exists
-            if data["Action"] == REMOVE_ACTION:
-                obj.deleted = True
-            # Otherwise we have a duplicated association
-            elif data["Action"] == ADD_ACTION:
-                errors["link"] = ValidationError(
-                    [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
-                    code="invalid")
+        # Check if link exists to ensure there's not a duplicated association
+        if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists() and data["Action"] == ADD_ACTION:
+            errors["link"] = ValidationError(
+                [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
+                code="invalid")
 
         # If the link doesn't exists we can't perform a remove action
         else:
@@ -99,11 +94,11 @@ class ProjectLinkSampleResource(GenericResource):
         if action == REMOVE_ACTION:
             try:
                 sample = Sample.objects.get(name=row["Sample Name"],
-                                                container__barcode=row["Sample Container Barcode"],
-                                                coordinates=row["Sample Container Coord"])
+                                            container__barcode=row["Sample Container Barcode"],
+                                            coordinates=row["Sample Container Coord"])
                 project = Project.objects.get(name=row["Project Name"])
 
-                #Try to get the
+                #Try to get the existing instance
                 association_instance = SampleByProject.objects.get(project=project, sample=sample)
 
                 return association_instance, False
