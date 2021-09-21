@@ -43,18 +43,21 @@ export default function serializeFilterParams(filters, descriptions) {
         const options = filters[field].options
         const isBatch = description.batch && hasSpaces(value)
 
-        if(!isBatch){
-          if (options) {
-            if (options.recursiveMatch)
-                key += "__recursive"
-            else if (options.exactMatch)
-                key += "__startswith"
-            else
-                key += "__icontains"
-          } else {
+        if(isBatch){
+          params[key] = value
+          break
+        }
+
+        if (options) {
+          if (options.recursiveMatch)
+            key += "__recursive"
+          else if (options.exactMatch)
+            key += "__startswith"
+          else
             key += "__icontains"
-          }
-       }
+        } else {
+            key += "__icontains"
+        }
 
        if(value)
           params[key] = value
