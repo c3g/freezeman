@@ -7,4 +7,13 @@ Instructions:,,,,,
 ,,,,,
 #,Action,Project Name,Sample Name,Sample Container Barcode,Sample Container Coord
 1,Add,TestProject1,sample1,tube001,
-2,Add,TestProject2,sample2,tube002,
+2,Add,TestProject2,sample1,tube001,
+3,Add,TestProject2,sample2,tube002,
+4,Add,TestProject1,sample5,Infinium001,a01
+5,Add,TestProject1,sample6,Infinium001,a05
+6,Add,TestProject1,sample7,Infinium001,d01
+7,Add,TestProject1,sample8,Infinium001,c10
+8,Add,TestProject1,sample11,Infinium003,e01
+9,Add,TestProject2,sample11,Infinium003,e01
+10,Add,TestProject2,sample12,Infinium003,f01
+11,Add,TestProject2,sample13,Infinium003,h12

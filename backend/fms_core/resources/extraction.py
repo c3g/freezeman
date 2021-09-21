@@ -10,7 +10,7 @@ from ..containers import (
     CONTAINER_SPEC_TUBE,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
-from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage, SampleByProject
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -210,6 +210,12 @@ class ExtractionResource(GenericResource):
 
     def save_m2m(self, obj, data, using_transactions, dry_run):
         lineage = SampleLineage.objects.create(parent=self.extracted_from, child=obj, process_measurement=self.process_measurement)
+
+        # automatic project inheritance
+        for project in self.extracted_from.projects.all():
+            print(project)
+            SampleByProject.objects.create(project=project, sample=obj)
+
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
