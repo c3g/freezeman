@@ -31,13 +31,13 @@ class ContainerFilter(GenericFilter):
     barcode = django_filters.CharFilter(field_name="barcode", method="batch_barcode_filter")
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
-class Meta:
-    model = Container
-    fields = {
-        **_container_filterset_fields,
-        **_prefix_keys("location__", _container_filterset_fields),
-        **_prefix_keys("samples__", _sample_minimal_filterset_fields),
-    }
+    class Meta:
+        model = Container
+        fields = {
+            **_container_filterset_fields,
+            **_prefix_keys("location__", _container_filterset_fields),
+            **_prefix_keys("samples__", _sample_minimal_filterset_fields),
+        }
 
 class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
@@ -49,6 +49,6 @@ class SampleFilter(GenericFilter):
 class IndividualFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
-class Meta:
-    model = Individual
-    fields = _individual_filterset_fields
+    class Meta:
+        model = Individual
+        fields = _individual_filterset_fields
