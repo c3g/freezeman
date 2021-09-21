@@ -14,7 +14,7 @@ class ProjectTest(TestCase):
         self.principal_investigator = "Guillaume Bourque"
         self.requestor_name = "Sebastian Ballesteros"
         self.requestor_email = "sballesteros@mcgill.ca"
-        self.status = "Ongoing"
+        self.status = "Open"
         self.targeted_end_date = "2022-08-12"
         self.comments = "This is a test comment"
 
