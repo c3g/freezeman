@@ -55,7 +55,7 @@ class ProjectLinkSampleResource(GenericResource):
 
         if obj.sample_id and obj.project_id:
             # Check if link exists to ensure there's not a duplicated association
-            if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists() and data["Action"] == ADD_ACTION:
+            if data["Action"] == ADD_ACTION and SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists():
                 errors["link"] = ValidationError(
                     [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
                     code="invalid")
