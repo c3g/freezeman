@@ -107,6 +107,12 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
       width: 115,
     },
     {
+      title: "Creation Date",
+      dataIndex: "creation_date",
+      sorter: true,
+      width: 115,
+    },
+    {
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,

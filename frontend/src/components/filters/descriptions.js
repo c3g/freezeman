@@ -50,6 +50,11 @@ export const SAMPLE_FILTERS = {
     key: "concentration",
     label: "Concentration",
   },
+  creation_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "creation_date",
+    label: "Creation Date",
+  },
   depleted: {
     type: FILTER_TYPE.SELECT,
     key: "depleted",
