@@ -213,7 +213,6 @@ class ExtractionResource(GenericResource):
 
         # automatic project inheritance
         for project in self.extracted_from.projects.all():
-            print(project)
             SampleByProject.objects.create(project=project, sample=obj)
 
         super().save_m2m(obj, data, using_transactions, dry_run)
