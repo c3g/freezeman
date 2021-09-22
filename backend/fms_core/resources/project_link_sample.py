@@ -61,9 +61,8 @@ class ProjectLinkSampleResource(GenericResource):
                     code="invalid")
 
             # If the link doesn't exists we can't perform a remove action
-            else:
-                if data["Action"] == REMOVE_ACTION:
-                    errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."],
+            elif data["Action"] == REMOVE_ACTION:
+                errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."],
                                                      code="invalid")
 
         if errors:

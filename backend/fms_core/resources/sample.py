@@ -183,10 +183,11 @@ class SampleResource(GenericResource):
 
         if data["Project"]:
             project_name = get_normalized_str(data, "Project")
-            if not Project.objects.filter(name=project_name).exists():
+            try:
+                self.project_object = Project.objects.get(name=project_name)
+            except Project.DoesNotExist:
                 errors["project"] = ValidationError(f"Project with name {project_name} does not exist.", code="invalid")
-            else:
-                self.project_object = Project.objects.get(name=get_normalized_str(data, "Project"))
+
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
         # re-using an individual, create a warning for the front end; it's
