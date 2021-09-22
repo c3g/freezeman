@@ -650,6 +650,6 @@ class ResourcesTestCase(TestCase):
         self.load_samples()
         self.create_projects()
 
-        with self.assertRaises(ObjectDoesNotExist), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
             s = Dataset().load(sf.read())
             self.pr.import_data(s, raise_errors=True)
