@@ -467,7 +467,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se1.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se1.volume, Decimal("0")) # Samples used in an experiment have volume set to 0
         self.assertEqual(se1.container, c1) # Child Sample is in the experimental container XPBARCODE1
-        self.assertTrue(SampleByProject.objects.filter(sample=ss1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se1, project=self.project1).exists())
         # Tests related to second sample
         ss2 = Sample.objects.get(container__barcode="Infinium001", coordinates="A05")
         pm2 = ProcessMeasurement.objects.get(process=p1, source_sample=ss2)
@@ -480,7 +480,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se2.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se2.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se2.container, c1) # Child Sample is in the experimental container XPBARCODE1
-        self.assertTrue(SampleByProject.objects.filter(sample=ss2, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se2, project=self.project1).exists())
         # Tests related to third sample
         ss3 = Sample.objects.get(container__barcode="Infinium001", coordinates="C10")
         pm3 = ProcessMeasurement.objects.get(process=p1, source_sample=ss3)
@@ -493,7 +493,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se3.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se3.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se3.container, c1) # Child Sample is in the experimental container XPBARCODE1
-        self.assertTrue(SampleByProject.objects.filter(sample=ss3, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se3, project=self.project1).exists())
         # Tests related to fourth sample
         ss4 = Sample.objects.get(container__barcode="Infinium001", coordinates="D01")
         pm4 = ProcessMeasurement.objects.get(process=p1, source_sample=ss4)
@@ -506,7 +506,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se4.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se4.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se4.container, c1) # Child Sample is in the experimental container XPBARCODE1
-        self.assertTrue(SampleByProject.objects.filter(sample=ss4, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se4, project=self.project1).exists())
 
         # Test second experiment run
         er2 = ExperimentRun.objects.get(container__barcode="XPBARCODE2")
@@ -531,8 +531,8 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se6.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se6.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se6.container, c2) # Child Sample is in the experimental container XPBARCODE2
-        self.assertFalse(SampleByProject.objects.filter(sample=ss6, project=self.project1).exists())
-        self.assertFalse(SampleByProject.objects.filter(sample=ss6, project=self.project2).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=se6, project=self.project1).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=se6, project=self.project2).exists())
 
 
         # Test third experiment run
@@ -558,8 +558,8 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se7.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se7.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se7.container, c3) # Child Sample is in the experimental container XPBARCODE3
-        self.assertTrue(SampleByProject.objects.filter(sample=ss7, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=ss7, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se7, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se7, project=self.project2).exists())
 
         # Test fourth experiment run
         er4 = ExperimentRun.objects.get(container__barcode="XPBARCODE4")
@@ -593,7 +593,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se9.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se9.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se9.container, c4) # Child Sample is in the experimental container XPBARCODE4
-        self.assertTrue(SampleByProject.objects.filter(sample=ss9, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se9, project=self.project2).exists())
 
 
     def test_sample_update(self):
