@@ -10,6 +10,7 @@ from collections import Counter
 from fms_core.models import ProcessMeasurement
 from fms_core.serializers import ProcessMeasurementSerializer, ProcessMeasurementExportSerializer
 from fms_core.resources import ExtractionResource, TransferResource
+from fms_core.template_importer.importers import ExtractionImporter
 from fms_core.template_paths import SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys
@@ -37,7 +38,7 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Process Extractions",
             "description": "Upload the provided template with extraction information.",
             "template": SAMPLE_EXTRACTION_TEMPLATE,
-            "resource": ExtractionResource,
+            "importer": ExtractionImporter,
         },
         {
             "name": "Process Transfers",

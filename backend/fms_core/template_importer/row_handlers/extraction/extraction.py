@@ -13,7 +13,7 @@ class ExtractionRowHandler(GenericRowHandler):
 
     def process_row_inner(self, source_sample, resulting_sample, process_measurement):
         original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
-            barcode=source_sample['barcode'],
+            barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
         if original_sample:
@@ -65,3 +65,5 @@ class ExtractionRowHandler(GenericRowHandler):
                         execution_date=process_measurement['execution_date'],
                         volume_used=process_measurement['volume_used'],
                     )
+
+                #TODO: create SampleLineage

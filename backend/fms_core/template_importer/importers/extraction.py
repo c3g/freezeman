@@ -1,4 +1,4 @@
-from fms_core.models import Protocol, Process
+from fms_core.models import Protocol, Process, SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
 
@@ -16,10 +16,12 @@ class ExtractionImporter(GenericImporter):
 
 
     def preload_data_from_template(self):
-        self.preloaded_data = {'process': None}
+        self.preloaded_data = {'process': None, 'sample_kinds': {}}
 
-        extraction_protocol = Protocol.objects.get(name="Extraction")
-        self.preloaded_data['process'] = Process.objects.create(protocol=extraction_protocol, comment="Extracted samples (imported from template)")
+        self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
+                                                                comment="Extracted samples (imported from template)")
+
+        self.preloaded_data['sample_kinds'] = SampleKind.objects.all().in_bulk(field_name="name")
 
 
     def import_template_inner(self):
@@ -27,6 +29,7 @@ class ExtractionImporter(GenericImporter):
 
         for row_id, row_data in enumerate(sheet.rows):
             extraction_date = row_data['Extraction Date']
+            sample_kind = row_data['Extraction Type']
 
             source_sample = {
                 'coordinates': row_data['Source Container Coord'],
@@ -38,8 +41,8 @@ class ExtractionImporter(GenericImporter):
                 'coordinates': row_data['Destination Container Coord'],
                 'volume': row_data['Volume (uL)'],
                 'concentration': row_data['Conc. (ng/uL)'],
-                'kind': row_data['Extraction Type'],
                 'creation_date': extraction_date,
+                'kind': self.preloaded_data['sample_kinds'][sample_kind],
                 'container': {
                     'barcode': row_data['Destination Container Barcode'],
                     'name': row_data['Destination Container Name'],
