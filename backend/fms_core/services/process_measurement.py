@@ -10,7 +10,7 @@ def create_process_measurement(process=None, source_sample=None, execution_date=
     warnings = []
 
     try:
-        process_measurement = ProcessMeasurement.create(
+        process_measurement = ProcessMeasurement.objects.create(
             process=process,
             source_sample=source_sample,
             execution_date=execution_date,
