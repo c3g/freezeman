@@ -2,6 +2,8 @@ from django.core.exceptions import ValidationError
 
 '''
     RowHandler objects
+    An object inheriting from RowHandler() should be created for each different 'type' of row 
+    (the 'type' being determined by a unique combination of columns)
 
     process_row (input): 
         row data obtained from the Importer objects.

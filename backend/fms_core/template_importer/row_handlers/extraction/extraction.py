@@ -4,6 +4,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container, create_sample
 from fms_core.services.container import get_or_create_container, get_container
 from fms_core.services.process_measurement import create_process_measurement
+from fms_core.services.sample_lineage import create_sample_lineage
 
 
 class ExtractionRowHandler(GenericRowHandler):
@@ -58,7 +59,7 @@ class ExtractionRowHandler(GenericRowHandler):
             )
 
             if new_sample:
-                _, self.errors['process_measurement'], self.warnings['process_measurement'] = \
+                process_measurement, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                     create_process_measurement(
                         source_sample=original_sample,
                         process=process_measurement['process'],
@@ -66,4 +67,10 @@ class ExtractionRowHandler(GenericRowHandler):
                         volume_used=process_measurement['volume_used'],
                     )
 
-                #TODO: create SampleLineage
+                if process_measurement:
+                    _, self.errors['sample_lineage'], self.warnings['sample_lineage'] = \
+                        create_sample_lineage(
+                            parent_sample=original_sample,
+                            child_sample=new_sample,
+                            process_measurement=process_measurement
+                        )
