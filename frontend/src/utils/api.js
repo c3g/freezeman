@@ -86,7 +86,6 @@ const api = {
     list: (options, abort) => get("/projects", options, { abort }),
     listExport: options => get("/project/list_export/", {format: "csv", ...options}),
     summary: () => get("/projects/summary"),
-    search: q => get("/projects/search/", { q }),
   },
 
   propertyValues: {

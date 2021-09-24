@@ -181,7 +181,7 @@ function renderIndividual(individual) {
 
 function renderProject(project) {
   return (
-    <Option key={'project' + project.id}>
+    <Option key={'project_' + project.id}>
       <ProjectOutlined />{' '}
       <strong>{project.name}</strong>{' '}
       <Text type="secondary">project</Text>{' '}
