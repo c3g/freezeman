@@ -81,7 +81,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
-        Projects.listTable,
+        Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))
 }

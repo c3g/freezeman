@@ -4,7 +4,8 @@ import {useHistory} from "react-router-dom";
 import {
   UserOutlined,
   TableOutlined,
-  NodeIndexOutlined,
+  TeamOutlined,
+  ProjectOutlined,
   ExperimentOutlined
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
@@ -121,6 +122,7 @@ function getPath(type, id) {
     case 'container':  return `/containers/${id}`;
     case 'sample':     return `/samples/${id}`;
     case 'individual': return `/individuals/${id}`;
+    case 'project':    return `/projects/${id}`;
     case 'user':       return `/users/${id}`;
   }
   throw new Error('unreachable')
@@ -131,6 +133,7 @@ function renderItem(r, props) {
     case 'container': return renderContainer(r.item)
     case 'sample': return renderSample(r.item, props.sampleKindsByID)
     case 'individual': return renderIndividual(r.item)
+    case 'project': return renderProject(r.item)
     case 'user': return renderUser(r.item)
   }
   throw new Error('unreachable')
@@ -169,9 +172,19 @@ function renderSample(sample, sampleKindsByID) {
 function renderIndividual(individual) {
   return (
     <Option key={'individual_' + individual.id}>
-      <NodeIndexOutlined />{' '}
+      <TeamOutlined />{' '}
       <strong>{individual.name}</strong>{' '}
       <Text type="secondary">individual</Text>{' '}
+    </Option>
+  );
+}
+
+function renderProject(project) {
+  return (
+    <Option key={'project' + project.id}>
+      <ProjectOutlined />{' '}
+      <strong>{project.name}</strong>{' '}
+      <Text type="secondary">project</Text>{' '}
     </Option>
   );
 }

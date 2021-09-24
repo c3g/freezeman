@@ -1,6 +1,6 @@
 from collections import Counter
 
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -36,6 +36,21 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = ProjectExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for projects that match the given query
+        """
+        search_input = _request.GET.get("q")
+
+        query = Q(name__icontains=search_input)
+        query.add(Q(id__icontains=search_input), Q.OR)
+
+        projects_data = Project.objects.filter(query)
+        page = self.paginate_queryset(projects_data)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):
