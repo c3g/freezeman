@@ -17,7 +17,6 @@ class PropertyValueTest(TestCase):
         self.process, _ = Process.objects.get_or_create(protocol=self.protocol, comment="Test Process")
 
     def test_property_value(self):
-        print(ContentType.objects.get_for_model(Process).id)
         content_object = self.process
         value = 10.1
         property_type_with_float = PropertyType.objects.create(name="PropertyNameTestFloat",

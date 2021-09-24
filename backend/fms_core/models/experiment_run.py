@@ -10,6 +10,8 @@ from .container import Container
 from .instrument import Instrument
 from .process import Process
 
+from ..containers import RUN_CONTAINER_KINDS
+
 from ._utils import add_error as _add_error
 
 __all__ = ["ExperimentRun"]
@@ -17,12 +19,24 @@ __all__ = ["ExperimentRun"]
 
 @reversion.register()
 class ExperimentRun(TrackedModel):
-    experiment_type = models.ForeignKey(ExperimentType, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Experiment type")
-    container = models.OneToOneField(Container, related_name="experiment_run", on_delete=models.PROTECT, help_text="Container")
-    instrument = models.ForeignKey(Instrument, on_delete=models.PROTECT, related_name="experiment_runs", help_text="Instrument")
+    experiment_type = models.ForeignKey(ExperimentType,
+                                        on_delete=models.PROTECT,
+                                        related_name="experiment_runs",
+                                        help_text="Experiment type")
+    container = models.OneToOneField(Container,
+                                     related_name="experiment_run",
+                                     limit_choices_to={"kind__in": RUN_CONTAINER_KINDS},
+                                     on_delete=models.PROTECT,
+                                     help_text="Container")
+    instrument = models.ForeignKey(Instrument,
+                                   on_delete=models.PROTECT,
+                                   related_name="experiment_runs",
+                                   help_text="Instrument")
     start_date = models.DateField(help_text="Date the run was started.")
-    process = models.ForeignKey(Process, on_delete=models.PROTECT, related_name="experiment_runs",
-                                        help_text="Main process associated to this experiment")
+    process = models.ForeignKey(Process,
+                                on_delete=models.PROTECT,
+                                related_name="experiment_runs",
+                                help_text="Main process associated to this experiment")
 
     def clean(self):
         super().clean()
@@ -30,6 +44,11 @@ class ExperimentRun(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+
+        # Validate that the container can run experiments
+        if self.container_id is not None:
+            if self.container.kind not in RUN_CONTAINER_KINDS:
+                add_error("container", f"{self.container.kind} is not of a valid Experiment run container kind.")
 
         if errors:
             raise ValidationError(errors)

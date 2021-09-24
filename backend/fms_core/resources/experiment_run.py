@@ -31,6 +31,7 @@ from ..utils import (
 )
 
 from ..experiments import PROTOCOLS_BY_EXPERIMENT_TYPE_NAME
+from ..containers import CONTAINER_KIND_SPECS
 
 __all__ = ["ExperimentRunResource"]
 
@@ -156,22 +157,6 @@ class ExperimentRunResource(GenericResource):
         except Exception as e:
             errors["experiment_type"] = ValidationError([f"No experiment type with workflow {self.experiment_type_name} could be found."], code="invalid")
 
-        # Getting container
-        barcode = get_normalized_str(data, "Experiment Container Barcode")
-        kind = get_normalized_str(data, "Experiment Container Kind")
-
-        if barcode and kind:
-            try:
-                obj.container, _ = Container.objects.get_or_create(
-                    barcode=barcode,
-                    kind=kind,
-                    defaults={'comment': f"Automatically generated via experiment run template import on "
-                            f"{datetime.utcnow().isoformat()}Z",
-                              'name': get_normalized_str(data, "Experiment Container Barcode")},
-                )
-            except Exception as e:
-                errors["container"] = ValidationError([f"Could not create experiment container. Barcode and kind are existing and do not match. "], code="invalid")
-
         # Getting instrument
         instrument_name = get_normalized_str(data, "Instrument Name")
         if instrument_name:
@@ -179,6 +164,27 @@ class ExperimentRunResource(GenericResource):
                 obj.instrument = Instrument.objects.get(name=instrument_name)
             except Exception as e:
                 errors["instrument"] = ValidationError([f"No instrument named {instrument_name} could be found."], code="invalid")
+
+        # Getting container
+        barcode = get_normalized_str(data, "Experiment Container Barcode")
+        kind = get_normalized_str(data, "Experiment Container Kind")
+
+        if barcode and kind:
+            experiment_container_kind = CONTAINER_KIND_SPECS[kind]
+            if experiment_container_kind.is_run_container:
+                try:
+                    obj.container, _ = Container.objects.get_or_create(
+                        barcode=barcode,
+                        kind=kind,
+                        defaults={'comment': f"Automatically generated via experiment run template import on "
+                                f"{datetime.utcnow().isoformat()}Z",
+                                  'name': get_normalized_str(data, "Experiment Container Barcode")},
+                    )
+                except Exception as e:
+                    errors["container"] = ValidationError([f"Could not create experiment container. Barcode and kind are existing and do not match. "], code="invalid")
+            else:
+                errors["container"] = ValidationError([f"Experiment container kind must be compatible with the selected instrument {instrument_name}."], code="invalid")
+        
 
 
         experiment_run_processes_by_protocol_id = {}
