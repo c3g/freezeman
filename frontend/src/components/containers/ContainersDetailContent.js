@@ -78,6 +78,7 @@ const ContainersDetailContent = ({
         <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
           <TabPane tab="Overview" key="1" style={tabStyle}>
               <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="ID" span={2}>{container.id}</Descriptions.Item>
                 <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
                 <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
                 <Descriptions.Item label="Location" span={2}>

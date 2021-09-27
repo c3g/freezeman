@@ -7,6 +7,7 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import ProjectsAssociatedSamples from "./ProjectsAssociatedSamples";
 import {withSample} from "../../utils/withItem";
@@ -43,7 +44,7 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) =
         `Project ${project.name}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/projects/list")}/>
+        <AppPageHeader title={title} onBack={() => history.push("/projects/list")} extra={ <EditButton url={`/projects/${id}/update`}/> }/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small" column={4}>

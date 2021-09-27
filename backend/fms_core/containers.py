@@ -113,7 +113,7 @@ class ContainerSpec:
 
 CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     container_kind_id="infinium gs 24 beadchip",
-    coordinate_spec=(alphas(4), ints(6, pad_to=2)),
+    coordinate_spec=(alphas(12), ints(2, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,

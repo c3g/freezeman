@@ -6,13 +6,11 @@ from django.db import models
 from .tracked_model import TrackedModel
 from django.contrib.auth.models import User
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, PROJECT_STATUS_CHOICES
 from ._utils import add_error as _add_error
 from ._validators import name_validator, email_validator
 
 __all__ = ["Project"]
-
-STATUS_CHOICES = ["Ongoing", "Completed"]
 
 @reversion.register()
 class Project(TrackedModel):
@@ -31,7 +29,7 @@ class Project(TrackedModel):
 
     targeted_end_date = models.DateField(blank=True, null=True, help_text="Targeted date to conclude the project.")
 
-    status = models.CharField(choices=((type, type) for type in STATUS_CHOICES),
+    status = models.CharField(choices=((type, type) for type in PROJECT_STATUS_CHOICES),
                               max_length=20,
                               help_text="The status of the project.")
 

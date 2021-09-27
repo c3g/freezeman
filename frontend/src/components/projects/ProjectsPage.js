@@ -13,6 +13,7 @@ const ProjectsPage = () => <PageContainer>
     <Route path="/projects/list"><ProjectsListContent /></Route>
     <Route path="/projects/actions/:action"><ActionContent templateType="project" /></Route>
     <Route path="/projects/add"><ProjectEditContent /></Route>
+    <Route path="/projects/:id/update"><ProjectEditContent /></Route>
     <Route path="/projects/:id"><ProjectsDetailedContent/></Route>
     <Redirect to="/projects/list" />
   </Switch>

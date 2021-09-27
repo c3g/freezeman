@@ -2,7 +2,7 @@
 
 // Fixtures:
 //  - credentials.json
-//  - Experiment_submission_v3_3_0_F_A_1.xlsx
+//  - Experiment_submission_v3_4_0_F_A_1.xlsx
 //  - Experiment_update_v3_3_0_F_A_1.xlsx
 
 // Helpers
@@ -23,18 +23,18 @@ export const experimentsTests = () => {
     })
 
     context('Experiments', () => {
-      const experimentBarcode1 = 'test_abc1';
-      const experimentBarcode2 = 'test_qwe2';
+      const experimentBarcode1 = 'cntr_7';
+      const experimentBarcode2 = 'cntr_8';
       const experimentType = 'Infinium Global Screening Array-24 (iScan_1)';
 
       it('creates experiments (template import)', () => {
         cy.navigateTo('Experiments')
         cy.wait(WAIT_TIME)
         cy.get('button').contains('Add Experiments').click()
-        cy.get('input[type=file]').attachFile('Experiment_submission_v3_3_0_F_A_1.xlsx')
-        cy.wait(WAIT_TIME)
+        cy.get('input[type=file]').attachFile('Experiment_submission_v3_4_0_F_A_1.xlsx')
+        cy.wait(2*WAIT_TIME)
         cy.submitForm()
-        cy.wait(WAIT_TIME)
+        cy.wait(2*WAIT_TIME)
         cy.get('.ant-alert-success').should('contain', 'Template submitted')
         cy.get('button').contains('Go Back').click()
         cy.get('body').should('contain', experimentBarcode1)
@@ -47,12 +47,10 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode1)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('body').should('contain', experimentBarcode1)
         cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
-        cy.get('body').should('contain', 'Sample_DNA1 sample (DNA) @ A01')
-        cy.get('body').should('contain', 'Sample_RNA1 sample (RNA) @ A02')
         cy.get('body').should('contain', 'Sample_DNA1 sample (DNA) @ B02')
       });
 
@@ -62,17 +60,11 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode2)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('body').should('contain', experimentBarcode2)
         cy.get('.ant-tabs-nav-list > :nth-child(3)').click()
-        cy.get('body').should('contain', 'Sample_Blood1 sample (BLOOD) @ A01')
-        cy.get('body').should('contain', 'Sample_Expectoration1 sample (EXPECTORATION) @ A02')
-        cy.get('body').should('contain', 'Sample_gargle1 sample (GARGLE) @ A03')
-        cy.get('body').should('contain', 'Sample_plasma1 sample (PLASMA) @ A04')
-        cy.get('body').should('contain', 'Sample_saliva1 sample (SALIVA) @ A05')
-        cy.get('body').should('contain', 'Sample_swab1 sample (SWAB) @ A06')
-        cy.get('body').should('contain', 'Sample_Blood1 sample (BLOOD) @ B03')
+        cy.get('body').should('contain', 'Sample_Blood1 sample (BLOOD) @ L02')
       });
 
       it('visits a particular sample detailed page to ensure the first experiment is there', () => {
@@ -105,7 +97,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode1)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('tr').contains(experimentBarcode1).click()
         cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')
@@ -117,7 +109,7 @@ export const experimentsTests = () => {
         cy.get('td.ant-table-cell').contains(experimentBarcode2)
           .parent().parent().should('have.class', 'ant-table-row')
           .within(() => {
-            cy.get('td').contains('Experiment').click()
+            cy.get('a').first().click()
         });
         cy.get('tr').contains(experimentBarcode2).click()
         cy.get('#rc-tabs-1-tab-2').should('contain', 'Experiment (1)')

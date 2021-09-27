@@ -40,6 +40,7 @@ const IndividualsDetailContent = ({individualsByID, usersByID, get}) => {
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="ID">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>

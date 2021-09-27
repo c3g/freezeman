@@ -131,6 +131,8 @@ class SampleResource(GenericResource):
         # the sample, if mother/father IDs are specified, corresponding records
         # can be created by the system.
 
+        individual_id = get_normalized_str(data, "Individual ID")
+
         taxon = normalize_scientific_name(get_normalized_str(data, "Taxon"))
         pedigree = str_cast_and_normalize(get_normalized_str(data, "Pedigree"))
         cohort = str_cast_and_normalize(get_normalized_str(data, "Cohort"))
@@ -139,7 +141,7 @@ class SampleResource(GenericResource):
         father = None
         self.project_object = None
 
-        if data["Mother ID"]:
+        if data["Mother ID"] and taxon:
             try:
                 mother, _ = Individual.objects.get_or_create(
                     name=get_normalized_str(data, "Mother ID"),
@@ -151,7 +153,7 @@ class SampleResource(GenericResource):
             except ValidationError as e:
                 errors["mother"] = ValidationError(e.messages.pop(), code="invalid")
 
-        if data["Father ID"]:
+        if data["Father ID"] and taxon:
             try:
                 father, _ = Individual.objects.get_or_create(
                     name=get_normalized_str(data, "Father ID"),
@@ -165,21 +167,41 @@ class SampleResource(GenericResource):
 
         # TODO: This should throw a nicer warning if the individual already exists
         # TODO: Warn if the individual exists but pedigree/cohort is different
-        try:
-            individual, individual_created = Individual.objects.get_or_create(
-                name=get_normalized_str(data, "Individual ID"),
-                sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
-                taxon=taxon,
-                **({"pedigree": pedigree} if pedigree else {}),
-                **({"cohort": cohort} if cohort else {}),
-                **({"mother": mother} if mother else {}),
-                **({"father": father} if father else {}),
-            )
-            obj.individual = individual
-        except Exception as e:
-            individual_created = False
-            individual = None
-            errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
+
+        only_individual_ID_provided = True if individual_id and not any([data["Sex"], taxon, pedigree, cohort, mother, father]) else False
+        individual_is_complete = True if all([individual_id, data["Sex"], taxon]) else False
+        partial_individual_provided = True if any([individual_id, data["Sex"], mother, father, taxon, pedigree, cohort]) else False
+        individual = None
+        individual_created = None
+
+        if only_individual_ID_provided: #Retrieve existing individual
+            try:
+                individual = Individual.objects.get(
+                    name=individual_id
+                )
+                obj.individual = individual
+            except Individual.DoesNotExist as e:
+                errors["individual"] = ValidationError("Individual does not exist.", code="invalid")
+        elif individual_is_complete: #Create Individual
+            try:
+                individual, individual_created = Individual.objects.get_or_create(
+                    name=individual_id,
+                    sex=get_normalized_str(data, "Sex", default=Individual.SEX_UNKNOWN),
+                    taxon=taxon,
+                    **({"pedigree": pedigree} if pedigree else {}),
+                    **({"cohort": cohort} if cohort else {}),
+                    **({"mother": mother} if mother else {}),
+                    **({"father": father} if father else {}),
+                )
+                obj.individual = individual
+            except Exception as e:
+                individual_created = False
+                errors["individual"] = ValidationError(e.messages.pop(), code="invalid")
+        elif not individual_is_complete and partial_individual_provided: #Missing information
+            errors["individual"] = ValidationError("Individual ID, Taxon and Sex are required to create/store an Individual.", code="invalid")
+        else:
+            self.row_warnings.append(f"Sample is not being assigned to an individual.")
+
 
         if data["Project"]:
             project_name = get_normalized_str(data, "Project")

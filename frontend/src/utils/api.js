@@ -78,6 +78,7 @@ const api = {
       submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
   },
+  
   projects: {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
@@ -91,6 +92,7 @@ const api = {
       submit: (action, template) => post(`/projects/template_submit/`, form({ action, template })),
     },
   },
+
   propertyValues: {
     list: (options, abort) => get("/property-values/", options, { abort }),
   },

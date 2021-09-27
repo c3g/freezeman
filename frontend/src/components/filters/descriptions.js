@@ -1,6 +1,11 @@
 import {FILTER_TYPE, SEX, TAXON, STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Sample ID",
+  },
   sample_kind__name: {
     type: FILTER_TYPE.SELECT,
     key: "sample_kind__name",
@@ -56,6 +61,11 @@ export const SAMPLE_FILTERS = {
     key: "concentration",
     label: "Concentration",
   },
+  creation_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "creation_date",
+    label: "Creation Date",
+  },
   depleted: {
     type: FILTER_TYPE.SELECT,
     key: "depleted",
@@ -105,6 +115,11 @@ export const SAMPLE_FILTERS = {
 }
 
 export const CONTAINER_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "id",
+  },
   barcode: {
     type: FILTER_TYPE.INPUT,
     key: "barcode",
@@ -135,6 +150,11 @@ export const CONTAINER_FILTERS = {
 }
 
 export const INDIVIDUAL_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
@@ -169,6 +189,11 @@ export const INDIVIDUAL_FILTERS = {
 }
 
 export const PROCESS_MEASUREMENT_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   process: {
     type: FILTER_TYPE.INPUT_NUMBER,
     key: "process",
@@ -206,6 +231,11 @@ export const PROCESS_MEASUREMENT_FILTERS = {
 }
 
 export const EXPERIMENT_RUN_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
   experiment_type: {
     type: FILTER_TYPE.SELECT,
     key: "experiment_type__workflow",
@@ -246,6 +276,11 @@ export const EXPERIMENT_RUN_FILTERS = {
 }
 
 export const USER_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "User ID"
+  },
   username: {
     type: FILTER_TYPE.INPUT,
     key: "username",

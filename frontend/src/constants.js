@@ -38,8 +38,8 @@ export const TAXON = [
 ]
 
 export const STATUS = [
-  "Ongoing",
-  "Completed",
+  "Open",
+  "Closed",
 ]
 
 export const DATE_FORMAT = "YYYY-MM-DD"

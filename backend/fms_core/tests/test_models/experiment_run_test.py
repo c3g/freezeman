@@ -20,7 +20,8 @@ class ExperimentRunTest(TestCase):
         self.experiment_workflow = "WorkflowTest"
         self.experiment_type, _ = ExperimentType.objects.get_or_create(workflow=self.experiment_workflow)
 
-        self.container, _ = Container.objects.get_or_create(**create_container(barcode="Flowcell1212testtest"))
+        self.container, _ = Container.objects.get_or_create(**create_container(name="Flowcell1212testtest", barcode="Flowcell1212testtest", kind="infinium gs 24 beadchip"))
+        self.container_invalid_kind, _ = Container.objects.get_or_create(**create_container(name="NotABeadchip", barcode="NotABeadchip", kind="96-well plate"))
 
         platform, _ = Platform.objects.get_or_create(name="PlatformTest")
         instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest", platform=platform)
@@ -61,6 +62,18 @@ class ExperimentRunTest(TestCase):
                                                                     instrument=self.instrument,
                                                                     process=self.process,
                                                                     start_date=self.start_date)
+            except ValidationError as e:
+                self.assertTrue("container" in e.message_dict)
+                raise e
+
+    def test_container_invalid_kind(self):
+        with self.assertRaises(ValidationError):
+            try:
+                er_invalid_container_kind = ExperimentRun.objects.create(experiment_type=self.experiment_type,
+                                                                         container=self.container_invalid_kind,
+                                                                         instrument=self.instrument,
+                                                                         process=self.process,
+                                                                         start_date=self.start_date)
             except ValidationError as e:
                 self.assertTrue("container" in e.message_dict)
                 raise e
