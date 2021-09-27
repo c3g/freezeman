@@ -71,8 +71,8 @@ class ResourcesTestCase(TestCase):
         self.pr = ProjectLinkSampleResource()
 
     def create_projects(self):
-        self.project1, _ = Project.objects.get_or_create(name="TestProject1", status="Ongoing")
-        self.project2, _ = Project.objects.get_or_create(name="TestProject2", status="Ongoing")
+        self.project1, _ = Project.objects.get_or_create(name="TestProject1")
+        self.project2, _ = Project.objects.get_or_create(name="TestProject2")
 
     def load_containers(self):
         with reversion.create_revision(), open(CONTAINER_CREATION_CSV) as cf:
@@ -224,7 +224,7 @@ class ResourcesTestCase(TestCase):
     def test_invalid_link_project_sample(self):
         self.load_samples()
 
-        with self.assertRaises(ObjectDoesNotExist), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
             s = Dataset().load(sf.read())
             self.pr.import_data(s, raise_errors=True)
 

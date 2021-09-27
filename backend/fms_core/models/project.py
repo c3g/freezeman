@@ -31,7 +31,8 @@ class Project(TrackedModel):
 
     status = models.CharField(choices=((type, type) for type in PROJECT_STATUS_CHOICES),
                               max_length=20,
-                              help_text="The status of the project.")
+                              help_text="The status of the project.",
+                              default="Open")
 
     comments = models.TextField(blank=True, help_text="Other relevant information about the project.")
 

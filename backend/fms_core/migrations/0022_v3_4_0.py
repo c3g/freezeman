@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('requestor_name', models.CharField(blank=True, help_text='The name of the requestor of the project.', max_length=200)),
                 ('requestor_email', models.CharField(blank=True, help_text='The email of the requestor of the project.', max_length=200, validators=[django.core.validators.EmailValidator()])),
                 ('targeted_end_date', models.DateField(blank=True, null=True, help_text='Targeted date to conclude the project.')),
-                ('status', models.CharField(choices=[('Open', 'Open'), ('Closed', 'Closed')], help_text='The status of the project.', max_length=20)),
+                ('status', models.CharField(choices=[('Open', 'Open'), ('Closed', 'Closed')], help_text='The status of the project.', max_length=20, default="Open")),
                 ('comments', models.TextField(blank=True, help_text='Other relevant information about the project.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_project_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_project_modification', to=settings.AUTH_USER_MODEL)),

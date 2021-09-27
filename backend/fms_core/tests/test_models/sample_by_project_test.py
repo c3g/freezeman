@@ -33,7 +33,7 @@ class SampleByProjectTest(TestCase):
         self.valid_sample = Sample.objects.create(
             **create_sample(self.sample_kind_BLOOD, self.valid_individual, self.valid_container, name="TestValidSample",))
 
-        self.valid_project = Project.objects.create(name="TestValidProject", status="Ongoing")
+        self.valid_project = Project.objects.create(name="TestValidProject")
 
 
     def test_sample_by_project(self):
