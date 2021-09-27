@@ -4,12 +4,10 @@ import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 import {
   Alert,
-  AutoComplete,
   Button,
   DatePicker,
   Form,
   Input,
-  InputNumber,
   Select,
   Switch,
 } from "antd";
@@ -18,10 +16,8 @@ const {TextArea} = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import * as Options from "../../utils/options";
 import {add, update, listTable, summary} from "../../modules/projects/actions";
 import {project as EMPTY_PROJECT} from "../../models";
-import api, {withToken} from "../../utils/api";
 
 const requiredRules = [{ required: true, message: "Missing field" }]
 const emailRules = [{ type: "email", message: "The input is not valid E-mail" }]
@@ -116,8 +112,8 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
           <Form.Item label="Requestor Email" {...props("requestor_email")} rules={emailRules} >
             <Input />
           </Form.Item>
-          <Form.Item label="Status" {...props("status")} >
-            <Switch style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked/>
+          <Form.Item label="Status" {...props("status")} valuePropName="checked">
+            <Switch style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked={isAdding}/>
           </Form.Item>
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
@@ -157,6 +153,11 @@ function deserialize(values) {
   if (!values)
     return undefined
   const newValues = {...values}
+
+  if (!newValues.status || newValues.status === "Closed")
+    newValues.status = false
+  else
+    newValues.status = true
 
   if (newValues.targeted_end_date)
     newValues.targeted_end_date = moment(newValues.targeted_end_date, 'YYYY-MM-DD')
