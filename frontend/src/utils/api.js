@@ -78,14 +78,16 @@ const api = {
       submit: (action, template) => post(`/process-measurements/template_submit/`, form({ action, template })),
     },
   },
+  
   projects: {
     get: projectId => get(`/projects/${projectId}/`),
     add: project => post("/projects/", project),
     update: project => patch(`/projects/${project.id}/`, project),
     list: (options, abort) => get("/projects", options, { abort }),
     listExport: options => get("/project/list_export/", {format: "csv", ...options}),
-    summary: () => get("/projects/summary")
+    summary: () => get("/projects/summary"),
   },
+
   propertyValues: {
     list: (options, abort) => get("/property-values/", options, { abort }),
   },

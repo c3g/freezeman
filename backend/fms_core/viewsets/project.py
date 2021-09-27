@@ -1,7 +1,3 @@
-from collections import Counter
-
-from django.db.models import Count
-
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -44,7 +40,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         database.
         """
         return Response({
-            "total_count": Project.objects.all().count(),
-            "ongoing_count": Project.objects.all().filter(status='Ongoing').count(),
-            "completed_count": Project.objects.all().filter(status="Completed").count(),
+            "total_count": Project.objects.count(),
+            "ongoing_count": Project.objects.filter(status='Ongoing').count(),
+            "completed_count": Project.objects.filter(status="Completed").count(),
         })
