@@ -53,17 +53,17 @@ class ProjectLinkSampleResource(GenericResource):
             obj.project = None
             errors["project"] = ValidationError([f"No project with name [{data['Project Name']}]"], code="invalid")
 
-        # Check if link exists to ensure there's not a duplicated association
-        if SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists() and data["Action"] == ADD_ACTION:
-            errors["link"] = ValidationError(
-                [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
-                code="invalid")
+        if obj.sample_id and obj.project_id:
+            # Check if link exists to ensure there's not a duplicated association
+            if data["Action"] == ADD_ACTION and SampleByProject.objects.filter(sample=obj.sample, project=obj.project).exists():
+                errors["link"] = ValidationError(
+                    [f"Sample [{data['Sample Name']}] is already associated to project [{data['Project Name']}]."],
+                    code="invalid")
 
-        # If the link doesn't exists we can't perform a remove action
-        else:
-            if data["Action"] == REMOVE_ACTION:
+            # If the link doesn't exists we can't perform a remove action
+            elif data["Action"] == REMOVE_ACTION:
                 errors["link"] = ValidationError([f"Sample [{data['Sample Name']}] is not currently associated to project [{data['Project Name']}]."],
-                                                 code="invalid")
+                                                     code="invalid")
 
         if errors:
             raise ValidationError(errors)
@@ -107,6 +107,14 @@ class ProjectLinkSampleResource(GenericResource):
                 return super().init_instance(row), True
         else:
             return super().init_instance(row), True
+
+    def validate_instance(self, instance, import_validation_errors=None, validate_unique=True):
+        if "link" in import_validation_errors:
+            validate_unique = False
+        else:
+            validate_unique = True
+        super().validate_instance( instance, import_validation_errors, validate_unique)
+
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):
         results = super().import_data(dataset, dry_run, raise_errors, use_transactions, collect_failed_rows, **kwargs)

@@ -691,5 +691,5 @@ class ResourcesTestCase(TestCase):
             with open(TEST_DATA_ROOT / f) as rf:
                 self.load_samples()  # Load containers + samples
                 self._test_invalid_rename_template(rf, err)
-
+                
             transaction.savepoint_rollback(s)

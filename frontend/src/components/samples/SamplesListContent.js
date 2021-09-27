@@ -22,14 +22,6 @@ import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getProjectLinks = (ids, projectsByID) => {
-  return (
-    ids.map(id => {
-      return (<div> <Link to={`/projects/${projectsByID[id].id}`}> {projectsByID[id].name} </Link> </div>);
-    })
-  )
-}
-
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
       title: "Sample Kind",
@@ -84,8 +76,11 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Projects",
       dataIndex: "projects__name",
-      sorter: true,
-      render: (_, sample) => (sample.projects && getProjectLinks(sample.projects, projectsByID)),
+      render: (_, sample) => (sample.projects &&
+        sample.projects.map(id => {
+          return (<div> <Link to={`/projects/${projectsByID[id].id}`}> {projectsByID[id].name} </Link> </div>);
+        })
+      ),
     },
     {
       title: "Coords",

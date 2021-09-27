@@ -16,7 +16,7 @@ from ._constants import _sample_filterset_fields
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Sample.objects.select_related("individual", "container", "sample_kind").prefetch_related("process_measurement", "projects").all()
+    queryset = Sample.objects.select_related("individual", "container", "sample_kind").prefetch_related("process_measurement", "projects").all().distinct()
 
     ordering_fields = (
         *_list_keys(_sample_filterset_fields),

@@ -129,9 +129,12 @@ const ProjectsAssociatedSamples = ({
   const nFilters = getNFilters(filters)
   const nFiltersForWarning = nFilters - 1
 
+  //To ensure user doesn't see the full list of samples
+  samplesByID = samples.length === totalCount ? samplesByID : {}
+
   return <>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1rem' }}>
         <FiltersWarning
           nFilters={nFiltersForWarning}
           filters={filtersForWarning}
