@@ -41,6 +41,14 @@ export const projects = (
                 preprocess(action.data));
         case PROJECTS.ADD.ERROR:
             return { ...state, error: action.error, isFetching: false };
+
+        case PROJECTS.UPDATE.REQUEST:
+            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
+        case PROJECTS.UPDATE.RECEIVE:
+            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false, versions: undefined });
+        case PROJECTS.UPDATE.ERROR:
+            return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
+
         case PROJECTS.SET_SORT_BY:
             return { ...state, sortBy: action.data };
         case PROJECTS.SET_FILTER:
