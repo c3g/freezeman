@@ -63,7 +63,7 @@ function PaginatedTable ({
     else if (doesNextPageContainUnloaded)
       offset = items.length;
 
-    setTimeout(() => onLoad({ offset }), 0);
+    setTimeout(() => onLoad({ offset, filters, sortBy }), 0);
   }
 
   if (sortByRef.current !== sortBy) {
@@ -90,7 +90,7 @@ function PaginatedTable ({
 
   const onChangeSizeChange = (newPageSize) => {
     dispatch(setPageSize(newPageSize));
-    onLoad();
+    onLoad({filters, sortBy});
   };
 
   return (
