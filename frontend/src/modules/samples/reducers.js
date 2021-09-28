@@ -50,6 +50,8 @@ export const samples = (
     state = {
         itemsByID: {},
         items: [],
+        itemsByProject: [],
+        itemsByProjectByID: {},
         page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
@@ -118,6 +120,23 @@ export const samples = (
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case SAMPLES.LIST.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+
+        case SAMPLES.LIST_BY_PROJECT.REQUEST:
+            return { ...state, isFetching: true, };
+        case SAMPLES.LIST_BY_PROJECT.RECEIVE: {
+            const results = action.data.results.map(preprocess)
+            const itemsByProjectByID = indexByID(results);
+            const itemsByProject = action.data.results.map(r => r.id)
+            return {
+              ...state,
+              itemsByProject,
+              itemsByProjectByID,
+              isFetching: false,
+              error: undefined
+            };
+        }
+        case SAMPLES.LIST_BY_PROJECT.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         case SAMPLES.LIST_TABLE.REQUEST:
