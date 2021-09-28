@@ -9,6 +9,7 @@ import {
   Form,
   Input,
   Select,
+  Switch,
 } from "antd";
 const {Option} = Select
 const {TextArea} = Input
