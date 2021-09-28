@@ -14,9 +14,9 @@ class ProjectTest(TestCase):
         self.principal_investigator = "Guillaume Bourque"
         self.requestor_name = "Sebastian Ballesteros"
         self.requestor_email = "sballesteros@mcgill.ca"
-        self.status = "Ongoing"
+        self.status = "Open"
         self.targeted_end_date = "2022-08-12"
-        self.comments = "This is a test comment"
+        self.comment = "This is a test comment"
 
         #for duplicate test
         self.duplicate_name = "TestDuplicateProject"
@@ -27,15 +27,14 @@ class ProjectTest(TestCase):
                                             principal_investigator=self.principal_investigator,
                                             requestor_name=self.requestor_name,
                                             requestor_email=self.requestor_email,
-                                            status=self.status,
                                             targeted_end_date=self.targeted_end_date,
-                                            comments=self.comments)
+                                            comment=self.comment)
         self.assertEqual(my_project.name, self.name)
         self.assertEqual(my_project.principal_investigator, self.principal_investigator)
         self.assertEqual(my_project.requestor_name, self.requestor_name)
         self.assertEqual(my_project.requestor_email, self.requestor_email)
         self.assertEqual(my_project.status, self.status)
-        self.assertEqual(my_project.comments, self.comments)
+        self.assertEqual(my_project.comment, self.comment)
         self.assertEqual(my_project.targeted_end_date, datetime.strptime(self.targeted_end_date, "%Y-%m-%d").date())
 
     def test_missing_name(self):
@@ -47,16 +46,6 @@ class ProjectTest(TestCase):
                                                        status=self.status)
             except ValidationError as e:
                 self.assertTrue("name" in e.message_dict)
-                raise e
-
-    def test_missing_status(self):
-        with self.assertRaises(ValidationError):
-            try:
-                er_without_container = Project.objects.create(name=self.name,
-                                                              principal_investigator=self.principal_investigator,
-                                                              targeted_end_date=self.targeted_end_date)
-            except ValidationError as e:
-                self.assertTrue("status" in e.message_dict)
                 raise e
 
     def test_duplicate_project_with_name(self):

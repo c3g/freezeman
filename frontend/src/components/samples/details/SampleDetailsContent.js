@@ -24,10 +24,11 @@ import PageContent from "../../PageContent";
 import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
+import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import {SampleDepletion} from "../SampleDepletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcessMeasurement} from "../../../utils/withItem";
+import {withContainer, withSample, withIndividual, withProcessMeasurement, withProject} from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
@@ -66,11 +67,12 @@ const mapStateToProps = state => ({
   processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
   usersByID: state.users.itemsByID,
+  projectsByID: state.projects.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, projectsByID, getSample, listVersions}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -87,6 +89,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const versions = sample.versions;
   const isVersionsEmpty = versions && versions.length === 0;
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
+  const isProjectsEmpty = sample.projects && sample.projects.length === 0;
   let processMeasurements = []
   let experimentRunsIDs = []
 
@@ -179,7 +182,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               <Descriptions.Item label="Update Comment" span={3}>{sample.update_comment}</Descriptions.Item>
               {/*TODO: Extracted from*/}
           </Descriptions>
-
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
               <Descriptions.Item label="Extracted From">
@@ -199,7 +201,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
           ) : null}
 
           <TrackingFieldsContent entity={sample}/>
-
           <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
@@ -242,7 +243,12 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
            <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
+        <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
+          <SamplesAssociatedProjects sampleID={sample.id} />
+        </TabPane>
+
       </Tabs>
+
     </PageContent>
   </>;
 };

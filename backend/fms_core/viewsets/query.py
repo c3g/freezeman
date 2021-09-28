@@ -6,8 +6,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from fms_core.models import Container, Individual, Sample
-from fms_core.serializers import ContainerSerializer, IndividualSerializer, SampleSerializer, UserSerializer
+from fms_core.models import Container, Individual, Sample, Project
+from fms_core.serializers import ContainerSerializer, IndividualSerializer, SampleSerializer, UserSerializer, ProjectSerializer
 
 from ._utils import FZY
 
@@ -38,6 +38,10 @@ class QueryViewSet(viewsets.ViewSet):
                 s["type"] = "individual"
                 s["item"] = IndividualSerializer(s["item"]).data
                 return s
+            if item_type == Project:
+                s["type"] = "project"
+                s["item"] = ProjectSerializer(s["item"]).data
+                return s
             if item_type == User:
                 s["type"] = "user"
                 s["item"] = UserSerializer(s["item"]).data
@@ -61,9 +65,10 @@ class QueryViewSet(viewsets.ViewSet):
         containers = query_and_score(Container, ["name"])
         individuals = query_and_score(Individual, ["name"])
         samples = query_and_score(Sample, ["name"])
+        projects = query_and_score(Project, ["name"])
         users = query_and_score(User, ["username", "first_name", "last_name"])
 
-        results = containers + individuals + samples + users
+        results = containers + individuals + projects + samples + users
         results.sort(key=lambda c: c["item"].score, reverse=True)
         data = map(serialize, results[:100])
 

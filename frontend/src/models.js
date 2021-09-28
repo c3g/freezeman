@@ -125,8 +125,8 @@ export const project = {
   requestor_name: "",
   requestor_email: "",
   targeted_end_date: "",
-  status: "",
-  comments: "",
+  status: "Open",
+  comment: "",
 }
 // Example:
 // {
@@ -135,6 +135,6 @@ export const project = {
 //     principal_investigator: "David Bujold",
 //     requestor_name: "Sebastian Ballesteros",
 //     requestor_email: "sebastian.ballesteros@mcgill.ca",
-//     status: "Ongoing",
-//     comments: "This is a comment",
+//     status: "Open",
+//     comment: "This is a comment",
 // }

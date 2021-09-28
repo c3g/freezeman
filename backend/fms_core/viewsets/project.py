@@ -1,21 +1,20 @@
-from collections import Counter
-
-from django.db.models import Count
-
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
+from fms_core.resources import ProjectLinkSampleResource
+from fms_core.template_paths import PROJECT_LINK_SAMPLES_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
 from ._constants import _project_filterset_fields
 
 
 class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Project.objects.all()
+    queryset = Project.objects.prefetch_related("samples").all()
     serializer_class = ProjectSerializer
+
     ordering_fields = (
         *_list_keys(_project_filterset_fields),
     )
@@ -23,6 +22,15 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     filterset_fields = {
         **_project_filterset_fields,
     }
+
+    template_action_list = [
+        {
+            "name": "Link Projects with Samples",
+            "description": "Upload the provided template with links between projects and samples.",
+            "template": PROJECT_LINK_SAMPLES_TEMPLATE,
+            "resource": ProjectLinkSampleResource,
+        }
+    ]
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -44,7 +52,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         database.
         """
         return Response({
-            "total_count": Project.objects.all().count(),
-            "ongoing_count": Project.objects.all().filter(status='Ongoing').count(),
-            "completed_count": Project.objects.all().filter(status="Completed").count(),
+            "total_count": Project.objects.count(),
+            "ongoing_count": Project.objects.filter(status='Ongoing').count(),
+            "completed_count": Project.objects.filter(status="Completed").count(),
         })

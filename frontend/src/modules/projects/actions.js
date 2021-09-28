@@ -15,6 +15,7 @@ export const SET_FILTER            = "PROJECTS.SET_FILTER";
 export const SET_FILTER_OPTION     = "PROJECTS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "PROJECTS.CLEAR_FILTERS";
 export const SUMMARY               = createNetworkActionTypes("PROJECTS.SUMMARY");
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("PROJECTS.LIST_TEMPLATE_ACTIONS");
 
 export const get = id => async (dispatch, getState) => {
     const project = getState().projects.itemsByID[id];
@@ -93,6 +94,11 @@ export const clearFilters = thenList(() => {
 
 export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.projects.summary()));
 
+export const listTemplateActions = () => (dispatch, getState) => {
+    if (getState().projectTemplateActions.isFetching) return;
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.projects.template.actions()));
+};
+
 export default {
     GET,
     ADD,
@@ -104,6 +110,7 @@ export default {
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     SUMMARY,
+    LIST_TEMPLATE_ACTIONS,
     get,
     add,
     update,
@@ -114,6 +121,7 @@ export default {
     list,
     listTable,
     summary,
+    listTemplateActions,
 };
 
 // Helper to call list() after another action
