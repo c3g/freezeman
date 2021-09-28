@@ -6,7 +6,7 @@ from import_export.fields import Field
 from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ForeignKeyWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, add_columns_to_preview
-from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage
+from ..models import Container, Process, ProcessMeasurement, Protocol, Sample, SampleKind, SampleLineage, SampleByProject
 from ..utils import (
     blank_str_to_none,
     check_truth_like,
@@ -183,6 +183,11 @@ class TransferResource(GenericResource):
     def save_m2m(self, obj, data, using_transactions, dry_run):
         if self.transferred_from and self.process_measurement:
             SampleLineage.objects.create(parent=self.transferred_from, child=obj, process_measurement=self.process_measurement)
+
+            # automatic project inheritance
+            for project in self.transferred_from.projects.all():
+                SampleByProject.objects.create(project=project, sample=obj)
+
         super().save_m2m(obj, data, using_transactions, dry_run)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False, **kwargs):

@@ -9,6 +9,7 @@ from .individual import Individual
 from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
+from .sample_by_project import SampleByProject
 from .sample_update import SampleUpdate
 from .protocol import Protocol
 from .process import Process
@@ -33,6 +34,7 @@ __all__ = [
     "Sample",
     "SampleKind",
     "SampleLineage",
+    "SampleByProject",
     "SampleUpdate",
     "Protocol",
     "Process",
