@@ -3,14 +3,14 @@ import reversion
 
 from django.core.exceptions import ValidationError
 from import_export.fields import Field
-from import_export.widgets import DateWidget, DecimalWidget, JSONWidget
+from import_export.widgets import DateWidget, DecimalWidget, JSONWidget, ManyToManyWidget
 from ._generic import GenericResource
 from ._utils import skip_rows, remove_columns_from_preview
 from ..containers import (
     SAMPLE_CONTAINER_KINDS,
     SAMPLE_CONTAINER_KINDS_WITH_COORDS,
 )
-from ..models import Container, Individual, Sample, SampleKind
+from ..models import Container, Individual, Sample, SampleKind, Project, SampleByProject
 from ..utils import (
     RE_SEPARATOR,
     blank_str_to_none,
@@ -59,6 +59,8 @@ class SampleResource(GenericResource):
 
     volume = Field(attribute='volume', column_name='Volume (uL)', widget=DecimalWidget())
 
+    project = Field(column_name='Project')
+
     COMPUTED_FIELDS = frozenset((
         "individual_id",
         "individual_name",
@@ -91,6 +93,7 @@ class SampleResource(GenericResource):
             "sample_kind",
             "name",
             "alias",
+            "project",
             "cohort",
             "experimental_group",
             "taxon",
@@ -136,6 +139,7 @@ class SampleResource(GenericResource):
 
         mother = None
         father = None
+        self.project_object = None
 
         if data["Mother ID"] and taxon:
             try:
@@ -197,6 +201,14 @@ class SampleResource(GenericResource):
             errors["individual"] = ValidationError("Individual ID, Taxon and Sex are required to create/store an Individual.", code="invalid")
         else:
             self.row_warnings.append(f"Sample is not being assigned to an individual.")
+
+
+        if data["Project"]:
+            project_name = get_normalized_str(data, "Project")
+            try:
+                self.project_object = Project.objects.get(name=project_name)
+            except Project.DoesNotExist:
+                errors["project"] = ValidationError(f"Project with name {project_name} does not exist.", code="invalid")
 
 
         # If we're doing a dry run (i.e. uploading for confirmation) and we're
@@ -299,6 +311,10 @@ class SampleResource(GenericResource):
     def after_save_instance(self, instance, using_transactions, dry_run):
         super().after_save_instance(instance, using_transactions, dry_run)
         reversion.set_comment("Imported samples from template.")
+
+    def save_m2m(self, obj, data, using_transactions, dry_run):
+        if self.project_object:
+            SampleByProject.objects.create(project=self.project_object, sample=obj)
 
     def import_data(self, dataset, dry_run=False, raise_errors=False, use_transactions=None, collect_failed_rows=False,
                     **kwargs):

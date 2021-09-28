@@ -22,6 +22,7 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
+from .project import Project
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -234,6 +235,11 @@ class Sample(TrackedModel):
     @property
     def children(self) -> List["Sample"]:
         return self.parent_of.filter(child_sample__parent=self).all() if self.id else None
+
+    # Computed property for project relation
+    @property
+    def projects(self) -> List["Project"]:
+        return self.projects.all() if self.id else None
 
     @property
     def source_depleted(self) -> bool:

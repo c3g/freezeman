@@ -1,20 +1,15 @@
-import React, {useRef} from "react";
+import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
 
-import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import AddButton from "../AddButton";
-import ExportButton from "../ExportButton";
-import LinkButton from "../LinkButton";
 
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
-import {actionsToButtonList} from "../../utils/templateActions";
-import {withContainer, withIndividual} from "../../utils/withItem";
+import setDefaultFilter from "../../utils/setDefaultFilter";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -22,16 +17,6 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = () => [
-    {
-      title: "ID",
-      dataIndex: "id",
-      sorter: true,
-      width: 80,
-      render: (id, project) =>
-        <Link to={`/projects/${project.id}`}>
-          <div>{id}</div>
-        </Link>,
-    },
     {
       title: "Name",
       dataIndex: "name",
@@ -75,10 +60,9 @@ const getTableColumns = () => [
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
-  projectsById: state.projects.itemsByID,
-  projects: state.projects.items,
-  actions: state.projectTemplateActions,
   page: state.projects.page,
+  projects: state.projects.items,
+  projectsByID: state.projects.itemsByID,
   totalCount: state.projects.totalCount,
   isFetching: state.projects.isFetching,
   filters: state.projects.filters,
@@ -87,15 +71,15 @@ const mapStateToProps = state => ({
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ProjectsListContent = ({
+const SamplesAssociatedProjects = ({
   token,
+  sampleID,
   projects,
-  projectsById,
-  actions,
+  projectsByID,
   isFetching,
   page,
-  totalCount,
   filters,
+  totalCount,
   sortBy,
   listTable,
   setFilter,
@@ -104,10 +88,15 @@ const ProjectsListContent = ({
   setSortBy,
 }) => {
 
-  const listExport = () =>
-    withToken(token, api.projects.listExport)
-    (mergedListQueryParams(PROJECT_FILTERS, filters, sortBy))
-      .then(response => response.data)
+  useEffect(() => {
+    // returned function will be called on component unmount
+    return () => {
+      clearFilters()
+    }
+  }, [])
+
+  setDefaultFilter(PROJECT_FILTERS.samples__id.key, sampleID, setFilter, filters, clearFilters)
+  let {samples, ...filtersForWarning} = filters
 
   const columns = getTableColumns()
   .map(c => Object.assign(c, getFilterProps(
@@ -115,28 +104,23 @@ const ProjectsListContent = ({
     PROJECT_FILTERS,
     filters,
     setFilter,
-    setFilterOption
+    setFilterOption,
   )))
 
   const nFilters = getNFilters(filters)
+  const nFiltersForWarning = nFilters - 1
 
   return <>
-    <AppPageHeader title="Projects" extra={[
-      <AddButton key='add' url="/projects/add" />,
-      ...actionsToButtonList("/projects", actions),
-      <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
-    ]}/>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
-        <div style={{ flex: 1 }} />
         <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
+          nFilters={nFiltersForWarning}
+          filters={filtersForWarning}
           description={PROJECT_FILTERS}
         />
         <Button
           style={{ margin: 6 }}
-          disabled={nFilters === 0}
+          disabled={nFiltersForWarning === 0}
           onClick={clearFilters}
         >
           Clear Filters
@@ -145,7 +129,7 @@ const ProjectsListContent = ({
       <PaginatedTable
         columns={columns}
         items={projects}
-        itemsByID={projectsById}
+        itemsByID={projectsByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
@@ -159,4 +143,4 @@ const ProjectsListContent = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectsListContent);
+export default connect(mapStateToProps, actionCreators)(SamplesAssociatedProjects);

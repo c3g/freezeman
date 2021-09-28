@@ -22,7 +22,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -84,6 +84,15 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
         </Link>),
     },
     {
+      title: "Projects",
+      dataIndex: "projects__name",
+      render: (_, sample) => (sample.projects &&
+        sample.projects.map(id => {
+          return (<div> <Link to={`/projects/${projectsByID[id].id}`}> {projectsByID[id].name} </Link> </div>);
+        })
+      ),
+    },
+    {
       title: "Coords",
       dataIndex: "coordinates",
       sorter: true,
@@ -133,6 +142,7 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
   containersByID: state.containers.itemsByID,
   individualsByID: state.individuals.itemsByID,
+  projectsByID: state.projects.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -150,6 +160,7 @@ const SamplesListContent = ({
   filters,
   containersByID,
   individualsByID,
+  projectsByID,
   sortBy,
   listTable,
   setFilter,
@@ -163,7 +174,7 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-  const columns = getTableColumns(containersByID, individualsByID, sampleKinds)
+  const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,

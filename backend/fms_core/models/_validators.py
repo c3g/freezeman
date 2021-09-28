@@ -1,7 +1,6 @@
 import re
 from django.core.validators import RegexValidator
 from django.core.validators import EmailValidator
-from ._constants import TEMPORARY_RENAME_SUFFIX
 
 __all__ = ["name_validator",
            "name_validator_with_spaces",

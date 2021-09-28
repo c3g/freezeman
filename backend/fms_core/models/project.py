@@ -31,9 +31,12 @@ class Project(TrackedModel):
 
     status = models.CharField(choices=((type, type) for type in PROJECT_STATUS_CHOICES),
                               max_length=20,
-                              help_text="The status of the project.")
+                              help_text="The status of the project.",
+                              default="Open")
 
     comments = models.TextField(blank=True, help_text="Other relevant information about the project.")
+
+    samples = models.ManyToManyField("sample", blank=True, through="SampleByProject", related_name="projects")
 
     def clean(self):
         super().clean()
@@ -49,3 +52,9 @@ class Project(TrackedModel):
         # Normalize and validate before saving, always!
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
+
+    def __str__(self):
+        return '%d: %s' % (self.id, self.name)
+
+    def __repr__(self):
+        return '%d: %s' % (self.id, self.name)
