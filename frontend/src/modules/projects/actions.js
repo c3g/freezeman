@@ -9,6 +9,7 @@ export const GET                   = createNetworkActionTypes("PROJECTS.GET");
 export const ADD                   = createNetworkActionTypes("PROJECTS.ADD");
 export const UPDATE                = createNetworkActionTypes("PROJECTS.UPDATE");
 export const LIST                  = createNetworkActionTypes("PROJECTS.LIST");
+export const LIST_BY_SAMPLE        = createNetworkActionTypes("SAMPLES.LIST_BY_SAMPLE");
 export const LIST_TABLE            = createNetworkActionTypes("PROJECTS.LIST_TABLE");
 export const SET_SORT_BY           = "PROJECTS.SET_SORT_BY";
 export const SET_FILTER            = "PROJECTS.SET_FILTER";
@@ -48,6 +49,23 @@ export const list = (options) => async (dispatch, getState) => {
         { meta: params }
     ));
 };
+
+export const listBySample = ({offset = 0,  filters, sortBy, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+
+  //Prevents the default fetch without any filters
+  if (filters && !filters[PROJECT_FILTERS.samples__id.key]["value"])
+      return
+
+  const limit = getState().pagination.pageSize;
+  filters = serializeFilterParams(filters, PROJECT_FILTERS)
+  const ordering = serializeSortByParams(sortBy)
+  const options = { limit, ordering, ...filters}
+
+  return await dispatch(networkAction(LIST_BY_SAMPLE,
+      api.projects.list(options, abort),
+      { meta: { ...options, ignoreError: 'AbortError' } }
+  ));
+}
 
 export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const projects = getState().projects
@@ -104,6 +122,7 @@ export default {
     ADD,
     UPDATE,
     LIST,
+    LIST_BY_SAMPLE,
     LIST_TABLE,
     SET_SORT_BY,
     SET_FILTER,
@@ -119,6 +138,7 @@ export default {
     setFilterOption,
     clearFilters,
     list,
+    listBySample,
     listTable,
     summary,
     listTemplateActions,

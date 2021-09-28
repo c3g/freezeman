@@ -17,6 +17,8 @@ export const projects = (
     state = {
         itemsByID: {},
         items: [],
+        itemsBySample: [],
+        itemsBySampleByID: {},
         page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
@@ -83,6 +85,23 @@ export const projects = (
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case PROJECTS.LIST.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+
+        case PROJECTS.LIST_BY_SAMPLE.REQUEST:
+            return { ...state, isFetching: true, };
+        case PROJECTS.LIST_BY_SAMPLE.RECEIVE: {
+            const results = action.data.results.map(preprocess)
+            const itemsBySampleByID = indexByID(results);
+            const itemsBySample = action.data.results.map(r => r.id)
+            return {
+              ...state,
+              itemsBySample,
+              itemsBySampleByID,
+              isFetching: false,
+              error: undefined
+            };
+        }
+        case PROJECTS.LIST_BY_SAMPLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         case PROJECTS.LIST_TABLE.REQUEST:

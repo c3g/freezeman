@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -8,13 +8,12 @@ import PaginatedTable from "../PaginatedTable";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
+import {listBySample, setFilterOption} from "../../modules/projects/actions";
 import setDefaultFilter from "../../utils/setDefaultFilter";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = () => [
     {
@@ -61,15 +60,12 @@ const getTableColumns = () => [
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   page: state.projects.page,
-  projects: state.projects.items,
-  projectsByID: state.projects.itemsByID,
-  totalCount: state.projects.totalCount,
+  projects: state.projects.itemsBySample,
+  projectsByID: state.projects.itemsBySampleByID,
   isFetching: state.projects.isFetching,
-  filters: state.projects.filters,
-  sortBy: state.projects.sortBy,
 });
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
+const actionCreators = {listBySample};
 
 const SamplesAssociatedProjects = ({
   token,
@@ -78,24 +74,51 @@ const SamplesAssociatedProjects = ({
   projectsByID,
   isFetching,
   page,
-  filters,
-  totalCount,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
+  listBySample,
 }) => {
 
+  const initialFilter = {
+    samples__id: {
+      value: sampleID
+    }
+  };
+
+  const initialSorter = {
+    key: undefined,
+    order: undefined
+  };
+
+  //Local filters and sorters
+  const [filters, setFilters] = useState(initialFilter);
+  const [sortBy, setSortBy] = useState(initialSorter);
+
   useEffect(() => {
+    setFilters(initialFilter);
+    listBySample({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
-      clearFilters()
     }
-  }, [])
+  }, [sampleID])
 
-  setDefaultFilter(PROJECT_FILTERS.samples__id.key, sampleID, setFilter, filters, clearFilters)
+  useEffect(() => {
+    listBySample({filters, sortBy});
+    // returned function will be called on component unmount
+    return () => {
+    }
+  }, [filters, sortBy])
+
+  const setFilter = (name, value) => {
+    setFilters({...filters,  [name] : {"value" : value }})
+  }
+
+  const clearFilters = () => {
+    setFilters({...initialFilter});
+  }
+
+  const setSorter = (key, order) => {
+    setSortBy({key: key, order: order })
+  }
+
   let {samples, ...filtersForWarning} = filters
 
   const columns = getTableColumns()
@@ -109,6 +132,10 @@ const SamplesAssociatedProjects = ({
 
   const nFilters = getNFilters(filters)
   const nFiltersForWarning = nFilters - 1
+  const totalCount = projects.length
+
+   //So user does not see a previously fetched list
+   const projectsBySample = isFetching ? {} : projectsByID
 
   return <>
     <PageContent>
@@ -129,15 +156,15 @@ const SamplesAssociatedProjects = ({
       <PaginatedTable
         columns={columns}
         items={projects}
-        itemsByID={projectsByID}
+        itemsByID={projectsBySample}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={listBySample}
+        onChangeSort={setSorter}
       />
     </PageContent>
   </>;
