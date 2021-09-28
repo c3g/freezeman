@@ -45,7 +45,7 @@ const ProjectsDetailedContent = ({projects, projectsByID, isFetching, get}) => {
                 <Descriptions.Item label="Requestor Name" span={2}>{project.requestor_name}</Descriptions.Item>
                 <Descriptions.Item label="Requestor Email" span={2}>{project.requestor_email}</Descriptions.Item>
                 <Descriptions.Item label="Targeted End Date" span={2}>{project.targeted_end_date}</Descriptions.Item>
-                <Descriptions.Item label="Comments" span={4}>{project.comments}</Descriptions.Item>
+                <Descriptions.Item label="Comment" span={4}>{project.comment}</Descriptions.Item>
             </Descriptions>
             <TrackingFieldsContent entity={project}/>
         </PageContent>

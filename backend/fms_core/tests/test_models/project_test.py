@@ -16,7 +16,7 @@ class ProjectTest(TestCase):
         self.requestor_email = "sballesteros@mcgill.ca"
         self.status = "Open"
         self.targeted_end_date = "2022-08-12"
-        self.comments = "This is a test comment"
+        self.comment = "This is a test comment"
 
         #for duplicate test
         self.duplicate_name = "TestDuplicateProject"
@@ -29,13 +29,13 @@ class ProjectTest(TestCase):
                                             requestor_email=self.requestor_email,
                                             status=self.status,
                                             targeted_end_date=self.targeted_end_date,
-                                            comments=self.comments)
+                                            comment=self.comment)
         self.assertEqual(my_project.name, self.name)
         self.assertEqual(my_project.principal_investigator, self.principal_investigator)
         self.assertEqual(my_project.requestor_name, self.requestor_name)
         self.assertEqual(my_project.requestor_email, self.requestor_email)
         self.assertEqual(my_project.status, self.status)
-        self.assertEqual(my_project.comments, self.comments)
+        self.assertEqual(my_project.comment, self.comment)
         self.assertEqual(my_project.targeted_end_date, datetime.strptime(self.targeted_end_date, "%Y-%m-%d").date())
 
     def test_missing_name(self):

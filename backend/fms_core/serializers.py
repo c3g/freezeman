@@ -281,5 +281,5 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment" )
 
