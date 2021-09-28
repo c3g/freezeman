@@ -7,10 +7,13 @@ def get_container(barcode=None):
     errors = []
     warnings = []
 
-    try:
-        container = Container.objects.get(barcode=barcode)
-    except Container.DoesNotExist:
-        errors.append(f"Could not find Container with barcode {barcode}")
+    if barcode:
+        try:
+            container = Container.objects.get(barcode=barcode)
+        except Container.DoesNotExist:
+            errors.append(f"Could not find Container with barcode {barcode}")
+    else:
+        errors.append("Container barcode value is empty")
 
     return (container, errors, warnings)
 

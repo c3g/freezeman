@@ -72,7 +72,7 @@ class GenericImporter():
         try:
             pd_sheet = pd.read_excel(self.file, sheet_name=sheet_name)
             # Convert blank and NaN cells to None and Store it in self.sheets
-            dataframe = pd_sheet.applymap(lambda x: blank_and_nan_to_none(x))
+            dataframe = pd_sheet.applymap(blank_and_nan_to_none)
             return SheetData(name=sheet_name, dataframe=dataframe, header_row_nb=header_row_nb)
 
         except Exception as e:
