@@ -285,4 +285,4 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments", "samples")
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment", "samples")

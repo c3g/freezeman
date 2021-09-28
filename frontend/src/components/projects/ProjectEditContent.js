@@ -118,7 +118,7 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
           </Form.Item>
-          <Form.Item label="Comments" {...props("comments")}>
+          <Form.Item label="Comment" {...props("comment")}>
             <TextArea />
           </Form.Item>
           {formErrors?.non_field_errors &&
