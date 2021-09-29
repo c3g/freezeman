@@ -16,6 +16,7 @@ from .models import (
     Sample,
     SampleKind,
     Project,
+    SampleByProject,
 )
 
 
@@ -169,15 +170,15 @@ class PropertyValueSerializer(serializers.ModelSerializer):
       fields = "__all__"
       extra_fields = ('property_name')
 
-
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
         fields = "__all__"
-        extra_fields = ('extracted_from')
+        extra_fields = ('extracted_from', 'projects')
 
     def get_extracted_from(self, obj):
         if obj.extracted_from is None:
@@ -202,6 +203,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
@@ -209,8 +211,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
                   'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
                   'current_volume', 'concentration', 'collection_site', 'tissue_source', 'creation_date', 'phenotype',
-                  'depleted', 'coordinates',
-                  'comment')
+                  'depleted', 'coordinates', 'projects', 'comment' )
 
     def get_location_barcode(self, obj):
         if obj.container.location is None:
@@ -274,12 +275,14 @@ class GroupSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ProjectSerializer(serializers.ModelSerializer):
+    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
         fields = "__all__"
+        extra_fields = ('samples')
 
 class ProjectExportSerializer(serializers.ModelSerializer):
+    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comments" )
-
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment", "samples")

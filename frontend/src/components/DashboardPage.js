@@ -83,6 +83,9 @@ const DashboardPage = ({
                   <Button icon={actionIcon('Add')} style={{width: "100%"}}>Add One Project</Button>
                 </Link>
               </Col>
+              {actionsToButtonList("/projects", templates.project, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
             </Row>
           </Card>
         </Col>
@@ -149,6 +152,7 @@ const mapStateToProps = state => ({
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
     processMeasurement: state.processMeasurementTemplateActions,
+    project: state.projectTemplateActions,
   },
 });
 
@@ -157,6 +161,7 @@ const mapDispatchToProps = dispatch => ({
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
     process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
+    project: () => dispatch(PROJECTS.listTemplateActions()),
   }
 });
 

@@ -1,7 +1,7 @@
 import reversion
 from decimal import Decimal
 import datetime
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from pathlib import Path
@@ -9,7 +9,7 @@ from reversion.models import Version
 from tablib import Dataset
 
 from django.contrib.contenttypes.models import ContentType
-from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyType, PropertyValue
+from ..models import Container, Sample, ExtractedSample, Individual, ProcessMeasurement, SampleLineage, Process, ExperimentRun, PropertyType, PropertyValue, Project, SampleByProject
 from ..resources import (
     ContainerResource,
     ExtractionResource,
@@ -19,6 +19,7 @@ from ..resources import (
     ContainerRenameResource,
     SampleResource,
     SampleUpdateResource,
+    ProjectLinkSampleResource,
 )
 # noinspection PyProtectedMember
 from ..resources._utils import skip_rows
@@ -48,8 +49,10 @@ CONTAINER_MOVE_CSV = APP_DATA_ROOT / "Container_move_v3_2_0_B_A_1.csv"
 CONTAINER_RENAME_CSV = APP_DATA_ROOT / "Container_rename_v3_2_0_B_A_1.csv"
 SAMPLE_EXTRACTION_CSV = APP_DATA_ROOT / "Sample_extraction_v3_3_0_B_A_1.csv"
 SAMPLE_TRANSFER_CSV = APP_DATA_ROOT / "Sample_transfer_v3_2_0_B_A_1.csv"
-SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_2_0_B_A_2.csv"
+SAMPLE_SUBMISSION_CSV = APP_DATA_ROOT / "Sample_submission_v3_4_0_B_A_1.csv"
 SAMPLE_UPDATE_CSV = APP_DATA_ROOT / "Sample_update_v3_2_0_B_A_1.csv"
+PROJECT_LINK_SAMPLES_CSV = APP_DATA_ROOT / "Project_link_samples_v3_4_0_B_A_1.csv"
+PROJECT_UNLINK_SAMPLES_CSV = APP_DATA_ROOT / "Project_link_samples_v3_4_0_B_B_1.csv"
 EXPERIMENT_INFINIUM_CSV = APP_DATA_ROOT / "Experiment_Infinium_24_v3_4_0_B_A_1.csv"
 
 
@@ -65,6 +68,11 @@ class ResourcesTestCase(TestCase):
         self.ur = SampleUpdateResource()
         self.mr = ContainerMoveResource()
         self.rr = ContainerRenameResource()
+        self.pr = ProjectLinkSampleResource()
+
+    def create_projects(self):
+        self.project1, _ = Project.objects.get_or_create(name="TestProject1")
+        self.project2, _ = Project.objects.get_or_create(name="TestProject2")
 
     def load_containers(self):
         with reversion.create_revision(), open(CONTAINER_CREATION_CSV) as cf:
@@ -75,6 +83,7 @@ class ResourcesTestCase(TestCase):
 
     def load_samples(self):
         self.load_containers()
+        self.create_projects()
 
         with reversion.create_revision(), open(SAMPLE_SUBMISSION_CSV) as sf:
             s = Dataset().load(sf.read())
@@ -101,6 +110,13 @@ class ResourcesTestCase(TestCase):
             self.err.import_data(e, raise_errors=True)
             reversion.set_comment("Loaded Experiment Run Infinium")
 
+    def link_projects_to_samples(self):
+        with reversion.create_revision(), open(PROJECT_LINK_SAMPLES_CSV) as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
+
+            reversion.set_comment("Linked projects with samples")
+
     def load_samples_extractions(self):
         self.load_samples()
         self.load_containers()
@@ -113,6 +129,7 @@ class ResourcesTestCase(TestCase):
 
     def load_samples_experiments_infinium(self):
         self.load_samples()
+        self.link_projects_to_samples()
         self.load_experiments_infinium()
 
     def test_skip_rows(self):
@@ -150,7 +167,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_bad_location.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_4_0_bad_location.csv") as sf:
             s = Dataset().load(sf.read())
             self.sr.import_data(s, raise_errors=True)
 
@@ -158,7 +175,7 @@ class ResourcesTestCase(TestCase):
         self.load_containers()
 
         # noinspection PyTypeChecker
-        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_2_0_dna_no_conc.csv") as sf:
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Sample_submission_v3_4_0_dna_no_conc.csv") as sf:
             s = Dataset().load(sf.read())
             try:
                 self.sr.import_data(s, raise_errors=True)
@@ -167,6 +184,49 @@ class ResourcesTestCase(TestCase):
                     e.message_dict,
                     {'concentration': ['Concentration must be specified if the sample_kind is DNA']})
                 raise e
+
+    def test_link_projects_to_samples_import(self):
+        self.load_samples()
+        self.link_projects_to_samples()
+        sample1 = Sample.objects.get(name="sample1", container__barcode="tube001")
+        sample2 = Sample.objects.get(name="sample2", container__barcode="tube002")
+
+        # Test basic import success
+        self.assertEqual(len(SampleByProject.objects.all()), 11)
+
+        # Test parent record auto-generation
+        self.assertTrue(SampleByProject.objects.filter(sample=sample1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample1, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())
+
+    def unlink_projects_to_samples(self):
+        self.link_projects_to_samples()
+        with reversion.create_revision(), open(PROJECT_UNLINK_SAMPLES_CSV) as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
+
+            reversion.set_comment("Unlinked projects with samples")
+
+    def test_unlink_projects_to_samples_import(self):
+        self.load_samples()
+        self.unlink_projects_to_samples()
+        sample1 = Sample.objects.get(name="sample1", container__barcode="tube001")
+        sample2 = Sample.objects.get(name="sample2", container__barcode="tube002")
+
+        # Test basic import success
+        self.assertEqual(len(SampleByProject.objects.all()), 10)
+
+        # Test parent record auto-generation
+        self.assertFalse(SampleByProject.objects.filter(sample=sample1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample1, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=sample2, project=self.project2).exists())
+
+    def test_invalid_link_project_sample(self):
+        self.load_samples()
+
+        with self.assertRaises(ValidationError), open(TEST_DATA_ROOT / "Project_link_samples_invalid_project_and_sample.csv") as sf:
+            s = Dataset().load(sf.read())
+            self.pr.import_data(s, raise_errors=True)
 
     def test_sample_extraction_import(self):
         self.load_samples_extractions()
@@ -229,6 +289,22 @@ class ResourcesTestCase(TestCase):
         ps2 = ProcessMeasurement.objects.get(source_sample_id=s2.extracted_from.id, lineage=sl2)
         self.assertEqual(ps1.process.id, ps2.process.id)
 
+    def test_sample_extractions_project_heritage(self):
+        self.load_samples()
+        self.load_containers()
+        self.link_projects_to_samples()
+        self.load_extractions()
+        s1 = Sample.objects.get(container__barcode="tube003")
+        s2 = Sample.objects.get(container__barcode="tube004")
+        s3 = Sample.objects.get(container__barcode="plate002", coordinates="C04")
+
+        self.assertTrue(SampleByProject.objects.filter(sample=s1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s1, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s2, project=self.project2).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=s2, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s3, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s3, project=self.project2).exists())
+
     def test_sample_transfer_to_new_container_import(self):
         self.load_samples_transfers()
         s = Sample.objects.get(container__barcode="newtubefortransfer")
@@ -256,6 +332,19 @@ class ResourcesTestCase(TestCase):
         s2 = Sample.objects.get(container__barcode="plate001", coordinates="B01")
         ps2 = ProcessMeasurement.objects.get(source_sample_id=s2.transferred_from.id)
         self.assertEqual(ps1.process.id, ps2.process.id)
+
+    def test_sample_transfers_project_heritage(self):
+        self.load_samples()
+        self.load_containers()
+        self.link_projects_to_samples()
+        self.load_transfers()
+        s1 = Sample.objects.get(container__barcode="newtubefortransfer")
+        s2 = Sample.objects.get(container__barcode="plate001", coordinates="B01")
+
+        self.assertTrue(SampleByProject.objects.filter(sample=s1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s1, project=self.project2).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=s2, project=self.project2).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=s2, project=self.project1).exists())
 
     def test_experiment_run_infinium_import(self):
         self.load_samples_experiments_infinium()
@@ -378,6 +467,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se1.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se1.volume, Decimal("0")) # Samples used in an experiment have volume set to 0
         self.assertEqual(se1.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        self.assertTrue(SampleByProject.objects.filter(sample=se1, project=self.project1).exists())
         # Tests related to second sample
         ss2 = Sample.objects.get(container__barcode="Infinium001", coordinates="A05")
         pm2 = ProcessMeasurement.objects.get(process=p1, source_sample=ss2)
@@ -390,6 +480,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se2.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se2.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se2.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        self.assertTrue(SampleByProject.objects.filter(sample=se2, project=self.project1).exists())
         # Tests related to third sample
         ss3 = Sample.objects.get(container__barcode="Infinium001", coordinates="C10")
         pm3 = ProcessMeasurement.objects.get(process=p1, source_sample=ss3)
@@ -402,6 +493,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se3.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se3.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se3.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        self.assertTrue(SampleByProject.objects.filter(sample=se3, project=self.project1).exists())
         # Tests related to fourth sample
         ss4 = Sample.objects.get(container__barcode="Infinium001", coordinates="D01")
         pm4 = ProcessMeasurement.objects.get(process=p1, source_sample=ss4)
@@ -414,6 +506,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se4.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se4.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se4.container, c1) # Child Sample is in the experimental container XPBARCODE1
+        self.assertTrue(SampleByProject.objects.filter(sample=se4, project=self.project1).exists())
 
         # Test second experiment run
         er2 = ExperimentRun.objects.get(container__barcode="XPBARCODE2")
@@ -438,6 +531,8 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se6.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se6.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se6.container, c2) # Child Sample is in the experimental container XPBARCODE2
+        self.assertFalse(SampleByProject.objects.filter(sample=se6, project=self.project1).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=se6, project=self.project2).exists())
 
 
         # Test third experiment run
@@ -463,6 +558,8 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se7.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se7.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se7.container, c3) # Child Sample is in the experimental container XPBARCODE3
+        self.assertTrue(SampleByProject.objects.filter(sample=se7, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=se7, project=self.project2).exists())
 
         # Test fourth experiment run
         er4 = ExperimentRun.objects.get(container__barcode="XPBARCODE4")
@@ -496,6 +593,7 @@ class ResourcesTestCase(TestCase):
         self.assertTrue(se9.is_depleted) # Samples used in an experiment run are depleted by default
         self.assertEqual(se9.volume, Decimal("0")) # Samples used in an experiment have volume set to 0  
         self.assertEqual(se9.container, c4) # Child Sample is in the experimental container XPBARCODE4
+        self.assertTrue(SampleByProject.objects.filter(sample=se9, project=self.project2).exists())
 
 
     def test_sample_update(self):
@@ -593,5 +691,5 @@ class ResourcesTestCase(TestCase):
             with open(TEST_DATA_ROOT / f) as rf:
                 self.load_samples()  # Load containers + samples
                 self._test_invalid_rename_template(rf, err)
-
+                
             transaction.savepoint_rollback(s)

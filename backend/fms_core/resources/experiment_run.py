@@ -19,7 +19,8 @@ from ..models import (
     PropertyType,
     PropertyValue,
     Sample,
-    SampleLineage
+    SampleLineage,
+    SampleByProject
 )
 from ._generic import GenericResource
 
@@ -314,6 +315,10 @@ class ExperimentRunResource(GenericResource):
                     experiment_run_sample.volume = 0  # prevents this sample from being re-used or re-transferred afterwards
                     experiment_run_sample.depleted = True
                     experiment_run_sample.save()
+
+                    #Automatic project inheritance
+                    for project in source_sample.projects.all():
+                        SampleByProject.objects.create(project=project, sample=experiment_run_sample)
 
                     # There exists a sample for that experiment_id
                     if data_experiment_id in self.temporary_experiment_ids_without_samples: 

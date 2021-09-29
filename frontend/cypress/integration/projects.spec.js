@@ -33,7 +33,7 @@ export const projectsTests = () => {
         cy.get('#principal_investigator').type(principalInvestigator)
         cy.get('#requestor_name').type(requestorName)
         cy.get('#requestor_email').type(requestorEmail)
-        cy.get('#comments').type("This is a test comment.")
+        cy.get('#comment').type("This is a test comment.")
         cy.get('.ant-btn').click()
       })
 
