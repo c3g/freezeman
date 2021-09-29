@@ -18,7 +18,6 @@ export const projects = (
         itemsByID: {},
         items: [],
         itemsBySample: [],
-        itemsBySampleByID: {},
         page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
@@ -91,12 +90,12 @@ export const projects = (
             return { ...state, isFetching: true, };
         case PROJECTS.LIST_BY_SAMPLE.RECEIVE: {
             const results = action.data.results.map(preprocess)
-            const itemsBySampleByID = indexByID(results);
+            const itemsByID = merge(state.itemsByID, [], indexByID(results));
             const itemsBySample = action.data.results.map(r => r.id)
             return {
               ...state,
               itemsBySample,
-              itemsBySampleByID,
+              itemsByID,
               isFetching: false,
               error: undefined
             };

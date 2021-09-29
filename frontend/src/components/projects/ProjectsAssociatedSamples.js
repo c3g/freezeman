@@ -74,7 +74,7 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
   page: state.samples.page,
   samples: state.samples.itemsByProject,
-  samplesByID: state.samples.itemsByProjectByID,
+  samplesByID: state.samples.itemsByID,
   individualsByID: state.individuals.itemsByID,
   isFetching: state.samples.isFetching,
 });
@@ -93,8 +93,10 @@ const ProjectsAssociatedSamples = ({
   listByProject,
 }) => {
 
+  const filterKey = SAMPLE_FILTERS.projects__id.key
+
   const initialFilter = {
-    projects__id: {
+    [filterKey]: {
       value: projectID
     }
   };
@@ -150,8 +152,6 @@ const ProjectsAssociatedSamples = ({
   const nFiltersForWarning = nFilters - 1
   const totalCount = samples.length
 
-  //So user does not see a previously fetched list
-  const samplesByProject = isFetching ? {} : samplesByID
 
   return <>
     <PageContent>
@@ -172,7 +172,7 @@ const ProjectsAssociatedSamples = ({
       <PaginatedTable
         columns={columns}
         items={samples}
-        itemsByID={samplesByProject}
+        itemsByID={samplesByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}

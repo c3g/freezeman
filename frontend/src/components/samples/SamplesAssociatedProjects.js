@@ -9,7 +9,6 @@ import PaginatedTable from "../PaginatedTable";
 import api, {withToken}  from "../../utils/api"
 
 import {listBySample, setFilterOption} from "../../modules/projects/actions";
-import setDefaultFilter from "../../utils/setDefaultFilter";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -61,7 +60,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   page: state.projects.page,
   projects: state.projects.itemsBySample,
-  projectsByID: state.projects.itemsBySampleByID,
+  projectsByID: state.projects.itemsByID,
   isFetching: state.projects.isFetching,
 });
 
@@ -77,8 +76,10 @@ const SamplesAssociatedProjects = ({
   listBySample,
 }) => {
 
+  const filterKey = PROJECT_FILTERS.samples__id.key
+
   const initialFilter = {
-    samples__id: {
+    [filterKey] : {
       value: sampleID
     }
   };
@@ -134,9 +135,6 @@ const SamplesAssociatedProjects = ({
   const nFiltersForWarning = nFilters - 1
   const totalCount = projects.length
 
-   //So user does not see a previously fetched list
-   const projectsBySample = isFetching ? {} : projectsByID
-
   return <>
     <PageContent>
       <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
@@ -156,7 +154,7 @@ const SamplesAssociatedProjects = ({
       <PaginatedTable
         columns={columns}
         items={projects}
-        itemsByID={projectsBySample}
+        itemsByID={projectsByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
