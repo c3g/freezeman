@@ -50,7 +50,7 @@ export const samples = (
     state = {
         itemsByID: {},
         items: [],
-        temporaryItems: [],
+        filteredItems: [],
         page: { offset: 0 },
         totalCount: 0,
         isFetching: false,
@@ -115,11 +115,22 @@ export const samples = (
         case SAMPLES.LIST.RECEIVE: {
             /* samples[].container stored in ../containers/reducers.js */
             const results = action.data.results.map(preprocess)
-            const temporaryItems = action.data.results.map(r => r.id)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, temporaryItems, isFetching: false, error: undefined };
+            return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case SAMPLES.LIST.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+
+        case SAMPLES.LIST_FILTER.REQUEST:
+            return { ...state, isFetching: true, };
+        case SAMPLES.LIST_FILTER.RECEIVE: {
+            /* samples[].container stored in ../containers/reducers.js */
+            const results = action.data.results.map(preprocess)
+            const filteredItems = action.data.results.map(r => r.id)
+            const itemsByID = merge(state.itemsByID, [], indexByID(results));
+            return { ...state, itemsByID, filteredItems, isFetching: false, error: undefined };
+        }
+        case SAMPLES.LIST_FILTER.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         case SAMPLES.LIST_TABLE.REQUEST:

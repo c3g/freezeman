@@ -19,7 +19,7 @@ const FilteredList = ({
   items,
   isFetching,
   page,
-  list,
+  listFilter,
   filters,
   setFilters,
   sortBy,
@@ -41,14 +41,14 @@ const FilteredList = ({
   useEffect(() => {
     setFilters(initialFilter);
     setSortBy(initialSorter);
-    list({filters, sortBy});
+    listFilter({filters, sortBy, filterKey});
     // returned function will be called on component unmount
     return () => {
     }
   }, [filterID])
 
   useEffect(() => {
-    list({filters, sortBy});
+    listFilter({filters, sortBy, filterKey});
     // returned function will be called on component unmount
     return () => {
     }
@@ -110,7 +110,7 @@ const FilteredList = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={list}
+        onLoad={listFilter}
         onChangeSort={setSorter}
       />
     </PageContent>

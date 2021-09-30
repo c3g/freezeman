@@ -7,7 +7,7 @@ import FilteredList from "../FilteredList";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, setFilterOption} from "../../modules/projects/actions";
+import {listFilter, setFilterOption} from "../../modules/projects/actions";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -58,12 +58,12 @@ const getTableColumns = () => [
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   page: state.projects.page,
-  projects: state.projects.temporaryItems,
+  projects: state.projects.filteredItems,
   projectsByID: state.projects.itemsByID,
   isFetching: state.projects.isFetching,
 });
 
-const actionCreators = {list};
+const actionCreators = {listFilter};
 
 const SamplesAssociatedProjects = ({
   token,
@@ -72,7 +72,7 @@ const SamplesAssociatedProjects = ({
   projectsByID,
   isFetching,
   page,
-  list,
+  listFilter,
 }) => {
 
   const filterKey = PROJECT_FILTERS.samples__id.key
@@ -87,7 +87,7 @@ const SamplesAssociatedProjects = ({
     <FilteredList
       description = {PROJECT_FILTERS}
       columns={columns}
-      list={list}
+      listFilter={listFilter}
       items={projects}
       itemsByID={projectsByID}
       filterID={sampleID}

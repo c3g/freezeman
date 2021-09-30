@@ -3,13 +3,11 @@ import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
 
-import PageContent from "../PageContent";
-import PaginatedTable from "../PaginatedTable";
 import FilteredList from "../FilteredList";
 
 import api, {withToken}  from "../../utils/api"
 
-import {list, setFilterOption} from "../../modules/samples/actions";
+import {listFilter, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import {withIndividual} from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
@@ -73,12 +71,12 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
   page: state.samples.page,
   samplesByID: state.samples.itemsByID,
-  samples: state.samples.temporaryItems,
+  samples: state.samples.filteredItems,
   individualsByID: state.individuals.itemsByID,
   isFetching: state.samples.isFetching,
 });
 
-const actionCreators = {list};
+const actionCreators = {listFilter};
 
 const ProjectsAssociatedSamples = ({
   token,
@@ -89,7 +87,7 @@ const ProjectsAssociatedSamples = ({
   sampleKinds,
   isFetching,
   page,
-  list,
+  listFilter,
 }) => {
 
   const filterKey = SAMPLE_FILTERS.projects__id.key
@@ -102,13 +100,13 @@ const ProjectsAssociatedSamples = ({
 
   return <>
     <FilteredList
-      description = {SAMPLE_FILTERS}
+      description={SAMPLE_FILTERS}
       columns={columns}
-      list={list}
+      listFilter={listFilter}
       items={samples}
       itemsByID={samplesByID}
       filterID={projectID}
-      filterKey={filterKey}s
+      filterKey={filterKey}
       rowKey="id"
       isFetching={isFetching}
       page={page}
