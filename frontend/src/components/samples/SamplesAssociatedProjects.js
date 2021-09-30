@@ -3,8 +3,7 @@ import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
 
-import PageContent from "../PageContent";
-import PaginatedTable from "../PaginatedTable";
+import FilteredList from "../FilteredList";
 
 import api, {withToken}  from "../../utils/api"
 
@@ -78,97 +77,29 @@ const SamplesAssociatedProjects = ({
 
   const filterKey = PROJECT_FILTERS.samples__id.key
 
-  const initialFilter = {
-    [filterKey] : {
-      value: sampleID
-    }
-  };
-
-  const initialSorter = {
-    key: undefined,
-    order: undefined
-  };
-
   //Local filters and sorters
-  const [filters, setFilters] = useState(initialFilter);
-  const [sortBy, setSortBy] = useState(initialSorter);
+  const [filters, setFilters] = useState({});
+  const [sortBy, setSortBy] = useState({});
 
-  useEffect(() => {
-    setFilters(initialFilter);
-    setSortBy(initialSorter);
-    list({filters, sortBy});
-    // returned function will be called on component unmount
-    return () => {
-    }
-  }, [sampleID])
-
-  useEffect(() => {
-    list({filters, sortBy});
-    // returned function will be called on component unmount
-    return () => {
-    }
-  }, [filters, sortBy])
-
-  const setFilter = (name, value) => {
-    setFilters({...filters,  [name] : {"value" : value }})
-  }
-
-  const clearFilters = () => {
-    setFilters({...initialFilter});
-  }
-
-  const setSorter = (key, order) => {
-    setSortBy({key: key, order: order })
-  }
-
-  let {samples, ...filtersForWarning} = filters
-
-  const columns = getTableColumns()
-  .map(c => Object.assign(c, getFilterProps(
-    c,
-    PROJECT_FILTERS,
-    filters,
-    setFilter,
-    setFilterOption,
-  )))
-
-  const nFilters = getNFilters(filters)
-  const nFiltersForWarning = nFilters - 1
-  const totalCount = projects ? projects.length : 0;
-
-  //Avoid user seeing the previous list
-  const projectsBySample = isFetching ? {} : projectsByID;
+  const columns = getTableColumns();
 
   return <>
-    <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
-        <FiltersWarning
-          nFilters={nFiltersForWarning}
-          filters={filtersForWarning}
-          description={PROJECT_FILTERS}
-        />
-        <Button
-          style={{ margin: 6 }}
-          disabled={nFiltersForWarning === 0}
-          onClick={clearFilters}
-        >
-          Clear Filters
-        </Button>
-      </div>
-      <PaginatedTable
-        columns={columns}
-        items={projects}
-        itemsByID={projectsBySample}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={list}
-        onChangeSort={setSorter}
-      />
-    </PageContent>
+    <FilteredList
+      description = {PROJECT_FILTERS}
+      columns={columns}
+      list={list}
+      items={projects}
+      itemsByID={projectsByID}
+      filterID={sampleID}
+      filterKey={filterKey}
+      rowKey="id"
+      isFetching={isFetching}
+      page={page}
+      filters={filters}
+      setFilters={setFilters}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+    />
   </>;
 }
 
