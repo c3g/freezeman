@@ -10,7 +10,6 @@ export const ADD                   = createNetworkActionTypes("SAMPLES.ADD");
 export const UPDATE                = createNetworkActionTypes("SAMPLES.UPDATE");
 export const LIST                  = createNetworkActionTypes("SAMPLES.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("SAMPLES.LIST_TABLE");
-export const LIST_BY_PROJECT       = createNetworkActionTypes("SAMPLES.LIST_BY_PROJECT");
 export const SET_SORT_BY           = "SAMPLES.SET_SORT_BY";
 export const SET_FILTER            = "SAMPLES.SET_FILTER";
 export const SET_FILTER_OPTION     = "SAMPLES.SET_FILTER_OPTION"
@@ -45,29 +44,26 @@ export const update = (id, sample) => async (dispatch, getState) => {
 };
 
 export const list = (options) => async (dispatch, getState) => {
-    const params = { limit: 100000, ...options }
+    //Prevents the default fetch without any filters
+    if (options.filters && !options.filters[SAMPLE_FILTERS.projects__id.key]["value"])
+        return;
+
+    const limit = getState().pagination.pageSize;
+    const filters = options.filters ? serializeFilterParams(options.filters, SAMPLE_FILTERS) : {}
+    const ordering = options.sortBy ? serializeSortByParams(options.sortBy) : {}
+
+    //Build the query
+    if (options.filters)
+      options = {...filters, ordering}
+    else
+      options = {...options}
+
+    const params = { limit: limit, ...options }
     return await dispatch(networkAction(LIST,
         api.samples.list(params),
         { meta: params }
     ));
 };
-
-export const listByProject = ({offset = 0,  filters, sortBy, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-
-  //Prevents the default fetch without any filters
-  if (filters && !filters[SAMPLE_FILTERS.projects__id.key]["value"])
-      return
-
-  const limit = getState().pagination.pageSize;
-  filters = serializeFilterParams(filters, SAMPLE_FILTERS)
-  const ordering = serializeSortByParams(sortBy)
-  const options = { limit, ordering, ...filters}
-
-  return await dispatch(networkAction(LIST_BY_PROJECT,
-      api.samples.list(options, abort),
-      { meta: { ...options, ignoreError: 'AbortError' } }
-  ));
-}
 
 export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
     const samples = getState().samples
@@ -147,7 +143,6 @@ export default {
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     LIST,
-    LIST_BY_PROJECT,
     LIST_TABLE,
     SUMMARY,
     LIST_VERSIONS,
@@ -161,7 +156,6 @@ export default {
     setFilterOption,
     clearFilters,
     list,
-    listByProject,
     listTable,
     listVersions,
     listKinds,

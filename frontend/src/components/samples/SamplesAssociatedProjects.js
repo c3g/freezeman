@@ -8,7 +8,7 @@ import PaginatedTable from "../PaginatedTable";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listBySample, setFilterOption} from "../../modules/projects/actions";
+import {list, setFilterOption} from "../../modules/projects/actions";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -59,12 +59,12 @@ const getTableColumns = () => [
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   page: state.projects.page,
-  projects: state.projects.itemsBySample,
+  projects: state.projects.temporaryItems,
   projectsByID: state.projects.itemsByID,
   isFetching: state.projects.isFetching,
 });
 
-const actionCreators = {listBySample};
+const actionCreators = {list};
 
 const SamplesAssociatedProjects = ({
   token,
@@ -73,7 +73,7 @@ const SamplesAssociatedProjects = ({
   projectsByID,
   isFetching,
   page,
-  listBySample,
+  list,
 }) => {
 
   const filterKey = PROJECT_FILTERS.samples__id.key
@@ -95,14 +95,15 @@ const SamplesAssociatedProjects = ({
 
   useEffect(() => {
     setFilters(initialFilter);
-    listBySample({filters, sortBy});
+    setSortBy(initialSorter);
+    list({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
   }, [sampleID])
 
   useEffect(() => {
-    listBySample({filters, sortBy});
+    list({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
@@ -133,7 +134,10 @@ const SamplesAssociatedProjects = ({
 
   const nFilters = getNFilters(filters)
   const nFiltersForWarning = nFilters - 1
-  const totalCount = projects.length
+  const totalCount = projects ? projects.length : 0;
+
+  //Avoid user seeing the previous list
+  const projectsBySample = isFetching ? {} : projectsByID;
 
   return <>
     <PageContent>
@@ -154,14 +158,14 @@ const SamplesAssociatedProjects = ({
       <PaginatedTable
         columns={columns}
         items={projects}
-        itemsByID={projectsByID}
+        itemsByID={projectsBySample}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listBySample}
+        onLoad={list}
         onChangeSort={setSorter}
       />
     </PageContent>

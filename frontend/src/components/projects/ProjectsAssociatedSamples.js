@@ -8,7 +8,7 @@ import PaginatedTable from "../PaginatedTable";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listByProject, setFilterOption, setSortBy} from "../../modules/samples/actions";
+import {list, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import {withIndividual} from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
@@ -73,24 +73,24 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   sampleKinds: state.sampleKinds,
   page: state.samples.page,
-  samples: state.samples.itemsByProject,
   samplesByID: state.samples.itemsByID,
+  samples: state.samples.temporaryItems,
   individualsByID: state.individuals.itemsByID,
   isFetching: state.samples.isFetching,
 });
 
-const actionCreators = {listByProject, setSortBy};
+const actionCreators = {list};
 
 const ProjectsAssociatedSamples = ({
   token,
   projectID,
-  samples,
   samplesByID,
+  samples,
   individualsByID,
   sampleKinds,
   isFetching,
   page,
-  listByProject,
+  list,
 }) => {
 
   const filterKey = SAMPLE_FILTERS.projects__id.key
@@ -112,14 +112,15 @@ const ProjectsAssociatedSamples = ({
 
   useEffect(() => {
     setFilters(initialFilter);
-    listByProject({filters, sortBy});
+    setSortBy(initialSorter);
+    list({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
   }, [projectID])
 
   useEffect(() => {
-    listByProject({filters, sortBy});
+    list({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
@@ -150,7 +151,10 @@ const ProjectsAssociatedSamples = ({
 
   const nFilters = getNFilters(filters)
   const nFiltersForWarning = nFilters - 1
-  const totalCount = samples.length
+  const totalCount = samples ? samples.length : 0;
+
+  //Avoid user seeing the previous list
+  const samplesByProject = isFetching ? {} : samplesByID;
 
 
   return <>
@@ -172,14 +176,14 @@ const ProjectsAssociatedSamples = ({
       <PaginatedTable
         columns={columns}
         items={samples}
-        itemsByID={samplesByID}
+        itemsByID={samplesByProject}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listByProject}
+        onLoad={list}
         onChangeSort={setSorter}
       />
     </PageContent>
