@@ -75,7 +75,7 @@ const FilteredList = ({
   const totalCount = items ? items.length : 0;
 
   //Avoid user seeing the previous list
-  const itemsFiltered = isFetching ? {} : itemsByID;
+  const itemsFiltered = isFetching ? [] : items;
 
   columns = columns.map(c => Object.assign(c, getFilterProps(
     c,
@@ -102,8 +102,8 @@ const FilteredList = ({
       </div>
       <PaginatedTable
         columns={columns}
-        items={items}
-        itemsByID={itemsFiltered}
+        items={itemsFiltered}
+        itemsByID={itemsByID}
         rowKey="id"
         loading={isFetching}
         totalCount={totalCount}
