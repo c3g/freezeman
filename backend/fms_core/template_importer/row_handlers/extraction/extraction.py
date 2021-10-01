@@ -31,7 +31,7 @@ class ExtractionRowHandler(GenericRowHandler):
         else:
             container_parent = None
 
-        destination_container, self.errors['container'], self.warnings['container'] = get_or_create_container(
+        destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
             barcode=destination_container_dict['barcode'],
             kind=destination_container_dict['kind'],
             name=destination_container_dict['name'],
