@@ -20,6 +20,7 @@ export const projects = (
         filteredItems: [],
         page: { offset: 0 },
         totalCount: 0,
+        filteredItemsCount: 0,
         isFetching: false,
         filters: {},
         sortBy: { key: undefined, order: undefined },
@@ -90,11 +91,19 @@ export const projects = (
         case PROJECTS.LIST_FILTER.REQUEST:
             return { ...state, isFetching: true, };
         case PROJECTS.LIST_FILTER.RECEIVE: {
-            /* samples[].container stored in ../containers/reducers.js */
+            const filteredItemsCount = action.data.count;
             const results = action.data.results.map(preprocess)
-            const filteredItems = action.data.results.map(r => r.id)
+            const newfilteredItems = action.data.results.map(r => r.id)
+            const filteredItems = mergeArray(state.filteredItems, action.meta.offset, newfilteredItems)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, filteredItems, isFetching: false, error: undefined };
+            return {
+              ...state,
+              itemsByID,
+              filteredItems,
+              filteredItemsCount,
+              isFetching: false,
+              error: undefined
+            };
         }
         case PROJECTS.LIST_FILTER.ERROR:
             return { ...state, isFetching: false, error: action.error, };

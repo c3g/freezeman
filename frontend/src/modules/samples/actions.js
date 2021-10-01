@@ -45,21 +45,7 @@ export const update = (id, sample) => async (dispatch, getState) => {
 };
 
 export const list = (options) => async (dispatch, getState) => {
-    //Prevents the default fetch without any filters
-    if (options.filters && !options.filters[SAMPLE_FILTERS.projects__id.key]["value"])
-        return;
-
-    const limit = getState().pagination.pageSize;
-    const filters = options.filters ? serializeFilterParams(options.filters, SAMPLE_FILTERS) : {}
-    const ordering = options.sortBy ? serializeSortByParams(options.sortBy) : {}
-
-    //Build the query
-    if (options.filters)
-      options = {...filters, ordering}
-    else
-      options = {...options}
-
-    const params = { limit: limit, ...options }
+    const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
         api.samples.list(params),
         { meta: params }
@@ -68,7 +54,7 @@ export const list = (options) => async (dispatch, getState) => {
 
 export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy, filterKey }) => async (dispatch, getState) => {
     //Prevents the default fetch without any filters
-    if (!filters[filterKey] || !filters[filterKey]["value"])
+    if (getState().samples.isFetching || !filters[filterKey] || !filters[filterKey]["value"])
         return;
 
     limit = getState().pagination.pageSize;

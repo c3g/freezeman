@@ -27,19 +27,11 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) =
     const {id} = useParams();
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};
-    let samples = []
-
-    if (isLoaded) {
-      project.samples && project.samples.forEach((id, i) => {
-        withSample(samplesByID, id, sample => sample.id);
-        samples[id] = (samplesByID[id]);
-      })
-    }
 
     if (!isLoaded)
         get(id);
 
-    const isLoading = !isLoaded || isFetching;
+    const isLoading = !isLoaded;
     const title =
         `Project ${project.name}`;
 

@@ -17,6 +17,7 @@ const FilteredList = ({
   filterKey,
   itemsByID,
   items,
+  totalCount,
   isFetching,
   page,
   listFilter,
@@ -72,7 +73,6 @@ const FilteredList = ({
 
   const nFilters = getNFilters(filters)
   const nFiltersForWarning = nFilters - 1
-  const totalCount = items ? items.length : 0;
 
   //Avoid user seeing the previous list
   const itemsFiltered = isFetching ? [] : items;
@@ -111,6 +111,7 @@ const FilteredList = ({
         filters={filters}
         sortBy={sortBy}
         onLoad={listFilter}
+        filterKey={filterKey}
         onChangeSort={setSorter}
       />
     </PageContent>

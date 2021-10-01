@@ -43,23 +43,9 @@ export const update = (id, project) => async (dispatch, getState) => {
 };
 
 export const list = (options) => async (dispatch, getState) => {
-    //Prevents the default fetch without any filters
-    if (options.filters && !options.filters[PROJECT_FILTERS.samples__id.key]["value"])
-        return;
-
-    const limit = getState().pagination.pageSize;
-    const filters = options.filters ? serializeFilterParams(options.filters, PROJECT_FILTERS) : {}
-    const ordering = options.sortBy ? serializeSortByParams(options.sortBy) : {}
-
-    //Build the query
-    if (options.filters)
-      options = {...filters, ordering}
-    else
-      options = {...options}
-
-    const params = { limit: limit, ...options }
+    const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.projects.list(params),
+        api.samples.list(params),
         { meta: params }
     ));
 };

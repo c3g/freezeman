@@ -72,6 +72,7 @@ const mapStateToProps = state => ({
   page: state.samples.page,
   samplesByID: state.samples.itemsByID,
   samples: state.samples.filteredItems,
+  totalCount: state.samples.filteredItemsCount,
   individualsByID: state.individuals.itemsByID,
   isFetching: state.samples.isFetching,
 });
@@ -83,6 +84,7 @@ const ProjectsAssociatedSamples = ({
   projectID,
   samplesByID,
   samples,
+  totalCount,
   individualsByID,
   sampleKinds,
   isFetching,
@@ -105,6 +107,7 @@ const ProjectsAssociatedSamples = ({
       listFilter={listFilter}
       items={samples}
       itemsByID={samplesByID}
+      totalCount={totalCount}
       filterID={projectID}
       filterKey={filterKey}
       rowKey="id"
