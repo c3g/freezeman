@@ -9,8 +9,9 @@ from rest_framework.response import Response
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from fms_core.models import Container, Sample
 
+from fms_core.template_importer.importers import ContainerCreationImporter
+
 from fms_core.resources import (
-    ContainerResource,
     ContainerMoveResource,
     ContainerRenameResource,
 )
@@ -49,7 +50,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Add Containers",
             "description": "Upload the provided template with up to 100 new containers.",
             "template": CONTAINER_CREATION_TEMPLATE,
-            "resource": ContainerResource,
+            "importer": ContainerCreationImporter,
         },
         {
             "name": "Move Containers",

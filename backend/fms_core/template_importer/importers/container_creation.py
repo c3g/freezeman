@@ -3,16 +3,11 @@ from fms_core.template_importer.row_handlers.container_creation import Container
 
 class ContainerCreationImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'ContainerCreation', 'header_row_nb': 6},
+        {'name': 'ContainerCreation', 'header_row_nb': 5},
     ]
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
-
-    def preload_data_from_template(self):
-        pass
 
     def import_template_inner(self):
         containers_sheet = self.sheets['ContainerCreation']
@@ -22,9 +17,10 @@ class ContainerCreationImporter(GenericImporter):
                 'kind': row_data['Container Kind'],
                 'name': row_data['Container Name'],
                 'barcode': row_data['Container Barcode'],
+                'coordinates': row_data['Parent Container Coordinates'],
             }
             parent_container = {
-                'barcode': row_data['Location Barcode'],
+                'barcode': row_data['Parent Container Barcode'],
             }
 
             container_kwargs = dict(
