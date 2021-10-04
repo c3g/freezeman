@@ -53,6 +53,6 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         """
         return Response({
             "total_count": Project.objects.count(),
-            "ongoing_count": Project.objects.filter(status='Ongoing').count(),
-            "completed_count": Project.objects.filter(status="Completed").count(),
+            "open_count": Project.objects.filter(status="Open").count(),
+            "closed_count": Project.objects.filter(status="Closed").count(),
         })
