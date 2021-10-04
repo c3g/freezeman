@@ -50,7 +50,7 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy, filterKey } = {}) => async (dispatch, getState) => {
+export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy, filterKey } = {}, abort) => async (dispatch, getState) => {
     //Prevents the default fetch without any filters
     if (!filters[filterKey] || !filters[filterKey]["value"])
         return;
@@ -61,7 +61,7 @@ export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filte
     const options = { limit, offset, ordering, ...filters}
 
     return await dispatch(networkAction(LIST_FILTER,
-        api.projects.list(options),
+        api.projects.list(options, abort),
         { meta: {...options} }
     ));
 };
