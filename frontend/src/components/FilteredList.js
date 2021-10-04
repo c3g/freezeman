@@ -39,17 +39,24 @@ const FilteredList = ({
     order: undefined
   };
 
+  const hasDefaultFilter = () => {
+      return (filters[filterKey] && filters[filterKey]["value"]) ?  true : false;
+  }
+
   useEffect(() => {
     setFilters(initialFilter);
     setSortBy(initialSorter);
-    listFilter({filters, sortBy, filterKey});
+    //Prevents the default fetch without any filters
+    if(hasDefaultFilter())
+      listFilter({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
   }, [filterID])
 
   useEffect(() => {
-    listFilter({filters, sortBy, filterKey});
+    if(hasDefaultFilter())
+      listFilter({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }

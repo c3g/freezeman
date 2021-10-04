@@ -126,9 +126,13 @@ export const samples = (
             return { ...state, isFetching: true, };
         case SAMPLES.LIST_FILTER.RECEIVE: {
             const filteredItemsCount = action.data.count;
+            //If filter was changed we get a new list with a different count
+            const hasChanged = state.filteredItemsCount !== action.data.count;
+            const currentItems = hasChanged ? [] : state.filteredItems;
             const results = action.data.results.map(preprocess)
-            const newfilteredItems = action.data.results.map(r => r.id)
-            const filteredItems = mergeArray(state.filteredItems, action.meta.offset, newfilteredItems)
+            //New filtered items
+            const newFilteredItems = action.data.results.map(r => r.id)
+            const filteredItems = mergeArray(currentItems, action.meta.offset, newFilteredItems)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
             return {
               ...state,
