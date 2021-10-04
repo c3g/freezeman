@@ -79,10 +79,6 @@ const SamplesAssociatedProjects = ({
 
   const filterKey = PROJECT_FILTERS.samples__id.key
 
-  //Local filters and sorters
-  const [filters, setFilters] = useState({});
-  const [sortBy, setSortBy] = useState({});
-
   const columns = getTableColumns();
 
   return <>
@@ -98,10 +94,6 @@ const SamplesAssociatedProjects = ({
       rowKey="id"
       isFetching={isFetching}
       page={page}
-      filters={filters}
-      setFilters={setFilters}
-      sortBy={sortBy}
-      setSortBy={setSortBy}
     />
   </>;
 }

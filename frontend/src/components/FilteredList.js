@@ -21,10 +21,6 @@ const FilteredList = ({
   isFetching,
   page,
   listFilter,
-  filters,
-  setFilters,
-  sortBy,
-  setSortBy,
 }) => {
 
 
@@ -34,21 +30,16 @@ const FilteredList = ({
     }
   };
 
-  const initialSorter = {
-    key: undefined,
-    order: undefined
-  };
-
   const hasDefaultFilter = () => {
-      return (filters[filterKey] && filters[filterKey]["value"]) ?  true : false;
+      return filters[filterKey] && filters[filterKey]["value"];
   }
+
+  //Local filters and sorters
+  const [filters, setFilters] = useState({});
+  const [sortBy, setSortBy] = useState({});
 
   useEffect(() => {
     setFilters(initialFilter);
-    setSortBy(initialSorter);
-    //Prevents the default fetch without any filters
-    if(hasDefaultFilter())
-      listFilter({filters, sortBy});
     // returned function will be called on component unmount
     return () => {
     }
@@ -83,6 +74,7 @@ const FilteredList = ({
 
   //Avoid user seeing the previous list
   const itemsFiltered = isFetching ? [] : items;
+  totalCount = isFetching ? 0 : totalCount;
 
   columns = columns.map(c => Object.assign(c, getFilterProps(
     c,
