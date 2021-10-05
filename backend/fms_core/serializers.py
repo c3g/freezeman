@@ -277,10 +277,9 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "targeted_end_date", "status")
+        exclude = ("samples",)
 
 class ProjectExportSerializer(serializers.ModelSerializer):
-    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
-        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment", "samples")
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
