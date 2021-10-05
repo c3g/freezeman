@@ -16,7 +16,7 @@ def initialize_projects_data(apps, schema_editor):
         reversion.set_comment("Initialization of projects through curation")
         reversion.set_user(User.objects.get(username=ADMIN_USERNAME))
 
-        for project_name in ['Epocrates', 'BQC19', 'CoVSeQ', 'Timmins']:
+        for project_name in ['Epocrates', 'BQC19', 'CoVSeQ', 'Timmins', 'GEM']:
             p = Project.objects.create(name=project_name, status="Open", created_by_id=admin_user_id, updated_by_id=admin_user_id)
             reversion.add_to_revision(p)
 
@@ -45,9 +45,10 @@ class Migration(migrations.Migration):
                             WHEN individual.cohort = 'BQC' AND project.name = 'BQC19' THEN 1
                             WHEN individual.cohort = 'INSPQ_COVID' AND project.name = 'CoVSeQ' THEN 1
                             WHEN individual.cohort = 'Timmins' AND project.name = 'Timmins' THEN 1
+                            WHEN individual.cohort = 'GEM' AND project.name = 'GEM' THEN 1
                             ELSE 0
                         END=1)
-                WHERE individual.cohort IN ('EPOCRATES', 'BQC', 'INSPQ_COVID', 'Timmins');
+                WHERE individual.cohort IN ('EPOCRATES', 'BQC', 'INSPQ_COVID', 'Timmins', 'GEM');
             """,
             migrations.RunSQL.noop
         ),
