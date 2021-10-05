@@ -12,7 +12,7 @@ from ._constants import _project_filterset_fields
 
 
 class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Project.objects.prefetch_related("samples").all()
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
 
     ordering_fields = (

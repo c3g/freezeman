@@ -275,11 +275,9 @@ class GroupSerializer(serializers.ModelSerializer):
         depth = 1
 
 class ProjectSerializer(serializers.ModelSerializer):
-    samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     class Meta:
         model = Project
-        fields = "__all__"
-        extra_fields = ('samples')
+        fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "targeted_end_date", "status")
 
 class ProjectExportSerializer(serializers.ModelSerializer):
     samples = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
