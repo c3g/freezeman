@@ -25,7 +25,7 @@ class SampleRowHandler(GenericRowHandler):
         if parent_container['barcode']:
             parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
 
-        container_obj, self.errors['container'], self.warnings['container'] = \
+        container_obj, _, self.errors['container'], self.warnings['container'] = \
             get_or_create_container(barcode=container['barcode'],
                                     kind=container['kind'],
                                     name=container['name'],

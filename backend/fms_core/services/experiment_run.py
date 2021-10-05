@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 from .instrument import get_instrument
-from .container import get_or_create_container
+from .container import create_container
 
 
 def create_experiment_run(experiment_type_obj, process_obj, instrument, container, start_date):
@@ -25,12 +25,11 @@ def create_experiment_run(experiment_type_obj, process_obj, instrument, containe
 
     comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
 
-    container, container_errors, container_warnings = \
-        get_or_create_container(barcode=container['barcode'],
-                                kind=container['kind'],
-                                coordinates=None,
-                                creation_comment=comment
-                                )
+    container, container_errors, container_warnings = create_container(barcode=container['barcode'],
+                                                                       kind=container['kind'],
+                                                                       coordinates=None,
+                                                                       creation_comment=comment
+                                                                      )
 
     errors += instrument_errors + container_errors
     warnings += instrument_warnings + container_warnings
