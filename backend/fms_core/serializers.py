@@ -16,7 +16,6 @@ from .models import (
     Sample,
     SampleKind,
     Project,
-    SampleByProject,
 )
 
 
