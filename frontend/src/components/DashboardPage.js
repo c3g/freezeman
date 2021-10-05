@@ -46,6 +46,7 @@ const DashboardPage = ({
     listActions.container();
     listActions.sample();
     listActions.process();
+    listActions.project();
   }, []);
 
   return <PageContainer>
@@ -73,8 +74,8 @@ const DashboardPage = ({
                 <Statistic title="Total Projects" value={projectsSummary.total_count || "—"} />
               </Col>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Ongoing Projects" value={projectsSummary.ongoing_count || "—"} />
-                <Statistic title="Completed Projects" value={projectsSummary.completed_count || "—"} />
+                <Statistic title="Open Projects" value={projectsSummary.open_count || "—"} />
+                <Statistic title="Closed Projects" value={projectsSummary.closed_count || "—"} />
               </Col>
             </Row>
             <Row gutter={16}>

@@ -17,8 +17,10 @@ export const projects = (
     state = {
         itemsByID: {},
         items: [],
+        filteredItems: [],
         page: { offset: 0 },
         totalCount: 0,
+        filteredItemsCount: 0,
         isFetching: false,
         filters: {},
         sortBy: { key: undefined, order: undefined },
@@ -79,11 +81,37 @@ export const projects = (
             return { ...state, isFetching: true, };
         case PROJECTS.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
+            const temporaryItems = action.data.results.map(r => r.id)
             const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, isFetching: false, error: undefined };
+            return { ...state, itemsByID, temporaryItems, isFetching: false, error: undefined };
         }
         case PROJECTS.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
+
+        case PROJECTS.LIST_FILTER.REQUEST:
+            return { ...state, isFetching: true, };
+        case PROJECTS.LIST_FILTER.RECEIVE: {
+            const filteredItemsCount = action.data.count;
+            //If filter was changed we get a new list with a different count
+            const hasChanged = state.filteredItemsCount !== action.data.count;
+            const currentItems = hasChanged ? [] : state.filteredItems;
+            const results = action.data.results.map(preprocess)
+            //New filtered items
+            const newFilteredItems = action.data.results.map(r => r.id)
+            const filteredItems = mergeArray(currentItems, action.meta.offset, newFilteredItems)
+            const itemsByID = merge(state.itemsByID, [], indexByID(results));
+            return {
+              ...state,
+              itemsByID,
+              filteredItems,
+              filteredItemsCount,
+              isFetching: false,
+              error: undefined
+            };
+        }
+        case PROJECTS.LIST_FILTER.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+
 
         case PROJECTS.LIST_TABLE.REQUEST:
             return { ...state, isFetching: true, };
