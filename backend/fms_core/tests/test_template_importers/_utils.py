@@ -7,7 +7,7 @@ TEST_DATA_ROOT = Path(__file__).parent.parent / "invalid_templates"
 def load_template(importer, file):
     with reversion.create_revision():
         try:
-            result = importer.import_template(file=file, format='xlsx', dry_run=True)
+            result = importer.import_template(file=file, format='xlsx', dry_run=False)
         except Exception as e:
             print(e)
             result = {
