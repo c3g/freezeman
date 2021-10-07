@@ -117,3 +117,24 @@ export const user = {
 //     "is_superuser": true,
 //     "date_joined": "2021-02-19T17:10:07.503174Z"
 // }
+
+export const project = {
+  // id: Number,
+  name: "",
+  principal_investigator: "",
+  requestor_name: "",
+  requestor_email: "",
+  targeted_end_date: "",
+  status: "Open",
+  comment: "",
+}
+// Example:
+// {
+//     id: 94,
+//     name: "BQC19",
+//     principal_investigator: "David Bujold",
+//     requestor_name: "Sebastian Ballesteros",
+//     requestor_email: "sebastian.ballesteros@mcgill.ca",
+//     status: "Open",
+//     comment: "This is a comment",
+// }

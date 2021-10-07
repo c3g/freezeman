@@ -22,9 +22,19 @@ import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
-      title: "Sample Kind",
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      width: 90,
+      render: (_, sample) =>
+        <Link to={`/samples/${sample.id}`}>
+          <div>{sample.id}</div>
+        </Link>,
+    },
+    {
+      title: "Kind",
       dataIndex: "sample_kind__name",
       sorter: true,
       width: 80,
@@ -74,6 +84,15 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
         </Link>),
     },
     {
+      title: "Projects",
+      dataIndex: "projects__name",
+      render: (_, sample) => (sample.projects &&
+        sample.projects.map(id => {
+          return (<div> <Link to={`/projects/${id}`}> {projectsByID[id]?.name} </Link> </div>);
+        })
+      ),
+    },
+    {
       title: "Coords",
       dataIndex: "coordinates",
       sorter: true,
@@ -97,6 +116,12 @@ const getTableColumns = (containersByID, individualsByID, sampleKinds) => [
       width: 115,
     },
     {
+      title: "Creation Date",
+      dataIndex: "creation_date",
+      sorter: true,
+      width: 115,
+    },
+    {
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
@@ -117,6 +142,7 @@ const mapStateToProps = state => ({
   filters: state.samples.filters,
   containersByID: state.containers.itemsByID,
   individualsByID: state.individuals.itemsByID,
+  projectsByID: state.projects.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -134,6 +160,7 @@ const SamplesListContent = ({
   filters,
   containersByID,
   individualsByID,
+  projectsByID,
   sortBy,
   listTable,
   setFilter,
@@ -147,7 +174,7 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-  const columns = getTableColumns(containersByID, individualsByID, sampleKinds)
+  const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,

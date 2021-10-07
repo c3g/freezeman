@@ -6,6 +6,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
 import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
+import PROJECTS from "../modules/projects/actions";
 
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
@@ -36,6 +37,7 @@ const DashboardPage = ({
   containersSummary,
   samplesSummary,
   processMeasurementsSummary,
+  projectsSummary,
   protocolsByID,
   templates,
   listActions,
@@ -44,6 +46,7 @@ const DashboardPage = ({
     listActions.container();
     listActions.sample();
     listActions.process();
+    listActions.project();
   }, []);
 
   return <PageContainer>
@@ -61,6 +64,27 @@ const DashboardPage = ({
                 </Link>
               </Col>
               {actionsToButtonList("/containers", templates.container, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
+          <Card title="Projects" {...CARD_PROPS} style={{marginTop: "1rem"}}>
+            <Row gutter={16}>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Total Projects" value={projectsSummary.total_count || "—"} />
+              </Col>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Open Projects" value={projectsSummary.open_count || "—"} />
+                <Statistic title="Closed Projects" value={projectsSummary.closed_count || "—"} />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col {...WIDE_BUTTON_COL_PROPS}>
+                <Link to='/projects/add/'>
+                  <Button icon={actionIcon('Add')} style={{width: "100%"}}>Add One Project</Button>
+                </Link>
+              </Col>
+              {actionsToButtonList("/projects", templates.project, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>
@@ -123,11 +147,13 @@ const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
   processMeasurementsSummary: state.processMeasurementsSummary.data,
+  projectsSummary: state.projectsSummary.data,
   protocolsByID: state.protocols.itemsByID,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
     processMeasurement: state.processMeasurementTemplateActions,
+    project: state.projectTemplateActions,
   },
 });
 
@@ -136,6 +162,7 @@ const mapDispatchToProps = dispatch => ({
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
     process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
+    project: () => dispatch(PROJECTS.listTemplateActions()),
   }
 });
 

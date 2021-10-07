@@ -22,6 +22,7 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .individual import Individual
 from .sample_kind import SampleKind
+from .project import Project
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -121,7 +122,7 @@ class Sample(TrackedModel):
                             help_text="Sample name.")
     alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
                                                                    "collaborator or customer.")
-    individual = models.ForeignKey("Individual", on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
+    individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
                                                                                      "with the sample.")
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
@@ -234,6 +235,11 @@ class Sample(TrackedModel):
     @property
     def children(self) -> List["Sample"]:
         return self.parent_of.filter(child_sample__parent=self).all() if self.id else None
+
+    # Computed property for project relation
+    @property
+    def projects(self) -> List["Project"]:
+        return self.projects.all() if self.id else None
 
     @property
     def source_depleted(self) -> bool:

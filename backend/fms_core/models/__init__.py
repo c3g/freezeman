@@ -9,6 +9,7 @@ from .individual import Individual
 from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
+from .sample_by_project import SampleByProject
 from .sample_update import SampleUpdate
 from .protocol import Protocol
 from .process import Process
@@ -20,6 +21,7 @@ from .experiment_type import ExperimentType
 from .experiment_run import ExperimentRun
 from .property_type import PropertyType
 from .property_value import PropertyValue
+from .project import Project
 
 __all__ = [
     "Container",
@@ -32,6 +34,7 @@ __all__ = [
     "Sample",
     "SampleKind",
     "SampleLineage",
+    "SampleByProject",
     "SampleUpdate",
     "Protocol",
     "Process",
@@ -43,4 +46,5 @@ __all__ = [
     "ExperimentRun",
     "PropertyType",
     "PropertyValue",
+    "Project",
 ]

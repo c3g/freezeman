@@ -51,6 +51,12 @@ _sample_kind_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+
+_project_minimal_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -70,9 +76,11 @@ _sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("individual__", _individual_filterset_fields),
+    **_prefix_keys("projects__", _project_minimal_filterset_fields),
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
@@ -123,4 +131,13 @@ _experiment_run_filterset_fields: FiltersetFields = {
 
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),
+}
+
+_project_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
+    "requestor_name": CATEGORICAL_FILTERS_LOOSE,
+    "status": CATEGORICAL_FILTERS,
+    **_prefix_keys("samples__", _sample_minimal_filterset_fields),
 }

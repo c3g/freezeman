@@ -132,6 +132,7 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
       }
       <Title level={2}>Details</Title>
       <Descriptions bordered={true} size="small" column={1}>
+        <Descriptions.Item label="ID">{user.id}</Descriptions.Item>
         <Descriptions.Item label="Name">{user.username}</Descriptions.Item>
         <Descriptions.Item label="Date joined">{dateToString(user.date_joined)}</Descriptions.Item>
         <Descriptions.Item label="Email">{user.email}</Descriptions.Item>

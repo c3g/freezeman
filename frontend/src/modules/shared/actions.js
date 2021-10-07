@@ -4,6 +4,7 @@ import Users from "../users/actions";
 import Groups from "../groups";
 import Samples from "../samples/actions";
 import ProcessMeasurements from "../processMeasurements/actions";
+import Projects from "../projects/actions";
 import Protocols from "../protocols/actions";
 import ExperimentRuns from "../experimentRuns/actions";
 import {refreshAuthToken} from "../auth/actions";
@@ -21,6 +22,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         ExperimentRuns.listTypes,
         Samples.listKinds,
         Samples.summary,
+        Projects.summary,
         Protocols.list,
         ProcessMeasurements.summary,
         Users.listTable,
@@ -32,6 +34,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         ExperimentRuns.listTable,
         Individuals.listTable,
         Samples.listTable,
+        Projects.listTable,
         ProcessMeasurements.listTable,
     ].map(a => dispatch(a())))
 
@@ -41,6 +44,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Samples.listTemplateActions,
         ProcessMeasurements.listTemplateActions,
         ExperimentRuns.listTemplateActions,
+        Projects.listTemplateActions,
     ].map(a => dispatch(a())))
 }
 
@@ -52,6 +56,7 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
+        Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))
 };
@@ -68,6 +73,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         ExperimentRuns.listTable,
         Individuals.listTable,
         Samples.listTable,
+        Projects.listTable,
         ProcessMeasurements.listTable,
         Protocols.list,
     ].map(a => dispatch(a())))
@@ -76,6 +82,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.summary,
         Samples.summary,
+        Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))
 }

@@ -11,15 +11,11 @@ import reversion
 from shutil import copyfile
 from django.contrib.auth.models import User
 # Import the functions of the various curations available.
-from ._rollback_extraction import rollback_extraction
-from ._rollback_curation import rollback_curation
 from ._update_field_value import update_field_value
 from ._delete_individual import delete_individual
 
 
 # Available actions
-ACTION_ROLLBACK_CURATION = "rollback_curation"
-ACTION_ROLLBACK_EXTRACTION = "rollback_extraction"
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
 ACTION_DELETE_INDIVIDUAL = "delete_individual"
 
@@ -39,8 +35,6 @@ class Command(BaseCommand):
     help = 'Manage curations'
 
     curation_switch = {
-        ACTION_ROLLBACK_EXTRACTION: rollback_extraction,
-        ACTION_ROLLBACK_CURATION: rollback_curation,
         ACTION_UPDATE_FIELD_VALUE: update_field_value,
         ACTION_DELETE_INDIVIDUAL: delete_individual,
     }

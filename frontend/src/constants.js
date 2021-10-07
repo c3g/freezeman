@@ -7,7 +7,7 @@ export const FILTER_TYPE = {
   DATE_RANGE: "DATE_RANGE",
   SELECT: "SELECT",
   INPUT: "INPUT",
-  INPUT_NUMBER: "INPUT_NUMBER",
+  INPUT_NUMBER: "INPUT_NUMBER"
 }
 
 export const TISSUE_SOURCE = [
@@ -35,6 +35,11 @@ export const TAXON = [
   "Homo sapiens",
   "Mus musculus",
   "Sars-Cov-2",
+]
+
+export const STATUS = [
+  "Open",
+  "Closed",
 ]
 
 export const DATE_FORMAT = "YYYY-MM-DD"

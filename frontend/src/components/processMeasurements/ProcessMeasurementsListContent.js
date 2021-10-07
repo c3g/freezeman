@@ -21,6 +21,14 @@ import FiltersWarning from "../filters/FiltersWarning";
 
 const getTableColumns = (samplesByID, protocols) => [
     {
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      width: 150,
+      render: (_, processMeasurement) =>
+          <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.id}</Link>
+    },
+    {
       title: "Process ID",
       dataIndex: "process",
       sorter: true,

@@ -10,6 +10,7 @@ __all__ = [
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
     "CONTAINER_SPEC_TUBE_BOX_6X6",
+    "CONTAINER_SPEC_TUBE_BOX_7X7",
     "CONTAINER_SPEC_TUBE_BOX_8X8",
     "CONTAINER_SPEC_TUBE_BOX_9X9",
     "CONTAINER_SPEC_TUBE_BOX_10X10",
@@ -112,7 +113,7 @@ class ContainerSpec:
 
 CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     container_kind_id="infinium gs 24 beadchip",
-    coordinate_spec=(alphas(4), ints(6, pad_to=2)),
+    coordinate_spec=(alphas(12), ints(2, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(),  # Leaf node; sample-holding
     is_run_container=True,
@@ -147,6 +148,14 @@ CONTAINER_SPEC_TUBE = ContainerSpec(
 CONTAINER_SPEC_TUBE_BOX_6X6 = ContainerSpec(
     container_kind_id="tube box 6x6",
     coordinate_spec=(alphas(6), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_BOX_7X7 = ContainerSpec(
+    container_kind_id="tube box 7x7",
+    coordinate_spec=(alphas(7), ints(7, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
@@ -189,6 +198,7 @@ COMMON_CHILDREN = (
     CONTAINER_SPEC_96_WELL_PLATE,
     CONTAINER_SPEC_384_WELL_PLATE,
     CONTAINER_SPEC_TUBE_BOX_6X6,
+    CONTAINER_SPEC_TUBE_BOX_7X7,
     CONTAINER_SPEC_TUBE_BOX_8X8,
     CONTAINER_SPEC_TUBE_BOX_9X9,
     CONTAINER_SPEC_TUBE_BOX_10X10,
