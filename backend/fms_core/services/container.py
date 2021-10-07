@@ -29,7 +29,7 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
 
     if barcode:
         container_data = dict(
-            **(dict(location=container_parent) if container_parent else dict(location__isnull=True)),
+            **(dict(location=container_parent) if container_parent else dict()),
             **(dict(barcode=barcode) if barcode is not None else dict()),
             **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
             **(dict(coordinates=coordinates) if coordinates is not None else dict()),
