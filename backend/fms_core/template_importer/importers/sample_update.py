@@ -3,9 +3,9 @@ from fms_core.models import Process, Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_update import SampleRowHandler
 
-class SampleSubmissionImporter(GenericImporter):
+class SampleUpdateImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleUpdate', 'header_row_nb': 4},
+        {'name': 'SampleUpdate', 'header_row_nb': 5},
     ]
 
     def __init__(self):
@@ -54,4 +54,4 @@ class SampleSubmissionImporter(GenericImporter):
                 **sample_update_kwargs,
             )
 
-            print('sample submission end of processing row ', row_id)
+            print('sample update end of processing row ', row_id)

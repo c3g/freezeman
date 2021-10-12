@@ -69,3 +69,23 @@ def get_sample_from_container(barcode=None, coordinates=None):
             errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found")
 
     return (sample, errors, warnings)
+
+
+
+def update_sample(sample_to_update, volume=None, concentration=None, depleted=None):
+    errors = []
+    warnings = []
+
+    if volume:
+        sample_to_update.volume = volume
+    if concentration:
+        sample_to_update.concentration = concentration
+    if depleted is not None:
+        sample_to_update.depleted = depleted
+
+    try:
+        sample_to_update.save()
+    except Exception as e:
+        errors.append(str(e))
+
+    return (sample_to_update, errors, warnings)
