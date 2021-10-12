@@ -21,12 +21,22 @@ class SampleRowHandler(GenericRowHandler):
         )
 
         if sample_to_update:
-            update_sample(
+            if sample_updated['depleted'] == 'YES':
+                depleted = True
+            elif sample_updated['depleted'] == 'NO':
+                depleted = False
+            else:
+                depleted = None
+
+            _, self.errors['sample_update'], self.warnings['sample_update'] = update_sample(
                 sample_to_update=sample_to_update,
                 volume=sample_updated['volume'],
                 concentration=sample_updated['concentration'],
-                depleted=sample_updated['depleted']
+                depleted=depleted,
             )
+
+            print('sample update sample row handler', sample_to_update.__dict__)
+
 
             _, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(

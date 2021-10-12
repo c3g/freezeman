@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import SampleUpdateImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Individual, SampleKind
+from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -20,6 +20,10 @@ class SampleUpdateTestCase(TestCase):
 
         self.sample_name = 'SampleTestForUpdate'
         self.sample_new_volume = 90
+        self.sample_new_concentration = 20
+        self.sample_new_depleted = False
+        self.delta_volume = 9
+        self.update_date = datetime.datetime(2021, 10, 21, 0, 0)
 
         self.prefill_data()
 
@@ -29,7 +33,7 @@ class SampleUpdateTestCase(TestCase):
 
         (container, errors, warnings) = create_container(barcode='CONTAINER4SAMPLEUPDATE', kind='Tube', name='Container4SampleUpdate')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', sex=Individual.SEX_MALE, taxon='TaxonHere')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', taxon='Homo sapiens')
 
         create_sample(name=self.sample_name, volume=100, concentration=25, collection_site='TestCaseSite',
                       creation_date=datetime.datetime(2021, 1, 15, 0, 0),
@@ -43,4 +47,19 @@ class SampleUpdateTestCase(TestCase):
 
         # #Custom tests for each template
         sample = Sample.objects.get(name=self.sample_name)
-        self.assertTrue(sample.volume, self.sample_new_volume)
+        self.assertEqual(sample.volume, self.sample_new_volume)
+        self.assertEqual(sample.concentration, self.sample_new_concentration)
+        self.assertEqual(sample.depleted, self.sample_new_depleted)
+
+        self.assertTrue(ProcessMeasurement.objects.get(source_sample=sample,
+                                            execution_date=self.update_date
+                                            ))
+        pm = ProcessMeasurement.objects.get(source_sample=sample,
+                                            execution_date=self.update_date
+                                            )
+        self.assertEqual(pm.volume_used, self.delta_volume)
+
+        self.assertEqual(pm.process.protocol.name, 'Update')
+
+
+
