@@ -54,11 +54,11 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        self.assertTrue(SampleByProject.objects.count(), 3)
-        self.assertTrue(SampleByProject.object.get(sample=self.sample1, project=self.project1).exists())
-        self.assertTrue(SampleByProject.object.get(sample=self.sample2, project=self.project1).exists())
-        self.assertTrue(SampleByProject.object.get(sample=self.sample2, project=self.project2).exists())
-        self.assertFalse(SampleByProject.object.get(sample=self.sample2, project=self.project2).exists())
+        self.assertEqual(len(SampleByProject.objects.all()), 3)
+        self.assertTrue(SampleByProject.objects.filter(sample=self.sample1, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project1).exists())
+        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project2).exists())
+        self.assertFalse(SampleByProject.objects.filter(sample=self.sample1, project=self.project2).exists())
 
 
 
