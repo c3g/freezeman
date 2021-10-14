@@ -1,6 +1,7 @@
 import reversion
 
 from django.core.exceptions import ValidationError
+from django.db.models.functions import Lower
 from django.db import models
 
 from .tracked_model import TrackedModel
@@ -44,6 +45,10 @@ class Project(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+
+        projects_names_similar = list(Project.objects.filter(name__iexact=self.name).values_list('name', flat=True))
+        if projects_names_similar:
+            add_error("name", f"Project(s) named {projects_names_similar} exist and are too simlar to {self.name}")
 
         if errors:
             raise ValidationError(errors)
