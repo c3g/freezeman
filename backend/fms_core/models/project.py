@@ -45,9 +45,9 @@ class Project(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        projects_names_similar = list(Project.objects.filter(name__iexact=self.name).values_list('name', flat=True))
-        if projects_names_similar:
-            add_error("name", f"Project(s) named {projects_names_similar} exist and are too simlar to {self.name}")
+        project_similar_name = Project.objects.filter(name__iexact=self.name).first()
+        if project_similar_name:
+            add_error("name", f"Another project with a similar name ({project_similar_name.name}) exists. Two project names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)

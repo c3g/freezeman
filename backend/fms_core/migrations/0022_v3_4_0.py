@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                CREATE UNIQUE INDEX project_name_case ON fms_core_project(lower(name));
+                CREATE UNIQUE INDEX project_name_lowercase_idx ON fms_core_project(lower(name));
             """,
             migrations.RunSQL.noop
         ),
