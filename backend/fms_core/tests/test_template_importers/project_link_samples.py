@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Individual, SampleKind, SampleByProject
+from fms_core.models import SampleKind, SampleByProject
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
