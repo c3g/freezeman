@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from fms_core.models import Container, Sample
 
-from fms_core.template_importer.importers import ContainerCreationImporter
+from fms_core.template_importer.importers import ContainerCreationImporter, ContainerRenameImporter
 
 from fms_core.resources import (
     ContainerMoveResource,
@@ -56,13 +56,13 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Move Containers",
             "description": "Upload the provided template with up to 100 containers to move.",
             "template": CONTAINER_MOVE_TEMPLATE,
-            "resource": ContainerMoveResource,
+            "importer": ContainerMoveResource,
         },
         {
             "name": "Rename Containers",
             "description": "Upload the provided template with up to 384 containers to rename.",
             "template": CONTAINER_RENAME_TEMPLATE,
-            "resource": ContainerRenameResource,
+            "importer": ContainerRenameImporter,
         },
     ]
 

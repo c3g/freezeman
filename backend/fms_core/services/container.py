@@ -99,3 +99,18 @@ def create_container(barcode=None, kind=None, name=None, coordinates=None, conta
         errors.append(f"Barcode is required to create a container.")
 
     return (container, errors, warnings)
+
+def rename_container(container_to_update, barcode=None, name=None, update_comment=None):
+    errors = []
+    warnings = []
+
+    container_to_update.barcode = barcode
+    container_to_update.name = name
+    container_to_update.update_comment = update_comment
+
+    try:
+        container_to_update.save()
+    except Exception as e:
+        errors.append(str(e))
+
+    return (container_to_update, errors, warnings)
