@@ -58,6 +58,12 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       width: 70,
     },
     {
+      title: "Creation Date",
+      dataIndex: "creation_date",
+      sorter: true,
+      width: 115,
+    },
+    {
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
