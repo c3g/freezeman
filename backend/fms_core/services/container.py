@@ -114,3 +114,30 @@ def rename_container(container_to_update, barcode=None, name=None, update_commen
         errors.append(str(e))
 
     return (container_to_update, errors, warnings)
+
+def move_container(container_to_move, destination_barcode=None, destination_coordinates=None, update_comment=None):
+    destination_container = None
+    errors = []
+    warnings = []
+
+    try:
+        # Test for container barcode to provide a better error message.
+        destination_container = Container.objects.get(barcode=destination_barcode)
+    except Container.DoesNotExist as e:
+        errors.append(f"Destination Container barcode {destination_barcode} does not exist.")
+        return (container_to_move, errors, warnings)
+
+    if container_to_move.location == destination_container and container_to_move.coordinates == destination_coordinates:
+        errors.append(f"Container {container_to_move.name } already is at container {destination_barcode} at coodinates {destination_coordinates}.")
+        return (container_to_move, errors, warnings)
+
+    container_to_move.location = destination_container
+    container_to_move.coordinates = destination_coordinates
+    container_to_move.update_comment = update_comment
+
+    try:
+        container_to_move.save()
+    except Exception as e:
+        errors.append(str(e))
+
+    return (container_to_move, errors, warnings)

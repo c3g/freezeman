@@ -10,7 +10,7 @@ class ContainerRowHandler(GenericRowHandler):
 
     def process_row_inner(self, container, container_rename):
 
-        comment = f"Automatically generated via Container creation Template on {datetime.utcnow().isoformat()}Z"
+        comment = f"Automatically generated via Container rename Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
         container_obj, self.errors['container'], self.warnings['container'] = get_container(barcode=container['barcode'])
@@ -23,10 +23,6 @@ class ContainerRowHandler(GenericRowHandler):
             return
 
         #Update
-        container_obj.barcode = container_rename['new_barcode']
-        container_obj.name = container_rename['new_name']
-        container_obj.update_comment = container_rename['comment']
-
         _, self.errors['container_rename'], self.warnings['container_rename'] = rename_container(
             container_to_update=container_obj,
             barcode=container_rename['new_barcode'],
