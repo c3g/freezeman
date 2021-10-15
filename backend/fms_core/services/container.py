@@ -104,9 +104,12 @@ def rename_container(container_to_update, barcode=None, name=None, update_commen
     errors = []
     warnings = []
 
-    container_to_update.barcode = barcode
-    container_to_update.name = name
-    container_to_update.update_comment = update_comment
+    if barcode:
+        container_to_update.barcode = barcode
+    if name:
+        container_to_update.name = name
+    if update_comment:
+        container_to_update.update_comment = update_comment
 
     try:
         container_to_update.save()
