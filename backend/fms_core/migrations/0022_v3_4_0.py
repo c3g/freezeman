@@ -76,4 +76,10 @@ class Migration(migrations.Migration):
             name='container',
             field=models.OneToOneField(help_text='Container', limit_choices_to={'kind__in': ('infinium gs 24 beadchip',)}, on_delete=django.db.models.deletion.PROTECT, related_name='experiment_run', to='fms_core.container'),
         ),
+        migrations.RunSQL(
+            """
+                CREATE UNIQUE INDEX project_name_lowercase_idx ON fms_core_project(lower(name));
+            """,
+            migrations.RunSQL.noop
+        ),
     ]
