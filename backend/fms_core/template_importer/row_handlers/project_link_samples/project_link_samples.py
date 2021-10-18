@@ -25,7 +25,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
         # Get project object
         project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
-        if not sample_obj or not project_obj:
+        if not all([sample_obj, project_obj]):
             self.errors['link'] = (f"Unable to process sample or project information.")
             return
 
@@ -33,21 +33,17 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
 
         # Check if link exists to ensure there's not a duplicated association
         if action['name'] == ADD_ACTION:
-            if link_exists:
-                self.errors['link'] = (f"[Sample {sample['sample_name']}] is already associated to project [{project['name']}].")
-            else:
-                # Create link object if no errors
-                project_sample_link, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
-                                                                                              project=project_obj)
+            # Create link object if no errors
+            project_sample_link, self.errors['link'], self.warnings['link'] = create_link(link=link_exists,
+                                                                                          sample=sample_obj,
+                                                                                          project=project_obj)
 
         # If the link doesn't exists we can't perform a remove action
         elif action['name'] == REMOVE_ACTION:
-            if not link_exists:
-                self.errors['link'] = (f"Sample [{sample['sample_name']}] is not currently associated to project [{project['name']}].")
-            else:
-                # Remove link object if no errors
-                num_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
-                                                                                      project=project_obj)
+            # Remove link object if no errors
+            num_deleted, self.errors['link'], self.warnings['link'] = remove_link(link=link_exists,
+                                                                                  sample=sample_obj,
+                                                                                  project=project_obj)
 
         print('SAMPLE OBJ', sample_obj)
         print('PROJECT OBJ', project_obj)
