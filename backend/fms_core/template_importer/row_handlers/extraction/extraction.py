@@ -18,7 +18,10 @@ class ExtractionRowHandler(GenericRowHandler):
             coordinates=source_sample['coordinates'])
 
         if original_sample:
-            original_sample.depleted = True
+            original_sample_depleted = source_sample['depleted']
+            if original_sample_depleted:
+                original_sample.depleted = True if original_sample_depleted == 'YES' else False
+
             original_sample.volume -= process_measurement['volume_used']
             original_sample.save()
 
