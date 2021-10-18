@@ -1,4 +1,6 @@
 from .container_creation import ContainerCreationImporter
+from .container_rename import ContainerRenameImporter
+from .container_move import ContainerMoveImporter
 from .experiment_run import ExperimentRunImporter
 from .sample_submission import SampleSubmissionImporter
 from .sample_update import SampleUpdateImporter
@@ -9,5 +11,7 @@ __all__ = [
     "ExperimentRunImporter",
     "SampleSubmissionImporter",
     "SampleUpdateImporter",
-    "ExtractionImporter"
+    "ExtractionImporter",
+    "ContainerRenameImporter",
+    "ContainerMoveImporter",
 ]
