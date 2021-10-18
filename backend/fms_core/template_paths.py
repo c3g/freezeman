@@ -24,6 +24,6 @@ EXPERIMENT_INFINIUM_TEMPLATE = static("submission_templates/Experiment_Infinium_
 SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Sample_extraction_vtest.xlsx")
 SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_vtest.xlsx")
 SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v3_2_0.xlsx")
-SAMPLE_TRANSFER_TEMPLATE = static("submission_templates/Sample_transfer_v3_2_0.xlsx")
+SAMPLE_TRANSFER_TEMPLATE = static("submission_templates/Sample_transfer_vtest.xlsx")
 PROJECT_LINK_SAMPLES_TEMPLATE = static("submission_templates/Project_link_samples_v3_4_0.xlsx")
 
