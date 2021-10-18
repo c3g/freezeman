@@ -104,6 +104,10 @@ def rename_container(container_to_update, barcode=None, name=None, update_commen
     errors = []
     warnings = []
 
+    if not any([barcode, name]):
+        errors.append(f'Either New Barcode or New Name are required.')
+        return (container_to_update, errors, warnings)
+
     if barcode:
         container_to_update.barcode = barcode
     if name:
@@ -123,12 +127,16 @@ def move_container(container_to_move, destination_barcode=None, destination_coor
     errors = []
     warnings = []
 
+    if not all([destination_barcode, destination_coordinates]):
+        errors.append(f'Destination location barcode and destination location coordinates are required.')
+        return (container_to_move, errors, warnings)
+
     try:
         # Test for container barcode to provide a better error message.
         destination_container = Container.objects.get(barcode=destination_barcode)
     except Container.DoesNotExist as e:
         errors.append(f"Destination Container barcode {destination_barcode} does not exist.")
-        return (container_to_move, errors, warnings)
+
 
     if container_to_move.location == destination_container and container_to_move.coordinates == destination_coordinates:
         errors.append(f"Container {container_to_move.name } already is at container {destination_barcode} at coodinates {destination_coordinates}.")
