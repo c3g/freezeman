@@ -19,20 +19,13 @@ class ContainerCreationTestCase(TestCase):
         # Info for confirmation
         containerInfo1 = {"name": "TubeBox_TestCreation", "barcode": "TubeBox_1", "kind": "tube box 7x7"}
         containerInfo2 = {"name": "Room_TestCreation", "barcode": "Room_1", "kind": "room"}
-        containerInfo3 = {"name": "Freezer_TestCreation", "barcode": "Freezer_1", "kind": "freezer 3 shelves"}
-        containerInfo4 = {"name": "TubeRack_TestCreation", "barcode": "TubeRack_1", "kind": "tube rack 8x12", "coordinates": "A01"}
-
-        container1 = Container.objects.get(**containerInfo1)
-        container2 = Container.objects.get(**containerInfo2)
-        container3 = Container.objects.get(**containerInfo3)
-        container4 = Container.objects.get(**containerInfo4)
+        containerInfo3 = {"name": "Freezer_TestCreation", "barcode": "Freezer_1", "kind": "freezer 3 shelves", "location__barcode": "Room_1"}
+        containerInfo4 = {"name": "TubeRack_TestCreation", "barcode": "TubeRack_1", "kind": "tube rack 8x12", "coordinates": "A01", "location__barcode": "Freezer_1"}
 
         # Verifications
-        self.assertTrue(container1)
-        self.assertTrue(container2)
-        self.assertTrue(container3)
-        self.assertTrue(container3.location == container2)
-        self.assertTrue(container4)
-        self.assertTrue(container4.location == container3)
+        self.assertTrue(Container.objects.filter(**containerInfo1).exists())
+        self.assertTrue(Container.objects.filter(**containerInfo2).exists())
+        self.assertTrue(Container.objects.filter(**containerInfo3).exists())
+        self.assertTrue(Container.objects.filter(**containerInfo4).exists())
 
 
