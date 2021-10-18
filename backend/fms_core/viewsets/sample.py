@@ -9,9 +9,8 @@ from rest_framework.response import Response
 from fms_core.models import Sample, Container
 
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
-from fms_core.template_importer.importers import SampleSubmissionImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter
 
-from fms_core.resources import SampleResource, SampleUpdateResource
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys, versions_detail
@@ -40,7 +39,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "name": "Update Samples",
             "description": "Upload the provided template with up to 384 samples to update.",
             "template": SAMPLE_UPDATE_TEMPLATE,
-            "resource": SampleUpdateResource,
+            "importer": SampleUpdateImporter,
         }
     ]
 
