@@ -24,6 +24,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'kind': row_data['Container Kind'],
                 'name': row_data['Container Name'],
                 'barcode': row_data['Container Barcode'],
+                'coordinates': row_data['Container Coord'],
             }
             parent_container = {
                 'barcode': row_data['Location Barcode'],
@@ -52,7 +53,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'creation_date': row_data['Reception Date'],
                 'phenotype': row_data['Phenotype'],
                 'comment': row_data['Comment'],
-                'coordinates': row_data['Location Coord'],
+                'coordinates': row_data['Sample Coord'],
                 'sample_kind': row_data['Sample Kind'],
             }
 
