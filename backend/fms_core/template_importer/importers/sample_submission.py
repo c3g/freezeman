@@ -9,10 +9,9 @@ class SampleSubmissionImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
+        self.initialize_data_for_template()
 
-    def preload_data_from_template(self):
+    def initialize_data_for_template(self):
         self.preloaded_data = {'sample_kind_objects_by_name': {}}
         self.preloaded_data['sample_kind_objects_by_name'] = {sample_kind.name: sample_kind for sample_kind in SampleKind.objects.all()}
 

@@ -10,8 +10,6 @@ class ContainerMoveImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
 
     def import_template_inner(self):
         print('Import Container Rename Sheet - import template inner')
