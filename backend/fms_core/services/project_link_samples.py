@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import SampleByProject
 
-def create_link(sample=None,  project=None):
+def create_link(sample=None, project=None):
     project_sample_link = None
     errors = []
     warnings = []
@@ -10,9 +10,7 @@ def create_link(sample=None,  project=None):
         errors.append(f"Unable to process sample or project information.")
         return (project_sample_link, errors, warnings)
 
-    link_exists = SampleByProject.objects.filter(sample=sample, project=project).exists()
-
-    if link_exists:
+    if SampleByProject.objects.filter(sample=sample, project=project).exists():
         errors.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
         return (project_sample_link, errors, warnings)
 
@@ -25,24 +23,22 @@ def create_link(sample=None,  project=None):
 
     return (project_sample_link, errors, warnings)
 
-def remove_link(sample=None,  project=None):
-    num_deleted = 0
+def remove_link(sample=None, project=None):
+    num_objects_deleted = 0
     errors = []
     warnings = []
 
     if not all([sample, project]):
         errors.append(f"Unable to process sample or project information.")
-        return (num_deleted, errors, warnings)
+        return (num_objects_deleted, errors, warnings)
 
-    link_exists = SampleByProject.objects.filter(sample=sample, project=project).exists()
-
-    if not link_exists:
+    if not SampleByProject.objects.filter(sample=sample, project=project).exists():
         errors.append(f"Sample [{sample.name}] is not currently associated to project [{project.name}].")
-        return (num_deleted, errors, warnings)
+        return (num_objects_deleted, errors, warnings)
 
     try:
-        num_deleted, _ = SampleByProject.objects.filter(sample=sample, project=project).delete()
+        num_objects_deleted, _ = SampleByProject.objects.filter(sample=sample, project=project).delete()
     except ValidationError as e:
         errors.append(str(e))
 
-    return (num_deleted, errors, warnings)
+    return (num_objects_deleted, errors, warnings)

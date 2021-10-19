@@ -30,7 +30,8 @@ def create_project(name=None, principal_investigator=None, requestor_name=None,
         **(dict(requestor_name=requestor_name) if requestor_name is not None else dict()),
         **(dict(requestor_email=requestor_email) if requestor_email is not None else dict()),
         **(dict(status=status) if status is not None else dict()),
-        **(dict(targeted_end_date=target_end_date) if targeted_end_date is not None else dict()),
+        **(dict(targeted_end_date=targeted_end_date) if targeted_end_date is not None else dict()),
+        **(dict(comment=comment) if comment is not None else dict())
     )
 
     try:

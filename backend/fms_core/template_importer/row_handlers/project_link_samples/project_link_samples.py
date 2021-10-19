@@ -34,8 +34,8 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
         # If the link doesn't exists we can't perform a remove action
         elif action['name'] == REMOVE_ACTION:
             # Remove link object if no errors
-            num_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
-                                                                                  project=project_obj)
+            num_objects_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
+                                                                                          project=project_obj)
 
         print('SAMPLE OBJ', sample_obj)
         print('PROJECT OBJ', project_obj)
