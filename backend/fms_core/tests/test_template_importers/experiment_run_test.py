@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import ExperimentRun, SampleKind, Process
+from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -47,6 +47,7 @@ class ExperimentRunTestCase(TestCase):
         # Test first experiment run
         experiment_run_obj = ExperimentRun.objects.get(container__barcode="hh")
         process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
 
         # Experiment Run tests
         self.assertEqual(experiment_run_obj.experiment_type.workflow, 'Infinium Global Screening Array-24')
@@ -55,3 +56,34 @@ class ExperimentRunTestCase(TestCase):
         # Process Tests
         self.assertEqual(process_obj.child_process.count(), 7)
         self.assertEqual(process_obj.protocol.name, 'Illumina Infinium Preparation')
+
+        # Sub-process Tests (check properties for one process and sub-processes in depth)
+        # Amplification subprocess
+        cp1_1 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Amplification')
+
+        cp1_1_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type=PropertyType.objects.get(name='MSA3 Plate Barcode'))
+        cp1_1_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='0.1N NaOH formulation date')
+        cp1_1_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Reagent MA1 Barcode')
+        cp1_1_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Reagent MA2 Barcode')
+        cp1_1_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Reagent MSM Barcode')
+        cp1_1_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Incubation time In Amplification')
+        cp1_1_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Incubation time Out Amplification')
+        cp1_1_p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
+                                             property_type__name='Comment Amplification')
+
+        # Check property values for Amplification sub-process
+        self.assertEqual(cp1_1_p1.value, 'PlateBarcode')
+        self.assertEqual(cp1_1_p2.value, '2021-04-03')
+        self.assertEqual(cp1_1_p3.value, 'ReagentAmpBarcode')
+        self.assertEqual(cp1_1_p4.value, 'ReagentMA2BarcodeHere')
+        self.assertEqual(cp1_1_p5.value, 'MSMBarcode')
+        self.assertEqual(cp1_1_p6.value, '03:00:00')
+        self.assertEqual(cp1_1_p7.value, '04:00:00')
+        self.assertEqual(cp1_1_p8.value, ' ')
