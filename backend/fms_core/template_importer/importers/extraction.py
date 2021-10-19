@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process, SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
-
+from .._utils import float_to_decimal
 
 class ExtractionImporter(GenericImporter):
     SHEETS_INFO = [
@@ -27,6 +27,9 @@ class ExtractionImporter(GenericImporter):
         sheet = self.sheets['ExtractionTemplate']
 
         for row_id, row_data in enumerate(sheet.rows):
+            volume_decimal = float_to_decimal(row_data['Volume (uL)']) if row_data['Volume (uL)'] else None
+            volume_used_decimal = float_to_decimal(row_data['Volume Used (uL)']) if row_data['Volume Used (uL)'] else None
+            concentration_decimal = float_to_decimal(row_data['Conc. (ng/uL)']) if row_data['Conc. (ng/uL)'] else None
             extraction_date = row_data['Extraction Date']
             sample_kind = row_data['Extraction Type']
 
@@ -38,8 +41,8 @@ class ExtractionImporter(GenericImporter):
 
             resulting_sample = {
                 'coordinates': row_data['Destination Container Coord'],
-                'volume': row_data['Volume (uL)'],
-                'concentration': row_data['Conc. (ng/uL)'],
+                'volume': volume_decimal,
+                'concentration': concentration_decimal,
                 'creation_date': extraction_date,
                 'kind': self.preloaded_data['sample_kinds'][sample_kind],
                 'container': {
@@ -53,7 +56,7 @@ class ExtractionImporter(GenericImporter):
 
             process_measurement = {
                 'execution_date': extraction_date,
-                'volume_used': row_data['Volume Used (uL)'],
+                'volume_used': volume_used_decimal,
                 'comment': row_data['Comment'],
                 'process': self.preloaded_data['process']
             }

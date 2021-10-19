@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
-
+from .._utils import float_to_decimal
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = [
@@ -24,6 +24,7 @@ class TransferImporter(GenericImporter):
         sheet = self.sheets['SampleTransfer']
 
         for row_id, row_data in enumerate(sheet.rows):
+            volume_used_decimal = float_to_decimal(row_data['Volume Used (uL)']) if row_data['Volume Used (uL)'] else None
             transfer_date = row_data['Transfer Date']
 
             source_sample = {
@@ -34,7 +35,7 @@ class TransferImporter(GenericImporter):
 
             resulting_sample = {
                 'coordinates': row_data['Destination Container Coord'],
-                'volume': row_data['Volume Used (uL)'],
+                'volume': volume_used_decimal,
                 'creation_date': transfer_date,
                 'container': {
                     'barcode': row_data['Destination Container Barcode'],
@@ -47,7 +48,7 @@ class TransferImporter(GenericImporter):
 
             process_measurement = {
                 'execution_date': transfer_date,
-                'volume_used': row_data['Volume Used (uL)'],
+                'volume_used': volume_used_decimal,
                 'comment': row_data['Comment'],
                 'process': self.preloaded_data['process']
             }
