@@ -13,7 +13,7 @@ class ExperimentRunImporter(GenericImporter):
         super().__init__()
 
 
-    def preload_data_from_template(self, workflow, properties):
+    def initialize_data_for_template(self, workflow, properties):
         self.preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
         # Preload ExperimentType and Protocols dict
@@ -71,8 +71,8 @@ class ExperimentRunImporter(GenericImporter):
         properties_starting_index = 5
         workflow_value = experiments_df.values[1][1]
 
-        self.preload_data_from_template(workflow=workflow_value,
-                                        properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
+        self.initialize_data_for_template(workflow=workflow_value,
+                                          properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
 
 
         # Iterate through experiment rows

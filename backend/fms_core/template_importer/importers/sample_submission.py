@@ -9,10 +9,9 @@ class SampleSubmissionImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
+        self.initialize_data_for_template()
 
-    def preload_data_from_template(self):
+    def initialize_data_for_template(self):
         self.preloaded_data = {'sample_kind_objects_by_name': {}}
         self.preloaded_data['sample_kind_objects_by_name'] = {sample_kind.name: sample_kind for sample_kind in SampleKind.objects.all()}
 
@@ -25,6 +24,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'kind': row_data['Container Kind'],
                 'name': row_data['Container Name'],
                 'barcode': row_data['Container Barcode'],
+                'coordinates': row_data['Container Coord'],
             }
             parent_container = {
                 'barcode': row_data['Location Barcode'],
@@ -53,7 +53,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'creation_date': row_data['Reception Date'],
                 'phenotype': row_data['Phenotype'],
                 'comment': row_data['Comment'],
-                'coordinates': row_data['Location Coord'],
+                'coordinates': row_data['Sample Coord'],
                 'sample_kind': row_data['Sample Kind'],
             }
 

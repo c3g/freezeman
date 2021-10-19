@@ -21,6 +21,9 @@ class ProjectTest(TestCase):
         #for duplicate test
         self.duplicate_name = "TestDuplicateProject"
 
+        #for similar name test
+        self.similar_name = "testproject"
+
 
     def test_project(self):
         my_project = Project.objects.create(name=self.name,
@@ -59,6 +62,26 @@ class ProjectTest(TestCase):
             try:
                 # Second Project has the same name, should be invalid
                 Project.objects.create(name=self.duplicate_name,
+                                       principal_investigator=self.principal_investigator,
+                                       requestor_name=self.requestor_name,
+                                       requestor_email=self.requestor_email,
+                                       status=self.status,
+                                       targeted_end_date=self.targeted_end_date)
+            except ValidationError as e:
+                self.assertTrue("name" in e.message_dict)
+                raise e
+
+    def test_project_with_similar_name(self):
+        with self.assertRaises(ValidationError):
+            # First Project is valid
+            Project.objects.create(name=self.name,
+                                   principal_investigator=self.principal_investigator,
+                                   status=self.status,
+                                   targeted_end_date=self.targeted_end_date)
+
+            try:
+                # Second Project has a similar name, but different upper/lower cases, should be invalid
+                Project.objects.create(name=self.similar_name,
                                        principal_investigator=self.principal_investigator,
                                        requestor_name=self.requestor_name,
                                        requestor_email=self.requestor_email,

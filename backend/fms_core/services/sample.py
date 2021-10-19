@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from django.core.exceptions import ValidationError
 from fms_core.models import Sample, Container
-from ..utils import RE_SEPARATOR
+from ..utils import RE_SEPARATOR, float_to_decimal
 
 
 def create_sample(name=None, volume=None, collection_site=None, creation_date=None,
@@ -27,7 +27,7 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
         # Optional attributes
         **(dict(coordinates=coordinates) if coordinates is not None else dict()),
         **(dict(alias=alias) if alias is not None else dict()),
-        **(dict(concentration=concentration) if concentration is not None else dict()),
+        **(dict(concentration=float_to_decimal(concentration)) if concentration is not None else dict()),
         **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
         **(dict(phenotype=phenotype) if phenotype is not None else dict()),
     )
@@ -80,7 +80,7 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
     if volume:
         sample_to_update.volume = volume
     if concentration:
-        sample_to_update.concentration = concentration
+        sample_to_update.concentration = float_to_decimal(concentration)
     if depleted is not None:
         sample_to_update.depleted = depleted
 

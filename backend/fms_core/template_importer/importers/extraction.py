@@ -11,11 +11,10 @@ class ExtractionImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
+        self.initialize_data_for_template()
 
 
-    def preload_data_from_template(self):
+    def initialize_data_for_template(self):
         self.preloaded_data = {'process': None, 'sample_kinds': {}}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),

@@ -1,4 +1,3 @@
-from datetime import datetime
 from fms_core.models import Sample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container, create_sample
@@ -18,7 +17,10 @@ class ExtractionRowHandler(GenericRowHandler):
             coordinates=source_sample['coordinates'])
 
         if original_sample:
-            original_sample.depleted = True
+            original_sample_depleted = source_sample['depleted']
+            if original_sample_depleted:
+                original_sample.depleted = True if original_sample_depleted == 'YES' else False
+
             original_sample.volume -= process_measurement['volume_used']
             original_sample.save()
 
@@ -33,7 +35,7 @@ class ExtractionRowHandler(GenericRowHandler):
 
         destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
             barcode=destination_container_dict['barcode'],
-            kind=destination_container_dict['kind'],
+            kind=destination_container_dict['kind'].lower(),
             name=destination_container_dict['name'],
             coordinates=destination_container_dict['coordinates'],
             container_parent=container_parent,
@@ -59,7 +61,7 @@ class ExtractionRowHandler(GenericRowHandler):
             )
 
             if new_sample:
-                process_measurement, self.errors['process_measurement'], self.warnings['process_measurement'] = \
+                process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                     create_process_measurement(
                         source_sample=original_sample,
                         process=process_measurement['process'],
@@ -67,10 +69,10 @@ class ExtractionRowHandler(GenericRowHandler):
                         volume_used=process_measurement['volume_used'],
                     )
 
-                if process_measurement:
+                if process_measurement_obj:
                     _, self.errors['sample_lineage'], self.warnings['sample_lineage'] = \
                         create_sample_lineage(
                             parent_sample=original_sample,
                             child_sample=new_sample,
-                            process_measurement=process_measurement
+                            process_measurement=process_measurement_obj
                         )

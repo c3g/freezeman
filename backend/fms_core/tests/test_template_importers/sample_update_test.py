@@ -22,7 +22,7 @@ class SampleUpdateTestCase(TestCase):
         self.sample_new_volume = 90
         self.sample_new_concentration = 20
         self.sample_new_depleted = False
-        self.delta_volume = 9
+        self.delta_volume = 10.0
         self.update_date = datetime.datetime(2021, 10, 21, 0, 0)
 
         self.prefill_data()

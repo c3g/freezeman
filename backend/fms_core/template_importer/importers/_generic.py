@@ -81,7 +81,10 @@ class GenericImporter():
             return None
 
 
-    def preload_data_from_template(self, **kwargs):
+    def initialize_data_for_template(self, **kwargs):
+        """
+        Preloading data from template & template global data creation
+        """
         pass
 
     def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
