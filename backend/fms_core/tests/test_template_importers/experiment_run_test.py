@@ -58,7 +58,6 @@ class ExperimentRunTestCase(TestCase):
         self.assertEqual(process_obj.protocol.name, 'Illumina Infinium Preparation')
 
         # Sub-process Tests (check properties for one process and sub-processes in depth)
-        # Amplification subprocess
         cp1_1 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Amplification')
 
         cp1_1_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_1.id,
@@ -87,3 +86,105 @@ class ExperimentRunTestCase(TestCase):
         self.assertEqual(cp1_1_p6.value, '03:00:00')
         self.assertEqual(cp1_1_p7.value, '04:00:00')
         self.assertEqual(cp1_1_p8.value, ' ')
+
+        cp1_2 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Fragmentation')
+        cp1_2_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Reagent FMS Barcode')
+        cp1_2_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_2.id,
+                                             property_type__name='Comment Fragmentation')
+        # Check property values for Fragmentation sub-process
+        self.assertEqual(cp1_2_p1.value, 'FragFMSBarcode')
+        self.assertEqual(cp1_2_p2.value, 'short comment')
+
+        cp1_3 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Precipitation')
+        cp1_3_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id,
+                                             property_type__name='Reagent PM1 Barcode')
+        cp1_3_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id,
+                                             property_type__name='Reagent RA1 Barcode Precipitation')
+        cp1_3_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_3.id,
+                                             property_type__name='Comment Precipitation')
+        # Check property values for Precipitation sub-process
+        self.assertEqual(cp1_3_p1.value, 'Pm1Barcode')
+        self.assertEqual(cp1_3_p2.value, 'Ra1PrecipBarcode')
+        self.assertEqual(cp1_3_p3.value, ' ')
+
+        cp1_4 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Hybridization')
+        cp1_4_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Hybridization Chip Barcodes')
+        cp1_4_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Hybridization Chamber Barcode')
+        cp1_4_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Reagent PB2 Barcode')
+        cp1_4_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Reagent XC4 Barcode Hybridization')
+        cp1_4_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Incubation time In Hybridization')
+        cp1_4_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Incubation time Out Hybridization')
+        cp1_4_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_4.id,
+                                             property_type__name='Comment Hybridization')
+        # Check property values for Hybridization sub-process
+        self.assertEqual(cp1_4_p1.value, 'HybrBarcodeValue')
+        self.assertEqual(cp1_4_p2.value, 'HCBarcode')
+        self.assertEqual(cp1_4_p3.value, 'PB2Barcode')
+        self.assertEqual(cp1_4_p4.value, 'XC4HyBarcode')
+        self.assertEqual(cp1_4_p5.value, '02:00:00')
+        self.assertEqual(cp1_4_p6.value, '02:20:00')
+        self.assertEqual(cp1_4_p7.value, 'my comment')
+
+        cp1_5 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Wash Beadchip')
+        cp1_5_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_5.id,
+                                             property_type__name='Reagent PB1 Barcode Wash')
+        cp1_5_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_5.id,
+                                             property_type__name='Comment Wash')
+        # Check property values for Wash Beadchip sub-process
+        self.assertEqual(cp1_5_p1.value, 'washbeadchipbarcode')
+        self.assertEqual(cp1_5_p2.value, ' ')
+
+        cp1_6 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Extend and Stain')
+        cp1_6_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='95% form/EDTA')
+        cp1_6_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent ATM Barcode')
+        cp1_6_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent EML Barcode')
+        cp1_6_p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent LX1 Barcode')
+        cp1_6_p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent LX2 Barcode')
+        cp1_6_p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent PB1 Barcode Stain')
+        cp1_6_p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent RA1 Barcode Stain')
+        cp1_6_p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent SML Barcode')
+        cp1_6_p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                             property_type__name='Reagent XC3 Barcode')
+        cp1_6_p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                              property_type__name='Reagent XC4 Barcode Stain')
+        cp1_6_p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_6.id,
+                                              property_type__name='Comment Stain')
+        # Check property values for Extend and Stain sub-process
+        self.assertEqual(cp1_6_p1.value, 'a')
+        self.assertEqual(cp1_6_p2.value, 'atmbarcodehere')
+        self.assertEqual(cp1_6_p3.value, 'testbarcode')
+        self.assertEqual(cp1_6_p4.value, 'lx1barcode')
+        self.assertEqual(cp1_6_p5.value, 'lx2barcode')
+        self.assertEqual(cp1_6_p6.value, 'pb1stain')
+        self.assertEqual(cp1_6_p7.value, 'ra1stain')
+        self.assertEqual(cp1_6_p8.value, 'smltest')
+        self.assertEqual(cp1_6_p9.value, 'xc3value')
+        self.assertEqual(cp1_6_p10.value, 'xc4stain')
+        self.assertEqual(cp1_6_p11.value, ' ')
+
+        cp1_7 = Process.objects.get(parent_process=process_obj, protocol__name='Infinium: Scan Preparation')
+        cp1_7_p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
+                                             property_type__name='SentrixBarcode_A')
+        cp1_7_p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
+                                             property_type__name='Scan Chip Rack Barcode')
+        cp1_7_p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=cp1_7.id,
+                                             property_type__name='Comment Scan')
+        # Check property values for Scan Preparation sub-process
+        self.assertEqual(cp1_7_p1.value, 'sentrixA')
+        self.assertEqual(cp1_7_p2.value, 'lastbarcode')
+        self.assertEqual(cp1_7_p3.value, 'bla bla bla')
