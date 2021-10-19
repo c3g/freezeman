@@ -1,12 +1,18 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import SampleByProject
 
-def create_link(link=False, sample=None,  project=None):
+def create_link(sample=None,  project=None):
     project_sample_link = None
     errors = []
     warnings = []
 
-    if link:
+    if not all([sample, project]):
+        errors.append(f"Unable to process sample or project information.")
+        return (project_sample_link, errors, warnings)
+
+    link_exists = SampleByProject.objects.filter(sample=sample, project=project).exists()
+
+    if link_exists:
         errors.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
         return (project_sample_link, errors, warnings)
 
@@ -19,12 +25,18 @@ def create_link(link=False, sample=None,  project=None):
 
     return (project_sample_link, errors, warnings)
 
-def remove_link(link=True, sample=None,  project=None):
+def remove_link(sample=None,  project=None):
     num_deleted = 0
     errors = []
     warnings = []
 
-    if not link:
+    if not all([sample, project]):
+        errors.append(f"Unable to process sample or project information.")
+        return (num_deleted, errors, warnings)
+
+    link_exists = SampleByProject.objects.filter(sample=sample, project=project).exists()
+
+    if not link_exists:
         errors.append(f"Sample [{sample.name}] is not currently associated to project [{project.name}].")
         return (num_deleted, errors, warnings)
 

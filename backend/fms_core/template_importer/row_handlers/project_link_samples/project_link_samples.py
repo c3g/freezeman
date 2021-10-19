@@ -25,24 +25,16 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
         # Get project object
         project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
-        if not all([sample_obj, project_obj]):
-            self.errors['link'] = (f"Unable to process sample or project information.")
-            return
-
-        link_exists = SampleByProject.objects.filter(sample=sample_obj, project=project_obj).exists()
-
         # Check if link exists to ensure there's not a duplicated association
         if action['name'] == ADD_ACTION:
             # Create link object if no errors
-            project_sample_link, self.errors['link'], self.warnings['link'] = create_link(link=link_exists,
-                                                                                          sample=sample_obj,
+            project_sample_link, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
                                                                                           project=project_obj)
 
         # If the link doesn't exists we can't perform a remove action
         elif action['name'] == REMOVE_ACTION:
             # Remove link object if no errors
-            num_deleted, self.errors['link'], self.warnings['link'] = remove_link(link=link_exists,
-                                                                                  sample=sample_obj,
+            num_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
                                                                                   project=project_obj)
 
         print('SAMPLE OBJ', sample_obj)

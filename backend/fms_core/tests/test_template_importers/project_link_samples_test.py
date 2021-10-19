@@ -61,7 +61,6 @@ class ProjectLinkSamplesTestCase(TestCase):
         #Create link manually to test REMOVE action
         create_link(sample=self.sample3, project=self.project3)
 
-
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
