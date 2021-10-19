@@ -16,7 +16,8 @@ class TransferRowHandler(GenericRowHandler):
             coordinates=source_sample_info['coordinates'])
 
         if original_sample:
-            original_sample.depleted = source_sample_info['depleted']
+            if source_sample_info['depleted']:
+                original_sample.depleted = True if source_sample_info['depleted'] == "YES" else False
             original_sample.volume -= process_measurement_info['volume_used']
             original_sample.save()
 

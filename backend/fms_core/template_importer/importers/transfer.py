@@ -5,7 +5,7 @@ from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'TransferTemplate', 'header_row_nb': 5},
+        {'name': 'SampleTransfer', 'header_row_nb': 5},
     ]
 
     def __init__(self):
@@ -21,7 +21,7 @@ class TransferImporter(GenericImporter):
                                                                 comment="Sample Transfer (imported from template)")
 
     def import_template_inner(self):
-        sheet = self.sheets['TransferTemplate']
+        sheet = self.sheets['SampleTransfer']
 
         for row_id, row_data in enumerate(sheet.rows):
             transfer_date = row_data['Transfer Date']
@@ -35,7 +35,6 @@ class TransferImporter(GenericImporter):
             resulting_sample = {
                 'coordinates': row_data['Destination Container Coord'],
                 'volume': row_data['Volume Used (uL)'],
-                'concentration': row_data['Conc. (ng/uL)'],
                 'creation_date': transfer_date,
                 'container': {
                     'barcode': row_data['Destination Container Barcode'],
@@ -54,9 +53,9 @@ class TransferImporter(GenericImporter):
             }
 
             transfer_kwargs = dict(
-                source_sample=source_sample,
-                resulting_sample=resulting_sample,
-                process_measurement=process_measurement,
+                source_sample_info=source_sample,
+                resulting_sample_info=resulting_sample,
+                process_measurement_info=process_measurement,
             )
 
             (result, _) = self.handle_row(
