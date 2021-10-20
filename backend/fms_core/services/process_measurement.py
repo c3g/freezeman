@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from fms_core.models import ProcessMeasurement
 
 
-def create_process_measurement(process=None, source_sample=None, execution_date=None, volume_used=None, comment=None):
+def create_process_measurement(process, source_sample, execution_date, volume_used=None, comment=None):
     process_measurement = None
     errors = []
     warnings = []

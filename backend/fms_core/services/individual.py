@@ -5,7 +5,8 @@ from fms_core.models import Individual
 from ..utils import normalize_scientific_name
 
 
-def get_or_create_individual(name=None, sex=Individual.SEX_UNKNOWN, taxon=None, pedigree=None, cohort=None,
+def get_or_create_individual(name,
+                             sex=Individual.SEX_UNKNOWN, taxon=None, pedigree=None, cohort=None,
                              mother=None, father=None):
     individual = None
     errors = []
