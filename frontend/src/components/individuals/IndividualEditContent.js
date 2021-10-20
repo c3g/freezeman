@@ -10,8 +10,7 @@ import {add, update, listTable} from "../../modules/individuals/actions";
 import {individual as EMPTY_INDIVIDUAL} from "../../models";
 import {SEX, TAXON} from "../../constants";
 import api, {withToken} from "../../utils/api";
-
-const requiredRules = [{ required: true, message: 'Missing field' }]
+import {requiredRules} from "../../constants";
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
