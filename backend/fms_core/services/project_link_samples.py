@@ -14,10 +14,8 @@ def create_link(sample=None, project=None):
         errors.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
         return (project_sample_link, errors, warnings)
 
-    link_data = dict(sample=sample, project=project)
-
     try:
-        project_sample_link = SampleByProject.objects.create(**link_data)
+        project_sample_link = SampleByProject.objects.create(sample=sample, project=project)
     except ValidationError as e:
         errors.append(str(e))
 
