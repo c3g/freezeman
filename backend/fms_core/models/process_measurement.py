@@ -14,7 +14,7 @@ from ._utils import add_error as _add_error
 
 __all__ = ["ProcessMeasurement"]
 
-PROTOCOLS_WITH_VOLUME_USED_REQUIRED = ['Extraction', 'Transfer']
+PROTOCOLS_WITH_VOLUME_USED_OPTIONAL = ['Update']
 PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED = ['Update']
 
 @reversion.register()
@@ -41,7 +41,7 @@ class ProcessMeasurement(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         if self.volume_used is None:
-            if self.process and self.protocol_name in PROTOCOLS_WITH_VOLUME_USED_REQUIRED:
+            if self.process and self.protocol_name not in PROTOCOLS_WITH_VOLUME_USED_OPTIONAL:
                 add_error("volume_used", f'volume_used by processes for protocol {self.protocol_name} must be specified')
 
         else:
