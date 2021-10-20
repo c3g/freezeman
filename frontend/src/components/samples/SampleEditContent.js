@@ -23,9 +23,7 @@ import {add, update, listTable, summary} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
-
-const requiredRules = [{ required: true, message: 'Missing field' }]
-const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/ }]
+import {requiredRules, nameRules} from "../../constants";
 
 // API functions
 

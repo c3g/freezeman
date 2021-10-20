@@ -9,14 +9,13 @@ import PageContent from "../PageContent";
 import * as Options from "../../utils/options"
 import {add, update, listTable} from "../../modules/users/actions";
 import {user as EMPTY_USER} from "../../models";
+import {requiredRules} from "../../constants";
 
 const hiddenField = {
   position: "absolute",
   top: -10000,
   left: -10000,
 }
-
-const requiredRules = [{ required: true, message: 'Missing field' }]
 
 const mapStateToProps = state => ({
   isFetching: state.users.isFetching,
