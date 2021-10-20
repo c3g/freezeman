@@ -5,7 +5,10 @@ from fms_core.template_importer.row_handlers.container_move import ContainerRowH
 
 class ContainerMoveImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'ContainerMove', 'header_row_nb': 5},
+        {
+            'name': 'ContainerMove', 'header_row_nb': 5,
+            'headers': ['Container Barcode to move', 'Dest. Location Barcode', 'Dest. Location Coord', 'Update Comment'],
+        },
     ]
 
     def __init__(self):

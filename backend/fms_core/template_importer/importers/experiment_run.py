@@ -5,8 +5,25 @@ from fms_core.template_importer.row_handlers.experiment_run import ExperimentRun
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'Experiments', 'header_row_nb': 8},
-        {'name': 'Samples', 'header_row_nb': 2},
+        {
+            'name': 'Experiments', 'header_row_nb': 8,
+            'headers': ['Experiment ID', 'Experiment Container Barcode', 'Experiment Container Kind', 'Instrument Name', 'Experiment Start Date',
+                        'MSA3 Plate Barcode', '0.1N NaOH formulation date', 'Reagent MA1 Barcode', 'Reagent MA2 Barcode',
+                        'Reagent MSM Barcode', 'Incubation time In Amplification', 'Incubation time Out Amplification', 'Comment Amplification',
+                        'Reagent FMS Barcode', 'Comment Fragmentation', 'Reagent PM1 Barcode', 'Reagent RA1 Barcode Precipitation', 'Comment Precipitation',
+                        'Hybridization Chip Barcodes', 'Hybridization Chamber Barcode', 'Reagent PB2 Barcode',
+                        'Reagent XC4 Barcode Hybridization', 'Incubation time In Hybridization', 'Incubation time Out Hybridization', 'Comment Hybridization',
+                        'Reagent PB1 Barcode Wash', 'Comment Wash',
+                        '95% form/EDTA', 'Reagent ATM Barcode', 'Reagent EML Barcode', 'Reagent LX1 Barcode',
+                        'Reagent LX2 Barcode', 'Reagent PB1 Barcode Stain', 'Reagent RA1 Barcode Stain',
+                        'Reagent SML Barcode', 'Reagent XC3 Barcode', 'Reagent XC4 Barcode Stain', 'Comment Stain',
+                        'SentrixBarcode_A', 'Scan Chip Rack Barcode', 'Comment Scan'],
+        },
+        {
+            'name': 'Samples', 'header_row_nb': 2,
+            'headers': ['Experiment ID', 'Source Container Barcode', 'Source Container Position', 'Source Sample Volume Used',
+                        'Experiment Container Position'],
+        },
     ]
 
     def __init__(self):

@@ -3,7 +3,13 @@ from fms_core.template_importer.row_handlers.container_creation import Container
 
 class ContainerCreationImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'ContainerCreation', 'header_row_nb': 5},
+        {
+            'name': 'ContainerCreation',
+            'header_row_nb': 5,
+            'headers': ['Container Kind', 'Container Name', 'Container Barcode', 'Parent Container Barcode',
+                        'Parent Container Coordinates'
+                        ],
+         },
     ]
 
     def __init__(self):

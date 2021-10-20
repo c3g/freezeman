@@ -5,7 +5,13 @@ from fms_core.template_importer.row_handlers.extraction import ExtractionRowHand
 
 class ExtractionImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'ExtractionTemplate', 'header_row_nb': 6},
+        {
+            'name': 'ExtractionTemplate', 'header_row_nb': 6,
+            'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Container Barcode', 'Source Container Coord',
+                        'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
+                        'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                        'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
+        },
     ]
 
 

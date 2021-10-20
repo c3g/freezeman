@@ -13,16 +13,20 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, header_row_nb):
+    def __init__(self, name, dataframe, header_row_nb, headers):
+        self.base_errors = []
+        self.is_valid = None
+
         self.name = name
         self.dataframe = dataframe
         self.header_row_nb = header_row_nb
+        self.headers = headers
 
-        self.dataframe.columns = self.dataframe.values[self.header_row_nb]
-        print('SheetData columns: ', self.dataframe.columns)
-
-        self.base_errors = []
-        self.is_valid = None
+        if self.headers == self.dataframe.values[self.header_row_nb].tolist():
+            self.dataframe.columns = self.dataframe.values[self.header_row_nb]
+            print('SheetData columns: ', self.dataframe.columns)
+        else:
+            self.base_errors.append(f"SheetData headers do not match the headers in the spreadsheet at row {self.header_row_nb}")
 
         self.prepare_rows()
 
@@ -46,10 +50,6 @@ class SheetData():
                 'warnings': [],
             }
             self.rows_results.append(result)
-
-    @property
-    def headers(self):
-        return self.dataframe.columns.tolist()
 
     def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)

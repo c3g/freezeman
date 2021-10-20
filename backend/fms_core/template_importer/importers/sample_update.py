@@ -7,7 +7,11 @@ from .._utils import float_to_decimal_and_none
 
 class SampleUpdateImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleUpdate', 'header_row_nb': 5},
+        {
+            'name': 'SampleUpdate', 'header_row_nb': 5,
+            'headers': ['Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
+                        'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment']
+        },
     ]
 
     def __init__(self):
