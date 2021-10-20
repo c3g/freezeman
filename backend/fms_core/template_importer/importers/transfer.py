@@ -5,7 +5,7 @@ from .._utils import float_to_decimal_and_none
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleTransfer', 'header_row_nb': 5,
+        {'name': 'SampleTransfer',
          'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 
                      'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                      'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
@@ -15,7 +15,6 @@ class TransferImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
         self.initialize_data_for_template()
 
 
