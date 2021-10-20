@@ -48,6 +48,7 @@ def create_sample(name, volume, collection_site, creation_date,
 
 def get_sample_from_container(barcode, coordinates=None):
     sample = None
+    container = None
     errors = []
     warnings = []
 
