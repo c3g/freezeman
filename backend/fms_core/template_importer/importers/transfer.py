@@ -5,7 +5,12 @@ from .._utils import float_to_decimal_and_none
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'SampleTransfer', 'header_row_nb': 5},
+        {'name': 'SampleTransfer', 'header_row_nb': 5,
+         'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 
+                     'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
+                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
+                     'Volume Used (uL)', 'Transfer Date', 'Comment'],
+        },
     ]
 
     def __init__(self):
