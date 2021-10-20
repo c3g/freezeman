@@ -5,9 +5,10 @@ from fms_core.models import Sample, Container
 from ..utils import RE_SEPARATOR, float_to_decimal
 
 
-def create_sample(name=None, volume=None, collection_site=None, creation_date=None,
-                  container=None, individual=None, sample_kind=None, coordinates=None,
-                  alias=None, concentration=None, tissue_source=None, phenotype=None,
+def create_sample(name, volume, collection_site, creation_date,
+                  container, sample_kind,
+                  individual=None,
+                  coordinates=None, alias=None, concentration=None, tissue_source=None, phenotype=None,
                   experimental_group=None, comment=None):
     sample = None
     errors = []
@@ -60,8 +61,9 @@ def create_sample(name=None, volume=None, collection_site=None, creation_date=No
     return (sample, errors, warnings)
 
 
-def get_sample_from_container(barcode=None, coordinates=None):
+def get_sample_from_container(barcode, coordinates=None):
     sample = None
+    container = None
     errors = []
     warnings = []
 
@@ -90,7 +92,8 @@ def get_sample_from_container(barcode=None, coordinates=None):
 
 
 
-def update_sample(sample_to_update, volume=None, concentration=None, depleted=None):
+def update_sample(sample_to_update,
+                  volume=None, concentration=None, depleted=None):
     errors = []
     warnings = []
 

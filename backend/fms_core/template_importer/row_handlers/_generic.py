@@ -42,6 +42,3 @@ class GenericRowHandler():
                 'validation_error': ValidationError(self.errors),
                 'warnings': warnings,
                 }
-
-    def has_errors(self):
-        return True if any(a != [] for a in self.errors.values()) else True

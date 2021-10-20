@@ -5,7 +5,13 @@ from .._utils import float_to_decimal_and_none
 
 class ExtractionImporter(GenericImporter):
     SHEETS_INFO = [
-        {'name': 'ExtractionTemplate', 'header_row_nb': 6},
+        {
+            'name': 'ExtractionTemplate',
+            'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Container Barcode', 'Source Container Coord',
+                        'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
+                        'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                        'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
+        },
     ]
 
 

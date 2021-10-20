@@ -4,7 +4,7 @@ from fms_core.models import Container
 
 from ..containers import CONTAINER_KIND_SPECS
 
-def get_container(barcode=None):
+def get_container(barcode):
     container = None
     errors = []
     warnings = []
@@ -20,7 +20,8 @@ def get_container(barcode=None):
     return (container, errors, warnings)
 
 
-def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None,
+def get_or_create_container(barcode,
+                            kind=None, name=None, coordinates=None,
                             container_parent=None, creation_comment=None):
     container = None
     created_entity = False
@@ -68,7 +69,8 @@ def get_or_create_container(barcode=None, kind=None, name=None, coordinates=None
 
     return (container, created_entity, errors, warnings)
 
-def create_container(barcode=None, kind=None, name=None, coordinates=None, container_parent=None, creation_comment=None):
+def create_container(barcode, kind,
+                     name=None, coordinates=None, container_parent=None, creation_comment=None):
     container = None
     errors = []
     warnings = []
@@ -122,7 +124,8 @@ def rename_container(container_to_update, barcode=None, name=None, update_commen
 
     return (container_to_update, errors, warnings)
 
-def move_container(container_to_move, destination_barcode=None, destination_coordinates=None, update_comment=None):
+def move_container(container_to_move, destination_barcode,
+                   destination_coordinates=None, update_comment=None):
     destination_container = None
     errors = []
     warnings = []
