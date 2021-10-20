@@ -14,9 +14,11 @@ def create_properties_from_values_and_types(properties, property_types_objs_dict
 
         if type(value).__name__ in ('datetime', 'time'):
             value = value.isoformat().replace("T00:00:00", "")
+        else:
+            value = str(value) if value else ' '
 
         try:
-            pv = PropertyValue.objects.create(value=str(value), property_type=property_type, content_object=process)
+            pv = PropertyValue.objects.create(value=value, property_type=property_type, content_object=process)
             property_values.append(pv)
         except ValidationError as e:
             errors.append(';'.join(e.messages))

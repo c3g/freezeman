@@ -83,7 +83,7 @@ class ExperimentRunImporter(GenericImporter):
                 if i < properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
-                    properties[key] = experiments_df.iloc[row_id][key]
+                    properties[key] = val
 
             experiment_temporary_id = experiment_run_dict['Experiment ID']
             experiment_sample_rows_info = [row_data for row_data in sample_rows_data if row_data['experiment_id'] == experiment_temporary_id ]
