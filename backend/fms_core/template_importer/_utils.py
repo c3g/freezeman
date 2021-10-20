@@ -1,5 +1,12 @@
 from pandas import pandas as pd
 from typing import Any
+from fms_core.utils import float_to_decimal
+
+def float_to_decimal_and_none(val):
+    if not val:
+        return val
+    else:
+        return float_to_decimal(val)
 
 def data_row_ids_range(starting_row, df):
     return range(starting_row, len(df))

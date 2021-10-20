@@ -29,6 +29,7 @@ class SampleRowHandler(GenericRowHandler):
             get_or_create_container(barcode=container['barcode'],
                                     kind=container['kind'],
                                     name=container['name'],
+                                    coordinates=container['coordinates'],
                                     container_parent=parent_container_obj,
                                     creation_comment=comment,
                                     )

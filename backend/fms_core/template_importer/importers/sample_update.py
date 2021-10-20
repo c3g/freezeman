@@ -3,6 +3,8 @@ from fms_core.models import Process, Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_update import SampleRowHandler
 
+from .._utils import float_to_decimal_and_none
+
 class SampleUpdateImporter(GenericImporter):
     SHEETS_INFO = [
         {'name': 'SampleUpdate', 'header_row_nb': 5},
@@ -10,10 +12,9 @@ class SampleUpdateImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
-        # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
+        self.initialize_data_for_template()
 
-    def preload_data_from_template(self):
+    def initialize_data_for_template(self):
         self.preloaded_data = {'process': None}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Update"),
@@ -29,19 +30,19 @@ class SampleUpdateImporter(GenericImporter):
                 'container': {'barcode': row_data['Container Barcode']}
             }
             sample_updated = {
-                'volume': row_data['New Volume (uL)'],
-                'concentration': row_data['New Conc. (ng/uL)'],
+                'volume': float_to_decimal_and_none(row_data['New Volume (uL)']),
+                'concentration': float_to_decimal_and_none(row_data['New Conc. (ng/uL)']),
                 'depleted': row_data['Depleted'],
             }
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
-                'volume_used': row_data['Delta Volume (uL)'],
                 'execution_date': row_data['Update Date'],
                 'comment': row_data['Update Comment'],
             }
 
             sample_update_kwargs = dict(
+                delta_volume=float_to_decimal_and_none(row_data['Delta Volume (uL)']),
                 sample=sample,
                 sample_updated=sample_updated,
                 process_measurement=process_measurement,
