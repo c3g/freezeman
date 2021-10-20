@@ -13,22 +13,22 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, header_row_nb, headers):
+    def __init__(self, name, dataframe, headers):
         self.base_errors = []
         self.is_valid = None
 
         self.name = name
         self.dataframe = dataframe
-        self.header_row_nb = header_row_nb
         self.headers = headers
 
-        if self.headers == self.dataframe.values[self.header_row_nb].tolist():
-            self.dataframe.columns = self.dataframe.values[self.header_row_nb]
-            print('SheetData columns: ', self.dataframe.columns)
+        if self.headers not in self.dataframe.values.tolist():
+            self.base_errors.append(f"SheetData headers could not be found.")
         else:
-            self.base_errors.append(f"SheetData headers do not match the headers in the spreadsheet at row {self.header_row_nb}")
+            self.dataframe.columns = self.headers
+            print('SheetData columns: ', self.dataframe.columns)
+            self.header_row_nb = self.dataframe.values.tolist().index(self.headers)
+            self.prepare_rows()
 
-        self.prepare_rows()
 
     def prepare_rows(self):
         print('SheetData - start preparing rows')
@@ -50,6 +50,7 @@ class SheetData():
                 'warnings': [],
             }
             self.rows_results.append(result)
+
 
     def generate_preview_info_from_rows_results(self, rows_results):
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)

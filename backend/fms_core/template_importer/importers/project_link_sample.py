@@ -4,7 +4,7 @@ from fms_core.template_importer.row_handlers.project_link_samples import Project
 class ProjectLinkSamples(GenericImporter):
     SHEETS_INFO = [
         {
-            'name': 'ProjectLinkSamples', 'header_row_nb': 6,
+            'name': 'ProjectLinkSamples',
             'headers': ['Action', 'Project Name', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
         },
     ]

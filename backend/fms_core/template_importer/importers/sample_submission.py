@@ -5,7 +5,7 @@ from fms_core.template_importer.row_handlers.sample_submission import SampleRowH
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = [
         {
-            'name': 'SampleSubmission', 'header_row_nb': 5,
+            'name': 'SampleSubmission',
             'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
                         'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
                         'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',

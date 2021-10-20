@@ -6,7 +6,7 @@ from fms_core.template_importer.row_handlers.container_rename import ContainerRo
 class ContainerRenameImporter(GenericImporter):
     SHEETS_INFO = [
         {
-            'name': 'ContainerRename', 'header_row_nb': 5,
+            'name': 'ContainerRename',
             'headers': ['Old Container Barcode', 'New Container Barcode', 'New Container Name', 'Update Comment'],
         },
     ]

@@ -5,7 +5,6 @@ class ContainerCreationImporter(GenericImporter):
     SHEETS_INFO = [
         {
             'name': 'ContainerCreation',
-            'header_row_nb': 5,
             'headers': ['Container Kind', 'Container Name', 'Container Barcode', 'Parent Container Barcode',
                         'Parent Container Coordinates'
                         ],

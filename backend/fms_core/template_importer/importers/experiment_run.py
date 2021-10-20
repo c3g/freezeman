@@ -6,7 +6,7 @@ from fms_core.template_importer.row_handlers.experiment_run import ExperimentRun
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
         {
-            'name': 'Experiments', 'header_row_nb': 8,
+            'name': 'Experiments',
             'headers': ['Experiment ID', 'Experiment Container Barcode', 'Experiment Container Kind', 'Instrument Name', 'Experiment Start Date',
                         'MSA3 Plate Barcode', '0.1N NaOH formulation date', 'Reagent MA1 Barcode', 'Reagent MA2 Barcode',
                         'Reagent MSM Barcode', 'Incubation time In Amplification', 'Incubation time Out Amplification', 'Comment Amplification',
@@ -20,7 +20,7 @@ class ExperimentRunImporter(GenericImporter):
                         'SentrixBarcode_A', 'Scan Chip Rack Barcode', 'Comment Scan'],
         },
         {
-            'name': 'Samples', 'header_row_nb': 2,
+            'name': 'Samples',
             'headers': ['Experiment ID', 'Source Container Barcode', 'Source Container Position', 'Source Sample Volume Used',
                         'Experiment Container Position'],
         },
