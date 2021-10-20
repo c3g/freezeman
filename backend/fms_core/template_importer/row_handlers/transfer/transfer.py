@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from fms_core.models import Sample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.sample import create_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.sample_lineage import create_sample_lineage
+
+from fms_core.utils import check_truth_like
 
 class TransferRowHandler(GenericRowHandler):
 
@@ -17,7 +18,7 @@ class TransferRowHandler(GenericRowHandler):
 
         if original_sample:
             if source_sample_info['depleted']:
-                original_sample.depleted = True if source_sample_info['depleted'] == "YES" else False
+                original_sample.depleted = original_sample.depleted or check_truth_like(source_sample_info['depleted'])
             original_sample.volume -= process_measurement_info['volume_used']
             original_sample.save()
 

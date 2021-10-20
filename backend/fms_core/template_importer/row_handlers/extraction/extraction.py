@@ -5,6 +5,7 @@ from fms_core.services.container import get_or_create_container, get_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.sample_lineage import create_sample_lineage
 
+from fms_core.utils import check_truth_like
 
 class ExtractionRowHandler(GenericRowHandler):
     def __init__(self):
@@ -17,10 +18,8 @@ class ExtractionRowHandler(GenericRowHandler):
             coordinates=source_sample['coordinates'])
 
         if original_sample:
-            original_sample_depleted = source_sample['depleted']
-            if original_sample_depleted:
-                original_sample.depleted = True if original_sample_depleted == 'YES' else False
-
+            if source_sample['depleted']:
+                original_sample.depleted = original_sample.depleted or check_truth_like(source_sample['depleted'])
             original_sample.volume -= process_measurement['volume_used']
             original_sample.save()
 

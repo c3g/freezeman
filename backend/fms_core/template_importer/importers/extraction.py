@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process, SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
-from .._utils import float_to_decimal
+from .._utils import float_to_decimal_and_none
 
 class ExtractionImporter(GenericImporter):
     SHEETS_INFO = [
@@ -27,9 +27,9 @@ class ExtractionImporter(GenericImporter):
         sheet = self.sheets['ExtractionTemplate']
 
         for row_id, row_data in enumerate(sheet.rows):
-            volume_decimal = float_to_decimal(row_data['Volume (uL)']) if row_data['Volume (uL)'] else None
-            volume_used_decimal = float_to_decimal(row_data['Volume Used (uL)']) if row_data['Volume Used (uL)'] else None
-            concentration_decimal = float_to_decimal(row_data['Conc. (ng/uL)']) if row_data['Conc. (ng/uL)'] else None
+            volume_decimal = float_to_decimal_and_none(row_data['Volume (uL)'])
+            volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
+            concentration_decimal = float_to_decimal_and_none(row_data['Conc. (ng/uL)'])
             extraction_date = row_data['Extraction Date']
             sample_kind = row_data['Extraction Type']
 

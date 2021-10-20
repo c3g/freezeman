@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
-from .._utils import float_to_decimal
+from .._utils import float_to_decimal_and_none
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = [
@@ -11,10 +11,10 @@ class TransferImporter(GenericImporter):
     def __init__(self):
         super().__init__()
         # Preload objects accessible to the whole template (not only by row)
-        self.preload_data_from_template()
+        self.initialize_data_for_template()
 
 
-    def preload_data_from_template(self):
+    def initialize_data_for_template(self):
         self.preloaded_data = {'process': None}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
@@ -24,7 +24,7 @@ class TransferImporter(GenericImporter):
         sheet = self.sheets['SampleTransfer']
 
         for row_id, row_data in enumerate(sheet.rows):
-            volume_used_decimal = float_to_decimal(row_data['Volume Used (uL)']) if row_data['Volume Used (uL)'] else None
+            volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
             transfer_date = row_data['Transfer Date']
 
             source_sample = {
