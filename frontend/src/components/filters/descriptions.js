@@ -144,7 +144,7 @@ export const CONTAINER_FILTERS = {
   },
   location: {
     type: FILTER_TYPE.INPUT,
-    key: "location__barcode",
+    key: "location__name",
     label: "Location",
   },
   samples: {
