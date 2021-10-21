@@ -74,7 +74,6 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "volume_used",
       sorter: true,
       align: "right",
-      className: "table-column-numbers",
       width: 180,
     },
     {
