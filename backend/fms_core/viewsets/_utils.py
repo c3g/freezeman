@@ -83,7 +83,7 @@ class TemplateActionsMixin:
 
         # not very readable... should be rewritten!
         return Response([
-            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if (k != "importer" and k != "resource")}
+            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if (k != "importer")}
             for a in self.template_action_list
         ])
 
