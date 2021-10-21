@@ -18,6 +18,7 @@ class ExperimentRunImporter(GenericImporter):
                         'Reagent LX2 Barcode', 'Reagent PB1 Barcode Stain', 'Reagent RA1 Barcode Stain',
                         'Reagent SML Barcode', 'Reagent XC3 Barcode', 'Reagent XC4 Barcode Stain', 'Comment Stain',
                         'SentrixBarcode_A', 'Scan Chip Rack Barcode', 'Comment Scan'],
+            'properties_starting_index': 5
         },
         {
             'name': 'Samples',
@@ -52,7 +53,6 @@ class ExperimentRunImporter(GenericImporter):
         """
             SAMPLES SHEET
         """
-        print('START SAMPLE SHEET')
         samples_sheet = self.sheets['Samples']
         sample_rows_data = []
         for i, row_data in enumerate(samples_sheet.rows):
@@ -79,17 +79,15 @@ class ExperimentRunImporter(GenericImporter):
         """
             EXPERIMENTS SHEET
         """
-        print('START EXPERIMENT SHEET')
         experiments_sheet = self.sheets['Experiments']
         experiments_df = experiments_sheet.dataframe
 
 
         # PRELOADING - Set values for global data
-        properties_starting_index = 5
         workflow_value = experiments_df.values[1][1]
 
         self.initialize_data_for_template(workflow=workflow_value,
-                                          properties=experiments_df.values[experiments_sheet.header_row_nb][properties_starting_index:].tolist())
+                                          properties=experiments_df.values[experiments_sheet.header_row_nb][experiments_sheet.properties_starting_index:].tolist())
 
 
         # Iterate through experiment rows
@@ -97,14 +95,13 @@ class ExperimentRunImporter(GenericImporter):
             experiment_run_dict = {}
             properties = {}
             for i, (key, val) in enumerate(row.items()):
-                if i < properties_starting_index:
+                if i < experiments_sheet.properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
                     properties[key] = val
 
             experiment_temporary_id = experiment_run_dict['Experiment ID']
             experiment_sample_rows_info = [row_data for row_data in sample_rows_data if row_data['experiment_id'] == experiment_temporary_id ]
-            print('importers exp run - sample rows for exp ', experiment_sample_rows_info)
 
             experiment_run_kwargs = dict(
                 # ExperimentRun attributes data dictionaries

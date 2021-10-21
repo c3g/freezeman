@@ -17,19 +17,12 @@ class GenericImporter():
         self.sheets = {}
         self.previews_info = []
 
-        print('Generic Importer - __init__ successful')
-
-
     def import_template(self, file, format, dry_run):
         self.file = file
 
-        print('file', file)
-
         for sheet_info in self.SHEETS_INFO:
             sheet_name = sheet_info['name']
-            print('sheet_name', sheet_name)
-            sheet_created = self.create_sheet_data(sheet_name=sheet_name,
-                                                   headers=sheet_info['headers'])
+            sheet_created = self.create_sheet_data(**sheet_info)
 
             if sheet_created.base_errors:
                 self.base_errors += sheet_created.base_errors
@@ -37,7 +30,6 @@ class GenericImporter():
             if sheet_created is not None:
                 self.sheets[sheet_name] = sheet_created
 
-        print('sheets')
 
         if not self.base_errors:
             with transaction.atomic():
