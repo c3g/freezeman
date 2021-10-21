@@ -42,12 +42,8 @@ def create_experiment_run(experiment_type_obj, process_obj, instrument, containe
                                                           process=process_obj,
                                                           start_date=start_date)
 
-            print('SERVICES - experiment_run: ', experiment_run)
-
         except ValidationError as e:
             errors.append(';'.join(e.messages))
-            print('SERVICES - experiment_run/exception: ', e)
-
 
     return (experiment_run, errors, warnings)
 
@@ -57,9 +53,6 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
     sample_objs = []
     errors = []
     warnings = []
-
-    print('SERVICES - experiment_run - associate_samples_to_experiment_run - samples info ',
-          samples_rows_info)
 
     for sample_info in samples_rows_info:
         sample_data_errors = []
@@ -73,10 +66,8 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
         if volume_used <= 0:
             sample_data_errors.append(f"Volume used ({volume_used}) is invalid ")
         if source_sample and volume_used > source_sample.volume:
-            sample_data_errors.append(
-                f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample.volume})")
+            sample_data_errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample.volume})")
 
-        print('sample data errors in services ', sample_data_errors)
         # Creates the new objects
         if not sample_data_errors:
             try:
@@ -108,12 +99,9 @@ def associate_samples_to_experiment_run(experiment_run, samples_rows_info):
                                              child=experiment_run_sample)
 
             except Exception as e:
-                print('in sample in services ', e)
                 sample_data_errors.append(e.messages)
-
 
         if not sample_data_errors:
             errors.append(sample_data_errors)
-
 
     return (sample_objs, errors, warnings)
