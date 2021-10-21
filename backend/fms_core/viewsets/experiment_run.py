@@ -5,7 +5,6 @@ from rest_framework.response import Response
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
-from fms_core.resources import ExperimentRunResource
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.template_paths import EXPERIMENT_INFINIUM_TEMPLATE
 
