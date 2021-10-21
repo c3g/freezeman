@@ -18,6 +18,7 @@ import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+import {subProtocols} from "../../constants";
 
 const getTableColumns = (samplesByID, protocols) => [
     {
@@ -123,6 +124,9 @@ const ProcessMeasurementsListContent = ({
     withToken(token, api.processMeasurements.listExport)
     (mergedListQueryParams(PROCESS_MEASUREMENT_FILTERS, filters, sortBy))
       .then(response => response.data)
+
+  protocols.items = protocols.items
+  .filter(protocol => !subProtocols.includes(protocol.name))
 
   const columns = getTableColumns(samplesByID, protocols)
   .map(c => Object.assign(c, getFilterProps(
