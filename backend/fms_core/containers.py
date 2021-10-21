@@ -71,6 +71,10 @@ class ContainerSpec:
         return self._coordinate_spec
 
     @property
+    def requires_coordinates(self) -> bool:
+        return bool(self._coordinate_spec)
+
+    @property
     def coordinate_overlap_allowed(self) -> bool:
         return self._coordinate_overlap_allowed
 
