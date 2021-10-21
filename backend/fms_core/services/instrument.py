@@ -8,5 +8,7 @@ def get_instrument(name):
         instrument = Instrument.objects.get(name=name)
     except Instrument.DoesNotExist as e:
         errors.append(f"No instrument named {name} could be found.")
+    except Instrument.MultipleObjectsReturned as e:
+        errors.append(f"More than one instrument was found with the name {name}.")
 
     return (instrument, errors, warnings)
