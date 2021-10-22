@@ -4,7 +4,6 @@ from rest_framework.response import Response
 
 from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
-from fms_core.resources import ProjectLinkSampleResource
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.template_paths import PROJECT_LINK_SAMPLES_TEMPLATE
 
