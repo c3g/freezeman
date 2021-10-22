@@ -1,11 +1,11 @@
-from datetime import datetime
-
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.process import create_processes_for_experiment_from_protocols_dict
+from fms_core.services.process import create_process
 from fms_core.services.property_value import create_properties_from_values_and_types
 from fms_core.services.experiment_run import (create_experiment_run, associate_samples_to_experiment_run)
 
+from fms_core.services.instrument import get_instrument
+from fms_core.services.container import create_container
 
 class ExperimentRunRowHandler(GenericRowHandler):
     def __init__(self):
@@ -18,29 +18,25 @@ class ExperimentRunRowHandler(GenericRowHandler):
         return super(self.__class__, self).process_row(**kwargs)
 
 
-    def process_row_inner(self, experiment_type_obj, instrument, container, start_date,
-                    sample_rows_info, properties, protocols_dict, properties_by_name_dict):
+    def process_row_inner(self, experiment_type_obj, instrument, container, start_date, comment,
+                          sample_rows_info, process_properties, protocols_dict):
 
-        comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z"
 
-        top_process_obj, experiment_processes_by_protocol_id, self.errors['process'], self.warnings['process'] = \
-            create_processes_for_experiment_from_protocols_dict(protocols_objs_dict=protocols_dict,
-                                                                creation_comment=comment)
+        instrument_obj, self.errors['instrument'], self.warnings['instrument'] = get_instrument(instrument['name'])
 
-        experiment_run, self.errors['experiment'], self.warnings['experiment'] = \
-            create_experiment_run(experiment_type_obj,
-                                  top_process_obj,
-                                  instrument,
-                                  container,
-                                  start_date,
-                                  )
+        container_obj, self.errors['container'], self.warnings['container'] = create_container(barcode=container['barcode'],
+                                                                                               kind=container['kind'],
+                                                                                               coordinates=None,
+                                                                                               creation_comment=comment)
 
-        if experiment_run:
-            _, self.errors['properties'], self.warnings['properties'] = \
-                create_properties_from_values_and_types(properties, properties_by_name_dict,
-                                                        experiment_processes_by_protocol_id)
-            print('experiment_run row-handler - properties/errors', self.errors['properties'])
-
-            samples, self.errors['samples'], self.warnings['samples'] = \
-                associate_samples_to_experiment_run(experiment_run, sample_rows_info)
-            print('experiment_run row-handler- samples/errors', self.errors['samples'])
+        if experiment_type_obj and instrument_obj and container_obj:
+            experiment_run, self.errors['experiment'], self.warnings['experiment'] = create_experiment_run(experiment_type_obj,
+                                                                                                           instrument_obj,
+                                                                                                           container_obj,
+                                                                                                           start_date,
+                                                                                                           comment,
+                                                                                                           sample_rows_info,
+                                                                                                           process_properties,
+                                                                                                           protocols_dict)
+        else:
+            self.errors['experiment'] = f"Errors prevent the creation of the experiment."

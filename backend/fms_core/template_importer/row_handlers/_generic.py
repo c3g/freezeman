@@ -21,17 +21,13 @@ class GenericRowHandler():
         self.row_object = None
 
     def process_row(self, **kwargs):
-        print('process row generic')
         if self.errors == {}:
-            print('self errors == {}')
             self.process_row_inner(**kwargs)
 
         result = self.get_result()
-        print('ROW_HANDLER generic result: ', result)
         return result
 
     def get_result(self):
-        print('ROW_HANDLER get_result errors', self.errors)
 
         warnings = []
         for (k, v) in (self.warnings).items():

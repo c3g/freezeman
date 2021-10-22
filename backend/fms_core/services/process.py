@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import Process, Protocol
 
-def create_process(protocol, create_child: bool=True, creation_comment=None, preloaded_structure=None):
-    process_structure = {}
+def create_process(protocol, create_children: bool=True, creation_comment=None, preloaded_protocols=None):
+    process_by_protocol_id = {}
     errors = []
     warnings = []
 
@@ -13,11 +13,11 @@ def create_process(protocol, create_child: bool=True, creation_comment=None, pre
             parent_process = Process.objects.create(protocol=protocol, comment=creation_comment or "")
         except ValidationError as e:
             errors.append(';'.join(e.messages))
-        process_structure[parent_process] = []
+        process_by_protocol_id[protocol.id] = parent_process
 
-        if create_child:
-            if preloaded_structure:
-                children = preloaded_structure[protocol]
+        if create_children:
+            if preloaded_protocols:
+                children = preloaded_protocols[protocol]
             else:
                 children = protocol.parent_of.all()
             
@@ -28,6 +28,6 @@ def create_process(protocol, create_child: bool=True, creation_comment=None, pre
                                                             comment=creation_comment or "")
                 except ValidationError as e:
                         errors.append(';'.join(e.messages))
-                process_structure[parent_process].append(child_process)
+                process_by_protocol_id[child_protocol.id] = child_process
 
-    return (process_structure, errors, warnings)
+    return (process_by_protocol_id, errors, warnings)

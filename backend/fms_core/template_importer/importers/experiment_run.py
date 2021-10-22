@@ -1,7 +1,8 @@
 from fms_core.models import ExperimentType, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
-
+from collections import defaultdict
+from datetime import datetime
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
@@ -32,7 +33,7 @@ class ExperimentRunImporter(GenericImporter):
 
 
     def initialize_data_for_template(self, workflow, properties):
-        self.preloaded_data = {'experiment_type': None, 'protocols_dict': {}, 'property_types_by_name': {}}
+        self.preloaded_data = {'experiment_type': {}, 'protocols_dict': {}, 'property_types_by_name': {}}
 
         # Preload ExperimentType and Protocols dict
         try:
@@ -40,12 +41,13 @@ class ExperimentRunImporter(GenericImporter):
 
             # Preload Protocols objects for this experiment type in a dictionary for faster access
             self.preloaded_data['protocols_dict'] = self.preloaded_data['experiment_type'].get_protocols_dict
+
         except Exception as e:
             self.base_errors.append(f"No experiment type with workflow {workflow} could be found.")
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
         try:
-            self.preloaded_data['property_types_by_name'] = {o.name: o for o in list(PropertyType.objects.filter(name__in=properties))}
+            self.preloaded_data['process_properties'] = {o.name: {'type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties))}
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 
@@ -54,14 +56,14 @@ class ExperimentRunImporter(GenericImporter):
             SAMPLES SHEET
         """
         samples_sheet = self.sheets['Samples']
-        sample_rows_data = []
+        sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_id': row_data['Experiment ID'],
                       'volume_used': row_data['Source Sample Volume Used'],
                       'experiment_container_coordinates': row_data['Experiment Container Position']
                       }
 
-            sample_kargs = dict(
+            sample_kwargs = dict(
                 barcode=row_data['Source Container Barcode'],
                 coordinates=row_data['Source Container Position'],
                 volume_used=sample['volume_used']
@@ -71,10 +73,10 @@ class ExperimentRunImporter(GenericImporter):
                 row_handler_class=SampleRowHandler,
                 sheet=samples_sheet,
                 row_i=i,
-                **sample_kargs,
+                **sample_kwargs,
             )
 
-            sample_rows_data.append(sample)
+            sample_rows_data[sample['experiment_id']].append(sample)
 
         """
             EXPERIMENTS SHEET
@@ -89,37 +91,29 @@ class ExperimentRunImporter(GenericImporter):
         self.initialize_data_for_template(workflow=workflow_value,
                                           properties=experiments_df.values[experiments_sheet.header_row_nb][experiments_sheet.properties_starting_index:].tolist())
 
-
         # Iterate through experiment rows
         for row_id, row in enumerate(experiments_sheet.rows):
             experiment_run_dict = {}
-            properties = {}
+            process_properties = self.preloaded_data['process_properties']
             for i, (key, val) in enumerate(row.items()):
                 if i < experiments_sheet.properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
-                    properties[key] = val
-
-            experiment_temporary_id = experiment_run_dict['Experiment ID']
-            experiment_sample_rows_info = [row_data for row_data in sample_rows_data if row_data['experiment_id'] == experiment_temporary_id ]
+                    process_properties[key]['value'] = val
 
             experiment_run_kwargs = dict(
-                # ExperimentRun attributes data dictionaries
-                instrument={
-                    'name': experiment_run_dict['Instrument Name']
-                },
-                container={
-                    'barcode': experiment_run_dict['Experiment Container Barcode'],
-                    'kind': experiment_run_dict['Experiment Container Kind']
-                },
+                # ExperimentRun attributes data dictionary and related objects
+                instrument={'name': experiment_run_dict['Instrument Name']},
+                container={'barcode': experiment_run_dict['Experiment Container Barcode'],
+                           'kind': experiment_run_dict['Experiment Container Kind']},
                 start_date=experiment_run_dict['Experiment Start Date'],
+                comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
                 # Additional data for this row
-                sample_rows_info=experiment_sample_rows_info,
-                properties=properties,
+                process_properties=process_properties,
+                sample_rows_info=sample_rows_data[experiment_run_dict['Experiment ID']],
                 # Preloaded data
                 experiment_type_obj=self.preloaded_data['experiment_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],
-                properties_by_name_dict=self.preloaded_data['property_types_by_name'],
             )
 
             (result, _) = self.handle_row(
