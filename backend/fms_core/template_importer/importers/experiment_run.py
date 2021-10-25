@@ -3,6 +3,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
 from collections import defaultdict
 from datetime import datetime
+from .._utils import float_to_decimal_and_none
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
@@ -59,7 +60,7 @@ class ExperimentRunImporter(GenericImporter):
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_id': row_data['Experiment ID'],
-                      'volume_used': row_data['Source Sample Volume Used'],
+                      'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
                       'experiment_container_coordinates': row_data['Experiment Container Position']
                       }
 
