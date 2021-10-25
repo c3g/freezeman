@@ -1,7 +1,10 @@
 from .auth import *
+from .biosample import Biosample
 from .container import Container
 from .container_move import ContainerMove
 from .container_rename import ContainerRename
+from .derived_by_sample import DerivedBySample
+from .derived_sample import DerivedSample
 from .extracted_sample import ExtractedSample
 from .transferred_sample import TransferredSample
 from .imported_file import ImportedFile
@@ -24,9 +27,12 @@ from .property_value import PropertyValue
 from .project import Project
 
 __all__ = [
+    "Biosample",
     "Container",
     "ContainerMove",
     "ContainerRename",
+    "DerivedBySample",
+    "DerivedSample",
     "ExtractedSample",
     "TransferredSample",
     "ImportedFile",
