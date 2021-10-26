@@ -5,6 +5,8 @@ from collections import defaultdict
 from datetime import datetime
 from .._utils import float_to_decimal_and_none
 
+PROPERTIES_STARTING_INDEX = 5
+
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
         {
@@ -20,7 +22,6 @@ class ExperimentRunImporter(GenericImporter):
                         'Reagent LX2 Barcode', 'Reagent PB1 Barcode Stain', 'Reagent RA1 Barcode Stain',
                         'Reagent SML Barcode', 'Reagent XC3 Barcode', 'Reagent XC4 Barcode Stain', 'Comment Stain',
                         'SentrixBarcode_A', 'Scan Chip Rack Barcode', 'Comment Scan'],
-            'properties_starting_index': 5
         },
         {
             'name': 'Samples',
@@ -31,6 +32,7 @@ class ExperimentRunImporter(GenericImporter):
 
     def __init__(self):
         super().__init__()
+        self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
 
     def initialize_data_for_template(self, workflow, properties):
@@ -48,7 +50,7 @@ class ExperimentRunImporter(GenericImporter):
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
         try:
-            self.preloaded_data['process_properties'] = {o.name: {'type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties))}
+            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties))}
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 
@@ -90,14 +92,14 @@ class ExperimentRunImporter(GenericImporter):
         workflow_value = experiments_df.values[1][1]
 
         self.initialize_data_for_template(workflow=workflow_value,
-                                          properties=experiments_df.values[experiments_sheet.header_row_nb][experiments_sheet.properties_starting_index:].tolist())
+                                          properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
 
         # Iterate through experiment rows
         for row_id, row in enumerate(experiments_sheet.rows):
             experiment_run_dict = {}
             process_properties = self.preloaded_data['process_properties']
             for i, (key, val) in enumerate(row.items()):
-                if i < experiments_sheet.properties_starting_index:
+                if i < self.properties_starting_index:
                     experiment_run_dict[key] = row[key]
                 else:
                     process_properties[key]['value'] = val

@@ -8,7 +8,7 @@ def create_process_properties(properties, processes_by_protocol_id):
 
     # Create property values for ExperimentRun
     for value_dict in properties.values():
-        property_type = value_dict['type_obj']
+        property_type = value_dict['property_type_obj']
         value = value_dict['value']
         process = processes_by_protocol_id[property_type.object_id]
 

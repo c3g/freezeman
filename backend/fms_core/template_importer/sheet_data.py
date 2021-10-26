@@ -13,7 +13,7 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, headers, properties_starting_index=None):
+    def __init__(self, name, dataframe, headers):
         self.base_errors = []
         self.is_valid = None
 
@@ -26,7 +26,6 @@ class SheetData():
         else:
             self.dataframe.columns = self.headers
             self.header_row_nb = self.dataframe.values.tolist().index(self.headers)
-            self.properties_starting_index = properties_starting_index
             self.prepare_rows()
 
 
