@@ -8,14 +8,14 @@ __all__ = ["Biosample"]
 
 @reversion.register()
 class Biosample(TrackedModel):
-    alias = models.CharField(max_length=200, blank=True, help_text="Alternative biosample name given by the "
+    alias = models.CharField(max_length=200, blank=True, null=True, help_text="Alternative biosample name given by the "
                                                                    "collaborator or customer.")
     individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT,
                                    related_name="biosamples", help_text="Individual associated with the biosample.")
 
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
                                                                  "of samples.")
-    comment = models.TextField(blank=True, help_text="Other relevant information about the biosample.")
+    comment = models.TextField(blank=True, null=True, help_text="Other relevant information about the biosample.")
 
     # Computed properties for individuals
 
