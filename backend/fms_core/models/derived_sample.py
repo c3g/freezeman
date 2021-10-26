@@ -110,7 +110,7 @@ class DerivedSample(TrackedModel):
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
 
-    library = models.CharField(max_length=200, blank=True)
+    library = models.CharField(max_length=200, blank=True, null=True)
 
-    index = models.CharField(max_length=200, blank=True)
+    index = models.CharField(max_length=200, blank=True, null=True)
 
