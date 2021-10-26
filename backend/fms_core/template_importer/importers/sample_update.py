@@ -25,7 +25,6 @@ class SampleUpdateImporter(GenericImporter):
                                                                 comment="Updated samples (imported from template)")
 
     def import_template_inner(self):
-        print('Import Sample Update Sheet - import template inner')
         sampleupdate_sheet = self.sheets['SampleUpdate']
 
         for row_id, row_data in enumerate(sampleupdate_sheet.rows):
@@ -58,5 +57,3 @@ class SampleUpdateImporter(GenericImporter):
                 row_i=row_id,
                 **sample_update_kwargs,
             )
-
-            print('sample update end of processing row ', row_id)

@@ -11,8 +11,6 @@ class SampleRowHandler(GenericRowHandler):
 
 
     def process_row_inner(self, delta_volume, sample, sample_updated, process_measurement):
-        print('start sample row handler')
-
         sample_to_update, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
@@ -43,8 +41,6 @@ class SampleRowHandler(GenericRowHandler):
                 depleted=depleted,
             )
 
-            print('sample update sample row handler', sample_to_update.__dict__)
-
             _, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
                     process=process_measurement['process'],
@@ -53,6 +49,3 @@ class SampleRowHandler(GenericRowHandler):
                     volume_used=volume_used,
                     comment=process_measurement['comment'],
                 )
-
-
-        print('sample_update/sample row handler ERRORS: ', self.errors)

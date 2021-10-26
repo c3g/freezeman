@@ -1,23 +1,29 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import Process
+from fms_core.models import Process, Protocol
 
-def create_processes_for_experiment_from_protocols_dict(protocols_objs_dict,
-                                                        creation_comment=None):
-    top_process = None
-    processes_by_protocol_id = {}
+def create_process(protocol, creation_comment=None, create_children: bool=False, children_protocols=None):
+    process_by_protocol_id = {}
     errors = []
     warnings = []
 
-    comment = creation_comment if creation_comment else ''
-    for protocol in protocols_objs_dict.keys():
-        top_process = Process.objects.create(protocol=protocol, comment="")
-        for subprotocol in protocols_objs_dict[protocol]:
-            try:
-                sp = Process.objects.create(protocol=subprotocol,
-                                            parent_process=top_process,
-                                            comment=comment)
-                processes_by_protocol_id[subprotocol.id] = sp
-            except ValidationError as e:
-               errors.append(';'.join(e.messages))
+    if not protocol:
+        errors.append(f"Protocol needed to create a process.")
+    else:
+        try:
+            parent_process = Process.objects.create(protocol=protocol, comment=creation_comment or "")
+        except ValidationError as e:
+            errors.append(';'.join(e.messages))
+        process_by_protocol_id[protocol.id] = parent_process
 
-    return (top_process, processes_by_protocol_id, errors, warnings)
+        if create_children:
+            children = children_protocols or protocol.parent_of.all()
+            for child_protocol in children:
+                try:
+                    child_process = Process.objects.create(protocol=child_protocol,
+                                                           parent_process = parent_process,
+                                                           comment=creation_comment or "")
+                except ValidationError as e:
+                        errors.append(';'.join(e.messages))
+                process_by_protocol_id[child_protocol.id] = child_process
+
+    return (process_by_protocol_id, errors, warnings)

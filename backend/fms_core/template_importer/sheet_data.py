@@ -25,20 +25,16 @@ class SheetData():
             self.base_errors.append(f"SheetData headers could not be found.")
         else:
             self.dataframe.columns = self.headers
-            print('SheetData columns: ', self.dataframe.columns)
             self.header_row_nb = self.dataframe.values.tolist().index(self.headers)
             self.prepare_rows()
 
 
     def prepare_rows(self):
-        print('SheetData - start preparing rows')
         self.rows = []
         self.rows_results = []
         for row_id in data_row_ids_range(self.header_row_nb + 1, self.dataframe):
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
-
-            print('row_data', row_data)
 
             row_repr = f"#{row_id + 2}"
 
