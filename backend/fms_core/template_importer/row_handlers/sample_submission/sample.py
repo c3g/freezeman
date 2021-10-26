@@ -15,8 +15,6 @@ class SampleRowHandler(GenericRowHandler):
 
     def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father,
                           sample_kind_objects_by_name):
-        print('start sample row handler')
-
         comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
@@ -34,9 +32,6 @@ class SampleRowHandler(GenericRowHandler):
                                     creation_comment=comment,
                                     )
 
-        print('Container', container_obj)
-
-
         # Individual related section
 
         mother_obj = None
@@ -46,7 +41,6 @@ class SampleRowHandler(GenericRowHandler):
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_FEMALE,
                                          )
-        print('Mother', mother_obj)
 
         father_obj = None
         if individual_father['name']:
@@ -55,7 +49,6 @@ class SampleRowHandler(GenericRowHandler):
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_MALE,
                                          )
-        print('Father', father_obj)
 
         individual_obj, self.errors['individual'], self.warnings['individual'] = \
             get_or_create_individual(name=individual['name'],
@@ -66,7 +59,6 @@ class SampleRowHandler(GenericRowHandler):
                                      mother=mother_obj,
                                      father=father_obj,
                                      )
-        print('Individual', individual_obj)
 
         # Sample related section
 
@@ -87,6 +79,3 @@ class SampleRowHandler(GenericRowHandler):
                 container=container_obj, individual=individual_obj, sample_kind=sample_kind_obj,
                 comment=comment
             )
-        print('SAMPLE OBJ', sample_obj)
-
-        print('sample_submission/sample row handler ERRORS: ', self.errors)

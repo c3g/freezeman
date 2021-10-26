@@ -111,8 +111,6 @@ class TemplateActionsMixin:
                     "error": str(e),
                     }],
             }
-
-        print('viewsets util result', result)
         return Response(result)
 
 
@@ -138,6 +136,5 @@ class TemplateActionsMixin:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                               content_type="application/json")
         except Exception as e:
-            print('utils viewsets ', e)
-
+            raise(e)
         return Response(status=204)

@@ -64,16 +64,15 @@ class GenericImporter():
         return import_result
 
 
-    def create_sheet_data(self, sheet_name, headers):
+    def create_sheet_data(self, name, headers, properties_starting_index=None):
         try:
-            pd_sheet = pd.read_excel(self.file, sheet_name=sheet_name)
+            pd_sheet = pd.read_excel(self.file, sheet_name=name)
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = pd_sheet.applymap(blank_and_nan_to_none)
-            return SheetData(name=sheet_name, dataframe=dataframe, headers=headers)
+            return SheetData(name=name, dataframe=dataframe, headers=headers, properties_starting_index=properties_starting_index)
 
         except Exception as e:
             self.base_errors.append(e)
-            print('Importers/Generic create_sheet_data exception ', e)
             return None
 
 

@@ -7,8 +7,9 @@ def create_process_properties(properties, processes_by_protocol_id):
     warnings = []
 
     # Create property values for ExperimentRun
-    for i, (property, value) in enumerate(properties.items()):
-        property_type = property['type_obj']
+    for value_dict in properties.values():
+        property_type = value_dict['type_obj']
+        value = value_dict['value']
         process = processes_by_protocol_id[property_type.object_id]
 
         if type(value).__name__ in ('datetime', 'time'):

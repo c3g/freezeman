@@ -17,8 +17,7 @@ class TransferRowHandler(GenericRowHandler):
 
         parent_barcode = destination_container_dict['parent_barcode']
         if parent_barcode:
-            container_parent, self.errors['parent_container'], self.warnings['parent_container'] = \
-                get_container(barcode=parent_barcode)
+            container_parent, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_barcode)
         else:
             container_parent = None
 
@@ -27,8 +26,7 @@ class TransferRowHandler(GenericRowHandler):
             kind=destination_container_dict['kind'],
             name=destination_container_dict['name'],
             coordinates=destination_container_dict['coordinates'],
-            container_parent=container_parent,
-        )
+            container_parent=container_parent)
 
         source_depleted = check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None
 
@@ -40,4 +38,5 @@ class TransferRowHandler(GenericRowHandler):
                                                                                                   coordinates_destination=resulting_sample['coordinates'],
                                                                                                   volume_destination=resulting_sample['volume'],
                                                                                                   source_depleted=source_depleted)
+
 

@@ -9,7 +9,6 @@ def load_template(importer, file):
         try:
             result = importer.import_template(file=file, format='xlsx', dry_run=False)
         except Exception as e:
-            print(e)
             result = {
                 'valid': False,
                 'base_errors': [{

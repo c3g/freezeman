@@ -30,17 +30,20 @@ class ExtractionRowHandler(GenericRowHandler):
 
         source_depleted = check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None
 
-        extracted_sample, self.errors['extracted_sample'], self.warnings['extracted_sample'] = transfer_sample(process=process_measurement['process'],
+        # Initialize the destination sample to set extraction specific informations in order to pass validation
+        sample_destination = Sample.objects.get(id=original_sample.id)
+        sample_destination.pk = None
+        sample_destination.concentration = resulting_sample['concentration']
+        sample_destination.sample_kind = resulting_sample['kind']
+        sample_destination.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_sample.sample_kind.name, "")
+
+        _, self.errors['extracted_sample'], self.warnings['extracted_sample'] = transfer_sample(process=process_measurement['process'],
                                                                                                                sample_source=original_sample,
                                                                                                                container_destination=destination_container,
                                                                                                                volume_used=process_measurement['volume_used'],
                                                                                                                date_execution=process_measurement['execution_date'],
+                                                                                                               sample_destination=sample_destination,
                                                                                                                coordinates_destination=resulting_sample['coordinates'],
                                                                                                                volume_destination=resulting_sample['volume'],
                                                                                                                source_depleted=source_depleted)
 
-        if extracted_sample: # Modify the transfered sample to have extraction specific information
-            extracted_sample.concentration = resulting_sample['concentration']
-            extracted_sample.sample_kind = resulting_sample['kind']
-            extracted_sample.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_sample.sample_kind.name, "")
-            extracted_sample.save()

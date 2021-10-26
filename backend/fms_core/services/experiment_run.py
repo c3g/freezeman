@@ -50,13 +50,13 @@ def create_experiment_run(experiment_type_obj,
             container_coordinates = sample_info['experiment_container_coordinates']
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
-            _, transfer_errors, transfer_warnings = transfer_sample(experiment_run.process,
-                                                                    source_sample,
-                                                                    container_obj,
-                                                                    volume_used,
-                                                                    start_date,
-                                                                    container_coordinates,
-                                                                    volume_destination,
+            _, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
+                                                                    sample_source=source_sample,
+                                                                    container_destination=container_obj,
+                                                                    volume_used=volume_used,
+                                                                    date_execution=start_date,
+                                                                    coordinates_destination=container_coordinates,
+                                                                    volume_destination=volume_destination,
                                                                     destination_depleted=True)
             errors += transfer_errors
             warnings += transfer_warnings

@@ -1,10 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
 from django.core.exceptions import ValidationError
-from backend.fms_core.models import sample_lineage
-from backend.fms_core.models.process import Process
-from backend.fms_core.services.sample_lineage import create_sample_lineage
-from fms_core.models import Sample, Container, ProcessMeasurement, SampleLineage
+from fms_core.models import Sample, Container, Process
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
@@ -119,11 +116,11 @@ def transfer_sample(process: Process,
                     container_destination: Container,
                     volume_used,
                     date_execution: datetime.date,
+                    sample_destination: Sample=None,
                     coordinates_destination=None,
                     volume_destination=None,
                     source_depleted: bool=None,
                     destination_depleted: bool=None):
-    sample_destination = None
     errors = []
     warnings = []
 
@@ -139,7 +136,7 @@ def transfer_sample(process: Process,
     if sample_source and volume_used > sample_source.volume:
         errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume})")
     
-    if not isinstance(date_execution, datetime.date):
+    if not isinstance(date_execution, date):
         errors.append(f"Date execution is not valid.")
     
     if not errors:
@@ -150,12 +147,13 @@ def transfer_sample(process: Process,
             sample_source.save()
 
             # Create destination sample
-            sample_destination = Sample.objects.get(id=sample_source.id)
-            sample_destination.pk = None
-            sample_destination.container = container_destination
+            if not sample_destination:
+                sample_destination = Sample.objects.get(id=sample_source.id)
+                sample_destination.pk = None
 
-            if coordinates_destination:
-                sample_destination.coordinates = coordinates_destination
+            sample_destination.container = container_destination
+            sample_destination.coordinates = coordinates_destination if coordinates_destination else ""
+            sample_destination.creation_date = date_execution
 
             sample_destination.volume = volume_destination if volume_destination else volume_used
             if destination_depleted is not None:
