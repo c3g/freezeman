@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
-from .._utils import (float_to_decimal_and_none, str_to_date_and_none)
+from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
 
 class TransferImporter(GenericImporter):
@@ -30,7 +30,7 @@ class TransferImporter(GenericImporter):
 
         for row_id, row_data in enumerate(sheet.rows):
             volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
-            transfer_date = str_to_date_and_none(row_data['Transfer Date'])
+            transfer_date = input_to_date_and_none(row_data['Transfer Date'])
 
             source_sample = {
                 'coordinates': row_data['Source Container Coord'],

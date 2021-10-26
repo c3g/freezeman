@@ -61,11 +61,6 @@ def create_sample(name, volume, collection_site, creation_date,
 
     return (sample, errors, warnings)
 
-def inherit_from_sample(sample):
-    child_sample = Sample.objects.get(id=sample.id)
-    child_sample.pk = None
-    return child_sample
-
 def get_sample_from_container(barcode, coordinates=None):
     sample = None
     container = None
@@ -152,7 +147,8 @@ def transfer_sample(process: Process,
 
             # Create destination sample
             if not sample_destination:
-                sample_destination = inherit_from_sample(sample_source)
+                sample_destination = Sample.objects.get(id=sample_source.id)
+                sample_destination.pk = None
 
             sample_destination.container = container_destination
             sample_destination.coordinates = coordinates_destination if coordinates_destination else ""

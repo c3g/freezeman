@@ -1,7 +1,7 @@
 from fms_core.models import Protocol, Process, SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
-from .._utils import (float_to_decimal_and_none, str_to_date_and_none)
+from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
 
 class ExtractionImporter(GenericImporter):
@@ -37,7 +37,7 @@ class ExtractionImporter(GenericImporter):
             volume_decimal = float_to_decimal_and_none(row_data['Volume (uL)'])
             volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
             concentration_decimal = float_to_decimal_and_none(row_data['Conc. (ng/uL)'])
-            extraction_date = str_to_date_and_none(row_data['Extraction Date'])
+            extraction_date = input_to_date_and_none(row_data['Extraction Date'])
             sample_kind = row_data['Extraction Type']
 
             source_sample = {
