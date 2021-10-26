@@ -13,7 +13,6 @@ class ProjectLinkSamples(GenericImporter):
         super().__init__()
 
     def import_template_inner(self):
-        print('Import Project Link Samples Sheet - import template inner')
         project_link_samples_sheet = self.sheets['ProjectLinkSamples']
 
         for row_id, row_data in enumerate(project_link_samples_sheet.rows):
@@ -41,5 +40,3 @@ class ProjectLinkSamples(GenericImporter):
                 row_i=row_id,
                 **project_link_samples_kwargs,
             )
-
-            print('project link samples end of processing row ', row_id)

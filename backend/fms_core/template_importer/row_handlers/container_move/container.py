@@ -20,5 +20,3 @@ class ContainerRowHandler(GenericRowHandler):
                 destination_coordinates=destination_container['destination_coordinates'],
                 update_comment=destination_container['comment'],
             )
-
-        print(self.errors)

@@ -8,13 +8,11 @@ from django.utils import timezone
 from typing import Optional, List
 
 from ..containers import (
-    CONTAINER_SPEC_TUBE,
-    CONTAINER_SPEC_TUBE_RACK_8X12,
     CONTAINER_KIND_SPECS,
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..schema_validators import JsonSchemaValidator, VOLUME_VALIDATOR, EXPERIMENTAL_GROUP_SCHEMA
+from ..schema_validators import JsonSchemaValidator, EXPERIMENTAL_GROUP_SCHEMA
 from ..utils import float_to_decimal, str_cast_and_normalize
 
 from .tracked_model import TrackedModel

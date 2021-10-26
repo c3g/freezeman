@@ -22,7 +22,6 @@ class SampleSubmissionImporter(GenericImporter):
         self.preloaded_data['sample_kind_objects_by_name'] = {sample_kind.name: sample_kind for sample_kind in SampleKind.objects.all()}
 
     def import_template_inner(self):
-        print('Import Sample Submission Sheet - import template inner')
         samples_sheet = self.sheets['SampleSubmission']
 
         for row_id, row_data in enumerate(samples_sheet.rows):
@@ -80,5 +79,3 @@ class SampleSubmissionImporter(GenericImporter):
                 row_i=row_id,
                 **sample_kwargs,
             )
-
-            print('sample submission end of processing row ', row_id)

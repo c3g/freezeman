@@ -142,11 +142,16 @@ export const CONTAINER_FILTERS = {
     key: "coordinates",
     label: "Coordinates",
   },
+  location: {
+    type: FILTER_TYPE.INPUT,
+    key: "location__name",
+    label: "Location",
+  },
   samples: {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
     label: "Sample name",
-  },
+  }
 }
 
 export const INDIVIDUAL_FILTERS = {

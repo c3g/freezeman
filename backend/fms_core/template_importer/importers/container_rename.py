@@ -15,7 +15,6 @@ class ContainerRenameImporter(GenericImporter):
         super().__init__()
 
     def import_template_inner(self):
-        print('Import Container Rename Sheet - import template inner')
         container_rename_sheet = self.sheets['ContainerRename']
 
         for row_id, row_data in enumerate(container_rename_sheet.rows):
@@ -39,5 +38,3 @@ class ContainerRenameImporter(GenericImporter):
                 row_i=row_id,
                 **container_rename_kwargs,
             )
-
-            print('container rename end of processing row ', row_id)

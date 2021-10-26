@@ -1,9 +1,10 @@
 import json
-from datetime import datetime
+from datetime import datetime, date
 from django.core.exceptions import ValidationError
-from fms_core.models import Sample, Container
+from fms_core.models import Sample, Container, Process
+from .process_measurement import create_process_measurement
+from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
-
 
 def create_sample(name, volume, collection_site, creation_date,
                   container, sample_kind,
@@ -60,7 +61,6 @@ def create_sample(name, volume, collection_site, creation_date,
 
     return (sample, errors, warnings)
 
-
 def get_sample_from_container(barcode, coordinates=None):
     sample = None
     container = None
@@ -91,9 +91,7 @@ def get_sample_from_container(barcode, coordinates=None):
     return (sample, errors, warnings)
 
 
-
-def update_sample(sample_to_update,
-                  volume=None, concentration=None, depleted=None):
+def update_sample(sample_to_update, volume=None, concentration=None, depleted=None):
     errors = []
     warnings = []
 
@@ -110,3 +108,72 @@ def update_sample(sample_to_update,
         errors.append(str(e))
 
     return (sample_to_update, errors, warnings)
+
+
+def transfer_sample(process: Process,
+                    sample_source: Sample,
+                    container_destination: Container,
+                    volume_used,
+                    date_execution: datetime.date,
+                    sample_destination: Sample=None,
+                    coordinates_destination=None,
+                    volume_destination=None,
+                    source_depleted: bool=None,
+                    destination_depleted: bool=None):
+    errors = []
+    warnings = []
+
+    if not process:
+        errors.append(f"Process for transfer is required.")
+    if not sample_source:
+        errors.append(f"Source sample for transfer is required.")
+    if not container_destination:
+        errors.append(f"Destination container for transfer is required.")
+
+    if volume_used <= 0:
+        errors.append(f"Volume used ({volume_used}) is invalid ")
+    if sample_source and volume_used > sample_source.volume:
+        errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume})")
+    
+    if not isinstance(date_execution, date):
+        errors.append(f"Date execution is not valid.")
+    
+    if not errors:
+        try:
+            if source_depleted is not None:
+                sample_source.depleted = sample_source.depleted or source_depleted
+            sample_source.volume = sample_source.volume - volume_used
+            sample_source.save()
+
+            # Create destination sample
+            if not sample_destination:
+                sample_destination = Sample.objects.get(id=sample_source.id)
+                sample_destination.pk = None
+
+            sample_destination.container = container_destination
+            sample_destination.coordinates = coordinates_destination if coordinates_destination else ""
+            sample_destination.creation_date = date_execution
+
+            sample_destination.volume = volume_destination if volume_destination else volume_used
+            if destination_depleted is not None:
+                sample_destination.depleted = destination_depleted
+            sample_destination.save()
+
+            process_measurement, errors_process_measurement, warnings_process_measurement = create_process_measurement(process=process,
+                                                                                                                       source_sample=sample_source,
+                                                                                                                       execution_date=date_execution,
+                                                                                                                       volume_used=volume_used)
+            errors.extend(errors_process_measurement)
+            warnings.extend(warnings_process_measurement)
+
+            if process_measurement:
+                _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=sample_source,
+                                                                                          child_sample=sample_destination,
+                                                                                          process_measurement=process_measurement)
+                errors.extend(errors_sample_lineage)
+                warnings.extend(warnings_sample_lineage)
+
+        except Exception as e:
+            errors.append(';'.join(e.messages))
+
+    return (sample_destination, errors, warnings)

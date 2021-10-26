@@ -17,8 +17,6 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
 
 
     def process_row_inner(self, sample, project, action):
-        print('start project link samples row handler')
-
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample["sample_container_barcode"],
                                                                                                coordinates=sample["sample_container_coord"])
@@ -36,8 +34,3 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
             # Remove link object if no errors
             num_objects_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
                                                                                           project=project_obj)
-
-        print('SAMPLE OBJ', sample_obj)
-        print('PROJECT OBJ', project_obj)
-
-        print('project link samples/ row handler ERRORS: ', self.errors)

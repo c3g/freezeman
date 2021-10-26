@@ -15,7 +15,6 @@ class ContainerMoveImporter(GenericImporter):
         super().__init__()
 
     def import_template_inner(self):
-        print('Import Container Rename Sheet - import template inner')
         container_move_sheet = self.sheets['ContainerMove']
 
         for row_id, row_data in enumerate(container_move_sheet.rows):
@@ -39,5 +38,3 @@ class ContainerMoveImporter(GenericImporter):
                 row_i=row_id,
                 **container_move_kwargs,
             )
-
-            print('container move end of processing row ', row_id)

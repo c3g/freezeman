@@ -1,9 +1,23 @@
 from pandas import pandas as pd
 from typing import Any
 from fms_core.utils import float_to_decimal
+import datetime
 
 def float_to_decimal_and_none(val):
     return float_to_decimal(val) if val else None
+
+def input_to_date_and_none(date_input):
+    if not date_input: 
+        return None
+    elif isinstance(date_input, datetime.date):
+        return date_input
+    else:
+        year, month, day = date_input.split("-")
+        try:
+            date = datetime.datetime(int(year), int(month), int(day))
+        except ValueError:
+            date = None
+        return date
 
 def data_row_ids_range(starting_row, df):
     return range(starting_row, len(df))
