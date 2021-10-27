@@ -3,6 +3,9 @@ from django.db import models
 from typing import Optional
 from .tracked_model import TrackedModel
 
+from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._validators import name_validator
+
 __all__ = ["Biosample"]
 
 
@@ -16,6 +19,8 @@ class Biosample(TrackedModel):
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
                                                                  "of samples.")
     comment = models.TextField(blank=True, null=True, help_text="Other relevant information about the biosample.")
+
+    temp_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator], help_text="Temporary name")
 
     # Computed properties for individuals
 
