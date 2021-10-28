@@ -77,16 +77,9 @@ class Migration(migrations.Migration):
                 INSERT INTO fms_core_biosample (individual_id, alias, collection_site, comment, created_at, created_by_id, updated_at, updated_by_id, deleted, temp_name)
                 SELECT sample.individual_id, sample.alias, sample.collection_site, sample.comment, sample.created_at, sample.created_by_id, current_timestamp, 1, FALSE, sample.name
                 FROM fms_core_sample sample
-                INNER JOIN
-                (
-                        SELECT individual_id, collection_site, name, MIN(created_at) min_created_at
-                        FROM fms_core_sample
-                        GROUP BY name, individual_id, collection_site
-                ) grouped_sample ON
-                    sample.individual_id = grouped_sample.individual_id
-                    AND sample.collection_site = grouped_sample.collection_site
-                    AND sample.created_at = grouped_sample.min_created_at
-                    AND sample.name = grouped_sample.name;
+                WHERE sample.id NOT IN (
+                    SELECT child_id FROM fms_core_samplelineage
+                );
             """,
             migrations.RunSQL.noop
         ),
