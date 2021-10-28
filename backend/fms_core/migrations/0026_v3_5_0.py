@@ -74,6 +74,7 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
+                -- Create biosamples from parent samples and samples not having lineages (samples excluded are those who are children samples)
                 INSERT INTO fms_core_biosample (individual_id, alias, collection_site, comment, created_at, created_by_id, updated_at, updated_by_id, deleted, root_sample_id)
                 SELECT sample.individual_id, sample.alias, sample.collection_site, sample.comment, sample.created_at, sample.created_by_id, current_timestamp, 1, FALSE, sample.id
                 FROM fms_core_sample sample
@@ -85,8 +86,9 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted)
-                SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE
+                -- Insert into DerivedSample data from samples with existing lineage (eitehr as a parent or as a child)
+                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
+                SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
                 FROM
                 (
                     WITH RECURSIVE derived AS (
@@ -119,4 +121,27 @@ class Migration(migrations.Migration):
             """,
             migrations.RunSQL.noop
         ),
+        migrations.RunSQL(
+            """
+                --  Insert into DerivedSample data from samples with NO existing lineage (sample must be not a parent nor a child)
+                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
+                SELECT b.id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
+                FROM fms_core_sample s
+                JOIN fms_core_biosample b
+                ON b.root_sample_id = s.id
+                WHERE s.id NOT IN (SELECT child_id FROM fms_core_samplelineage)
+                AND s.id NOT IN (SELECT parent_id FROM fms_core_samplelineage);
+            """,
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            """
+                --  Create DerivedBySample from DerivedSample data directly
+                INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
+                SELECT id, sample_id, 1, created_at, created_by_id, updated_at, updated_by_id, deleted
+                FROM fms_core_derivedsample;
+            """,
+            migrations.RunSQL.noop
+        ),
+        #TODO: remove temporary attributes on models
     ]
