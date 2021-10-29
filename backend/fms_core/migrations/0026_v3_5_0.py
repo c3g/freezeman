@@ -96,28 +96,28 @@ class Migration(migrations.Migration):
                         FROM fms_core_samplelineage samplelineage
                         WHERE samplelineage.parent_id IN
                               (SELECT id FROM fms_core_sample WHERE id NOT IN (SELECT child_id FROM fms_core_samplelineage))
-                
+
                         UNION ALL
                              SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derived.root_sample_id
                              FROM fms_core_samplelineage sl2
                              JOIN derived
                                  ON derived.child_id = sl2.parent_id
                     )
-                    SELECT biosample.id AS biosample_id, derived.child_id AS sample_id
+                    SELECT derived.child_id AS sample_id, biosample.id AS biosample_id
                     FROM derived
                     JOIN fms_core_biosample biosample
                     ON biosample.root_sample_id = derived.root_sample_id
-                
+
                     UNION ALL
-                
-                    SELECT bs.id AS biosample_id, derived.parent_id AS sample_id
+
+                    SELECT DISTINCT(derived.parent_id) AS sample_id, bs.id AS biosample_id
                     FROM derived
                     JOIN fms_core_biosample bs
                     ON bs.root_sample_id = derived.root_sample_id
                     AND derived.parent_id NOT IN (SELECT child_id FROM fms_core_samplelineage)
                 ) t
                 JOIN fms_core_sample s
-                ON t.sample_id = s.id;
+                ON t.sample_id = s.id
             """,
             migrations.RunSQL.noop
         ),
