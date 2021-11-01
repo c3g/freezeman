@@ -7,7 +7,6 @@ import fms_core.schema_validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('fms_core', '0025_v3_5_0'),
@@ -21,13 +20,25 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('alias', models.CharField(blank=True, help_text='Alternative biosample name given by the collaborator or customer.', max_length=200, null=True)),
-                ('collection_site', models.CharField(help_text='The facility designated for the collection of samples.', max_length=200)),
-                ('comment', models.TextField(blank=True, help_text='Other relevant information about the biosample.', null=True)),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_biosample_creation', to=settings.AUTH_USER_MODEL)),
-                ('individual', models.ForeignKey(blank=True, help_text='Individual associated with the biosample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='biosamples', to='fms_core.individual')),
-                ('root_sample', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='biosamples', to='fms_core.sample')),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_biosample_modification', to=settings.AUTH_USER_MODEL)),
+                ('alias', models.CharField(blank=True,
+                                           help_text='Alternative biosample name given by the collaborator or customer.',
+                                           max_length=200, null=True)),
+                ('collection_site',
+                 models.CharField(help_text='The facility designated for the collection of samples.', max_length=200)),
+                ('comment',
+                 models.TextField(blank=True, help_text='Other relevant information about the biosample.', null=True)),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_biosample_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('individual',
+                 models.ForeignKey(blank=True, help_text='Individual associated with the biosample.', null=True,
+                                   on_delete=django.db.models.deletion.PROTECT, related_name='biosamples',
+                                   to='fms_core.individual')),
+                ('root_sample', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT,
+                                                  related_name='biosamples', to='fms_core.sample')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_biosample_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
@@ -40,16 +51,39 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('experimental_group', models.JSONField(blank=True, default=list, help_text='Sample group having some common characteristics. It is the way to designate a subgroup within a study.', validators=[fms_core.schema_validators.JsonSchemaValidator({'$id': 'fms:experimental_group', '$schema': 'http://json-schema.org/draft-07/schema#', 'description': 'Schema used to define experimental groups for a sample.', 'items': {'minLength': 1, 'type': 'string'}, 'title': 'Experimental group schema', 'type': 'array', 'uniqueItems': True}, formats=None)])),
-                ('tissue_source', models.CharField(blank=True, choices=[('BAL', 'BAL'), ('Biopsy', 'Biopsy'), ('Blood', 'Blood'), ('Cells', 'Cells'), ('Expectoration', 'Expectoration'), ('Gargle', 'Gargle'), ('Plasma', 'Plasma'), ('Saliva', 'Saliva'), ('Swab', 'Swab'), ('Tumor', 'Tumor'), ('Buffy coat', 'Buffy coat'), ('Tail', 'Tail')], help_text='Can only be specified if the biospecimen type is DNA or RNA.', max_length=200)),
+                ('experimental_group', models.JSONField(blank=True, default=list,
+                                                        help_text='Sample group having some common characteristics. It is the way to designate a subgroup within a study.',
+                                                        validators=[fms_core.schema_validators.JsonSchemaValidator(
+                                                            {'$id': 'fms:experimental_group',
+                                                             '$schema': 'http://json-schema.org/draft-07/schema#',
+                                                             'description': 'Schema used to define experimental groups for a sample.',
+                                                             'items': {'minLength': 1, 'type': 'string'},
+                                                             'title': 'Experimental group schema', 'type': 'array',
+                                                             'uniqueItems': True}, formats=None)])),
+                ('tissue_source', models.CharField(blank=True,
+                                                   choices=[('BAL', 'BAL'), ('Biopsy', 'Biopsy'), ('Blood', 'Blood'),
+                                                            ('Cells', 'Cells'), ('Expectoration', 'Expectoration'),
+                                                            ('Gargle', 'Gargle'), ('Plasma', 'Plasma'),
+                                                            ('Saliva', 'Saliva'), ('Swab', 'Swab'), ('Tumor', 'Tumor'),
+                                                            ('Buffy coat', 'Buffy coat'), ('Tail', 'Tail')],
+                                                   help_text='Can only be specified if the biospecimen type is DNA or RNA.',
+                                                   max_length=200)),
                 ('library', models.CharField(blank=True, max_length=200, null=True)),
                 ('index', models.CharField(blank=True, max_length=200, null=True)),
-                ('biosample', models.ForeignKey(help_text='Biosample associated to this DerivedSample', on_delete=django.db.models.deletion.PROTECT, related_name='derived_samples', to='fms_core.biosample')),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_derivedsample_creation', to=settings.AUTH_USER_MODEL)),
-                ('sample_kind', models.ForeignKey(help_text='Biological material collected from study subject during the conduct of a genomic study project.', on_delete=django.db.models.deletion.PROTECT, to='fms_core.samplekind')),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_derivedsample_modification', to=settings.AUTH_USER_MODEL)),
+                ('biosample', models.ForeignKey(help_text='Biosample associated to this DerivedSample',
+                                                on_delete=django.db.models.deletion.PROTECT,
+                                                related_name='derived_samples', to='fms_core.biosample')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_derivedsample_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('sample_kind', models.ForeignKey(
+                    help_text='Biological material collected from study subject during the conduct of a genomic study project.',
+                    on_delete=django.db.models.deletion.PROTECT, to='fms_core.samplekind')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_derivedsample_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
                 ('sample', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT,
-                                                  related_name='derived_samples', to='fms_core.sample')),
+                                             related_name='derived_samples', to='fms_core.sample')),
             ],
             options={
                 'abstract': False,
@@ -63,10 +97,18 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('volume_ratio', models.DecimalField(decimal_places=3, help_text='Volume ratio', max_digits=4)),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_derivedbysample_creation', to=settings.AUTH_USER_MODEL)),
-                ('derived_sample', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='derived_by_samples', to='fms_core.derivedsample')),
-                ('sample', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='derived_by_samples', to='fms_core.sample')),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_derivedbysample_modification', to=settings.AUTH_USER_MODEL)),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_derivedbysample_creation',
+                                                 to=settings.AUTH_USER_MODEL)),
+                ('derived_sample',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='derived_by_samples',
+                                   to='fms_core.derivedsample')),
+                ('sample',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='derived_by_samples',
+                                   to='fms_core.sample')),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
+                                                 related_name='fms_core_derivedbysample_modification',
+                                                 to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
@@ -110,7 +152,7 @@ class Migration(migrations.Migration):
                         FROM fms_core_samplelineage samplelineage
                         WHERE samplelineage.parent_id IN
                               (SELECT id FROM fms_core_sample WHERE id NOT IN (SELECT child_id FROM fms_core_samplelineage))
-    
+
                         UNION ALL
                              SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derived.root_sample_id
                              FROM fms_core_samplelineage sl2
@@ -132,20 +174,18 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                -- Insert into DerivedSample data from children samples from samplelineage
-                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
                 SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
                 FROM
                 (
                     -- Recursive sample lineage CTE query
                     WITH RECURSIVE derived AS (
-                        SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id
+                        SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id,
+                               samplelineage.process_measurement_id
                         FROM fms_core_samplelineage samplelineage
                         WHERE samplelineage.parent_id IN
                               (SELECT id FROM fms_core_sample WHERE id NOT IN (SELECT child_id FROM fms_core_samplelineage))
-
                         UNION ALL
-                             SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derived.root_sample_id
+                             SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derived.root_sample_id, sl2.process_measurement_id
                              FROM fms_core_samplelineage sl2
                              JOIN derived
                                  ON derived.child_id = sl2.parent_id
@@ -162,11 +202,11 @@ class Migration(migrations.Migration):
                     ON process.id = processmeasurement.process_id
                     JOIN fms_core_protocol protocol
                     ON protocol.id = process.protocol_id
-                    WHERE protocol.name != 'Transfer';
+                    WHERE protocol.name != 'Transfer'
                 ) t
                 -- Join sample to the sample from the samplelineage in order to get the sample attr to insert into the DerivedSample
                 JOIN fms_core_sample s
-                ON t.sample_id = s.id
+                ON t.sample_id = s.id;
             """,
             migrations.RunSQL.noop
         ),
@@ -179,5 +219,5 @@ class Migration(migrations.Migration):
             """,
             migrations.RunSQL.noop
         ),
-        #TODO: remove temporary attributes on models
+        # TODO: remove temporary attributes on models
     ]
