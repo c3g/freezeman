@@ -226,8 +226,8 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             """
                 -- Create DerivedBySample based on parent-only samples based on SampleLineage
-                INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
-                SELECT derivedsample.id, samplelineage.parent_id, 1, processmeasurement.created_at, processmeasurement.created_by_id,
+                INSERT INTO fms_core_derivedbysample (sample_id, derived_sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
+                SELECT DISTINCT(samplelineage.parent_id), derivedsample.id, 1, processmeasurement.created_at, processmeasurement.created_by_id,
                        current_timestamp, 1, FALSE
                 FROM fms_core_samplelineage samplelineage
                 JOIN fms_core_derivedsample derivedsample ON derivedsample.sample_id = parent_id
