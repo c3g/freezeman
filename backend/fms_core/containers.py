@@ -24,7 +24,10 @@ __all__ = [
     "CONTAINER_SPEC_TUBE_BOX_10X10",
     "CONTAINER_SPEC_TUBE_RACK_8X12",
     "CONTAINER_SPEC_DRAWER",
+    "CONTAINER_SPEC_FREEZER_RACK_2X4",
     "CONTAINER_SPEC_FREEZER_RACK_4X4",
+    "CONTAINER_SPEC_FREEZER_RACK_5X4",
+    "CONTAINER_SPEC_FREEZER_RACK_6X4",
     "CONTAINER_SPEC_FREEZER_RACK_7X4",
     "CONTAINER_SPEC_FREEZER_RACK_8X6",
     "CONTAINER_SPEC_FREEZER_3_SHELVES",
@@ -299,9 +302,33 @@ CONTAINER_SPEC_DRAWER = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_FREEZER_RACK_2X4 = ContainerSpec(
+    container_kind_id="freezer rack 2x4",
+    coordinate_spec=(alphas(2), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_FREEZER_RACK_4X4 = ContainerSpec(
     container_kind_id="freezer rack 4x4",
     coordinate_spec=(alphas(4), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_FREEZER_RACK_5X4 = ContainerSpec(
+    container_kind_id="freezer rack 5x4",
+    coordinate_spec=(alphas(5), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_FREEZER_RACK_6X4 = ContainerSpec(
+    container_kind_id="freezer rack 6x4",
+    coordinate_spec=(alphas(6), ints(4, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
@@ -332,7 +359,10 @@ CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
 )
 
 FREEZER_RACK_SPECS = (
+    CONTAINER_SPEC_FREEZER_RACK_2X4,
     CONTAINER_SPEC_FREEZER_RACK_4X4,
+    CONTAINER_SPEC_FREEZER_RACK_5X4,
+    CONTAINER_SPEC_FREEZER_RACK_6X4,
     CONTAINER_SPEC_FREEZER_RACK_7X4,
     CONTAINER_SPEC_FREEZER_RACK_8X6,
     CONTAINER_SPEC_FREEZER_RACK_11X6,
