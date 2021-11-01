@@ -227,9 +227,10 @@ class Migration(migrations.Migration):
             """
                 -- Create DerivedBySample based on parent-only samples based on SampleLineage
                 INSERT INTO fms_core_derivedbysample (sample_id, derived_sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
-                SELECT DISTINCT(samplelineage.parent_id), derivedsample.id, 1, processmeasurement.created_at, processmeasurement.created_by_id,
+                SELECT DISTINCT(samplelineage.parent_id), derivedsample.id, 1, sample.created_at, sample.created_by_id,
                        current_timestamp, 1, FALSE
                 FROM fms_core_samplelineage samplelineage
+                JOIN fms_core_sample sample ON sample.id = samplelineage.parent_id
                 JOIN fms_core_derivedsample derivedsample ON derivedsample.sample_id = parent_id
                 JOIN fms_core_processmeasurement processmeasurement ON processmeasurement.id = samplelineage.process_measurement_id
                 WHERE parent_id NOT IN (SELECT child_id FROM fms_core_samplelineage);
