@@ -225,7 +225,19 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                -- Create DerivedBySample based on SampleLineage hierarchy
+                -- Create DerivedBySample based on parent-only samples based on SampleLineage
+                INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
+                SELECT derivedsample.id, samplelineage.parent_id, 1, processmeasurement.created_at, processmeasurement.created_by_id,
+                       current_timestamp, 1, FALSE
+                FROM fms_core_samplelineage samplelineage
+                JOIN fms_core_derivedsample derivedsample ON derivedsample.sample_id = parent_id
+                JOIN fms_core_processmeasurement processmeasurement ON processmeasurement.id = samplelineage.process_measurement_id
+                WHERE parent_id NOT IN (SELECT child_id FROM fms_core_samplelineage);
+            """
+        ),
+        migrations.RunSQL(
+            """
+                -- Create DerivedBySample based on SampleLineage hierarchy with children sample 
                 INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
                 SELECT q.derivedsample_id, q.child_sample_id, 1, q.pm_created_at, q.pm_created_by_id, current_timestamp, 1, FALSE
                 FROM (
