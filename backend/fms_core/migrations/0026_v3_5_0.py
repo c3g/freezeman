@@ -141,6 +141,17 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
+                --  Create DerivedBySample for samples with NO existing lineage (sample must be not a parent nor a child)
+                INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
+                SELECT id, sample_id, 1, created_at, created_by_id, updated_at, updated_by_id, deleted
+                FROM fms_core_derivedsample derivedsample
+                WHERE derivedsample.sample_id NOT IN (SELECT parent_id FROM fms_core_samplelineage) 
+                  AND derivedsample.sample_id NOT IN (SELECT child_id FROM fms_core_samplelineage);
+            """,
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            """
                 -- Insert into DerivedSample data from parent samples from samplelineage
                 INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
                 SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
@@ -168,12 +179,14 @@ class Migration(migrations.Migration):
                 ) t
                 -- Join sample to the sample from the samplelineage in order to get the sample attr to insert into the DerivedSample
                 JOIN fms_core_sample s
-                ON t.sample_id = s.id
+                ON t.sample_id = s.id;
             """,
             migrations.RunSQL.noop
         ),
         migrations.RunSQL(
             """
+                -- Insert into DerivedSample data from children samples from samplelineage, except those related to Transfer process
+                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
                 SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
                 FROM
                 (
@@ -212,12 +225,61 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                --  Create DerivedBySample from DerivedSample data directly
+                -- Create DerivedBySample based on SampleLineage hierarchy
                 INSERT INTO fms_core_derivedbysample (derived_sample_id, sample_id, volume_ratio, created_at, created_by_id, updated_at, updated_by_id, deleted)
-                SELECT id, sample_id, 1, created_at, created_by_id, updated_at, updated_by_id, deleted
-                FROM fms_core_derivedsample;
-            """,
-            migrations.RunSQL.noop
+                SELECT q.derivedsample_id, q.child_sample_id, 1, q.pm_created_at, q.pm_created_by_id, current_timestamp, 1, FALSE
+                FROM (
+                     -- Recursive sample lineage CTE query
+                    WITH RECURSIVE derivedsamplelineage AS (
+                    SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id,
+                           samplelineage.parent_id AS source_id,
+                           CASE
+                                WHEN protocol.name = 'Transfer' THEN FALSE
+                                ELSE TRUE
+                           END AS original,
+                           samplelineage.process_measurement_id,
+                           processmeasurement.created_at AS pm_created_at, processmeasurement.created_by_id AS pm_created_by_id,
+                           protocol.name AS protocol_name, 0 AS level
+                    FROM fms_core_samplelineage samplelineage
+                    JOIN fms_core_processmeasurement processmeasurement ON processmeasurement.id = samplelineage.process_measurement_id
+                    JOIN fms_core_process process ON process.id = processmeasurement.process_id
+                    JOIN fms_core_protocol protocol ON protocol.id = process.protocol_id
+                    WHERE samplelineage.parent_id IN
+                          (SELECT id FROM fms_core_sample WHERE id NOT IN (SELECT child_id FROM fms_core_samplelineage))
+                    UNION ALL
+                         SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derivedsamplelineage.root_sample_id,
+                                CASE
+                                    WHEN protocol.name = 'Transfer' THEN derivedsamplelineage.child_id
+                                    ELSE sl2.child_id
+                                END AS source_id,
+                                CASE
+                                    WHEN protocol.name = 'Transfer' THEN FALSE
+                                    ELSE TRUE
+                                END AS original,
+                                sl2.process_measurement_id,
+                                processmeasurement.created_at AS pm_created_at, processmeasurement.created_by_id AS pm_created_by_id,
+                                protocol.name AS protocol_name, derivedsamplelineage.level + 1
+                         FROM fms_core_samplelineage sl2
+                         JOIN derivedsamplelineage ON derivedsamplelineage.child_id = sl2.parent_id
+                         JOIN fms_core_processmeasurement processmeasurement ON processmeasurement.id = sl2.process_measurement_id
+                         JOIN fms_core_process process ON process.id = processmeasurement.process_id
+                         JOIN fms_core_protocol protocol ON protocol.id = process.protocol_id
+                
+                    )
+                    SELECT derivedsamplelineage.id AS samplelineage_id,
+                           derivedsamplelineage.child_id AS child_sample_id,
+                           derivedsamplelineage.root_sample_id AS root_sample_id,
+                           derivedsamplelineage.protocol_name,
+                           derivedsamplelineage.source_id AS sample_source_id,
+                           derivedsample.id AS derivedsample_id,
+                           derivedsamplelineage.original AS is_original_derivedsample,
+                           derivedsamplelineage.level AS level,
+                           derivedsamplelineage.pm_created_at,
+                           derivedsamplelineage.pm_created_by_id
+                    FROM derivedsamplelineage
+                    JOIN fms_core_derivedsample derivedsample ON derivedsample.sample_id = derivedsamplelineage.source_id
+                ) q;
+            """
         ),
         # TODO: remove temporary attributes on models
     ]
