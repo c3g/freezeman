@@ -9,6 +9,14 @@ __all__ = [
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
+    "CONTAINER_SPEC_TUBE_STRIP_2X1",
+    "CONTAINER_SPEC_TUBE_STRIP_3X1",
+    "CONTAINER_SPEC_TUBE_STRIP_4X1",
+    "CONTAINER_SPEC_TUBE_STRIP_5X1",
+    "CONTAINER_SPEC_TUBE_STRIP_6X1",
+    "CONTAINER_SPEC_TUBE_STRIP_7X1",
+    "CONTAINER_SPEC_TUBE_STRIP_8X1",
+    "CONTAINER_SPEC_TUBE_BOX_3X3",
     "CONTAINER_SPEC_TUBE_BOX_6X6",
     "CONTAINER_SPEC_TUBE_BOX_7X7",
     "CONTAINER_SPEC_TUBE_BOX_8X8",
@@ -16,10 +24,14 @@ __all__ = [
     "CONTAINER_SPEC_TUBE_BOX_10X10",
     "CONTAINER_SPEC_TUBE_RACK_8X12",
     "CONTAINER_SPEC_DRAWER",
+    "CONTAINER_SPEC_FREEZER_RACK_2X4",
     "CONTAINER_SPEC_FREEZER_RACK_4X4",
+    "CONTAINER_SPEC_FREEZER_RACK_5X4",
+    "CONTAINER_SPEC_FREEZER_RACK_6X4",
     "CONTAINER_SPEC_FREEZER_RACK_7X4",
     "CONTAINER_SPEC_FREEZER_RACK_8X6",
     "CONTAINER_SPEC_FREEZER_3_SHELVES",
+    "CONTAINER_SPEC_FREEZER_4_SHELVES",
     "CONTAINER_SPEC_FREEZER_5_SHELVES",
     "CONTAINER_SPEC_ROOM",
     "CONTAINER_SPEC_BOX",
@@ -123,7 +135,84 @@ CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     is_run_container=True,
 )
 
+RUN_CONTAINER_SPECS = (
+    CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
+)
+
 # Containers
+CONTAINER_SPEC_TUBE = ContainerSpec(
+    container_kind_id="tube",
+    coordinate_spec=(),
+    coordinate_overlap_allowed=False,  # Only one sample can be in the tube at a time
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_2X1 = ContainerSpec(
+    container_kind_id="tube strip 2x1",
+    coordinate_spec=(alphas(2), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_3X1 = ContainerSpec(
+    container_kind_id="tube strip 3x1",
+    coordinate_spec=(alphas(3), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_4X1 = ContainerSpec(
+    container_kind_id="tube strip 4x1",
+    coordinate_spec=(alphas(4), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_5X1 = ContainerSpec(
+    container_kind_id="tube strip 5x1",
+    coordinate_spec=(alphas(5), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_6X1 = ContainerSpec(
+    container_kind_id="tube strip 6x1",
+    coordinate_spec=(alphas(6), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_7X1 = ContainerSpec(
+    container_kind_id="tube strip 7x1",
+    coordinate_spec=(alphas(7), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_TUBE_STRIP_8X1 = ContainerSpec(
+    container_kind_id="tube strip 8x1",
+    coordinate_spec=(alphas(8), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=False,
+)
+
+TUBE_STRIP_SPECS = (
+    CONTAINER_SPEC_TUBE_STRIP_2X1,
+    CONTAINER_SPEC_TUBE_STRIP_3X1,
+    CONTAINER_SPEC_TUBE_STRIP_4X1,
+    CONTAINER_SPEC_TUBE_STRIP_5X1,
+    CONTAINER_SPEC_TUBE_STRIP_6X1,
+    CONTAINER_SPEC_TUBE_STRIP_7X1,
+    CONTAINER_SPEC_TUBE_STRIP_8X1,
+)
 
 CONTAINER_SPEC_96_WELL_PLATE = ContainerSpec(
     container_kind_id="96-well plate",
@@ -141,11 +230,11 @@ CONTAINER_SPEC_384_WELL_PLATE = ContainerSpec(
     is_run_container=False,
 )
 
-CONTAINER_SPEC_TUBE = ContainerSpec(
-    container_kind_id="tube",
-    coordinate_spec=(),
-    coordinate_overlap_allowed=False,  # Only one sample can be in the tube at a time
-    children=(),  # Leaf node; sample-holding
+CONTAINER_SPEC_TUBE_BOX_3X3 = ContainerSpec(
+    container_kind_id="tube box 3x3",
+    coordinate_spec=(alphas(3), ints(3, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
     is_run_container=False,
 )
 
@@ -198,9 +287,9 @@ CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
 )
 
 COMMON_CHILDREN = (
-    CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_96_WELL_PLATE,
     CONTAINER_SPEC_384_WELL_PLATE,
+    CONTAINER_SPEC_TUBE_BOX_3X3,
     CONTAINER_SPEC_TUBE_BOX_6X6,
     CONTAINER_SPEC_TUBE_BOX_7X7,
     CONTAINER_SPEC_TUBE_BOX_8X8,
@@ -217,9 +306,33 @@ CONTAINER_SPEC_DRAWER = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_FREEZER_RACK_2X4 = ContainerSpec(
+    container_kind_id="freezer rack 2x4",
+    coordinate_spec=(alphas(2), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_FREEZER_RACK_4X4 = ContainerSpec(
     container_kind_id="freezer rack 4x4",
     coordinate_spec=(alphas(4), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_FREEZER_RACK_5X4 = ContainerSpec(
+    container_kind_id="freezer rack 5x4",
+    coordinate_spec=(alphas(5), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
+    is_run_container=False,
+)
+
+CONTAINER_SPEC_FREEZER_RACK_6X4 = ContainerSpec(
+    container_kind_id="freezer rack 6x4",
+    coordinate_spec=(alphas(6), ints(4, pad_to=2)),
     coordinate_overlap_allowed=False,
     children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
@@ -250,7 +363,10 @@ CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
 )
 
 FREEZER_RACK_SPECS = (
+    CONTAINER_SPEC_FREEZER_RACK_2X4,
     CONTAINER_SPEC_FREEZER_RACK_4X4,
+    CONTAINER_SPEC_FREEZER_RACK_5X4,
+    CONTAINER_SPEC_FREEZER_RACK_6X4,
     CONTAINER_SPEC_FREEZER_RACK_7X4,
     CONTAINER_SPEC_FREEZER_RACK_8X6,
     CONTAINER_SPEC_FREEZER_RACK_11X6,
@@ -269,6 +385,14 @@ CONTAINER_SPEC_FREEZER_3_SHELVES = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_FREEZER_4_SHELVES = ContainerSpec(
+    container_kind_id="freezer 4 shelves",
+    coordinate_spec=(alphas(4), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
+    coordinate_overlap_allowed=True,
+    children=FREEZER_CHILDREN,
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_FREEZER_5_SHELVES = ContainerSpec(
     container_kind_id="freezer 5 shelves",
     coordinate_spec=(alphas(5), ints(1, pad_to=2)),  # TODO: I'd prefer if these were 1D
@@ -282,9 +406,12 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
     coordinate_spec=(),
     coordinate_overlap_allowed=True,
     children=(
+        *RUN_CONTAINER_SPECS,
         *COMMON_CHILDREN,
         CONTAINER_SPEC_TUBE,
+        *TUBE_STRIP_SPECS,
         CONTAINER_SPEC_FREEZER_3_SHELVES,
+        CONTAINER_SPEC_FREEZER_4_SHELVES,
         CONTAINER_SPEC_FREEZER_5_SHELVES,
         *FREEZER_RACK_SPECS,
     ),
@@ -298,7 +425,7 @@ CONTAINER_SPEC_BOX = ContainerSpec(
     container_kind_id="box",
     coordinate_spec=(),
     coordinate_overlap_allowed=True,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_TUBE),
+    children=(*COMMON_CHILDREN, *TUBE_STRIP_SPECS, *RUN_CONTAINER_SPECS, CONTAINER_SPEC_TUBE),
     is_run_container=False,
 )
 
