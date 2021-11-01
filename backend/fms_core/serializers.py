@@ -6,7 +6,7 @@ from reversion.models import Version, Revision
 from .models import (
     Container,
     ExperimentRun,
-    ExperimentType,
+    RunType,
     Individual,
     Instrument,
     PropertyValue,
@@ -24,7 +24,7 @@ __all__ = [
     "ContainerExportSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
-    "ExperimentTypeSerializer",
+    "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
@@ -92,7 +92,7 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
         return obj.instrument.type.platform.name
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
-    experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
+    run_type = serializers.CharField(read_only=True, source="run_type.name")
     instrument = serializers.CharField(read_only=True, source="instrument.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
@@ -100,12 +100,12 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperimentRun
-        fields = ('experiment_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+        fields = ('run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
 
 
-class ExperimentTypeSerializer(serializers.ModelSerializer):
+class RunTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExperimentType
+        model = RunType
         fields = "__all__"
 
 class IndividualSerializer(serializers.ModelSerializer):

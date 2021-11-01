@@ -1,4 +1,4 @@
-from fms_core.models import ExperimentType, PropertyType
+from fms_core.models import RunType, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
 from collections import defaultdict
@@ -25,8 +25,8 @@ class ExperimentRunImporter(GenericImporter):
         },
         {
             'name': 'Samples',
-            'headers': ['Experiment ID', 'Source Container Barcode', 'Source Container Position', 'Source Sample Volume Used',
-                        'Experiment Container Position'],
+            'headers': ['Experiment ID', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
+                        'Experiment Container Coordinates'],
         },
     ]
 
@@ -35,18 +35,18 @@ class ExperimentRunImporter(GenericImporter):
         self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
 
-    def initialize_data_for_template(self, workflow, properties):
-        self.preloaded_data = {'experiment_type': {}, 'protocols_dict': {}, 'property_types_by_name': {}}
+    def initialize_data_for_template(self, runtype, properties):
+        self.preloaded_data = {'run_type': {}, 'protocols_dict': {}, 'property_types_by_name': {}}
 
-        # Preload ExperimentType and Protocols dict
+        # Preload RunType and Protocols dict
         try:
-            self.preloaded_data['experiment_type'] = ExperimentType.objects.get(workflow=workflow)
+            self.preloaded_data['run_type'] = RunType.objects.get(name=runtype)
 
-            # Preload Protocols objects for this experiment type in a dictionary for faster access
-            self.preloaded_data['protocols_dict'] = self.preloaded_data['experiment_type'].get_protocols_dict
+            # Preload Protocols objects for this run type in a dictionary for faster access
+            self.preloaded_data['protocols_dict'] = self.preloaded_data['run_type'].get_protocols_dict
 
         except Exception as e:
-            self.base_errors.append(f"No experiment type with workflow {workflow} could be found.")
+            self.base_errors.append(f"No type type with name {runtype} could be found.")
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
         try:
@@ -63,12 +63,12 @@ class ExperimentRunImporter(GenericImporter):
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_id': row_data['Experiment ID'],
                       'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
-                      'experiment_container_coordinates': row_data['Experiment Container Position']
+                      'experiment_container_coordinates': row_data['Experiment Container Coordinates']
                       }
 
             sample_kwargs = dict(
                 barcode=row_data['Source Container Barcode'],
-                coordinates=row_data['Source Container Position'],
+                coordinates=row_data['Source Container Coordinates'],
                 volume_used=sample['volume_used']
             )
 
@@ -89,9 +89,9 @@ class ExperimentRunImporter(GenericImporter):
 
 
         # PRELOADING - Set values for global data
-        workflow_value = experiments_df.values[1][1]
+        runtype_name = experiments_df.values[1][1]
 
-        self.initialize_data_for_template(workflow=workflow_value,
+        self.initialize_data_for_template(runtype=runtype_name,
                                           properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
 
         # Iterate through experiment rows
@@ -115,7 +115,7 @@ class ExperimentRunImporter(GenericImporter):
                 process_properties=process_properties,
                 sample_rows_info=sample_rows_data[experiment_run_dict['Experiment ID']],
                 # Preloaded data
-                experiment_type_obj=self.preloaded_data['experiment_type'],
+                run_type_obj=self.preloaded_data['run_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],
             )
 

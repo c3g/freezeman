@@ -4,7 +4,7 @@ from .viewsets import (
     ContainerKindViewSet,
     ContainerViewSet,
     ExperimentRunViewSet,
-    ExperimentTypeViewSet,
+    RunTypeViewSet,
     IndividualViewSet,
     InstrumentViewSet,
     QueryViewSet,
@@ -27,7 +27,7 @@ router = routers.DefaultRouter()
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
-router.register(r"experiment-types", ExperimentTypeViewSet)
+router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)

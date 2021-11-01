@@ -3,10 +3,17 @@
 from django.conf import settings
 from django.db import migrations, models
 from django.contrib.auth.models import User
+from django.db.migrations.operations.special import RunSQL
 import django.db.models.deletion
+from django.contrib.admin.models import LogEntry
+import re
+import json
 import reversion
 
 ADMIN_USERNAME='biobankadmin'
+
+PROTOCOL_DEFAULT = 4 # "Illumina Infinium Preparation" protocol
+PLATFORM_DEFAULT = 3 # "ILLUMINA_ARRAY" platform
 
 def initialize_protocolbysubprotocols(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
@@ -35,8 +42,26 @@ def initialize_protocolbysubprotocols(apps, schema_editor):
                 child = Protocol.objects.get(name=subprotocol_name)
                 protocolbysubprotocol = ProtocolBySubprotocol.objects.create(child=child, parent=parent,
                                                                              created_by_id=admin_user_id, updated_by_id=admin_user_id)
-                reversion.add_to_revision(protocolbysubprotocol)
+                reversion.add_to_revision(protocolbysubprotocol)  
 
+def reset_runtype_versions(apps, schema_editor):
+    Version = apps.get_model("reversion", "Version")
+    Revision = apps.get_model("reversion", "Revision")
+    for version in Version.objects.filter(content_type__model="runtype"):
+        # Change the comment at the revision level
+        for revision in Revision.objects.filter(id=version.revision_id):
+            revision.comment = "Creates Run Type Infinium"
+            revision.save()
+
+        data = json.loads(version.serialized_data)
+        data[0]["model"] = "fms_core.runtype"
+        data[0]["fields"]["protocol_id"] = PROTOCOL_DEFAULT
+        data[0]["fields"]["platform_id"] = PLATFORM_DEFAULT
+        data[0]["fields"]["name"] = data[0]["fields"]["workflow"]
+        data[0]["fields"].pop("workflow", "")
+        version.serialized_data = json.dumps(data)
+        version.object_repr = version.object_repr.replace("Experiment", "Run")
+        version.save()
 
 class Migration(migrations.Migration):
 
@@ -67,8 +92,57 @@ class Migration(migrations.Migration):
             name='child_of',
             field=models.ManyToManyField(blank=True, related_name='parent_of', through='fms_core.ProtocolBySubprotocol', to='fms_core.Protocol'),
         ),
-         migrations.RunPython(
+        migrations.RunPython(
             initialize_protocolbysubprotocols,
             reverse_code=migrations.RunPython.noop,
+        ),
+
+        # Migration of model experiment type to run type
+        migrations.RenameModel('ExperimentType', 'RunType'),
+        migrations.RenameField('RunType', 'workflow', 'name'),
+        migrations.RenameField('ExperimentRun', 'experiment_type', 'run_type'),
+        migrations.AddField(
+            model_name='RunType',
+            name='protocol',
+            field=models.ForeignKey(blank=True, default=PROTOCOL_DEFAULT, on_delete=django.db.models.deletion.PROTECT, related_name='run_types', to='fms_core.Protocol'),
+            preserve_default=False),
+        migrations.AddField(
+            model_name='RunType',
+            name='platform',
+            field=models.ForeignKey(blank=True, default=PLATFORM_DEFAULT, on_delete=django.db.models.deletion.PROTECT, related_name='run_types', to='fms_core.Platform'),
+            preserve_default=False),
+        migrations.RunPython(
+            reset_runtype_versions,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='RunType',
+            name='name',
+            field=models.CharField(help_text='Name of the run type.', max_length=200,
+                                  unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+        migrations.AlterField(
+            model_name='experimentrun',
+            name='run_type',
+            field=models.ForeignKey(help_text='Run type', on_delete=django.db.models.deletion.PROTECT, related_name='experiment_runs', to='fms_core.runtype'),
+        ),
+        migrations.AlterField(
+            model_name='runtype',
+            name='created_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_runtype_creation', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AlterField(
+            model_name='runtype',
+            name='platform',
+            field=models.ForeignKey(help_text='Platform used by the run type.', on_delete=django.db.models.deletion.PROTECT, related_name='run_types', to='fms_core.platform'),
+        ),
+        migrations.AlterField(
+            model_name='runtype',
+            name='protocol',
+            field=models.ForeignKey(help_text='Protocol used by the experiment run.', on_delete=django.db.models.deletion.PROTECT, related_name='run_types', to='fms_core.protocol'),
+        ),
+        migrations.AlterField(
+            model_name='runtype',
+            name='updated_by',
+            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_runtype_modification', to=settings.AUTH_USER_MODEL),
         ),
     ]

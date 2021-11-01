@@ -50,7 +50,7 @@ class ExperimentRunTestCase(TestCase):
         content_type_process = ContentType.objects.get_for_model(Process)
 
         # Experiment Run tests
-        self.assertEqual(experiment_run_obj.experiment_type.workflow, 'Infinium Global Screening Array-24')
+        self.assertEqual(experiment_run_obj.run_type.name, 'Infinium Global Screening Array-24')
         self.assertEqual(experiment_run_obj.instrument.name, 'iScan_1')
 
         # Process Tests

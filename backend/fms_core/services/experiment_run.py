@@ -6,7 +6,7 @@ from .process import create_process
 from .property_value import create_process_properties
 from .sample import transfer_sample
 
-def create_experiment_run(experiment_type_obj,
+def create_experiment_run(run_type_obj,
                           instrument_obj,
                           container_obj,
                           start_date,
@@ -19,7 +19,7 @@ def create_experiment_run(experiment_type_obj,
     warnings = []
 
     if not protocols_dict:
-        protocols_dict = experiment_type_obj.get_protocols_dict()
+        protocols_dict = run_type_obj.get_protocols_dict()
     
     main_protocol = next(iter(protocols_dict))
 
@@ -35,7 +35,7 @@ def create_experiment_run(experiment_type_obj,
 
     if not errors:
         try:
-            experiment_run = ExperimentRun.objects.create(experiment_type=experiment_type_obj,
+            experiment_run = ExperimentRun.objects.create(run_type=run_type_obj,
                                                           instrument=instrument_obj,
                                                           container=container_obj,
                                                           process=processes_by_protocol_id[main_protocol.id],

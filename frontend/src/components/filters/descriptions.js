@@ -241,10 +241,10 @@ export const EXPERIMENT_RUN_FILTERS = {
     key: "id",
     label: "ID",
   },
-  experiment_type: {
+  run_type: {
     type: FILTER_TYPE.SELECT,
-    key: "experiment_type__workflow",
-    label: "Experiment Type",
+    key: "run_type__name",
+    label: "Run Type",
     mode: "multiple",
     placeholder: "All"
   },
