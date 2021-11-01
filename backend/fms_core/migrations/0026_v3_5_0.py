@@ -86,11 +86,58 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                -- Insert into DerivedSample data from samples with existing lineage (eitehr as a parent or as a child)
+                --  Insert into DerivedSample data from samples with NO existing lineage (sample must be not a parent nor a child)
+                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
+                SELECT b.id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
+                FROM fms_core_sample s
+                JOIN fms_core_biosample b
+                ON b.root_sample_id = s.id
+                WHERE s.id NOT IN (SELECT child_id FROM fms_core_samplelineage)
+                AND s.id NOT IN (SELECT parent_id FROM fms_core_samplelineage);
+            """,
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            """
+                -- Insert into DerivedSample data from parent samples from samplelineage
                 INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
                 SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
                 FROM
                 (
+                    -- Recursive sample lineage CTE query
+                    WITH RECURSIVE derived AS (
+                        SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id
+                        FROM fms_core_samplelineage samplelineage
+                        WHERE samplelineage.parent_id IN
+                              (SELECT id FROM fms_core_sample WHERE id NOT IN (SELECT child_id FROM fms_core_samplelineage))
+    
+                        UNION ALL
+                             SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derived.root_sample_id
+                             FROM fms_core_samplelineage sl2
+                             JOIN derived
+                                 ON derived.child_id = sl2.parent_id
+                    )
+                    -- Select parent samples that are not children in other lineages neither
+                    SELECT DISTINCT(derived.parent_id) AS sample_id, bs.id AS biosample_id
+                    FROM derived
+                    JOIN fms_core_biosample bs
+                    ON bs.root_sample_id = derived.root_sample_id
+                    AND derived.parent_id NOT IN (SELECT child_id FROM fms_core_samplelineage)
+                ) t
+                -- Join sample to the sample from the samplelineage in order to get the sample attr to insert into the DerivedSample
+                JOIN fms_core_sample s
+                ON t.sample_id = s.id
+            """,
+            migrations.RunSQL.noop
+        ),
+        migrations.RunSQL(
+            """
+                -- Insert into DerivedSample data from children samples from samplelineage
+                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
+                SELECT t.biosample_id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
+                FROM
+                (
+                    -- Recursive sample lineage CTE query
                     WITH RECURSIVE derived AS (
                         SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id
                         FROM fms_core_samplelineage samplelineage
@@ -103,34 +150,23 @@ class Migration(migrations.Migration):
                              JOIN derived
                                  ON derived.child_id = sl2.parent_id
                     )
+                    -- Select samples that are children in some samplelineage
+                    -- Ensure that they are not from samplelineage created from a Transfer process
                     SELECT derived.child_id AS sample_id, biosample.id AS biosample_id
                     FROM derived
                     JOIN fms_core_biosample biosample
                     ON biosample.root_sample_id = derived.root_sample_id
-
-                    UNION ALL
-
-                    SELECT DISTINCT(derived.parent_id) AS sample_id, bs.id AS biosample_id
-                    FROM derived
-                    JOIN fms_core_biosample bs
-                    ON bs.root_sample_id = derived.root_sample_id
-                    AND derived.parent_id NOT IN (SELECT child_id FROM fms_core_samplelineage)
+                    JOIN fms_core_processmeasurement processmeasurement
+                    ON processmeasurement.id = derived.process_measurement_id
+                    JOIN fms_core_process process
+                    ON process.id = processmeasurement.process_id
+                    JOIN fms_core_protocol protocol
+                    ON protocol.id = process.protocol_id
+                    WHERE protocol.name != 'Transfer';
                 ) t
+                -- Join sample to the sample from the samplelineage in order to get the sample attr to insert into the DerivedSample
                 JOIN fms_core_sample s
                 ON t.sample_id = s.id
-            """,
-            migrations.RunSQL.noop
-        ),
-        migrations.RunSQL(
-            """
-                --  Insert into DerivedSample data from samples with NO existing lineage (sample must be not a parent nor a child)
-                INSERT INTO fms_core_derivedsample (biosample_id, sample_kind_id, experimental_group, tissue_source, created_at, created_by_id, updated_at, updated_by_id, deleted, sample_id)
-                SELECT b.id, s.sample_kind_id, s.experimental_group, s.tissue_source, s.created_at, s.created_by_id, current_timestamp, 1, FALSE, s.id
-                FROM fms_core_sample s
-                JOIN fms_core_biosample b
-                ON b.root_sample_id = s.id
-                WHERE s.id NOT IN (SELECT child_id FROM fms_core_samplelineage)
-                AND s.id NOT IN (SELECT parent_id FROM fms_core_samplelineage);
             """,
             migrations.RunSQL.noop
         ),
