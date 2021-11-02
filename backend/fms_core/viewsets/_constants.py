@@ -57,6 +57,24 @@ _project_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_sampleview_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "sample_kind_id": FK_FILTERS,
+    "volume": SCALAR_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "collection_site": CATEGORICAL_FILTERS_LOOSE,
+    "tissue_source": CATEGORICAL_FILTERS,
+    "creation_date": DATE_FILTERS,
+    "coordinates": FREE_TEXT_FILTERS,
+
+    "individual_id": FK_FILTERS,  # PK
+    "container_id": FK_FILTERS,  # PK
+    "biosample_id": FK_FILTERS,  # PK
+    "derived_sample_id": FK_FILTERS,  # PK
+}
+
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

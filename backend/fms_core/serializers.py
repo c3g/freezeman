@@ -15,6 +15,7 @@ from .models import (
     ProcessMeasurement,
     Sample,
     SampleKind,
+    SampleView,
     Project,
 )
 
@@ -36,6 +37,7 @@ __all__ = [
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
+    "SampleViewSerializer",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
@@ -168,6 +170,13 @@ class PropertyValueSerializer(serializers.ModelSerializer):
       model = PropertyValue
       fields = "__all__"
       extra_fields = ('property_name')
+
+
+class SampleViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleView
+        fields = "__all__"
+
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
