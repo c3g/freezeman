@@ -18,7 +18,6 @@ import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
-import {subProtocols} from "../../constants";
 
 const getTableColumns = (samplesByID, protocols) => [
     {
@@ -126,7 +125,7 @@ const ProcessMeasurementsListContent = ({
       .then(response => response.data)
 
   protocols.items = protocols.items
-  .filter(protocol => !subProtocols.includes(protocol.name))
+  .filter(protocol => protocol.child_of?.length === 0)
 
   const columns = getTableColumns(samplesByID, protocols)
   .map(c => Object.assign(c, getFilterProps(
