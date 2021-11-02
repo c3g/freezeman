@@ -40,12 +40,14 @@ class Migration(migrations.Migration):
             """
                 DROP VIEW IF EXISTS fms_core_sampleview;
                 CREATE OR REPLACE VIEW fms_core_sampleview AS
-                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, sample.project_id, sample.creation_date, derived.sample_kind_id, derived.tissue_source, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, sbyp.project_id, sample.creation_date, derived.sample_kind_id, derived.tissue_source, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_derivedbysample AS dbys 
                 JOIN fms_core_sample AS sample 
                 ON dbys.sample_id =  sample.id 
                 JOIN fms_core_derivedsample AS derived
                 ON dbys.derived_sample_id  = derived.id 
+                JOIN fms_core_samplebyproject AS sbyp
+                ON sbyp.sample_id = sample.id
                 JOIN fms_core_biosample AS biosample 
                 ON derived.biosample_id = biosample.id ORDER BY biosample.id;
             """

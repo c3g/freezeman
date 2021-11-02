@@ -10,7 +10,7 @@ __all__ = ["SampleView"]
 
 class SampleView(models.Model):
     """ Class to provide information about a sample as a view. """
-    sample_kind_id = models.ForeignKey(SampleKind, on_delete=models.DO_NOTHING, db_column='sample_kind_id',
+    sample_kind = models.ForeignKey(SampleKind, on_delete=models.DO_NOTHING, db_column='sample_kind_id',
                                     help_text="Biological material collected from study subject "
                                               "during the conduct of a genomic study project.")
     name = models.CharField(max_length=200, help_text="Sample name.")

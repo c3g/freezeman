@@ -73,6 +73,11 @@ _sampleview_filterset_fields: FiltersetFields = {
     "container_id": FK_FILTERS,  # PK
     "biosample_id": FK_FILTERS,  # PK
     "derived_sample_id": FK_FILTERS,  # PK
+
+    **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
+    **_prefix_keys("container__", _container_filterset_fields),
+    **_prefix_keys("individual__", _individual_filterset_fields),
+    **_prefix_keys("project__", _project_minimal_filterset_fields),
 }
 
 _sample_filterset_fields: FiltersetFields = {
