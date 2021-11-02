@@ -35,6 +35,11 @@ class SampleView(models.Model):
                                                                  "of samples.")
     tissue_source = models.CharField(max_length=200, blank=True,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
+
+    experimental_group = models.JSONField(blank=True, default=list,
+                                          help_text="Sample group having some common characteristics. "
+                                                    "It is the way to designate a subgroup within a study.")
+
     creation_date = models.DateField(help_text="Date of the sample reception or extraction.")
 
     # In what container is this sample located?
