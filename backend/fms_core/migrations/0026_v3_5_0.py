@@ -262,7 +262,7 @@ class Migration(migrations.Migration):
                     UNION ALL
                          SELECT sl2.id AS id, sl2.parent_id, sl2.child_id, derivedsamplelineage.root_sample_id,
                                 CASE
-                                    WHEN protocol.name = 'Transfer' THEN derivedsamplelineage.child_id
+                                    WHEN protocol.name = 'Transfer' THEN derivedsamplelineage.source_id
                                     ELSE sl2.child_id
                                 END AS source_id,
                                 CASE
