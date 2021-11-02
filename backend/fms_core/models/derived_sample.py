@@ -97,7 +97,7 @@ class DerivedSample(TrackedModel):
     biosample = models.ForeignKey("Biosample", on_delete=models.PROTECT, related_name="derived_samples",
                                   help_text="Biosample associated to this DerivedSample")
 
-    sample = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="derived_samples",
+    sample = models.ForeignKey("Sample", blank=True, null=True, on_delete=models.PROTECT, related_name="derived_samples",
                                   help_text="Sample associated to this DerivedSample")
 
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT,
