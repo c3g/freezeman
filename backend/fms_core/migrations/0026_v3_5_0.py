@@ -172,14 +172,10 @@ class Migration(migrations.Migration):
                     -- Ensure that they are not from samplelineage created from a Transfer process
                     SELECT derived.child_id AS sample_id, biosample.id AS biosample_id
                     FROM derived
-                    JOIN fms_core_biosample biosample
-                    ON biosample.root_sample_id = derived.root_sample_id
-                    JOIN fms_core_processmeasurement processmeasurement
-                    ON processmeasurement.id = derived.process_measurement_id
-                    JOIN fms_core_process process
-                    ON process.id = processmeasurement.process_id
-                    JOIN fms_core_protocol protocol
-                    ON protocol.id = process.protocol_id
+                    JOIN fms_core_biosample biosample ON biosample.root_sample_id = derived.root_sample_id
+                    JOIN fms_core_processmeasurement processmeasurement ON processmeasurement.id = derived.process_measurement_id
+                    JOIN fms_core_process process ON process.id = processmeasurement.process_id
+                    JOIN fms_core_protocol protocol ON protocol.id = process.protocol_id
                     WHERE protocol.name != 'Transfer'
                 ) t
                 -- Join sample to the sample from the samplelineage in order to get the sample attr to insert into the DerivedSample
@@ -197,7 +193,10 @@ class Migration(migrations.Migration):
                      -- Recursive sample lineage CTE query
                     WITH RECURSIVE derivedsamplelineage AS (
                     SELECT samplelineage.id AS id, samplelineage.parent_id, samplelineage.child_id, samplelineage.parent_id AS root_sample_id,
-                           samplelineage.parent_id AS source_id,
+                           CASE
+                                WHEN protocol.name = 'Transfer' THEN samplelineage.parent_id
+                                ELSE samplelineage.child_id
+                           END AS source_id,
                            CASE
                                 WHEN protocol.name = 'Transfer' THEN FALSE
                                 ELSE TRUE
