@@ -8,7 +8,7 @@ import {list as listExperimentRuns} from "../../modules/experimentRuns/actions";
 
 const mapStateToProps = state => ({
   experimentRunsByID: state.experimentRuns.itemsByID,
-  experimentTypesByID: state.experimentTypes.itemsByID,
+  runTypesByID: state.runTypes.itemsByID,
   instrumentsByID: state.instruments.itemsByID,
 });
 
@@ -17,7 +17,7 @@ const actionCreators = {};
 const ExperimentRunsListSection = ({
   experimentRunsIDs,
   experimentRunsByID,
-  experimentTypesByID,
+  runTypesByID,
   instrumentsByID,
 }) => {
   const hasExperimentRuns = experimentRunsIDs.length
@@ -43,7 +43,7 @@ const ExperimentRunsListSection = ({
               <Link to={`/experiment-runs/${experimentRun.id}`}>
                  {`[Experiment #${experimentRun.id}]  `}
               </Link>
-              {experimentTypesByID[experimentRun.experiment_type]?.workflow}
+              {runTypesByID[experimentRun.run_type]?.name}
               {` (${instrumentsByID[experimentRun.instrument]?.name})`}
             </List.Item>
           )}

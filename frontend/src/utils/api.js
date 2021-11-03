@@ -45,8 +45,8 @@ const api = {
     },
   },
 
-  experimentTypes: {
-    list: () => get("/experiment-types/"),
+  runTypes: {
+    list: () => get("/run-types/"),
   },
 
   individuals: {

@@ -10,7 +10,7 @@ import {templateActionsReducerFactory} from "../../utils/templateActions";
 // TODO: summary
 export const experimentRunTemplateActions = templateActionsReducerFactory(EXPERIMENT_RUNS);
 
-export const experimentTypes = (
+export const runTypes = (
   state = {
       items: [],
       itemsByID: {},

@@ -25,7 +25,7 @@ export const experimentsTests = () => {
     context('Experiments', () => {
       const experimentBarcode1 = 'cntr_7';
       const experimentBarcode2 = 'cntr_8';
-      const experimentType = 'Infinium Global Screening Array-24 (iScan_1)';
+      const runType = 'Infinium Global Screening Array-24 (iScan_1)';
 
       it('creates experiments (template import)', () => {
         cy.navigateTo('Experiments')
@@ -76,7 +76,7 @@ export const experimentsTests = () => {
             cy.get('td').contains('Sample_DNA1').click()
         });
         cy.get('#rc-tabs-0-tab-3').click()
-        cy.get('body').should('contain', experimentType)
+        cy.get('body').should('contain', runType)
       });
 
       it('visits a particular sample detailed page to ensure the second experiment is there', () => {
@@ -88,7 +88,7 @@ export const experimentsTests = () => {
             cy.get('td').contains('Sample_Blood1').click()
         });
         cy.get('#rc-tabs-0-tab-3').click()
-        cy.get('body').should('contain', experimentType)
+        cy.get('body').should('contain', runType)
       });
 
       it('visits the first experiment\'s container to ensure the experiment is there', () => {

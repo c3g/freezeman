@@ -1,7 +1,7 @@
 from .container import ContainerViewSet
 from .container_kind import ContainerKindViewSet
 from .experiment_run import ExperimentRunViewSet
-from .experiment_type import ExperimentTypeViewSet
+from .run_type import RunTypeViewSet
 from .group import GroupViewSet
 from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
@@ -21,7 +21,7 @@ __all__ = [
     "ContainerViewSet",
     "ContainerKindViewSet",
     "ExperimentRunViewSet",
-    "ExperimentTypeViewSet",
+    "RunTypeViewSet",
     "GroupViewSet",
     "IndividualViewSet",
     "InstrumentViewSet",

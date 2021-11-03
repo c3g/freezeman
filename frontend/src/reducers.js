@@ -27,7 +27,7 @@ import {
   protocols,
 } from "./modules/protocols/reducers";
 import {
-  experimentTypes,
+  runTypes,
   experimentRuns,
   instruments,
   processes,
@@ -64,7 +64,7 @@ const allReducers = combineReducers({
   containers,
   experimentRuns,
   experimentRunTemplateActions,
-  experimentTypes,
+  runTypes,
   individuals,
   instruments,
   sampleKinds,

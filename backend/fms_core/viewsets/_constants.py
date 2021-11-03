@@ -116,16 +116,16 @@ _instrument_type_filterset_fields: FiltersetFields = {
     "type": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_experiment_type_filterset_fields: FiltersetFields = {
+_run_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "workflow": CATEGORICAL_FILTERS_LOOSE,
+    "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _experiment_run_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "start_date": DATE_FILTERS,
 
-    "experiment_type": FK_FILTERS,
+    "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
 
