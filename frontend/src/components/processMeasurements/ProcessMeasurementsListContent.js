@@ -74,7 +74,6 @@ const getTableColumns = (samplesByID, protocols) => [
       dataIndex: "volume_used",
       sorter: true,
       align: "right",
-      className: "table-column-numbers",
       width: 180,
     },
     {
@@ -124,6 +123,9 @@ const ProcessMeasurementsListContent = ({
     withToken(token, api.processMeasurements.listExport)
     (mergedListQueryParams(PROCESS_MEASUREMENT_FILTERS, filters, sortBy))
       .then(response => response.data)
+
+  protocols.items = protocols.items
+  .filter(protocol => protocol.child_of?.length === 0)
 
   const columns = getTableColumns(samplesByID, protocols)
   .map(c => Object.assign(c, getFilterProps(
