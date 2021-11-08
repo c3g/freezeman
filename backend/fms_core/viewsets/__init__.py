@@ -13,7 +13,7 @@ from .query import QueryViewSet
 from .revision import RevisionViewSet
 from .sample import SampleViewSet
 from .sample_kind import SampleKindViewSet
-from .sample_view import SampleViewViewSet
+from .full_sample import FullSampleViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
@@ -33,7 +33,7 @@ __all__ = [
     "QueryViewSet",
     "RevisionViewSet",
     "SampleViewSet",
-    "SampleViewViewSet",
+    "FullSampleViewSet",
     "SampleKindViewSet",
     "UserViewSet",
     "VersionViewSet",

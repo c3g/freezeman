@@ -241,7 +241,8 @@ class Migration(migrations.Migration):
                     FROM derivedsamplelineage
                     JOIN fms_core_derivedsample derivedsample ON derivedsample.sample_id = derivedsamplelineage.source_id
                 ) q;
-            """
+            """,
+            migrations.RunSQL.noop
         ),
         migrations.RemoveField(
             model_name='biosample',

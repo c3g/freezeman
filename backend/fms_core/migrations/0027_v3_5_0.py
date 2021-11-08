@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='SampleView',
+            name='FullSample',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Sample name.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
                 ('coordinates', models.CharField(blank=True, help_text='Coordinates of the sample in a parent container. Only applicable for containers that directly store samples with coordinates, e.g. plates.', max_length=10)),
             ],
             options={
-                'db_table': 'fms_core_sampleview',
+                'db_table': 'fms_core_fullsample',
                 'managed': False,
             },
         ),
@@ -38,18 +38,22 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-                DROP VIEW IF EXISTS fms_core_sampleview;
-                CREATE OR REPLACE VIEW fms_core_sampleview AS
-                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, sbyp.project_id, sample.creation_date, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                DROP VIEW IF EXISTS fms_core_fullsample;
+                CREATE OR REPLACE VIEW fms_core_fullsample AS
+                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(sbyp.project_id), NULL) AS projects_id, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, sample.update_comment, sample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_derivedbysample AS dbys 
                 JOIN fms_core_sample AS sample 
                 ON dbys.sample_id =  sample.id 
                 JOIN fms_core_derivedsample AS derived
                 ON dbys.derived_sample_id  = derived.id 
-                JOIN fms_core_samplebyproject AS sbyp
+                LEFT JOIN fms_core_samplebyproject AS sbyp
                 ON sbyp.sample_id = sample.id
+                LEFT JOIN fms_core_processmeasurement AS pm 
+                ON pm.source_sample_id = sample.id
+                LEFT JOIN fms_core_samplelineage AS sl 
+                ON sl.child_id = sample.id
                 JOIN fms_core_biosample AS biosample 
-                ON derived.biosample_id = biosample.id ORDER BY biosample.id;
+                ON derived.biosample_id = biosample.id GROUP BY sample.id, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id, derived.biosample_id, biosample.individual_id, biosample.collection_site,  sl.child_id, biosample.id  ORDER BY biosample.id;
             """,
             migrations.RunSQL.noop
         )

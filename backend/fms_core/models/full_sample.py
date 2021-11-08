@@ -4,11 +4,14 @@ from .derived_sample import DerivedSample
 from .biosample import Biosample
 from .sample_kind import SampleKind
 from .project import Project
+from .sample import Sample
+from .process_measurement import ProcessMeasurement
+from .tracked_model import TrackedModel
 
-__all__ = ["SampleView"]
+__all__ = ["FullSample"]
 
 
-class SampleView(models.Model):
+class FullSample(TrackedModel):
     """ Class to provide information about a sample as a view. """
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.DO_NOTHING, db_column='sample_kind_id',
                                     help_text="Biological material collected from study subject "
@@ -56,8 +59,12 @@ class SampleView(models.Model):
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 
-    project = models.ForeignKey(Project, on_delete=models.DO_NOTHING)
+    projects = models.ForeignKey(Project, on_delete=models.DO_NOTHING)
+
+    child_of = models.ForeignKey(Sample, on_delete=models.DO_NOTHING)
+
+    process_measurements = models.ForeignKey(ProcessMeasurement, on_delete=models.DO_NOTHING)
 
     class Meta:
         managed = False
-        db_table = 'fms_core_sampleview'
+        db_table = 'fms_core_fullsample'

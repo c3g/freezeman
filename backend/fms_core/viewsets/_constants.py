@@ -57,7 +57,7 @@ _project_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_sampleview_filterset_fields: FiltersetFields = {
+_full_sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "sample_kind_id": FK_FILTERS,
@@ -77,7 +77,7 @@ _sampleview_filterset_fields: FiltersetFields = {
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("individual__", _individual_filterset_fields),
-    **_prefix_keys("project__", _project_minimal_filterset_fields),
+    #**_prefix_keys("projects__", _project_minimal_filterset_fields),
 }
 
 _sample_filterset_fields: FiltersetFields = {
