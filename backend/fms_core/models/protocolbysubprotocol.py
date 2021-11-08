@@ -2,7 +2,6 @@ import reversion
 
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.apps import apps
 
 from .tracked_model import TrackedModel
 

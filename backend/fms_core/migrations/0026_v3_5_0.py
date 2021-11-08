@@ -278,4 +278,12 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='tissue_source',
         ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='phenotype',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='update_comment',
+        ),
     ]
