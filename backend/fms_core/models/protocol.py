@@ -3,13 +3,11 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
-
 from .protocolbysubprotocol import ProtocolBySubprotocol
 from .tracked_model import TrackedModel
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
-
 
 __all__ = ["Protocol"]
 
