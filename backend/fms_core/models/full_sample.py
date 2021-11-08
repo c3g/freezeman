@@ -6,12 +6,12 @@ from .sample_kind import SampleKind
 from .project import Project
 from .sample import Sample
 from .process_measurement import ProcessMeasurement
-from .tracked_model import TrackedModel
+from django.contrib.auth.models import User
 
 __all__ = ["FullSample"]
 
 
-class FullSample(TrackedModel):
+class FullSample(models.Model):
     """ Class to provide information about a sample as a view. """
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.DO_NOTHING, db_column='sample_kind_id',
                                     help_text="Biological material collected from study subject "
@@ -64,6 +64,13 @@ class FullSample(TrackedModel):
     child_of = models.ForeignKey(Sample, on_delete=models.DO_NOTHING)
 
     process_measurements = models.ForeignKey(ProcessMeasurement, on_delete=models.DO_NOTHING)
+
+    #Sample Tracking Information
+    created_at = models.DateTimeField(auto_now_add=True, help_text="Date the instance was created.")
+    created_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_creation", on_delete=models.DO_NOTHING)
+    updated_at = models.DateTimeField(auto_now=True, help_text="Date the instance was modified.")
+    updated_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_modification", on_delete=models.DO_NOTHING)
+    deleted = models.BooleanField(default=False, help_text="Whether this instance has been deleted.")
 
     class Meta:
         managed = False
