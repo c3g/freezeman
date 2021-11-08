@@ -6,11 +6,11 @@ from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
 
-def create_sample(name, volume, collection_site, creation_date,
-                  container, sample_kind,
-                  individual=None,
-                  coordinates=None, alias=None, concentration=None, tissue_source=None, phenotype=None,
-                  experimental_group=None, comment=None):
+def create_full_sample(name, volume, collection_site, creation_date,
+                       container, sample_kind,
+                       individual=None,
+                       coordinates=None, alias=None, concentration=None, tissue_source=None, phenotype=None,
+                       experimental_group=None, comment=None):
     sample = None
     errors = []
     warnings = []

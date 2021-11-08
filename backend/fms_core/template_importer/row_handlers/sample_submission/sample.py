@@ -6,7 +6,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -71,7 +71,7 @@ class SampleRowHandler(GenericRowHandler):
 
 
         sample_obj, self.errors['sample'], self.warnings['sample'] = \
-            create_sample(
+            create_full_sample(
                 name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
                 creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
                 concentration=sample['concentration'], tissue_source=sample['tissue_source'], phenotype=sample['phenotype'],

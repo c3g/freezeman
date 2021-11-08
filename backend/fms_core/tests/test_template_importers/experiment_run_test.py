@@ -9,7 +9,7 @@ from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, P
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 
 class ExperimentRunTestCase(TestCase):
@@ -31,9 +31,9 @@ class ExperimentRunTestCase(TestCase):
 
         (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon='Homo sapiens')
 
-        create_sample(name=self.sample_name, volume=29, collection_site='site1',
-                      creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
-                      individual=individual, sample_kind=sample_kind_RNA)
+        create_full_sample(name=self.sample_name, volume=29, collection_site='site1',
+                           creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                           individual=individual, sample_kind=sample_kind_RNA)
 
 
     def test_import(self):
