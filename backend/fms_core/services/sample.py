@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, date
 from django.core.exceptions import ValidationError
-from fms_core.models import Sample, Container, Process
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
@@ -30,36 +30,49 @@ def create_sample(name, volume, collection_site, creation_date,
         errors.append(f"Sample creation requires a sample kind.")
 
     if not errors:
-        sample_data = dict(
-            name=name,
-            volume=volume,
+        biosample_data = dict(
             collection_site=collection_site,
-            creation_date=creation_date,
-            container=container,
-            sample_kind=sample_kind,
-            comment=(comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
-            # Optional attributes
             **(dict(individual=individual) if individual is not None else dict()),
-            **(dict(coordinates=coordinates) if coordinates is not None else dict()),
             **(dict(alias=alias) if alias is not None else dict()),
-            **(dict(concentration=concentration) if concentration is not None else dict()),
-            **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
-            **(dict(phenotype=phenotype) if phenotype is not None else dict()),
         )
 
-        if experimental_group:
-            sample_data['experimental_group'] = json.dumps([
+        try:
+            biosample = Biosample.objects.create(**biosample_data)
+
+            derived_sample_data = dict(
+                biosample_id=biosample.id,
+                sample_kind=sample_kind,
+                **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
+            )
+            if experimental_group:
+                derived_sample_data['experimental_group'] = json.dumps([
                     g.strip()
                     for g in RE_SEPARATOR.split(experimental_group)
                     if g.strip()
                 ])
 
-        try:
+            derived_sample = DerivedSample.objects.create(**derived_sample_data)
+
+            sample_data = dict(
+                name=name,
+                volume=volume,
+                creation_date=creation_date,
+                container=container,
+                comment=(comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
+                **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+                **(dict(concentration=concentration) if concentration is not None else dict()),
+                **(dict(phenotype=phenotype) if phenotype is not None else dict()),
+            )
+
             sample = Sample.objects.create(**sample_data)
+
+            DerivedBySample.objects.create(derivedsample_id=derived_sample.id, sample_id=sample.id)
+
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 
     return (sample, errors, warnings)
+
 
 def get_sample_from_container(barcode, coordinates=None):
     sample = None
