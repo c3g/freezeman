@@ -34,7 +34,9 @@ def derive_sample_from_sample(sample, new_sample_data, new_derived_sample_data):
             new_sample.__dict__.update(new_sample_data)
             new_sample.save()
 
-            DerivedBySample.objects.create(sample_id=new_sample.id, derived_sample_id=new_derived_sample.id)
+            DerivedBySample.objects.create(sample_id=new_sample.id,
+                                           derived_sample_id=new_derived_sample.id,
+                                           volume_ratio=1)
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 

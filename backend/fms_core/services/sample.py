@@ -66,7 +66,9 @@ def create_full_sample(name, volume, collection_site, creation_date,
 
             sample = Sample.objects.create(**sample_data)
 
-            DerivedBySample.objects.create(derivedsample_id=derived_sample.id, sample_id=sample.id)
+            DerivedBySample.objects.create(derived_sample_id=derived_sample.id,
+                                           sample_id=sample.id,
+                                           volume_ratio=1)
 
         except ValidationError as e:
             errors.append(';'.join(e.messages))
