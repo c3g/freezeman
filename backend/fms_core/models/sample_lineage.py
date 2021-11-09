@@ -6,6 +6,7 @@ from django.db import models
 from django.apps import apps
 
 from .tracked_model import TrackedModel
+from .derived_sample import DerivedSample
 
 from ._utils import add_error as _add_error
 
@@ -25,7 +26,6 @@ class SampleLineage(TrackedModel):
 
         protocol_name = self.process_measurement.process.protocol.name
         if protocol_name == 'Extraction':
-            DerivedSample = apps.get_model("fms_core", "DerivedSample")
             # There is only a single expected derived sample for the child and parent of an extraction
             try:
                 child_derived = self.child.derived_samples.objects.get()
