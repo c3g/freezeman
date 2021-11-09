@@ -10,6 +10,7 @@ export default function serializeFilterParams(filters, descriptions) {
   Object.keys(filters).forEach(field => {
     const value = filters[field]?.value
     const description = descriptions[field]
+    console.log(descriptions)
     let key = description.key
 
     if (value === undefined)

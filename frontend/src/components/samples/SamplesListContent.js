@@ -85,7 +85,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Projects",
-      dataIndex: "projects__name",
+      dataIndex: "sample__projects__name",
       render: (_, sample) => (sample.projects &&
         sample.projects.map(id => {
           return (<div> <Link to={`/projects/${id}`}> {projectsByID[id]?.name} </Link> </div>);

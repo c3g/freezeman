@@ -1,15 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Prefetch
-from django.db.models import F
 
 from fms_core.models import FullSample
 from fms_core.serializers import FullSampleSerializer
 
-from ._utils import TemplateActionsMixin, _list_keys, versions_detail
+from ._utils import _list_keys
 from ._constants import _full_sample_filterset_fields
-
 
 class FullSampleViewSet(viewsets.ModelViewSet):
     queryset = FullSample.objects.select_related("individual", "container", "sample_kind", "biosample", "derived_sample").all().distinct()

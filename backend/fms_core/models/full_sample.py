@@ -7,6 +7,7 @@ from .project import Project
 from .sample import Sample
 from .process_measurement import ProcessMeasurement
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 
 __all__ = ["FullSample"]
 
@@ -59,7 +60,9 @@ class FullSample(models.Model):
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 
-    projects = models.ForeignKey(Project, on_delete=models.DO_NOTHING)
+    sample = models.ForeignKey(Sample, on_delete=models.DO_NOTHING, related_name="samples")
+
+    projects = ArrayField(models.IntegerField( blank=True))
 
     child_of = models.ForeignKey(Sample, on_delete=models.DO_NOTHING)
 
