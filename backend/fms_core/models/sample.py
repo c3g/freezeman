@@ -20,6 +20,8 @@ from .sample_lineage import SampleLineage
 from .container import Container
 from .sample_kind import SampleKind
 from .project import Project
+from .derived_by_sample import DerivedBySample
+from .derived_sample import DerivedSample
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -56,7 +58,11 @@ class Sample(TrackedModel):
 
     @property
     def is_pool(self) -> bool:
-        return self.derived_samples.objects.count() > 1
+        return DerivedBySample.objects.filter(sample=self).count() > 1 # More than 1 DerivedBySample implies more than 1 DerivedSample
+
+    @property
+    def derived_sample_not_pool(self) -> DerivedSample:
+        return self.derived_samples.objects.first() if not self.is_pool else []
 
     # Computed properties for containers
 
@@ -126,11 +132,6 @@ class Sample(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         self.normalize()
-
-        DerivedSample = apps.get_model("fms_core", "DerivedSample")
-        # Check concentration fields given sample_kind
-        if self.concentration is None and (self.is_pool or self.derived_samples.objects.first().sample_kind.name in DerivedSample.BIOSPECIMEN_TYPES_CONC_REQUIRED):
-            add_error("concentration", "Concentration must be specified for a pool or if the sample_kind is DNA")
 
         if self.transferred_from:
             if list(self.derived_samples.objects.all()) != list(self.transferred_from.derived_samples.objects.all()):

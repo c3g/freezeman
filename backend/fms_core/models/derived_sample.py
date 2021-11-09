@@ -121,6 +121,7 @@ class DerivedSample(TrackedModel):
     library = models.CharField(max_length=200, blank=True, null=True)
     index = models.CharField(max_length=200, blank=True, null=True)
 
+    @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
         return next([(sample, sample.extracted_from) for sample in self.samples.objects.all() if sample.extracted_from], (None, None))
 
@@ -144,7 +145,7 @@ class DerivedSample(TrackedModel):
             if extracted_from.sample_kind.name in self.BIOSPECIMEN_TYPES_NA:
                 add_error("extracted_from", f"Extraction process cannot be run on sample of type {', '.join(self.BIOSPECIMEN_TYPES_NA)}")
 
-            original_sample_kind = extracted_from.derived_samples.objects.first().sample_kind.name # extracted_from samples are not pools
+            original_sample_kind = extracted_from.derived_sample_not_pool.sample_kind.name # extracted_from samples are not pools
             if self.tissue_source != self.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
                 add_error("tissue_source",
                           f"Mismatch between sample tissue source {self.tissue_source} and original sample kind {original_sample_kind}")

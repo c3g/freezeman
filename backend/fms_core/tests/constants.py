@@ -1,5 +1,7 @@
 from decimal import Decimal
-from ..models import Individual
+
+from backend.fms_core.models import derived_sample
+from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample
 import datetime
 
 def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12", name='TestRack001'):
@@ -12,7 +14,6 @@ def create_container(barcode, location=None, coordinates="", kind="tube rack 8x1
         comment=''
     )
 
-
 def create_sample_container(kind, name, barcode, coordinates='', location=None):
     return dict(
         kind=kind,
@@ -23,38 +24,38 @@ def create_sample_container(kind, name, barcode, coordinates='', location=None):
         comment=''
     )
 
-
-def create_sample(sample_kind, individual, container, coordinates='', **kwargs):
+def create_biosample(individual, **kwargs):
     return {
-        "sample_kind": sample_kind,
-        "name": 'test_sample_01',
         "alias": '53',
         "individual": individual,
-        "volume": 5000,
-        "experimental_group": ['EG01', 'EG02'],
         "collection_site": 'Site1',
+        **kwargs
+    }
+
+def create_derivedsample(biosample, sample_kind, **kwargs):
+    return {
+        "biosample": biosample,
+        "sample_kind": sample_kind,
+        "experimental_group": ['EG01', 'EG02'],
+        **kwargs
+    }
+
+def create_sample(container, coordinates='', **kwargs):
+    return {
+        "name": 'test_sample_01',
+        "volume": 5000,
         "container": container,
         "coordinates": coordinates,
         "creation_date": datetime.datetime.today(),
         **kwargs
     }
 
-
-def create_extracted_sample(sample_kind, individual, container, coordinates='', **kwargs):
-    return {
-        'sample_kind': sample_kind,
-        'name': 'test_extracted_sample_01',
-        'alias': '12',
-        'individual': individual,
-        'volume': 0,
-        'concentration': Decimal('0.01'),
-        'experimental_group': ['EG01'],
-        'collection_site': 'Site1',
-        'container': container,
-        'coordinates': coordinates,
-        "creation_date": datetime.datetime.today(),
-        **kwargs
-    }
+def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates=""):
+    biosample = Biosample.objects.create(individual=individual, alias=alias, collection_site="Site1")
+    derivedsample = DerivedSample.objects.create(biosample=biosample, sample_kind=sample_kind, experimental_group=["EG01", "EG02"])
+    sample = Sample.objects.create(name=name, volume=volume, container=container, coordinates=coordinates, creation_date=datetime.datetime.today())
+    derivedbysample = DerivedBySample.objects.create(derived_sample=derivedsample, sample=sample, volume_ratio=1)
+    return sample
 
 
 def create_individual(individual_name, mother=None, father=None, **kwargs):
