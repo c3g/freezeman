@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import Error
 from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process
 
 def get_single_derived_sample_from_sample(sample):
@@ -6,9 +7,10 @@ def get_single_derived_sample_from_sample(sample):
     errors = []
     warnings = []
 
-    ds = DerivedSample.objects.filter(derived_by_sample__sample_id=sample.id)
+    dbs = DerivedBySample.objects.filter(sample_id=sample.id).first()
+    ds = DerivedSample.objects.filter(id=dbs.derived_sample_id)
     if ds.count() > 1:
-        errors.append(f"")
+        errors.append(f"Multiple Derived Sample were found for Sample #{sample.__dict__}")
     else:
         derived_sample = ds.first()
 
@@ -37,7 +39,7 @@ def derive_sample_from_sample(sample, new_sample_data, new_derived_sample_data):
             DerivedBySample.objects.create(sample_id=new_sample.id,
                                            derived_sample_id=new_derived_sample.id,
                                            volume_ratio=1)
-        except ValidationError as e:
+        except Error as e:
             errors.append(';'.join(e.messages))
 
     return (new_sample, new_derived_sample, errors, warnings)

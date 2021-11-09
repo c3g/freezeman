@@ -1,4 +1,4 @@
-from fms_core.models import Sample
+from fms_core.models import Sample, DerivedSample, DerivedBySample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container, transfer_sample
 from fms_core.services.container import get_or_create_container, get_container
@@ -25,7 +25,7 @@ class ExtractionRowHandler(GenericRowHandler):
                                                                                                                  kind=destination_container_dict['kind'].lower(),
                                                                                                                  name=destination_container_dict['name'],
                                                                                                                  coordinates=destination_container_dict['coordinates'],
-                                                                                                                container_parent=container_parent)
+                                                                                                                 container_parent=container_parent)
 
         # Sample, DerivedSample
 
@@ -34,9 +34,13 @@ class ExtractionRowHandler(GenericRowHandler):
 
         if original_sample:
             new_sample_data = dict(concentration=resulting_sample['concentration'])
+
+            derived_sample_id = DerivedBySample.objects.filter(sample_id=original_sample.id).first().derived_sample_id
+            original_derivedsample = DerivedSample.objects.get(id=derived_sample_id)
+
             new_derived_sample_data = dict(
                 sample_kind=resulting_sample['kind'],
-                tissue_source=Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_sample.sample_kind.name, "")
+                tissue_source=Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_derivedsample.sample_kind.name, "")
             )
 
             sample_destination, _, self.errors['derived_sample'], self.warnings['derived_sample'] = \
