@@ -17,7 +17,7 @@ def get_single_derived_sample_from_sample(sample):
     return (derived_sample, errors, warnings)
 
 
-def derive_sample_from_sample(sample, new_sample_data, new_derived_sample_data):
+def derive_sample(sample, new_sample_data, new_derived_sample_data):
     new_sample = None
     new_derived_sample = None
     errors = []

@@ -2,7 +2,7 @@ from fms_core.models import Sample, DerivedSample, DerivedBySample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container, transfer_sample
 from fms_core.services.container import get_or_create_container, get_container
-from fms_core.services.derived_sample import derive_sample_from_sample
+from fms_core.services.derived_sample import derive_sample
 
 from fms_core.utils import check_truth_like
 
@@ -44,9 +44,7 @@ class ExtractionRowHandler(GenericRowHandler):
             )
 
             sample_destination, _, self.errors['derived_sample'], self.warnings['derived_sample'] = \
-                derive_sample_from_sample(original_sample,
-                                          new_sample_data=new_sample_data,
-                                          new_derived_sample_data=new_derived_sample_data)
+                derive_sample(original_sample, new_sample_data=new_sample_data, new_derived_sample_data=new_derived_sample_data)
 
             if sample_destination:
                 _, self.errors['extracted_sample'], self.warnings['extracted_sample'] = \
