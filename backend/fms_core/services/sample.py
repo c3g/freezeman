@@ -1,10 +1,13 @@
 import json
 from datetime import datetime, date
+from django.db import Error
 from django.core.exceptions import ValidationError
 from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
+
+from fms_core.services.derived_sample import get_single_derived_sample_from_sample
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind,
@@ -189,6 +192,55 @@ def transfer_sample(process: Process,
                 warnings.extend(warnings_sample_lineage)
 
         except Exception as e:
-            errors.append(';'.join(e.messages))
+            errors.append(e)
 
     return (sample_destination, errors, warnings)
+
+
+def extract_sample(process: Process,
+                   sample_source: Sample,
+                   container_destination: Container,
+                   volume_used,
+                   date_execution: datetime.date,
+                   resulting_concentration,
+                   resulting_sample_kind,
+                   coordinates_destination=None,
+                   volume_destination=None,
+                   source_depleted: bool=None,
+                   destination_depleted: bool=None):
+    extracted_sample = None
+    errors = []
+    warnings = []
+
+    sample_destination = Sample.objects.get(id=sample_source.id)
+    sample_destination.pk = None
+    sample_destination.concentration = resulting_concentration
+
+    transferred_sample, errors, warnings = \
+        transfer_sample(process, sample_source, container_destination, volume_used, date_execution,
+                        sample_destination, coordinates_destination, volume_destination,
+                        source_depleted, destination_depleted)
+
+    original_derived_sample, errors, warnings = get_single_derived_sample_from_sample(sample_source)
+    if transferred_sample and original_derived_sample:
+        extracted_sample = transferred_sample
+        try:
+            new_derived_sample = DerivedSample.objects.get(id=original_derived_sample.id)
+            new_derived_sample.pk = None
+            new_derived_sample.sample_kind = resulting_sample_kind
+            new_derived_sample.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_derived_sample.sample_kind.name, "")
+            new_derived_sample.save()
+
+            DerivedBySample.objects.create(sample_id=extracted_sample.id,
+                                           derived_sample_id=new_derived_sample.id,
+                                           volume_ratio=1)
+        except Error as e:
+            errors.append(';'.join(e.messages))
+
+    return (extracted_sample, errors, warnings)
+
+
+
+
+
+
