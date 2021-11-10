@@ -18,7 +18,6 @@ class Biosample(TrackedModel):
     individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT,
                                    related_name="biosamples", help_text="Individual associated with the biosample.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection of samples.")
-    comment = models.TextField(blank=True, null=True, help_text="Other relevant information about the biosample.")
 
     # Computed properties for individuals
 
@@ -56,7 +55,6 @@ class Biosample(TrackedModel):
         # Normalize any string values to make searching / data manipulation easier
         self.alias = str_cast_and_normalize(self.alias)
         self.collection_site = str_cast_and_normalize(self.collection_site)
-        self.comment = str_cast_and_normalize(self.comment)
 
     def clean(self):
         super().clean()

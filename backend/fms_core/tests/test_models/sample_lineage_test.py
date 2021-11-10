@@ -11,15 +11,9 @@ from fms_core.models import (
     ProcessMeasurement,
     Protocol,
     SampleKind,
-    SampleLineage,
-)
-from fms_core.tests.constants import (
-    create_container,
-    create_individual,
-    create_sample,
-    create_sample_container,
-    create_extracted_sample,
-)
+    SampleLineage)
+
+from fms_core.tests.constants import create_container, create_individual, create_fullsample, create_sample_container
 
 
 class SampleLineageTest(TestCase):
@@ -49,13 +43,19 @@ class SampleLineageTest(TestCase):
         )
 
         # create parent samples
-        self.parent_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
-                                                                   individual=self.valid_individual,
-                                                                   container=self.valid_container,
-                                                                   name="test_sample_11"))
+        self.parent_sample = create_fullsample(name="test_sample_11",
+                                               alias="sample11",
+                                               volume=5000,
+                                               sample_kind=self.sample_kind_BLOOD,
+                                               individual=self.valid_individual,
+                                               container=self.valid_container)
         # create child samples
-        self.child_sample = Sample.objects.create(**create_extracted_sample(sample_kind=self.sample_kind_DNA,
-                                                                            **self.constants))
+        self.child_sample = create_fullsample(name="test_sample_11",
+                                              alias="sample11",
+                                              volume=5000,
+                                              sample_kind=self.sample_kind_DNA,
+                                              **self.constants)
+
         self.valid_process = Process.objects.create(protocol=self.extraction_protocol, comment="Process SampleLineage")
 
     def test_sample_lineage(self):

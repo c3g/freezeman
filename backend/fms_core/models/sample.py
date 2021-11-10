@@ -12,15 +12,11 @@ from ..containers import (
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..schema_validators import JsonSchemaValidator, EXPERIMENTAL_GROUP_SCHEMA
-from ..utils import float_to_decimal, str_cast_and_normalize
+from ..utils import str_cast_and_normalize
 
 from .tracked_model import TrackedModel
-from .sample_lineage import SampleLineage
 from .container import Container
-from .sample_kind import SampleKind
 from .project import Project
-from .derived_by_sample import DerivedBySample
 from .derived_sample import DerivedSample
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
@@ -45,6 +41,7 @@ class Sample(TrackedModel):
     coordinates = models.CharField(max_length=10, blank=True,
                                    help_text="Coordinates of the sample in a sample holding container. Only applicable for "
                                              "containers that directly store samples with coordinates, e.g. plates.")
+    comment = models.TextField(blank=True, help_text="Other relevant information about the biosample.")
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage", symmetrical=False, related_name="parent_of")
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
@@ -123,6 +120,7 @@ class Sample(TrackedModel):
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
         self.name = str_cast_and_normalize(self.name)
+        self.comment = str_cast_and_normalize(self.comment)
 
     def clean(self):
         super().clean()

@@ -20,7 +20,7 @@ class DerivedBySampleTest(TestCase):
     def test_derivedbysample(self):
         # Test basic 1 to 1 relation
         derivedbysample = DerivedBySample.objects.create(sample=self.valid_sample, derived_sample=self.valid_derivedsample, volume_ratio=1)
-        self.assertEqual(derivedbysample.objects.count(), 1)
+        self.assertEqual(DerivedBySample.objects.count(), 1)
         self.assertEqual(derivedbysample.sample, self.valid_sample)
         self.assertEqual(derivedbysample.derived_sample, self.valid_biosample)
         self.assertEqual(derivedbysample.volume_ratio, 1)

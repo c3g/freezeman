@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-from backend.fms_core.models import derived_sample
 from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample
 import datetime
 
@@ -26,9 +23,9 @@ def create_sample_container(kind, name, barcode, coordinates='', location=None):
 
 def create_biosample(individual, **kwargs):
     return {
-        "alias": '53',
+        "alias": "53",
         "individual": individual,
-        "collection_site": 'Site1',
+        "collection_site": "Site1",
         **kwargs
     }
 
@@ -47,6 +44,7 @@ def create_sample(container, coordinates='', **kwargs):
         "container": container,
         "coordinates": coordinates,
         "creation_date": datetime.datetime.today(),
+        "comment": "",
         **kwargs
     }
 

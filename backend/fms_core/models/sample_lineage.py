@@ -1,6 +1,5 @@
 import reversion
 
-from decimal import Decimal
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models
 from django.apps import apps
@@ -28,8 +27,8 @@ class SampleLineage(TrackedModel):
         if protocol_name == 'Extraction':
             # There is only a single expected derived sample for the child and parent of an extraction
             try:
-                child_derived = self.child.derived_samples.objects.get()
-                parent_derived = self.parent.derived_samples.objects.get()
+                child_derived = self.child.derived_samples.get()
+                parent_derived = self.parent.derived_samples.get()
             except MultipleObjectsReturned:
                 add_error("derived_sample", "Extraction child and/or parent has more than one derived sample.")
                 
