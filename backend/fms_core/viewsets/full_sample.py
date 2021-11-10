@@ -9,7 +9,7 @@ from ._utils import _list_keys
 from ._constants import _full_sample_filterset_fields
 
 class FullSampleViewSet(viewsets.ModelViewSet):
-    queryset = FullSample.objects.select_related("individual", "container", "sample_kind", "biosample", "derived_sample").all().distinct()
+    queryset = FullSample.objects.select_related("individual", "container", "sample_kind", "biosample", "derived_sample").all()
     serializer_class = FullSampleSerializer
 
     ordering_fields = (

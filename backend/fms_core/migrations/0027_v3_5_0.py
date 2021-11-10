@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             """
                 DROP VIEW IF EXISTS fms_core_fullsample;
                 CREATE OR REPLACE VIEW fms_core_fullsample AS
-                SELECT sample.id, sample.id AS sample_id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(sbyp.project_id), NULL) AS projects, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, sample.update_comment, sample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                SELECT sample.id, sample.id AS sample_id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, sample.update_comment, sample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_derivedbysample AS dbys 
                 JOIN fms_core_sample AS sample 
                 ON dbys.sample_id =  sample.id 
