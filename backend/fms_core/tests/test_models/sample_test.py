@@ -16,7 +16,7 @@ class SampleTest(TestCase):
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
 
     def test_sample(self):
-        sample = Sample.objects.create(**create_sample(container=self.valid_container))
+        sample = Sample.objects.create(**create_sample(container=self.valid_container, comment="This is a sample."))
         self.assertEqual(Sample.objects.count(), 1)
         self.assertEqual(sample.is_depleted, "no")
         self.assertEqual(sample.volume, Decimal("5000.000"))
@@ -25,6 +25,7 @@ class SampleTest(TestCase):
         self.assertIsNone(sample.container_location)
         self.assertEqual(sample.context_sensitive_coordinates, "")
         self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
+        self.assertEqual(sample.comment, "This is a sample.")
 
     def test_plates_with_coordinates(self):
         # sample can be in plates and tube only

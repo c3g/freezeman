@@ -6,7 +6,6 @@ from ..schema_validators import JsonSchemaValidator, EXPERIMENTAL_GROUP_SCHEMA
 
 from .tracked_model import TrackedModel
 from .sample_kind import SampleKind
-from .sample import Sample
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
@@ -136,23 +135,24 @@ class DerivedSample(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+            
+        if self.id:
+            extracted, extracted_from = self.extracted_from()
+            if extracted and extracted_from:
+                if self.sample_kind.name not in self.BIOSPECIMEN_TYPES_NA:
+                    add_error("sample_kind", f"Extracted sample {extracted.name} need to be a type of Nucleic Acid.")
 
-        extracted, extracted_from = self.extracted_from()
-        if extracted and extracted_from:
-            if self.sample_kind.name not in self.BIOSPECIMEN_TYPES_NA:
-                add_error("sample_kind", f"Extracted sample {extracted.name} need to be a type of Nucleic Acid.")
+                if extracted_from.derived_sample_not_pool.sample_kind.name in self.BIOSPECIMEN_TYPES_NA:
+                    add_error("extracted_from", f"Extraction process cannot be run on sample of type {', '.join(self.BIOSPECIMEN_TYPES_NA)}.")
 
-            if extracted_from.sample_kind.name in self.BIOSPECIMEN_TYPES_NA:
-                add_error("extracted_from", f"Extraction process cannot be run on sample of type {', '.join(self.BIOSPECIMEN_TYPES_NA)}")
-
-            original_sample_kind = extracted_from.derived_sample_not_pool.sample_kind.name # extracted_from samples are not pools
-            if self.tissue_source != self.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
-                add_error("tissue_source",
-                          f"Mismatch between sample tissue source {self.tissue_source} and original sample kind {original_sample_kind}")
-        else:
-            if self.sample_kind.name not in self.BIOSPECIMEN_TYPES:
-                add_error("sample_kind",
-                          f"Sample Kind name {self.sample_kind.name} not a valid biospecimen type.")
+                original_sample_kind = extracted_from.derived_sample_not_pool.sample_kind.name # extracted_from samples are not pools
+                if self.tissue_source != self.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[original_sample_kind]:
+                    add_error("tissue_source",
+                              f"Mismatch between sample tissue source {self.tissue_source} and original sample kind {original_sample_kind}.")
+        
+        if self.sample_kind.name not in self.BIOSPECIMEN_TYPES:
+            add_error("sample_kind",
+                      f"Sample Kind name {self.sample_kind.name} is not a valid biospecimen type.")
 
         if self.tissue_source and self.sample_kind.name not in self.BIOSPECIMEN_TYPES_NA:
             add_error("tissue_source", "Tissue source can only be specified for a nucleic acid sample.")

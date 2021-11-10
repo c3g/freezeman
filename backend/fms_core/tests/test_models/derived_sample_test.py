@@ -17,7 +17,7 @@ class DerivedSampleTest(TestCase):
     def test_derivedsample(self):
         derivedsample = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
                                                                             sample_kind=self.sample_kind_BLOOD))
-        self.assertEqual(derivedsample.objects.count(), 1)
+        self.assertEqual(DerivedSample.objects.count(), 1)
         self.assertEqual(derivedsample.sample_kind.name, "BLOOD")
         self.assertEqual(derivedsample.biosample, self.valid_biosample)
 
@@ -35,8 +35,8 @@ class DerivedSampleTest(TestCase):
     def test_invalid_sample_kind(self):
         with self.assertRaises(ValidationError):
             try:
-                invalid_sample_kind = DerivedSample(**create_derivedsample(biosample=self.valid_biosample,
-                                                                           sample_kind=self.sample_kind_PUDDING))
+                invalid_sample_kind = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
+                                                                                          sample_kind=self.sample_kind_PUDDING))
             except ValidationError as e:
                 self.assertTrue('sample_kind' in e.message_dict)
                 raise e
@@ -45,8 +45,8 @@ class DerivedSampleTest(TestCase):
         with self.assertRaises(ValidationError):
             invalid_biosample = Biosample()
             try:
-                derived_invalid_biosample = DerivedSample(**create_derivedsample(biosample=invalid_biosample,
-                                                                                 sample_kind=self.sample_kind_BLOOD))
+                derived_invalid_biosample = DerivedSample.objects.create(**create_derivedsample(biosample=invalid_biosample,
+                                                                                                sample_kind=self.sample_kind_BLOOD))
             except ValidationError as e:
                 self.assertTrue('biosample' in e.message_dict)
                 raise e
