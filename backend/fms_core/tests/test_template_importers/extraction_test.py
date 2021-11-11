@@ -10,7 +10,7 @@ from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement, 
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 
 class ExtractionTestCase(TestCase):
@@ -35,9 +35,9 @@ class ExtractionTestCase(TestCase):
 
             (individual, errors, warnings) = get_or_create_individual(name=info['individual_name'],
                                                                       taxon='Homo sapiens')
-            (sample, errors, warnings) = create_sample(name=info['name'], volume=info['volume'], collection_site='site1',
-                          creation_date=datetime.datetime(2020, 5, 21, 0, 0),
-                          container=container, individual=individual, sample_kind=sample_kind_BLOOD)
+            (sample, errors, warnings) = create_full_sample(name=info['name'], volume=info['volume'], collection_site='site1',
+                                                            creation_date=datetime.datetime(2020, 5, 21, 0, 0),
+                                                            container=container, individual=individual, sample_kind=sample_kind_BLOOD)
 
         (container_rack001, _, errors, warnings) = get_or_create_container(barcode='rack001', name='rack001', kind='tube rack 8x12')
 

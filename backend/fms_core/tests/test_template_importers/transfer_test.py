@@ -8,7 +8,7 @@ from fms_core.tests.test_template_importers._utils import load_template, APP_DAT
 from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage
 
 from fms_core.services.container import get_or_create_container
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 
 class TransferTestCase(TestCase):
@@ -31,11 +31,12 @@ class TransferTestCase(TestCase):
         for info in samples_info:
             (container, _, errors, warnings) = get_or_create_container(barcode=info['container_barcode'], kind='96-well plate', name=info['container_barcode'])
 
-            (sample, errors, warnings) = create_sample(name=info['name'], volume=info['volume'], collection_site='site1',
-                                                       creation_date=datetime(2020, 5, 21, 0, 0),
-                                                       concentration=10,
-                                                       container=container, coordinates=info['coordinates'],
-                                                       sample_kind=sample_kind_DNA)
+            (sample, errors, warnings) = create_full_sample(name=info['name'], volume=info['volume'],
+                                                            collection_site='site1',
+                                                            creation_date=datetime(2020, 5, 21, 0, 0),
+                                                            concentration=10,
+                                                            container=container, coordinates=info['coordinates'],
+                                                            sample_kind=sample_kind_DNA)
 
         (container_rack, _, errors, warnings) = get_or_create_container(barcode='RackTransfer', name='RackTransfer', kind='tube rack 8x12')
         (container_freezer, _, errors, warnings) = get_or_create_container(barcode='FreezerTransfer', name='FreezerTransfer', kind='freezer 5 shelves')

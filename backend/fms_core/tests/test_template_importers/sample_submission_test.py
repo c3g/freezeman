@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from fms_core.template_importer.importers import SampleSubmissionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Individual
+from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample
 
 
 class SampleSubmissionTestCase(TestCase):
@@ -25,8 +25,16 @@ class SampleSubmissionTestCase(TestCase):
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
-        individual = Individual.objects.get(name=individual_name)
         for sample_name in sample_names:
-            self.assertTrue(Sample.objects.filter(name=sample_name, individual=individual).exists())
+            self.assertTrue(Sample.objects.filter(name=sample_name).exists())
+
+            sample = Sample.objects.get(name=sample_name)
+            derived_sample_id = DerivedBySample.objects.filter(sample_id=sample.id).first().derived_sample_id
+            biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
+            self.assertEqual(biosample.individual.name, individual_name)
+
+
+
+
 
 
