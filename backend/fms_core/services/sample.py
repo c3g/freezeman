@@ -225,10 +225,6 @@ def extract_sample(process: Process,
     errors = []
     warnings = []
 
-    # sample_destination = Sample.objects.get(id=sample_source.id)
-    # sample_destination.pk = None
-    # sample_destination.concentration = resulting_concentration
-
     transferred_sample, errors, warnings = \
         transfer_sample(process, sample_source, container_destination, volume_used, date_execution,
                         resulting_concentration, resulting_sample_kind, coordinates_destination, volume_destination,
