@@ -17,19 +17,11 @@ VALUE_TYPE_CHOICES = ['int', 'float', 'bool', 'str']
 
 @reversion.register()
 class PropertyType(TrackedModel):
-    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
-                            help_text="The name of the property",
-                            unique=True,
-                            validators=[name_validator_with_spaces])
-
-    value_type = models.CharField(
-        max_length=20,
-        choices=((type, type) for type in VALUE_TYPE_CHOICES),
-        help_text="Enumerated type to define value type"
-    )
-
-    is_optional = models.BooleanField(default=False, help_text="Whether this property is optional or not")
-
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, unique=True, validators=[name_validator_with_spaces],
+                            help_text="The name of the property.")
+    value_type = models.CharField(choices=((type, type) for type in VALUE_TYPE_CHOICES), max_length=20,
+                                  help_text="Enumerated type to define value type.")
+    is_optional = models.BooleanField(default=False, help_text="Whether this property is optional or not.")
     content_type_choices = models.Q(app_label = 'fms_core', model = 'protocol')
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, limit_choices_to=content_type_choices)
     object_id = models.PositiveIntegerField()
