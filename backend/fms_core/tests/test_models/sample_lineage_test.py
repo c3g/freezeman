@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from fms_core.models import (
     Container,
-    Sample,
+    DerivedSample,
     Individual,
     Process,
     ProcessMeasurement,
@@ -39,7 +39,7 @@ class SampleLineageTest(TestCase):
         self.constants = dict(
             individual=self.valid_individual,
             container=self.tube_container,
-            tissue_source=Sample.TISSUE_SOURCE_BLOOD
+            tissue_source=DerivedSample.TISSUE_SOURCE_BLOOD
         )
 
         # create parent samples
@@ -53,6 +53,7 @@ class SampleLineageTest(TestCase):
         self.child_sample = create_fullsample(name="test_sample_11",
                                               alias="sample11",
                                               volume=5000,
+                                              concentration=20,
                                               sample_kind=self.sample_kind_DNA,
                                               **self.constants)
 

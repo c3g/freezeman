@@ -24,7 +24,7 @@ class SampleLineage(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         protocol_name = self.process_measurement.process.protocol.name
-        if protocol_name == 'Extraction':
+        if protocol_name == "Extraction":
             # There is only a single expected derived sample for the child and parent of an extraction
             try:
                 child_derived = self.child.derived_samples.get()
@@ -39,9 +39,14 @@ class SampleLineage(TrackedModel):
                           f"Extraction process cannot be run on sample of type {', '.join(DerivedSample.BIOSPECIMEN_TYPES_NA)}.")
             if not child_derived.tissue_source:
                 add_error("tissue_source", "Extracted sample need to have a tissue source.")
-            elif parent_derived.tissue_source != DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent_derived.sample_kind.name]:
+            elif child_derived.tissue_source != DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent_derived.sample_kind.name]:
                 add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
-        
+        elif protocol_name == "Transfer":
+            if self.child.derived_samples.values_list("id", flat=True).order_by("id") != self.parent.derived_samples.values_list("id", flat=True).order_by("id"):
+                add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")           
+
+
+
         if self.child == self.parent:
             add_error("child", "A sample cannot have itself as child.")
 
