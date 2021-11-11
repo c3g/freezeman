@@ -245,5 +245,36 @@ class Migration(migrations.Migration):
                 ) q;
             """
         ),
-        # TODO: remove temporary attributes on models
+        migrations.RemoveField(
+            model_name='biosample',
+            name='root_sample',
+        ),
+        migrations.RemoveField(
+            model_name='derivedsample',
+            name='sample',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='alias',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='collection_site',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='experimental_group',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='individual',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='sample_kind',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='tissue_source',
+        ),
     ]

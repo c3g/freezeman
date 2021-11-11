@@ -113,15 +113,9 @@ class Sample(TrackedModel):
         BIOSPECIMEN_TYPE_SWAB: TISSUE_SOURCE_SWAB,
     }
 
-    sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT,
-                                    help_text="Biological material collected from study subject "
-                                              "during the conduct of a genomic study project.")
+
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="Sample name.")
-    alias = models.CharField(max_length=200, blank=True, help_text="Alternative sample name given by the "
-                                                                   "collaborator or customer.")
-    individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT, related_name="samples", help_text="Individual associated "
-                                                                                     "with the sample.")
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
 
@@ -137,14 +131,6 @@ class Sample(TrackedModel):
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
 
-    experimental_group = models.JSONField(blank=True, default=list,
-                                          validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
-                                          help_text="Sample group having some common characteristics. "
-                                                    "It is the way to designate a subgroup within a study.")
-    collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection "
-                                                                 "of samples.")
-    tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
-                                     help_text="Can only be specified if the biospecimen type is DNA or RNA.")
     creation_date = models.DateField(help_text="Date of the sample reception or extraction.")
     phenotype = models.CharField(max_length=200, blank=True, help_text="Sample phenotype.")
 

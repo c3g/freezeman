@@ -20,8 +20,6 @@ class Biosample(TrackedModel):
                                                                  "of samples.")
     comment = models.TextField(blank=True, null=True, help_text="Other relevant information about the biosample.")
 
-    root_sample = models.ForeignKey("Sample", blank=True, null=True, on_delete=models.PROTECT, related_name="biosamples")
-
     # Computed properties for individuals
 
     @property

@@ -5,7 +5,7 @@ from django.db import models
 
 from .tracked_model import TrackedModel
 
-from .experiment_type import ExperimentType
+from .run_type import RunType
 from .container import Container
 from .instrument import Instrument
 from .process import Process
@@ -19,10 +19,10 @@ __all__ = ["ExperimentRun"]
 
 @reversion.register()
 class ExperimentRun(TrackedModel):
-    experiment_type = models.ForeignKey(ExperimentType,
+    run_type = models.ForeignKey(RunType,
                                         on_delete=models.PROTECT,
                                         related_name="experiment_runs",
-                                        help_text="Experiment type")
+                                        help_text="Run type")
     container = models.OneToOneField(Container,
                                      related_name="experiment_run",
                                      limit_choices_to={"kind__in": RUN_CONTAINER_KINDS},

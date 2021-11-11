@@ -31,7 +31,7 @@ const tabStyle = {
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   experimentRunsByID: state.experimentRuns.itemsByID,
-  experimentTypes: state.experimentTypes,
+  runTypes: state.runTypes,
   instruments: state.instruments,
   processesByID: state.processes.itemsByID,
   propertyValuesByID: state.propertyValues.itemsByID,
@@ -43,7 +43,7 @@ const actionCreators = {get, listProcesses, listPropertyValues};
 const ExperimentRunsDetailContent = ({
   containersByID,
   experimentRunsByID,
-  experimentTypes,
+  runTypes,
   instruments,
   processesByID,
   protocolsByID,
@@ -88,8 +88,8 @@ const ExperimentRunsDetailContent = ({
               <Descriptions.Item label="ID" span={3}>
                   {experimentRun.id}
               </Descriptions.Item>
-              <Descriptions.Item label="Experiment Type" span={3}>
-                <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>
+              <Descriptions.Item label="Run Type" span={3}>
+                <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Instrument" span={3}>
                   {instruments.itemsByID[experimentRun.instrument]?.name}

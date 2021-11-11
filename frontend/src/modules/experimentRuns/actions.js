@@ -79,10 +79,10 @@ export const clearFilters = thenList(() => {
 });
 
 export const listTypes = () => async (dispatch, getState) => {
-    if (getState().experimentTypes.isFetching || getState().experimentTypes.items.length > 0)
+    if (getState().runTypes.isFetching || getState().runTypes.items.length > 0)
         return;
 
-    return await dispatch(networkAction(LIST_TYPES, api.experimentTypes.list()));
+    return await dispatch(networkAction(LIST_TYPES, api.runTypes.list()));
 };
 
 export const listInstruments = () => async (dispatch, getState) => {

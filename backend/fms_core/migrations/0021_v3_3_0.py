@@ -159,14 +159,9 @@ def create_infinium_experiment_type(apps, schema_editor):
     admin_user = User.objects.get(username=ADMIN_USERNAME)
     admin_user_id = admin_user.id
 
-    with reversion.create_revision(manage_manually=True):
-        reversion.set_comment("Creates Experiment Type Infinium")
-        reversion.set_user(admin_user)
-        et = ExperimentType.objects.create(workflow="Infinium Global Screening Array-24",
-                                           created_by_id=admin_user_id,
-                                           updated_by_id=admin_user_id)
-        reversion.add_to_revision(et)
-
+    et = ExperimentType.objects.create(workflow="Infinium Global Screening Array-24",
+                                       created_by_id=admin_user_id,
+                                       updated_by_id=admin_user_id)
 
 
 def create_infinium_property_types_and_protocols(apps, schema_editor):
