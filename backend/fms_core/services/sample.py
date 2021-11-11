@@ -7,7 +7,7 @@ from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from ..utils import RE_SEPARATOR, float_to_decimal
 
-from fms_core.services.derived_sample import get_single_derived_sample_from_sample
+from fms_core.services.derived_sample import derive_sample
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind,
@@ -130,14 +130,18 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
 
 def transfer_sample(process: Process,
                     sample_source: Sample,
-                    container_destination: Container,
+                    destination_container: Container,
                     volume_used,
-                    date_execution: datetime.date,
-                    sample_destination: Sample=None,
+                    execution_date: datetime.date,
+                    concentration_destination=None,
+                    resulting_sample_kind=None,
                     coordinates_destination=None,
                     volume_destination=None,
                     source_depleted: bool=None,
-                    destination_depleted: bool=None):
+                    destination_depleted: bool=None,
+                    do_create_derivesample: bool=False,
+                    ):
+    sample_destination=None
     errors = []
     warnings = []
 
@@ -145,7 +149,7 @@ def transfer_sample(process: Process,
         errors.append(f"Process for transfer is required.")
     if not sample_source:
         errors.append(f"Source sample for transfer is required.")
-    if not container_destination:
+    if not destination_container:
         errors.append(f"Destination container for transfer is required.")
 
     if volume_used <= 0:
@@ -153,7 +157,7 @@ def transfer_sample(process: Process,
     if sample_source and volume_used > sample_source.volume:
         errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume})")
     
-    if not isinstance(date_execution, date):
+    if not isinstance(execution_date, date):
         errors.append(f"Date execution is not valid.")
     
     if not errors:
@@ -163,23 +167,32 @@ def transfer_sample(process: Process,
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
-            # Create destination sample
-            if not sample_destination:
-                sample_destination = Sample.objects.get(id=sample_source.id)
-                sample_destination.pk = None
+            sample_destination_data = dict(
+                container_id=destination_container.id,
+                coordinates=coordinates_destination if coordinates_destination else "",
+                creation_date=execution_date,
+                volume=volume_destination if volume_destination else volume_used,
+            )
+            if destination_depleted:
+                sample_destination_data['depleted'] = destination_depleted
+            if concentration_destination:
+                sample_destination_data['concentration'] = concentration_destination
 
-            sample_destination.container = container_destination
-            sample_destination.coordinates = coordinates_destination if coordinates_destination else ""
-            sample_destination.creation_date = date_execution
+            if do_create_derivesample:
+                new_derived_sample_data = dict(
+                    sample_kind=resulting_sample_kind
+                )
+            else:
+                new_derived_sample_data = None
 
-            sample_destination.volume = volume_destination if volume_destination else volume_used
-            if destination_depleted is not None:
-                sample_destination.depleted = destination_depleted
-            sample_destination.save()
+            sample_destination, errors, warnings = derive_sample(sample_source, sample_destination_data,
+                                                                 do_create_derivesample, new_derived_sample_data)
+
+
 
             process_measurement, errors_process_measurement, warnings_process_measurement = create_process_measurement(process=process,
                                                                                                                        source_sample=sample_source,
-                                                                                                                       execution_date=date_execution,
+                                                                                                                       execution_date=execution_date,
                                                                                                                        volume_used=volume_used)
             errors.extend(errors_process_measurement)
             warnings.extend(warnings_process_measurement)
@@ -212,30 +225,14 @@ def extract_sample(process: Process,
     errors = []
     warnings = []
 
-    sample_destination = Sample.objects.get(id=sample_source.id)
-    sample_destination.pk = None
-    sample_destination.concentration = resulting_concentration
+    # sample_destination = Sample.objects.get(id=sample_source.id)
+    # sample_destination.pk = None
+    # sample_destination.concentration = resulting_concentration
 
     transferred_sample, errors, warnings = \
         transfer_sample(process, sample_source, container_destination, volume_used, date_execution,
-                        sample_destination, coordinates_destination, volume_destination,
-                        source_depleted, destination_depleted)
-
-    original_derived_sample, errors, warnings = get_single_derived_sample_from_sample(sample_source)
-    if transferred_sample and original_derived_sample:
-        extracted_sample = transferred_sample
-        try:
-            new_derived_sample = DerivedSample.objects.get(id=original_derived_sample.id)
-            new_derived_sample.pk = None
-            new_derived_sample.sample_kind = resulting_sample_kind
-            new_derived_sample.tissue_source = Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE.get(original_derived_sample.sample_kind.name, "")
-            new_derived_sample.save()
-
-            DerivedBySample.objects.create(sample_id=extracted_sample.id,
-                                           derived_sample_id=new_derived_sample.id,
-                                           volume_ratio=1)
-        except Error as e:
-            errors.append(';'.join(e.messages))
+                        resulting_concentration, resulting_sample_kind, coordinates_destination, volume_destination,
+                        source_depleted, destination_depleted, do_create_derivesample=True)
 
     return (extracted_sample, errors, warnings)
 
