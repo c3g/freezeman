@@ -49,7 +49,7 @@ class FullSampleTest(TestCase):
         self.assertIsNone(sample.container_location)
         self.assertEqual(sample.context_sensitive_coordinates, "")
         self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
-        self.assertEqual(sample.derived_sample_not_pool.biosample.comment, "")
+        self.assertEqual(sample.comment, "")
 
 
 class ExtractedSampleTest(TestCase):
@@ -181,16 +181,18 @@ class ExtractedSampleTest(TestCase):
                 self.assertIn("container", e.message_dict)
                 raise e
 
-    def test_sample_kind(self):
-        # extracted sample can be only of type DNA or RNA
+    def test_invalid_tissue_source(self):
+        # Extracted sample tissue_source must match parent sample kind
         volume_used = Decimal('0.01')
         parent_sample = self.parent_sample
-        invalid_sample_kind = create_fullsample(name="test_extracted_sample_01",
+        invalid_tissue_source = create_fullsample(name="test_extracted_sample_01",
                                                 alias="12",
                                                 volume=0,
                                                 concentration=Decimal('1.0'),
-                                                sample_kind=self.sample_kind_BLOOD,
-                                                **self.constants)
+                                                sample_kind=self.sample_kind_DNA,
+                                                tissue_source=DerivedSample.TISSUE_SOURCE_PLASMA,
+                                                individual=self.valid_individual,
+                                                container=self.tube_container)
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
         pm = ProcessMeasurement.objects.create(process=p,
                                                source_sample=parent_sample,
@@ -199,9 +201,10 @@ class ExtractedSampleTest(TestCase):
                                                comment="ProcessMeasurement test_sample_kind")
         with self.assertRaises(ValidationError):
             try:
-                SampleLineage.objects.create(parent=parent_sample, child=invalid_sample_kind, process_measurement=pm)
+                SampleLineage.objects.create(parent=parent_sample, child=invalid_tissue_source, process_measurement=pm)
             except ValidationError as e:
-                self.assertIn('sample_kind', e.message_dict)
+                print(e.message_dict)
+                self.assertIn('tissue_source', e.message_dict)
                 raise e
 
     def test_volume_used(self):

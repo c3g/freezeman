@@ -22,7 +22,7 @@ class DerivedBySampleTest(TestCase):
         derivedbysample = DerivedBySample.objects.create(sample=self.valid_sample, derived_sample=self.valid_derivedsample, volume_ratio=1)
         self.assertEqual(DerivedBySample.objects.count(), 1)
         self.assertEqual(derivedbysample.sample, self.valid_sample)
-        self.assertEqual(derivedbysample.derived_sample, self.valid_biosample)
+        self.assertEqual(derivedbysample.derived_sample, self.valid_derivedsample)
         self.assertEqual(derivedbysample.volume_ratio, 1)
 
     def test_missing_concentration_with_DNA(self):
