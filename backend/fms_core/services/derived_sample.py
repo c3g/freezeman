@@ -17,29 +17,34 @@ def get_single_derived_sample_from_sample(sample):
     return (derived_sample, errors, warnings)
 
 
-def derive_sample(sample, new_sample_data, new_derived_sample_data):
+def derive_sample(sample, new_sample_data, do_create_derivesample=False, new_derived_sample_data=None):
     new_sample = None
-    new_derived_sample = None
     errors = []
     warnings = []
 
     original_derived_sample, errors, warnings = get_single_derived_sample_from_sample(sample)
     if original_derived_sample:
         try:
-            new_derived_sample = DerivedSample.objects.get(id=original_derived_sample.id)
-            new_derived_sample.pk = None
-            new_derived_sample.__dict__.update(new_derived_sample_data)
-            new_derived_sample.save()
+            if do_create_derivesample:
+                new_derived_sample = DerivedSample.objects.get(id=original_derived_sample.id)
+                new_derived_sample.pk = None
+                if new_derived_sample_data:
+                    new_derived_sample.__dict__.update(new_derived_sample_data)
+                new_derived_sample.save()
+                destination_derived_sample = new_derived_sample
+            else:
+                destination_derived_sample = original_derived_sample
 
             new_sample = Sample.objects.get(id=sample.id)
             new_sample.pk = None
             new_sample.__dict__.update(new_sample_data)
+
             new_sample.save()
 
             DerivedBySample.objects.create(sample_id=new_sample.id,
-                                           derived_sample_id=new_derived_sample.id,
+                                           derived_sample_id=destination_derived_sample.id,
                                            volume_ratio=1)
         except Error as e:
             errors.append(';'.join(e.messages))
 
-    return (new_sample, new_derived_sample, errors, warnings)
+    return (new_sample, errors, warnings)

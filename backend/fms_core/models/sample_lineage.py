@@ -25,23 +25,23 @@ class SampleLineage(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        protocol_name = self.process_measurement.process.protocol.name
-        if protocol_name == 'Extraction':
-            Sample = apps.get_model("fms_core", "Sample")
-            if self.child.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
-                add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
-
-            if self.parent.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
-                add_error("extracted_from",
-                          f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}")
-
-            if not self.child.tissue_source:
-                add_error("tissue_source", "Extracted sample need to have a tissue source.")
-            elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
-                add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
-        
-        if self.child == self.parent:
-            add_error("child", "A sample cannot have itself as child.")
+        # protocol_name = self.process_measurement.process.protocol.name
+        # if protocol_name == 'Extraction':
+        #     Sample = apps.get_model("fms_core", "Sample")
+        #     if self.child.sample_kind.name not in Sample.BIOSPECIMEN_TYPES_NA:
+        #         add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
+        #
+        #     if self.parent.sample_kind.name in Sample.BIOSPECIMEN_TYPES_NA:
+        #         add_error("extracted_from",
+        #                   f"Extraction process cannot be run on sample of type {', '.join(Sample.BIOSPECIMEN_TYPES_NA)}")
+        #
+        #     if not self.child.tissue_source:
+        #         add_error("tissue_source", "Extracted sample need to have a tissue source.")
+        #     elif self.child.tissue_source != Sample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[self.parent.sample_kind.name]:
+        #         add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
+        #
+        # if self.child == self.parent:
+        #     add_error("child", "A sample cannot have itself as child.")
 
 
         if errors:
