@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from fms_core.models import Sample, Container, DerivedSample, Biosample
 
-from fms_core.serializers import SampleSerializer, FullSampleExportSerializer, NestedSampleSerializer
+from fms_core.serializers import SampleSerializer, NestedSampleSerializer
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter
 
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
@@ -75,7 +75,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
-            fields = FullSampleExportSerializer.Meta.fields
+            fields = SampleSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context

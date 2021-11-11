@@ -83,21 +83,15 @@ _full_sample_filterset_fields: FiltersetFields = {
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
-    "sample_kind": FK_FILTERS,
     "volume": SCALAR_FILTERS,
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
-    "collection_site": CATEGORICAL_FILTERS_LOOSE,
-    "tissue_source": CATEGORICAL_FILTERS,
     "creation_date": DATE_FILTERS,
     "coordinates": FREE_TEXT_FILTERS,
     "comment": FREE_TEXT_FILTERS,
 
-    "individual": FK_FILTERS,  # PK
     "container": FK_FILTERS,  # PK
-    **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
-    **_prefix_keys("individual__", _individual_filterset_fields),
     **_prefix_keys("projects__", _project_minimal_filterset_fields),
 }
 
