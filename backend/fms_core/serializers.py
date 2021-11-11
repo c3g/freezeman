@@ -36,8 +36,8 @@ __all__ = [
     "ProcessMeasurementExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
-    "SampleExportSerializer",
     "FullSampleSerializer",
+    "FullSampleExportSerializer",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
@@ -177,6 +177,43 @@ class FullSampleSerializer(serializers.ModelSerializer):
         model = FullSample
         fields = "__all__"
 
+class FullSampleExportSerializer(serializers.ModelSerializer):
+    taxon = serializers.CharField(read_only=True, source="individual.taxon")
+    sex = serializers.CharField(read_only=True, source="individual.sex")
+    pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
+    cohort = serializers.CharField(read_only=True, source="individual.cohort")
+    mother_name = serializers.SerializerMethodField()
+    father_name = serializers.SerializerMethodField()
+    container_kind = serializers.CharField(read_only=True, source="container.kind")
+    container_name = serializers.CharField(read_only=True, source="container.name")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
+    location_barcode = serializers.SerializerMethodField()
+    current_volume = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FullSample
+        fields = "__all__"
+        extra_fields = ("taxon", "sex", "pedigree", "cohort", "container_name", "container_kind", "container_barcode")
+
+    def get_location_barcode(self, obj):
+        if obj.container and obj.container.location is None:
+            return ''
+        else:
+            return obj.container.location.barcode
+
+    def get_current_volume(self, obj):
+        return obj.volume if obj.volume else None
+
+    def get_father_name(self, obj):
+        father = '' if obj.individual and obj.individual.father is None else obj.individual.father.name
+        return father
+
+    def get_mother_name(self, obj):
+        mother = '' if obj.individual and obj.individual.mother is None else obj.individual.mother.name
+        return mother
+
+
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
@@ -193,51 +230,6 @@ class SampleSerializer(serializers.ModelSerializer):
             return None
         else:
             return obj.extracted_from.id
-
-class SampleExportSerializer(serializers.ModelSerializer):
-    sample_id = serializers.IntegerField(read_only=True, source="id")
-    sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
-    sample_name = serializers.CharField(source="name")
-    individual_id = serializers.CharField(read_only=True, source="individual.name")
-    taxon = serializers.CharField(read_only=True, source="individual.taxon")
-    sex = serializers.CharField(read_only=True, source="individual.sex")
-    pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
-    cohort = serializers.CharField(read_only=True, source="individual.cohort")
-    mother_name = serializers.SerializerMethodField()
-    father_name = serializers.SerializerMethodField()
-    container_kind = serializers.CharField(read_only=True, source="container.kind")
-    container_name = serializers.CharField(read_only=True, source="container.name")
-    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
-    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
-    location_barcode = serializers.SerializerMethodField()
-    current_volume = serializers.SerializerMethodField()
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
-    class Meta:
-        model = Sample
-        fields = ('sample_id','sample_kind', 'sample_name', 'alias', 'cohort', 'taxon',
-                  'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
-                  'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
-                  'current_volume', 'concentration', 'collection_site', 'tissue_source', 'creation_date',
-                  'depleted', 'coordinates', 'projects', 'comment' )
-
-    def get_location_barcode(self, obj):
-        if obj.container.location is None:
-            return ''
-        else:
-            return obj.container.location.barcode
-
-    def get_current_volume(self, obj):
-        return obj.volume
-
-    def get_father_name(self, obj):
-        father = '' if obj.individual.father is None else obj.individual.father.name
-        return father
-
-    def get_mother_name(self, obj):
-        mother = '' if obj.individual.mother is None else obj.individual.mother.name
-        return mother
-
 
 class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)

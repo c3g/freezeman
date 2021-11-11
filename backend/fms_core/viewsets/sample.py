@@ -6,9 +6,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from fms_core.models import Sample, Container
+from fms_core.models import Sample, Container, DerivedSample, Biosample
 
-from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.serializers import SampleSerializer, FullSampleExportSerializer, NestedSampleSerializer
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter
 
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
@@ -90,19 +90,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
-            fields = SampleExportSerializer.Meta.fields
+            fields = FullSampleExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
 
     @action(detail=False, methods=["get"])
-    def list_export(self, _request):
-        serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=["get"])
     def list_collection_sites(self, _request):
-        samples_data = Sample.objects.filter().distinct("collection_site")
+        samples_data = Biosample.objects.filter().distinct("collection_site")
         collection_sites = [s.collection_site for s in samples_data]
         return Response(collection_sites)
 
@@ -130,7 +125,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         """
 
         experimental_groups = Counter()
-        for eg in Sample.objects.values_list("experimental_group", flat=True):
+        for eg in DerivedSample.objects.values_list("experimental_group", flat=True):
             experimental_groups.update(eg)
 
 
@@ -138,15 +133,15 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "total_count": Sample.objects.all().count(),
             "kinds_counts": {
                 c["sample_kind"]: c["sample_kind__count"]
-                for c in Sample.objects.values("sample_kind").annotate(Count("sample_kind"))
+                for c in DerivedSample.objects.values("sample_kind").annotate(Count("sample_kind"))
             },
             "tissue_source_counts": {
                 c["tissue_source"]: c["tissue_source__count"]
-                for c in Sample.objects.values("tissue_source").annotate(Count("tissue_source"))
+                for c in DerivedSample.objects.values("tissue_source").annotate(Count("tissue_source"))
             },
             "collection_site_counts": {
                 c["collection_site"]: c["collection_site__count"]
-                for c in Sample.objects.values("collection_site").annotate(Count("collection_site"))
+                for c in Biosample.objects.values("collection_site").annotate(Count("collection_site"))
             },
             "experimental_group_counts": dict(experimental_groups),
         })
