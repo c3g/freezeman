@@ -10,13 +10,10 @@ from ._utils import add_error as _add_error
 
 @reversion.register()
 class SampleKind(TrackedModel):
-    name = models.CharField(max_length=200,
-                            unique=True,
-                            help_text="Biological material collected from study subject "
-                                                  "during the conduct of a genomic study project.")
-    molecule_ontology_curie = models.CharField( blank=True,
-                                                help_text='SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’)',
-                                                max_length=20)
+    name = models.CharField(max_length=200, unique=True,
+                            help_text="Biological material collected from study subject during the conduct of a genomic study project.")
+    molecule_ontology_curie = models.CharField(max_length=20, blank=True,
+                                               help_text="SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’).")
 
     def __str__(self):
         return self.name

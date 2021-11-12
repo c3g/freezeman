@@ -52,9 +52,9 @@ def create_experiment_run(run_type_obj,
 
             _, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
                                                                     sample_source=source_sample,
-                                                                    container_destination=container_obj,
+                                                                    destination_container=container_obj,
                                                                     volume_used=volume_used,
-                                                                    date_execution=start_date,
+                                                                    execution_date=start_date,
                                                                     coordinates_destination=container_coordinates,
                                                                     volume_destination=volume_destination,
                                                                     destination_depleted=True)

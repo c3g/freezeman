@@ -1,5 +1,3 @@
-from django.db.models import constraints
-from django.db.models.constraints import UniqueConstraint
 import reversion
 
 from django.core.exceptions import ValidationError

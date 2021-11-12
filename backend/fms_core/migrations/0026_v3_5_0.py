@@ -25,8 +25,6 @@ class Migration(migrations.Migration):
                                            max_length=200, null=True)),
                 ('collection_site',
                  models.CharField(help_text='The facility designated for the collection of samples.', max_length=200)),
-                ('comment',
-                 models.TextField(blank=True, help_text='Other relevant information about the biosample.', null=True)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_biosample_creation',
                                                  to=settings.AUTH_USER_MODEL)),
@@ -117,8 +115,8 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             """
                 -- Create biosamples from parent samples and samples not having lineages (samples excluded are those who are children samples)
-                INSERT INTO fms_core_biosample (individual_id, alias, collection_site, comment, created_at, created_by_id, updated_at, updated_by_id, deleted, root_sample_id)
-                SELECT sample.individual_id, sample.alias, sample.collection_site, sample.comment, sample.created_at, sample.created_by_id, current_timestamp, 1, FALSE, sample.id
+                INSERT INTO fms_core_biosample (individual_id, alias, collection_site, created_at, created_by_id, updated_at, updated_by_id, deleted, root_sample_id)
+                SELECT sample.individual_id, sample.alias, sample.collection_site, sample.created_at, sample.created_by_id, current_timestamp, 1, FALSE, sample.id
                 FROM fms_core_sample sample
                 WHERE sample.id NOT IN (
                     SELECT child_id FROM fms_core_samplelineage
@@ -276,5 +274,13 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='sample',
             name='tissue_source',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='phenotype',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='update_comment',
         ),
     ]

@@ -3,36 +3,15 @@ from django.test import TestCase
 
 import datetime
 
-from fms_core.models import (
-    Container,
-    Sample,
-    Individual,
-    Process,
-    ProcessMeasurement,
-    Protocol,
-    SampleKind,
-)
-from fms_core.tests.constants import (
-    create_individual,
-    create_sample,
-    create_sample_container,
-)
+from fms_core.models import Container, Sample, Process, ProcessMeasurement, Protocol
+
+from fms_core.tests.constants import create_sample, create_sample_container
 
 
 class ProcessMeasurementTest(TestCase):
     def setUp(self):
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
-
-        self.individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
-
-        self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube04',
-                                                                                  barcode='TParent01'))
-
-        self.source_sample = Sample.objects.create(**create_sample(sample_kind=self.sample_kind_BLOOD,
-                                                                   individual=self.individual,
-                                                                   container=self.tube_container,
-                                                                   name="test_source_sample"))
-
+        self.tube_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube04', barcode='TParent01'))
+        self.source_sample = Sample.objects.create(**create_sample(container=self.tube_container, name="test_source_sample"))
         self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
         self.transfer_protocol, _ = Protocol.objects.get_or_create(name="Transfer")
         self.update_protocol, _ = Protocol.objects.get_or_create(name="Update")

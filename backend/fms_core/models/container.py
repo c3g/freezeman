@@ -17,7 +17,6 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
 from ._validators import name_validator, container_barcode_validator
 
-
 __all__ = ["Container"]
 
 
@@ -26,31 +25,23 @@ class Container(TrackedModel):
     """ Class to store information about a sample. """
 
     # TODO: Model for choices?
-    kind = models.CharField(
-        max_length=25,
-        choices=CONTAINER_KIND_CHOICES,
-        help_text="What kind of container this is. Dictates the coordinate system and other container-specific "
-                  "properties."
-    )
-
+    kind = models.CharField(max_length=25,
+                            choices=CONTAINER_KIND_CHOICES,
+                            help_text="What kind of container this is. Dictates the coordinate system and other container-specific properties.")
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
                             help_text="Unique name for the container.",
                             validators=[name_validator])
     barcode = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
                                validators=[container_barcode_validator])
-
     # In which container is this container located? i.e. its parent.
     location = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="children",
                                  help_text="An existing (parent) container this container is located inside of.",
                                  limit_choices_to={"kind__in": PARENT_CONTAINER_KINDS})
-
     # Where in the parent container is this container located, if relevant?
     coordinates = models.CharField(max_length=20, blank=True,
                                    help_text="Coordinates of this container within the parent container.")
-
     comment = models.TextField(blank=True, help_text="Other relevant information about the container.")
-    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the "
-                                                            "container. Change this whenever updates are made.")
+    update_comment = models.TextField(blank=True, help_text="Comment describing the latest updates made to the container. Change this whenever updates are made.")
 
     def __str__(self):
         return self.barcode
@@ -79,16 +70,12 @@ class Container(TrackedModel):
         if self.location is not None:
             if self.location.barcode == self.barcode:
                 add_error("location", "Container cannot contain itself")
-
             else:
                 parent_spec = CONTAINER_KIND_SPECS[self.location.kind]
-
                 # Validate that this container is allowed to be located in the parent container specified
                 if not parent_spec.can_hold_kind(self.kind):
-                    add_error(
-                        "location",
-                        f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}"
-                    )
+                    add_error("location",
+                              f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}")
 
                 if not errors.get("coordinates") and not errors.get("location"):
                     # Validate coordinates against parent container spec
