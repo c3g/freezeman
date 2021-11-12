@@ -42,10 +42,8 @@ class SampleLineage(TrackedModel):
             elif child_derived.tissue_source != DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent_derived.sample_kind.name]:
                 add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
         elif protocol_name == "Transfer":
-            if self.child.derived_samples.values_list("id", flat=True).order_by("id") != self.parent.derived_samples.values_list("id", flat=True).order_by("id"):
+            if list(self.child.derived_samples.values_list("id", flat=True).order_by("id")) != list(self.parent.derived_samples.values_list("id", flat=True).order_by("id")):
                 add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")           
-
-
 
         if self.child == self.parent:
             add_error("child", "A sample cannot have itself as child.")

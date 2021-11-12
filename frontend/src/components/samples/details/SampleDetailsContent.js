@@ -168,7 +168,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
                   {experimentalGroups.map((g, i) =>
                       <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
               </Descriptions.Item>
-              <Descriptions.Item label="Phenotype">{sample.phenotype}</Descriptions.Item>
               <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
               <Descriptions.Item label="Container">
                 {sample.container &&
@@ -179,7 +178,6 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               </Descriptions.Item>
               <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
-              <Descriptions.Item label="Update Comment" span={3}>{sample.update_comment}</Descriptions.Item>
               {/*TODO: Extracted from*/}
           </Descriptions>
           {sample.extracted_from ? (

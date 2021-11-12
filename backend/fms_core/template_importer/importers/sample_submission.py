@@ -9,7 +9,7 @@ class SampleSubmissionImporter(GenericImporter):
             'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
                         'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
                         'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                        'Collection Site', 'Tissue Source', 'Reception Date', 'Phenotype', 'Comment']
+                        'Collection Site', 'Tissue Source', 'Reception Date', 'Comment']
         },
     ]
 
@@ -56,7 +56,6 @@ class SampleSubmissionImporter(GenericImporter):
                 'collection_site': row_data['Collection Site'],
                 'tissue_source': row_data['Tissue Source'],
                 'creation_date': row_data['Reception Date'],
-                'phenotype': row_data['Phenotype'],
                 'comment': row_data['Comment'],
                 'coordinates': row_data['Sample Coord'],
                 'sample_kind': row_data['Sample Kind'],

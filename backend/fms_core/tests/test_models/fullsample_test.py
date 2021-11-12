@@ -203,7 +203,6 @@ class ExtractedSampleTest(TestCase):
             try:
                 SampleLineage.objects.create(parent=parent_sample, child=invalid_tissue_source, process_measurement=pm)
             except ValidationError as e:
-                print(e.message_dict)
                 self.assertIn('tissue_source', e.message_dict)
                 raise e
 
