@@ -16,6 +16,7 @@ class SheetData():
     def __init__(self, name, dataframe, headers, is_partial_header):
         self.base_errors = []
         self.is_valid = None
+        self.header_row_nb = None
 
         self.name = name
         self.dataframe = dataframe
@@ -28,7 +29,8 @@ class SheetData():
                 if set(row_list).issuperset(self.headers):
                     self.set_header_row(row_list)
                     break
-        else:
+
+        if not self.header_row_nb:
             self.base_errors.append(f"SheetData headers could not be found.")
 
     def set_header_row(self, header_row_list):
