@@ -13,8 +13,6 @@ class ExperimentRunImporter(GenericImporter):
             'name': 'Experiments',
             'headers': ['Experiment ID', 'Experiment Container Barcode', 'Experiment Container Kind',
                         'Instrument Name', 'Experiment Start Date'],
-
-            'is_partial_header': True,
         },
         {
             'name': 'Samples',
