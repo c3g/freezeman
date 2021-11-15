@@ -54,7 +54,7 @@ class FullSample(models.Model):
                                    help_text="Coordinates of the sample in a parent container. Only applicable for "
                                              "containers that directly store samples with coordinates, e.g. plates.")
 
-    derived_sample = models.ForeignKey(DerivedSample, on_delete=models.DO_NOTHING, related_name="samples",
+    derived_sample = models.ForeignKey(DerivedSample, on_delete=models.DO_NOTHING, related_name="full_sample",
                                   help_text="Designated location of the sample.")
 
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",

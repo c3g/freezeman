@@ -31,6 +31,7 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        #We need 2 different sample ids for the view. One for the full sample primary key and the another one that points to the sample object
         migrations.RunSQL(
             """
                 DROP VIEW IF EXISTS fms_core_fullsample;

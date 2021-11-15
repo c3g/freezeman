@@ -191,23 +191,23 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}>
-            <Input />
+            <Input disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
-            <Select>
+          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={isAdding && requiredRules}>
+            <Select disabled={!isAdding}>
               {sampleKinds.items.map(sk =>
                 <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Tissue" {...props("tissue_source")}>
+          <Form.Item label="Tissue" {...props("tissue_source")}s>
             <Select allowClear disabled={!isTissueEnabled}>
               {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" {...props("individual")}>
+          <Form.Item label="Individual" {...props("individual")} disabled={!isAdding}>
             <Select
               showSearch
               allowClear
@@ -215,6 +215,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
+              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Container" {...props("container")} rules={requiredRules}>
@@ -249,14 +250,15 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           >
             <InputNumber step={0.001} />
           </Form.Item>
-          <Form.Item label="Exp. Group" {...props("experimental_group")}>
-            <Select mode="tags" />
+          <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
+            <Select mode="tags" disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
+          <Form.Item label="Collection Site" {...props("collection_site")} rules={isAdding && requiredRules} disabled={!isAdding}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
+              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>

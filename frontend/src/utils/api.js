@@ -103,8 +103,8 @@ const api = {
 
   samples: {
     get: sampleId => get(`/full-samples/${sampleId}/`),
-    add: sample => post("/samples/", sample),
-    update: sample => patch(`/samples/${sample.id}/`, sample),
+    add: sample => post("/full-samples/", sample),
+    update: sample => patch(`/full-samples/${sample.id}/`, sample),
     list: (options, abort) => get("/full-samples", options, { abort }),
     listExport: options => get("/full-samples/list_export/", {format: "csv", ...options}),
     listCollectionSites: () => get("/full-samples/list_collection_sites/"),

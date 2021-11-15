@@ -213,8 +213,6 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
         mother = '' if obj.individual and obj.individual.mother is None else obj.individual.mother.name
         return mother
 
-
-
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
