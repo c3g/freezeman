@@ -16,17 +16,22 @@ class SheetData():
     def __init__(self, name, dataframe, headers):
         self.base_errors = []
         self.is_valid = None
+        self.header_row_nb = None
 
         self.name = name
         self.dataframe = dataframe
         self.headers = headers
 
-        if self.headers not in self.dataframe.values.tolist():
-            self.base_errors.append(f"SheetData headers could not be found.")
-        else:
-            self.dataframe.columns = self.headers
-            self.header_row_nb = self.dataframe.values.tolist().index(self.headers)
+        for i, row_list in enumerate(self.dataframe.values.tolist()):
+            if row_list[:len(self.headers)] == self.headers:
+                self.dataframe.columns = row_list
+                self.header_row_nb = i
+                break
+
+        if self.header_row_nb:
             self.prepare_rows()
+        else:
+            self.base_errors.append(f"SheetData headers could not be found.")
 
 
     def prepare_rows(self):
