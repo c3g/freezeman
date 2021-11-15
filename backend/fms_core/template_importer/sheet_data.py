@@ -22,10 +22,10 @@ class SheetData():
         self.dataframe = dataframe
         self.headers = headers
 
-        for row_list in self.dataframe.values.tolist():
+        for i, row_list in enumerate(self.dataframe.values.tolist()):
             if row_list[:len(self.headers)] == self.headers:
                 self.dataframe.columns = row_list
-                self.header_row_nb = self.dataframe.values.tolist().index(row_list)
+                self.header_row_nb = i
                 break
 
         if self.header_row_nb:
