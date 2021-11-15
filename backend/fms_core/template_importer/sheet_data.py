@@ -30,13 +30,15 @@ class SheetData():
                     self.set_header_row(row_list)
                     break
 
-        if not self.header_row_nb:
+        if self.header_row_nb:
+            self.prepare_rows()
+        else:
             self.base_errors.append(f"SheetData headers could not be found.")
+
 
     def set_header_row(self, header_row_list):
         self.dataframe.columns = header_row_list
         self.header_row_nb = self.dataframe.values.tolist().index(header_row_list)
-        self.prepare_rows()
 
     def prepare_rows(self):
         self.rows = []
