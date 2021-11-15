@@ -32,7 +32,7 @@ class TransferRowHandler(GenericRowHandler):
 
         _, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(process=process_measurement['process'],
                                                                                                   sample_source=original_sample,
-                                                                                                  destination_container=destination_container,
+                                                                                                  container_destination=destination_container,
                                                                                                   volume_used=process_measurement['volume_used'],
                                                                                                   execution_date=process_measurement['execution_date'],
                                                                                                   coordinates_destination=resulting_sample['coordinates'],

@@ -69,7 +69,6 @@ _sample_filterset_fields: FiltersetFields = {
     "creation_date": DATE_FILTERS,
     "coordinates": FREE_TEXT_FILTERS,
     "comment": FREE_TEXT_FILTERS,
-    "update_comment": FREE_TEXT_FILTERS,
 
     "individual": FK_FILTERS,  # PK
     "container": FK_FILTERS,  # PK

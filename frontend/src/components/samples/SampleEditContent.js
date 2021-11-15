@@ -262,13 +262,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
-          <Form.Item label="Phenotype" {...props("phenotype")}>
-            <Input />
-          </Form.Item>
           <Form.Item label="Comment" {...props("comment")}>
-            <TextArea />
-          </Form.Item>
-          <Form.Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
           </Form.Item>
           {formErrors?.non_field_errors &&

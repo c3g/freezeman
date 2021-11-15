@@ -13,8 +13,7 @@ class SampleRowHandler(GenericRowHandler):
         super().__init__()
 
 
-    def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father,
-                          sample_kind_objects_by_name):
+    def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
@@ -71,11 +70,8 @@ class SampleRowHandler(GenericRowHandler):
 
 
         sample_obj, self.errors['sample'], self.warnings['sample'] = \
-            create_full_sample(
-                name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                concentration=sample['concentration'], tissue_source=sample['tissue_source'], phenotype=sample['phenotype'],
-                experimental_group=sample['experimental_group'],
-                container=container_obj, individual=individual_obj, sample_kind=sample_kind_obj,
-                comment=comment
-            )
+            create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                               creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                               concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                               experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                               sample_kind=sample_kind_obj, comment=comment)

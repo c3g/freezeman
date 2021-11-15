@@ -40,4 +40,4 @@ class RunType(TrackedModel):
 
     @property
     def get_protocols_dict(self):
-        return {self.protocol: list(self.protocol.child_of.all())}
+        return {self.protocol: list(self.protocol.parent_of.all())}

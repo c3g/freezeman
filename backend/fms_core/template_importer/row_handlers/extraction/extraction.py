@@ -37,9 +37,9 @@ class ExtractionRowHandler(GenericRowHandler):
                                sample_source=original_sample,
                                container_destination=destination_container,
                                volume_used=process_measurement['volume_used'],
-                               date_execution=process_measurement['execution_date'],
-                               resulting_concentration=resulting_sample['concentration'],
-                               resulting_sample_kind=resulting_sample['kind'],
+                               execution_date=process_measurement['execution_date'],
+                               concentration_destination=resulting_sample['concentration'],
+                               sample_kind_destination=resulting_sample['kind'],
                                coordinates_destination=resulting_sample['coordinates'],
                                volume_destination=resulting_sample['volume'],
                                source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None)
