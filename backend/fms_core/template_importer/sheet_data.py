@@ -13,7 +13,7 @@ from ._utils import data_row_ids_range, panda_values_to_str_list
 
 
 class SheetData():
-    def __init__(self, name, dataframe, headers):
+    def __init__(self, name, dataframe, headers, is_partial_header):
         self.base_errors = []
         self.is_valid = None
 
@@ -21,13 +21,20 @@ class SheetData():
         self.dataframe = dataframe
         self.headers = headers
 
-        if self.headers not in self.dataframe.values.tolist():
-            self.base_errors.append(f"SheetData headers could not be found.")
+        if self.headers in self.dataframe.values.tolist():
+            self.set_header_row(self.headers)
+        elif is_partial_header:
+            for row_list in self.dataframe.values.tolist():
+                if set(row_list).issuperset(self.headers):
+                    self.set_header_row(row_list)
+                    break
         else:
-            self.dataframe.columns = self.headers
-            self.header_row_nb = self.dataframe.values.tolist().index(self.headers)
-            self.prepare_rows()
+            self.base_errors.append(f"SheetData headers could not be found.")
 
+    def set_header_row(self, header_row_list):
+        self.dataframe.columns = header_row_list
+        self.header_row_nb = self.dataframe.values.tolist().index(header_row_list)
+        self.prepare_rows()
 
     def prepare_rows(self):
         self.rows = []
