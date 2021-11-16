@@ -77,7 +77,6 @@ _full_sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("individual__", _individual_filterset_fields),
-    **_prefix_keys("sample__projects__", _project_minimal_filterset_fields)
 }
 
 _sample_filterset_fields: FiltersetFields = {

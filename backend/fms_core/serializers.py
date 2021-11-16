@@ -206,11 +206,11 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
         return obj.volume if obj.volume else None
 
     def get_father_name(self, obj):
-        father = '' if obj.individual and obj.individual.father is None else obj.individual.father.name
+        father = '' if obj.individual or obj.individual.father is None else obj.individual.father.name
         return father
 
     def get_mother_name(self, obj):
-        mother = '' if obj.individual and obj.individual.mother is None else obj.individual.mother.name
+        mother = '' if obj.individual or obj.individual.mother is None else obj.individual.mother.name
         return mother
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -224,10 +224,7 @@ class SampleSerializer(serializers.ModelSerializer):
         extra_fields = ('extracted_from', 'projects')
 
     def get_extracted_from(self, obj):
-        if obj.extracted_from is None:
-            return None
-        else:
-            return obj.extracted_from.id
+        return obj.extracted_from and obj.extracted_from.id
 
 class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)

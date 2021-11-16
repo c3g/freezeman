@@ -18,25 +18,35 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(help_text='Sample name.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('alias', models.CharField(help_text='Sample alias.', max_length=200)),
                 ('volume', models.DecimalField(decimal_places=3, help_text='Current volume of the sample, in µL. ', max_digits=20)),
                 ('concentration', models.DecimalField(blank=True, decimal_places=3, help_text='Concentration in ng/µL. Required for nucleic acid samples.', max_digits=20, null=True, verbose_name='concentration in ng/µL')),
                 ('depleted', models.BooleanField(default=False, help_text='Whether this sample has been depleted.')),
                 ('collection_site', models.CharField(help_text='The facility designated for the collection of samples.', max_length=200)),
                 ('tissue_source', models.CharField(blank=True, help_text='Can only be specified if the biospecimen type is DNA or RNA.', max_length=200)),
+                ('experimental_group', models.JSONField(blank=True, help_text="Experimental group associated to  sample.")),
                 ('creation_date', models.DateField(help_text='Date of the sample reception or extraction.')),
                 ('coordinates', models.CharField(blank=True, help_text='Coordinates of the sample in a parent container. Only applicable for containers that directly store samples with coordinates, e.g. plates.', max_length=10)),
+                ('container', models.ForeignKey("Container", on_delete=models.DO_NOTHING, help_text="Container associated to the sample.")),
+                ('individual', models.ForeignKey("Individual", blank=True, null=True, on_delete=models.DO_NOTHING, help_text="Individual associated with to sample.")),
+                ('sample_kind', models.ForeignKey("SampleKind", on_delete=models.DO_NOTHING, help_text="Sample Kind associated to the sample.")),
+                ('derived_sample', models.ForeignKey("DerivedSample", on_delete=models.DO_NOTHING, help_text="Sample from which the current sample was extracted from.")),
+                ('biosample', models.ForeignKey("Biosample", on_delete=models.DO_NOTHING, help_text="Root Sample")),
+                ('child_of', models.ForeignKey("Sample", on_delete=models.DO_NOTHING, help_text="Parent Sample")),
+                ('process_measurements', models.ForeignKey("ProcessMeasurement", on_delete=models.DO_NOTHING, help_text="Process measurements associated to the sample")),
+                ('projects', models.ForeignKey("Project", blank=True, null=True, on_delete=models.DO_NOTHING, help_text="Projects which the sample belongs to.")),
+                ('projects_names', models.CharField(blank=True, null=True, help_text="Projects' names which the sample belongs to.")),
             ],
             options={
                 'db_table': 'fms_core_fullsample',
                 'managed': False,
             },
         ),
-        #We need 2 different sample ids for the view. One for the full sample primary key and the another one that points to the sample object
         migrations.RunSQL(
             """
                 DROP VIEW IF EXISTS fms_core_fullsample;
                 CREATE OR REPLACE VIEW fms_core_fullsample AS
-                SELECT sample.id, sample.id AS sample_id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, sample.update_comment, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(DISTINCT project.name), NULL) AS projects_names, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_sample AS sample 
                 JOIN fms_core_derivedbysample AS dbys 
                 ON dbys.sample_id =  sample.id 
@@ -44,6 +54,8 @@ class Migration(migrations.Migration):
                 ON dbys.derived_sample_id  = derived.id 
                 LEFT JOIN fms_core_samplebyproject AS sbyp
                 ON sbyp.sample_id = sample.id
+                LEFT JOIN fms_core_project AS project
+                ON sbyp.project_id = project.id
                 LEFT JOIN fms_core_processmeasurement AS pm 
                 ON pm.source_sample_id = sample.id
                 LEFT JOIN fms_core_samplelineage AS sl 

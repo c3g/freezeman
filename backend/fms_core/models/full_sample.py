@@ -17,7 +17,10 @@ class FullSample(models.Model):
     sample_kind = models.ForeignKey(SampleKind, on_delete=models.DO_NOTHING, db_column='sample_kind_id',
                                     help_text="Biological material collected from study subject "
                                               "during the conduct of a genomic study project.")
+
     name = models.CharField(max_length=200, help_text="Sample name.")
+    alias = models.CharField(max_length=200, help_text="Sample alias.")
+
     individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.DO_NOTHING, help_text="Individual associated "
                                                                                      "with the sample.")
 
@@ -60,9 +63,9 @@ class FullSample(models.Model):
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 
-    sample = models.ForeignKey(Sample, on_delete=models.DO_NOTHING, related_name="samples")
+    projects = ArrayField(models.IntegerField(blank=True))
 
-    projects = ArrayField(models.IntegerField( blank=True))
+    projects_names = ArrayField(models.CharField(blank=True, max_length=20))
 
     child_of = models.ForeignKey(Sample, on_delete=models.DO_NOTHING)
 

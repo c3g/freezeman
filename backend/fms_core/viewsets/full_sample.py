@@ -49,6 +49,16 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         }
     ]
 
+    def get_queryset(self):
+        project_name_filter = self.request.query_params.get('sample__projects__name__icontains')
+
+        if project_name_filter:
+            projects = FullSample.objects.filter(projects_names__icontains=project_name_filter)
+            return projects
+
+        return self.queryset
+
+
     def create(self, request, *args, **kwargs):
         error = {}
         full_sample = request.data
@@ -157,8 +167,6 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         data = serializer.data
         return Response(data)
 
-
-
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         serializer = FullSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
@@ -175,22 +183,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         for eg in DerivedSample.objects.values_list("experimental_group", flat=True):
             experimental_groups.update(eg)
 
-        return Response({
-            "total_count": Sample.objects.all().count(),
-            "kinds_counts": {
-                c["sample_kind"]: c["sample_kind__count"]
-                for c in DerivedSample.objects.values("sample_kind").annotate(Count("sample_kind"))
-            },
-            "tissue_source_counts": {
-                c["tissue_source"]: c["tissue_source__count"]
-                for c in DerivedSample.objects.values("tissue_source").annotate(Count("tissue_source"))
-            },
-            "collection_site_counts": {
-                c["collection_site"]: c["collection_site__count"]
-                for c in Biosample.objects.values("collection_site").annotate(Count("collection_site"))
-            },
-            "experimental_group_counts": dict(experimental_groups),
-        })
+        return Response({"total_count": Sample.objects.all().count()})
 
     @action(detail=False, methods=["get"])
     def list_collection_sites(self, _request):
