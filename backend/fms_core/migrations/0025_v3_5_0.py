@@ -65,9 +65,10 @@ def reset_runtype_versions(apps, schema_editor):
 
 
 def create_mgi_T7_related_objects(apps, schema_editor):
+    Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
     Instrument = apps.get_model("fms_core", "Instrument")
-    ExperimentType = apps.get_model("fms_core", "ExperimentType")
+    RunType = apps.get_model("fms_core", "RunType")
     Protocol = apps.get_model("fms_core", "Protocol")
     PropertyType = apps.get_model("fms_core", "PropertyType")
     ContentType = apps.get_model('contenttypes', 'ContentType')
@@ -80,6 +81,7 @@ def create_mgi_T7_related_objects(apps, schema_editor):
         reversion.set_user(admin_user)
 
         # Platform and InstrumentType already created for MGI T7
+        platform = Platform.objects.get(name="DNBSEQ")
 
         # Instrument dictionary {NAME: TYPE} for creation
         INSTRUMENTS = {
@@ -95,10 +97,6 @@ def create_mgi_T7_related_objects(apps, schema_editor):
                                           updated_by_id=admin_user_id)
             reversion.add_to_revision(i)
 
-        # Create ExperimentType MGI T7
-        et = ExperimentType.objects.create(workflow="DNBSEQ",
-                                           created_by_id=admin_user_id,
-                                           updated_by_id=admin_user_id)
 
         # Create PropertyType and Protocols
         PROPERTY_TYPES_BY_PROTOCOL = {
@@ -133,6 +131,14 @@ def create_mgi_T7_related_objects(apps, schema_editor):
                                                  is_optional=is_optional,
                                                  created_by_id=admin_user_id, updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
+
+        # Create RunType MGI T7
+        rt = RunType.objects.create(name="DNBSEQ",
+                                    platform=platform,
+                                    protocol=protocol,
+                                    created_by_id=admin_user_id,
+                                    updated_by_id=admin_user_id)
+        reversion.add_to_revision(rt)
 
 
 class Migration(migrations.Migration):
