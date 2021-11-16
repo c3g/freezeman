@@ -64,83 +64,6 @@ def reset_runtype_versions(apps, schema_editor):
         version.save()
 
 
-def create_mgi_T7_related_objects(apps, schema_editor):
-    Platform = apps.get_model("fms_core", "Platform")
-    InstrumentType = apps.get_model("fms_core", "InstrumentType")
-    Instrument = apps.get_model("fms_core", "Instrument")
-    RunType = apps.get_model("fms_core", "RunType")
-    Protocol = apps.get_model("fms_core", "Protocol")
-    PropertyType = apps.get_model("fms_core", "PropertyType")
-    ContentType = apps.get_model('contenttypes', 'ContentType')
-
-    with reversion.create_revision(manage_manually=True):
-        admin_user = User.objects.get(username=ADMIN_USERNAME)
-        admin_user_id = admin_user.id
-
-        reversion.set_comment("Create objects related to MGI T7 experiment")
-        reversion.set_user(admin_user)
-
-        # Platform and InstrumentType already created for MGI T7
-        platform = Platform.objects.get(name="DNBSEQ")
-
-        # Instrument dictionary {NAME: TYPE} for creation
-        INSTRUMENTS = {
-            "01-Marie Curie": "DNBSEQ-G400",
-            "02-Frida Kahlo": "DNBSEQ-G400",
-            "03-Jennifer Doudna": "DNBSEQ-T7",
-        }
-        for name in INSTRUMENTS.keys():
-            it = InstrumentType.objects.get(type=INSTRUMENTS[name])
-            i = Instrument.objects.create(name=name,
-                                          type=it,
-                                          created_by_id=admin_user_id,
-                                          updated_by_id=admin_user_id)
-            reversion.add_to_revision(i)
-
-
-        # Create PropertyType and Protocols
-        PROPERTY_TYPES_BY_PROTOCOL = {
-            "DNBSEQ Preparation": [("Experiment Name", "str"),
-                                   ("Flowcell Lot", "str"),
-                                   ("Loading Method", "str"),
-                                   ("Sequencer Side", "str"),
-                                   ("Sequencer Kit Used", "str"),
-                                   ("Sequencer Kit Lot", "str"),
-                                   ("Load DNB Cartridge Lot", "str"),
-                                   ("Primer Kit", "str"),
-                                   ("Read 1 Cycles", "str"),
-                                   ("Read 2 Cycles", "str"),
-                                   ("Index 1 Cycles", "str"),
-                                   ("Index 2 Cycles", "str"),
-                                   ],
-        }
-        protocol_content_type = ContentType.objects.get_for_model(Protocol)
-
-        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
-            protocol = Protocol.objects.create(name=protocol_name,
-                                               created_by_id=admin_user_id, updated_by_id=admin_user_id)
-            reversion.add_to_revision(protocol)
-
-            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                is_optional = True if 'comment' in property.lower() else False
-
-                pt = PropertyType.objects.create(name=property,
-                                                 object_id=protocol.id,
-                                                 content_type=protocol_content_type,
-                                                 value_type=value_type,
-                                                 is_optional=is_optional,
-                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
-                reversion.add_to_revision(pt)
-
-        # Create RunType MGI T7
-        rt = RunType.objects.create(name="DNBSEQ",
-                                    platform=platform,
-                                    protocol=protocol,
-                                    created_by_id=admin_user_id,
-                                    updated_by_id=admin_user_id)
-        reversion.add_to_revision(rt)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -222,11 +145,5 @@ class Migration(migrations.Migration):
             model_name='runtype',
             name='updated_by',
             field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_runtype_modification', to=settings.AUTH_USER_MODEL),
-        ),
-
-        # MGI T7 initial migration
-        migrations.RunPython(
-            create_mgi_T7_related_objects,
-            reverse_code=migrations.RunPython.noop,
         ),
     ]
