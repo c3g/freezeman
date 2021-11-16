@@ -284,4 +284,89 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='update_comment',
         ),
+        migrations.DeleteModel(
+            name='ContainerMove',
+        ),
+        migrations.DeleteModel(
+            name='ContainerRename',
+        ),
+        migrations.DeleteModel(
+            name='ExtractedSample',
+        ),
+        migrations.DeleteModel(
+            name='SampleUpdate',
+        ),
+        migrations.DeleteModel(
+            name='TransferredSample',
+        ),
+        migrations.AddField(
+            model_name='sample',
+            name='derived_samples',
+            field=models.ManyToManyField(blank=True, related_name='samples', through='fms_core.DerivedBySample', to='fms_core.DerivedSample'),
+        ),
+        migrations.AlterField(
+            model_name='derivedbysample',
+            name='volume_ratio',
+            field=models.DecimalField(decimal_places=3, help_text='Volume ratio in pools.', max_digits=4),
+        ),
+        migrations.AlterField(
+            model_name='propertytype',
+            name='is_optional',
+            field=models.BooleanField(default=False, help_text='Whether this property is optional or not.'),
+        ),
+        migrations.AlterField(
+            model_name='propertytype',
+            name='name',
+            field=models.CharField(help_text='The name of the property.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))]),
+        ),
+        migrations.AlterField(
+            model_name='propertytype',
+            name='value_type',
+            field=models.CharField(choices=[('int', 'int'), ('float', 'float'), ('bool', 'bool'), ('str', 'str')], help_text='Enumerated type to define value type.', max_length=20),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='comment',
+            field=models.TextField(blank=True, help_text='Other relevant information about the biosample.'),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='concentration',
+            field=models.DecimalField(blank=True, decimal_places=3, help_text='Concentration in ng/µL. Required for DNA).', max_digits=20, null=True, verbose_name='concentration in ng/µL'),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='container',
+            field=models.ForeignKey(help_text='Container in which the sample is placed.', limit_choices_to={'kind__in': ('infinium gs 24 beadchip', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate', '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.container'),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='coordinates',
+            field=models.CharField(blank=True, help_text='Coordinates of the sample in a sample holding container. Only applicable for containers that directly store samples with coordinates, e.g. plates.', max_length=10),
+        ),
+        migrations.AlterField(
+            model_name='sample',
+            name='volume',
+            field=models.DecimalField(decimal_places=3, help_text='Current volume of the sample, in µL.', max_digits=20),
+        ),
+        migrations.AlterField(
+            model_name='samplekind',
+            name='molecule_ontology_curie',
+            field=models.CharField(blank=True, help_text='SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’).', max_length=20),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='child',
+            field=models.ForeignKey(help_text='Child sample.', on_delete=django.db.models.deletion.CASCADE, related_name='child_sample', to='fms_core.sample'),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='parent',
+            field=models.ForeignKey(help_text='Parent sample.', on_delete=django.db.models.deletion.CASCADE, related_name='parent_sample', to='fms_core.sample'),
+        ),
+        migrations.AlterField(
+            model_name='samplelineage',
+            name='process_measurement',
+            field=models.ForeignKey(help_text='process used for sample creation.', on_delete=django.db.models.deletion.PROTECT, related_name='lineage', to='fms_core.processmeasurement'),
+        ),
     ]
