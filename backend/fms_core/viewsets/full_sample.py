@@ -178,11 +178,6 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         Returns summary statistics about the current set of samples in the
         database.
         """
-
-        experimental_groups = Counter()
-        for eg in DerivedSample.objects.values_list("experimental_group", flat=True):
-            experimental_groups.update(eg)
-
         return Response({"total_count": Sample.objects.all().count()})
 
     @action(detail=False, methods=["get"])
