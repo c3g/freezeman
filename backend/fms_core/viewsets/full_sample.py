@@ -111,7 +111,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 volume=full_sample['volume'],
                 creation_date=full_sample['creation_date'],
                 container=container_obj,
-                comment=(full_sample['comment'] or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")),
+                **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
                 **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
                 **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
             )
