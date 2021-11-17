@@ -29,7 +29,7 @@ export function renderContainer(c) {
     value: c.id,
     label: (
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        {c.name}{' '}
+        {c.barcode}{' '}({c.name})
         <Text type="secondary">{c.kind}</Text>
       </div>
     )
