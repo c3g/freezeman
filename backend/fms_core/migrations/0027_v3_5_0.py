@@ -51,6 +51,7 @@ def create_mgi_T7_related_objects(apps, schema_editor):
                                    ("Sequencer Kit Lot", "str"),
                                    ("Load DNB Cartridge Lot", "str"),
                                    ("Primer Kit", "str"),
+                                   ("Primer Kit Lot", "str"),
                                    ("Read 1 Cycles", "str"),
                                    ("Read 2 Cycles", "str"),
                                    ("Index 1 Cycles", "str"),
