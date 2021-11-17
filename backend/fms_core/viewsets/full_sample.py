@@ -63,29 +63,9 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         error = {}
         full_sample = request.data
 
-        #Container related information
-        try:
-            container_obj = Container.objects.get(pk=full_sample['container'])
-        except Exception as err:
-            error['container'] = err
-
-        #Individual related information
-        individual_obj = None
-        if full_sample['individual']:
-            try:
-                individual_obj = Individual.objects.get(pk=full_sample['individual'])
-            except Exception as err:
-                error['individual'] = err
-
-        #Sample Kind related information
-        try:
-            sample_kind_obj = SampleKind.objects.get(pk=full_sample['sample_kind'])
-        except Exception as err:
-            error['sample_kind'] = err
-
         biosample_data = dict(
             collection_site=full_sample['collection_site'],
-            **(dict(individual=individual_obj) if individual_obj is not None else dict()),
+            **(dict(individual_id=full_sample['individual']) if full_sample['individual'] is not None else dict()),
             **(dict(alias=full_sample['alias']) if full_sample['alias'] is not None else dict()),
         )
 
@@ -94,7 +74,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
             derived_sample_data = dict(
                 biosample_id=biosample.id,
-                sample_kind=sample_kind_obj,
+                sample_kind_id=full_sample['sample_kind'],
                 **(dict(tissue_source=full_sample['tissue_source']) if full_sample['tissue_source'] is not None else dict()),
             )
             if full_sample['experimental_group']:
@@ -110,7 +90,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 name=full_sample['name'],
                 volume=full_sample['volume'],
                 creation_date=full_sample['creation_date'],
-                container=container_obj,
+                container_id=full_sample['container'],
                 **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
                 **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
                 **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
