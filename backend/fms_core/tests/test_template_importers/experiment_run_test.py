@@ -12,7 +12,7 @@ from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
 
 
-class ExperimentRunTestCase(TestCase):
+class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
         self.file = APP_DATA_ROOT / "Experiment_Infinium_24_vtest.xlsx"
@@ -188,3 +188,34 @@ class ExperimentRunTestCase(TestCase):
         self.assertEqual(cp1_7_p1.value, 'sentrixA')
         self.assertEqual(cp1_7_p2.value, 'lastbarcode')
         self.assertEqual(cp1_7_p3.value, 'bla bla bla')
+
+
+
+class ExperimentRunMGITestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_MGI_vtest.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERWITHSAMPLETESTMGI"
+        self.sample_name = "ExperimentMGITestSample"
+
+        self.prefill_data()
+
+
+    def prefill_data(self):
+        sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
+
+        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon='Homo sapiens')
+
+        create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
+                           creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                           individual=individual, sample_kind=sample_kind_RNA)
+
+
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
