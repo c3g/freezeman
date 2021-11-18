@@ -135,8 +135,26 @@ CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     is_run_container=True,
 )
 
+CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL = ContainerSpec(
+    container_kind_id="dnbseq-g400 flowcell",
+    coordinate_spec=(alphas(1), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=True,
+)
+
+CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
+    container_kind_id="dnbseq-t7 flowcell",
+    coordinate_spec=(alphas(1), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=True,
+)
+
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
+    CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
+    CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
 )
 
 # Containers

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import fms_core.schema_validators
-
+import re
 
 class Migration(migrations.Migration):
     dependencies = [

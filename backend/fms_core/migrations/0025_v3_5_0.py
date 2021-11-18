@@ -63,6 +63,7 @@ def reset_runtype_versions(apps, schema_editor):
         version.object_repr = version.object_repr.replace("Experiment", "Run")
         version.save()
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
