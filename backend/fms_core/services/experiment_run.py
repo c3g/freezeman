@@ -57,8 +57,11 @@ def create_experiment_run(run_type_obj,
                                                                                      execution_date=start_date,
                                                                                      coordinates_destination=container_coordinates,
                                                                                      volume_destination=volume_destination)
-            sample_destination.depleted = True # deplete destination sample
-            sample_destination.save()
+
+            if sample_destination:
+                sample_destination.depleted = True # deplete destination sample
+                sample_destination.save()
+
             errors += transfer_errors
             warnings += transfer_warnings
 
