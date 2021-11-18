@@ -42,7 +42,6 @@ class ExperimentRunInfiniumTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
-        self.assertTrue(ExperimentRun.objects.count(), 1)
 
         # Test first experiment run
         experiment_run_obj = ExperimentRun.objects.get(container__barcode="hh")
@@ -219,3 +218,60 @@ class ExperimentRunMGITestCase(TestCase):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+
+        # Test experiment run MGI
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="containerMGI")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'DNBSEQ')
+        self.assertEqual(experiment_run_obj.instrument.name, '03-Jennifer Doudna')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.protocol.name, 'DNBSEQ Preparation')
+
+        # Process properties Tests (check properties for process)
+
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Flowcell Lot'))
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Loading Method'))
+        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Side'))
+        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Used'))
+        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Lot'))
+        p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Load DNB Cartridge Lot'))
+        p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Primer Kit'))
+        p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Primer Kit Lot'))
+        p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 1 Cycles'))
+        p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 2 Cycles'))
+        p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 1 Cycles'))
+        p12 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 2 Cycles'))
+
+
+        # Check property values DNBSEQ preparation process
+        self.assertEqual(p1.value, 'flowlot')
+        self.assertEqual(p2.value, 'Auto-Loader')
+        self.assertEqual(p3.value, 'Side A')
+        self.assertEqual(p4.value, 'DNBSEQ-T7 PE100')
+        self.assertEqual(p5.value, 'seq kit lot')
+        self.assertEqual(p6.value, 'cartridge lot')
+        self.assertEqual(p7.value, 'App-A')
+        self.assertEqual(p8.value, 'pm kit lot')
+        self.assertEqual(p9.value, 'r1c')
+        self.assertEqual(p10.value, 'r2c')
+        self.assertEqual(p11.value, 'i1c')
+        self.assertEqual(p12.value, 'i2c')
