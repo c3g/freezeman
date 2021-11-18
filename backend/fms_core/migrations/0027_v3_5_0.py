@@ -43,8 +43,7 @@ def create_mgi_T7_related_objects(apps, schema_editor):
 
         # Create PropertyType and Protocols
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "DNBSEQ Preparation": [("Experiment Name", "str"),
-                                   ("Flowcell Lot", "str"),
+            "DNBSEQ Preparation": [("Flowcell Lot", "str"),
                                    ("Loading Method", "str"),
                                    ("Sequencer Side", "str"),
                                    ("Sequencer Kit Used", "str"),
