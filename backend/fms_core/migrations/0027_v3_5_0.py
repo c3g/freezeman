@@ -33,8 +33,8 @@ class Migration(migrations.Migration):
                 ('derived_sample', models.ForeignKey("DerivedSample", on_delete=models.DO_NOTHING, help_text="Sample from which the current sample was extracted from.")),
                 ('biosample', models.ForeignKey("Biosample", on_delete=models.DO_NOTHING, help_text="Root Sample")),
                 ('child_of', models.ForeignKey("Sample", on_delete=models.DO_NOTHING, help_text="Parent Sample")),
-                ('process_measurements', models.ForeignKey("ProcessMeasurement", on_delete=models.DO_NOTHING, help_text="Process measurements associated to the sample")),
-                ('projects', models.ForeignKey("Project", blank=True, null=True, on_delete=models.DO_NOTHING, help_text="Projects which the sample belongs to.")),
+                ('process_measurements', models.ManyToManyField("ProcessMeasurement", help_text="Process measurements associated to the sample")),
+                ('projects', models.ManyToManyField("Project", blank=True, null=True, help_text="Projects which the sample belongs to.")),
                 ('projects_names', models.CharField(blank=True, null=True, help_text="Projects' names which the sample belongs to.")),
             ],
             options={
