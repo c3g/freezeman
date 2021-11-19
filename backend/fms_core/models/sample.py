@@ -12,7 +12,7 @@ from ..containers import (
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..utils import str_cast_and_normalize
+from ..utils import str_cast_and_normalize, float_to_decimal
 
 from .tracked_model import TrackedModel
 from .container import Container
@@ -122,6 +122,8 @@ class Sample(TrackedModel):
         # Normalize any string values to make searching / data manipulation easier
         self.name = str_cast_and_normalize(self.name)
         self.comment = str_cast_and_normalize(self.comment)
+        self.volume = float_to_decimal(self.volume, 3)
+        self.concentration = float_to_decimal(self.concentration, 3)
 
     def clean(self):
         super().clean()

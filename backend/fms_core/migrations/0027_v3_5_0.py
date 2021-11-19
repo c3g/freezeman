@@ -2,6 +2,7 @@
 
 import django.core.validators
 from django.db import migrations, models
+from django.contrib.postgres.fields import ArrayField
 import django.db.models.deletion
 import re
 
@@ -32,10 +33,11 @@ class Migration(migrations.Migration):
                 ('sample_kind', models.ForeignKey("SampleKind", on_delete=models.DO_NOTHING, help_text="Sample Kind associated to the sample.")),
                 ('derived_sample', models.ForeignKey("DerivedSample", on_delete=models.DO_NOTHING, help_text="Sample from which the current sample was extracted from.")),
                 ('biosample', models.ForeignKey("Biosample", on_delete=models.DO_NOTHING, help_text="Root Sample")),
-                ('child_of', models.ForeignKey("Sample", on_delete=models.DO_NOTHING, help_text="Parent Sample")),
-                ('process_measurements', models.ManyToManyField("ProcessMeasurement", help_text="Process measurements associated to the sample")),
-                ('projects', models.ManyToManyField("Project", blank=True, null=True, help_text="Projects which the sample belongs to.")),
-                ('projects_names', models.CharField(blank=True, null=True, help_text="Projects' names which the sample belongs to.")),
+                ('child_of', ArrayField(models.CharField(blank=True, max_length=20), help_text="Parent Sample")),
+                ('process_measurements', ArrayField(models.CharField(blank=True, max_length=20), help_text="Process measurements associated to the sample")),
+                ('projects', ArrayField(models.CharField(blank=True, max_length=20),blank=True, null=True, help_text="Projects which the sample belongs to.")),
+                ('projects_names', ArrayField(models.CharField(blank=True, max_length=20), blank=True, null=True, help_text="Projects' names which the sample belongs to.")),
+                ('comment', models.CharField(blank=True, help_text='Sample comment.', max_length=200)),
             ],
             options={
                 'db_table': 'fms_core_fullsample',
@@ -46,7 +48,7 @@ class Migration(migrations.Migration):
             """
                 DROP VIEW IF EXISTS fms_core_fullsample;
                 CREATE OR REPLACE VIEW fms_core_fullsample AS
-                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(DISTINCT project.name), NULL) AS projects_names, array_remove(array_agg(pm.id), NULL) AS process_measurements_id, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of_id, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(DISTINCT project.name), NULL) AS projects_names, array_remove(array_agg(pm.id), NULL) AS process_measurements, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of, sample.comment, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_sample AS sample 
                 JOIN fms_core_derivedbysample AS dbys 
                 ON dbys.sample_id =  sample.id 
@@ -61,7 +63,7 @@ class Migration(migrations.Migration):
                 LEFT JOIN fms_core_samplelineage AS sl 
                 ON sl.child_id = sample.id
                 JOIN fms_core_biosample AS biosample 
-                ON derived.biosample_id = biosample.id GROUP BY sample.id, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id, derived.biosample_id, biosample.individual_id, biosample.collection_site,  sl.child_id, biosample.id  ORDER BY biosample.id;
+                ON derived.biosample_id = biosample.id GROUP BY sample.id, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id, derived.biosample_id, biosample.individual_id, biosample.collection_site,  sl.child_id, biosample.id  ORDER BY sample.id;
             """,
             migrations.RunSQL.noop
         )

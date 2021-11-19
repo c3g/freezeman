@@ -12,18 +12,17 @@ from datetime import datetime
 from ..utils import RE_SEPARATOR, float_to_decimal
 
 
-from fms_core.models import FullSample, Biosample, Sample, DerivedSample, SampleKind, Container, Individual, DerivedBySample
-from fms_core.serializers import FullSampleSerializer, FullSampleExportSerializer, SampleSerializer
+from fms_core.models import FullSample, Biosample, Sample, DerivedSample,  Container, DerivedBySample
+from fms_core.serializers import FullSampleSerializer, FullSampleExportSerializer, SampleSerializer, FullNestedSampleSerializer
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter
 
 from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE
 
 from ._constants import _full_sample_filterset_fields
-from ._utils import TemplateActionsMixin, _list_keys, versions_detail
-from fms_core.services.sample import create_full_sample
+from ._utils import TemplateActionsMixin, _list_keys
 
 class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = FullSample.objects.select_related("individual", "container", "sample_kind", "biosample", "derived_sample").all()
+    queryset = FullSample.objects.select_related("individual", "container", "sample_kind").all()
     serializer_class = FullSampleSerializer
 
     ordering_fields = (
@@ -50,11 +49,45 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     ]
 
     def get_queryset(self):
-        project_name_filter = self.request.query_params.get('sample__projects__name__icontains')
+        container_barcode = self.request.query_params.get('container__barcode__recursive')
+        container_name = self.request.query_params.get('container__name__recursive')
+        recursive = container_barcode or container_name
+
+        #To filter samples by project
+        project_name_filter = self.request.query_params.get('projects__name__icontains')
+        project_id_filter = self.request.query_params.get('projects__id__in')
+
 
         if project_name_filter:
-            projects = FullSample.objects.filter(projects_names__icontains=project_name_filter)
-            return projects
+            self.queryset = self.queryset.filter(projects_names__icontains=project_name_filter)
+
+        if project_id_filter:
+            self.queryset = self.queryset.filter(projects__icontains=project_id_filter)
+
+        if recursive:
+            containers = Container.objects.all()
+            if container_barcode:
+                containers = containers.filter(barcode=container_barcode)
+            if container_name:
+                containers = containers.filter(name=container_name)
+
+            container_ids = tuple(containers.values_list('id', flat=True))
+
+            if not container_ids:
+                container_ids = tuple([None])
+
+            parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                               SELECT id, location_id
+                                                               FROM fms_core_container
+                                                               WHERE id IN %s
+                                                               UNION ALL
+                                                               SELECT child.id, child.location_id
+                                                               FROM fms_core_container AS child, parent
+                                                               WHERE child.location_id = parent.id
+                                                           )
+                                                           SELECT * FROM parent''', params=[container_ids])
+
+            return self.queryset.filter(container__in=parent_containers)
 
         return self.queryset
 
@@ -105,41 +138,49 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         except ValidationError as err:
             raise ValidationError(err)
 
+        #Serialize created sample
         serializer = SampleSerializer(sample)
-        data = serializer.data
-        return Response(data)
+        sample_data = serializer.data
+
+        #Add Biosample and Derived Sample fields
+        extra_fields = dict(
+            alias=biosample.alias,
+            collection_site=biosample.collection_site,
+            individual=biosample.individual_id,
+            sample_kind=derived_sample.sample_kind_id,
+            tissue_source=derived_sample.tissue_source,
+            experimental_group=derived_sample.experimental_group,
+        )
+
+        full_data = {**sample_data, **extra_fields}
+
+        return Response(full_data)
 
     def update(self, request, *args, **kwargs):
         full_sample = request.data
 
+        sample_data = dict(
+            name=full_sample['name'],
+            volume=full_sample['volume'],
+            creation_date=full_sample['creation_date'],
+            container_id=full_sample['container'],
+            **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
+            **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
+            **(dict(concentration=full_sample['concentration']) if full_sample[
+                                                                       'concentration'] is not None else dict()),
+        )
+
         #Retrive the sample to update
         try:
+            Sample.objects.filter(pk=full_sample['id']).update(**sample_data)
             sample_to_update = Sample.objects.get(pk=full_sample['id'])
-        except Exception as e:
-            raise ValidationError(e)
-
-        #Update individual fields
-        if full_sample['name']:
-            sample_to_update.name = full_sample['name']
-        if full_sample['container']:
-            try:
-                new_container = Container.objects.get(pk=full_sample['container'])
-            except Exception as e:
-                raise ValidationError(e)
-            sample_to_update.container = new_container
-        if full_sample['coordinates']:
-            sample_to_update.coordinates = full_sample['coordinates']
-        if full_sample['volume']:
-            sample_to_update.volume = full_sample['volume']
-        if full_sample['concentration']:
-            sample_to_update.concentration = float_to_decimal(full_sample['concentration'])
-        if full_sample['depleted'] is not None:
-            sample_to_update.depleted = full_sample['depleted']
+        except Exception as err:
+            raise ValidationError(err)
 
         #Save the new sample
         try:
             sample_to_update.save()
-        except ValidationError as err:
+        except Exception as err:
             raise ValidationError(err)
 
         #Return new sample
@@ -165,6 +206,16 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         samples_data = Biosample.objects.filter().distinct("collection_site")
         collection_sites = [s.collection_site for s in samples_data]
         return Response(collection_sites)
+
+    def get_serializer_class(self):
+        # If the nested query param is passed in with a non-false-y string
+        # value, use the nested sample serializer; this will nest referenced
+        # objects 1 layer deep to provide more data in a single request.
+
+        nested = self.request.query_params.get("nested", False)
+        if nested:
+            return FullNestedSampleSerializer
+        return FullSampleSerializer
 
 
     @action(detail=False, methods=["get"])

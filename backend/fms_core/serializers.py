@@ -36,9 +36,10 @@ __all__ = [
     "ProcessMeasurementExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
+    "SampleExportSerializer",
     "FullSampleSerializer",
     "FullSampleExportSerializer",
-    "NestedSampleSerializer",
+    "FullNestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
     "UserSerializer",
@@ -226,13 +227,40 @@ class SampleSerializer(serializers.ModelSerializer):
     def get_extracted_from(self, obj):
         return obj.extracted_from and obj.extracted_from.id
 
-class NestedSampleSerializer(serializers.ModelSerializer):
+class SampleExportSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(read_only=True, source="id")
+    sample_name = serializers.CharField(source="name")
+    container_kind = serializers.CharField(read_only=True, source="container.kind")
+    container_name = serializers.CharField(read_only=True, source="container.name")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
+    location_barcode = serializers.SerializerMethodField()
+    current_volume = serializers.SerializerMethodField()
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    class Meta:
+        model = Sample
+        fields = ('sample_id', 'sample_name',
+                  'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
+                  'current_volume', 'concentration', 'creation_date',
+                  'depleted', 'coordinates', 'projects', 'comment' )
+
+    def get_location_barcode(self, obj):
+        if obj.container.location is None:
+            return ''
+        else:
+            return obj.container.location.barcode
+
+    def get_current_volume(self, obj):
+        return obj.volume
+
+class FullNestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)
 
     class Meta:
-        model = Sample
+        model = FullSample
         fields = "__all__"
 
 

@@ -98,7 +98,7 @@ const ProjectsAssociatedSamples = ({
   listFilter,
 }) => {
 
-  const filterKey = SAMPLE_FILTERS.sample__projects__id.key
+  const filterKey = SAMPLE_FILTERS.projects__id.key
 
   const columns = getTableColumns(sampleKinds, individualsByID)
 

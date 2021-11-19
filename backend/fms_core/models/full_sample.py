@@ -26,14 +26,14 @@ class FullSample(models.Model):
 
     volume = models.DecimalField(max_digits=20, decimal_places=3, help_text="Current volume of the sample, in µL. ")
 
-    # Concentration is REQUIRED if sample kind name in {DNA, RNA}.
+    # Concentration is REQUIRED if sample kind name in {DNA}.
     concentration = models.DecimalField(
         "concentration in ng/µL",
         max_digits=20,
         decimal_places=3,
         null=True,
         blank=True,
-        help_text="Concentration in ng/µL. Required for nucleic acid samples."
+        help_text="Concentration in ng/µL. Required for DNA."
     )
 
     depleted = models.BooleanField(default=False, help_text="Whether this sample has been depleted.")
@@ -63,13 +63,15 @@ class FullSample(models.Model):
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 
-    projects = ArrayField(models.IntegerField(blank=True))
+    projects = ArrayField(models.CharField(blank=True, max_length=20))
 
     projects_names = ArrayField(models.CharField(blank=True, max_length=20))
 
-    child_of = models.ForeignKey(Sample, on_delete=models.DO_NOTHING)
+    child_of = ArrayField(models.CharField(blank=True, max_length=20))
 
-    process_measurements = models.ForeignKey(ProcessMeasurement, on_delete=models.DO_NOTHING)
+    process_measurements = ArrayField(models.CharField(blank=True, max_length=20))
+
+    comment = models.CharField(blank=True, max_length=20)
 
     #Sample Tracking Information
     created_at = models.DateTimeField(auto_now_add=True, help_text="Date the instance was created.")

@@ -35,14 +35,14 @@ export const SAMPLE_FILTERS = {
     label: "Container Barcode",
     recursive: true,
   },
-  sample__projects__name: {
+  projects__name: {
     type: FILTER_TYPE.INPUT,
-    key: "sample__projects__name",
+    key: "projects__name",
     label: "Projects",
   },
-  sample__projects__id: {
+  projects__id: {
     type: FILTER_TYPE.SELECT,
-    key: "sample__projects__id",
+    key: "projects__id",
     label: "Projects ID",
     mode: "multiple",
   },

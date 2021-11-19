@@ -327,6 +327,9 @@ function serialize(values) {
   if (newValues.container)
     newValues.container = Number(newValues.container)
 
+  if (!newValues.comment)
+    newValues.comment = ''
+
   // We should not be able to modify the volume in the Sample directly yet
   // if (newValues.volume) {
   //   newValues.volume = Number(newValues.container)
