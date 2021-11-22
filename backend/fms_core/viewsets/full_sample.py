@@ -94,12 +94,12 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     def create(self, request, *args, **kwargs):
         error = {}
-        full_sample = request.data
+        full_sample_data = request.data
 
         biosample_data = dict(
-            collection_site=full_sample['collection_site'],
-            **(dict(individual_id=full_sample['individual']) if full_sample['individual'] is not None else dict()),
-            **(dict(alias=full_sample['alias']) if full_sample['alias'] is not None else dict()),
+            collection_site=full_sample_data['collection_site'],
+            **(dict(individual_id=full_sample_data['individual']) if full_sample_data['individual'] is not None else dict()),
+            **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else dict()),
         )
 
         try:
@@ -107,26 +107,26 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
             derived_sample_data = dict(
                 biosample_id=biosample.id,
-                sample_kind_id=full_sample['sample_kind'],
-                **(dict(tissue_source=full_sample['tissue_source']) if full_sample['tissue_source'] is not None else dict()),
+                sample_kind_id=full_sample_data['sample_kind'],
+                **(dict(tissue_source=full_sample_data['tissue_source']) if full_sample_data['tissue_source'] is not None else dict()),
             )
-            if full_sample['experimental_group']:
+            if full_sample_data['experimental_group']:
                 derived_sample_data['experimental_group'] = json.dumps([
                     g.strip()
-                    for g in RE_SEPARATOR.split(full_sample['experimental_group'])
+                    for g in RE_SEPARATOR.split(full_sample_data['experimental_group'])
                     if g.strip()
                 ])
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
             sample_data = dict(
-                name=full_sample['name'],
-                volume=full_sample['volume'],
-                creation_date=full_sample['creation_date'],
-                container_id=full_sample['container'],
-                **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
-                **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
-                **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
+                name=full_sample_data['name'],
+                volume=full_sample_data['volume'],
+                creation_date=full_sample_data['creation_date'],
+                container_id=full_sample_data['container'],
+                **(dict(comment=full_sample_data['comment']) if full_sample_data['comment'] is not None else dict()),
+                **(dict(coordinates=full_sample_data['coordinates']) if full_sample_data['coordinates'] is not None else dict()),
+                **(dict(concentration=full_sample_data['concentration']) if full_sample_data['concentration'] is not None else dict()),
             )
 
             sample = Sample.objects.create(**sample_data)
@@ -138,23 +138,14 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         except ValidationError as err:
             raise ValidationError(err)
 
-        #Serialize created sample
-        serializer = SampleSerializer(sample)
-        sample_data = serializer.data
+        #Serialize full sample using the created sample
+        try:
+            serializer = FullSampleSerializer(FullSample.objects.get(pk=sample.id))
+            full_sample = serializer.data
+        except Exception as err:
+            raise ValidationError(err)
 
-        #Add Biosample and Derived Sample fields
-        extra_fields = dict(
-            alias=biosample.alias,
-            collection_site=biosample.collection_site,
-            individual=biosample.individual_id,
-            sample_kind=derived_sample.sample_kind_id,
-            tissue_source=derived_sample.tissue_source,
-            experimental_group=derived_sample.experimental_group,
-        )
-
-        full_data = {**sample_data, **extra_fields}
-
-        return Response(full_data)
+        return Response(full_sample)
 
     def update(self, request, *args, **kwargs):
         full_sample = request.data
@@ -184,9 +175,14 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             raise ValidationError(err)
 
         #Return new sample
-        serializer = SampleSerializer(sample_to_update)
-        data = serializer.data
-        return Response(data)
+        # Serialize full sample using the created sample
+        try:
+            serializer = FullSampleSerializer(FullSample.objects.get(pk=sample_to_update.id))
+            full_sample = serializer.data
+        except Exception as err:
+            raise ValidationError(err)
+
+        return Response(full_sample)
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):

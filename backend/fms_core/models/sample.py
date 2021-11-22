@@ -123,7 +123,8 @@ class Sample(TrackedModel):
         self.name = str_cast_and_normalize(self.name)
         self.comment = str_cast_and_normalize(self.comment)
         self.volume = float_to_decimal(self.volume, 3)
-        self.concentration = float_to_decimal(self.concentration, 3)
+        if self.concentration:
+            self.concentration = float_to_decimal(self.concentration, 3)
 
     def clean(self):
         super().clean()
