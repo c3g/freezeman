@@ -1,8 +1,9 @@
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from fms_core.template_importer.importers import ContainerRenameImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models import Container
 
@@ -19,11 +20,17 @@ class ContainerRenameTestCase(TestCase):
         self.container_new_barcode = 'NEW_CONTAINER_BARCODE'
         self.container_new_name = 'NEW_CONTAINER_NAME'
 
+        self.invalid_template_tests  = ["Container_rename_vtest_rename_invalid.csv",
+                                        "Container_rename_vtest_same_rename.csv",
+                                        "Container_rename_vtest_same_rename_2.csv",
+                                        "Container_rename_vtest_double_rename.csv",]
+
         self.prefill_data()
 
 
     def prefill_data(self):
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name='Container4Rename')
+        (container, _, _) = create_container(barcode=self.container_barcode, kind='Tube', name='Container4Rename')
+        (container2, _, _) = create_container(barcode="NAMEALREADYEXISTS", kind='Tube', name='NameAlreadyExists')
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
@@ -35,5 +42,11 @@ class ContainerRenameTestCase(TestCase):
         self.assertEqual(container.barcode, self.container_new_barcode)
         self.assertEqual(container.name, self.container_new_name)
 
+    def test_invalid_container_rename(self):
+        for f in self.invalid_template_tests:
+            print(f"Testing invalid container rename {f}", flush=True)
 
-
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
