@@ -1,9 +1,10 @@
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 import datetime
 
 from fms_core.template_importer.importers import ProjectLinkSamples
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models import SampleKind, SampleByProject
 
@@ -20,6 +21,11 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.importer = ProjectLinkSamples()
         self.file = APP_DATA_ROOT / "Project_link_samples_vtest.xlsx"
         ContentType.objects.clear_cache()
+
+        self.invalid_template_tests  = ["Project_link_samples_vtest_invalid_project.xlsx",
+                                        "Project_link_samples_vtest_invalid_sample.xlsx",
+                                        "Project_link_samples_vtest_invalid_sample_2.xlsx",
+                                        "Project_link_samples_vtest_invalid_sample_3.xlsx",]
 
         #Projects for Link
         self.project1_name = 'ProjectTest1'
@@ -74,5 +80,12 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertFalse(SampleByProject.objects.filter(sample=self.sample1, project=self.project2).exists())
         self.assertFalse(SampleByProject.objects.filter(sample=self.sample3, project=self.project3).exists())
 
+    def test_invalid_project_link_samples(self):
+        for f in self.invalid_template_tests:
+            print(f"Testing invalid project link samples {f}", flush=True)
 
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
 
