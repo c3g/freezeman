@@ -225,7 +225,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         query.add(Q(alias__icontains=search_input), Q.OR)
         query.add(Q(id__icontains=search_input), Q.OR)
 
-        samples_data = Sample.objects.filter(query)
-        page = self.paginate_queryset(samples_data)
+        full_sample_data = FullSample.objects.filter(query)
+        page = self.paginate_queryset(full_sample_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
