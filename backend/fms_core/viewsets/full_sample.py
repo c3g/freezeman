@@ -161,12 +161,15 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                                                                        'concentration'] is not None else dict()),
         )
 
-        #Retrive the sample to update
+        #Retreive the sample to update
         try:
             Sample.objects.filter(pk=full_sample['id']).update(**sample_data)
             sample_to_update = Sample.objects.get(pk=full_sample['id'])
         except Exception as err:
-            raise ValidationError(err)
+            if any('coordinates' in arg for arg in err.args):
+                raise ValidationError(dict(coordinates=err))
+            else:
+                raise ValidationError(dict(non_field_errors=err))
 
         #Save the new sample
         try:
