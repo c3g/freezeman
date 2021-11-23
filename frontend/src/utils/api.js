@@ -102,20 +102,20 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/samples/${sampleId}/`),
-    add: sample => post("/samples/", sample),
-    update: sample => patch(`/samples/${sample.id}/`, sample),
-    list: (options, abort) => get("/samples", options, { abort }),
-    listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
-    listCollectionSites: () => get("/samples/list_collection_sites/"),
+    get: sampleId => get(`/full-samples/${sampleId}/`),
+    add: sample => post("/full-samples/", sample),
+    update: sample => patch(`/full-samples/${sample.id}/`, sample),
+    list: (options, abort) => get("/full-samples", options, { abort }),
+    listExport: options => get("/full-samples/list_export/", {format: "csv", ...options}),
+    listCollectionSites: () => get("/full-samples/list_collection_sites/"),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
-    summary: () => get("/samples/summary/"),
+    summary: () => get("/full-samples/summary/"),
     template: {
-      actions: () => get(`/samples/template_actions/`),
-      check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
+      actions: () => get(`/full-samples/template_actions/`),
+      check:  (action, template) => post(`/full-samples/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/full-samples/template_submit/`, form({ action, template })),
     },
-    search: q => get("/samples/search/", { q }),
+    search: q => get("/full-samples/search/", { q }),
   },
 
   sampleKinds: {
