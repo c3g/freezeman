@@ -56,7 +56,7 @@ def normalize_scientific_name(name: str) -> str:
     A normalization function for Latin / "scientific" species names.
     Converts e.g. (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
     """
-    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
+    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name or "")))
 
 
 def str_normalize(s: str) -> str:
