@@ -20,10 +20,10 @@ class ContainerRenameTestCase(TestCase):
         self.container_new_barcode = 'NEW_CONTAINER_BARCODE'
         self.container_new_name = 'NEW_CONTAINER_NAME'
 
-        self.invalid_template_tests  = ["Container_rename_vtest_rename_invalid.xlsx",
-                                        "Container_rename_vtest_same_rename.xlsx",
-                                        "Container_rename_vtest_same_rename_2.xlsx",
-                                        "Container_rename_vtest_double_rename.xlsx",]
+        self.invalid_template_tests = ["Container_rename_vtest_rename_invalid.xlsx",
+                                       "Container_rename_vtest_same_rename.xlsx",
+                                       "Container_rename_vtest_same_rename_2.xlsx",
+                                       "Container_rename_vtest_double_rename.xlsx",]
 
         self.prefill_data()
 

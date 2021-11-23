@@ -22,10 +22,10 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.file = APP_DATA_ROOT / "Project_link_samples_vtest.xlsx"
         ContentType.objects.clear_cache()
 
-        self.invalid_template_tests  = ["Project_link_samples_vtest_invalid_project.xlsx",
-                                        "Project_link_samples_vtest_invalid_sample.xlsx",
-                                        "Project_link_samples_vtest_invalid_sample_2.xlsx",
-                                        "Project_link_samples_vtest_invalid_sample_3.xlsx",]
+        self.invalid_template_tests = ["Project_link_samples_vtest_invalid_project.xlsx",
+                                       "Project_link_samples_vtest_invalid_sample.xlsx",
+                                       "Project_link_samples_vtest_invalid_sample_2.xlsx",
+                                       "Project_link_samples_vtest_invalid_sample_3.xlsx",]
 
         #Projects for Link
         self.project1_name = 'ProjectTest1'

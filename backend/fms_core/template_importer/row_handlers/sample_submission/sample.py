@@ -49,18 +49,39 @@ class SampleRowHandler(GenericRowHandler):
                                          sex=Individual.SEX_MALE,
                                          )
 
-        individual_obj, self.errors['individual'], self.warnings['individual'] = \
-            get_or_create_individual(name=individual['name'],
-                                     taxon=individual['taxon'],
-                                     sex=individual['sex'],
-                                     pedigree=individual['pedigree'],
-                                     cohort=individual['cohort'],
-                                     mother=mother_obj,
-                                     father=father_obj,
-                                     )
+        individual_obj = None
+        need_individual = any([individual["taxon"],
+                               individual["sex"],
+                               individual["pedigree"],
+                               individual["cohort"],
+                               mother_obj,
+                               father_obj])
+        # When the individual name is not provided any field that is stored on the individual need to raise an error.
+        if not individual["name"] and need_individual:
+            self.errors['individual'] = []
+            if individual["taxon"]:
+                self.errors['individual'].append(f"Individual taxon requires an individual name to be provided to be saved.")
+            if individual["sex"]:
+                self.errors['individual'].append(f"Individual sex requires an individual name to be provided to be saved.")
+            if individual["pedigree"]:
+                self.errors['individual'].append(f"Individual pedigree requires an individual name to be provided to be saved.")
+            if individual["cohort"]:
+                self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
+            if mother_obj:
+                self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
+            if father_obj:
+                self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
+        elif individual["name"]:
+            individual_obj, self.errors['individual'], self.warnings['individual'] = \
+                get_or_create_individual(name=individual['name'],
+                                         taxon=individual['taxon'],
+                                         sex=individual['sex'],
+                                         pedigree=individual['pedigree'],
+                                         cohort=individual['cohort'],
+                                         mother=mother_obj,
+                                         father=father_obj)
 
         # Sample related section
-
         sample_kind_obj = None
         try:
             sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]

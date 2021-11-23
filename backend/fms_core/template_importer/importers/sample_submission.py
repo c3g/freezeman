@@ -2,6 +2,8 @@ from fms_core.models import SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
 
+from .._utils import float_to_decimal_and_none, input_to_date_and_none
+
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = [
         {
@@ -51,11 +53,11 @@ class SampleSubmissionImporter(GenericImporter):
                 'name': row_data['Sample Name'],
                 'alias': row_data['Alias'],
                 'experimental_group': row_data['Experimental Group'],
-                'concentration': row_data['Conc. (ng/uL)'],
-                'volume': row_data['Volume (uL)'],
+                'concentration': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
+                'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                 'collection_site': row_data['Collection Site'],
                 'tissue_source': row_data['Tissue Source'],
-                'creation_date': row_data['Reception Date'],
+                'creation_date': input_to_date_and_none(row_data['Reception Date']),
                 'comment': row_data['Comment'],
                 'coordinates': row_data['Sample Coord'],
                 'sample_kind': row_data['Sample Kind'],
