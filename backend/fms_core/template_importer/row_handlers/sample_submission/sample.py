@@ -39,7 +39,7 @@ class SampleRowHandler(GenericRowHandler):
                 get_or_create_individual(name=individual_mother['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_FEMALE,
-                                         )
+                                         pedigree=individual["pedigree"])
 
         father_obj = None
         if individual_father['name']:
@@ -47,7 +47,7 @@ class SampleRowHandler(GenericRowHandler):
                 get_or_create_individual(name=individual_father['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_MALE,
-                                         )
+                                         pedigree=individual["pedigree"])
 
         individual_obj = None
         need_individual = any([individual["taxon"],
