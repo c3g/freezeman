@@ -6,15 +6,14 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
 
-    def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father,
-                          sample_kind_objects_by_name):
+    def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
@@ -40,7 +39,7 @@ class SampleRowHandler(GenericRowHandler):
                 get_or_create_individual(name=individual_mother['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_FEMALE,
-                                         )
+                                         pedigree=individual["pedigree"])
 
         father_obj = None
         if individual_father['name']:
@@ -48,20 +47,41 @@ class SampleRowHandler(GenericRowHandler):
                 get_or_create_individual(name=individual_father['name'],
                                          taxon=individual['taxon'],
                                          sex=Individual.SEX_MALE,
-                                         )
+                                         pedigree=individual["pedigree"])
 
-        individual_obj, self.errors['individual'], self.warnings['individual'] = \
-            get_or_create_individual(name=individual['name'],
-                                     taxon=individual['taxon'],
-                                     sex=individual['sex'],
-                                     pedigree=individual['pedigree'],
-                                     cohort=individual['cohort'],
-                                     mother=mother_obj,
-                                     father=father_obj,
-                                     )
+        individual_obj = None
+        need_individual = any([individual["taxon"],
+                               individual["sex"],
+                               individual["pedigree"],
+                               individual["cohort"],
+                               mother_obj,
+                               father_obj])
+        # When the individual name is not provided any field that is stored on the individual need to raise an error.
+        if not individual["name"] and need_individual:
+            self.errors['individual'] = []
+            if individual["taxon"]:
+                self.errors['individual'].append(f"Individual taxon requires an individual name to be provided to be saved.")
+            if individual["sex"]:
+                self.errors['individual'].append(f"Individual sex requires an individual name to be provided to be saved.")
+            if individual["pedigree"]:
+                self.errors['individual'].append(f"Individual pedigree requires an individual name to be provided to be saved.")
+            if individual["cohort"]:
+                self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
+            if mother_obj:
+                self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
+            if father_obj:
+                self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
+        elif individual["name"]:
+            individual_obj, self.errors['individual'], self.warnings['individual'] = \
+                get_or_create_individual(name=individual['name'],
+                                         taxon=individual['taxon'],
+                                         sex=individual['sex'],
+                                         pedigree=individual['pedigree'],
+                                         cohort=individual['cohort'],
+                                         mother=mother_obj,
+                                         father=father_obj)
 
         # Sample related section
-
         sample_kind_obj = None
         try:
             sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
@@ -71,11 +91,8 @@ class SampleRowHandler(GenericRowHandler):
 
 
         sample_obj, self.errors['sample'], self.warnings['sample'] = \
-            create_sample(
-                name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                concentration=sample['concentration'], tissue_source=sample['tissue_source'], phenotype=sample['phenotype'],
-                experimental_group=sample['experimental_group'],
-                container=container_obj, individual=individual_obj, sample_kind=sample_kind_obj,
-                comment=comment
-            )
+            create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                               creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                               concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                               experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                               sample_kind=sample_kind_obj, comment=comment)

@@ -18,8 +18,14 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
 
     def process_row_inner(self, sample, project, action):
         # Get sample object
-        sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample["sample_container_barcode"],
-                                                                                               coordinates=sample["sample_container_coord"])
+        sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample['sample_container_barcode'],
+                                                                                               coordinates=sample['sample_container_coord'])
+        if sample_obj.name != sample['sample_name']:
+            warning_msg = f"Sample in container with barcode {sample['sample_container_barcode']} " + \
+                          (f"at coordinate {sample['sample_container_coord']} " if sample['sample_container_coord'] else f"") + \
+                          f"is named {sample_obj.name} not {sample['sample_name']}."
+            self.warnings['sample'].append(warning_msg)
+
         # Get project object
         project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 

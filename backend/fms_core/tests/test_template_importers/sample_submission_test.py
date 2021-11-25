@@ -1,10 +1,11 @@
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 
 from fms_core.template_importer.importers import SampleSubmissionImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import Sample, Individual
+from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Container
 
 
 class SampleSubmissionTestCase(TestCase):
@@ -12,6 +13,9 @@ class SampleSubmissionTestCase(TestCase):
         self.importer = SampleSubmissionImporter()
         self.file = APP_DATA_ROOT / "Sample_submission_vtest.xlsx"
         ContentType.objects.clear_cache()
+
+        self.invalid_template_tests = ["Sample_submission_vtest_bad_location.xlsx",
+                                       "Sample_submission_vtest_dna_no_conc.xlsx",]
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
@@ -25,8 +29,24 @@ class SampleSubmissionTestCase(TestCase):
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
-        individual = Individual.objects.get(name=individual_name)
         for sample_name in sample_names:
-            self.assertTrue(Sample.objects.filter(name=sample_name, individual=individual).exists())
+            self.assertTrue(Sample.objects.filter(name=sample_name).exists())
+
+            sample = Sample.objects.get(name=sample_name)
+            derived_sample_id = DerivedBySample.objects.filter(sample_id=sample.id).first().derived_sample_id
+            biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
+            self.assertEqual(biosample.individual.name, individual_name)
+
+    def test_invalid_sample_submission(self):
+        for f in self.invalid_template_tests:
+            print(f"Testing invalid sample submission template {f}", flush=True)
+
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
+
+
+
 
 

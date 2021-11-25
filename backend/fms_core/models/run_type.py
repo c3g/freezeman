@@ -14,9 +14,8 @@ __all__ = ["RunType"]
 
 @reversion.register()
 class RunType(TrackedModel):
-    name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
-                            help_text="Name of the run type.",
-                            validators=[name_validator])
+    name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+                            help_text="Name of the run type.")
     protocol = models.ForeignKey(Protocol, on_delete=models.PROTECT, related_name="run_types", help_text="Protocol used by the experiment run.")
     platform = models.ForeignKey(Platform, on_delete=models.PROTECT, related_name="run_types", help_text="Platform used by the run type.")
 
@@ -41,4 +40,4 @@ class RunType(TrackedModel):
 
     @property
     def get_protocols_dict(self):
-        return {self.protocol: list(self.protocol.child_of.all())}
+        return {self.protocol: list(self.protocol.parent_of.all())}

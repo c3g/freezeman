@@ -9,10 +9,10 @@ from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, P
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
-from fms_core.services.sample import create_sample
+from fms_core.services.sample import create_full_sample
 
 
-class ExperimentRunTestCase(TestCase):
+class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
         self.file = APP_DATA_ROOT / "Experiment_Infinium_24_vtest.xlsx"
@@ -31,9 +31,9 @@ class ExperimentRunTestCase(TestCase):
 
         (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon='Homo sapiens')
 
-        create_sample(name=self.sample_name, volume=29, collection_site='site1',
-                      creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
-                      individual=individual, sample_kind=sample_kind_RNA)
+        create_full_sample(name=self.sample_name, volume=29, collection_site='site1',
+                           creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                           individual=individual, sample_kind=sample_kind_RNA)
 
 
     def test_import(self):
@@ -42,7 +42,6 @@ class ExperimentRunTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
-        self.assertTrue(ExperimentRun.objects.count(), 1)
 
         # Test first experiment run
         experiment_run_obj = ExperimentRun.objects.get(container__barcode="hh")
@@ -188,3 +187,91 @@ class ExperimentRunTestCase(TestCase):
         self.assertEqual(cp1_7_p1.value, 'sentrixA')
         self.assertEqual(cp1_7_p2.value, 'lastbarcode')
         self.assertEqual(cp1_7_p3.value, 'bla bla bla')
+
+
+
+class ExperimentRunMGITestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_MGI_vtest.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERWITHSAMPLETESTMGI"
+        self.sample_name = "ExperimentMGITestSample"
+
+        self.prefill_data()
+
+
+    def prefill_data(self):
+        sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
+
+        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon='Homo sapiens')
+
+        create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
+                           creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                           individual=individual, sample_kind=sample_kind_RNA)
+
+
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+
+        # Test experiment run MGI
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="containerMGI")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'DNBSEQ')
+        self.assertEqual(experiment_run_obj.instrument.name, '03-Jennifer Doudna')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.protocol.name, 'DNBSEQ Preparation')
+
+        # Process properties Tests (check properties for process)
+
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Flowcell Lot'))
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Loading Method'))
+        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Side'))
+        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Used'))
+        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Lot'))
+        p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Load DNB Cartridge Lot'))
+        p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Primer Kit'))
+        p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Primer Kit Lot'))
+        p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 1 Cycles'))
+        p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 2 Cycles'))
+        p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 1 Cycles'))
+        p12 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 2 Cycles'))
+
+
+        # Check property values DNBSEQ preparation process
+        self.assertEqual(p1.value, 'flowlot')
+        self.assertEqual(p2.value, 'Auto-Loader')
+        self.assertEqual(p3.value, 'Side A')
+        self.assertEqual(p4.value, 'DNBSEQ-T7 PE100')
+        self.assertEqual(p5.value, 'seq kit lot')
+        self.assertEqual(p6.value, 'cartridge lot')
+        self.assertEqual(p7.value, 'App-A')
+        self.assertEqual(p8.value, 'pm kit lot')
+        self.assertEqual(p9.value, 'r1c')
+        self.assertEqual(p10.value, 'r2c')
+        self.assertEqual(p11.value, 'i1c')
+        self.assertEqual(p12.value, 'i2c')
