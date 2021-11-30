@@ -45,19 +45,19 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Add Containers",
             "description": "Upload the provided template with up to 100 new containers.",
-            "template": CONTAINER_CREATION_TEMPLATE,
+            "template": [{"description": "Template to add containers","file": CONTAINER_CREATION_TEMPLATE}],
             "importer": ContainerCreationImporter,
         },
         {
             "name": "Move Containers",
             "description": "Upload the provided template with up to 100 containers to move.",
-            "template": CONTAINER_MOVE_TEMPLATE,
+            "template": [{"description": "Template to move containers","file": CONTAINER_MOVE_TEMPLATE}],
             "importer": ContainerMoveImporter,
         },
         {
             "name": "Rename Containers",
             "description": "Upload the provided template with up to 384 containers to rename.",
-            "template": CONTAINER_RENAME_TEMPLATE,
+            "template":  [{"description": "Template to rename containers","file": CONTAINER_RENAME_TEMPLATE}],
             "importer": ContainerRenameImporter,
         },
     ]

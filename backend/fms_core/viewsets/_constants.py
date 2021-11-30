@@ -138,8 +138,8 @@ _run_type_filterset_fields: FiltersetFields = {
 
 _experiment_run_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
     "start_date": DATE_FILTERS,
-
     "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,

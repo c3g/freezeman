@@ -80,12 +80,17 @@ class TemplateActionsMixin:
         Endpoint off of the parent viewset for listing available template
         actions, converting paths to URIs for better RESTyness.
         """
-
-        # not very readable... should be rewritten!
-        return Response([
-            {k: request.build_absolute_uri(v) if k == "template" else v for k, v in a.items() if (k != "importer")}
-            for a in self.template_action_list
-        ])
+        actions_list = []
+        for action in self.template_action_list:  # Make a list out of the actions
+            action_dict = {}
+            for (key, value) in action.items(): # For each action build an dict with the key values other than importer
+                if key != "importer":
+                    if key == "template":
+                        for template in value:
+                            template["file"] = request.build_absolute_uri(template["file"]) # Return the file as an URI
+                    action_dict[key] = value
+            actions_list.append(action_dict)
+        return Response(actions_list)
 
     @action(detail=False, methods=["post"])
     def template_check(self, request):

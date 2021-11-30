@@ -95,6 +95,8 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
         return obj.instrument.type.platform.name
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
+    experiment_run_id = serializers.IntegerField(read_only=True, source="id")
+    experiment_run_name = serializers.CharField(read_only=True, source="name")
     run_type = serializers.CharField(read_only=True, source="run_type.name")
     instrument = serializers.CharField(read_only=True, source="instrument.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
@@ -103,7 +105,7 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperimentRun
-        fields = ('run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
 
 
 class RunTypeSerializer(serializers.ModelSerializer):
