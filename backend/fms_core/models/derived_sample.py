@@ -118,12 +118,12 @@ class DerivedSample(TrackedModel):
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
 
-    quality_flag = models.CharField(choices=[('Passed', 'Passed'), ('Failed', 'Failed')], help_text='Quality flag of the sample.', max_length=20)
-    quantity_flag = models.CharField(choices=[('Passed', 'Passed'), ('Failed', 'Failed')], help_text='Quantity flag of the sample.', max_length=20)
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], help_text='Quality flag of the sample.', max_length=20)
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], help_text='Quantity flag of the sample.', max_length=20)
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
-        return next([(sample, sample.extracted_from) for sample in self.samples.objects.all() if sample.extracted_from], (None, None))
+        return next(iter([(sample, sample.extracted_from) for sample in self.samples.all() if sample.extracted_from]), (None, None))
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
@@ -137,7 +137,7 @@ class DerivedSample(TrackedModel):
             _add_error(errors, field, ValidationError(error))
             
         if self.id:
-            extracted, extracted_from = self.extracted_from()
+            extracted, extracted_from = self.extracted_from
             if extracted and extracted_from:
                 if self.sample_kind.name not in self.BIOSPECIMEN_TYPES_NA:
                     add_error("sample_kind", f"Extracted sample {extracted.name} need to be a type of Nucleic Acid.")
