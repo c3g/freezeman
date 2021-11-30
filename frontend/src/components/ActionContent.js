@@ -50,12 +50,9 @@ const ActionContent = ({token, templateType, templateActions}) => {
   const templateChoiceMenu = (
       <Menu>
         {actions.items[actionIndex]
-          ? action.template.map((template, i) => {
-          return <Menu.Item
-                  key={i}
-                  onClick={() => window.location = template.file}>{template.description}
-                  </Menu.Item>}) :
-          <Menu.Item>Loading ...</Menu.Item>
+          ? action.template.map((template, i) => 
+            <Menu.Item key={i} onClick={() => window.location = template.file}>{template.description}</Menu.Item>) :
+            <Menu.Item>Loading ...</Menu.Item>
         }
       </Menu>
     ) ;
@@ -65,11 +62,15 @@ const ActionContent = ({token, templateType, templateActions}) => {
       title={action.name}
       onBack={goBack}
       extra={
-        <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
-          <Button>
+        actions.items[actionIndex] && action.template.length > 1 ?
+          <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
+            <Button>
+              <DownloadOutlined /> Download Template
+            </Button>
+          </Dropdown> :
+          <Button onClick={() => window.location = action.template[0].file}>
             <DownloadOutlined /> Download Template
           </Button>
-        </Dropdown>
       }
     />
     <PageContent>
