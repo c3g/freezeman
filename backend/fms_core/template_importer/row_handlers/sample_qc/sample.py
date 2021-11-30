@@ -30,6 +30,7 @@ class SampleQCRowHandler(GenericRowHandler):
         if sample_obj:
             # Update sample with sample_information
             new_volume = None
+            # TODO: Maybe validate initial volume?
             if all([sample_information['initial_volume'], sample_information['measured_volume'],
                     process_measurement['volume_used']]):
                 delta_volume = sample_information['initial_volume'] - sample_information['measured_volume']
