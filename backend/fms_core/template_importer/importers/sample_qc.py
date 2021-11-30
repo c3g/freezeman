@@ -1,11 +1,9 @@
 from fms_core.models import Process, Protocol, PropertyType
 
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.sample_update import SampleRowHandler
+from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
 
 from .._utils import float_to_decimal_and_none
-
-PROPERTIES_STARTING_INDEX = 7
 
 class SampleQCImporter(GenericImporter):
     SHEETS_INFO = [
@@ -21,21 +19,23 @@ class SampleQCImporter(GenericImporter):
     def __init__(self):
         super().__init__()
         self.initialize_data_for_template()
-        self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
     def initialize_data_for_template(self):
+        #Get protocol for SampleQC
+        protocol = Protocol.objects.get(name='Sample Quality Control')
+
+        #Preload data
         self.preloaded_data = {'process': None, 'process_properties': {}}
 
-        self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Sample Quality Control"),
-                                                                comment="Samples' Quality Control (imported from template)")
+        self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
+                                                                comment='Sample Quality Control (imported from template)')
 
         # Preload PropertyType objects for the sample qc in a dictionary for faster access
         try:
-            protocol = Protocol.objects.get(name="Sample Quality Control")
             self.preloaded_data['process_properties'] = { property.name: {'property_type_obj': property } for property in
                                                          list(PropertyType.objects.filter(object_id=protocol.id))}
         except Exception as e:
-            self.base_errors.append(f"Property Type could not be found. {e}")
+            self.base_errors.append(f'Property Type could not be found. {e}')
 
     def import_template_inner(self):
         sample_qc_sheet = self.sheets['SampleQC']
@@ -45,8 +45,11 @@ class SampleQCImporter(GenericImporter):
 
             #Populate process properties
             for i, (key, val) in enumerate(row_data.items()):
-                if key in process_properties.keys():
-                    process_properties[key]['value'] = val
+                #Since property names in db don't necessarily match those in the headers
+                #We need to check substrings
+                for prop_key in process_properties.keys():
+                    if prop_key in key:
+                        process_properties[prop_key]['value'] = val
 
             sample = {
                 'coordinates': row_data['Sample Container Coord'],
@@ -75,7 +78,7 @@ class SampleQCImporter(GenericImporter):
             )
 
             (result, _) = self.handle_row(
-                row_handler_class=SampleRowHandler,
+                row_handler_class=SampleQCRowHandler,
                 sheet=sample_qc_sheet,
                 row_i=row_id,
                 **sample_qc_kwargs,

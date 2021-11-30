@@ -8,7 +8,7 @@ import reversion
 ADMIN_USERNAME = 'biobankadmin'
 
 
-def create_sample_qc_objects(apps):
+def create_sample_qc_objects(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
     Protocol = apps.get_model("fms_core", "Protocol")
@@ -23,8 +23,8 @@ def create_sample_qc_objects(apps):
         reversion.set_user(admin_user)
 
         # Create Platform and InstrumentType
-        p_quantitation = Platform.objects.create(name="Quality Control: Quantitation")
-        p_electrophoresis = Platform.objects.create(name="Quality Control: Electrophoresis")
+        p_quantitation = Platform.objects.create(name="Quality Control: Quantitation", created_by_id=admin_user_id, updated_by_id=admin_user_id)
+        p_electrophoresis = Platform.objects.create(name="Quality Control: Electrophoresis", created_by_id=admin_user_id, updated_by_id=admin_user_id)
         reversion.add_to_revision(p_quantitation)
         reversion.add_to_revision(p_electrophoresis)
 
@@ -47,7 +47,7 @@ def create_sample_qc_objects(apps):
         # Create PropertyType and Protocols
         # TODO: Maybe the dictionary is not necessary since there's only 1 protocol
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "Sample Quality Control": [("RIN (only for RNA)", "str"),
+            "Sample Quality Control": [("RIN", "str"),
                                        ("Quantitation Instrument", "str"),
                                        ("Electrophoresis Instrument", "str"),
                                        ("Comment", "str")
@@ -84,13 +84,13 @@ class Migration(migrations.Migration):
             reverse_code=migrations.RunPython.noop,
         ),
         migrations.AddField(
-            model_name='derived_sample',
+            model_name='DerivedSample',
             name='quality_flag',
-            field=models.CharField(choices=[('Passed', 'Passed'), ('Failed', 'Failed')], help_text='Quality flag of the sample.', max_length=20),
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, help_text='Quality flag of the sample.', max_length=20),
         ),
         migrations.AddField(
-            model_name='derived_sample',
+            model_name='DerivedSample',
             name='quantity_flag',
-            field=models.CharField(choices=[('Passed', 'Passed'), ('Failed', 'Failed')], help_text='Quantity flag of the sample.', max_length=20),
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, help_text='Quantity flag of the sample.', max_length=20),
         ),
     ]
