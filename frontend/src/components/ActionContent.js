@@ -46,11 +46,15 @@ const ActionContent = ({token, templateType, templateActions}) => {
   }
 
   const action = actions.items[actionIndex] || LOADING_ACTION;
-  
+
   const templateChoiceMenu = (
       <Menu>
-        {actions.items[actionIndex]? action.template.map((template, i) => {
-          <Menu.Item key={i} onClick={() => window.location = template.file}>{template.description}</Menu.Item>}) :
+        {actions.items[actionIndex]
+          ? action.template.map((template, i) => {
+          return <Menu.Item
+                  key={i}
+                  onClick={() => window.location = template.file}>{template.description}
+                  </Menu.Item>}) :
           <Menu.Item>Loading ...</Menu.Item>
         }
       </Menu>
