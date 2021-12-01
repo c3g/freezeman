@@ -118,8 +118,8 @@ class DerivedSample(TrackedModel):
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
 
-    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], help_text='Quality flag of the sample.', max_length=20)
-    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], help_text='Quantity flag of the sample.', max_length=20)
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20)
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20)
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
