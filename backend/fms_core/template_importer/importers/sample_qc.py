@@ -5,6 +5,14 @@ from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
 
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
+# {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
+TEMPLATE_PROPERTY_MAPPING = {
+    "RIN (for RNA only)": "RIN",
+    "Electrophoresis Instrument": "Electrophoresis Instrument",
+    "Quantitation Instrument": "Quantitation Instrument",
+    "Comment": "Comment"
+}
+
 class SampleQCImporter(GenericImporter):
     SHEETS_INFO = [
         {
@@ -45,11 +53,8 @@ class SampleQCImporter(GenericImporter):
 
             #Populate process properties
             for i, (key, val) in enumerate(row_data.items()):
-                #Since property names in db don't necessarily match those in the headers
-                #We need to check substrings
-                for prop_key in process_measurement_properties.keys():
-                    if prop_key in key:
-                        process_measurement_properties[prop_key]['value'] = val
+                if key in TEMPLATE_PROPERTY_MAPPING.keys():
+                    process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample = {
                 'coordinates': row_data['Sample Container Coord'],
