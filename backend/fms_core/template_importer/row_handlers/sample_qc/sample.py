@@ -21,7 +21,7 @@ class SampleQCRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, sample, sample_information, process_measurement, process_properties):
+    def process_row_inner(self, sample, sample_information, process_measurement, process_measurement_properties):
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
@@ -30,13 +30,12 @@ class SampleQCRowHandler(GenericRowHandler):
         if sample_obj:
             # Update sample with sample_information
             new_volume = None
-            # TODO: Maybe validate initial volume?
             if all([sample_information['initial_volume'], sample_information['measured_volume'],
                     process_measurement['volume_used']]):
-                delta_volume = sample_information['initial_volume'] - sample_information['measured_volume']
-                new_volume = sample_obj.volume - delta_volume - process_measurement['volume_used']
+                delta_volume = sample_information['measured_volume'] - sample_information['initial_volume']
+                new_volume = sample_obj.volume + delta_volume - process_measurement['volume_used']
             else:
-                self.errors['volume'] = 'Initial Volume, Measured Volume and Volume Used are required'
+                self.errors['volume'] = 'Initial Volume, Measured Volume and Volume Used are required.'
 
             if not sample_information['concentration']:
                 self.errors['concentration'] = 'Concentration is required'
@@ -63,16 +62,15 @@ class SampleQCRowHandler(GenericRowHandler):
             # Validate instruments according to platform
             for instrument in INSTRUMENT_PROPERTIES:
                 try:
-                    type = process_properties[instrument]['value']
+                    type = process_measurement_properties[instrument]['value']
                     it = InstrumentType.objects.get(type=type)
                     # Validate platform and type
                     if it.platform != TYPES_BY_PLATFORM[it.name]:
-                        self.errors['properties'] = f'Invalid type: {it.platform} for instrument: {it.name}'
+                        self.errors['properties'] = f'Invalid type: {it.platform} for instrument: {it.name}.'
                 except Exception:
-                    self.errors['properties'] = f'Invalid instrument {type}'
+                    self.errors['properties'] = f'Invalid instrument {type}.'
 
             # TODO: Validate required RIN for RNA
-
             _, self.errors['properties'], properties_warnings = create_process_measurement_properties(
-                process_properties,
+                process_measurement_properties,
                 process_measurement_obj)

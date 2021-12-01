@@ -3,7 +3,7 @@ from fms_core.models import Process, Protocol, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
 
-from .._utils import float_to_decimal_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 class SampleQCImporter(GenericImporter):
     SHEETS_INFO = [
@@ -41,15 +41,15 @@ class SampleQCImporter(GenericImporter):
         sample_qc_sheet = self.sheets['SampleQC']
 
         for row_id, row_data in enumerate(sample_qc_sheet.rows):
-            process_properties = self.preloaded_data['process_properties']
+            process_measurement_properties = self.preloaded_data['process_properties']
 
             #Populate process properties
             for i, (key, val) in enumerate(row_data.items()):
                 #Since property names in db don't necessarily match those in the headers
                 #We need to check substrings
-                for prop_key in process_properties.keys():
+                for prop_key in process_measurement_properties.keys():
                     if prop_key in key:
-                        process_properties[prop_key]['value'] = val
+                        process_measurement_properties[prop_key]['value'] = val
 
             sample = {
                 'coordinates': row_data['Sample Container Coord'],
@@ -65,7 +65,7 @@ class SampleQCImporter(GenericImporter):
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
-                'execution_date': row_data['QC Date'],
+                'execution_date': input_to_date_and_none(row_data['QC Date']),
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'comment': row_data['Comment'],
             }
@@ -74,7 +74,7 @@ class SampleQCImporter(GenericImporter):
                 sample=sample,
                 sample_information=sample_information,
                 process_measurement=process_measurement,
-                process_properties=process_properties,
+                process_measurement_properties=process_measurement_properties,
             )
 
             (result, _) = self.handle_row(
