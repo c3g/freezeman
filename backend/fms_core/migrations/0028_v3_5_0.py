@@ -86,11 +86,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='DerivedSample',
             name='quality_flag',
-            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, help_text='Quality flag of the sample.', max_length=20),
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20),
         ),
         migrations.AddField(
             model_name='DerivedSample',
             name='quantity_flag',
-            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, help_text='Quantity flag of the sample.', max_length=20),
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20),
         ),
     ]
