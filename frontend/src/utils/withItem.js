@@ -9,6 +9,7 @@ import api from ".//api"
 import wait from "./wait"
 
 const THROTTLE_DELAY = 20
+const MAX_IDS_BY_REQUEST = 1000
 
 let store = undefined
 
@@ -40,10 +41,12 @@ function createWithItem(type, apiType) {
   const fetchList = () => {
     delayedAction =
       wait(THROTTLE_DELAY).then(async () => {
-        const params = {
-          id__in: Array.from(ids).join(',')
+        const chunkedParams = []
+        for(let i = 0; i < ids.size; i = i + MAX_IDS_BY_REQUEST){
+          chunkedParams.push({id__in: Array.from(ids).slice(i, i + MAX_IDS_BY_REQUEST).join(',')})
         }
-        const listAction = store.dispatch(type.list(params))
+        
+        const listAction = Promise.all(chunkedParams.map(async (params) => store.dispatch(type.list(params))))
         ids = new Set()
         await listAction
         delayedAction = undefined
