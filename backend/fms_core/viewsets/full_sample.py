@@ -163,21 +163,18 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         #Retreive the sample to update
         try:
-            Sample.objects.filter(pk=full_sample['id']).update(**sample_data)
-            sample_to_update = Sample.objects.get(pk=full_sample['id'])
+            sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
+            sample_to_update.__dict__.update(sample_data)
         except Exception as err:
-            if any('coordinates' in arg for arg in err.args):
-                raise ValidationError(dict(coordinates=err))
-            else:
-                raise ValidationError(dict(non_field_errors=err))
+            raise ValidationError(dict(non_field_errors=err))
 
-        #Save the new sample
+        #Save the updated sample
         try:
             sample_to_update.save()
         except Exception as err:
             raise ValidationError(err)
 
-        #Return new sample
+        #Return updated sample
         # Serialize full sample using the created sample
         try:
             serializer = FullSampleSerializer(FullSample.objects.get(pk=sample_to_update.id))
