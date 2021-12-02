@@ -150,11 +150,16 @@ class ProcessSerializer(serializers.ModelSerializer):
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
     child_sample = serializers.IntegerField(read_only=True)
+    properties = serializers.SerializerMethodField()
 
     class Meta:
       model = ProcessMeasurement
       fields = "__all__"
       extra_fields = ('protocol', 'child_sample')
+
+    def get_properties(self, obj):
+        pm_content_type = ContentType.objects.get_for_model(ProcessMeasurement)
+        return PropertyValue.objects.filter(object_id=obj.id, content_type=pm_content_type).values_list('id', flat=True)
 
 class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
     process_measurement_id = serializers.IntegerField(read_only=True, source="id")
