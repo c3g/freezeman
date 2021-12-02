@@ -15,7 +15,7 @@ class ExperimentRunRowHandler(GenericRowHandler):
         return super(self.__class__, self).process_row(**kwargs)
 
 
-    def process_row_inner(self, run_type_obj, instrument, container, start_date, comment,
+    def process_row_inner(self, experiment_run_name, run_type_obj, instrument, container, start_date, comment,
                           sample_rows_info, process_properties, protocols_dict):
 
         instrument_obj, self.errors['instrument'], self.warnings['instrument'] = get_instrument(instrument['name'])
@@ -26,7 +26,8 @@ class ExperimentRunRowHandler(GenericRowHandler):
                                                                                                creation_comment=comment)
 
         if run_type_obj and instrument_obj and container_obj:
-            _, self.errors['experiment'], self.warnings['experiment'] = create_experiment_run(run_type_obj,
+            _, self.errors['experiment'], self.warnings['experiment'] = create_experiment_run(experiment_run_name,
+                                                                                              run_type_obj,
                                                                                               instrument_obj,
                                                                                               container_obj,
                                                                                               start_date,

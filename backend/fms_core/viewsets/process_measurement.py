@@ -33,13 +33,13 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Process Extractions",
             "description": "Upload the provided template with extraction information.",
-            "template": SAMPLE_EXTRACTION_TEMPLATE,
+            "template": [{"description": "Template to extract NA from samples","file": SAMPLE_EXTRACTION_TEMPLATE}],
             "importer": ExtractionImporter,
         },
         {
             "name": "Process Transfers",
             "description": "Upload the provided template with samples to be transfered.",
-            "template": SAMPLE_TRANSFER_TEMPLATE,
+            "template": [{"description": "Template to transfer samples","file": SAMPLE_TRANSFER_TEMPLATE}],
             "importer": TransferImporter,
         },
     ]

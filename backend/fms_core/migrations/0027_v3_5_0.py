@@ -167,4 +167,9 @@ class Migration(migrations.Migration):
             name='container',
             field=models.ForeignKey(help_text='Container in which the sample is placed.', limit_choices_to={'kind__in': ('infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate', '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.container'),
         ),
+        migrations.AddField(
+            model_name='experimentrun',
+            name='name',
+            field=models.CharField(unique=True, blank=True, help_text='Name of the run.', max_length=200, null=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))]),
+        ),
     ]

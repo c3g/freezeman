@@ -241,6 +241,11 @@ export const EXPERIMENT_RUN_FILTERS = {
     key: "id",
     label: "ID",
   },
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+  },
   run_type: {
     type: FILTER_TYPE.SELECT,
     key: "run_type__name",

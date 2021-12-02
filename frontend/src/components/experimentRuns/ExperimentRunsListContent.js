@@ -30,6 +30,11 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
       </Link>),
   },
   {
+    title: "Name",
+    dataIndex: "name",
+    sorter: true,
+  },
+  {
     title: "Run Type",
     dataIndex: "run_type",
     sorter: true,

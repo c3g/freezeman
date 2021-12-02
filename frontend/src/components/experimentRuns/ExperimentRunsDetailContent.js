@@ -88,6 +88,9 @@ const ExperimentRunsDetailContent = ({
               <Descriptions.Item label="ID" span={3}>
                   {experimentRun.id}
               </Descriptions.Item>
+              <Descriptions.Item label="Name" span={3}>
+                  {experimentRun.name}
+              </Descriptions.Item>
               <Descriptions.Item label="Run Type" span={3}>
                 <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>
               </Descriptions.Item>

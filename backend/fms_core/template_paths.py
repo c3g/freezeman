@@ -21,6 +21,7 @@ CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_vt
 CONTAINER_MOVE_TEMPLATE = static("submission_templates/Container_move_v3_2_0.xlsx")
 CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v3_2_0.xlsx")
 EXPERIMENT_INFINIUM_TEMPLATE = static("submission_templates/Experiment_Infinium_24_vtest.xlsx")
+EXPERIMENT_MGI_TEMPLATE = static("submission_templates/Experiment_run_MGI_vtest.xlsx")
 SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Sample_extraction_vtest.xlsx")
 SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_vtest.xlsx")
 SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v3_2_0.xlsx")

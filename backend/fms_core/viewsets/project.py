@@ -27,7 +27,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Link Projects with Samples",
             "description": "Upload the provided template with links between projects and samples.",
-            "template": PROJECT_LINK_SAMPLES_TEMPLATE,
+            "template": [{"description": "Template to link samples to projects","file": PROJECT_LINK_SAMPLES_TEMPLATE}],
             "importer": ProjectLinkSamples,
         }
     ]

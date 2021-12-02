@@ -37,13 +37,13 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Add Samples",
             "description": "Upload the provided template with up to 384 new samples.",
-            "template": SAMPLE_SUBMISSION_TEMPLATE,
+            "template": [{"description": "Template to add samples","file": SAMPLE_SUBMISSION_TEMPLATE}],
             "importer": SampleSubmissionImporter,
         },
         {
             "name": "Update Samples",
             "description": "Upload the provided template with up to 384 samples to update.",
-            "template": SAMPLE_UPDATE_TEMPLATE,
+            "template": [{"description": "Template to update samples","file": SAMPLE_UPDATE_TEMPLATE}],
             "importer": SampleUpdateImporter,
         }
     ]

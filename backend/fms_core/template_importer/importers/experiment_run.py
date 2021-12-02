@@ -11,12 +11,12 @@ class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
         {
             'name': 'Experiments',
-            'headers': ['Experiment ID', 'Experiment Container Barcode', 'Experiment Container Kind',
+            'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
                         'Instrument Name', 'Experiment Start Date'],
         },
         {
             'name': 'Samples',
-            'headers': ['Experiment ID', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
+            'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
                         'Experiment Container Coordinates'],
         },
     ]
@@ -52,7 +52,7 @@ class ExperimentRunImporter(GenericImporter):
         samples_sheet = self.sheets['Samples']
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
-            sample = {'experiment_id': row_data['Experiment ID'],
+            sample = {'experiment_name': row_data['Experiment Name'],
                       'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
                       'experiment_container_coordinates': row_data['Experiment Container Coordinates']
                       }
@@ -70,7 +70,7 @@ class ExperimentRunImporter(GenericImporter):
                 **sample_kwargs,
             )
 
-            sample_rows_data[sample['experiment_id']].append(sample)
+            sample_rows_data[sample['experiment_name']].append(sample)
 
         """
             EXPERIMENTS SHEET
@@ -97,6 +97,7 @@ class ExperimentRunImporter(GenericImporter):
 
             experiment_run_kwargs = dict(
                 # ExperimentRun attributes data dictionary and related objects
+                experiment_run_name=experiment_run_dict['Experiment Name'],
                 instrument={'name': experiment_run_dict['Instrument Name']},
                 container={'barcode': experiment_run_dict['Experiment Container Barcode'],
                            'kind': experiment_run_dict['Experiment Container Kind']},
@@ -104,7 +105,7 @@ class ExperimentRunImporter(GenericImporter):
                 comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
                 # Additional data for this row
                 process_properties=process_properties,
-                sample_rows_info=sample_rows_data[experiment_run_dict['Experiment ID']],
+                sample_rows_info=sample_rows_data[experiment_run_dict['Experiment Name']],
                 # Preloaded data
                 run_type_obj=self.preloaded_data['run_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],
