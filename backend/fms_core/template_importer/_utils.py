@@ -9,6 +9,8 @@ def float_to_decimal_and_none(val):
 def input_to_date_and_none(date_input):
     if not date_input: 
         return None
+    elif isinstance(date_input, (int, float)):
+        return None
     elif isinstance(date_input, datetime.date):
         return date_input
     else:
