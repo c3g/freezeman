@@ -117,8 +117,6 @@ class DerivedSample(TrackedModel):
                                                     "It is the way to designate a subgroup within a study.")
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
-    library = models.CharField(max_length=200, blank=True, null=True)
-    index = models.CharField(max_length=200, blank=True, null=True)
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
@@ -127,7 +125,6 @@ class DerivedSample(TrackedModel):
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
         self.tissue_source = str_cast_and_normalize(self.tissue_source)
-        self.index = str_cast_and_normalize(self.index)
 
     def clean(self):
         super().clean()

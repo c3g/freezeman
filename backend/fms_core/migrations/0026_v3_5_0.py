@@ -66,8 +66,6 @@ class Migration(migrations.Migration):
                                                             ('Buffy coat', 'Buffy coat'), ('Tail', 'Tail')],
                                                    help_text='Can only be specified if the biospecimen type is DNA or RNA.',
                                                    max_length=200)),
-                ('library', models.CharField(blank=True, max_length=200, null=True)),
-                ('index', models.CharField(blank=True, max_length=200, null=True)),
                 ('biosample', models.ForeignKey(help_text='Biosample associated to this DerivedSample',
                                                 on_delete=django.db.models.deletion.PROTECT,
                                                 related_name='derived_samples', to='fms_core.biosample')),
