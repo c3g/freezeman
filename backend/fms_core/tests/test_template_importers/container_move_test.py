@@ -12,7 +12,7 @@ from fms_core.services.container import create_container
 class ContainerMoveTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ContainerMoveImporter()
-        self.file = APP_DATA_ROOT / "Container_move_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Container_move_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container2move_barcode = 'CONTAINER2MOVE'

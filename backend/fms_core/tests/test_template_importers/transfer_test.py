@@ -14,7 +14,7 @@ from fms_core.services.sample import create_full_sample
 class TransferTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = TransferImporter()
-        self.file = APP_DATA_ROOT / "Sample_transfer_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_transfer_v3_5_0.xlsx"
 
         self.prefill_data()
 
