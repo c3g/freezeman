@@ -60,6 +60,12 @@ class FullSample(models.Model):
     derived_sample = models.ForeignKey(DerivedSample, on_delete=models.DO_NOTHING, related_name="full_sample",
                                   help_text="Designated location of the sample.")
 
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                       help_text='Quality flag of the sample.', max_length=20)
+
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                        help_text='Quantity flag of the sample.', max_length=20)
+
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 

@@ -45,12 +45,14 @@ def create_sample_qc_objects(apps, schema_editor):
             reversion.add_to_revision(it)
 
         # Create PropertyType and Protocols
-        # TODO: Maybe the dictionary is not necessary since there's only 1 protocol
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "Sample Quality Control": [("RIN", "str"),
+            "Sample Quality Control": [
+                                       ("Measured Volume", "str"),
+                                       ("Concentration",  "str"),
+                                       ("RIN", "str"),
                                        ("Quantitation Instrument", "str"),
                                        ("Electrophoresis Instrument", "str"),
-                                       ("Comment", "str")
+                                       ("Comment", "str"),
                                        ],
         }
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
@@ -61,7 +63,10 @@ def create_sample_qc_objects(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                is_optional = False if 'instrument' in property.lower() else True
+                if any([property == 'Quantitation Instrument', property == 'Electrophoresis Instrument']):
+                    is_optional = False
+                else:
+                    is_optional = True
 
                 pt = PropertyType.objects.create(name=property,
                                                  object_id=protocol.id,
@@ -82,15 +87,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_sample_qc_objects,
             reverse_code=migrations.RunPython.noop,
-        ),
-        migrations.AddField(
-            model_name='DerivedSample',
-            name='quality_flag',
-            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20),
-        ),
-        migrations.AddField(
-            model_name='DerivedSample',
-            name='quantity_flag',
-            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20),
-        ),
+        )
     ]

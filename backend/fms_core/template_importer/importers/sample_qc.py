@@ -7,6 +7,8 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
+    "Measured Volume (uL)": "Measured Volume",
+    "Concentration (ng/uL)": "Concentration",
     "RIN (for RNA only)": "RIN",
     "Electrophoresis Instrument": "Electrophoresis Instrument",
     "Quantitation Instrument": "Quantitation Instrument",

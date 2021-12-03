@@ -39,10 +39,6 @@ def create_process_measurement_properties(properties, process_measurement):
         if property_type.object_id != process_measurement.process.protocol.id:
             errors.append(f'{property_type} is not linked to protocol {process_measurement.process.protocol.id}.')
 
-        # Validate non-optional properties
-        if not property_type.is_optional and not value:
-            errors.append(f'{property_type} is required.')
-
         if type(value).__name__ in ('datetime', 'time'):
             value = value.isoformat().replace("T00:00:00", "")
         else:
@@ -56,3 +52,17 @@ def create_process_measurement_properties(properties, process_measurement):
                 errors.append(';'.join(e.messages))
 
     return (property_values, errors, warnings)
+
+def validate_non_optional_properties(properties):
+    errors = []
+    warnings = []
+
+    for value_dict in properties.values():
+        property_type = value_dict['property_type_obj']
+        value = value_dict['value']
+
+        # Validate non-optional properties
+        if not property_type.is_optional and not value:
+            errors.append(f'{property_type} is required.')
+
+    return (errors, warnings)
