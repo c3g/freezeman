@@ -8,7 +8,7 @@ class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = [
         {
             'name': 'SampleSubmission',
-            'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
+            'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
                         'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
                         'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
                         'Collection Site', 'Tissue Source', 'Reception Date', 'Comment']
@@ -49,6 +49,9 @@ class SampleSubmissionImporter(GenericImporter):
             individual_father = {
                 'name': row_data['Father ID'],
             }
+            project = {
+                'name': row_data['Project'],
+            }
             sample = {
                 'name': row_data['Sample Name'],
                 'alias': row_data['Alias'],
@@ -66,6 +69,7 @@ class SampleSubmissionImporter(GenericImporter):
             sample_kwargs = dict(
                 sample=sample,
                 container=container,
+                project=project,
                 parent_container=parent_container,
                 individual=individual,
                 individual_mother=individual_mother,

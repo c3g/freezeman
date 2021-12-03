@@ -6,6 +6,7 @@ from fms_core.template_importer.importers import SampleSubmissionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Container
+from fms_core.services.project import create_project
 
 
 class SampleSubmissionTestCase(TestCase):
@@ -14,8 +15,14 @@ class SampleSubmissionTestCase(TestCase):
         self.file = APP_DATA_ROOT / "Sample_submission_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
+        self.project_name = "TEST_PROJECT"
+
         self.invalid_template_tests = ["Sample_submission_v3_5_0_bad_location.xlsx",
                                        "Sample_submission_v3_5_0_dna_no_conc.xlsx",]
+        self.prefill_data()
+
+    def prefill_data(self):
+        create_project(name=self.project_name)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid

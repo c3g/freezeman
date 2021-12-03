@@ -4,6 +4,8 @@ from fms_core.models import Individual
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
+from fms_core.services.project_link_samples import create_link
+from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
@@ -13,11 +15,10 @@ class SampleRowHandler(GenericRowHandler):
         super().__init__()
 
 
-    def process_row_inner(self, sample, container, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
+    def process_row_inner(self, sample, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
-
         parent_container_obj = None
         if parent_container['barcode']:
             parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
@@ -31,8 +32,12 @@ class SampleRowHandler(GenericRowHandler):
                                     creation_comment=comment,
                                     )
 
-        # Individual related section
+        # Project related section
+        project_obj = None
+        if project['name']:
+            project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
+        # Individual related section
         mother_obj = None
         if individual_mother['name']:
             mother_obj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
@@ -96,3 +101,9 @@ class SampleRowHandler(GenericRowHandler):
                                concentration=sample['concentration'], tissue_source=sample['tissue_source'],
                                experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                sample_kind=sample_kind_obj, comment=comment)
+
+        # Link sample to project if requested
+        if project_obj and sample_obj:
+            _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+
+

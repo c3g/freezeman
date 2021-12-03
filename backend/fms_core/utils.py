@@ -63,7 +63,7 @@ def str_normalize(s: str) -> str:
     """
     Normalizes the Unicode characters of and strips a string.
     """
-    return unicodedata.normalize("NFC", s.strip())
+    return unicodedata.normalize("NFC", s.strip()) if isinstance(s, str) else s
 
 
 def str_cast_and_normalize(s) -> str:
