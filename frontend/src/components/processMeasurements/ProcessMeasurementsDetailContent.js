@@ -45,8 +45,6 @@ const ProcessMeasurementsDetailContent = ({
       listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
     }
 
-    console.log(propertyValuesByID)
-
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
         `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;

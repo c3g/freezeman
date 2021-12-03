@@ -178,6 +178,15 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               </Descriptions.Item>
               <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
+              { // For flags there's a difference between having a false value (QC failed)
+                // and a null value (QC not performed yet)
+              }
+              <Descriptions.Item label="Quantity Flag">
+                { sample.quantity_flag ? "Passed" : (sample.quantity_flag ===  false ? "Failed" : "-") }
+              </Descriptions.Item>
+              <Descriptions.Item label="Quality Flag">
+                { sample.quality_flag ? "Passed" : (sample.quality_flag === false ? "Failed" : "-")}
+              </Descriptions.Item>
               {/*TODO: Extracted from*/}
           </Descriptions>
           {sample.extracted_from ? (

@@ -4,7 +4,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import get_sample_from_container, update_sample
 from fms_core.services.process_measurement import create_process_measurement
-from fms_core.services.property_value import create_process_measurement_properties
+from fms_core.services.property_value import create_process_measurement_properties, validate_non_optional_properties
 from fms_core.services.sample import update_qc_flags
 from fms_core.models import InstrumentType
 
@@ -67,14 +67,17 @@ class SampleQCRowHandler(GenericRowHandler):
                         it = InstrumentType.objects.get(type=type)
                         # Validate platform and type
                         if it.platform.name != TYPES_BY_PLATFORM[it.type]:
-                            self.errors['instrument type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
+                            self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
                     except Exception as e:
                         self.errors['instrument'] = f'Invalid instrument {type}.'
 
                 # Validate required RIN for RNA
                 if sample_obj.derived_sample_not_pool.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
-                    self.errors['RIN'] = 'It has to be specified for RNA.'
+                    self.errors['RIN'] = 'RIN has to be specified for RNA.'
 
-                _, self.errors['properties'], properties_warnings = create_process_measurement_properties(
+                _, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                     process_measurement_properties,
                     process_measurement_obj)
+
+                self.errors['non_optional_properties'], self.warnings['non_optional_properties'] = \
+                    validate_non_optional_properties(process_measurement_properties)

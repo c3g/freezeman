@@ -124,11 +124,23 @@ class Migration(migrations.Migration):
                 'managed': False,
             },
         ),
+        migrations.AddField(
+            model_name='DerivedSample',
+            name='quality_flag',
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                      help_text='Quality flag of the sample.', max_length=20),
+        ),
+        migrations.AddField(
+            model_name='DerivedSample',
+            name='quantity_flag',
+            field=models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                      help_text='Quantity flag of the sample.', max_length=20),
+        ),
         migrations.RunSQL(
             """
                 DROP VIEW IF EXISTS fms_core_fullsample;
                 CREATE OR REPLACE VIEW fms_core_fullsample AS
-                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(DISTINCT project.name), NULL) AS projects_names, array_remove(array_agg(pm.id), NULL) AS process_measurements, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of, sample.comment, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.biosample_id,  biosample.individual_id, biosample.collection_site
+                SELECT sample.id, sample.name, sample.container_id, sample.coordinates, sample.volume, sample.concentration, sample.depleted, array_remove(array_agg(DISTINCT sbyp.project_id), NULL) AS projects, array_remove(array_agg(DISTINCT project.name), NULL) AS projects_names, array_remove(array_agg(pm.id), NULL) AS process_measurements, array_remove(array_agg(DISTINCT sl.parent_id), NULL) AS child_of, sample.comment, sample.creation_date, sample.created_at, sample.updated_at, sample.created_by_id, sample.updated_by_id, sample.deleted, biosample.alias, derived.sample_kind_id, derived.tissue_source, derived.experimental_group, derived.id AS derived_sample_id, derived.quality_flag, derived.quantity_flag, derived.biosample_id,  biosample.individual_id, biosample.collection_site
                 FROM fms_core_sample AS sample 
                 JOIN fms_core_derivedbysample AS dbys 
                 ON dbys.sample_id =  sample.id 
