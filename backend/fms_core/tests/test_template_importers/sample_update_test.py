@@ -15,7 +15,7 @@ from fms_core.services.sample import create_full_sample
 class SampleUpdateTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleUpdateImporter()
-        self.file = APP_DATA_ROOT / "Sample_update_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_update_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.sample_name = 'SampleTestForUpdate'

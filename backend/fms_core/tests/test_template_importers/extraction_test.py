@@ -16,7 +16,7 @@ from fms_core.services.sample import create_full_sample
 class ExtractionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExtractionImporter()
-        self.file = APP_DATA_ROOT / "Sample_extraction_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_extraction_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.prefill_data()

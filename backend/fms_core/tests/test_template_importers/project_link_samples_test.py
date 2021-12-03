@@ -19,13 +19,13 @@ from fms_core.services.project_link_samples import create_link
 class ProjectLinkSamplesTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ProjectLinkSamples()
-        self.file = APP_DATA_ROOT / "Project_link_samples_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Project_link_samples_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
-        self.invalid_template_tests = ["Project_link_samples_vtest_invalid_project.xlsx",
-                                       "Project_link_samples_vtest_invalid_sample.xlsx",
-                                       "Project_link_samples_vtest_invalid_sample_2.xlsx",
-                                       "Project_link_samples_vtest_invalid_sample_3.xlsx",]
+        self.invalid_template_tests = ["Project_link_samples_v3_5_0_invalid_project.xlsx",
+                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",
+                                       "Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
+                                       "Project_link_samples_v3_5_0_invalid_sample_3.xlsx",]
 
         #Projects for Link
         self.project1_name = 'ProjectTest1'

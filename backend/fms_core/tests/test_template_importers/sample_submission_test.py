@@ -11,11 +11,11 @@ from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, 
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_5_0.xlsx"
         ContentType.objects.clear_cache()
 
-        self.invalid_template_tests = ["Sample_submission_vtest_bad_location.xlsx",
-                                       "Sample_submission_vtest_dna_no_conc.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v3_5_0_bad_location.xlsx",
+                                       "Sample_submission_v3_5_0_dna_no_conc.xlsx",]
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid

@@ -9,7 +9,7 @@ from fms_core.models import Container
 class ContainerCreationTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ContainerCreationImporter()
-        self.file = APP_DATA_ROOT / "Container_creation_vtest.xlsx"
+        self.file = APP_DATA_ROOT / "Container_creation_v3_5_0.xlsx"
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
