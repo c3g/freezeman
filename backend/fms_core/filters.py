@@ -1,12 +1,12 @@
 from django.db.models import Q
 
-from .models import Container, Sample, Individual
+from .models import Container, Individual, FullSample
 
 import django_filters
 
 from .viewsets._constants import (
     _container_filterset_fields,
-    _sample_filterset_fields,
+    _full_sample_filterset_fields,
     _individual_filterset_fields,
     _sample_minimal_filterset_fields,
 )
@@ -24,7 +24,8 @@ class GenericFilter(django_filters.FilterSet):
         query = Q()
         for v in value.split(" "):
             query |= Q(name=v)
-        return queryset.filter(query)
+        query_set = queryset.filter(query)
+        return query_set
 
 
 class ContainerFilter(GenericFilter):
@@ -39,12 +40,12 @@ class ContainerFilter(GenericFilter):
             **_prefix_keys("samples__", _sample_minimal_filterset_fields),
         }
 
-class SampleFilter(GenericFilter):
+class FullSampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
     class Meta:
-        model = Sample
-        fields = _sample_filterset_fields
+        model = FullSample
+        fields = _full_sample_filterset_fields
 
 class IndividualFilter(django_filters.FilterSet):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
