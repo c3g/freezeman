@@ -166,10 +166,13 @@ def transfer_sample(process: Process,
     if not container_destination:
         errors.append(f"Destination container for transfer is required.")
 
-    if volume_used <= 0:
-        errors.append(f"Volume used ({volume_used}) is invalid ")
-    if sample_source and volume_used > sample_source.volume:
-        errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume})")
+    if volume_used is None:
+        errors.append(f"Volume used is required.")
+    else:
+        if volume_used <= 0:
+            errors.append(f"Volume used ({volume_used}) is invalid.")
+        if sample_source and volume_used > sample_source.volume:
+            errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume}).")
     
     if not isinstance(execution_date, date):
         errors.append(f"Execution date is not valid.")
@@ -231,10 +234,13 @@ def extract_sample(process: Process,
     if not container_destination:
         errors.append(f"Destination container for extraction is required.")
 
-    if volume_used <= 0:
-        errors.append(f"Volume used ({volume_used}) is invalid ")
-    if sample_source and volume_used > sample_source.volume:
-        errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume})")
+    if volume_used is None:
+        errors.append(f"Volume used is required.")
+    else:
+        if volume_used <= 0:
+            errors.append(f"Volume used ({volume_used}) is invalid.")
+        if sample_source and volume_used > sample_source.volume:
+            errors.append(f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume}).")
     
     if not isinstance(execution_date, date):
         errors.append(f"Execution date is not valid.")
