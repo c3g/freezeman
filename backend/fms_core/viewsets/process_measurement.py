@@ -45,7 +45,7 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Sample Quality Control",
             "description": "Upload the provided template with samples that underwent a quality control.",
-            "template": SAMPLE_QC_TEMPLATE,
+            "template": [{"description": "Template to perform sample quality control", "file": SAMPLE_QC_TEMPLATE}],
             "importer": SampleQCImporter,
         },
     ]
