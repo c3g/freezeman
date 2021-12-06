@@ -12,7 +12,6 @@ TEMPLATE_PROPERTY_MAPPING = {
     "RIN (for RNA only)": "RIN",
     "Electrophoresis Instrument": "Electrophoresis Instrument",
     "Quantitation Instrument": "Quantitation Instrument",
-    "Comment": "Comment"
 }
 
 class SampleQCImporter(GenericImporter):

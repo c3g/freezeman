@@ -52,7 +52,6 @@ def create_sample_qc_objects(apps, schema_editor):
                                        ("RIN", "str"),
                                        ("Quantitation Instrument", "str"),
                                        ("Electrophoresis Instrument", "str"),
-                                       ("Comment", "str"),
                                        ],
         }
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
