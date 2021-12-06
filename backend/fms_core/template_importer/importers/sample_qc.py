@@ -10,8 +10,8 @@ TEMPLATE_PROPERTY_MAPPING = {
     "Measured Volume (uL)": "Measured Volume",
     "Concentration (ng/uL)": "Concentration",
     "RIN (for RNA only)": "RIN",
-    "Electrophoresis Instrument": "Electrophoresis Instrument",
-    "Quantitation Instrument": "Quantitation Instrument",
+    "Electrophoresis instrument": "Electrophoresis Instrument",
+    "Quantitation instrument": "Quantitation Instrument",
 }
 
 class SampleQCImporter(GenericImporter):
@@ -20,7 +20,7 @@ class SampleQCImporter(GenericImporter):
             'name': 'SampleQC',
             'headers': ['Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
                         'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
-                        'RIN (for RNA only)', 'Electrophoresis Instrument', 'Quality Flag', 'Quantitation Instrument',
+                        'RIN (for RNA only)', 'Electrophoresis instrument', 'Quality Flag', 'Quantitation instrument',
                         'Quantity Flag', 'QC Date', 'Comment']
         },
     ]
