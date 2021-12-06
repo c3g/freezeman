@@ -75,9 +75,12 @@ class SampleQCRowHandler(GenericRowHandler):
                 if sample_obj.derived_sample_not_pool.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
                     self.errors['RIN'] = 'RIN has to be specified for RNA.'
 
-                _, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
-                    process_measurement_properties,
-                    process_measurement_obj)
-
-                self.errors['non_optional_properties'], self.warnings['non_optional_properties'] = \
+                is_valid, self.errors['non_optional_properties'], self.warnings['non_optional_properties'] = \
                     validate_non_optional_properties(process_measurement_properties)
+
+                if is_valid:
+                    _, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
+                        process_measurement_properties,
+                        process_measurement_obj)
+
+

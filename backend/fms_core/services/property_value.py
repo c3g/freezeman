@@ -54,6 +54,7 @@ def create_process_measurement_properties(properties, process_measurement):
     return (property_values, errors, warnings)
 
 def validate_non_optional_properties(properties):
+    is_valid = True
     errors = []
     warnings = []
 
@@ -63,6 +64,7 @@ def validate_non_optional_properties(properties):
 
         # Validate non-optional properties
         if not property_type.is_optional and not value:
+            valid = False
             errors.append(f'{property_type} is required.')
 
-    return (errors, warnings)
+    return (is_valid, errors, warnings)
