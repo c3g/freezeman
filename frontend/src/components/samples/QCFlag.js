@@ -6,16 +6,17 @@ import {CheckOutlined, CloseOutlined} from "@ant-design/icons";
 const getFlagContent = (flags) => {
   return  (
     <div>
-      <p> Quantity Flag: {flags.quantity ? "Passed" : "Failed"}</p>
-      <p> Quality Flag: {flags.quality ? "Passed" : "Failed"}</p>
+      {Object.entries(flags).map(([name, value]) => {
+        return <p> {name} : {value ? "passed" : "failed"} </p>
+      })}
     </div>
   )
 }
 
-export const SampleQCFlag = ({flags}) => {
+export const QCFlag = ({flags}) => {
   return (
     <Popover content={getFlagContent(flags)} title="QC Flags">
-      {(flags.quantity && flags.quality)
+      {(Object.values(flags).every(flag => flag))
         ? <Button style={{color: "#a0d911"}}><CheckOutlined/>Passed</Button>
         : <Button style={{color: "#f5222d"}}><CloseOutlined/>Failed</Button>}
     </Popover>

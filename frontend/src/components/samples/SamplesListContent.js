@@ -7,7 +7,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
-import {SampleQCFlag} from "./SampleQCFlag";
+import {QCFlag} from "./QCFlag";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
@@ -123,7 +123,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       render: (_, sample) => {
         const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
         if (flags.quantity !== null && flags.quality !== null)
-          return <SampleQCFlag flags={flags}/>;
+          return <QCFlag flags={flags}/>;
         else
           return null;
       }
