@@ -4,6 +4,7 @@ import reversion
 
 from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
+from fms_core.utils import str_normalize
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -68,7 +69,7 @@ class GenericImporter():
         try:
             pd_sheet = pd.read_excel(self.file, sheet_name=name)
             # Convert blank and NaN cells to None and Store it in self.sheets
-            dataframe = pd_sheet.applymap(blank_and_nan_to_none)
+            dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
             return SheetData(name=name, dataframe=dataframe, headers=headers)
 
         except Exception as e:
