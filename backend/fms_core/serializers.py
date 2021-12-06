@@ -181,9 +181,15 @@ class PropertyValueSerializer(serializers.ModelSerializer):
 
 
 class FullSampleSerializer(serializers.ModelSerializer):
+    extracted_from = serializers.SerializerMethodField()
+
     class Meta:
         model = FullSample
         fields = "__all__"
+        extra_fields = ('extracted_from')
+
+    def get_extracted_from(self, obj):
+        return obj.extracted_from and obj.extracted_from.id
 
 class FullSampleExportSerializer(serializers.ModelSerializer):
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
