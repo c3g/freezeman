@@ -86,6 +86,14 @@ class FullSample(models.Model):
     updated_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_modification", on_delete=models.DO_NOTHING)
     deleted = models.BooleanField(default=False, help_text="Whether this instance has been deleted.")
 
+    @property
+    def extracted_from(self) -> "Sample":
+        sample = Sample.objects.get(pk=self.id)
+        child_of_objs = Sample.objects.filter(pk__in=self.child_of).all()
+        return child_of_objs\
+            .filter(parent_sample__child=sample, parent_sample__process_measurement__process__protocol__name="Extraction")\
+            .first() if self.id else None
+
     class Meta:
         managed = False
         db_table = 'fms_core_fullsample'
