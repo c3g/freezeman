@@ -62,7 +62,8 @@ def create_sample_qc_objects(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                if any([property == 'Quantitation Instrument', property == 'Electrophoresis Instrument']):
+                if any([property == 'Quantitation Instrument', property == 'Electrophoresis Instrument',
+                        property == 'Concentration', property == 'Measured Volume']):
                     is_optional = False
                 else:
                     is_optional = True
