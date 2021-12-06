@@ -64,7 +64,7 @@ def validate_non_optional_properties(properties):
 
         # Validate non-optional properties
         if not property_type.is_optional and not value:
-            valid = False
+            is_valid = False
             errors.append(f'{property_type} is required.')
 
     return (is_valid, errors, warnings)
