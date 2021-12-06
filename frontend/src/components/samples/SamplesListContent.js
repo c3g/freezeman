@@ -125,7 +125,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
         if (flags.quantity !== null && flags.quality !== null)
           return <SampleQCFlag flags={flags}/>;
         else
-          return <Button disabled={true}>None</Button>;
+          return null;
       }
     },
     {
