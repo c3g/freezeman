@@ -88,11 +88,7 @@ class FullSample(models.Model):
 
     @property
     def extracted_from(self) -> "Sample":
-        sample = Sample.objects.get(pk=self.id)
-        child_of_objs = Sample.objects.filter(pk__in=self.child_of).all()
-        return child_of_objs\
-            .filter(parent_sample__child=sample, parent_sample__process_measurement__process__protocol__name="Extraction")\
-            .first() if self.id else None
+        return Sample.objects.get(pk=self.id).extracted_from
 
     class Meta:
         managed = False
