@@ -182,10 +182,10 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
                 // and a null value (QC not performed yet)
               }
               <Descriptions.Item label="Quantity Flag">
-                { sample.quantity_flag ? "Passed" : (sample.quantity_flag ===  false ? "Failed" : "-") }
+                { sample.quantity_flag ? "Passed" : (sample.quantity_flag ===  false ? "Failed" : "—") }
               </Descriptions.Item>
               <Descriptions.Item label="Quality Flag">
-                { sample.quality_flag ? "Passed" : (sample.quality_flag === false ? "Failed" : "-")}
+                { sample.quality_flag ? "Passed" : (sample.quality_flag === false ? "Failed" : "—")}
               </Descriptions.Item>
               {/*TODO: Extracted from*/}
           </Descriptions>
