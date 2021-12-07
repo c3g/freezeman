@@ -25,7 +25,7 @@ class ProjectLinkSamples(GenericImporter):
                 'sample_container_coord': row_data['Sample Container Coord']
             }
             action = {
-                'name': row_data['Action'].upper()
+                'name': row_data['Action'].upper() if row_data['Action'] else None
             }
 
             project_link_samples_kwargs = dict(
