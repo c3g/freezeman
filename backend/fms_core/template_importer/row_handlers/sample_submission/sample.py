@@ -62,8 +62,9 @@ class SampleRowHandler(GenericRowHandler):
                                mother_obj,
                                father_obj])
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
+        self.errors['individual'] = []
+        self.warnings['individual'] = []
         if not individual["name"] and need_individual:
-            self.errors['individual'] = []
             if individual["taxon"]:
                 self.errors['individual'].append(f"Individual taxon requires an individual name to be provided to be saved.")
             if individual["sex"]:
@@ -86,7 +87,6 @@ class SampleRowHandler(GenericRowHandler):
                                          mother=mother_obj,
                                          father=father_obj)
         else:
-            self.warnings['individual'] = []
             self.warnings['individual'].append(f'Sample is not tied to any individual.')
 
         # Sample related section
