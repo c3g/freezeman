@@ -60,6 +60,12 @@ class FullSample(models.Model):
     derived_sample = models.ForeignKey(DerivedSample, on_delete=models.DO_NOTHING, related_name="full_sample",
                                   help_text="Designated location of the sample.")
 
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                       help_text='Quality flag of the sample.', max_length=20)
+
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                        help_text='Quantity flag of the sample.', max_length=20)
+
     biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
                                           help_text="Designated location of the sample.")
 
@@ -79,6 +85,10 @@ class FullSample(models.Model):
     updated_at = models.DateTimeField(auto_now=True, help_text="Date the instance was modified.")
     updated_by = models.ForeignKey(User, null=False, blank=True, related_name="%(app_label)s_%(class)s_modification", on_delete=models.DO_NOTHING)
     deleted = models.BooleanField(default=False, help_text="Whether this instance has been deleted.")
+
+    @property
+    def extracted_from(self) -> "Sample":
+        return Sample.objects.get(pk=self.id).extracted_from
 
     class Meta:
         managed = False

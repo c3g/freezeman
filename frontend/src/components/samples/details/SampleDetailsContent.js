@@ -2,6 +2,7 @@ import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
+import {QCFlag} from "../QCFlag";
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
 import {
   Card,
@@ -90,6 +91,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const isVersionsEmpty = versions && versions.length === 0;
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
   const isProjectsEmpty = sample.projects && sample.projects.length === 0;
+  const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
   let processMeasurements = []
   let experimentRunsIDs = []
 
@@ -178,7 +180,11 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               </Descriptions.Item>
               <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
-              {/*TODO: Extracted from*/}
+              <Descriptions.Item label="QC Flag">
+                {flags.quantity !== null && flags.quality !== null
+                  ? <QCFlag flags={flags}/>
+                  : null}
+              </Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>

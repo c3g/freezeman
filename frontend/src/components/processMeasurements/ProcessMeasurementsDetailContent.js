@@ -7,28 +7,43 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import ExperimentRunsProperties from "../experimentRuns/ExperimentRunsProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
+import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
 
 const mapStateToProps = state => ({
     processMeasurementsByID: state.processMeasurements.itemsByID,
+    propertyValuesByID: state.propertyValues.itemsByID,
     protocolsByID: state.protocols.itemsByID,
     samplesByID: state.samples.itemsByID,
     usersByID: state.users.itemsByID,
 });
 
-const mapDispatchToProps = dispatch =>
-    bindActionCreators({ get }, dispatch);
+const actionCreators = {get, listPropertyValues};
 
-const ProcessMeasurementsDetailContent = ({processMeasurementsByID, protocolsByID, samplesByID, usersByID, get}) => {
+const ProcessMeasurementsDetailContent = ({
+  processMeasurementsByID,
+  propertyValuesByID,
+  protocolsByID,
+  samplesByID,
+  usersByID,
+  get,
+  listPropertyValues
+}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in processMeasurementsByID;
     const processMeasurement = processMeasurementsByID[id] || {};
+    const propertiesAreLoaded = processMeasurement?.properties?.every(property => property in propertyValuesByID)
 
     if (!isLoaded)
         get(id);
+
+    if (isLoaded && !propertiesAreLoaded) {
+      listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+    }
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
@@ -56,9 +71,18 @@ const ProcessMeasurementsDetailContent = ({processMeasurementsByID, protocolsByI
                 <Descriptions.Item label="Date Executed" span={2}>{processMeasurement.execution_date}</Descriptions.Item>
                 <Descriptions.Item label="Comment" span={4}>{processMeasurement.comment}</Descriptions.Item>
             </Descriptions>
+            { processMeasurement?.properties?.length > 0 &&
+                <>
+                <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
+                  <ExperimentRunsProperties
+                      propertyIDs={processMeasurement.properties}
+                      protocolName={protocolsByID[processMeasurement.protocol]?.name}
+                  />
+                </>
+             }
             <TrackingFieldsContent entity={processMeasurement}/>
         </PageContent>
     </>;
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ProcessMeasurementsDetailContent);
+export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsDetailContent);

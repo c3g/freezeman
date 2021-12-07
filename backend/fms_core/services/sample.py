@@ -327,4 +327,22 @@ def _process_sample(process,
             warnings.extend(warnings_sample_lineage)
     return (sample_destination, errors, warnings)
 
+def update_qc_flags(sample, quantity_flag, quality_flag):
+    errors = []
+    warnings = []
+
+    try:
+        # Update the QC flags for all the derived samples associated to the given sample
+        for derived_sample in sample.derived_samples.all():
+            if quantity_flag and quality_flag:
+                derived_sample.quantity_flag = (quantity_flag == 'Passed')
+                derived_sample.quality_flag = (quality_flag == 'Passed')
+                derived_sample.save()
+            else:
+                errors.append('Quantity and Quality flags are required.')
+    except Error as e:
+        errors.appends(';'.join(e.messages))
+
+    return (derived_sample, errors, warnings)
+
 

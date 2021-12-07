@@ -15,3 +15,4 @@ def inherit_derived_sample(derived_sample_source, new_derived_sample_data):
         errors.append(';'.join(e.messages))
     
     return (new_derived_sample, errors, warnings)
+

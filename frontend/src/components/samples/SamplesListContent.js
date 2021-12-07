@@ -7,6 +7,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import {SampleDepletion} from "./SampleDepletion";
+import {QCFlag} from "./QCFlag";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
@@ -114,6 +115,18 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       className: "table-column-numbers",
       render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
       width: 115,
+    },
+    {
+      title: "QC Flag",
+      dataIndex: "qc_flag",
+      sorter: true,
+      render: (_, sample) => {
+        const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
+        if (flags.quantity !== null && flags.quality !== null)
+          return <QCFlag flags={flags}/>;
+        else
+          return null;
+      }
     },
     {
       title: "Creation Date",

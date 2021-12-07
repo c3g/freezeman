@@ -2,7 +2,7 @@ import React from "react";
 import {Link} from "react-router-dom";
 
 import {Button} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined} from "@ant-design/icons";
 
 export const actionIcon = a => {
   const n = a.name || a
@@ -13,6 +13,7 @@ export const actionIcon = a => {
   if (n.includes("Update")) return <EditOutlined />;
   if (n.includes("Process")) return <ExperimentOutlined />;
   if (n.includes("Link")) return <LinkOutlined/>;
+  if (n.includes("Quality")) return <CheckCircleOutlined />;
   return undefined;
 };
 
