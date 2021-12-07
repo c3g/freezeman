@@ -85,6 +85,9 @@ class SampleRowHandler(GenericRowHandler):
                                          cohort=individual['cohort'],
                                          mother=mother_obj,
                                          father=father_obj)
+        else:
+            self.warnings['individual'] = []
+            self.warnings['individual'].append(f'Sample is not tied to any individual.')
 
         # Sample related section
         sample_kind_obj = None
