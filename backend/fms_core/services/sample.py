@@ -334,7 +334,7 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
                 derived_sample.quality_flag = (quality_flag == 'Passed')
                 derived_sample.save()
             else:
-                errors['flags'] = 'Quantity and Quality flags are required.'
+                errors.append('Quantity and Quality flags are required.')
     except Error as e:
         errors.appends(';'.join(e.messages))
 
