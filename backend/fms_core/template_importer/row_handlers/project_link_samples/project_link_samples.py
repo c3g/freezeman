@@ -41,3 +41,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                 # Remove link object if no errors
                 num_objects_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
                                                                                               project=project_obj)
+
+            # Action not provided or invalid
+            else:
+                self.errors['action'] = 'Either an Add or Remove action is required.'
