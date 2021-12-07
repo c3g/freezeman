@@ -24,6 +24,7 @@ __all__ = [
     "CONTAINER_SPEC_TUBE_BOX_8X8",
     "CONTAINER_SPEC_TUBE_BOX_9X9",
     "CONTAINER_SPEC_TUBE_BOX_10X10",
+    "CONTAINER_SPEC_TUBE_BOX_21X10",
     "CONTAINER_SPEC_TUBE_RACK_8X12",
     "CONTAINER_SPEC_DRAWER",
     "CONTAINER_SPEC_FREEZER_RACK_2X4",
@@ -302,6 +303,14 @@ CONTAINER_SPEC_TUBE_BOX_10X10 = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_TUBE_BOX_21X10 = ContainerSpec(
+    container_kind_id="tube box 21x10",
+    coordinate_spec=(alphas(21), ints(10, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
     container_kind_id="tube rack 8x12",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
@@ -319,6 +328,7 @@ COMMON_CHILDREN = (
     CONTAINER_SPEC_TUBE_BOX_8X8,
     CONTAINER_SPEC_TUBE_BOX_9X9,
     CONTAINER_SPEC_TUBE_BOX_10X10,
+    CONTAINER_SPEC_TUBE_BOX_21X10,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
 
