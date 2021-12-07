@@ -195,7 +195,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           </Form.Item>
           <Form.Item label="Sample Kind" {...props("sample_kind")} rules={isAdding && requiredRules}>
             <Select disabled={!isAdding}>
-              {sampleKinds.items.map(sk =>
+              {sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name)).map(sk =>
                 <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
             </Select>
