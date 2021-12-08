@@ -48,7 +48,7 @@ class Container(TrackedModel):
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
-        self.kind = str_cast_and_normalize(self.kind).lower()
+        self.kind = str_cast_and_normalize(self.kind).lower() if self.kind is not None else ""
         self.name = str_cast_and_normalize(self.name)
         self.barcode = str_cast_and_normalize(self.barcode)
         self.coordinates = str_cast_and_normalize(self.coordinates)
