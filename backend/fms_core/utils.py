@@ -70,7 +70,7 @@ def str_cast_and_normalize(s) -> str:
     """
     Casts a value to a string and then normalizes it using str_normalize.
     """
-    return str_normalize(str(s))
+    return str_normalize(str(s) if s is not None else s)
 
 
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:
