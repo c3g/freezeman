@@ -23,17 +23,19 @@ def create_sample_qc_objects(apps, schema_editor):
         reversion.set_user(admin_user)
 
         # Create Platform and InstrumentType
-        p_quantitation = Platform.objects.create(name="Quality Control: Quantitation", created_by_id=admin_user_id, updated_by_id=admin_user_id)
-        p_electrophoresis = Platform.objects.create(name="Quality Control: Electrophoresis", created_by_id=admin_user_id, updated_by_id=admin_user_id)
-        reversion.add_to_revision(p_quantitation)
-        reversion.add_to_revision(p_electrophoresis)
+        p = Platform.objects.create(name="Quality Control", created_by_id=admin_user_id, updated_by_id=admin_user_id)
+        reversion.add_to_revision(p)
 
         # DICT { TYPE : PLATFORM }
         INSTRUMENT_TYPES = {
-            "PicoGreen": "Quality Control: Quantitation",
-            "Qubit": "Quality Control: Quantitation",
-            "Agarose Gel": "Quality Control: Electrophoresis",
-            "TapeStation": "Quality Control: Electrophoresis",
+            "PicoGreen": "Quality Control",
+            "Qubit": "Quality Control",
+            "Agarose Gel": "Quality Control",
+            "TapeStation": "Quality Control",
+            "NanoDrop": "Quality Control",
+            "Tecan Absorbance": "Quality Control",
+            "BioAnalyzer": "Quality Control",
+            "Caliper LabChip": "Quality Control",
         }
         for type in INSTRUMENT_TYPES:
             platform = Platform.objects.get(name=INSTRUMENT_TYPES[type])
@@ -46,27 +48,25 @@ def create_sample_qc_objects(apps, schema_editor):
 
         # Create PropertyType and Protocols
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "Sample Quality Control": [
+            "Sample Quality Control": [("Sample Quality QC Flag", "str"),
+                                       ("Sample Quantity QC Flag", "str"),
                                        ("Measured Volume", "str"),
                                        ("Concentration",  "str"),
                                        ("RIN", "str"),
-                                       ("Quantitation Instrument", "str"),
-                                       ("Electrophoresis Instrument", "str"),
-                                       ],
+                                       ("Quantity Instrument", "str"),
+                                       ("Quality Instrument", "str")],
         }
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
 
         for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
-            protocol = Protocol.objects.create(name=protocol_name,
-                                               created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            protocol = Protocol.objects.create(name=protocol_name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                if any([property == 'Quantitation Instrument', property == 'Electrophoresis Instrument',
-                        property == 'Concentration', property == 'Measured Volume']):
-                    is_optional = False
-                else:
+                if property == 'RIN':
                     is_optional = True
+                else:
+                    is_optional = False
 
                 pt = PropertyType.objects.create(name=property,
                                                  object_id=protocol.id,
