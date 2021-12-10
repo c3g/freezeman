@@ -192,29 +192,32 @@ class FullSampleSerializer(serializers.ModelSerializer):
         return obj.extracted_from and obj.extracted_from.id
 
 class FullSampleExportSerializer(serializers.ModelSerializer):
+    individual_name = serializers.CharField(read_only=True, source="individual.name")
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
     sex = serializers.CharField(read_only=True, source="individual.sex")
     pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
     cohort = serializers.CharField(read_only=True, source="individual.cohort")
     mother_name = serializers.SerializerMethodField()
     father_name = serializers.SerializerMethodField()
+    sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
     container_barcode = serializers.CharField(read_only=True, source="container.barcode")
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
+    projects_names = serializers.SerializerMethodField()
+    quantity_flag = serializers.SerializerMethodField()
+    quality_flag = serializers.SerializerMethodField()
+    depleted = serializers.SerializerMethodField()
 
     class Meta:
         model = FullSample
-        fields = ('id', 'name', 'alias', 'sample_kind', 'tissue_source', 'container', 'container_kind', 'container_name', 'container_barcode',
-                  'coordinates', 'location_barcode', 'location_coord',
+        fields = ('id', 'biosample', 'name', 'alias', 'sample_kind', 'tissue_source',
+                  'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates', 'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site',
-                  'individual', 'sex', 'taxon', 'cohort', 'pedigree', 'quality_flag', 'quantity_flag', 'comment',
-                  'father_name', 'mother_name', 'child_of',
-                  'biosample', 'derived_sample',
-                  'depleted', 'projects', 'process_measurements', )
-        #extra_fields = ("taxon", "sex", "pedigree", "cohort", "container_name", "container_kind", "container_barcode")
+                  'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
+                  'quality_flag', 'quantity_flag', 'projects_names', 'depleted', 'comment', 'projects' )
 
     def get_location_barcode(self, obj):
         if obj.container and obj.container.location is None:
@@ -232,6 +235,24 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
     def get_mother_name(self, obj):
         mother = '' if not obj.individual or obj.individual.mother is None else obj.individual.mother.name
         return mother
+
+    def get_projects_names(self, obj):
+        return (', '.join(obj.projects_names))
+
+    def get_quality_flag(self, obj):
+        if obj.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quality_flag else "Failed"
+
+    def get_quantity_flag(self, obj):
+        if obj.quantity_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quantity_flag else "Failed"
+
+    def get_depleted(self, obj):
+        return "Yes" if obj.depleted else "No"
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
