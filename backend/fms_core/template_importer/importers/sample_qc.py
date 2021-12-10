@@ -7,11 +7,13 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
+    "Quality Flag": "Sample Quality QC Flag",
+    "Quantity Flag": "Sample Quantity QC Flag",
     "Measured Volume (uL)": "Measured Volume",
     "Concentration (ng/uL)": "Concentration",
     "RIN (for RNA only)": "RIN",
-    "Electrophoresis instrument": "Electrophoresis Instrument",
-    "Quantitation instrument": "Quantitation Instrument",
+    "Quality Instrument": "Quality Instrument",
+    "Quantity Instrument": "Quantity Instrument",
 }
 
 class SampleQCImporter(GenericImporter):
@@ -20,7 +22,7 @@ class SampleQCImporter(GenericImporter):
             'name': 'SampleQC',
             'headers': ['Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
                         'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
-                        'RIN (for RNA only)', 'Electrophoresis instrument', 'Quality Flag', 'Quantitation instrument',
+                        'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
                         'Quantity Flag', 'QC Date', 'Comment']
         },
     ]
