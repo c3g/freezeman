@@ -217,7 +217,7 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates', 'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'projects_names', 'depleted', 'comment', 'projects' )
+                  'quality_flag', 'quantity_flag', 'projects_names', 'depleted', 'comment')
 
     def get_location_barcode(self, obj):
         if obj.container and obj.container.location is None:
