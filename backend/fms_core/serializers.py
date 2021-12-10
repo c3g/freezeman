@@ -207,8 +207,14 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FullSample
-        fields = "__all__"
-        extra_fields = ("taxon", "sex", "pedigree", "cohort", "container_name", "container_kind", "container_barcode")
+        fields = ('id', 'name', 'alias', 'sample_kind', 'tissue_source', 'container', 'container_kind', 'container_name', 'container_barcode',
+                  'coordinates', 'location_barcode', 'location_coord',
+                  'current_volume', 'concentration', 'creation_date', 'collection_site',
+                  'individual', 'sex', 'taxon', 'cohort', 'pedigree', 'quality_flag', 'quantity_flag', 'comment',
+                  'father_name', 'mother_name', 'child_of',
+                  'biosample', 'derived_sample',
+                  'depleted', 'projects', 'process_measurements', )
+        #extra_fields = ("taxon", "sex", "pedigree", "cohort", "container_name", "container_kind", "container_barcode")
 
     def get_location_barcode(self, obj):
         if obj.container and obj.container.location is None:
