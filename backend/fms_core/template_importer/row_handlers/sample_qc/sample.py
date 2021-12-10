@@ -8,14 +8,8 @@ from fms_core.services.property_value import create_process_measurement_properti
 from fms_core.services.sample import update_qc_flags
 from fms_core.models import InstrumentType
 
-INSTRUMENT_PROPERTIES = ['Electrophoresis Instrument', 'Quantitation Instrument']
-TYPES_BY_PLATFORM = {
-    'PicoGreen': 'Quality Control: Quantitation',
-    'Qubit': 'Quality Control: Quantitation',
-    'Agarose Gel': 'Quality Control: Electrophoresis',
-    'TapeStation': 'Quality Control: Electrophoresis',
-}
-
+INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
+QC_PLATFORM = "Quality Control"
 
 class SampleQCRowHandler(GenericRowHandler):
     def __init__(self):
@@ -66,7 +60,7 @@ class SampleQCRowHandler(GenericRowHandler):
                         type = process_measurement_properties[instrument]['value']
                         it = InstrumentType.objects.get(type=type)
                         # Validate platform and type
-                        if it.platform.name != TYPES_BY_PLATFORM[it.type]:
+                        if it.platform.name != QC_PLATFORM:
                             self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
                     except Exception as e:
                         self.errors['instrument'] = f'Invalid instrument {type}.'
