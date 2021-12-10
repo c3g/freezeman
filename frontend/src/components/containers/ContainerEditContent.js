@@ -12,9 +12,7 @@ import * as Options from "../../utils/options";
 import {add, update, listTable, summary} from "../../modules/containers/actions";
 import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
-
-const requiredRules = [{ required: true, message: 'Missing field' }]
-const barcodeRules = [{ pattern: /^[\S]{1,200}$/ }]
+import {requiredRules, barcodeRules, nameRules} from "../../constants";
 
 const searchContainers = (token, input, isParent = false) =>
   withToken(token, api.containers.search)(input, { parent: isParent })
@@ -113,7 +111,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Item label="Name" {...props("name")} rules={requiredRules}>
+          <Item label="Name" {...props("name")} rules={nameRules.concat(requiredRules)}>
             <Input />
           </Item>
           <Item label="Kind" {...props("kind")} rules={requiredRules}>

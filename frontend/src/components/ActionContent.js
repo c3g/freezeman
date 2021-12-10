@@ -2,14 +2,14 @@ import React, {useEffect} from "react";
 import {connect} from "react-redux";
 import {useHistory, useRouteMatch} from "react-router-dom";
 import PropTypes from "prop-types";
-import {Button} from "antd";
+import {Menu, Dropdown, Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
 
 import {fetchSummariesData} from "../modules/shared/actions";
 import api, {withToken} from "../utils/api";
 import AppPageHeader from "./AppPageHeader";
 import PageContent from "./PageContent";
-import TemplateFlow from "./TemplateFlow";
+import TemplateFlow from "./templateFlow/TemplateFlow";
 
 const LOADING_ACTION = {
   name: 'Loading...',
@@ -45,17 +45,32 @@ const ActionContent = ({token, templateType, templateActions}) => {
     history.goBack()
   }
 
-  const action =
-    actions.items[actionIndex] || LOADING_ACTION;
+  const action = actions.items[actionIndex] || LOADING_ACTION;
+
+  const templateChoiceMenu = (
+      <Menu>
+        {actions.items[actionIndex]
+          ? action.template.map((template, i) => 
+            <Menu.Item key={i} onClick={() => window.location = template.file}>{template.description}</Menu.Item>) :
+            <Menu.Item>Loading ...</Menu.Item>
+        }
+      </Menu>
+    ) ;
 
   return <>
     <AppPageHeader
       title={action.name}
       onBack={goBack}
       extra={
-        <Button onClick={() => window.location = action.template}>
-          <DownloadOutlined /> Download Template
-        </Button>
+        actions.items[actionIndex] && action.template.length > 1 ?
+          <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
+            <Button>
+              <DownloadOutlined /> Download Template
+            </Button>
+          </Dropdown> :
+          <Button onClick={() => window.location = action.template[0].file}>
+            <DownloadOutlined /> Download Template
+          </Button>
       }
     />
     <PageContent>

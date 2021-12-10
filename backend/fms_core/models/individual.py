@@ -46,9 +46,7 @@ class Individual(TrackedModel):
                                help_text="Mother of the individual.")
     father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
                                help_text="Father of the individual.")
-    # required ?
-    cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in "
-                                                                    "a specific study.")
+    cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
 
     def __str__(self):
         return self.name

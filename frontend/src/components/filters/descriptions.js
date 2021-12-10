@@ -142,11 +142,16 @@ export const CONTAINER_FILTERS = {
     key: "coordinates",
     label: "Coordinates",
   },
+  location: {
+    type: FILTER_TYPE.INPUT,
+    key: "location__name",
+    label: "Location",
+  },
   samples: {
     type: FILTER_TYPE.INPUT,
     key: "samples__name",
     label: "Sample name",
-  },
+  }
 }
 
 export const INDIVIDUAL_FILTERS = {
@@ -236,10 +241,15 @@ export const EXPERIMENT_RUN_FILTERS = {
     key: "id",
     label: "ID",
   },
-  experiment_type: {
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+  },
+  run_type: {
     type: FILTER_TYPE.SELECT,
-    key: "experiment_type__workflow",
-    label: "Experiment Type",
+    key: "run_type__name",
+    label: "Run Type",
     mode: "multiple",
     placeholder: "All"
   },

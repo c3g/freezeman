@@ -6,6 +6,8 @@ __all__ = [
     "ContainerSpec",
 
     "CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP",
+    "CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL",
+    "CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -26,11 +28,15 @@ __all__ = [
     "CONTAINER_SPEC_TUBE_RACK_8X12",
     "CONTAINER_SPEC_DRAWER",
     "CONTAINER_SPEC_FREEZER_RACK_2X4",
+    "CONTAINER_SPEC_FREEZER_RACK_3X4",
     "CONTAINER_SPEC_FREEZER_RACK_4X4",
     "CONTAINER_SPEC_FREEZER_RACK_5X4",
     "CONTAINER_SPEC_FREEZER_RACK_6X4",
     "CONTAINER_SPEC_FREEZER_RACK_7X4",
+    "CONTAINER_SPEC_FREEZER_RACK_10X5",
     "CONTAINER_SPEC_FREEZER_RACK_8X6",
+    "CONTAINER_SPEC_FREEZER_RACK_11X6",
+    "CONTAINER_SPEC_FREEZER_RACK_11X7",
     "CONTAINER_SPEC_FREEZER_3_SHELVES",
     "CONTAINER_SPEC_FREEZER_4_SHELVES",
     "CONTAINER_SPEC_FREEZER_5_SHELVES",
@@ -84,6 +90,10 @@ class ContainerSpec:
         return self._coordinate_spec
 
     @property
+    def requires_coordinates(self) -> bool:
+        return bool(self._coordinate_spec)
+
+    @property
     def coordinate_overlap_allowed(self) -> bool:
         return self._coordinate_overlap_allowed
 
@@ -132,8 +142,26 @@ CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP = ContainerSpec(
     is_run_container=True,
 )
 
+CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL = ContainerSpec(
+    container_kind_id="dnbseq-g400 flowcell",
+    coordinate_spec=(alphas(1), ints(4, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=True,
+)
+
+CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
+    container_kind_id="dnbseq-t7 flowcell",
+    coordinate_spec=(alphas(1), ints(1, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(),  # Leaf node; sample-holding
+    is_run_container=True,
+)
+
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
+    CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
+    CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
 )
 
 # Containers
@@ -372,7 +400,7 @@ CONTAINER_SPEC_FREEZER_RACK_10X5 = ContainerSpec(
     container_kind_id="freezer rack 10x5",
     coordinate_spec=(alphas(10), ints(5, pad_to=2)),
     coordinate_overlap_allowed=False,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
 )
 
@@ -388,7 +416,7 @@ CONTAINER_SPEC_FREEZER_RACK_11X6 = ContainerSpec(
     container_kind_id="freezer rack 11x6",
     coordinate_spec=(alphas(11), ints(6, pad_to=2)),
     coordinate_overlap_allowed=False,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
 )
 
@@ -396,7 +424,7 @@ CONTAINER_SPEC_FREEZER_RACK_11X7 = ContainerSpec(
     container_kind_id="freezer rack 11x7",
     coordinate_spec=(alphas(11), ints(7, pad_to=2)),
     coordinate_overlap_allowed=False,
-    children=(*COMMON_CHILDREN, CONTAINER_SPEC_BOX, CONTAINER_SPEC_DRAWER),
+    children=(*COMMON_CHILDREN, CONTAINER_SPEC_DRAWER),
     is_run_container=False,
 )
 
@@ -455,7 +483,7 @@ CONTAINER_SPEC_ROOM = ContainerSpec(
         CONTAINER_SPEC_FREEZER_4_SHELVES,
         CONTAINER_SPEC_FREEZER_5_SHELVES,
         *FREEZER_RACK_SPECS,
-        CONTAINER_SPEC_BOX
+        CONTAINER_SPEC_BOX,
     ),
     is_run_container=False,
 )

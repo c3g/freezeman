@@ -1,15 +1,12 @@
 from django.db.models import Q, F, Count
 
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from collections import Counter
-
 from fms_core.models import ProcessMeasurement
 from fms_core.serializers import ProcessMeasurementSerializer, ProcessMeasurementExportSerializer
-from fms_core.resources import ExtractionResource, TransferResource
+from fms_core.template_importer.importers import ExtractionImporter, TransferImporter
 from fms_core.template_paths import SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys
@@ -36,14 +33,14 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Process Extractions",
             "description": "Upload the provided template with extraction information.",
-            "template": SAMPLE_EXTRACTION_TEMPLATE,
-            "resource": ExtractionResource,
+            "template": [{"description": "Template to extract NA from samples","file": SAMPLE_EXTRACTION_TEMPLATE}],
+            "importer": ExtractionImporter,
         },
         {
             "name": "Process Transfers",
             "description": "Upload the provided template with samples to be transfered.",
-            "template": SAMPLE_TRANSFER_TEMPLATE,
-            "resource": TransferResource,
+            "template": [{"description": "Template to transfer samples","file": SAMPLE_TRANSFER_TEMPLATE}],
+            "importer": TransferImporter,
         },
     ]
 

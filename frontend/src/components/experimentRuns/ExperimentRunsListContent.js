@@ -19,7 +19,7 @@ import {withContainer} from "../../utils/withItem";
 import {actionsToButtonList} from "../../utils/templateActions";
 
 
-const getTableColumns = (containersByID, experimentTypes, instruments) => [
+const getTableColumns = (containersByID, runTypes, instruments) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -30,12 +30,17 @@ const getTableColumns = (containersByID, experimentTypes, instruments) => [
       </Link>),
   },
   {
-    title: "Experiment Type",
-    dataIndex: "experiment_type",
+    title: "Name",
+    dataIndex: "name",
     sorter: true,
-    options: experimentTypes.items.map(x => ({ label: x.workflow, value: x.workflow })), // for getFilterProps
+  },
+  {
+    title: "Run Type",
+    dataIndex: "run_type",
+    sorter: true,
+    options: runTypes.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
     render: (_, experimentRun) =>
-      <Tag>{experimentTypes.itemsByID[experimentRun.experiment_type]?.workflow}</Tag>,
+      <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>,
   },
   {
     title: "Instrument",
@@ -83,7 +88,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentRuns: state.experimentRuns.items,
-  experimentTypes: state.experimentTypes,
+  runTypes: state.runTypes,
   instruments: state.instruments,
   page: state.experimentRuns.page,
   totalCount: state.experimentRuns.totalCount,
@@ -100,7 +105,7 @@ const ExperimentRunsListContent = ({
   containersByID,
   experimentRuns,
   experimentRunsByID,
-  experimentTypes,
+  runTypes,
   instruments,
   isFetching,
   page,
@@ -120,7 +125,7 @@ const ExperimentRunsListContent = ({
       .then(response => response.data)
 
 
-  const columns = getTableColumns(containersByID, experimentTypes, instruments)
+  const columns = getTableColumns(containersByID, runTypes, instruments)
   .map(c => Object.assign(c, getFilterProps(
     c,
     EXPERIMENT_RUN_FILTERS,

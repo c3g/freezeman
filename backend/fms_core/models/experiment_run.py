@@ -5,13 +5,15 @@ from django.db import models
 
 from .tracked_model import TrackedModel
 
-from .experiment_type import ExperimentType
+from .run_type import RunType
 from .container import Container
 from .instrument import Instrument
 from .process import Process
 
 from ..containers import RUN_CONTAINER_KINDS
 
+from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._validators import name_validator
 from ._utils import add_error as _add_error
 
 __all__ = ["ExperimentRun"]
@@ -19,10 +21,12 @@ __all__ = ["ExperimentRun"]
 
 @reversion.register()
 class ExperimentRun(TrackedModel):
-    experiment_type = models.ForeignKey(ExperimentType,
-                                        on_delete=models.PROTECT,
-                                        related_name="experiment_runs",
-                                        help_text="Experiment type")
+    name = models.CharField(unique=True, blank=True, null=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+                            help_text="Name of the run.")
+    run_type = models.ForeignKey(RunType,
+                                 on_delete=models.PROTECT,
+                                 related_name="experiment_runs",
+                                 help_text="Run type")
     container = models.OneToOneField(Container,
                                      related_name="experiment_run",
                                      limit_choices_to={"kind__in": RUN_CONTAINER_KINDS},

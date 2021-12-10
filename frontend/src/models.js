@@ -41,9 +41,7 @@ export const sample = {
   collection_site: "", // string(200)
   tissue_source: null, // enum
   creation_date: null, // date
-  phenotype: "", // string(200)
   comment: "", // string(200)
-  update_comment: "", // string(200)
   coordinates: "", // string(10)
   individual: null, // individual.id
   container: null, // container.id
@@ -62,9 +60,7 @@ export const sample = {
 //     collection_site: "JGH",
 //     tissue_source: "Blood",
 //     creation_date: "2020-06-16",
-//     phenotype: "",
 //     comment: "Extraction done using Chemagen CMG-1091",
-//     update_comment: "",
 //     coordinates: "",
 //     individual: 401,
 //     container: 1658,

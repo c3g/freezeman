@@ -14,16 +14,18 @@ __all__ = [
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
     "SAMPLE_TRANSFER_TEMPLATE",
+    "SAMPLE_QC_TEMPLATE",
     "PROJECT_LINK_SAMPLES_TEMPLATE",
 ]
 
-CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_v3_4_1.xlsx")
-CONTAINER_MOVE_TEMPLATE = static("submission_templates/Container_move_v3_2_0.xlsx")
-CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v3_2_0.xlsx")
-EXPERIMENT_INFINIUM_TEMPLATE = static("submission_templates/Experiment_Infinium_24_v3_4_1.xlsx")
-SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Sample_extraction_v3_4_1.xlsx")
-SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_v3_4_1.xlsx")
-SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v3_2_0.xlsx")
-SAMPLE_TRANSFER_TEMPLATE = static("submission_templates/Sample_transfer_v3_4_1.xlsx")
-PROJECT_LINK_SAMPLES_TEMPLATE = static("submission_templates/Project_link_samples_v3_4_0.xlsx")
-
+CONTAINER_CREATION_TEMPLATE = static("submission_templates/Container_creation_v3_5_0.xlsx")
+CONTAINER_MOVE_TEMPLATE = static("submission_templates/Container_move_v3_5_0.xlsx")
+CONTAINER_RENAME_TEMPLATE = static("submission_templates/Container_rename_v3_5_0.xlsx")
+EXPERIMENT_INFINIUM_TEMPLATE = static("submission_templates/Experiment_Infinium_24_v3_5_0.xlsx")
+EXPERIMENT_MGI_TEMPLATE = static("submission_templates/Experiment_run_MGI_v3_5_0.xlsx")
+SAMPLE_EXTRACTION_TEMPLATE = static("submission_templates/Sample_extraction_v3_5_0.xlsx")
+SAMPLE_SUBMISSION_TEMPLATE = static("submission_templates/Sample_submission_v3_5_0.xlsx")
+SAMPLE_UPDATE_TEMPLATE = static("submission_templates/Sample_update_v3_5_0.xlsx")
+SAMPLE_TRANSFER_TEMPLATE = static("submission_templates/Sample_transfer_v3_5_0.xlsx")
+SAMPLE_QC_TEMPLATE = static("submission_templates/Sample_QC_v3_5_0.xlsx")
+PROJECT_LINK_SAMPLES_TEMPLATE = static("submission_templates/Project_link_samples_v3_5_0.xlsx")

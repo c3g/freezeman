@@ -18,9 +18,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import {add, update, listTable, summary} from "../../modules/projects/actions";
 import {project as EMPTY_PROJECT} from "../../models";
-
-const requiredRules = [{ required: true, message: "Missing field" }]
-const emailRules = [{ type: "email", message: "The input is not valid E-mail" }]
+import {requiredRules, emailRules} from "../../constants";
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,

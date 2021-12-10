@@ -3,11 +3,11 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from .protocolbysubprotocol import ProtocolBySubprotocol
 from .tracked_model import TrackedModel
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
-
 
 __all__ = ["Protocol"]
 
@@ -15,6 +15,9 @@ __all__ = ["Protocol"]
 @reversion.register()
 class Protocol(TrackedModel):
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the protocol.")
+
+    child_of = models.ManyToManyField("self", blank=True, through="ProtocolBySubprotocol",
+                                      symmetrical=False, related_name="parent_of")
 
     def __str__(self):
         return self.name

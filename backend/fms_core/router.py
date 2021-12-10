@@ -4,12 +4,13 @@ from .viewsets import (
     ContainerKindViewSet,
     ContainerViewSet,
     ExperimentRunViewSet,
-    ExperimentTypeViewSet,
+    RunTypeViewSet,
     IndividualViewSet,
     InstrumentViewSet,
     QueryViewSet,
     SampleViewSet,
     SampleKindViewSet,
+    FullSampleViewSet,
     ProtocolViewSet,
     ProcessViewSet,
     ProcessMeasurementViewSet,
@@ -27,7 +28,7 @@ router = routers.DefaultRouter()
 router.register(r"container-kinds", ContainerKindViewSet, basename="container-kind")
 router.register(r"containers", ContainerViewSet)
 router.register(r"experiment-runs", ExperimentRunViewSet)
-router.register(r"experiment-types", ExperimentTypeViewSet)
+router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
 router.register(r"protocols", ProtocolViewSet)
@@ -35,6 +36,7 @@ router.register(r"processes", ProcessViewSet)
 router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"property-values", PropertyValueViewSet)
 router.register(r"samples", SampleViewSet)
+router.register(r"full-samples", FullSampleViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
 router.register(r"query", QueryViewSet, basename="query")

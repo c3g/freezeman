@@ -23,7 +23,6 @@ class JsonSchemaValidator:
 
     def __call__(self, value):
         if not self.validator.is_valid(value):
-            print(tuple(self.validator.iter_errors(value)), file=sys.stderr)
             raise ValidationError("Not valid JSON schema for this field.")
         return value
 

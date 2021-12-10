@@ -1,9 +1,0 @@
-﻿Project link samples Template,,,,,
-,,,,,
-Instructions:,,,,,
-,Each line define the addition or removal of a sample instance from a Project. Each sample instance will ,,,,
-,inherit from its parent’s association when extracted or transfered. A sample instance can be associated,,,,
-,to more than one project.,,,,
-,,,,,
-#,Action,Project Name,Sample Name,Sample Container Barcode,Sample Container Coord
-1,Remove,TestProject1,sample1,tube001,

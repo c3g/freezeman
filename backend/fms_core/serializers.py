@@ -6,7 +6,7 @@ from reversion.models import Version, Revision
 from .models import (
     Container,
     ExperimentRun,
-    ExperimentType,
+    RunType,
     Individual,
     Instrument,
     PropertyValue,
@@ -15,6 +15,7 @@ from .models import (
     ProcessMeasurement,
     Sample,
     SampleKind,
+    FullSample,
     Project,
 )
 
@@ -24,7 +25,7 @@ __all__ = [
     "ContainerExportSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
-    "ExperimentTypeSerializer",
+    "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
@@ -36,7 +37,9 @@ __all__ = [
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
-    "NestedSampleSerializer",
+    "FullSampleSerializer",
+    "FullSampleExportSerializer",
+    "FullNestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
     "UserSerializer",
@@ -92,7 +95,9 @@ class ExperimentRunSerializer(serializers.ModelSerializer):
         return obj.instrument.type.platform.name
 
 class ExperimentRunExportSerializer(serializers.ModelSerializer):
-    experiment_type = serializers.CharField(read_only=True, source="experiment_type.workflow")
+    experiment_run_id = serializers.IntegerField(read_only=True, source="id")
+    experiment_run_name = serializers.CharField(read_only=True, source="name")
+    run_type = serializers.CharField(read_only=True, source="run_type.name")
     instrument = serializers.CharField(read_only=True, source="instrument.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
@@ -100,12 +105,12 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperimentRun
-        fields = ('experiment_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
 
 
-class ExperimentTypeSerializer(serializers.ModelSerializer):
+class RunTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExperimentType
+        model = RunType
         fields = "__all__"
 
 class IndividualSerializer(serializers.ModelSerializer):
@@ -145,11 +150,16 @@ class ProcessSerializer(serializers.ModelSerializer):
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
     child_sample = serializers.IntegerField(read_only=True)
+    properties = serializers.SerializerMethodField()
 
     class Meta:
       model = ProcessMeasurement
       fields = "__all__"
       extra_fields = ('protocol', 'child_sample')
+
+    def get_properties(self, obj):
+        pm_content_type = ContentType.objects.get_for_model(ProcessMeasurement)
+        return PropertyValue.objects.filter(object_id=obj.id, content_type=pm_content_type).values_list('id', flat=True)
 
 class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
     process_measurement_id = serializers.IntegerField(read_only=True, source="id")
@@ -169,27 +179,19 @@ class PropertyValueSerializer(serializers.ModelSerializer):
       fields = "__all__"
       extra_fields = ('property_name')
 
-class SampleSerializer(serializers.ModelSerializer):
+
+class FullSampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
-    process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
-        model = Sample
+        model = FullSample
         fields = "__all__"
-        extra_fields = ('extracted_from', 'projects')
+        extra_fields = ('extracted_from')
 
     def get_extracted_from(self, obj):
-        if obj.extracted_from is None:
-            return None
-        else:
-            return obj.extracted_from.id
+        return obj.extracted_from and obj.extracted_from.id
 
-class SampleExportSerializer(serializers.ModelSerializer):
-    sample_id = serializers.IntegerField(read_only=True, source="id")
-    sample_kind = serializers.CharField(read_only=True, source="sample_kind.name")
-    sample_name = serializers.CharField(source="name")
-    individual_id = serializers.CharField(read_only=True, source="individual.name")
+class FullSampleExportSerializer(serializers.ModelSerializer):
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
     sex = serializers.CharField(read_only=True, source="individual.sex")
     pedigree = serializers.CharField(read_only=True, source="individual.pedigree")
@@ -202,14 +204,58 @@ class SampleExportSerializer(serializers.ModelSerializer):
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FullSample
+        fields = "__all__"
+        extra_fields = ("taxon", "sex", "pedigree", "cohort", "container_name", "container_kind", "container_barcode")
+
+    def get_location_barcode(self, obj):
+        if obj.container and obj.container.location is None:
+            return ''
+        else:
+            return obj.container.location.barcode
+
+    def get_current_volume(self, obj):
+        return obj.volume if obj.volume else None
+
+    def get_father_name(self, obj):
+        father = '' if not obj.individual or obj.individual.father is None else obj.individual.father.name
+        return father
+
+    def get_mother_name(self, obj):
+        mother = '' if not obj.individual or obj.individual.mother is None else obj.individual.mother.name
+        return mother
+
+class SampleSerializer(serializers.ModelSerializer):
+    extracted_from = serializers.SerializerMethodField()
+    process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
-        fields = ('sample_id','sample_kind', 'sample_name', 'alias', 'cohort', 'taxon',
+        fields = "__all__"
+        extra_fields = ('extracted_from', 'projects')
+
+    def get_extracted_from(self, obj):
+        return obj.extracted_from and obj.extracted_from.id
+
+class SampleExportSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(read_only=True, source="id")
+    sample_name = serializers.CharField(source="name")
+    container_kind = serializers.CharField(read_only=True, source="container.kind")
+    container_name = serializers.CharField(read_only=True, source="container.name")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
+    location_barcode = serializers.SerializerMethodField()
+    current_volume = serializers.SerializerMethodField()
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+
+    class Meta:
+        model = Sample
+        fields = ('sample_id', 'sample_name',
                   'container_kind', 'container_name', 'container_barcode', 'location_barcode', 'location_coord',
-                  'individual_id', 'sex', 'pedigree', 'mother_name', 'father_name',
-                  'current_volume', 'concentration', 'collection_site', 'tissue_source', 'creation_date', 'phenotype',
+                  'current_volume', 'concentration', 'creation_date',
                   'depleted', 'coordinates', 'projects', 'comment' )
 
     def get_location_barcode(self, obj):
@@ -221,22 +267,13 @@ class SampleExportSerializer(serializers.ModelSerializer):
     def get_current_volume(self, obj):
         return obj.volume
 
-    def get_father_name(self, obj):
-        father = '' if obj.individual.father is None else obj.individual.father.name
-        return father
-
-    def get_mother_name(self, obj):
-        mother = '' if obj.individual.mother is None else obj.individual.mother.name
-        return mother
-
-
-class NestedSampleSerializer(serializers.ModelSerializer):
+class FullNestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)
 
     class Meta:
-        model = Sample
+        model = FullSample
         fields = "__all__"
 
 

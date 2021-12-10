@@ -56,21 +56,21 @@ def normalize_scientific_name(name: str) -> str:
     A normalization function for Latin / "scientific" species names.
     Converts e.g. (HOMO SAPIENS or Homo Sapiens or ...) to Homo sapiens
     """
-    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name)))
+    return " ".join((a.title() if i == 0 else a.lower()) for i, a in enumerate(RE_WHITESPACE.split(name or "")))
 
 
 def str_normalize(s: str) -> str:
     """
     Normalizes the Unicode characters of and strips a string.
     """
-    return unicodedata.normalize("NFC", s.strip())
+    return unicodedata.normalize("NFC", s.strip()) if isinstance(s, str) else s
 
 
 def str_cast_and_normalize(s) -> str:
     """
     Casts a value to a string and then normalizes it using str_normalize.
     """
-    return str_normalize(str(s))
+    return str_normalize(str(s) if s is not None else s)
 
 
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:

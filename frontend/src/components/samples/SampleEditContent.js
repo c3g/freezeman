@@ -23,9 +23,7 @@ import {add, update, listTable, summary} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
 import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
-
-const requiredRules = [{ required: true, message: 'Missing field' }]
-const nameRules = [{ pattern: /^[a-zA-Z0-9.\-_]{1,200}$/ }]
+import {requiredRules, nameRules} from "../../constants";
 
 // API functions
 
@@ -193,23 +191,23 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}>
-            <Input />
+            <Input disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
-            <Select>
+          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={isAdding && requiredRules}>
+            <Select disabled={!isAdding}>
               {sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name)).map(sk =>
                 <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Tissue" {...props("tissue_source")}>
+          <Form.Item label="Tissue" {...props("tissue_source")}s>
             <Select allowClear disabled={!isTissueEnabled}>
               {TISSUE_SOURCE.map(type =>
                 <Option key={type} value={type}>{type}</Option>
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" {...props("individual")}>
+          <Form.Item label="Individual" {...props("individual")} disabled={!isAdding}>
             <Select
               showSearch
               allowClear
@@ -217,6 +215,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
+              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Container" {...props("container")} rules={requiredRules}>
@@ -251,26 +250,21 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           >
             <InputNumber step={0.001} />
           </Form.Item>
-          <Form.Item label="Exp. Group" {...props("experimental_group")}>
-            <Select mode="tags" />
+          <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
+            <Select mode="tags" disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
+          <Form.Item label="Collection Site" {...props("collection_site")} rules={isAdding && requiredRules} disabled={!isAdding}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
+              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
           </Form.Item>
-          <Form.Item label="Phenotype" {...props("phenotype")}>
-            <Input />
-          </Form.Item>
           <Form.Item label="Comment" {...props("comment")}>
-            <TextArea />
-          </Form.Item>
-          <Form.Item label="Upd. Comment" {...props("update_comment")}>
             <TextArea />
           </Form.Item>
           {formErrors?.non_field_errors &&
@@ -332,6 +326,9 @@ function serialize(values) {
 
   if (newValues.container)
     newValues.container = Number(newValues.container)
+
+  if (!newValues.comment)
+    newValues.comment = ''
 
   // We should not be able to modify the volume in the Sample directly yet
   // if (newValues.volume) {

@@ -13,7 +13,7 @@ def create_buffy_coat_sample_kind(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         reversion.set_comment("Add new sample kind buffy coat.")
         reversion.set_user(admin_user)
-        
+
         buffy_coat = SampleKind.objects.create(name="BUFFY COAT", created_by_id=admin_user.id, updated_by_id=admin_user.id)
         reversion.add_to_revision(buffy_coat)
 

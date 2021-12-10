@@ -57,10 +57,10 @@ _project_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_sample_filterset_fields: FiltersetFields = {
+_full_sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
-    "sample_kind": FK_FILTERS,
+    "sample_kind_id": FK_FILTERS,
     "volume": SCALAR_FILTERS,
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
@@ -68,14 +68,29 @@ _sample_filterset_fields: FiltersetFields = {
     "tissue_source": CATEGORICAL_FILTERS,
     "creation_date": DATE_FILTERS,
     "coordinates": FREE_TEXT_FILTERS,
-    "comment": FREE_TEXT_FILTERS,
-    "update_comment": FREE_TEXT_FILTERS,
 
-    "individual": FK_FILTERS,  # PK
-    "container": FK_FILTERS,  # PK
+    "individual_id": FK_FILTERS,  # PK
+    "container_id": FK_FILTERS,  # PK
+    "biosample_id": FK_FILTERS,  # PK
+    "derived_sample_id": FK_FILTERS,  # PK
+
     **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("individual__", _individual_filterset_fields),
+}
+
+_sample_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "volume": SCALAR_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "creation_date": DATE_FILTERS,
+    "coordinates": FREE_TEXT_FILTERS,
+    "comment": FREE_TEXT_FILTERS,
+
+    "container": FK_FILTERS,  # PK
+    **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("projects__", _project_minimal_filterset_fields),
 }
 
@@ -116,16 +131,16 @@ _instrument_type_filterset_fields: FiltersetFields = {
     "type": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_experiment_type_filterset_fields: FiltersetFields = {
+_run_type_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "workflow": CATEGORICAL_FILTERS_LOOSE,
+    "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
 _experiment_run_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
     "start_date": DATE_FILTERS,
-
-    "experiment_type": FK_FILTERS,
+    "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
 
