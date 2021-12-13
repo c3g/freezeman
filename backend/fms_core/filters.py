@@ -47,7 +47,7 @@ class FullSampleFilter(GenericFilter):
         model = FullSample
         fields = _full_sample_filterset_fields
 
-class IndividualFilter(django_filters.FilterSet):
+class IndividualFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
 
     class Meta:
