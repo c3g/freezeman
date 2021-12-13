@@ -42,6 +42,14 @@ class ContainerFilter(GenericFilter):
 
 class FullSampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
+    container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_container_barcode_filter")
+
+    def batch_container_barcode_filter(self, queryset, name, value):
+        query = Q()
+        for v in value.split(" "):
+            query |= Q(container__barcode=v)
+        query_set = queryset.filter(query)
+        return query_set
 
     class Meta:
         model = FullSample
