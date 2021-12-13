@@ -35,6 +35,7 @@ export const SAMPLE_FILTERS = {
     key: "container__barcode",
     label: "Container Barcode",
     recursive: true,
+    batch: true,
   },
   projects__name: {
     type: FILTER_TYPE.INPUT,
