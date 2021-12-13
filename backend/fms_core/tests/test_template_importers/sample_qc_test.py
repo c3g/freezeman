@@ -72,10 +72,10 @@ class SampleQCTestCase(TestCase):
         self.assertEqual(derived_sample.quantity_flag, self.quantity_flag)
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Quantitation Instrument', object_id=pm.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Quantity Instrument', object_id=pm.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm.id)
 
-        pt_2 = PropertyType.objects.get(name='Electrophoresis Instrument', object_id=pm.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Quality Instrument', object_id=pm.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm.id)
 
         self.assertEqual(p_1.value, self.process_qt_instrument)
