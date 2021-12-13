@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from fms_core.models import Container, Sample
+from fms_core.filters import ContainerFilter
 
 from fms_core.template_importer.importers import ContainerCreationImporter, ContainerRenameImporter, ContainerMoveImporter
 
@@ -35,11 +36,7 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                           Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
 
     serializer_class = ContainerSerializer
-    filterset_fields = {
-        **_container_filterset_fields,
-        **_prefix_keys("location__", _container_filterset_fields),
-        **_prefix_keys("samples__", _sample_minimal_filterset_fields),
-    }
+    filter_class = ContainerFilter
 
     template_action_list = [
         {
