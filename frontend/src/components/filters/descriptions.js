@@ -168,6 +168,7 @@ export const INDIVIDUAL_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   taxon: {
     type: FILTER_TYPE.SELECT,
