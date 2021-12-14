@@ -66,6 +66,9 @@ def get_or_create_container(barcode,
                     errors.append(';'.join(e.messages))
     else:
         errors.append(f"Barcode is required to get or create a container.")
+    
+    if errors:
+        container = None
 
     return (container, created_entity, errors, warnings)
 
