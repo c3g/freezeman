@@ -20,6 +20,7 @@ from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TE
 
 from ._constants import _full_sample_filterset_fields
 from ._utils import TemplateActionsMixin, _list_keys
+from fms_core.filters import FullSampleFilter
 
 class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = FullSample.objects.select_related("individual", "container", "sample_kind").all()
@@ -29,9 +30,7 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         *_list_keys(_full_sample_filterset_fields),
     )
 
-    filterset_fields = {
-        **_full_sample_filterset_fields,
-    }
+    filter_class = FullSampleFilter
 
     template_action_list = [
         {
