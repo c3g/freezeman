@@ -7,6 +7,10 @@ import {FILTER_TYPE} from "../constants"
 export default function serializeFilterParams(filters, descriptions) {
   const params = {}
 
+  function hasSpaces(string) {
+       return string.indexOf(' ') >= 1;
+   };
+
   Object.keys(filters).forEach(field => {
     const value = filters[field]?.value
     const description = descriptions[field]
@@ -37,6 +41,12 @@ export default function serializeFilterParams(filters, descriptions) {
 
       case FILTER_TYPE.INPUT: {
         const options = filters[field].options
+        const isBatch = description.batch && hasSpaces(value)
+
+         if(isBatch){
+           params[key] = value
+           break
+         }
 
         if (options) {
           if (options.recursiveMatch)
