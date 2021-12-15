@@ -4,6 +4,7 @@ from rest_framework import serializers
 from reversion.models import Version, Revision
 
 from .models import (
+    Biosample,
     Container,
     ExperimentRun,
     RunType,
@@ -39,7 +40,7 @@ __all__ = [
     "SampleExportSerializer",
     "FullSampleSerializer",
     "FullSampleExportSerializer",
-    "FullNestedSampleSerializer",
+    "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
     "UserSerializer",
@@ -182,6 +183,8 @@ class PropertyValueSerializer(serializers.ModelSerializer):
 
 class FullSampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
+    #TODO: Use pk serializer for projects, process measurements and child of
+    #TODO: Use the sample__projects__name option to enable project filters
 
     class Meta:
         model = FullSample
@@ -258,11 +261,18 @@ class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    individual = serializers.CharField(read_only=True, source="biosample.individual.id")
+    alias = serializers.CharField(read_only=True, source="biosample.alias")
+    collection_site = serializers.CharField(read_only=True, source="biosample.collection_site")
+    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
+    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
+    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
+    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
+    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
 
     class Meta:
         model = Sample
-        fields = "__all__"
-        extra_fields = ('extracted_from', 'projects')
+        exclude = ('derived_samples', )
 
     def get_extracted_from(self, obj):
         return obj.extracted_from and obj.extracted_from.id
@@ -294,7 +304,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     def get_current_volume(self, obj):
         return obj.volume
 
-class FullNestedSampleSerializer(serializers.ModelSerializer):
+class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
     individual = IndividualSerializer(read_only=True)
     container = SimpleContainerSerializer(read_only=True)

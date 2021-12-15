@@ -66,12 +66,7 @@ class FullSample(models.Model):
     quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
                                         help_text='Quantity flag of the sample.', max_length=20)
 
-    biosample = models.ForeignKey(Biosample, on_delete=models.DO_NOTHING, related_name="samples",
-                                          help_text="Designated location of the sample.")
-
     projects = ArrayField(models.CharField(blank=True, max_length=20))
-
-    projects_names = ArrayField(models.CharField(blank=True, max_length=20))
 
     child_of = ArrayField(models.CharField(blank=True, max_length=20))
 

@@ -79,6 +79,10 @@ _full_sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("individual__", _individual_filterset_fields),
 }
 
+_derived_sample_filterset_fields: FiltersetFields = {
+    "biosample": PK_FILTERS,
+}
+
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -92,6 +96,7 @@ _sample_filterset_fields: FiltersetFields = {
     "container": FK_FILTERS,  # PK
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("projects__", _project_minimal_filterset_fields),
+    **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {

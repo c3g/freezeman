@@ -19,6 +19,7 @@ from .container import Container
 from .project import Project
 from .derived_sample import DerivedSample
 from .derived_by_sample import DerivedBySample
+from .biosample import Biosample
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 from ._utils import add_error as _add_error
@@ -45,6 +46,7 @@ class Sample(TrackedModel):
     comment = models.TextField(blank=True, help_text="Other relevant information about the biosample.")
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage", symmetrical=False, related_name="parent_of")
+
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
@@ -61,6 +63,10 @@ class Sample(TrackedModel):
     @property
     def derived_sample_not_pool(self) -> DerivedSample:
         return self.derived_samples.first() if not self.is_pool else []  # Forces crash if pool
+
+    @property
+    def biosample(self) -> Biosample:
+        return self.derived_sample_not_pool.biosample if not self.is_pool else None
 
     # Computed properties for containers
 

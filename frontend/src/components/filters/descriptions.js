@@ -8,7 +8,7 @@ export const SAMPLE_FILTERS = {
   },
   sample_kind__name: {
     type: FILTER_TYPE.SELECT,
-    key: "sample_kind__name",
+    key: "derived_samples__sample_kind__name",
     label: "Type",
     mode: "multiple",
     placeholder: "All"
@@ -21,7 +21,7 @@ export const SAMPLE_FILTERS = {
   },
   individual__name: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__name",
+    key: "derived_samples__biosample__individual__name",
     label: "Individual Name",
   },
   container__name: {
