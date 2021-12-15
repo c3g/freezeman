@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from pandas import pandas as pd
 from django.db import transaction
 import reversion
@@ -85,15 +86,17 @@ class GenericImporter():
 
     def handle_row(self, row_handler_class, sheet, row_i, **kwargs):
         row_handler_obj = row_handler_class()
-        result = row_handler_obj.process_row(**kwargs)
-        sheet.rows_results[row_i].update(**result)
-
-        if result['validation_error']:
-            self.errors_count += 1
-
         if self.errors_count >= self.ERRORS_CUTOFF:
-            raise ValueError('Too many errors. Template validation was stopped.')
+            result = {'errors': [], 'validation_error': ValidationError({}), 'warnings': {}}
+        else:
+            result = row_handler_obj.process_row(**kwargs)
 
+            if result['validation_error']:
+                self.errors_count += 1
+                if self.errors_count >= self.ERRORS_CUTOFF:
+                    result = {'errors': [], 'validation_error': ValidationError({"Too many errors": f"Template validation interrupted."}), 'warnings': {}}
+
+        sheet.rows_results[row_i].update(**result)
         row_obj = row_handler_obj.row_object
         return (result, row_obj)
 
