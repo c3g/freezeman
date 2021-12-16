@@ -47,7 +47,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
                 **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
             )
             if experimental_group:
-                derived_sample_data['experimental_group'] = json.dumps([
+                derived_sample_data['experimental_group'] = ([
                     g.strip()
                     for g in RE_SEPARATOR.split(experimental_group)
                     if g.strip()
