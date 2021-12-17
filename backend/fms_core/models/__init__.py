@@ -9,7 +9,6 @@ from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
 from .sample_by_project import SampleByProject
-from .full_sample import FullSample
 from .protocol import Protocol
 from .process import Process
 from .process_measurement import ProcessMeasurement
@@ -33,7 +32,6 @@ __all__ = [
     "SampleKind",
     "SampleLineage",
     "SampleByProject",
-    "FullSample",
     "Protocol",
     "Process",
     "ProcessMeasurement",

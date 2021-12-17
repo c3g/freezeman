@@ -4,7 +4,6 @@ from rest_framework import serializers
 from reversion.models import Version, Revision
 
 from .models import (
-    Biosample,
     Container,
     ExperimentRun,
     RunType,
@@ -16,7 +15,6 @@ from .models import (
     ProcessMeasurement,
     Sample,
     SampleKind,
-    FullSample,
     Project,
 )
 
@@ -38,8 +36,6 @@ __all__ = [
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
-    "FullSampleSerializer",
-    "FullSampleExportSerializer",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
@@ -180,21 +176,7 @@ class PropertyValueSerializer(serializers.ModelSerializer):
       fields = "__all__"
       extra_fields = ('property_name')
 
-
-class FullSampleSerializer(serializers.ModelSerializer):
-    extracted_from = serializers.SerializerMethodField()
-    #TODO: Use pk serializer for projects, process measurements and child of
-    #TODO: Use the sample__projects__name option to enable project filters
-
-    class Meta:
-        model = FullSample
-        fields = "__all__"
-        extra_fields = ('extracted_from')
-
-    def get_extracted_from(self, obj):
-        return obj.extracted_from and obj.extracted_from.id
-
-class FullSampleExportSerializer(serializers.ModelSerializer):
+class NewSampleExportSerializer(serializers.ModelSerializer):
     individual_name = serializers.CharField(read_only=True, source="individual.name")
     taxon = serializers.CharField(read_only=True, source="individual.taxon")
     sex = serializers.CharField(read_only=True, source="individual.sex")
@@ -215,7 +197,7 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
     depleted = serializers.SerializerMethodField()
 
     class Meta:
-        model = FullSample
+        model = Sample
         fields = ('id', 'biosample', 'name', 'alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates', 'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site',
@@ -259,12 +241,12 @@ class FullSampleExportSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
+    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     individual = serializers.CharField(read_only=True, source="biosample.individual.id")
     alias = serializers.CharField(read_only=True, source="biosample.alias")
     collection_site = serializers.CharField(read_only=True, source="biosample.collection_site")
-    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
@@ -310,7 +292,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     container = SimpleContainerSerializer(read_only=True)
 
     class Meta:
-        model = FullSample
+        model = Sample
         fields = "__all__"
 
 
