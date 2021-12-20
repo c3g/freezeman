@@ -19,7 +19,7 @@ from fms_core.filters import SampleFilter
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Sample.objects.select_related("container").prefetch_related("process_measurement", "child_of", "projects").all().distinct()
+    queryset = Sample.objects.select_related("container").all().distinct()
     serializer_class = SampleSerializer
 
     ordering_fields = (

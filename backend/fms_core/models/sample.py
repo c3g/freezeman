@@ -66,7 +66,7 @@ class Sample(TrackedModel):
 
     @property
     def biosample(self) -> Biosample:
-        return self.derived_sample_not_pool.biosample if not self.is_pool else None
+        return self.derived_samples.first().biosample if not self.is_pool else None
 
     # Computed properties for containers
 
