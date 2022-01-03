@@ -1,0 +1,167 @@
+"""
+Contains constants pointing to the paths of templates for template actions for
+various viewsets. Can be used to calculate URIs for the template files too.
+"""
+
+from django.templatetags.static import static
+
+__all__ = [
+    "CONTAINER_CREATION_TEMPLATE",
+    "CONTAINER_MOVE_TEMPLATE",
+    "CONTAINER_RENAME_TEMPLATE",
+    "EXPERIMENT_INFINIUM_TEMPLATE",
+    "SAMPLE_EXTRACTION_TEMPLATE",
+    "SAMPLE_SUBMISSION_TEMPLATE",
+    "SAMPLE_UPDATE_TEMPLATE",
+    "SAMPLE_TRANSFER_TEMPLATE",
+    "SAMPLE_QC_TEMPLATE",
+    "PROJECT_LINK_SAMPLES_TEMPLATE",
+]
+
+CONTAINER_CREATION_TEMPLATE = {
+  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'ContainerCreation',
+          'headers': ['Container Kind', 'Container Name', 'Container Barcode', 'Parent Container Barcode',
+                      'Parent Container Coordinates'],
+      },],
+  "prefill info": [],
+}
+
+CONTAINER_MOVE_TEMPLATE = {
+  "identity": {"description": "Template to move containers", "file": static("submission_templates/Container_move_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'ContainerMove',
+          'headers': ['Container Barcode to move', 'Dest. Location Barcode', 'Dest. Location Coord', 'Update Comment'],
+      },],
+  "prefill info": [
+      ("ContainerMove", "Container Barcode to move", "barcode"),],
+}
+
+CONTAINER_RENAME_TEMPLATE = {
+  "identity": {"description": "Template to rename containers", "file": static("submission_templates/Container_rename_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'ContainerRename',
+          'headers': ['Old Container Barcode', 'New Container Barcode', 'New Container Name', 'Update Comment'],
+      },],
+  "prefill info": [
+      ("ContainerRename", "Old Container Barcode", "barcode"),],
+}
+
+# Extracted sheet info for experiment run because it is shared between all templates of this category
+EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
+      {
+          'name': 'Experiments',
+          'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
+                      'Instrument Name', 'Experiment Start Date'],
+      },
+      {
+          'name': 'Samples',
+          'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
+                      'Experiment Container Coordinates'],
+      },]
+
+EXPERIMENT_INFINIUM_TEMPLATE = {
+  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_5_0.xlsx")},
+  "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+  "prefill info": [
+      ("Samples", "Source Container Barcode", "container__barcode"),
+      ("Samples", "Source Container Coordinates", "coordinates"),],
+}
+
+EXPERIMENT_MGI_TEMPLATE = {
+  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_5_0.xlsx")},
+  "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+  "prefill info": [
+      ("Samples", "Source Container Barcode", "container__barcode"),
+      ("Samples", "Source Container Coordinates", "coordinates"),],
+}
+
+SAMPLE_SUBMISSION_TEMPLATE = {
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'SampleSubmission',
+          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
+                      'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
+                      'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
+                      'Collection Site', 'Tissue Source', 'Reception Date', 'Comment']
+      },],
+  "prefill info": [],
+}
+
+SAMPLE_UPDATE_TEMPLATE = {
+  "identity": {"description": "Template to update samples","file": static("submission_templates/Sample_update_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'SampleUpdate',
+          'headers': ['Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
+                      'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment']
+      },],
+  "prefill info": [
+      ("SampleUpdate", "Container Barcode", "container__barcode"),
+      ("SampleUpdate", "Coord (if plate)", "coordinates"),],
+}
+
+SAMPLE_QC_TEMPLATE = {
+  "identity": {"description": "Template to perform sample quality control", "file": static("submission_templates/Sample_QC_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'SampleQC',
+          'headers': ['Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
+                      'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
+                      'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
+                      'Quantity Flag', 'QC Date', 'Comment']
+      },],
+  "prefill info": [
+      ("SampleQC", "Sample Container Barcode", "container__barcode"),
+      ("SampleQC", "Sample Container Coord", "coordinates"),
+      ("SampleQC", "Initial Volume (uL)", "volume"),],
+}
+
+SAMPLE_EXTRACTION_TEMPLATE = {
+  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'ExtractionTemplate',
+          'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Container Barcode', 'Source Container Coord',
+                      'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
+                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
+                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
+      },],
+  "prefill info": [
+      ("ExtractionTemplate", "Source Container Barcode", "container__barcode"),
+      ("ExtractionTemplate", "Source Container Coord", "coordinates"),],
+}
+
+SAMPLE_TRANSFER_TEMPLATE = {
+  "identity": {"description": "Template to transfer samples","file": static("submission_templates/Sample_transfer_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'SampleTransfer',
+          'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 
+                      'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
+                      'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
+                      'Volume Used (uL)', 'Transfer Date', 'Comment'],
+      },],
+  "prefill info": [
+      ("SampleTransfer", "Source Container Barcode", "container__barcode"),
+      ("SampleTransfer", "Source Container Coord", "coordinates"),],
+}
+
+PROJECT_LINK_SAMPLES_TEMPLATE = {
+  "identity": {"description": "Template to link samples to projects","file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'ProjectLinkSamples',
+          'headers': ['Action', 'Project Name', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
+      },],
+  "prefill info": [
+      ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode"),
+      ("ProjectLinkSamples", "Sample Container Coord", "coordinates"),
+      ("ProjectLinkSamples", "Sample Name", "name"),],
+}
+

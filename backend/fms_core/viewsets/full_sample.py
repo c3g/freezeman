@@ -16,7 +16,7 @@ from fms_core.models import FullSample, Biosample, Sample, DerivedSample,  Conta
 from fms_core.serializers import FullSampleSerializer, FullSampleExportSerializer, SampleSerializer, FullNestedSampleSerializer
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
 
-from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
+from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
 
 from ._constants import _full_sample_filterset_fields
 from ._utils import TemplateActionsMixin, _list_keys
@@ -36,19 +36,19 @@ class FullSampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Add Samples",
             "description": "Upload the provided template with up to 384 new samples.",
-            "template": [{"description": "Template to add samples","file": SAMPLE_SUBMISSION_TEMPLATE}],
+            "template": [SAMPLE_SUBMISSION_TEMPLATE["identity"]],
             "importer": SampleSubmissionImporter,
         },
         {
             "name": "Update Samples",
             "description": "Upload the provided template with up to 384 samples to update.",
-            "template": [{"description": "Template to update samples","file": SAMPLE_UPDATE_TEMPLATE}],
+            "template": [SAMPLE_UPDATE_TEMPLATE["identity"]],
             "importer": SampleUpdateImporter,
         },
         {
             "name": "Sample Quality Control",
             "description": "Upload the provided template with samples that underwent a quality control.",
-            "template": [{"description": "Template to perform sample quality control", "file": SAMPLE_QC_TEMPLATE}],
+            "template": [SAMPLE_QC_TEMPLATE["identity"]],
             "importer": SampleQCImporter,
         },
     ]
