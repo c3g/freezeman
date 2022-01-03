@@ -143,3 +143,21 @@ class TemplateActionsMixin:
         except Exception as e:
             raise(e)
         return Response(status=204)
+
+class TemplatePrefillsMixin:
+    # When this mixin is used, this list will be overridden to provide a list
+    # of templates that uses this viewset for prefilling part of the template
+    template_prefill_list = []
+
+    @action(detail=False, methods=["get"])
+    def template_prefills(self, request):
+        """
+        Endpoint off of the parent viewset for listing available template
+        prefills, converting paths to URIs for better RESTyness.
+        """
+        prefills_list = []
+        for prefill in self.template_prefill_list:  # Make a list out of the prefilable templates
+            prefill_dict = {}
+            prefill_dict["template"] = prefill["template"]["identity"]["description"]
+            prefills_list.append(prefill_dict)
+        return Response(prefills_list)
