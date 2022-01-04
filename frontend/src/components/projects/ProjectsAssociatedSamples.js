@@ -16,7 +16,7 @@ import {SampleDepletion} from "../samples/SampleDepletion";
 const getTableColumns = (sampleKinds, individualsByID) => [
     {
       title: "Sample Kind",
-      dataIndex: "sample_kind__name",
+      dataIndex: "derived_samples__sample_kind__name",
       sorter: true,
       width: 70,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
@@ -30,7 +30,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       width: 170,
       render: (name, sample) =>
         <Link to={`/samples/${sample.id}`}>
-          <div>{name}</div>
+          <div>{name}</disv>
           {sample.alias &&
             <div><small>alias: {sample.alias}</small></div>
           }
@@ -38,7 +38,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
     },
     {
       title: "Cohort",
-      dataIndex: "individual__cohort",
+      dataIndex: "derived_samples__biosample__individual__cohort",
       sorter: true,
       width: 130,
       render: (_, sample) => {

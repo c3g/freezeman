@@ -36,12 +36,12 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Kind",
-      dataIndex: "sample_kind__name",
+      dataIndex: "derived_samples__sample_kind__name",
       sorter: true,
       width: 80,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
-        <Tag>{sampleKinds.itemsByID[sample.sample_kind].name}</Tag>,
+        <Tag>{sampleKinds.itemsByID[sample.sample_kind]?.name}</Tag>,
     },
     {
       title: "Name",
@@ -57,7 +57,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Individual",
-      dataIndex: "individual__name",
+      dataIndex: "derived_samples__biosample__individual__name",
       sorter: true,
       render: (_, sample) => {
         const individual = sample.individual
