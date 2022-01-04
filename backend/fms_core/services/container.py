@@ -130,8 +130,8 @@ def move_container(container_to_move, destination_barcode,
     errors = []
     warnings = []
 
-    if not all([destination_barcode, destination_coordinates]):
-        errors.append(f'Destination location barcode and destination location coordinates are required.')
+    if not destination_barcode:
+        errors.append(f'Destination location barcode is required.')
         return (container_to_move, errors, warnings)
 
     try:
@@ -146,7 +146,7 @@ def move_container(container_to_move, destination_barcode,
         return (container_to_move, errors, warnings)
 
     container_to_move.location = destination_container
-    container_to_move.coordinates = destination_coordinates
+    container_to_move.coordinates = destination_coordinates if destination_coordinates else ""
     container_to_move.update_comment = update_comment
 
     try:
