@@ -30,7 +30,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       width: 170,
       render: (name, sample) =>
         <Link to={`/samples/${sample.id}`}>
-          <div>{name}</disv>
+          <div>{name}</div>
           {sample.alias &&
             <div><small>alias: {sample.alias}</small></div>
           }
