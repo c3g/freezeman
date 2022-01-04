@@ -34,7 +34,4 @@ class GenericRowHandler():
             if v:
                 warnings.append(f"{k} : {v}")
 
-        return {'errors': [],
-                'validation_error': ValidationError(self.errors),
-                'warnings': warnings,
-                }
+        return {'errors': [], 'validation_error': ValidationError(self.errors), 'warnings': warnings}
