@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from .._utils import float_to_decimal_and_none
 
-PROPERTIES_STARTING_INDEX = 5
+PROPERTIES_STARTING_INDEX = 6
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [

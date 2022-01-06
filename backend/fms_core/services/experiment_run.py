@@ -13,7 +13,7 @@ def create_experiment_run(experiment_run_name,
                           start_date,
                           samples_info,
                           process_properties,
-                          comment,
+                          comment=None,
                           protocols_dict = None):
     experiment_run = None
     errors = []

@@ -196,7 +196,7 @@ def transfer_sample(process: Process,
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination else volume_used,
                 depleted=False,
-                comment=comment,
+                comment=comment if comment else {},
             )
 
             derived_samples_destination = sample_source.derived_samples.all()

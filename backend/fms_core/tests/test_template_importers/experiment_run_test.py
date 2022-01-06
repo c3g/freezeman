@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType
+from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -20,6 +20,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
 
         self.container_barcode = "EQ00539851"
         self.sample_name = "ExperimentTestSample"
+        self.comment = "Test comment"
 
         self.prefill_data()
 
@@ -46,11 +47,14 @@ class ExperimentRunInfiniumTestCase(TestCase):
         # Test first experiment run
         experiment_run_obj = ExperimentRun.objects.get(container__barcode="hh")
         process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        pm_obj = ProcessMeasurement.objects.get(process=process_obj)
         content_type_process = ContentType.objects.get_for_model(Process)
 
         # Experiment Run tests
         self.assertEqual(experiment_run_obj.run_type.name, 'Infinium Global Screening Array-24')
         self.assertEqual(experiment_run_obj.instrument.name, 'iScan_1')
+        self.assertEqual(experiment_run_obj.process.comment, self.comment)
+        self.assertEqual(pm_obj.comment, self.comment)
 
         # Process Tests
         self.assertEqual(process_obj.child_process.count(), 7)
