@@ -13,7 +13,7 @@ def create_experiment_run(experiment_run_name,
                           start_date,
                           samples_info,
                           process_properties,
-                          comment = f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
+                          comment,
                           protocols_dict = None):
     experiment_run = None
     errors = []
@@ -25,7 +25,7 @@ def create_experiment_run(experiment_run_name,
     main_protocol = next(iter(protocols_dict))
 
     processes_by_protocol_id, process_errors, process_warnings = create_process(protocol=main_protocol,
-                                                                                creation_comment=comment,
+                                                                                creation_comment=comment if comment else f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
                                                                                 create_children=True, 
                                                                                 children_protocols=protocols_dict[main_protocol])
 
@@ -50,6 +50,7 @@ def create_experiment_run(experiment_run_name,
             source_sample = sample_info['sample_obj']
             volume_used = sample_info['volume_used']
             container_coordinates = sample_info['experiment_container_coordinates']
+            comment = sample_info['comment']
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
             sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
@@ -58,7 +59,8 @@ def create_experiment_run(experiment_run_name,
                                                                                      volume_used=volume_used,
                                                                                      execution_date=start_date,
                                                                                      coordinates_destination=container_coordinates,
-                                                                                     volume_destination=volume_destination)
+                                                                                     volume_destination=volume_destination,
+                                                                                     comment=comment)
 
             if sample_destination:
                 sample_destination.depleted = True # deplete destination sample
