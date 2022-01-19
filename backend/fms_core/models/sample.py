@@ -65,7 +65,7 @@ class Sample(TrackedModel):
         return self.derived_samples.first() if not self.is_pool else []  # Forces crash if pool
 
     @property
-    def biosample(self) -> Biosample:
+    def biosample_not_pool(self) -> Biosample:
         return self.derived_samples.first().biosample if not self.is_pool else None
 
     # Computed properties for containers

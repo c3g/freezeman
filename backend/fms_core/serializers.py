@@ -181,9 +181,9 @@ class SampleSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    individual = serializers.CharField(read_only=True, source="biosample.individual.id")
-    alias = serializers.CharField(read_only=True, source="biosample.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample.collection_site")
+    individual = serializers.CharField(read_only=True, source="biosample_not_pool.individual.id")
+    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
+    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
@@ -198,17 +198,17 @@ class SampleSerializer(serializers.ModelSerializer):
 
 class SampleExportSerializer(serializers.ModelSerializer):
     sample_id = serializers.IntegerField(read_only=True, source="id")
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample.id")
+    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     sample_name = serializers.CharField(source="name")
-    individual_name = serializers.CharField(read_only=True, source="biosample.individual.name")
-    taxon = serializers.CharField(read_only=True, source="biosample.individual.taxon")
-    sex = serializers.CharField(read_only=True, source="biosample.individual.sex")
-    pedigree = serializers.CharField(read_only=True, source="biosample.individual.pedigree")
-    cohort = serializers.CharField(read_only=True, source="biosample.individual.cohort")
+    individual_name = serializers.CharField(read_only=True, source="biosample_not_pool.individual.name")
+    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon")
+    sex = serializers.CharField(read_only=True, source="biosample_not_pool.individual.sex")
+    pedigree = serializers.CharField(read_only=True, source="biosample_not_pool.individual.pedigree")
+    cohort = serializers.CharField(read_only=True, source="biosample_not_pool.individual.cohort")
     mother_name = serializers.SerializerMethodField()
     father_name = serializers.SerializerMethodField()
-    alias = serializers.CharField(read_only=True, source="biosample.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample.collection_site")
+    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
+    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
@@ -245,11 +245,11 @@ class SampleExportSerializer(serializers.ModelSerializer):
         return obj.volume if obj.volume else None
 
     def get_father_name(self, obj):
-        father = '' if not obj.biosample.individual or obj.biosample.individual.father is None else obj.biosample.individual.father.name
+        father = '' if not obj.biosample_not_pool.individual or obj.biosample_not_pool.individual.father is None else obj.biosample_not_pool.individual.father.name
         return father
 
     def get_mother_name(self, obj):
-        mother = '' if not obj.biosample.individual or obj.biosample.individual.mother is None else obj.biosample.individual.mother.name
+        mother = '' if not obj.biosample_not_pool.individual or obj.biosample_not_pool.individual.mother is None else obj.biosample_not_pool.individual.mother.name
         return mother
 
     def get_quality_flag(self, obj):
@@ -269,11 +269,11 @@ class SampleExportSerializer(serializers.ModelSerializer):
 
 class NestedSampleSerializer(serializers.ModelSerializer):
     # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
-    individual = IndividualSerializer(read_only=True, source="biosample.individual")
+    individual = IndividualSerializer(read_only=True, source="biosample_not_pool.individual")
     container = SimpleContainerSerializer(read_only=True)
     # Derived Sample and Biosample attributes
-    alias = serializers.CharField(read_only=True, source="biosample.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample.collection_site")
+    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
+    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
