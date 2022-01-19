@@ -195,8 +195,7 @@ def transfer_sample(process: Process,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination else volume_used,
-                depleted=False,
-                comment=comment if comment else {},
+                depleted=False
             )
 
             derived_samples_destination = sample_source.derived_samples.all()
@@ -230,7 +229,8 @@ def extract_sample(process: Process,
                    sample_kind_destination,
                    coordinates_destination=None,
                    volume_destination=None,
-                   source_depleted: bool=None):
+                   source_depleted: bool=None,
+                   comment=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -288,7 +288,8 @@ def extract_sample(process: Process,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
                                                                                    execution_date,
-                                                                                   volume_used)
+                                                                                   volume_used,
+                                                                                   comment)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
         except Exception as e:
