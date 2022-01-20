@@ -16,6 +16,7 @@ import {
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,
+  samplePrefillTemplates,
   samples,
 } from "./modules/samples/reducers";
 import {
@@ -70,6 +71,7 @@ const allReducers = combineReducers({
   sampleKinds,
   samplesSummary,
   sampleTemplateActions,
+  samplePrefillTemplates,
   samples,
   protocols,
   processes,

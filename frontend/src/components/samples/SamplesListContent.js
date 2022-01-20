@@ -205,7 +205,7 @@ const SamplesListContent = ({
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
       ...actionsToButtonList("/samples", actions),
-      ...prefillTemplatesToButtonDropdown(withToken(token, api.samples.prefill.request), prefills),
+      prefillTemplatesToButtonDropdown(withToken(token, api.samples.prefill.request), prefills),
       <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

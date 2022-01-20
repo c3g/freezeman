@@ -1,8 +1,8 @@
 import React from "react";
 import {Link} from "react-router-dom";
 
-import {Button} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined} from "@ant-design/icons";
+import {Button, Menu, Dropdown} from "antd";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined} from "@ant-design/icons";
 
 export const templateIcon = t => {
   const n = t.description || t
@@ -18,9 +18,10 @@ export const templateIcon = t => {
 };
 
 export const prefillTemplatesToButtonDropdown = (prefillRequest, prefills) => {
+  console.log(prefills.items)
   const prefillChoiceMenu = (
     <Menu>
-      {prefills.items ? prefills.items.map((prefill, i) => 
+      { prefills.items ? prefills.items.map((prefill, i) =>
           <Menu.Item key={i.toString()} onClick={() => prefillRequest(i)}>{prefill.description}</Menu.Item>) :
           <Menu.Item>Loading ...</Menu.Item>
       }
@@ -46,6 +47,7 @@ export const prefillTemplatesReducerFactory = moduleActions => (
     case moduleActions.LIST_PREFILL_TEMPLATES.REQUEST:
       return {...state, isFetching: true};
     case moduleActions.LIST_PREFILL_TEMPLATES.RECEIVE:
+      console.log(action)
       return {
         ...state,
         isFetching: false,
