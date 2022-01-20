@@ -65,7 +65,7 @@ const ActionContent = ({token, templateType, templateActions}) => {
         actions.items[actionIndex] && action.template.length > 1 ?
           <Dropdown overlay={templateChoiceMenu} placement="bottomRight">
             <Button>
-              <DownloadOutlined /> Download Template
+              <DownloadOutlined /> Download Template...
             </Button>
           </Dropdown> :
           <Button onClick={() => window.location = action.template[0].file}>

@@ -6,6 +6,7 @@ import {indexByID} from "../../utils/objects";
 import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
+import {prefillTemplatesReducerFactory} from "../../utils/prefillTemplates";
 import {resetTable} from "../../utils/reducers";
 
 import CONTAINERS from "../containers/actions";
@@ -45,6 +46,7 @@ export const sampleKinds = (
 
 export const samplesSummary = summaryReducerFactory(SAMPLES);
 export const sampleTemplateActions = templateActionsReducerFactory(SAMPLES);
+export const samplePrefillTemplates = prefillTemplatesReducerFactory(SAMPLES);
 
 export const samples = (
     state = {
