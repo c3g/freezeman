@@ -49,7 +49,6 @@ def update_property_optional_flag(apps, schema_editor):
 
                 reversion.add_to_revision(pt)
 
-
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -57,6 +56,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            """
+                DROP VIEW IF EXISTS fms_core_fullsample;
+            """,
+            migrations.RunSQL.noop
+        ),
         migrations.RunPython(
             update_property_optional_flag,
             reverse_code=migrations.RunPython.noop,

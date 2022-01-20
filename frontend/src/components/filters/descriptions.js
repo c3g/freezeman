@@ -6,9 +6,9 @@ export const SAMPLE_FILTERS = {
     key: "id",
     label: "Sample ID",
   },
-  sample_kind__name: {
+  derived_samples__sample_kind__name: {
     type: FILTER_TYPE.SELECT,
-    key: "sample_kind__name",
+    key: "derived_samples__sample_kind__name",
     label: "Type",
     mode: "multiple",
     placeholder: "All"
@@ -19,9 +19,9 @@ export const SAMPLE_FILTERS = {
     label: "Name",
     batch: true,
   },
-  individual__name: {
+  derived_samples__biosample__individual__name: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__name",
+    key: "derived_samples__biosample__individual__name",
     label: "Individual Name",
   },
   container__name: {
@@ -80,23 +80,23 @@ export const SAMPLE_FILTERS = {
   },
 
   // Detached filters
-  individual__pedigree: {
+  derived_samples__biosample__individual__pedigree: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__pedigree",
+    key: "derived_samples__biosample__individual__pedigree",
     label: "Individual Pedigree",
     width: 250,
     detached: true,
   },
-  individual__cohort: {
+  derived_samples__biosample__individual__cohort: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__cohort",
+    key: "derived_samples__biosample__individual__cohort",
     label: "Individual Cohort",
     width: 250,
     detached: true,
   },
-  individual__sex: {
+  derived_samples__biosample__individual__sex: {
     type: FILTER_TYPE.SELECT,
-    key: "individual__sex",
+    key: "derived_samples__biosample__individual__sex",
     label: "Individual Sex",
     mode: "multiple",
     placeholder: "All",
@@ -107,9 +107,9 @@ export const SAMPLE_FILTERS = {
     ],
     detached: true,
   },
-  collection_site: {
+  derived_samples__biosample__collection_site: {
     type: FILTER_TYPE.INPUT,
-    key: "collection_site",
+    key: "derived_samples__biosample__collection_site",
     label: "Collection site",
     width: 250,
     detached: true,

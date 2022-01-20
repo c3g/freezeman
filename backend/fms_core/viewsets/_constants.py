@@ -57,28 +57,6 @@ _project_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-_full_sample_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS_LOOSE,
-    "sample_kind_id": FK_FILTERS,
-    "volume": SCALAR_FILTERS,
-    "concentration": SCALAR_FILTERS,
-    "depleted": ["exact"],
-    "collection_site": CATEGORICAL_FILTERS_LOOSE,
-    "tissue_source": CATEGORICAL_FILTERS,
-    "creation_date": DATE_FILTERS,
-    "coordinates": FREE_TEXT_FILTERS,
-
-    "individual_id": FK_FILTERS,  # PK
-    "container_id": FK_FILTERS,  # PK
-    "biosample_id": FK_FILTERS,  # PK
-    "derived_sample_id": FK_FILTERS,  # PK
-
-    **_prefix_keys("sample_kind__", _sample_kind_filterset_fields),
-    **_prefix_keys("container__", _container_filterset_fields),
-    **_prefix_keys("individual__", _individual_filterset_fields),
-}
-
 _sample_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -90,8 +68,11 @@ _sample_filterset_fields: FiltersetFields = {
     "comment": FREE_TEXT_FILTERS,
 
     "container": FK_FILTERS,  # PK
+    "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("projects__", _project_minimal_filterset_fields),
+    **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
+    **_prefix_keys("derived_samples__sample_kind__", _sample_kind_filterset_fields),
 }
 
 _sample_minimal_filterset_fields: FiltersetFields = {
