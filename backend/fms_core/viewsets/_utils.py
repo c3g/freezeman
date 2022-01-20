@@ -1,5 +1,6 @@
 from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
+from openpyxl.reader.excel import load_workbook
 from django.db.models import Func
 from django.conf import settings
 from django.http import HttpResponseBadRequest
@@ -8,8 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
 
-
 import json
+from io import BytesIO
 
 from fms_core.serializers import VersionSerializer
 
@@ -150,14 +151,43 @@ class TemplatePrefillsMixin:
     template_prefill_list = []
 
     @action(detail=False, methods=["get"])
-    def template_prefills(self, request):
+    def list_prefills(self, request):
         """
-        Endpoint off of the parent viewset for listing available template
-        prefills, converting paths to URIs for better RESTyness.
+        Endpoint off of the parent viewset for listing available template prefills.
         """
-        prefills_list = []
-        for prefill in self.template_prefill_list:  # Make a list out of the prefilable templates
-            prefill_dict = {}
-            prefill_dict["template"] = prefill["template"]["identity"]["description"]
-            prefills_list.append(prefill_dict)
-        return Response(prefills_list)
+        templates_list = []
+        for template in self.template_prefill_list:  # Make a list out of the prefilable templates
+            template_dict = {}
+            template_dict["description"] = template["template"]["identity"]["description"]
+            templates_list.append(template_dict)
+        return Response(templates_list)
+
+    @action(detail=False, methods=["get"])
+    def prefill_template(self, request):
+        """
+        Endpoint off of the parent viewset for filling up the requested template and returning it.
+        """
+        template_id = request.GET.get("template")
+
+        try:
+            template = self.template_prefill_list[int(template_id)]
+        except (KeyError, ValueError):
+            # If the template index is out of bounds or not int-castable, return an error.
+            return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
+        qs = self.get_queryset()
+        template_filename = request.build_absolute_uri(template["identity"]["file"])
+        wb = load_workbook(filename=template_filename)
+        ws_starting_row = {}
+        for i, entry in enumerate(qs):
+            for sheet_name, template_column, queryset_column in template["prefill_info"]:
+                current_ws = wb[sheet_name]
+                if not ws_starting_row[sheet_name]:
+                    ws_starting_row[sheet_name] = 1 # get_starting_row()
+
+
+        out_stream = BytesIO()
+        wb.save(out_stream)
+        return Response(out_stream.getvalue(),
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        headers={"Content-Disposition": "attachment;filename=" + template["identity"]["file"]})
+        

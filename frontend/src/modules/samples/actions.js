@@ -123,6 +123,11 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.samples.template.actions()));
 };
 
+export const listPrefillTemplates = () => (dispatch, getState) => {
+  if (getState().samplePrefillTemplates.isFetching) return;
+  return dispatch(networkAction(LIST_PREFILL_TEMPLATES, api.samples.prefill.templates()));
+};
+
 export const listVersions = (id) => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
     if (!sample || sample.isFetching) return;

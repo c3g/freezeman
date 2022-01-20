@@ -30,6 +30,10 @@ const api = {
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
+    prefill: {
+      templates: () => get(`/containers/list_prefills/`),
+      request: (options, template) => get(`/containers/prefill_template/`, options, { template }),
+    },
     search: (q, { parent, sample_holding }) =>
       get("/containers/search/", { q, parent, sample_holding }),
   },
@@ -114,6 +118,10 @@ const api = {
       actions: () => get(`/full-samples/template_actions/`),
       check:  (action, template) => post(`/full-samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/full-samples/template_submit/`, form({ action, template })),
+    },
+    prefill: {
+      templates: () => get(`/samples/list_prefills/`),
+      request: (options, template) => get(`/samples/prefill_template/`, options, { template }),
     },
     search: q => get("/full-samples/search/", { q }),
   },

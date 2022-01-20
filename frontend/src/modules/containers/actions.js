@@ -19,6 +19,7 @@ export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN"
 export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("CONTAINERS.LIST_TEMPLATE_ACTIONS");
+export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("CONTAINERS.LIST_PREFILL_TEMPLATES");
 export const SUMMARY = createNetworkActionTypes("CONTAINERS.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
@@ -145,6 +146,11 @@ export const listKinds = () => async (dispatch, getState) => {
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().containerTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.containers.template.actions()));
+};
+
+export const listPrefillTemplates = () => (dispatch, getState) => {
+  if (getState().containerPrefillTemplates.isFetching) return;
+  return dispatch(networkAction(LIST_PREFILL_TEMPLATES, api.containers.prefill.templates()));
 };
 
 export const summary = () => dispatch => dispatch(networkAction(SUMMARY, api.containers.summary()));
