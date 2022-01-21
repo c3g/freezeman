@@ -5,19 +5,19 @@ from collections import defaultdict
 from datetime import datetime
 from .._utils import float_to_decimal_and_none
 
-PROPERTIES_STARTING_INDEX = 5
+PROPERTIES_STARTING_INDEX = 6
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = [
         {
             'name': 'Experiments',
             'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                        'Instrument Name', 'Experiment Start Date'],
+                        'Instrument Name', 'Experiment Start Date', 'Comment'],
         },
         {
             'name': 'Samples',
             'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                        'Experiment Container Coordinates'],
+                        'Experiment Container Coordinates', 'Comment'],
         },
     ]
 
@@ -54,7 +54,8 @@ class ExperimentRunImporter(GenericImporter):
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_name': row_data['Experiment Name'],
                       'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
-                      'experiment_container_coordinates': row_data['Experiment Container Coordinates']
+                      'experiment_container_coordinates': row_data['Experiment Container Coordinates'],
+                      'comment': row_data['Comment']
                       }
 
             sample_kwargs = dict(
@@ -102,7 +103,7 @@ class ExperimentRunImporter(GenericImporter):
                 container={'barcode': experiment_run_dict['Experiment Container Barcode'],
                            'kind': experiment_run_dict['Experiment Container Kind']},
                 start_date=experiment_run_dict['Experiment Start Date'],
-                comment=f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
+                comment=experiment_run_dict['Comment'],
                 # Additional data for this row
                 process_properties=process_properties,
                 sample_rows_info=sample_rows_data[experiment_run_dict['Experiment Name']],

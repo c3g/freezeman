@@ -32,7 +32,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/containers/list_prefills/`),
-      request: (options, template) => get(`/containers/prefill_template/`, options, { template }),
+      request: (options, template) => get(`/containers/prefill_template/`, {template: template, ...options}),
     },
     search: (q, { parent, sample_holding }) =>
       get("/containers/search/", { q, parent, sample_holding }),
@@ -106,18 +106,22 @@ const api = {
   },
 
   samples: {
-    get: sampleId => get(`/full-samples/${sampleId}/`),
-    add: sample => post("/full-samples/", sample),
-    update: sample => patch(`/full-samples/${sample.id}/`, sample),
-    list: (options, abort) => get("/full-samples", options, { abort }),
-    listExport: options => get("/full-samples/list_export/", {format: "csv", ...options}),
-    listCollectionSites: () => get("/full-samples/list_collection_sites/"),
+    get: sampleId => get(`/samples/${sampleId}/`),
+    add: sample => post("/samples/", sample),
+    update: sample => patch(`/samples/${sample.id}/`, sample),
+    list: (options, abort) => get("/samples", options, { abort }),
+    listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
+    listCollectionSites: () => get("/samples/list_collection_sites/"),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
-    summary: () => get("/full-samples/summary/"),
+    summary: () => get("/samples/summary/"),
     template: {
-      actions: () => get(`/full-samples/template_actions/`),
-      check:  (action, template) => post(`/full-samples/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/full-samples/template_submit/`, form({ action, template })),
+      actions: () => get(`/samples/template_actions/`),
+      check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
+    },
+    prefill: {
+      templates: () => get(`/samples/list_prefills/`),
+      request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
     },
     prefill: {
       templates: () => get(`/samples/list_prefills/`),
