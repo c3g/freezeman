@@ -1,6 +1,5 @@
 from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
-from openpyxl.reader.excel import load_workbook
 from django.db.models import Func
 from django.conf import settings
 from django.http import HttpResponseBadRequest
@@ -10,10 +9,9 @@ from rest_framework.response import Response
 from reversion.models import Version
 
 import json
-from io import BytesIO
 
 from fms_core.serializers import VersionSerializer
-
+from fms_core.template_prefiller.prefiller import PrefillTemplate
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -174,20 +172,11 @@ class TemplatePrefillsMixin:
         except (KeyError, ValueError):
             # If the template index is out of bounds or not int-castable, return an error.
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
-        qs = self.get_queryset()
-        template_filename = request.build_absolute_uri(template["identity"]["file"])
-        wb = load_workbook(filename=template_filename)
-        ws_starting_row = {}
-        for i, entry in enumerate(qs):
-            for sheet_name, template_column, queryset_column in template["prefill_info"]:
-                current_ws = wb[sheet_name]
-                if not ws_starting_row[sheet_name]:
-                    ws_starting_row[sheet_name] = 1 # get_starting_row()
 
-
-        out_stream = BytesIO()
-        wb.save(out_stream)
-        return Response(out_stream.getvalue(),
+        queryset = self.get_queryset()
+        template_path = request.build_absolute_uri(template["identity"]["file"])
+        prefilled_template = PrefillTemplate(template_path, template, queryset)
+        return Response(prefilled_template,
                         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         headers={"Content-Disposition": "attachment;filename=" + template["identity"]["file"]})
         

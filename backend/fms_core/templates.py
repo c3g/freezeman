@@ -16,7 +16,10 @@ __all__ = [
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
     "PROJECT_LINK_SAMPLES_TEMPLATE",
+    "MAX_HEADER_OFFSET"
 ]
+
+MAX_HEADER_OFFSET = 20
 
 CONTAINER_CREATION_TEMPLATE = {
   "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
