@@ -32,7 +32,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/containers/list_prefills/`),
-      request: (options, template) => get(`/containers/prefill_template/`, options, { template }),
+      request: (options, template) => get(`/containers/prefill_template/`, {template: template, ...options}),
     },
     search: (q, { parent, sample_holding }) =>
       get("/containers/search/", { q, parent, sample_holding }),
@@ -121,7 +121,7 @@ const api = {
     },
     prefill: {
       templates: () => get(`/samples/list_prefills/`),
-      request: (options, template) => get(`/samples/prefill_template/`, options, { template }),
+      request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
     },
     search: q => get("/full-samples/search/", { q }),
   },

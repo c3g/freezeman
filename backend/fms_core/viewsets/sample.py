@@ -13,13 +13,15 @@ from fms_core.serializers import SampleSerializer, SampleExportSerializer, Neste
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
+from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
 
-from ._utils import TemplateActionsMixin, _list_keys, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
 
 
-class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
     serializer_class = SampleSerializer
 
@@ -52,6 +54,16 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             "template": [SAMPLE_QC_TEMPLATE["identity"]],
             "importer": SampleQCImporter,
         },
+    ]
+
+    template_prefill_list = [
+        SAMPLE_UPDATE_TEMPLATE,
+        SAMPLE_QC_TEMPLATE,
+        PROJECT_LINK_SAMPLES_TEMPLATE,
+        SAMPLE_EXTRACTION_TEMPLATE,
+        SAMPLE_TRANSFER_TEMPLATE,
+        EXPERIMENT_INFINIUM_TEMPLATE,
+        EXPERIMENT_MGI_TEMPLATE,
     ]
 
     def get_queryset(self):
