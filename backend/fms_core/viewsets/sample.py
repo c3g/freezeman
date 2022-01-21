@@ -57,13 +57,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
 
     template_prefill_list = [
-        SAMPLE_UPDATE_TEMPLATE,
-        SAMPLE_QC_TEMPLATE,
-        PROJECT_LINK_SAMPLES_TEMPLATE,
-        SAMPLE_EXTRACTION_TEMPLATE,
-        SAMPLE_TRANSFER_TEMPLATE,
-        EXPERIMENT_INFINIUM_TEMPLATE,
-        EXPERIMENT_MGI_TEMPLATE,
+        {"template": SAMPLE_UPDATE_TEMPLATE},
+        {"template": SAMPLE_QC_TEMPLATE},
+        {"template": PROJECT_LINK_SAMPLES_TEMPLATE},
+        {"template": SAMPLE_EXTRACTION_TEMPLATE},
+        {"template": SAMPLE_TRANSFER_TEMPLATE},
+        {"template": EXPERIMENT_INFINIUM_TEMPLATE},
+        {"template": EXPERIMENT_MGI_TEMPLATE},
     ]
 
     def get_queryset(self):

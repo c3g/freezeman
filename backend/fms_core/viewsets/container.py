@@ -60,11 +60,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
     ]
 
     template_prefill_list = [
-        CONTAINER_MOVE_TEMPLATE,
-        CONTAINER_RENAME_TEMPLATE
-    ]
-
-    template_prefill_list = [
         {"template": CONTAINER_MOVE_TEMPLATE},
         {"template": CONTAINER_RENAME_TEMPLATE},
     ]
