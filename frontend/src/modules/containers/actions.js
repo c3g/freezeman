@@ -170,6 +170,7 @@ export default {
     LIST_SAMPLES,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
+    LIST_PREFILL_TEMPLATES,
     SUMMARY,
     get,
     add,
@@ -185,6 +186,7 @@ export default {
     listSamples,
     listKinds,
     listTemplateActions,
+    listPrefillTemplates,
     summary,
 };
 

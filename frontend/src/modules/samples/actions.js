@@ -156,6 +156,7 @@ export default {
     LIST_VERSIONS,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
+    LIST_PREFILL_TEMPLATES,
     get,
     add,
     update,
@@ -169,6 +170,7 @@ export default {
     listVersions,
     listKinds,
     listTemplateActions,
+    listPrefillTemplates,
     summary,
 };
 
