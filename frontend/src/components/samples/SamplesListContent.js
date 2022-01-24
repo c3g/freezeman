@@ -190,6 +190,11 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
 
+  const prefillTemplate = ({template}) =>
+    withToken(token, api.samples.prefill.request)
+    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
+      .then(response => response.data)
+
   const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
     c,
@@ -205,7 +210,7 @@ const SamplesListContent = ({
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
       ...actionsToButtonList("/samples", actions),
-      prefillTemplatesToButtonDropdown(token, totalCount, filters, sortBy, prefills),
+      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
       <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

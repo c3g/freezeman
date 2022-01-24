@@ -1,10 +1,6 @@
 import React from "react";
 import {Link} from "react-router-dom";
 
-import api, {withToken}  from "./api"
-import mergedListQueryParams from "./mergedListQueryParams";
-import {downloadFromText} from "../utils/download";
-import {SAMPLE_FILTERS} from "../components/filters/descriptions";
 import ExportButton from "../components/ExportButton"
 
 import {Button, Menu, Dropdown, Modal} from "antd";
@@ -17,32 +13,26 @@ export const templateIcon = t => {
   if (n.includes("move")) return <ExportOutlined />;
   if (n.includes("transfer")) return <ExportOutlined />;
   if (n.includes("update")) return <EditOutlined />;
-  if (n.includes("process")) return <ExperimentOutlined />;
+  if (n.includes("extract")) return <ExperimentOutlined />;
   if (n.includes("link")) return <LinkOutlined/>;
   if (n.includes("quality")) return <CheckCircleOutlined />;
   return undefined;
 };
 
-const prefillTemplate = ({token, filters, sortBy, template}) =>
-  withToken(token, api.samples.prefill.request)
-  (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
-    .then(response => response.data)
-
-export const prefillTemplatesToButtonDropdown = (token, totalCount, filters, sortBy, prefills) => {
+export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
       { prefills.items ? prefills.items.map((prefill, i) =>
           <Menu.Item key={i.toString()}>
             <ExportButton
+              style={{border:0}}
               key='export'
               exportFunction={prefillTemplate}
               filename={prefill.description}
               description={prefill.description}
               itemsCount={totalCount}
-              token={token}
-              filters={filters}
-              sortBy={sortBy}
               template={i}
+              icon={(templateIcon(prefill))}
             />
           </Menu.Item>) :
           <Menu.Item>Loading ...</Menu.Item>
@@ -52,7 +42,7 @@ export const prefillTemplatesToButtonDropdown = (token, totalCount, filters, sor
 
   return <Dropdown overlay={prefillChoiceMenu} placement="bottomRight">
            <Button>
-             <DownloadOutlined /> Prefill Template...
+             <DownloadOutlined /> Prefill Template
            </Button>
          </Dropdown>
 }

@@ -9,8 +9,6 @@ const { confirm } = Modal;
 const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
-  console.log(rest)
-
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
   const onClick = () => {
@@ -46,9 +44,8 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
 
   }
   return (
-    <Button onClick={onClick} loading={loading} {...rest}>
-      <DownloadOutlined />
-        {rest.description ? rest.description : 'Export'}
+    <Button icon={rest.icon || <DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
+        { rest.description ?  rest.description : 'Export'}
     </Button>
   )
 }

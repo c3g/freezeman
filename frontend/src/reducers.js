@@ -9,6 +9,7 @@ import {
   containerKinds,
   containersSummary,
   containerTemplateActions,
+  containerPrefillTemplates,
   containers,
 } from "./modules/containers/reducers";
 import {individuals} from "./modules/individuals/reducers";
@@ -62,6 +63,7 @@ const allReducers = combineReducers({
   containerKinds,
   containersSummary,
   containerTemplateActions,
+  containerPrefillTemplates,
   containers,
   experimentRuns,
   experimentRunTemplateActions,
