@@ -22,7 +22,6 @@ export const templateIcon = t => {
 };
 
 const prefillTemplate = (token, filters, sortBy, template) => {
-  console.log(template)
   withToken(token, api.samples.prefill.request)
   (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
     .then(response => response.data)
