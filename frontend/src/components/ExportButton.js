@@ -9,6 +9,8 @@ const { confirm } = Modal;
 const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
+  console.log(rest)
+
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
   const onClick = () => {
@@ -23,7 +25,7 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
                 You can select a subset of items to export by filtering the list below.
             </div>,
         onOk() {
-            exportFunction()
+            exportFunction(rest)
             .then(text => {
               downloadFromText(name, text)
             })
@@ -46,7 +48,7 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   return (
     <Button onClick={onClick} loading={loading} {...rest}>
       <DownloadOutlined />
-      Export
+        {rest.description ? rest.description : 'Export'}
     </Button>
   )
 }

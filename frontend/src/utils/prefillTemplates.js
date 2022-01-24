@@ -3,10 +3,12 @@ import {Link} from "react-router-dom";
 
 import api, {withToken}  from "./api"
 import mergedListQueryParams from "./mergedListQueryParams";
+import {downloadFromText} from "../utils/download";
 import {SAMPLE_FILTERS} from "../components/filters/descriptions";
+import ExportButton from "../components/ExportButton"
 
-import {Button, Menu, Dropdown} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined} from "@ant-design/icons";
+import {Button, Menu, Dropdown, Modal} from "antd";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 
 export const templateIcon = t => {
   const n = t.description || t
@@ -21,18 +23,27 @@ export const templateIcon = t => {
   return undefined;
 };
 
-const prefillTemplate = (token, filters, sortBy, template) => {
+const prefillTemplate = ({token, filters, sortBy, template}) =>
   withToken(token, api.samples.prefill.request)
   (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
     .then(response => response.data)
-}
 
-export const prefillTemplatesToButtonDropdown = (token, filters, sortBy, prefills) => {
+export const prefillTemplatesToButtonDropdown = (token, totalCount, filters, sortBy, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
       { prefills.items ? prefills.items.map((prefill, i) =>
-          <Menu.Item key={i.toString()} onClick={() => prefillTemplate(token, filters, sortBy, i)}>
-            {prefill.description}
+          <Menu.Item key={i.toString()}>
+            <ExportButton
+              key='export'
+              exportFunction={prefillTemplate}
+              filename={prefill.description}
+              description={prefill.description}
+              itemsCount={totalCount}
+              token={token}
+              filters={filters}
+              sortBy={sortBy}
+              template={i}
+            />
           </Menu.Item>) :
           <Menu.Item>Loading ...</Menu.Item>
       }
@@ -58,7 +69,6 @@ export const prefillTemplatesReducerFactory = moduleActions => (
     case moduleActions.LIST_PREFILL_TEMPLATES.REQUEST:
       return {...state, isFetching: true};
     case moduleActions.LIST_PREFILL_TEMPLATES.RECEIVE:
-      console.log(action)
       return {
         ...state,
         isFetching: false,
