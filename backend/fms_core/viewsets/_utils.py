@@ -173,10 +173,13 @@ class TemplatePrefillsMixin:
             # If the template index is out of bounds or not int-castable, return an error.
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
         template_path = request.build_absolute_uri(template["identity"]["file"])
-        prefilled_template = PrefillTemplate(template_path, template, queryset)
+        try:
+            prefilled_template = PrefillTemplate(template_path, template, queryset)
+        except:
+            return HttpResponseBadRequest(json.dumps({"detail": f"Unexpected error while prefilling the template."}), content_type="application/json")
         return Response(prefilled_template,
-                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        headers={"Content-Disposition": "attachment;filename=" + template["identity"]["file"]})
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")#,
+                        #headers={"Content-Disposition": "attachment;filename=" + template["identity"]["file"]})
         

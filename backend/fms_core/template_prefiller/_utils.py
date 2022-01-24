@@ -14,7 +14,8 @@ def load_position_dict(workbook, sheets_info, prefill_info):
         column_offsets = {}
         sheet_name = sheet["name"]
         sheet_header = sheet["header"]
-        sheet_header_offset = find_worksheet_header_offset(sheet, sheet_header, MAX_HEADER_OFFSET)
+        worksheet = workbook[sheet_name]
+        sheet_header_offset = find_worksheet_header_offset(worksheet, sheet_header, MAX_HEADER_OFFSET)
         for column_sheet, template_column_name, _ in prefill_info:
             if sheet_name == column_sheet:
                 column_offsets[template_column_name] = sheet_header.index(template_column_name)
