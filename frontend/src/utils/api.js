@@ -123,10 +123,6 @@ const api = {
       templates: () => get(`/samples/list_prefills/`),
       request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
     },
-    prefill: {
-      templates: () => get(`/samples/list_prefills/`),
-      request: (options, template) => get(`/samples/prefill_template/`, options, { template }),
-    },
     search: q => get("/full-samples/search/", { q }),
   },
 

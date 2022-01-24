@@ -1,6 +1,10 @@
 import React from "react";
 import {Link} from "react-router-dom";
 
+import api, {withToken}  from "./api"
+import mergedListQueryParams from "./mergedListQueryParams";
+import {SAMPLE_FILTERS} from "../components/filters/descriptions";
+
 import {Button, Menu, Dropdown} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined} from "@ant-design/icons";
 
@@ -17,12 +21,20 @@ export const templateIcon = t => {
   return undefined;
 };
 
-export const prefillTemplatesToButtonDropdown = (prefillRequest, prefills) => {
-  console.log(prefills.items)
+const prefillTemplate = (token, filters, sortBy, template) => {
+  console.log(template)
+  withToken(token, api.samples.prefill.request)
+  (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
+    .then(response => response.data)
+}
+
+export const prefillTemplatesToButtonDropdown = (token, filters, sortBy, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
       { prefills.items ? prefills.items.map((prefill, i) =>
-          <Menu.Item key={i.toString()} onClick={() => prefillRequest(i)}>{prefill.description}</Menu.Item>) :
+          <Menu.Item key={i.toString()} onClick={() => prefillTemplate(token, filters, sortBy, i)}>
+            {prefill.description}
+          </Menu.Item>) :
           <Menu.Item>Loading ...</Menu.Item>
       }
     </Menu>
