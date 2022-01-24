@@ -168,7 +168,7 @@ class TemplatePrefillsMixin:
         template_id = request.GET.get("template")
 
         try:
-            template = self.template_prefill_list[int(template_id)]
+            template = self.template_prefill_list[int(template_id)]["template"]
         except (KeyError, ValueError):
             # If the template index is out of bounds or not int-castable, return an error.
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
