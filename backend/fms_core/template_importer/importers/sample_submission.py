@@ -1,20 +1,11 @@
 from fms_core.models import SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
-
+from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 class SampleSubmissionImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'SampleSubmission',
-            'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
-                        'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
-                        'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                        'Collection Site', 'Tissue Source', 'Reception Date', 'Comment']
-        },
-    ]
-
+    SHEETS_INFO = SAMPLE_SUBMISSION_TEMPLATE["sheets info"]
     def __init__(self):
         super().__init__()
         self.initialize_data_for_template()
