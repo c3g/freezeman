@@ -263,7 +263,8 @@ function attachData(response) {
   const contentType = response.headers.get('content-type') || '' ;
   const isJSON = contentType.includes('/json')
   response.isJSON = isJSON
-  return (isJSON ? response.json() : response.text())
+  const isExcel = contentType.includes('/ms-excel')
+  return (isJSON ? response.json() : isExcel ? response.arrayBuffer() : response.text())
   .then(data => {
     response.data = data;
     return response;
