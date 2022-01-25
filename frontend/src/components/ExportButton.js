@@ -9,7 +9,7 @@ const { confirm } = Modal;
 const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
-  const name = rest.template ? filename + '.xlsx' : filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
+  const name = rest.template !== null ? filename + '.xlsx' : filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
   const onClick = () => {
     setLoading(true);
