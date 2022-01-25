@@ -1,6 +1,7 @@
 from fms_core.models import RunType, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.experiment_run import ExperimentRunRowHandler, SampleRowHandler
+from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 from collections import defaultdict
 from datetime import datetime
 from .._utils import float_to_decimal_and_none
@@ -8,18 +9,7 @@ from .._utils import float_to_decimal_and_none
 PROPERTIES_STARTING_INDEX = 6
 
 class ExperimentRunImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'Experiments',
-            'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                        'Instrument Name', 'Experiment Start Date', 'Comment'],
-        },
-        {
-            'name': 'Samples',
-            'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                        'Experiment Container Coordinates', 'Comment'],
-        },
-    ]
+    SHEETS_INFO = EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 
     def __init__(self):
         super().__init__()

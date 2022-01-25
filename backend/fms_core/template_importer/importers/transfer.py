@@ -1,18 +1,12 @@
 from fms_core.models import Protocol, Process
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
+from fms_core.templates import SAMPLE_TRANSFER_TEMPLATE
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
 
 class TransferImporter(GenericImporter):
-    SHEETS_INFO = [
-        {'name': 'SampleTransfer',
-         'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 
-                     'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
-                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
-                     'Volume Used (uL)', 'Transfer Date', 'Comment'],
-        },
-    ]
+    SHEETS_INFO = SAMPLE_TRANSFER_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()
