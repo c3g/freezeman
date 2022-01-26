@@ -194,7 +194,7 @@ def transfer_sample(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                volume=volume_destination if volume_destination else volume_used,
+                volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
 
@@ -264,7 +264,7 @@ def extract_sample(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                volume=volume_destination if volume_destination else volume_used,
+                volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
             if concentration_destination:
