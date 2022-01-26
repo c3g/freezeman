@@ -1,7 +1,7 @@
 import React from "react";
 import {Link} from "react-router-dom";
 
-import ExportButton from "../components/ExportButton"
+import PrefillTemplateButton from "../components/PrefillTemplateButton";
 
 import {Button, Menu, Dropdown, Modal} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
@@ -24,7 +24,7 @@ export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, pr
     <Menu>
       { prefills.items ? prefills.items.map((prefill, i) =>
           <Menu.Item key={i.toString()}>
-            <ExportButton
+            <PrefillTemplateButton
               style={{border:0}}
               key='export'
               exportFunction={prefillTemplate}

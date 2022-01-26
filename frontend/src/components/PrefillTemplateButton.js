@@ -6,26 +6,24 @@ import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { confirm } = Modal;
 
-const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
+const PrefillTemplateButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
-
-  const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
   const onClick = () => {
     setLoading(true);
 
     confirm({
-        title: 'Do you want to download this list?',
+        title: 'Do you want to download this prefilled list?',
         icon: <ExclamationCircleOutlined />,
         content:
             <div>
-                <p><b>{itemsCount} items</b> will be exported</p>
-                You can select a subset of items to export by filtering the list below.
+                <p><b>{itemsCount} items</b> will be prefilled in the template</p>
+                You can select a subset of items to be prefilled by filtering the list below.
             </div>,
         onOk() {
-            exportFunction()
-            .then(text => {
-              downloadFromFile(name, text)
+            exportFunction(rest)
+            .then(response => {
+              downloadFromFile(response.filename, response.data)
             })
             .catch(err => {
               notification.error({
@@ -44,11 +42,10 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
 
   }
   return (
-    <Button onClick={onClick} loading={loading} {...rest}>
-      <DownloadOutlined />
-      Export
+    <Button icon={rest.icon || <DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
+        { rest.description ?  rest.description : 'Prefill Template' }
     </Button>
   )
 }
 
-export default ExportButton;
+export default PrefillTemplateButton;

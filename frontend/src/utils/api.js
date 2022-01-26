@@ -282,7 +282,9 @@ function attachData(response) {
 
 function getFilenameOrNull(contentDispo){
   if(contentDispo)
-    return contentDispo.split('filename=').length > 1 ? contentDispo.split('filename=')[1] : null
+    return contentDispo.split('filename=').length > 1
+      ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
+      : null
   else
     return null
 }
