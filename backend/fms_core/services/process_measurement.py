@@ -1,7 +1,6 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
 
-from fms_core.services.property_value import validate_non_optional_properties
 from fms_core.models import ProcessMeasurement
 
 
