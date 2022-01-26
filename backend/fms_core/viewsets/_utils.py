@@ -175,7 +175,6 @@ class TemplatePrefillsMixin:
 
         queryset = self.filter_queryset(self.get_queryset())
         template_path = request.build_absolute_uri(template["identity"]["file"])
-        #template_path = "/Users/sballesteros/Documents/Sample_QC_v3_5_0.xlsx"
         try:
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except:
@@ -184,7 +183,7 @@ class TemplatePrefillsMixin:
         try:
             response = HttpResponse(content=prefilled_template)
             response["Content-Type"] = "application/ms-excel"
-            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"] + ""
+            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
         except Exception as err:
               print(err)
         return response

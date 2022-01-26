@@ -25,5 +25,4 @@ def PrefillTemplate(template_path, template_info, queryset):
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
             
     workbook.save(out_stream)
-    #workbook.save(filename = '~/Work/Template/test.xlsx')
     return out_stream.getvalue()
