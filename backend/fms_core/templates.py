@@ -59,12 +59,12 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Experiments',
           'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
-                      'Instrument Name', 'Experiment Start Date'],
+                      'Instrument Name', 'Experiment Start Date', 'Comment'],
       },
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                      'Experiment Container Coordinates'],
+                      'Experiment Container Coordinates', 'Comment'],
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
