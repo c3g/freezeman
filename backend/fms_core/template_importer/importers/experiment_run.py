@@ -4,7 +4,7 @@ from fms_core.template_importer.row_handlers.experiment_run import ExperimentRun
 from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 from collections import defaultdict
 from datetime import datetime
-from .._utils import float_to_decimal_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 PROPERTIES_STARTING_INDEX = 6
 
@@ -92,7 +92,7 @@ class ExperimentRunImporter(GenericImporter):
                 instrument={'name': experiment_run_dict['Instrument Name']},
                 container={'barcode': experiment_run_dict['Experiment Container Barcode'],
                            'kind': experiment_run_dict['Experiment Container Kind']},
-                start_date=experiment_run_dict['Experiment Start Date'],
+                start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date']),
                 comment=experiment_run_dict['Comment'],
                 # Additional data for this row
                 process_properties=process_properties,

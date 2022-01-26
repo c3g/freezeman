@@ -118,6 +118,10 @@ const ExperimentRunsDetailContent = ({
           </TabPane>
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
+            <ExperimentRunsProperties 
+              propertyIDs={processesByID[experimentRun.process]?.children_properties} 
+              protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
+            />
             {experimentRun.children_processes?.map((id, i) => {
                 const process = processesByID[id]
                 return ( process &&
