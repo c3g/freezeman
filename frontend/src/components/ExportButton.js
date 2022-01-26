@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {downloadFromText} from "../utils/download";
+import {downloadFromFile} from "../utils/download";
 import {Button, Modal, notification} from "antd";
 
 import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -9,7 +9,7 @@ const { confirm } = Modal;
 const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
-  const name = rest.template !== null ? filename + '.xlsx' : filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
+  const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
 
   const onClick = () => {
     setLoading(true);
@@ -24,8 +24,8 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
             </div>,
         onOk() {
             exportFunction(rest)
-            .then(text => {
-              downloadFromText(name, text)
+            .then(fileData => {
+              downloadFromFile(name, fileData)
             })
             .catch(err => {
               notification.error({

@@ -136,7 +136,7 @@ const ContainersListContent = ({
   const prefillTemplate = ({template}) =>
     withToken(token, api.containers.prefill.request)
       (mergedListQueryParams(CONTAINER_FILTERS, filters, sortBy), template)
-      .then(response => response.data)
+      .then(response => response)
 
   const columns = getTableColumns(samplesByID, containersByID, containerKinds)
     .map(c => Object.assign(c, getFilterProps(

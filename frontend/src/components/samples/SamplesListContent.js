@@ -193,7 +193,7 @@ const SamplesListContent = ({
   const prefillTemplate = ({template}) =>
     withToken(token, api.samples.prefill.request)
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
-      .then(response => response.data)
+      .then(response => response)
 
   const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(

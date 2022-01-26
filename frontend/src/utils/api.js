@@ -261,6 +261,11 @@ function createAPIError(response) {
 
 function attachData(response) {
   const contentType = response.headers.get('content-type') || '' ;
+  const contentDispo = response.headers.get('content-disposition');
+  const filename = getFilenameOrNull(contentDispo)
+  if (filename)
+    response.filename = filename
+
   const isJSON = contentType.includes('/json')
   response.isJSON = isJSON
   const isExcel = contentType.includes('/ms-excel')
@@ -273,6 +278,13 @@ function attachData(response) {
     response.data = {};
     return response;
   })
+}
+
+function getFilenameOrNull(contentDispo){
+  if(contentDispo)
+    return contentDispo.split('filename=').length > 1 ? contentDispo.split('filename=')[1] : null
+  else
+    return null
 }
 
 function form(params) {

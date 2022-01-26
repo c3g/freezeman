@@ -3,8 +3,15 @@
  */
 
 
-export function downloadFromText(filename, text) {
-  const fileBlob = new Blob([text], { type: 'application/octet-binary' })
+export function downloadFromFile(filename, fileData) {
+
+  const processFile = () => {
+    filename = fileData.filename ? fileData.filename.replace(/^.*[\\\/]/, '') : filename
+    return fileData.data ? fileData.data : fileData
+  }
+
+  const data = processFile()
+  const fileBlob = new Blob([data], { type: 'application/octet-binary' })
   const url = URL.createObjectURL(fileBlob)
 
   const link = document.createElement('a')
