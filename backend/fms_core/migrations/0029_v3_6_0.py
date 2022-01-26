@@ -62,8 +62,11 @@ class Migration(migrations.Migration):
             """,
             migrations.RunSQL.noop
         ),
+        migrations.DeleteModel(
+            name='FullSample',
+        ),
         migrations.RunPython(
             update_property_optional_flag,
             reverse_code=migrations.RunPython.noop,
-        )
+        ),
     ]
