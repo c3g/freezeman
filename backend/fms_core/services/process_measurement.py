@@ -1,10 +1,11 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
 
+from fms_core.services.property_value import validate_non_optional_properties
 from fms_core.models import ProcessMeasurement
 
 
-def create_process_measurement(process, source_sample, execution_date, volume_used=None, comment=None):
+def create_process_measurement(process, source_sample, execution_date, volume_used=None, comment=None, process_measurement_properties=None,):
     process_measurement = None
     errors = []
     warnings = []
@@ -16,6 +17,12 @@ def create_process_measurement(process, source_sample, execution_date, volume_us
         errors.append(f"Source sample is required for process measurement creation.")
     if not execution_date:
         errors.append(f"Execution date is required for process measurement creation.")
+
+    # Validate properties
+    if process_measurement_properties:
+        is_valid, error_properties, _ = validate_non_optional_properties(process_measurement_properties)
+        if not is_valid:
+            errors.append(error_properties)
 
     if not errors:
         try:

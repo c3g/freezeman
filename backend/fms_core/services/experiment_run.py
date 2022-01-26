@@ -29,7 +29,9 @@ def create_experiment_run(experiment_run_name,
                                                                                 create_children=True, 
                                                                                 children_protocols=protocols_dict[main_protocol])
 
-    _, properties_errors, properties_warnings = create_process_properties(process_properties, processes_by_protocol_id)
+    # Create process' properties
+    if not process_errors:
+        properties, properties_errors, properties_warnings = create_process_properties(process_properties, processes_by_protocol_id)
 
     errors += process_errors + properties_errors
     warnings += process_warnings + properties_warnings
