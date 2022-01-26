@@ -2,17 +2,11 @@ from fms_core.models import Process, Protocol
 
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_update import SampleRowHandler
-
+from fms_core.templates import SAMPLE_UPDATE_TEMPLATE
 from .._utils import float_to_decimal_and_none
 
 class SampleUpdateImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'SampleUpdate',
-            'headers': ['Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
-                        'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment']
-        },
-    ]
+    SHEETS_INFO = SAMPLE_UPDATE_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()

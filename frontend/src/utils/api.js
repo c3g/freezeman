@@ -30,6 +30,10 @@ const api = {
       check:  (action, template) => post(`/containers/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/containers/template_submit/`, form({ action, template })),
     },
+    prefill: {
+      templates: () => get(`/containers/list_prefills/`),
+      request: (options, template) => get(`/containers/prefill_template/`, {template: template, ...options}),
+    },
     search: (q, { parent, sample_holding }) =>
       get("/containers/search/", { q, parent, sample_holding }),
   },
@@ -115,7 +119,11 @@ const api = {
       check:  (action, template) => post(`/samples/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/samples/template_submit/`, form({ action, template })),
     },
-    search: q => get("/samples/search/", { q }),
+    prefill: {
+      templates: () => get(`/samples/list_prefills/`),
+      request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
+    },
+    search: q => get("/full-samples/search/", { q }),
   },
 
   sampleKinds: {
@@ -253,9 +261,15 @@ function createAPIError(response) {
 
 function attachData(response) {
   const contentType = response.headers.get('content-type') || '' ;
+  const contentDispo = response.headers.get('content-disposition');
+  const filename = getFilenameOrNull(contentDispo)
+  if (filename)
+    response.filename = filename
+
   const isJSON = contentType.includes('/json')
   response.isJSON = isJSON
-  return (isJSON ? response.json() : response.text())
+  const isExcel = contentType.includes('/ms-excel')
+  return (isJSON ? response.json() : isExcel ? response.arrayBuffer() : response.text())
   .then(data => {
     response.data = data;
     return response;
@@ -264,6 +278,15 @@ function attachData(response) {
     response.data = {};
     return response;
   })
+}
+
+function getFilenameOrNull(contentDispo){
+  if(contentDispo)
+    return contentDispo.split('filename=').length > 1
+      ? contentDispo.split('filename=')[1].replace(/^.*[\\\/]/, '')
+      : null
+  else
+    return null
 }
 
 function form(params) {

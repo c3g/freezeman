@@ -2,17 +2,16 @@ from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
 from django.db.models import Func
 from django.conf import settings
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponse
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
 
-
 import json
 
 from fms_core.serializers import VersionSerializer
-
+from fms_core.template_prefiller.prefiller import PrefillTemplate
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -143,3 +142,49 @@ class TemplateActionsMixin:
         except Exception as e:
             raise(e)
         return Response(status=204)
+
+class TemplatePrefillsMixin:
+    # When this mixin is used, this list will be overridden to provide a list
+    # of templates that uses this viewset for prefilling part of the template
+    template_prefill_list = []
+
+    @action(detail=False, methods=["get"])
+    def list_prefills(self, request):
+        """
+        Endpoint off of the parent viewset for listing available template prefills.
+        """
+        templates_list = []
+        for template in self.template_prefill_list:  # Make a list out of the prefilable templates
+            template_dict = {}
+            template_dict["description"] = template["template"]["identity"]["description"]
+            templates_list.append(template_dict)
+        return Response(templates_list)
+
+    @action(detail=False, methods=["get"])
+    def prefill_template(self, request):
+        """
+        Endpoint off of the parent viewset for filling up the requested template and returning it.
+        """
+        template_id = request.GET.get("template")
+
+        try:
+            template = self.template_prefill_list[int(template_id)]["template"]
+        except (KeyError, ValueError):
+            # If the template index is out of bounds or not int-castable, return an error.
+            return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
+
+        queryset = self.filter_queryset(self.get_queryset())
+        template_path = request.build_absolute_uri(template["identity"]["file"])
+        try:
+            prefilled_template = PrefillTemplate(template_path, template, queryset)
+        except:
+            return HttpResponseBadRequest(json.dumps({"detail": f"Unexpected error while prefilling the template."}), content_type="application/json")
+
+        try:
+            response = HttpResponse(content=prefilled_template)
+            response["Content-Type"] = "application/ms-excel"
+            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
+        except Exception as err:
+              print(err)
+        return response
+        

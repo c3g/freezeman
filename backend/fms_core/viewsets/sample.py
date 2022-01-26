@@ -11,14 +11,19 @@ from fms_core.models import Sample, Container, Biosample, DerivedSample, Derived
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
-from fms_core.template_paths import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
 
-from ._utils import TemplateActionsMixin, _list_keys, versions_detail
+from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
+from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
+
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
 
+from rest_framework.response import Response
 
-class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+
+class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
     serializer_class = SampleSerializer
 
@@ -36,21 +41,31 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Add Samples",
             "description": "Upload the provided template with up to 384 new samples.",
-            "template": [{"description": "Template to add samples", "file": SAMPLE_SUBMISSION_TEMPLATE}],
+            "template": [SAMPLE_SUBMISSION_TEMPLATE["identity"]],
             "importer": SampleSubmissionImporter,
         },
         {
             "name": "Update Samples",
             "description": "Upload the provided template with up to 384 samples to update.",
-            "template": [{"description": "Template to update samples", "file": SAMPLE_UPDATE_TEMPLATE}],
+            "template": [SAMPLE_UPDATE_TEMPLATE["identity"]],
             "importer": SampleUpdateImporter,
         },
         {
             "name": "Sample Quality Control",
             "description": "Upload the provided template with samples that underwent a quality control.",
-            "template": [{"description": "Template to perform sample quality control", "file": SAMPLE_QC_TEMPLATE}],
+            "template": [SAMPLE_QC_TEMPLATE["identity"]],
             "importer": SampleQCImporter,
         },
+    ]
+
+    template_prefill_list = [
+        {"template": SAMPLE_UPDATE_TEMPLATE},
+        {"template": SAMPLE_QC_TEMPLATE},
+        {"template": PROJECT_LINK_SAMPLES_TEMPLATE},
+        {"template": SAMPLE_EXTRACTION_TEMPLATE},
+        {"template": SAMPLE_TRANSFER_TEMPLATE},
+        {"template": EXPERIMENT_INFINIUM_TEMPLATE},
+        {"template": EXPERIMENT_MGI_TEMPLATE},
     ]
 
     def get_queryset(self):

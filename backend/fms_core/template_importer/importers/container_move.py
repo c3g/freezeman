@@ -2,14 +2,10 @@ from fms_core.models import Process, Protocol
 
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_move import ContainerRowHandler
+from fms_core.templates import CONTAINER_MOVE_TEMPLATE
 
 class ContainerMoveImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'ContainerMove',
-            'headers': ['Container Barcode to move', 'Dest. Location Barcode', 'Dest. Location Coord', 'Update Comment'],
-        },
-    ]
+    SHEETS_INFO = CONTAINER_MOVE_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()

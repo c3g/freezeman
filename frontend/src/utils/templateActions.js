@@ -14,7 +14,7 @@ export const actionIcon = a => {
   if (n.includes("Process")) return <ExperimentOutlined />;
   if (n.includes("Link")) return <LinkOutlined/>;
   if (n.includes("Quality")) return <CheckCircleOutlined />;
-  return undefined;
+  return <DownloadOutlined />;
 };
 
 export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>

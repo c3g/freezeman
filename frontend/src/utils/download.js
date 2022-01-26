@@ -2,9 +2,8 @@
  * download.js
  */
 
-
-export function downloadFromText(filename, text) {
-  const fileBlob = new Blob([text], { type: 'application/octet-binary' })
+export function downloadFromFile(filename, fileData) {
+  const fileBlob = new Blob([fileData], { type: 'application/octet-binary' })
   const url = URL.createObjectURL(fileBlob)
 
   const link = document.createElement('a')
