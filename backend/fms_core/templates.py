@@ -68,7 +68,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
-  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_6_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Container Barcode", "container__barcode"),
@@ -76,7 +76,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
-  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_6_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Container Barcode", "container__barcode"),
