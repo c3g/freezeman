@@ -14,7 +14,7 @@ import ExportButton from "../ExportButton";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
-import {actionsToButtonList} from "../../utils/templateActions";
+import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withIndividual} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
@@ -209,7 +209,7 @@ const SamplesListContent = ({
   return <>
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
-      ...actionsToButtonList("/samples", actions),
+      actionDropdown("/samples", actions),
       prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
       <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>

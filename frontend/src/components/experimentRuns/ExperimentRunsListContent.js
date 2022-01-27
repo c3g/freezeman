@@ -16,7 +16,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
-import {actionsToButtonList} from "../../utils/templateActions";
+import {actionDropdown} from "../../utils/templateActions";
 
 
 const getTableColumns = (containersByID, runTypes, instruments) => [
@@ -138,7 +138,7 @@ const ExperimentRunsListContent = ({
 
   return <>
     <AppPageHeader title="Experiments" extra={[
-        ...actionsToButtonList("/experiment-runs", actions),
+        actionDropdown("/experiment-runs", actions),
         <ExportButton key='export' exportFunction={listExport} filename="experiments"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
