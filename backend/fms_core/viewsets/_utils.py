@@ -1,8 +1,8 @@
 from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
 from django.db.models import Func
-from django.conf import settings
 from django.http import HttpResponseBadRequest, HttpResponse
+from django.contrib.staticfiles import finders
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -174,17 +174,20 @@ class TemplatePrefillsMixin:
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
         queryset = self.filter_queryset(self.get_queryset())
-        template_path = request.build_absolute_uri(template["identity"]["file"])
+        filename = "/".join(template["identity"]["file"].split("/")[2:]) # Remove the /static/ from the served path to search for local path 
+        template_path = finders.find(filename)    
+
         try:
             prefilled_template = PrefillTemplate(template_path, template, queryset)
-        except:
+        except Exception as err:
             return HttpResponseBadRequest(json.dumps({"detail": f"Unexpected error while prefilling the template."}), content_type="application/json")
-
+        
         try:
             response = HttpResponse(content=prefilled_template)
             response["Content-Type"] = "application/ms-excel"
             response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
         except Exception as err:
-              print(err)
+            return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
+        
         return response
         
