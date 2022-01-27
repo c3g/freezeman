@@ -15,6 +15,7 @@ __all__ = [
     "SAMPLE_UPDATE_TEMPLATE",
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
+    "SAMPLE_SELECTION_QPCR_TEMPLATE",
     "PROJECT_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
 ]
@@ -155,6 +156,20 @@ SAMPLE_TRANSFER_TEMPLATE = {
       ("SampleTransfer", "Source Container Coord", "coordinates"),],
 }
 
+SAMPLE_SELECTION_QPCR_TEMPLATE = {
+  "identity": {"description": "Template to select samples using qPCR","file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Samples',
+          'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Coord',
+                      'Verification Container Coord', 'CT Value (Experimental)', 'CT Value (Control)', 'Status', 'Source Depleted',
+                      'qPCR Date', 'Comment'],
+      },],
+  "prefill info": [
+      ("Samples", "Sample Container Barcode", "container__barcode"),
+      ("Samples", "Sample Container Coord", "coordinates"),],
+}
+
 PROJECT_LINK_SAMPLES_TEMPLATE = {
   "identity": {"description": "Template to link samples to projects","file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
   "sheets info": [
@@ -167,4 +182,3 @@ PROJECT_LINK_SAMPLES_TEMPLATE = {
       ("ProjectLinkSamples", "Sample Container Coord", "coordinates"),
       ("ProjectLinkSamples", "Sample Name", "name"),],
 }
-
