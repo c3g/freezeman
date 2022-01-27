@@ -33,7 +33,7 @@ CONTAINER_CREATION_TEMPLATE = {
 }
 
 CONTAINER_MOVE_TEMPLATE = {
-  "identity": {"description": "Template to move containers", "file": static("submission_templates/Container_move_v3_5_0.xlsx")},
+  "identity": {"description": "Template to move containers", "file": static("submission_templates/Container_move_v3_6_0.xlsx")},
   "sheets info": [
       {
           'name': 'ContainerMove',
