@@ -98,7 +98,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
 }
 
 SAMPLE_UPDATE_TEMPLATE = {
-  "identity": {"description": "Template to update samples","file": static("submission_templates/Sample_update_v3_5_0.xlsx")},
+  "identity": {"description": "Template to update samples", "file": static("submission_templates/Sample_update_v3_5_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleUpdate',
@@ -142,7 +142,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {
-  "identity": {"description": "Template to transfer samples","file": static("submission_templates/Sample_transfer_v3_5_0.xlsx")},
+  "identity": {"description": "Template to transfer samples", "file": static("submission_templates/Sample_transfer_v3_5_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleTransfer',
@@ -157,7 +157,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
-  "identity": {"description": "Template to select samples using qPCR","file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
+  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
   "sheets info": [
       {
           'name': 'Samples',
@@ -171,7 +171,7 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
 }
 
 PROJECT_LINK_SAMPLES_TEMPLATE = {
-  "identity": {"description": "Template to link samples to projects","file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
+  "identity": {"description": "Template to link samples to projects", "file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
   "sheets info": [
       {
           'name': 'ProjectLinkSamples',
