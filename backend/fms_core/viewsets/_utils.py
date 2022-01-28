@@ -176,7 +176,7 @@ class TemplatePrefillsMixin:
 
         queryset = self.filter_queryset(self.get_queryset())
         try:
-            filename = "/".join(template["identity"]["file"].split("/")[2:]) # Remove the /static/ from the served path to search for local path 
+            filename = "/".join(template["identity"]["file"].split("/")[-2:]) # Remove the /static/ from the served path to search for local path 
             template_path = os.path.join(settings.STATIC_ROOT, filename)
         
             prefilled_template = PrefillTemplate(template_path, template, queryset)
