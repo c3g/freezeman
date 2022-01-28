@@ -160,8 +160,8 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
   "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
   "sheets info": [
       {
-          'name': 'SampleSelectionQPCR',
-          'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Coord',
+          'name': 'Samples',
+          'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Barcode',
                       'Verification Container Coord', 'CT Value (Experimental)', 'CT Value (Control)', 'Status', 'Source Depleted',
                       'qPCR Date', 'Comment'],
       },],
