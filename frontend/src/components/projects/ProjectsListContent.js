@@ -13,7 +13,7 @@ import LinkButton from "../LinkButton";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
-import {actionsToButtonList} from "../../utils/templateActions";
+import {actionDropdown} from "../../utils/templateActions";
 import {withContainer, withIndividual} from "../../utils/withItem";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -123,7 +123,7 @@ const ProjectsListContent = ({
   return <>
     <AppPageHeader title="Projects" extra={[
       <AddButton key='add' url="/projects/add" />,
-      ...actionsToButtonList("/projects", actions),
+      actionDropdown("/projects", actions),
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
