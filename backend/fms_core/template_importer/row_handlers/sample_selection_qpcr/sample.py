@@ -23,6 +23,12 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
                 depleted = True
             elif sample['depleted'] == 'NO':
                 depleted = False
+
+            if (process_measurement['volume_used']):
+                new_volume = sample_obj.volume - process_measurement['volume_used']
+            else:
+                self.errors['volume'] = 'Volume used is required.'
+
             
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -41,5 +47,5 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
 
             if sample['depleted']:
                 _, self.errors['sample_update'], self.warnings['sample_update'] = \
-                    update_sample(sample_to_update=sample_obj, depleted=depleted)
+                    update_sample(sample_to_update=sample_obj, volume=new_volume, depleted=depleted)
 

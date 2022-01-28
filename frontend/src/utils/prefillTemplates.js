@@ -4,7 +4,7 @@ import {Link} from "react-router-dom";
 import PrefillTemplateButton from "../components/PrefillTemplateButton";
 
 import {Button, Menu, Dropdown, Modal} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, ExclamationCircleOutlined, SelectOutlined} from "@ant-design/icons";
 
 export const templateIcon = t => {
   const n = t.description || t
@@ -16,6 +16,7 @@ export const templateIcon = t => {
   if (n.includes("extract")) return <ExperimentOutlined />;
   if (n.includes("link")) return <LinkOutlined/>;
   if (n.includes("quality")) return <CheckCircleOutlined />;
+  if (n.includes("qPCR")) return <SelectOutlined />;
   return undefined;
 };
 
