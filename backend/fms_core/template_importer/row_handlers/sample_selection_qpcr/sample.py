@@ -18,7 +18,7 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
             coordinates=sample['coordinates'],
         )
 
-        if sample_obj:         
+        if sample_obj:
             if not process_measurement['volume_used']:
                 self.errors['volume used'] = 'Volume used is required.'
             else:
@@ -38,9 +38,8 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
                         process_measurement_obj)
 
                     # Update sample with Depleted and volume new values
-                    depleted = check_truth_like(sample['depleted']) if check_truth_like(sample['depleted']) else None
+                    depleted = check_truth_like(sample['depleted']) if sample['depleted'] and check_truth_like(sample['depleted']) else None
                     new_volume = sample_obj.volume - process_measurement['volume_used']
                     
                     _, self.errors['sample_update'], self.warnings['sample_update'] = \
                         update_sample(sample_to_update=sample_obj, volume=new_volume, depleted=depleted)
-
