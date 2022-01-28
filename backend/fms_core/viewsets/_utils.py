@@ -2,13 +2,14 @@ from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
 from django.db.models import Func
 from django.http import HttpResponseBadRequest, HttpResponse
-from django.contrib.staticfiles import finders
+from django.conf import settings
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from reversion.models import Version
 
 import json
+import os
 
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate
@@ -174,13 +175,13 @@ class TemplatePrefillsMixin:
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
         queryset = self.filter_queryset(self.get_queryset())
-        filename = "/".join(template["identity"]["file"].split("/")[2:]) # Remove the /static/ from the served path to search for local path 
-        template_path = finders.find(filename)    
-
         try:
+            filename = "/".join(template["identity"]["file"].split("/")[2:]) # Remove the /static/ from the served path to search for local path 
+            template_path = os.path.join(settings.STATIC_ROOT, filename)
+        
             prefilled_template = PrefillTemplate(template_path, template, queryset)
         except Exception as err:
-            return HttpResponseBadRequest(json.dumps({"detail": f"Unexpected error while prefilling the template."}), content_type="application/json")
+            return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
         
         try:
             response = HttpResponse(content=prefilled_template)

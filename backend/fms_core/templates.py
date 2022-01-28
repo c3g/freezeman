@@ -44,7 +44,7 @@ CONTAINER_MOVE_TEMPLATE = {
 }
 
 CONTAINER_RENAME_TEMPLATE = {
-  "identity": {"description": "Template to rename containers", "file": static("submission_templates/Container_rename_v3_5_0.xlsx")},
+  "identity": {"description": "Template to rename containers", "file": static("submission_templates/Container_rename_v3_6_0.xlsx")},
   "sheets info": [
       {
           'name': 'ContainerRename',
