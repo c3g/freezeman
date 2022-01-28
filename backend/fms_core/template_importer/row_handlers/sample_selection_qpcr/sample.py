@@ -18,6 +18,11 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
 
         if sample_obj:
             # Update sample if Depleted
+            depleted = None
+            if sample['depleted'] == 'YES':
+                depleted = True
+            elif sample['depleted'] == 'NO':
+                depleted = False
             
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -36,5 +41,5 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
 
             if sample['depleted']:
                 _, self.errors['sample_update'], self.warnings['sample_update'] = \
-                    update_sample(sample_to_update=sample_obj, depleted=sample['depleted'])
+                    update_sample(sample_to_update=sample_obj, depleted=depleted)
 
