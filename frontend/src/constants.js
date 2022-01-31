@@ -37,9 +37,16 @@ export const TAXON = [
   "Sars-Cov-2",
 ]
 
-export const STATUS = [
+export const PROJECT_STATUS = [
   "Open",
   "Closed",
+]
+
+export const QPCR_SELECTION_STATUS = [
+  "Positive",
+  "Negative",
+  "Inconclusive",
+  "Invalid",
 ]
 
 export const DATE_FORMAT = "YYYY-MM-DD"
