@@ -1,8 +1,8 @@
 import React from "react";
 import {Link} from "react-router-dom";
 
-import {Button} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined} from "@ant-design/icons";
+import {Button, Menu, Dropdown} from "antd";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined} from "@ant-design/icons";
 
 export const actionIcon = a => {
   const n = a.name || a
@@ -14,6 +14,7 @@ export const actionIcon = a => {
   if (n.includes("Process")) return <ExperimentOutlined />;
   if (n.includes("Link")) return <LinkOutlined/>;
   if (n.includes("Quality")) return <CheckCircleOutlined />;
+  if (n.includes("qPCR")) return <SelectOutlined />;
   return <DownloadOutlined />;
 };
 
@@ -23,6 +24,27 @@ export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
       <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width: "100%"}} : {})}>{a.name}</Button>
     </Link>
   );
+
+export const actionDropdown = (urlBase, actions, fullWidth=false) => {
+  const actionMenu = (
+    <Menu>
+      { actions.items ? actions.items.map((a, i) =>
+          <Menu.Item key={i.toString()}>
+            <Link key={i.toString()} to={`${urlBase}/actions/${i}/`}>
+              <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width: "100%"}} : {})}>{a.name}</Button>
+            </Link>
+          </Menu.Item>) :
+          <Menu.Item>Loading ...</Menu.Item>
+      }
+    </Menu>
+  );
+
+  return (<Dropdown overlay={actionMenu} placement="bottomRight">
+            <Button>
+              <MonitorOutlined />  Available Actions
+            </Button>
+          </Dropdown>)
+};
 
 export const templateActionsReducerFactory = moduleActions => (
   state = {
