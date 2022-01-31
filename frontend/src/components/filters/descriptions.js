@@ -114,6 +114,20 @@ export const SAMPLE_FILTERS = {
     width: 250,
     detached: true,
   },
+  qPCR_status: {
+    type: FILTER_TYPE.SELECT,
+    key: "qPCR_status",
+    label: "qPCR Selection Status",
+    placeholder: "All",
+    mode: "multiple",
+    options: [
+      { label: "Positive", value: "Positive" },
+      { label: "Negative",  value: "Negative"},
+      { label: "Inconclusive", value: "Inconclusive" },
+      { label: "Invalid",  value: "Invalid"},
+    ],
+    detached:true,
+  },
 }
 
 export const CONTAINER_FILTERS = {
