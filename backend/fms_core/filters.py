@@ -1,7 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Individual, Sample, PropertyValue, ProcessMeasurement
-from django.contrib.contenttypes.models import ContentType
+from .models import Container, Individual, Sample, PropertyValue
 
 import django_filters
 
@@ -54,8 +53,7 @@ class SampleFilter(GenericFilter):
         return query_set
 
     def process_measurement_properties_filter(self, queryset, name, value):
-        property_values = PropertyValue.objects.filter(content_type=ContentType.objects.get_for_model(ProcessMeasurement),
-                                                           property_type__name='qPCR Status')
+        property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
         condition = Q()
         for status in value.split(','):
             condition |= Q(value__icontains=status)
