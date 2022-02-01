@@ -47,6 +47,8 @@ class SampleSelectionQPCRImporter(GenericImporter):
             #Populate process properties
             for i, (key, val) in enumerate(row_data.items()):
                 if key in TEMPLATE_PROPERTY_MAPPING.keys():
+                    if "CT Value" in key:
+                        val = float_to_decimal_and_none(val)
                     process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample = {
@@ -64,6 +66,7 @@ class SampleSelectionQPCRImporter(GenericImporter):
 
             sample_selection_qpcr_kwargs = dict(
                 sample=sample,
+                sample_information=dict(),
                 process_measurement=process_measurement,
                 process_measurement_properties=process_measurement_properties,
             )

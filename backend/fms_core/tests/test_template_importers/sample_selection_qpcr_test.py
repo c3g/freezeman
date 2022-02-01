@@ -24,8 +24,8 @@ class SampleSelectionQPCRTestCase(TestCase):
                                 "sample_new_depleted": False,
                                 "date": datetime.datetime(2022, 1, 28, 0, 0),
                                 "type": "Roche LightCycle SaberCoV E-gene assay",
-                                "ct_value_exp_1": "0.5",
-                                "ct_value_control": "0.5",
+                                "ct_value_exp_1": "0.500",
+                                "ct_value_control": "0.500",
                                 "status": "Positive"}
 
         self.negative_sample = {"sample_name": "SampleTestQPCR2",
@@ -34,9 +34,9 @@ class SampleSelectionQPCRTestCase(TestCase):
                                 "sample_new_depleted": True,
                                 "date": datetime.datetime(2022, 1, 28, 0, 0),
                                 "type": "NEB Luna SARS-Cov2 Multiplex assay",
-                                "ct_value_exp_1": "46.23",
-                                "ct_value_exp_2": "32.5",
-                                "ct_value_control": "25",
+                                "ct_value_exp_1": "46.230",
+                                "ct_value_exp_2": "32.500",
+                                "ct_value_control": "25.000",
                                 "status": "Negative"}
 
         self.prefill_data()
