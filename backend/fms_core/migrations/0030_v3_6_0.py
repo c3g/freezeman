@@ -22,7 +22,8 @@ def create_qpcr_objects(apps, schema_editor):
         PROPERTY_TYPES_BY_PROTOCOL = {
             "Sample Selection using qPCR": [
                                   ("qPCR Type", "str"),
-                                  ("CT Value (Experimental)", "str"),
+                                  ("CT Value (Experimental) 1", "str"),
+                                  ("CT Value (Experimental) 2", "str"),
                                   ("CT Value (Control)", "str"),
                                   ("qPCR Status", "str"),
                                  ]
@@ -34,7 +35,7 @@ def create_qpcr_objects(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                if property == 'CT Value (Control)':
+                if property == 'CT Value (Control)' or property == 'CT Value (Experimental) 2':
                     is_optional = True
                 else:
                     is_optional = False
