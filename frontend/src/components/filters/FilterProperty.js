@@ -18,13 +18,15 @@ const FilterProperty = ({
 }) => {
   const [propertyName, setPropertyName] = useState([]);
 
+  //Property Name
   const handleNameChange = name => {
     setPropertyName(name)
   }
 
+  //Property Value, which applies the filter
   const handleValueChange = ev => {
     propertyValue = typeof ev === 'string' ? ev : ev.target.value
-    onChange(item, propertyValue === EMPTY_VALUE ? null : [propertyValue], options = { propertyName: propertyName})
+    onChange(item, propertyValue, options = { propertyName: propertyName})
   }
 
   const element =

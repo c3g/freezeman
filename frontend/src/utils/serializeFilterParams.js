@@ -79,6 +79,8 @@ export default function serializeFilterParams(filters, descriptions) {
           params[key] = propertyName
           params["property_value"] = value
         }
+        //add new field to include the propertyName
+        description.propertyName = propertyName
         break;
       }
 

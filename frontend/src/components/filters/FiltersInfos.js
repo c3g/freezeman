@@ -36,11 +36,18 @@ const FiltersInfos = ({
     }
   }
 
+  const getLabel = (key) => {
+    if(description[key].type === FILTER_TYPE.PROPERTY)
+      return description[key].propertyName
+    else
+      return description[key].label
+  }
+
   return (
     <>
       {appliedFilters.map(key => (
         <div>
-          <strong>{description[key].label}: </strong>
+          <strong>{getLabel(key)}: </strong>
           {getValue(key)}
         </div>
       ))}
