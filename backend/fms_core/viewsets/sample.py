@@ -81,7 +81,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
 
-        qPCR_status = self.request.query_params.get('qPCR_status__in')
 
         if recursive:
             containers = Container.objects.all()
@@ -107,14 +106,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                                                                SELECT * FROM parent''', params=[container_ids])
 
             return self.queryset.filter(container__in=parent_containers)
-
-        if qPCR_status:
-            property_values = PropertyValue.objects.filter(content_type=ContentType.objects.get_for_model(ProcessMeasurement), property_type__name='qPCR Status')
-            condition = Q()
-            for status in qPCR_status.split(','):
-                condition |= Q(value=status)
-            process_measurements_ids = property_values.filter(condition).values('object_id')
-            return self.queryset.filter(process_measurement__in=process_measurements_ids)
 
         return self.queryset
 

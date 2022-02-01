@@ -42,11 +42,8 @@ export const PROJECT_STATUS = [
   "Closed",
 ]
 
-export const QPCR_SELECTION_STATUS = [
-  "Positive",
-  "Negative",
-  "Inconclusive",
-  "Invalid",
+export const PROPERTY_NAMES = [
+  "qPCR Status",
 ]
 
 export const DATE_FORMAT = "YYYY-MM-DD"

@@ -73,6 +73,15 @@ export default function serializeFilterParams(filters, descriptions) {
         break;
       }
 
+      case FILTER_TYPE.PROPERTY: {
+        const propertyName = description.options[0]?.value
+        if(value && propertyName){
+          params[key] = propertyName
+          params["property_value"] = value
+        }
+        break;
+      }
+
       default: {
         throw new Error('Invalid filter type')
       }

@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
+import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, PROPERTY_NAMES} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   id: {
@@ -114,13 +114,12 @@ export const SAMPLE_FILTERS = {
     width: 250,
     detached: true,
   },
-  qPCR_status: {
-    type: FILTER_TYPE.SELECT,
-    key: "qPCR_status",
-    label: "qPCR Selection Status",
-    placeholder: "All",
-    mode: "multiple",
-    options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
+  property_name: {
+    type: FILTER_TYPE.PROPERTY,
+    key: "property_name",
+    label: "Property Name",
+    placeholder: "Choose property",
+    options: PROPERTY_NAMES.map(x => ({ label: x, value: x })),
     detached:true,
   },
 }

@@ -43,7 +43,7 @@ const FilterSelect = ({
     }
     element =
       <Select
-        size='small' 
+        size='small'
         style={{ width: 200 }}
         mode={item.mode}
         placeholder={item.placeholder}

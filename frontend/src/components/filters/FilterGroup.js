@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import FilterSelect from "./FilterSelect";
 import FilterRange from "./FilterRange";
 import FilterInput from "./FilterInput";
+import FilterProperty from "./FilterProperty";
 import {FILTER_TYPE} from "../../constants";
 
 const style = {}
@@ -67,6 +68,17 @@ const FilterGroup = ({
                   onChange={onChangeFilter}
                 />
               );
+            case FILTER_TYPE.PROPERTY:
+              return(
+                <FilterProperty
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  options={optionsForSelect(item)}
+                  propertyValue={values[item.key]?.value}
+                  onChange={onChangeFilter}
+                />
+              )
             default:
               throw new Error('Filter type not handled');
           }
