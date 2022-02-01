@@ -8,7 +8,8 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
     "qPCR Type": "qPCR Type",
-    "CT Value (Experimental)": "CT Value (Experimental)",
+    "CT Value (Experimental) 1": "CT Value (Experimental) 1",
+    "CT Value (Experimental) 2": "CT Value (Experimental) 2",
     "CT Value (Control)": "CT Value (Control)",
     "Status": "qPCR Status",
 }
@@ -46,18 +47,14 @@ class SampleSelectionQPCRImporter(GenericImporter):
             #Populate process properties
             for i, (key, val) in enumerate(row_data.items()):
                 if key in TEMPLATE_PROPERTY_MAPPING.keys():
+                    if "CT Value" in key:
+                        val = float_to_decimal_and_none(val)
                     process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample = {
                 'coordinates': row_data['Sample Container Coord'],
                 'container': {'barcode': row_data['Sample Container Barcode']},
                 'depleted': row_data['Source Depleted'],
-            }
-            sample_information = {
-                'qpcr_type': row_data['qPCR Type'],
-                'ct_value_experimental': float_to_decimal_and_none(row_data['CT Value (Experimental)']),
-                'ct_value_control': float_to_decimal_and_none(row_data['CT Value (Experimental)']),
-                'qpcr_status': row_data['Status'],
             }
 
             process_measurement = {
@@ -69,7 +66,7 @@ class SampleSelectionQPCRImporter(GenericImporter):
 
             sample_selection_qpcr_kwargs = dict(
                 sample=sample,
-                sample_information=sample_information,
+                sample_information=dict(),
                 process_measurement=process_measurement,
                 process_measurement_properties=process_measurement_properties,
             )

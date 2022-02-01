@@ -162,7 +162,7 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
       {
           'name': 'Samples',
           'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Barcode',
-                      'Verification Container Coord', 'CT Value (Experimental)', 'CT Value (Control)', 'Status', 'Source Depleted',
+                      'Verification Container Coord', 'CT Value (Experimental) 1', 'CT Value (Experimental) 2', 'CT Value (Control)', 'Status', 'Source Depleted',
                       'qPCR Date', 'Comment'],
       },],
   "prefill info": [

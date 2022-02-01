@@ -23,9 +23,9 @@ class SampleSelectionQPCRTestCase(TestCase):
                                 "process_volume_used": 2,
                                 "sample_new_depleted": False,
                                 "date": datetime.datetime(2022, 1, 28, 0, 0),
-                                "type": "qPCR COVID kit",
-                                "ct_value_exp": "0.5",
-                                "ct_value_control": "0.5",
+                                "type": "Roche LightCycle SaberCoV E-gene assay",
+                                "ct_value_exp_1": "0.500",
+                                "ct_value_control": "0.500",
                                 "status": "Positive"}
 
         self.negative_sample = {"sample_name": "SampleTestQPCR2",
@@ -33,9 +33,10 @@ class SampleSelectionQPCRTestCase(TestCase):
                                 "process_volume_used": 5,
                                 "sample_new_depleted": True,
                                 "date": datetime.datetime(2022, 1, 28, 0, 0),
-                                "type": "qPCR COVID kit",
-                                "ct_value_exp": "46.23",
-                                "ct_value_control": "25",
+                                "type": "NEB Luna SARS-Cov2 Multiplex assay",
+                                "ct_value_exp_1": "46.230",
+                                "ct_value_exp_2": "32.500",
+                                "ct_value_control": "25.000",
                                 "status": "Negative"}
 
         self.prefill_data()
@@ -79,7 +80,7 @@ class SampleSelectionQPCRTestCase(TestCase):
         self.assertEqual(pm.comment, 'This is a QPCR comment.')
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='CT Value (Experimental)', object_id=pm.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='CT Value (Experimental) 1', object_id=pm.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm.id)
 
         pt_2 = PropertyType.objects.get(name='CT Value (Control)', object_id=pm.process.protocol.id)
@@ -91,7 +92,7 @@ class SampleSelectionQPCRTestCase(TestCase):
         pt_4 = PropertyType.objects.get(name='qPCR Type', object_id=pm.process.protocol.id)
         p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm.id)
 
-        self.assertEqual(p_1.value, self.positive_sample["ct_value_exp"])
+        self.assertEqual(p_1.value, self.positive_sample["ct_value_exp_1"])
         self.assertEqual(p_2.value, self.positive_sample["ct_value_control"])
         self.assertEqual(p_3.value, self.positive_sample["status"])
         self.assertEqual(p_4.value, self.positive_sample["type"])
@@ -110,7 +111,7 @@ class SampleSelectionQPCRTestCase(TestCase):
         self.assertEqual(pm.comment, 'This is not a Covid Positive.')
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='CT Value (Experimental)', object_id=pm.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='CT Value (Experimental) 1', object_id=pm.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm.id)
 
         pt_2 = PropertyType.objects.get(name='CT Value (Control)', object_id=pm.process.protocol.id)
@@ -122,10 +123,14 @@ class SampleSelectionQPCRTestCase(TestCase):
         pt_4 = PropertyType.objects.get(name='qPCR Type', object_id=pm.process.protocol.id)
         p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm.id)
 
-        self.assertEqual(p_1.value, self.negative_sample["ct_value_exp"])
+        pt_5 = PropertyType.objects.get(name='CT Value (Experimental) 2', object_id=pm.process.protocol.id)
+        p_5 = PropertyValue.objects.get(property_type_id=pt_5, object_id=pm.id)
+
+        self.assertEqual(p_1.value, self.negative_sample["ct_value_exp_1"])
         self.assertEqual(p_2.value, self.negative_sample["ct_value_control"])
         self.assertEqual(p_3.value, self.negative_sample["status"])
         self.assertEqual(p_4.value, self.negative_sample["type"])
+        self.assertEqual(p_5.value, self.negative_sample["ct_value_exp_2"])
 
 
 

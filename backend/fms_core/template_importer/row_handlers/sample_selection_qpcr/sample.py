@@ -12,7 +12,7 @@ class SampleSelectionQPCRRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, sample, sample_information, process_measurement, process_measurement_properties):
+    def process_row_inner(self, sample,  sample_information, process_measurement, process_measurement_properties):
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
