@@ -1,6 +1,7 @@
 from django.db.models import Q
 
-from .models import Container, Individual, Sample
+from .models import Container, Individual, Sample, PropertyValue, ProcessMeasurement
+from django.contrib.contenttypes.models import ContentType
 
 import django_filters
 
@@ -43,6 +44,7 @@ class ContainerFilter(GenericFilter):
 class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_container_barcode_filter")
+    qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
 
     def batch_container_barcode_filter(self, queryset, name, value):
         query = Q()
@@ -50,6 +52,17 @@ class SampleFilter(GenericFilter):
             query |= Q(container__barcode=v)
         query_set = queryset.filter(query)
         return query_set
+
+    def process_measurement_properties_filter(self, queryset, name, value):
+        property_values = PropertyValue.objects.filter(content_type=ContentType.objects.get_for_model(ProcessMeasurement),
+                                                           property_type__name='qPCR Status')
+        condition = Q()
+        for status in value.split(','):
+            condition |= Q(value__icontains=status)
+            process_measurements_ids = property_values.filter(condition).values('object_id')
+            return queryset.filter(process_measurement__in=process_measurements_ids)
+        else:
+            return queryset
 
     class Meta:
         model = Sample
