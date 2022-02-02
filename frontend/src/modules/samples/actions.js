@@ -18,6 +18,7 @@ export const CLEAR_FILTERS         = "SAMPLES.CLEAR_FILTERS";
 export const LIST_VERSIONS         = createNetworkActionTypes("SAMPLES.LIST_VERSIONS");
 export const LIST_KINDS            = createNetworkActionTypes("SAMPLES.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES.LIST_TEMPLATE_ACTIONS");
+export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("SAMPLES.LIST_PREFILL_TEMPLATES");
 export const SUMMARY               = createNetworkActionTypes("SAMPLES.SUMMARY");
 
 export const get = id => async (dispatch, getState) => {
@@ -123,6 +124,11 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.samples.template.actions()));
 };
 
+export const listPrefillTemplates = () => (dispatch, getState) => {
+  if (getState().samplePrefillTemplates.isFetching) return;
+  return dispatch(networkAction(LIST_PREFILL_TEMPLATES, api.samples.prefill.templates()));
+};
+
 export const listVersions = (id) => async (dispatch, getState) => {
     const sample = getState().samples.itemsByID[id];
     if (!sample || sample.isFetching) return;
@@ -151,6 +157,7 @@ export default {
     LIST_VERSIONS,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
+    LIST_PREFILL_TEMPLATES,
     get,
     add,
     update,
@@ -164,6 +171,7 @@ export default {
     listVersions,
     listKinds,
     listTemplateActions,
+    listPrefillTemplates,
     summary,
 };
 

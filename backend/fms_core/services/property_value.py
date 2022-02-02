@@ -6,6 +6,13 @@ def create_process_properties(properties, processes_by_protocol_id):
     errors = []
     warnings = []
 
+    is_valid, errors_properties, warnings_properties = \
+        validate_non_optional_properties(properties)
+
+    if not is_valid:
+        errors += errors_properties
+        return (None, errors, warnings)
+
     # Create property values for ExperimentRun
     for value_dict in properties.values():
         property_type = value_dict['property_type_obj']
@@ -29,6 +36,13 @@ def create_process_measurement_properties(properties, process_measurement):
     property_values = []
     errors = []
     warnings = []
+
+    is_valid, errors_properties, warnings_properties = \
+        validate_non_optional_properties(properties)
+
+    if not is_valid:
+        errors += errors_properties
+        return (None, errors, warnings)
 
     # Create property values for Process Measurement
     for value_dict in properties.values():

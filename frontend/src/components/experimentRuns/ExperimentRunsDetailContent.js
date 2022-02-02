@@ -73,6 +73,7 @@ const ExperimentRunsDetailContent = ({
     listPropertyValues({object_id__in: processIDSAsStr, content_type__model: "process"})
   }
 
+  const process = processesByID[experimentRun.process]
 
   return (
     <>
@@ -112,12 +113,21 @@ const ExperimentRunsDetailContent = ({
                           {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
                       </Link>}
               </Descriptions.Item>
+              {process?.comment &&
+                <Descriptions.Item label="Comment">
+                    {process.comment}
+                </Descriptions.Item>
+               }
             </Descriptions>
 
           <TrackingFieldsContent entity={experimentRun}/>
           </TabPane>
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
+            <ExperimentRunsProperties
+              propertyIDs={processesByID[experimentRun.process]?.children_properties}
+              protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
+            />
             {experimentRun.children_processes?.map((id, i) => {
                 const process = processesByID[id]
                 return ( process &&

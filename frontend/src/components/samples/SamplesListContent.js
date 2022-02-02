@@ -14,7 +14,8 @@ import ExportButton from "../ExportButton";
 import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
-import {actionsToButtonList} from "../../utils/templateActions";
+import {actionDropdown} from "../../utils/templateActions";
+import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withIndividual} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -36,12 +37,12 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Kind",
-      dataIndex: "sample_kind__name",
+      dataIndex: "derived_samples__sample_kind__name",
       sorter: true,
       width: 80,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
-        <Tag>{sampleKinds.itemsByID[sample.sample_kind].name}</Tag>,
+        <Tag>{sampleKinds.itemsByID[sample.sample_kind]?.name}</Tag>,
     },
     {
       title: "Name",
@@ -57,7 +58,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     },
     {
       title: "Individual",
-      dataIndex: "individual__name",
+      dataIndex: "derived_samples__biosample__individual__name",
       sorter: true,
       render: (_, sample) => {
         const individual = sample.individual
@@ -149,6 +150,7 @@ const mapStateToProps = state => ({
   samples: state.samples.items,
   sampleKinds: state.sampleKinds,
   actions: state.sampleTemplateActions,
+  prefills: state.samplePrefillTemplates,
   page: state.samples.page,
   totalCount: state.samples.totalCount,
   isFetching: state.samples.isFetching,
@@ -167,6 +169,7 @@ const SamplesListContent = ({
   samplesByID,
   sampleKinds,
   actions,
+  prefills,
   isFetching,
   page,
   totalCount,
@@ -187,6 +190,11 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
 
+  const prefillTemplate = ({template}) =>
+    withToken(token, api.samples.prefill.request)
+    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
+      .then(response => response)
+
   const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
   .map(c => Object.assign(c, getFilterProps(
     c,
@@ -201,7 +209,8 @@ const SamplesListContent = ({
   return <>
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
-      ...actionsToButtonList("/samples", actions),
+      actionDropdown("/samples", actions),
+      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
       <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

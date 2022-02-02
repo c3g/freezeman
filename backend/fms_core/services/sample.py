@@ -159,7 +159,8 @@ def transfer_sample(process: Process,
                     execution_date: datetime.date,
                     coordinates_destination=None,
                     volume_destination=None,
-                    source_depleted: bool=None):
+                    source_depleted: bool=None,
+                    comment=None):
     sample_destination=None
     errors = []
     warnings = []
@@ -193,7 +194,7 @@ def transfer_sample(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                volume=volume_destination if volume_destination else volume_used,
+                volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
 
@@ -208,7 +209,8 @@ def transfer_sample(process: Process,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
                                                                                    execution_date,
-                                                                                   volume_used)
+                                                                                   volume_used,
+                                                                                   comment)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 
@@ -227,7 +229,8 @@ def extract_sample(process: Process,
                    sample_kind_destination,
                    coordinates_destination=None,
                    volume_destination=None,
-                   source_depleted: bool=None):
+                   source_depleted: bool=None,
+                   comment=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -261,7 +264,7 @@ def extract_sample(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                volume=volume_destination if volume_destination else volume_used,
+                volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
             if concentration_destination:
@@ -285,7 +288,8 @@ def extract_sample(process: Process,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
                                                                                    execution_date,
-                                                                                   volume_used)
+                                                                                   volume_used,
+                                                                                   comment)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
         except Exception as e:
@@ -299,7 +303,8 @@ def _process_sample(process,
                     derived_samples_destination,
                     volume_ratios,
                     execution_date,
-                    volume_used):
+                    volume_used,
+                    comment=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -315,7 +320,8 @@ def _process_sample(process,
         process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
                                                                                  source_sample=sample_source,
                                                                                  execution_date=execution_date,
-                                                                                 volume_used=volume_used)
+                                                                                 volume_used=volume_used,
+                                                                                 comment=comment)
         errors.extend(errors_pm)
         warnings.extend(warnings_pm)
 

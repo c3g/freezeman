@@ -2,7 +2,7 @@ from fms_core.models import Process, Protocol, PropertyType
 
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
-
+from fms_core.templates import SAMPLE_QC_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
@@ -17,15 +17,7 @@ TEMPLATE_PROPERTY_MAPPING = {
 }
 
 class SampleQCImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'SampleQC',
-            'headers': ['Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
-                        'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
-                        'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                        'Quantity Flag', 'QC Date', 'Comment']
-        },
-    ]
+    SHEETS_INFO = SAMPLE_QC_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()
