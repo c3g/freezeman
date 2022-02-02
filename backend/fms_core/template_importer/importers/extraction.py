@@ -1,19 +1,12 @@
 from fms_core.models import Protocol, Process, SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
+from fms_core.templates import SAMPLE_EXTRACTION_TEMPLATE
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
 
 class ExtractionImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'ExtractionTemplate',
-            'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Container Barcode', 'Source Container Coord',
-                        'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
-                        'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                        'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
-        },
-    ]
+    SHEETS_INFO = SAMPLE_EXTRACTION_TEMPLATE["sheets info"]
 
 
     def __init__(self):

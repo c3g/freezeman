@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {downloadFromText} from "../utils/download";
+import {downloadFromFile} from "../utils/download";
 import {Button, Modal, notification} from "antd";
 
 import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
@@ -25,7 +25,7 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
         onOk() {
             exportFunction()
             .then(text => {
-              downloadFromText(name, text)
+              downloadFromFile(name, text)
             })
             .catch(err => {
               notification.error({

@@ -1,15 +1,9 @@
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_creation import ContainerRowHandler
+from fms_core.templates import CONTAINER_CREATION_TEMPLATE
 
 class ContainerCreationImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'ContainerCreation',
-            'headers': ['Container Kind', 'Container Name', 'Container Barcode', 'Parent Container Barcode',
-                        'Parent Container Coordinates'
-                        ],
-         },
-    ]
+    SHEETS_INFO = CONTAINER_CREATION_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()

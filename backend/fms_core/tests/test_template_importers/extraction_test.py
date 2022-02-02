@@ -71,5 +71,6 @@ class ExtractionTestCase(TestCase):
         ps = ProcessMeasurement.objects.get(source_sample_id=s.extracted_from.id, lineage=sl)
         self.assertEqual(sl.process_measurement_id, ps.id)
         self.assertEqual('Extraction', ps.process.protocol.name)
+        self.assertEqual('comment 4', ps.comment)
         self.assertEqual(s.extracted_from.volume, Decimal("75.000"))
         self.assertTrue(s.extracted_from.depleted)

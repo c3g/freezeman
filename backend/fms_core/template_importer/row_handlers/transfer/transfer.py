@@ -38,6 +38,7 @@ class TransferRowHandler(GenericRowHandler):
                                                                                                       execution_date=process_measurement['execution_date'],
                                                                                                       coordinates_destination=resulting_sample['coordinates'],
                                                                                                       volume_destination=resulting_sample['volume'],
-                                                                                                      source_depleted=source_depleted)
+                                                                                                      source_depleted=source_depleted,
+                                                                                                      comment=process_measurement['comment'])
 
 

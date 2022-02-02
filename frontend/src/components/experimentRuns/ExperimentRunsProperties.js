@@ -50,7 +50,7 @@ const ExperimentRunsProperties = ({
       {propertiesAreLoaded ?
         <Table columns={columns} dataSource={data} pagination={false} className="table-min-width"/>
           :
-        <div>Loading...</div>
+        <div/>
       }
     </>
   );

@@ -11,7 +11,8 @@ import ExportButton from "../ExportButton";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/containers/actions";
 import api, {withToken}  from "../../utils/api"
-import {actionsToButtonList} from "../../utils/templateActions";
+import {actionDropdown} from "../../utils/templateActions";
+import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withSample} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
@@ -98,6 +99,7 @@ const mapStateToProps = state => ({
   sortBy: state.containers.sortBy,
   filters: state.containers.filters,
   actions: state.containerTemplateActions,
+  prefills: state.containerPrefillTemplates,
   page: state.containers.page,
   totalCount: state.containers.totalCount,
   isFetching: state.containers.isFetching,
@@ -115,6 +117,7 @@ const ContainersListContent = ({
   sortBy,
   filters,
   actions,
+  prefills,
   isFetching,
   page,
   totalCount,
@@ -124,10 +127,16 @@ const ContainersListContent = ({
   clearFilters,
   setSortBy,
 }) => {
+
   const listExport = () =>
     withToken(token, api.containers.listExport)
       (mergedListQueryParams(CONTAINER_FILTERS, filters, sortBy))
       .then(response => response.data)
+
+  const prefillTemplate = ({template}) =>
+    withToken(token, api.containers.prefill.request)
+      (mergedListQueryParams(CONTAINER_FILTERS, filters, sortBy), template)
+      .then(response => response)
 
   const columns = getTableColumns(samplesByID, containersByID, containerKinds)
     .map(c => Object.assign(c, getFilterProps(
@@ -143,7 +152,8 @@ const ContainersListContent = ({
   return <>
     <AppPageHeader title="Containers" extra={[
       <AddButton key='add' url="/containers/add" />,
-      ...actionsToButtonList("/containers", actions),
+      actionDropdown("/containers", actions),
+      prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
       <ExportButton key='export' exportFunction={listExport} filename="containers" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>

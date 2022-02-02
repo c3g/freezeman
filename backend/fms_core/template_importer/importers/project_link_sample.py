@@ -1,13 +1,9 @@
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.project_link_samples import ProjectLinkSamplesHandler
+from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE
 
 class ProjectLinkSamples(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'ProjectLinkSamples',
-            'headers': ['Action', 'Project Name', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
-        },
-    ]
+    SHEETS_INFO = PROJECT_LINK_SAMPLES_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()

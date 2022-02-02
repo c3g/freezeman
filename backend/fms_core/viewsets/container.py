@@ -17,15 +17,21 @@ from fms_core.serializers import (
     ContainerExportSerializer,
     SampleSerializer,
 )
-from fms_core.template_paths import (
+
+from fms_core.templates import (
     CONTAINER_CREATION_TEMPLATE,
     CONTAINER_MOVE_TEMPLATE,
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, _prefix_keys, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _prefix_keys, versions_detail
 
-class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
+from ._constants import (
+    _container_filterset_fields,
+    _sample_minimal_filterset_fields
+)
+
+class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
                           Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
 
@@ -36,21 +42,26 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         {
             "name": "Add Containers",
             "description": "Upload the provided template with up to 100 new containers.",
-            "template": [{"description": "Template to add containers","file": CONTAINER_CREATION_TEMPLATE}],
+            "template": [CONTAINER_CREATION_TEMPLATE["identity"]],
             "importer": ContainerCreationImporter,
         },
         {
             "name": "Move Containers",
             "description": "Upload the provided template with up to 100 containers to move.",
-            "template": [{"description": "Template to move containers","file": CONTAINER_MOVE_TEMPLATE}],
+            "template": [CONTAINER_MOVE_TEMPLATE["identity"]],
             "importer": ContainerMoveImporter,
         },
         {
             "name": "Rename Containers",
             "description": "Upload the provided template with up to 384 containers to rename.",
-            "template":  [{"description": "Template to rename containers","file": CONTAINER_RENAME_TEMPLATE}],
+            "template": [CONTAINER_RENAME_TEMPLATE["identity"]],
             "importer": ContainerRenameImporter,
         },
+    ]
+
+    template_prefill_list = [
+        {"template": CONTAINER_MOVE_TEMPLATE},
+        {"template": CONTAINER_RENAME_TEMPLATE},
     ]
 
     def get_renderer_context(self):

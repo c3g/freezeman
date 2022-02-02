@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, TAXON, STATUS} from "../../constants";
+import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   id: {
@@ -6,9 +6,9 @@ export const SAMPLE_FILTERS = {
     key: "id",
     label: "Sample ID",
   },
-  sample_kind__name: {
+  derived_samples__sample_kind__name: {
     type: FILTER_TYPE.SELECT,
-    key: "sample_kind__name",
+    key: "derived_samples__sample_kind__name",
     label: "Type",
     mode: "multiple",
     placeholder: "All"
@@ -19,9 +19,9 @@ export const SAMPLE_FILTERS = {
     label: "Name",
     batch: true,
   },
-  individual__name: {
+  derived_samples__biosample__individual__name: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__name",
+    key: "derived_samples__biosample__individual__name",
     label: "Individual Name",
   },
   container__name: {
@@ -80,23 +80,23 @@ export const SAMPLE_FILTERS = {
   },
 
   // Detached filters
-  individual__pedigree: {
+  derived_samples__biosample__individual__pedigree: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__pedigree",
+    key: "derived_samples__biosample__individual__pedigree",
     label: "Individual Pedigree",
     width: 250,
     detached: true,
   },
-  individual__cohort: {
+  derived_samples__biosample__individual__cohort: {
     type: FILTER_TYPE.INPUT,
-    key: "individual__cohort",
+    key: "derived_samples__biosample__individual__cohort",
     label: "Individual Cohort",
     width: 250,
     detached: true,
   },
-  individual__sex: {
+  derived_samples__biosample__individual__sex: {
     type: FILTER_TYPE.SELECT,
-    key: "individual__sex",
+    key: "derived_samples__biosample__individual__sex",
     label: "Individual Sex",
     mode: "multiple",
     placeholder: "All",
@@ -107,12 +107,21 @@ export const SAMPLE_FILTERS = {
     ],
     detached: true,
   },
-  collection_site: {
+  derived_samples__biosample__collection_site: {
     type: FILTER_TYPE.INPUT,
-    key: "collection_site",
+    key: "derived_samples__biosample__collection_site",
     label: "Collection site",
     width: 250,
     detached: true,
+  },
+  qPCR_status: {
+     type: FILTER_TYPE.SELECT,
+     key: "qPCR_status",
+     label: "qPCR Selection Status",
+     placeholder: "All",
+     mode: "multiple",
+     options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
+    detached:true,
   },
 }
 
@@ -325,7 +334,7 @@ export const PROJECT_FILTERS = {
     label: "Status",
     mode: "multiple",
     placeholder: "All",
-    options: STATUS.map(x => ({ label: x, value: x })),
+    options: PROJECT_STATUS.map(x => ({ label: x, value: x })),
   },
   requestor_name: {
     type: FILTER_TYPE.INPUT,

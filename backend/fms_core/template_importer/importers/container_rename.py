@@ -2,14 +2,10 @@ from fms_core.models import Process, Protocol
 
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_rename import ContainerRowHandler
+from fms_core.templates import CONTAINER_RENAME_TEMPLATE
 
 class ContainerRenameImporter(GenericImporter):
-    SHEETS_INFO = [
-        {
-            'name': 'ContainerRename',
-            'headers': ['Old Container Barcode', 'New Container Barcode', 'New Container Name', 'Update Comment'],
-        },
-    ]
+    SHEETS_INFO = CONTAINER_RENAME_TEMPLATE["sheets info"]
 
     def __init__(self):
         super().__init__()

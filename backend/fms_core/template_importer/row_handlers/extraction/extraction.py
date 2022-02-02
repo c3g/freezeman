@@ -42,4 +42,5 @@ class ExtractionRowHandler(GenericRowHandler):
                                sample_kind_destination=resulting_sample['kind'],
                                coordinates_destination=resulting_sample['coordinates'],
                                volume_destination=resulting_sample['volume'],
-                               source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None)
+                               source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None,
+                               comment=process_measurement['comment'])
