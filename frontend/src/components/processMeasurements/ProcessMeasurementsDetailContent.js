@@ -47,7 +47,7 @@ const ProcessMeasurementsDetailContent = ({
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
-        `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;
+        `Sample Process Measurement ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/process-measurements/list")}/>
