@@ -187,11 +187,8 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
         # List all property fields that are tied to the protocol
         self.property_types = self.list_property_types(self.instance)
         for property_type in self.property_types:
-            try:
-                self.fields[property_type.name] = serializers.CharField(read_only=True)
-                self.Meta.fields = self.Meta.fields + (property_type.name,)
-            except Exception as err:
-                print(err)
+            self.fields[property_type.name] = serializers.CharField(read_only=True)
+            self.Meta.fields = self.Meta.fields + (property_type.name,)
 
     process_measurement_id = serializers.IntegerField(read_only=True, source="id")
     protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")

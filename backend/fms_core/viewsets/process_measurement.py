@@ -1,4 +1,5 @@
 from django.db.models import Q, F, Count
+from django.forms import ValidationError
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -47,7 +48,10 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer_class()(queryset, many=True)
+        try: 
+            serializer = self.get_serializer_class()(queryset, many=True)
+        except Exception as err:
+            raise ValidationError(err)
         return Response(serializer.data)
 
     def get_serializer_class(self):
