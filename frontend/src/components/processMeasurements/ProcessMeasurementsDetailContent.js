@@ -7,7 +7,7 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import ExperimentRunsProperties from "../experimentRuns/ExperimentRunsProperties";
+import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withSample} from "../../utils/withItem";
@@ -47,7 +47,7 @@ const ProcessMeasurementsDetailContent = ({
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
-        `Sample Process Measurement ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;
+        `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name ].filter(Boolean).join(' - ')}`;
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/process-measurements/list")}/>
@@ -74,7 +74,7 @@ const ProcessMeasurementsDetailContent = ({
             { processMeasurement?.properties?.length > 0 &&
                 <>
                 <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
-                  <ExperimentRunsProperties
+                  <ProcessProperties
                       propertyIDs={processMeasurement.properties}
                       protocolName={protocolsByID[processMeasurement.protocol]?.name}
                   />

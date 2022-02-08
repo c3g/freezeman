@@ -9,7 +9,7 @@ import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {get, listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withContainer} from "../../utils/withItem";
-import ExperimentRunsProperties from "./ExperimentRunsProperties";
+import ProcessProperties from "../shared/ProcessProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
 
 
@@ -124,7 +124,7 @@ const ExperimentRunsDetailContent = ({
           </TabPane>
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
-            <ExperimentRunsProperties
+            <ProcessProperties
               propertyIDs={processesByID[experimentRun.process]?.children_properties}
               protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
             />
@@ -132,7 +132,7 @@ const ExperimentRunsDetailContent = ({
                 const process = processesByID[id]
                 return ( process &&
                     <>
-                      <ExperimentRunsProperties
+                      <ProcessProperties
                           propertyIDs={process.children_properties}
                           protocolName={protocolsByID[process.protocol]?.name}
                       />
