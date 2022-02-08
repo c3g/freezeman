@@ -1,11 +1,12 @@
 from django.db.models import Q, F, Count
+from django.forms import ValidationError
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.models import ProcessMeasurement
-from fms_core.serializers import ProcessMeasurementSerializer, ProcessMeasurementExportSerializer
+from fms_core.serializers import ProcessMeasurementSerializer, ProcessMeasurementExportSerializer, ProcessMeasurementWithPropertiesExportSerializer
 from fms_core.template_importer.importers import ExtractionImporter, TransferImporter
 from fms_core.templates import SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE
 
@@ -46,13 +47,27 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = ProcessMeasurementExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        queryset = self.filter_queryset(self.get_queryset())
+        try: 
+            serializer = self.get_serializer_class()(queryset, many=True)
+        except Exception as err:
+            raise ValidationError(err)
         return Response(serializer.data)
+
+    def get_serializer_class(self):
+        if self.action == "list_export":
+            queryset = self.filter_queryset(self.get_queryset())
+            if queryset.distinct("process__protocol").count() == 1:
+                return ProcessMeasurementWithPropertiesExportSerializer
+            else:
+                return ProcessMeasurementExportSerializer
+        else:
+            return ProcessMeasurementSerializer
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
-            fields = ProcessMeasurementExportSerializer.Meta.fields
+            fields = self.get_serializer_class().Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context

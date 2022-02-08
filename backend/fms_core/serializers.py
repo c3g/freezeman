@@ -10,6 +10,7 @@ from .models import (
     Individual,
     Instrument,
     PropertyValue,
+    PropertyType,
     Protocol,
     Process,
     ProcessMeasurement,
@@ -33,6 +34,7 @@ __all__ = [
     "ProcessSerializer",
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
+    "ProcessMeasurementWithPropertiesExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
@@ -139,7 +141,6 @@ class ProcessSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_fields = ('children_processes')
 
-
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
         return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
@@ -150,9 +151,9 @@ class ProcessMeasurementSerializer(serializers.ModelSerializer):
     properties = serializers.SerializerMethodField()
 
     class Meta:
-      model = ProcessMeasurement
-      fields = "__all__"
-      extra_fields = ('protocol', 'child_sample')
+        model = ProcessMeasurement
+        fields = "__all__"
+        extra_fields = ('protocol', 'child_sample')
 
     def get_properties(self, obj):
         pm_content_type = ContentType.objects.get_for_model(ProcessMeasurement)
@@ -165,16 +166,59 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
-      model = ProcessMeasurement
-      fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+        model = ProcessMeasurement
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
+    DEFAULT_META_FIELDS = ( 'process_measurement_id',
+                            'process_id',
+                            'protocol_name',
+                            'source_sample_name',
+                            'child_sample_name',
+                            'volume_used',
+                            'execution_date',
+                            'comment' )
+
+    def __init__(self, *args, **kwargs):
+        # Reset Meta fields
+        self.Meta.fields = self.DEFAULT_META_FIELDS
+        # Instantiate the superclass normally
+        super(ProcessMeasurementWithPropertiesExportSerializer, self).__init__(*args, **kwargs)
+        # List all property fields that are tied to the protocol
+        self.property_types = self.list_property_types(self.instance)
+        for property_type in self.property_types:
+            self.fields[property_type.name] = serializers.CharField(read_only=True)
+            self.Meta.fields = self.Meta.fields + (property_type.name,)
+
+    process_measurement_id = serializers.IntegerField(read_only=True, source="id")
+    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    child_sample_name = serializers.CharField(read_only=True)
+    source_sample_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ProcessMeasurement
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+    def list_property_types(self, obj):
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        return PropertyType.objects.filter(object_id=obj[0].process.protocol.id, content_type=protocol_content_type)
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        for property_type in self.property_types:
+            pm_property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type)
+            p_property_value = PropertyValue.objects.filter(object_id=instance.process.id, property_type=property_type)
+            property_value = pm_property_value.union(p_property_value).first() # union between cases : process or process measurement property value
+            data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
+        return data
 
 class PropertyValueSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(read_only=True, source="property_type.name")
 
     class Meta:
-      model = PropertyValue
-      fields = "__all__"
-      extra_fields = ('property_name')
+        model = PropertyValue
+        fields = "__all__"
+        extra_fields = ('property_name')
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
