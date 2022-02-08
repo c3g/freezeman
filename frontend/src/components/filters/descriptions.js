@@ -41,6 +41,7 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "projects__name",
     label: "Projects",
+    batch: true,
   },
   projects__id: {
     type: FILTER_TYPE.SELECT,

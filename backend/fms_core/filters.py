@@ -44,11 +44,19 @@ class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_name_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_container_barcode_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
+    projects__name = django_filters.CharFilter(method="batch_projects_name_filter")
 
     def batch_container_barcode_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
             query |= Q(container__barcode=v)
+        query_set = queryset.filter(query)
+        return query_set
+
+    def batch_projects_name_filter(self, queryset, name, value):
+        query = Q()
+        for v in value.split(" "):
+            query |= Q(projects__name=v)
         query_set = queryset.filter(query)
         return query_set
 
