@@ -170,7 +170,18 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
         fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
 
 class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
+    DEFAULT_META_FIELDS = ( 'process_measurement_id',
+                            'process_id',
+                            'protocol_name',
+                            'source_sample_name',
+                            'child_sample_name',
+                            'volume_used',
+                            'execution_date',
+                            'comment' )
+
     def __init__(self, *args, **kwargs):
+        # Reset Meta fields
+        self.Meta.fields = self.DEFAULT_META_FIELDS
         # Instantiate the superclass normally
         super(ProcessMeasurementWithPropertiesExportSerializer, self).__init__(*args, **kwargs)
         # List all property fields that are tied to the protocol
@@ -198,7 +209,9 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
     def to_representation(self, instance):
         data = super().to_representation(instance)
         for property_type in self.property_types:
-            property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type).first() # here there is a mistake property_value can be on pm or process need to find a way to include the process property_values
+            pm_property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type)
+            p_property_value = PropertyValue.objects.filter(object_id=instance.process.id, property_type=property_type)
+            property_value = pm_property_value.union(p_property_value).first() # union between cases : process or process measurement property value
             data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
         return data
 
