@@ -2,7 +2,8 @@ import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography} from "antd";
+import {Descriptions, Typography, Tabs} from "antd";
+const {TabPane} = Tabs;
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
@@ -52,8 +53,9 @@ const ProcessMeasurementsDetailContent = ({
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/process-measurements/list")}/>
         <PageContent loading={isLoading}>
-            <Title level={2}>Overview</Title>
-            <Descriptions bordered={true} size="small" column={4}>
+          <Tabs defaultActiveKey="1" size="large" type="card">
+            <TabPane tab="Overview" key="1" style={{marginTop:8} }>
+              <Descriptions bordered={true} size="small" column={4}>
                 <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
                 <Descriptions.Item label="Applied To Sample" span={2}>
                   <Link to={`/samples/${processMeasurement.source_sample}`}>
@@ -70,19 +72,23 @@ const ProcessMeasurementsDetailContent = ({
                 <Descriptions.Item label="Volume Used (µL)" span={2}>{processMeasurement.volume_used}</Descriptions.Item>
                 <Descriptions.Item label="Date Executed" span={2}>{processMeasurement.execution_date}</Descriptions.Item>
                 <Descriptions.Item label="Comment" span={4}>{processMeasurement.comment}</Descriptions.Item>
-            </Descriptions>
-            { processMeasurement?.properties?.length > 0 &&
-                <>
-                <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
-                  <ProcessProperties
-                      propertyIDs={processMeasurement.properties}
-                      protocolName={protocolsByID[processMeasurement.protocol]?.name}
-                  />
-                </>
-             }
-            <TrackingFieldsContent entity={processMeasurement}/>
+              </Descriptions>
+              <TrackingFieldsContent entity={processMeasurement}/>
+            </TabPane>
+            <TabPane tab="Properties" key="2" style={{marginTop:8} }>
+              { processMeasurement?.properties?.length > 0 &&
+                  <>
+                  <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
+                    <ProcessProperties
+                        propertyIDs={processMeasurement.properties}
+                        protocolName={protocolsByID[processMeasurement.protocol]?.name}
+                    />
+                  </>
+               }
+            </TabPane>
+          </Tabs>
         </PageContent>
-    </>;
+      </>;
 };
 
 export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsDetailContent);
