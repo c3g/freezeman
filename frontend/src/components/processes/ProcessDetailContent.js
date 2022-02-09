@@ -72,7 +72,7 @@ const ProcessDetailContent = ({
               </Descriptions>
               <TrackingFieldsContent entity={process}/>
             </TabPane>
-            <TabPane tab="Steps" key="2" style={{marginTop:8} }>
+            <TabPane tab="Properties" key="2" style={{marginTop:8} }>
               { process?.children_properties?.length > 0 &&
                   <>
                   <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
