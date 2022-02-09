@@ -69,6 +69,7 @@ const ExperimentRunsDetailContent = ({
   if (isLoaded && !processesByID[experimentRun.process]) {
     // Need to be queried as a string, not as an array in order to work with DRF filters
     const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
+    console.log(processIDSAsStr)
     listProcesses({id__in: processIDSAsStr});
     listPropertyValues({object_id__in: processIDSAsStr, content_type__model: "process"})
   }
