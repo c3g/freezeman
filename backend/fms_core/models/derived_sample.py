@@ -6,6 +6,7 @@ from ..schema_validators import JsonSchemaValidator, EXPERIMENTAL_GROUP_SCHEMA
 
 from .tracked_model import TrackedModel
 from .sample_kind import SampleKind
+from .index import Index
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
@@ -124,6 +125,9 @@ class DerivedSample(TrackedModel):
 
     quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20)
     quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20)
+
+    #PROTECT OR CASCADE?
+    index = models.ForeignKey(Index, null=True, on_delete=models.PROTECT, related_name="derived_samples", help_text="Index associated to this Derived Sample")
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
