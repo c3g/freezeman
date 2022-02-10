@@ -58,6 +58,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
+    style: {marginBottom: '50px'}
   },
 ]
 
@@ -151,6 +152,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             breakpoint="md"
             collapsedWidth={80}
             width={224}
+            style={{overflow: 'auto'}}
           >
               <Title style={titleStyle} className="App__title">
                 <div>
