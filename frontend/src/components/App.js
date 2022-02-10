@@ -37,6 +37,7 @@ import {hour} from "../utils/time";
 
 import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
+import {get} from "../modules/users/actions";
 
 const { Title } = Typography;
 
@@ -121,12 +122,12 @@ const titleStyle = {
 
 export const mapStateToProps = state => ({
   userID: state.auth.currentUserID,
-  user: state.users.itemsByID[state.auth.currentUserID],
+  usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
+const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
   useEffect(() => {
     const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
@@ -134,6 +135,11 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   }, []);
 
   const isLoggedIn = userID !== null;
+  const user = usersByID[userID];
+
+  if (!user)
+    get(userID);
+
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);
