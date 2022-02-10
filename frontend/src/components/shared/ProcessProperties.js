@@ -10,7 +10,7 @@ const mapStateToProps = state => ({
 
 const actionCreators = {};
 
-const ExperimentRunsProperties = ({
+const ProcessProperties = ({
   propertyValuesByID,
   propertyIDs,
   protocolName,
@@ -56,4 +56,4 @@ const ExperimentRunsProperties = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ExperimentRunsProperties);
+export default connect(mapStateToProps, actionCreators)(ProcessProperties);

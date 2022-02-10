@@ -23,6 +23,7 @@ import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
+import ProcessesPage from "./processes/ProcessesPage";
 import ProjectsPage from "./projects/ProjectsPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
@@ -199,6 +200,9 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             </PrivateRoute>
             <PrivateRoute path="/process-measurements">
               <ProcessMeasurementsPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/processes">
+              <ProcessesPage/>
             </PrivateRoute>
             <PrivateRoute path="/experiment-runs">
               <ExperimentRunsPage/>

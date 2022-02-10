@@ -34,7 +34,7 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 150,
       render: (_, processMeasurement) =>
-          <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.process}</Link>
+          <Link to={`/processes/${processMeasurement.process}`}>{processMeasurement.process}</Link>
     },
     {
       title: "Protocol",

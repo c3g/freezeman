@@ -135,6 +135,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
 
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
+    children_processes = serializers.SerializerMethodField()
 
     class Meta:
         model = Process
@@ -144,6 +145,9 @@ class ProcessSerializer(serializers.ModelSerializer):
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
         return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
+
+    def get_children_processes(self, obj):
+        return Process.objects.filter(parent_process=obj.id).values_list('id', flat=True)
 
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
