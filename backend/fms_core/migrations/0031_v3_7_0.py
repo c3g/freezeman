@@ -19,11 +19,16 @@ class Migration(migrations.Migration):
             name='Index',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(help_text='The name of the index.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('index_set', models.ForeignKey(help_text='The set which this index belongs to', on_delete=django.db.models.deletion.PROTECT, related_name='indices', to='fms_core.indexset')),
+                ('index_structure', models.ForeignKey(help_text='The index structure of the index', on_delete=django.db.models.deletion.PROTECT, related_name='indices', to='fms_core.indexstructure')),
+                ('sequences_3prime', models.ManyToManyField(related_name='indices_3prime', through='fms_core.SequenceByIndex3Prime', to='fms_core.Sequence')),
+                ('sequences_5prime', models.ManyToManyField(related_name='indices_5prime', through='fms_core.SequenceByIndex5Prime', to='fms_core.Sequence')),
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('name', models.CharField(help_text='The name of the index.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_index_creation', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_index_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
@@ -52,7 +57,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='5 primer Indeces associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_5prime_association', to='fms_core.index')),
+                ('index', models.ForeignKey(help_text='5 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_5prime_association', to='fms_core.index')),
                 ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_5prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
@@ -68,7 +73,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='3 primer Indeces associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_3prime_association', to='fms_core.index')),
+                ('index', models.ForeignKey(help_text='3 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_3prime_association', to='fms_core.index')),
                 ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_3prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
@@ -109,31 +114,6 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-        ),
-        migrations.AddField(
-            model_name='index',
-            name='index_set',
-            field=models.ForeignKey(help_text='The set which this index belongs to', on_delete=django.db.models.deletion.PROTECT, related_name='indeces', to='fms_core.indexset'),
-        ),
-        migrations.AddField(
-            model_name='index',
-            name='index_structure',
-            field=models.ForeignKey(help_text='The index structure of the index', on_delete=django.db.models.deletion.PROTECT, related_name='indeces', to='fms_core.indexstructure'),
-        ),
-        migrations.AddField(
-            model_name='index',
-            name='sequences_3prime',
-            field=models.ManyToManyField(related_name='indeces_3prime', through='fms_core.SequenceByIndex3Prime', to='fms_core.Sequence'),
-        ),
-        migrations.AddField(
-            model_name='index',
-            name='sequences_5prime',
-            field=models.ManyToManyField(related_name='indeces_5prime', through='fms_core.SequenceByIndex5Prime', to='fms_core.Sequence'),
-        ),
-        migrations.AddField(
-            model_name='index',
-            name='updated_by',
-            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_index_modification', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
             model_name='derivedsample',

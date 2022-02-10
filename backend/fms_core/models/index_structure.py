@@ -15,13 +15,13 @@ class IndexStructure(TrackedModel):
                             help_text="The name of the index structure.")
 
     flanker_3prime_forward = models.ForeignKey("Sequence", related_name="flanker_3prime_forward",
-                                               on_delete=models.PROTECT, help_text="Flanker on the 3' forward direction")
+                                               on_delete=models.PROTECT, help_text="Flanker on the 3 prime forward direction")
     flanker_3prime_reverse = models.ForeignKey("Sequence", related_name="flanker_3prime_reverse",
-                                               on_delete=models.PROTECT, help_text="Flanker on the 3' reverse direction")
+                                               on_delete=models.PROTECT, help_text="Flanker on the 3 prime reverse direction")
     flanker_5prime_forward = models.ForeignKey("Sequence", related_name="flanker_5prime_forward",
-                                               on_delete=models.PROTECT, help_text="Flanker on the 5' forward direction")
+                                               on_delete=models.PROTECT, help_text="Flanker on the 5 prime forward direction")
     flanker_5prime_reverse = models.ForeignKey("Sequence", related_name="flanker_5prime_reverse",
-                                               on_delete=models.PROTECT, help_text="Flanker on the 5' reverse direction")
+                                               on_delete=models.PROTECT, help_text="Flanker on the 5 prime reverse direction")
 
     def save(self, *args, **kwargs):
         # Normalize and validate before saving, always!

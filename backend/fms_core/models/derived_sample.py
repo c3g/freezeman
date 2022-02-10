@@ -126,7 +126,6 @@ class DerivedSample(TrackedModel):
     quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20)
     quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20)
 
-    #PROTECT OR CASCADE?
     index = models.ForeignKey(Index, null=True, on_delete=models.PROTECT, related_name="derived_samples", help_text="Index associated to this Derived Sample")
 
     @property
