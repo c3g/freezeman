@@ -14423,8 +14423,81 @@ INDICES = {
 }
 
 def import_indices(apps, schema_editor):
-    pass
+    IndexSet = apps.get_model('fms_core', 'IndexSet')
+    IndexStructure = apps.get_model('fms_core', 'IndexStructure')
+    Sequence = apps.get_model('fms_core', 'Sequence')
+    Index = apps.get_model('fms_core', 'Index')
+    SequenceByIndex5Prime = apps.get_model('fms_core', 'SequenceByIndex5Prime')
+    SequenceByIndex3Prime = apps.get_model('fms_core', 'SequenceByIndex3Prime')
 
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create objects related to Indices in Freezeman.")
+        reversion.set_user(admin_user)
+
+        # create sets
+        sets_obj_dict = {}
+        for index_set in INDEX_SETS:
+            sets_obj_dict[index_set] = IndexSet.objects.create(name=index_set, created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            reversion.add_to_revision(sets_obj_dict[index_set])
+
+        # create structures
+        structures_obj_dict = {}
+        for structure_name, structure_value in INDEX_STRUCTURES.items():
+            flanker_5prime_forward = Sequence.objects.get_or_create(value=structure_value["flanker_5prime_forward"],
+                                                                    defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
+            flanker_5prime_reverse = Sequence.objects.get_or_create(value=structure_value["flanker_5prime_reverse"],
+                                                                    defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
+            flanker_3prime_forward = Sequence.objects.get_or_create(value=structure_value["flanker_3prime_forward"],
+                                                                    defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
+            flanker_3prime_reverse = Sequence.objects.get_or_create(value=structure_value["flanker_3prime_reverse"],
+                                                                    defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})                                                        
+            structures_obj_dict[structure_name] = IndexStructure.objects.create(name=structure_name,
+                                                                                flanker_5prime_forward=flanker_5prime_forward,
+                                                                                flanker_5prime_reverse=flanker_5prime_reverse,
+                                                                                flanker_3prime_forward=flanker_3prime_forward,
+                                                                                flanker_3prime_reverse=flanker_3prime_reverse,
+                                                                                created_by_id=admin_user_id,
+                                                                                updated_by_id=admin_user_id)
+            reversion.add_to_revision(flanker_5prime_forward)
+            reversion.add_to_revision(flanker_5prime_reverse)
+            reversion.add_to_revision(flanker_3prime_forward)
+            reversion.add_to_revision(flanker_3prime_reverse)
+            reversion.add_to_revision(structures_obj_dict[structure_name])
+
+        # create indices
+        for index_name, index_value in INDICES.items():
+            current_index = Index.objects.create(name=index_name,
+                                                 index_set=sets_obj_dict[index_value["index_set"]],
+                                                 index_structure=structures_obj_dict["index_structure"],
+                                                 created_by_id=admin_user_id,
+                                                 updated_by_id=admin_user_id)
+            reversion.add_to_revision(current_index)
+            # create sequences and M2M table for 5 prime index
+            index_5_prime = index_value["index_5_prime"]
+            for index_5_prime_sequence in index_5_prime:
+                sequence_5_prime = Sequence.objects.get_or_create(value=index_5_prime_sequence,
+                                                                  defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
+                reversion.add_to_revision(sequence_5_prime)
+                sequence_by_index = SequenceByIndex5Prime.objects.create(index=current_index,
+                                                                         sequence=sequence_5_prime,
+                                                                         created_by_id=admin_user_id,
+                                                                         updated_by_id=admin_user_id)
+                reversion.add_to_revision(sequence_by_index)
+            # create sequences and M2M table for 3 prime index
+            index_3_prime = index_value["index_3_prime"]
+            for index_3_prime_sequence in index_3_prime:
+                sequence_3_prime = Sequence.objects.get_or_create(value=index_3_prime_sequence,
+                                                                  defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
+                reversion.add_to_revision(sequence_3_prime)
+                sequence_by_index = SequenceByIndex3Prime.objects.create(index=current_index,
+                                                                         sequence=sequence_3_prime,
+                                                                         created_by_id=admin_user_id,
+                                                                         updated_by_id=admin_user_id)
+                reversion.add_to_revision(sequence_by_index)
+                
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

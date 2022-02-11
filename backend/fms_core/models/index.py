@@ -14,7 +14,7 @@ class Index(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the index.")
 
-    index_set = models.ForeignKey("IndexSet", on_delete=models.PROTECT, related_name="indices",
+    index_set = models.ForeignKey("IndexSet", blank=True, null=True, on_delete=models.PROTECT, related_name="indices",
                                   help_text="The set which this index belongs to")
 
     index_structure = models.ForeignKey("IndexStructure", on_delete=models.PROTECT,
