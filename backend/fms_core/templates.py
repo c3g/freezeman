@@ -10,6 +10,7 @@ __all__ = [
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
+    "INDEX_CREATION_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -82,6 +83,16 @@ EXPERIMENT_MGI_TEMPLATE = {
   "prefill info": [
       ("Samples", "Source Container Barcode", "container__barcode"),
       ("Samples", "Source Container Coordinates", "coordinates"),],
+}
+
+INDEX_CREATION_TEMPLATE = {
+  "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v3_7_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Indices',
+          'headers': ['Set Name', 'Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
+      },],
+  "prefill info": [],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {

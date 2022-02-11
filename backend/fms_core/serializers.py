@@ -7,6 +7,7 @@ from .models import (
     Container,
     ExperimentRun,
     RunType,
+    Index,
     Individual,
     Instrument,
     PropertyValue,
@@ -27,6 +28,8 @@ __all__ = [
     "ExperimentRunExportSerializer",
     "RunTypeSerializer",
     "SimpleContainerSerializer",
+    "IndexSerializer",
+    "IndexExportSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
     "SampleKindSerializer",
@@ -388,3 +391,13 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
+
+class IndexSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Index
+        fields = "__all__"
+
+class IndexExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Index
+        fields = "__all__"

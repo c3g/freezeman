@@ -137,3 +137,8 @@ _project_filterset_fields: FiltersetFields = {
     "status": CATEGORICAL_FILTERS,
     **_prefix_keys("samples__", _sample_minimal_filterset_fields),
 }
+
+_index_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}

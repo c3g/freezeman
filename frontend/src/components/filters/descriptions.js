@@ -359,3 +359,16 @@ export const PROJECT_FILTERS = {
     mode: "multiple",
   },
 }
+
+export const INDEX_FILTERS = {
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+  },
+  structure: {
+    type: FILTER_TYPE.SELECT,
+    key: "structure",
+    label: "Index Structure",
+  },
+}
