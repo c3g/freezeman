@@ -37,6 +37,7 @@ import {hour} from "../utils/time";
 
 import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
+import {get} from "../modules/users/actions";
 
 const { Title } = Typography;
 
@@ -58,6 +59,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
+    style: {marginBottom: '50px'}
   },
 ]
 
@@ -120,12 +122,12 @@ const titleStyle = {
 
 export const mapStateToProps = state => ({
   userID: state.auth.currentUserID,
-  user: state.users.itemsByID[state.auth.currentUserID],
+  usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
+const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
   useEffect(() => {
     const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
@@ -133,6 +135,11 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   }, []);
 
   const isLoggedIn = userID !== null;
+  const user = usersByID[userID];
+
+  if (!user)
+    get(userID);
+
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);
@@ -151,6 +158,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             breakpoint="md"
             collapsedWidth={80}
             width={224}
+            style={{overflow: 'auto'}}
           >
               <Title style={titleStyle} className="App__title">
                 <div>
