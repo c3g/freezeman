@@ -14,7 +14,7 @@ import {get} from "../../modules/indices/actions";
 
 const mapStateToProps = state => ({
     isFetching: state.indices.isFetching,
-    indicesByID: state.indices.indicesByID,
+    indicesByID: state.indices.itemsByID,
 });
 
 const mapDispatchToProps = dispatch =>
@@ -38,7 +38,7 @@ const IndicesDetailedContent = ({indicesByID, isFetching, get}) => {
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small" column={4}>
-                <Descriptions.Item label="Index" span={4}>{index.name}</Descriptions.Item>
+                <Descriptions.Item label="Index name" span={4}>{index.name}</Descriptions.Item>
             </Descriptions>
             <TrackingFieldsContent entity={index}/>
         </PageContent>

@@ -26,12 +26,12 @@ class IndexCreationHandler(GenericRowHandler):
 
             if index_obj:
                 if any([index['index_3prime'], index['index_5prime']]):
-                    indices_3prime_by_sequence, self.erros['index_3prime'], self.warnings['index_3prime'] = \
+                    indices_3prime_by_sequence, self.errors['index_3prime'], self.warnings['index_3prime'] = \
                         create_indices_3prime_by_sequence(index=index_obj,
                                                           index_3prime=index['index_3prime'])
 
-                    indices_5prime_by_sequence, self.erros['index_5prime'], self.warnings['index_5prime'] = \
+                    indices_5prime_by_sequence, self.errors['index_5prime'], self.warnings['index_5prime'] = \
                         create_indices_5prime_by_sequence(index=index_obj,
-                                                          index_3prime=index['index_3prime'])
+                                                          index_5prime=index['index_5prime'])
                 else:
                     self.errors['indices_prime'] = 'At least one index prime is required.'

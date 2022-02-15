@@ -47,16 +47,6 @@ const getTableColumns = () => [
       sorter: true,
       width: 80,
     },
-    {
-      title: "Index 3 Prime",
-      dataIndex: "index3Prime",
-      width: 80,
-    },
-    {
-      title: "Index 5 Prime",
-      dataIndex: "index5Prime",
-      width: 80,
-    },
   ];
 
 const mapStateToProps = state => ({
@@ -105,8 +95,6 @@ const IndicesListContent = ({
   )))
 
   const nFilters = getNFilters(filters)
-
-  console.log(actions)
 
   return <>
     <AppPageHeader title="Indices" extra={[

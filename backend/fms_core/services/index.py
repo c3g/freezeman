@@ -59,6 +59,7 @@ def create_indices_3prime_by_sequence(index, index_3prime):
         return indices_3prime_by_sequence, errors, warnings
 
     for value in index_3prime.split(','):
+        sequence = None
         try:
             sequence = Sequence.objects.create(value=value)
         except Exception as e:
@@ -82,6 +83,7 @@ def create_indices_5prime_by_sequence(index, index_5prime):
         return indices_5prime_by_sequence, errors, warnings
 
     for value in index_5prime.split(','):
+        sequence = None
         try:
             sequence = Sequence.objects.create(value=value)
         except Exception as e:
