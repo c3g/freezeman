@@ -361,14 +361,24 @@ export const PROJECT_FILTERS = {
 }
 
 export const INDEX_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT,
+    key: "id",
+    label: "ID",
+  },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
   },
-  structure: {
-    type: FILTER_TYPE.SELECT,
-    key: "structure",
+  index_structure: {
+    type: FILTER_TYPE.INPUT,
+    key: "index_structure__name",
+    label: "Index Structure",
+  },
+  index_set: {
+    type: FILTER_TYPE.INPUT,
+    key: "index_set__name",
     label: "Index Structure",
   },
 }

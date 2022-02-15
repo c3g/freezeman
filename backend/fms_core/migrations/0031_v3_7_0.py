@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('value', models.CharField(help_text='The nucleotide string defining the sequence.', max_length=500, unique=True, blank=True,
+                ('value', models.CharField(help_text='The nucleotide string defining the sequence.', max_length=500, blank=True,
                                            validators=[django.core.validators.RegexValidator(re.compile('^[ATCGU]{0,500}$'))])),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT,
                                                  related_name='fms_core_sequence_creation',

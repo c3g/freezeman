@@ -32,6 +32,12 @@ const getTableColumns = () => [
         </Link>,
     },
     {
+      title: "Index Set",
+      dataIndex: "index_set",
+      sorter: true,
+      width: 80,
+    },
+    {
       title: "Name",
       dataIndex: "name",
       sorter: true,
@@ -43,7 +49,7 @@ const getTableColumns = () => [
     },
     {
       title: "Index Structure",
-      dataIndex: "structure",
+      dataIndex: "index_structure",
       sorter: true,
       width: 80,
     },

@@ -393,11 +393,15 @@ class ProjectExportSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
 
 class IndexSerializer(serializers.ModelSerializer):
+    index_set = serializers.CharField(read_only=True, source="index_set.name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
     class Meta:
         model = Index
         fields = "__all__"
 
 class IndexExportSerializer(serializers.ModelSerializer):
+    index_set = serializers.CharField(read_only=True, source="index_set.name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
     class Meta:
         model = Index
         fields = "__all__"
