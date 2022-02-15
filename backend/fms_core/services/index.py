@@ -24,19 +24,21 @@ def get_or_create_index_set(set_name):
 
     return (index_set, created_entity, errors, warnings)
 
-def create_index(set, index_structure):
+def create_index(index_set, index_name, index_structure):
     index = None
     errors = []
     warnings = []
 
+    index_structure_obj = None
     if index_structure:
         try:
             index_structure_obj = IndexStructure.objects.get(name=index_structure)
         except IndexStructure.DoesNotExist:
             errors.append(f"Invalid index structure.")
+            return index, errors, warnings
 
         try:
-            index = Index.create(set=set, index_structure=index_structure_obj)
+            index = Index.objects.create(index_set=index_set, name=index_name, index_structure=index_structure_obj)
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 
@@ -52,13 +54,13 @@ def create_indices_3prime_by_sequence(index, index_3prime):
     errors = []
     warnings = []
 
-    if not all([index, index_3prime]):
-        errors.append(f"Unable to process index 3 prime.")
+    if not index:
+        errors.append(f"Index is required.")
         return indices_3prime_by_sequence, errors, warnings
 
     for value in index_3prime.split(','):
         try:
-            sequence = Sequence.create(value=value)
+            sequence = Sequence.objects.create(value=value)
         except Exception as e:
             errors.append(';'.join(e.messages))
 
@@ -75,13 +77,13 @@ def create_indices_5prime_by_sequence(index, index_5prime):
     errors = []
     warnings = []
 
-    if not all([index, index_5prime]):
-        errors.append(f"Unable to process index 5 prime.")
+    if not index:
+        errors.append(f"Index is required.")
         return indices_5prime_by_sequence, errors, warnings
 
     for value in index_5prime.split(','):
         try:
-            sequence = Sequence.create(value=value)
+            sequence = Sequence.objects.create(value=value)
         except Exception as e:
             errors.append(';'.join(e.messages))
 
