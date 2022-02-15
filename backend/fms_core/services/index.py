@@ -103,7 +103,6 @@ def _reverse_complement(sequence):
         reversed_sequence = sequence[::-1]
         return reversed_sequence.translate(reversed_sequence.maketrans("ATGCU", "TACGA"))
 
-
 # Test each listed index against each other, given the instrument type reading sense and the length provided for each index part.
 # If not provided (both 0) the length will be automatically calculated.
 def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3_prime=0):
