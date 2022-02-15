@@ -151,7 +151,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='derivedsample',
             name='index',
-            field=models.ForeignKey(help_text='Index associated to this Derived Sample', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='derived_samples', to='fms_core.index'),
+            field=models.ForeignKey(help_text='Index associated to this Derived Sample', null=True, blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='derived_samples', to='fms_core.index'),
         ),
         migrations.AddField(
             model_name='index',
