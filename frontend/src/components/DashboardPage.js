@@ -92,15 +92,6 @@ const DashboardPage = ({
               )}
             </Row>
           </Card>
-          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-          <Card title="Indices" {...CARD_PROPS}>
-            <Statistic title="Total Indices" value={indicesSummary.total_count || "—"} />
-            <Row gutter={16}>
-              {actionsToButtonList("/indices", templates.index, true).map((l, i) =>
-                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
-              )}
-            </Row>
-          </Card>
         </Col>
         <Col {...COL_LAYOUT}>
           <Card title="Samples" {...CARD_PROPS}>
@@ -116,6 +107,15 @@ const DashboardPage = ({
                 </Link>
               </Col>
               {actionsToButtonList("/samples", templates.sample, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
+          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+          <Card title="Indices" {...CARD_PROPS}>
+            <Statistic title="Total Indices" value={indicesSummary.total_count || "—"} />
+            <Row gutter={16}>
+              {actionsToButtonList("/indices", templates.index, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>

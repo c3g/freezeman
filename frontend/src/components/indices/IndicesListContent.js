@@ -33,9 +33,10 @@ const getTableColumns = () => [
     },
     {
       title: "Index Set",
-      dataIndex: "index_set",
+      dataIndex: "index_set__name",
       sorter: true,
       width: 80,
+      render: (_, index) => index.index_set,
     },
     {
       title: "Name",
@@ -49,9 +50,10 @@ const getTableColumns = () => [
     },
     {
       title: "Index Structure",
-      dataIndex: "index_structure",
+      dataIndex: "index_structure__name",
       sorter: true,
       width: 80,
+      render: (_, index) => index.index_structure,
     },
   ];
 

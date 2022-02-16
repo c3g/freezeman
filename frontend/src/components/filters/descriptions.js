@@ -371,12 +371,12 @@ export const INDEX_FILTERS = {
     key: "name",
     label: "Name",
   },
-  index_structure: {
+  index_structure__name: {
     type: FILTER_TYPE.INPUT,
     key: "index_structure__name",
     label: "Index Structure",
   },
-  index_set: {
+  index_set__name: {
     type: FILTER_TYPE.INPUT,
     key: "index_set__name",
     label: "Index Structure",
