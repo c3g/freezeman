@@ -132,7 +132,8 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
     
             # Calculate the length of the default indexes.
             # first get the length of each partial index and flanker in a tuple list
-            for index in index_dict.values():
+            for index_id in indices_ids:
+                index = index_dict[index_id]
                 # get flanker sequences
                 if index_read_direction_5_prime == INDEX_READ_FORWARD:
                     flanker_5_prime = index["obj"].index_structure.flanker_5prime_forward.value
@@ -180,7 +181,8 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
             max_5prime_lengths = []
             min_3prime_lengths = []
             max_3prime_lengths = []
-            for index in index_dict.values():
+            for index_id in indices_ids:
+                index = index_dict[index_id]
                 min_5prime_lengths.append(index["min_index_5prime_length"])
                 max_5prime_lengths.append(index["max_index_5prime_length"])
                 min_3prime_lengths.append(index["min_index_3prime_length"])
@@ -201,20 +203,20 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
             # some indices do not support 5 prime index of this size (or at all).
             if target_min_5prime_length > target_max_5prime_length:
                 # identify and list the problematic indices
-                indices_in_error = list(filter(lambda x: x[1] < target_min_5prime_length, zip(index_dict.keys(), max_5prime_lengths)))
+                indices_in_error = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices_ids, max_5prime_lengths)))
                 errors.append(f"Indices in this list : [{[indice for indice, _ in indices_in_error]}] do not support 5 primes index of the required length ({target_min_5prime_length}).")
             # some indices do not support 3 prime index of this size (or at all).
             indices_in_error = []
             if target_min_3prime_length > target_max_3prime_length:
                 # identify and list the problematic indices
-                indices_in_error = list(filter(lambda x: x[1] < target_min_3prime_length, zip(index_dict.keys(), max_3prime_lengths)))
+                indices_in_error = list(filter(lambda x: x[1] < target_min_3prime_length, zip(indices_ids, max_3prime_lengths)))
                 errors.append(f"Indices in this list : [{[indice for indice, _ in indices_in_error]}] do not support 3 primes index of the required length ({target_min_3prime_length}).")
 
             # warning if the minimal required index length for some indices is larger than the minimal required index length for other indices
-            indices_in_warning = list(filter(lambda x: x[1] < target_min_5prime_length, zip(index_dict.keys(), min_5prime_lengths)))
+            indices_in_warning = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices_ids, min_5prime_lengths)))
             if indices_in_warning: # 5 prime
                 errors.append(f"Indices in this list : [{[indice for indice, _ in indices_in_warning]}] have smaller 5 prime index length than the length used for validation ({target_min_5prime_length}).")
-            indices_in_warning = list(filter(lambda x: x[1] < target_min_3prime_length, zip(index_dict.keys(), min_3prime_lengths)))
+            indices_in_warning = list(filter(lambda x: x[1] < target_min_3prime_length, zip(indices_ids, min_3prime_lengths)))
             if indices_in_warning: # 3 prime
                 errors.append(f"Indices in this list : [{[indice for indice, _ in indices_in_warning]}] have smaller 3 prime index length than the length used for validation ({target_min_3prime_length}).")
 
@@ -226,13 +228,14 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
                 results["validation_length_is_calculated"] = validation_length_is_calculated
                 results["validation_length_5prime"] = validation_length_5prime
                 results["validation_length_3prime"] = validation_length_3prime
-                results["distances_5prime"] = []
-                results["distances_5prime"] = []
+                results["header"] = indices_ids
+                results["distances_5prime"] = [[None for i in indices_ids] for j in indices_ids]
+                results["distances_3prime"] = [[None for i in indices_ids] for j in indices_ids]
 
-                for reference_count, reference in enumerate(index_dict.items()):
-                    id_reference = reference[0]
-                    index_reference = [1]
-                    for id_validation, index_validation in index_dict.items()[reference_count + 1:]: # skip redundant calculations
+                for reference_count, id_reference in enumerate(indices_ids):
+                    index_reference = index_dict[id_reference]
+                    for validation_count, id_validation in enumerate(indices_ids[reference_count + 1:], reference_count + 1): # skip redundant calculations
+                        index_validation = index_dict[id_validation]
                         # 5 prime hamming
                         min_distance_5prime = validation_length_5prime # Best case scenario
                         for index_5prime_reference in index_reference["actual_5prime_sequences"]:
@@ -245,3 +248,8 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
                             for index_3prime_validation in index_validation["actual_3prime_sequences"]:
                                 distance_3prime = sum(base_reference != base_validation for base_reference, base_validation in zip(index_3prime_reference[:validation_length_3prime], index_3prime_validation[:validation_length_3prime]))
                                 min_distance_3prime = min(min_distance_3prime, distance_3prime)
+                        
+                        results["distances_5prime"][reference_count][validation_count] = min_distance_5prime
+                        results["distances_3prime"][reference_count][validation_count] = min_distance_3prime
+    
+    return (results, errors, warnings)        
