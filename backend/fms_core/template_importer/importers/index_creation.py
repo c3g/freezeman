@@ -14,7 +14,7 @@ class IndexCreationImporter(GenericImporter):
 
         for row_id, row_data in enumerate(index_creation_sheet.rows):
             index = {
-                'name': row_data['Name'],
+                'name': row_data['Index Name'],
                 'index_structure': row_data['Index Structure'],
                 'index_3prime': row_data['Index 3 Prime'] if row_data['Index 3 Prime'] else '',
                 'index_5prime': row_data['Index 5 Prime'] if row_data['Index 5 Prime'] else '',

@@ -16,7 +16,6 @@ def get_or_create_index_set(set_name):
             try:
                 index_set = IndexSet.objects.create(name=set_name)
                 created_entity = True
-            # Pile up all validation error raised during the creation of the container
             except ValidationError as e:
                 errors.append(';'.join(e.messages))
     else:
@@ -43,10 +42,9 @@ def create_index(index_set, index_name, index_structure):
             errors.append(';'.join(e.messages))
 
         return index, errors, warnings
-
-
     else:
         errors.append(f"Index structure is needed to create an index.")
+        return index, errors, warnings
 
 
 def create_indices_3prime_by_sequence(index, index_3prime):

@@ -90,7 +90,7 @@ INDEX_CREATION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'Indices',
-          'headers': ['Set Name', 'Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
+          'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
       },],
   "prefill info": [],
 }

@@ -34,4 +34,4 @@ class IndexCreationHandler(GenericRowHandler):
                         create_indices_5prime_by_sequence(index=index_obj,
                                                           index_5prime=index['index_5prime'])
                 else:
-                    self.errors['indices_prime'] = 'At least one index prime is required.'
+                    self.errors['index_sequences'] = 'At least one index sequence is required.'
