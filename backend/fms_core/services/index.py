@@ -34,17 +34,16 @@ def create_index(index_name, index_structure, index_set=None):
             index_structure_obj = IndexStructure.objects.get(name=index_structure)
         except IndexStructure.DoesNotExist:
             errors.append(f"Invalid index structure.")
-            return index, errors, warnings
 
         try:
             index = Index.objects.create(index_set=index_set, name=index_name, index_structure=index_structure_obj)
         except ValidationError as e:
             errors.append(';'.join(e.messages))
 
-        return index, errors, warnings
     else:
         errors.append(f"Index structure is needed to create an index.")
-        return index, errors, warnings
+
+    return index, errors, warnings
 
 
 def create_indices_3prime_by_sequence(index, index_3prime):

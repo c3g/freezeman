@@ -36,7 +36,7 @@ def comma_separated_string_to_array(s):
     Returns emtpy string if argument is a blank string or None,
     otherwise it returns an array of strings
     """
-    return s.replace(" ", "").split(',') if s else ""
+    return [v.strip() for v in s.split(',')] if s else []
 
 def blank_str_to_none(s: Any):
     """
