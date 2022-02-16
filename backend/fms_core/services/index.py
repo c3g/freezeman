@@ -56,7 +56,7 @@ def create_indices_3prime_by_sequence(index, index_3prime):
         errors.append(f"Index is required.")
         return indices_3prime_by_sequence, errors, warnings
 
-    for value in index_3prime.split(','):
+    for value in index_3prime:
         sequence = None
         try:
             sequence, _ = Sequence.objects.get_or_create(value=value)
@@ -81,7 +81,7 @@ def create_indices_5prime_by_sequence(index, index_5prime):
         errors.append(f"Index is required.")
         return indices_5prime_by_sequence, errors, warnings
 
-    for value in index_5prime.split(','):
+    for value in index_5prime:
         sequence = None
         try:
             sequence, _ = Sequence.objects.get_or_create(value=value)

@@ -2,6 +2,8 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.index_creation import IndexCreationHandler
 from fms_core.templates import INDEX_CREATION_TEMPLATE
 
+from fms_core.utils import comma_separated_string_to_array
+
 
 class IndexCreationImporter(GenericImporter):
     SHEETS_INFO = INDEX_CREATION_TEMPLATE["sheets info"]
@@ -16,8 +18,8 @@ class IndexCreationImporter(GenericImporter):
             index = {
                 'name': row_data['Index Name'],
                 'index_structure': row_data['Index Structure'],
-                'index_3prime': row_data['Index 3 Prime'] if row_data['Index 3 Prime'] else '',
-                'index_5prime': row_data['Index 5 Prime'] if row_data['Index 5 Prime'] else '',
+                'index_3prime': comma_separated_string_to_array(row_data['Index 3 Prime']),
+                'index_5prime': comma_separated_string_to_array(row_data['Index 5 Prime']),
             }
 
             index_creation_kwargs = dict(
