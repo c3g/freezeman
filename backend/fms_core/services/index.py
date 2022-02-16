@@ -2,6 +2,7 @@ from fms_core.models import Index, IndexSet, IndexStructure, Sequence, SequenceB
 
 from django.core.exceptions import ValidationError
 
+
 def get_or_create_index_set(set_name):
     index_set = None
     created_entity = False
@@ -18,12 +19,11 @@ def get_or_create_index_set(set_name):
                 created_entity = True
             except ValidationError as e:
                 errors.append(';'.join(e.messages))
-    else:
-        errors.append(f"The name of the set is required to get or create a set.")
 
-    return (index_set, created_entity, errors, warnings)
+    return index_set, created_entity, errors, warnings
 
-def create_index(index_set, index_name, index_structure):
+
+def create_index(index_name, index_structure, index_set=None):
     index = None
     errors = []
     warnings = []
@@ -70,6 +70,7 @@ def create_indices_3prime_by_sequence(index, index_3prime):
                 errors.append(';'.join(e.messages))
 
     return (indices_3prime_by_sequence, errors, warnings)
+
 
 def create_indices_5prime_by_sequence(index, index_5prime):
     indices_5prime_by_sequence = None
