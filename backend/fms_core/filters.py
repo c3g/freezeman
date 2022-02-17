@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Individual, Sample, PropertyValue
+from .models import Container, Index, Individual, Sample, PropertyValue
 
 import django_filters
 
@@ -9,6 +9,7 @@ from .viewsets._constants import (
     _sample_filterset_fields,
     _individual_filterset_fields,
     _sample_minimal_filterset_fields,
+    _index_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -60,3 +61,11 @@ class IndividualFilter(GenericFilter):
     class Meta:
         model = Individual
         fields = _individual_filterset_fields
+
+class IndexFilter(GenericFilter):
+    index_set__name = django_filters.CharFilter(field_name="index_set__name", method="batch_filter")
+    name = django_filters.CharFilter(field_name="name", method="batch_filter")
+
+    class Meta:
+        model = Index
+        fields = _index_filterset_fields

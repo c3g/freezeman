@@ -370,6 +370,7 @@ export const INDEX_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "name",
     label: "Name",
+    batch: true,
   },
   index_structure__name: {
     type: FILTER_TYPE.INPUT,
@@ -380,5 +381,6 @@ export const INDEX_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "index_set__name",
     label: "Index Structure",
+    batch: true,
   },
 }

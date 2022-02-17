@@ -39,7 +39,7 @@ const getTableColumns = () => [
       render: (_, index) => index.index_set,
     },
     {
-      title: "Name",
+      title: "Index Name",
       dataIndex: "name",
       sorter: true,
       width: 80,

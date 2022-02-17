@@ -10,18 +10,17 @@ from fms_core.templates import INDEX_CREATION_TEMPLATE
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _index_filterset_fields
 
+from fms_core.filters import IndexFilter
+
 
 class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Index.objects.all()
     serializer_class = IndexSerializer
+    filter_class = IndexFilter
 
     ordering_fields = (
         *_list_keys(_index_filterset_fields),
     )
-
-    filterset_fields = {
-        **_index_filterset_fields,
-    }
 
     template_action_list = [
         {
