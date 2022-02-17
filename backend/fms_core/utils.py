@@ -21,6 +21,7 @@ __all__ = [
     "str_normalize",
     "str_cast_and_normalize",
     "get_normalized_str",
+    "comma_separated_string_to_array"
 ]
 
 
@@ -30,6 +31,12 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
+def comma_separated_string_to_array(s):
+    """
+    Returns emtpy string if argument is a blank string or None,
+    otherwise it returns an array of strings
+    """
+    return [v.strip() for v in s.split(',')] if s else []
 
 def blank_str_to_none(s: Any):
     """

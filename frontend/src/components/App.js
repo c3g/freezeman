@@ -13,6 +13,7 @@ import {
   UserOutlined,
   InfoCircleOutlined,
   ProjectOutlined,
+  NodeIndexOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -22,6 +23,7 @@ import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
+import IndicesPage from "./indices/IndicesPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
 import ProcessesPage from "./processes/ProcessesPage";
 import ProjectsPage from "./projects/ProjectsPage";
@@ -98,6 +100,11 @@ const MENU_ITEMS = [
     url: "/projects",
     icon: <ProjectOutlined />,
     text: "Projects",
+  },
+  {
+    url: "/indices",
+    icon: <NodeIndexOutlined />,
+    text: "Indices",
   },
   {
     url: "/users",
@@ -217,6 +224,9 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             </PrivateRoute>
             <PrivateRoute path="/projects">
               <ProjectsPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/indices">
+              <IndicesPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>

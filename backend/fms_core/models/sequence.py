@@ -12,7 +12,7 @@ __all__ = ["Sequence"]
 @reversion.register()
 class Sequence(TrackedModel):
     value = models.CharField(max_length=STANDARD_SEQUENCE_FIELD_LENGTH, unique=True, blank=True, validators=[sequence_validator],
-                            help_text="The nucleotide string defining the sequence.")
+                             help_text="The nucleotide string defining the sequence.")
 
     def save(self, *args, **kwargs):
         # Normalize and validate before saving, always!

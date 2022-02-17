@@ -1,4 +1,5 @@
 import Containers from "../containers/actions";
+import Indices from "../indices/actions";
 import Individuals from "../individuals/actions";
 import Users from "../users/actions";
 import Groups from "../groups";
@@ -20,6 +21,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Containers.summary,
         ExperimentRuns.listInstruments,
         ExperimentRuns.listTypes,
+        Indices.summary,
         Samples.listKinds,
         Samples.summary,
         Projects.summary,
@@ -32,6 +34,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.listTable,
         ExperimentRuns.listTable,
+        Indices.listTable,
         Individuals.listTable,
         Samples.listTable,
         Projects.listTable,
@@ -41,6 +44,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     // Lower priority
     await Promise.all([
         Containers.listTemplateActions,
+        Indices.listTemplateActions,
         Samples.listTemplateActions,
         ProcessMeasurements.listTemplateActions,
         ExperimentRuns.listTemplateActions,
@@ -57,6 +61,7 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
 
     await Promise.all([
         Containers.summary,
+        Indices.summary,
         Samples.summary,
         Projects.summary,
         ProcessMeasurements.summary,
@@ -73,6 +78,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
     await Promise.all([
         Containers.listTable,
         ExperimentRuns.listTable,
+        Indices.listTable,
         Individuals.listTable,
         Samples.listTable,
         Projects.listTable,
@@ -83,6 +89,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
     // Lower priority - Fetch summaries
     await Promise.all([
         Containers.summary,
+        Indices.summary,
         Samples.summary,
         Projects.summary,
         ProcessMeasurements.summary,

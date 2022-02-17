@@ -41,6 +41,11 @@ import {
   projects,
   projectTemplateActions
 } from "./modules/projects/reducers";
+import {
+  indicesSummary,
+  indices,
+  indicesTemplateActions
+} from "./modules/indices/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
@@ -83,6 +88,9 @@ const allReducers = combineReducers({
   projectsSummary,
   projects,
   projectTemplateActions,
+  indicesSummary,
+  indices,
+  indicesTemplateActions,
   propertyValues,
   users,
   groups,

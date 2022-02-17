@@ -7,6 +7,7 @@ import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
 import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
 import PROJECTS from "../modules/projects/actions";
+import INDICES from "../modules/indices/actions";
 
 import {actionsToButtonList, actionIcon} from "../utils/templateActions";
 
@@ -38,6 +39,7 @@ const DashboardPage = ({
   samplesSummary,
   processMeasurementsSummary,
   projectsSummary,
+  indicesSummary,
   protocolsByID,
   templates,
   listActions,
@@ -47,6 +49,7 @@ const DashboardPage = ({
     listActions.sample();
     listActions.process();
     listActions.project();
+    listActions.indices();
   }, []);
 
   return <PageContainer>
@@ -108,6 +111,15 @@ const DashboardPage = ({
               )}
             </Row>
           </Card>
+          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+          <Card title="Indices" {...CARD_PROPS}>
+            <Statistic title="Total Indices" value={indicesSummary.total_count || "—"} />
+            <Row gutter={16}>
+              {actionsToButtonList("/indices", templates.index, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
         </Col>
         <Col {...COL_LAYOUT}>
           <Card title="Protocols" {...CARD_PROPS}>
@@ -148,12 +160,14 @@ const mapStateToProps = state => ({
   samplesSummary: state.samplesSummary.data,
   processMeasurementsSummary: state.processMeasurementsSummary.data,
   projectsSummary: state.projectsSummary.data,
+  indicesSummary: state.indicesSummary.data,
   protocolsByID: state.protocols.itemsByID,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
     processMeasurement: state.processMeasurementTemplateActions,
     project: state.projectTemplateActions,
+    index: state.indicesTemplateActions,
   },
 });
 
@@ -163,6 +177,7 @@ const mapDispatchToProps = dispatch => ({
     sample: () => dispatch(SAMPLES.listTemplateActions()),
     process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
     project: () => dispatch(PROJECTS.listTemplateActions()),
+    indices: () => dispatch(INDICES.listTemplateActions()),
   }
 });
 
