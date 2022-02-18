@@ -233,11 +233,13 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
             if not errors:
                 validation_length_5prime = target_min_5prime_length
                 validation_length_3prime = target_min_3prime_length
+                results["instrument_type"] = instrument_type.type
                 results["validation_length_is_calculated"] = validation_length_is_calculated
                 results["validation_length_5prime"] = validation_length_5prime
                 results["validation_length_3prime"] = validation_length_3prime
+                results["threshold"] = threshold
                 results["header"] = indices_ids
-                results["distances"] = [[None for i in indices_ids] for j in indices_ids]
+                results["distances"] = [[None for i in indices_ids] for j in indices_ids]               
 
                 for reference_count, id_reference in enumerate(indices_ids):
                     index_reference = index_dict[id_reference]
