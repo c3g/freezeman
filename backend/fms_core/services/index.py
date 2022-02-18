@@ -120,7 +120,6 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
             index_dict[index_id] = {"obj": Index.objects.get(id=index_id)}
         except Index.DoesNotExist:
             errors.append(f"Index with id {index_id} does not exist.")
-
     if not errors:
         # Get read direction from the instrument type (raise error if instrument type do not exist)
         try:
