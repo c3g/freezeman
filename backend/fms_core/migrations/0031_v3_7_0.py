@@ -27,10 +27,10 @@ def init_instrument_type_read_direction(apps, schema_editor):
                                        "Illumina NovaSeq 6000",]
 
         for instrument_type_name in INSTRUMENT_REVERSED_5_PRIME:
-            instrument = InstrumentType.objects.get(name=instrument_type_name)
-            instrument.index_read_5_prime = "REVERSE"
-            instrument.save()
-            reversion.add_to_revision(instrument)
+            instrument_type = InstrumentType.objects.get(type=instrument_type_name)
+            instrument_type.index_read_5_prime = "REVERSE"
+            instrument_type.save()
+            reversion.add_to_revision(instrument_type)
 
 class Migration(migrations.Migration):
 
@@ -149,8 +149,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='5 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_5prime_association', to='fms_core.index')),
-                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_5prime_association', to='fms_core.sequence')),
+                ('index', models.ForeignKey(help_text='5 primer indices associated', on_delete=django.db.models.deletion.PROTECT, related_name='sequence_5prime_association', to='fms_core.index')),
+                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_5prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -165,8 +165,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='3 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_3prime_association', to='fms_core.index')),
-                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_3prime_association', to='fms_core.sequence')),
+                ('index', models.ForeignKey(help_text='3 primer indices associated', on_delete=django.db.models.deletion.PROTECT, related_name='sequence_3prime_association', to='fms_core.index')),
+                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_3prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
