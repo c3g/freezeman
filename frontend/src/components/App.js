@@ -144,7 +144,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
 
-  if (!user)
+  if (!user && isLoggedIn)
     get(userID);
 
   const menuItems = getMenuItems(user, logOut);
