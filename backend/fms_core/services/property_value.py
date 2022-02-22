@@ -77,7 +77,7 @@ def validate_non_optional_properties(properties):
         value = value_dict['value']
 
         # Validate non-optional properties
-        if not property_type.is_optional and not value:
+        if not property_type.is_optional and value is None:
             is_valid = False
             errors.append(f'{property_type} is required.')
 
