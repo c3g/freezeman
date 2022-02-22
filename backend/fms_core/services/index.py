@@ -130,7 +130,7 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
             index_read_direction_5_prime = instrument_type.index_read_5_prime
             index_read_direction_3_prime = instrument_type.index_read_3_prime
     
-            # Calculate the length of the default indexes.
+            # Calculate the length of the default indices.
             # first get the length of each partial index and flanker in a tuple list
             for index_id in indices_ids:
                 index = index_dict[index_id]
@@ -229,7 +229,7 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
                 warnings.append(f"Indices in this list {[indice for indice, _ in indices_in_warning]} have smaller 3 prime index length than the length used for validation ({target_min_3prime_length}).")
 
             # At this point we have the validation data loaded, validation length calculated and validated.
-            # We will now proceed to calculate the hammind distance of the index.
+            # We will now proceed to calculate the hamming distance of the index.
             if not errors:
                 validation_length_5prime = target_min_5prime_length
                 validation_length_3prime = target_min_3prime_length
