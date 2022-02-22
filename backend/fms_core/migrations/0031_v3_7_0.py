@@ -3,9 +3,34 @@
 from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
+from django.contrib.auth.models import User
 import django.db.models.deletion
 import re
+import reversion
 
+ADMIN_USERNAME = 'biobankadmin'
+
+def init_instrument_type_read_direction(apps, schema_editor):
+    InstrumentType = apps.get_model("fms_core", "InstrumentType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Initialize instrument type read direction for 'REVERSE' reading instruments.")
+        reversion.set_user(admin_user)
+
+        INSTRUMENT_REVERSED_5_PRIME = ["Illumina HiSeq 4000",
+                                       "HiSeq X Five",
+                                       "HiSeq X Ten",
+                                       "Illumina iSeq 100",
+                                       "Illumina NovaSeq 6000",]
+
+        for instrument_type_name in INSTRUMENT_REVERSED_5_PRIME:
+            instrument_type = InstrumentType.objects.get(type=instrument_type_name)
+            instrument_type.index_read_5_prime = "REVERSE"
+            instrument_type.save()
+            reversion.add_to_revision(instrument_type)
 
 class Migration(migrations.Migration):
 
@@ -124,8 +149,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='5 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_5prime_association', to='fms_core.index')),
-                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_5prime_association', to='fms_core.sequence')),
+                ('index', models.ForeignKey(help_text='5 primer indices associated', on_delete=django.db.models.deletion.PROTECT, related_name='sequence_5prime_association', to='fms_core.index')),
+                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_5prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex5prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -140,8 +165,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_creation', to=settings.AUTH_USER_MODEL)),
-                ('index', models.ForeignKey(help_text='3 primer indices associated', on_delete=django.db.models.deletion.CASCADE, related_name='sequence_3prime_association', to='fms_core.index')),
-                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.CASCADE, related_name='index_3prime_association', to='fms_core.sequence')),
+                ('index', models.ForeignKey(help_text='3 primer indices associated', on_delete=django.db.models.deletion.PROTECT, related_name='sequence_3prime_association', to='fms_core.index')),
+                ('sequence', models.ForeignKey(help_text='Sequences associated', on_delete=django.db.models.deletion.PROTECT, related_name='index_3prime_association', to='fms_core.sequence')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sequencebyindex3prime_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -162,5 +187,21 @@ class Migration(migrations.Migration):
             model_name='index',
             name='sequences_5prime',
             field=models.ManyToManyField(related_name='indices_5prime', through='fms_core.SequenceByIndex5Prime', to='fms_core.Sequence')
+        ),
+        migrations.AddField(
+            model_name='instrumenttype',
+            name='index_read_3_prime',
+            field=models.CharField(choices=[('FORWARD', 'FORWARD'), ('REVERSE', 'REVERSE')], default='FORWARD', help_text='Instrument specific read direction for the index part at the 3 prime end of the sequence.', max_length=10),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name='instrumenttype',
+            name='index_read_5_prime',
+            field=models.CharField(choices=[('FORWARD', 'FORWARD'), ('REVERSE', 'REVERSE')], default='FORWARD', help_text='Instrument specific read direction for the index part at the 5 prime end of the sequence.', max_length=10),
+            preserve_default=False,
+        ),
+        migrations.RunPython(
+            init_instrument_type_read_direction,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
