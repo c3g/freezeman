@@ -100,6 +100,13 @@ export const indices = (
             return { ...state, isFetching: false, error: action.error, };
         default:
             return state;
+
+        case INDICES.VALIDATE.REQUEST:
+            return { ...state, error: undefined, isFetching: true };
+        case INDICES.VALIDATE.RECEIVE:
+            return {...state, isFetching: false };
+        case INDICES.VALIDATE.ERROR:
+            return { ...state, error: action.error, isFetching: false };
     }
 };
 

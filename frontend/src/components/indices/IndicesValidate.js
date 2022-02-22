@@ -48,7 +48,6 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
    */
 
   const [instrumentTypes, setInstrumentTypes] = useState([]);
-  const [indexSets, setIndexSets] = useState([]);
   const [indicesBySet, setIndicesBySet] = useState([]);
 
   useEffect(() => {
@@ -56,34 +55,43 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
     listInstrumentTypes(token).then(instrumentTypes => {
       setInstrumentTypes(instrumentTypes.map(Options.renderInstrumentType))
     })
-    //List sets
+    //List sets and initialize the cascader options
     listSets(token, {}).then(sets => {
-      setIndexSets(sets)
+      //sets.push({name: "Default"})
+      sets.map(set => {
+        setIndicesBySet((currentState) => [ ...currentState,
+        {
+          label: set.name,
+          value: set.id,
+          isLeaf: false,
+        }])
+      })
     })
   }, [])
 
-  useEffect(() => {
-    //build the data structure for the cascader
-    indexSets.map(set => {
-      listIndicesBySet(token, {"index_set__id__in": set.id, limit: indicesTotalCount}).then(response => {
+  const loadData = (selectedOptions) => {
+    const targetOption = selectedOptions[selectedOptions.length - 1]
+    const setID = targetOption.value
+    const query = {"index_set__id__in": setID}
+    targetOption.loading = true
+
+    // load options lazily
+    setTimeout(() => {
+      listIndicesBySet(token, {...query, limit: indicesTotalCount}).then(response => {
         const indices = response.results
         //concatenate existing indices to the retrieved ones
-        setIndicesBySet((currentState) => [ ...currentState,
-          {
-            label: set.name,
-            value: set.id,
-            children: indices?.map(index => {
-              return {
-                label: index.name,
-                value: index.id,
-                children: [],
-              }
-            }),
+        targetOption.children = indices?.map(index => {
+          return {
+            label: index.name,
+            value: index.id,
+            children: [],
           }
-        ])
+        })
+        targetOption.loading = false;
+        setIndicesBySet([...indicesBySet])
       })
-    })
-  }, [indexSets])
+    }, 1000);
+  };
 
   /*
    * Form Data submission
@@ -99,9 +107,11 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
   const onSubmit = () => {
     const data = serialize(formData)
     validate(data)
-    .then(() => { setFormErrors({}) })
+    .then((response) => {
+      setFormErrors({})
+      history.push("/indices/validate/results", {response})
+    })
     .catch(err => { setFormErrors(err.data || {}) })
-    .then((response) => console.log(response))
   }
 
   /*
@@ -191,7 +201,8 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
               options={indicesBySet}
               multiple
               showSearch={{ filter }}
-              maxTagCount="responsive"
+              loadData={loadData}
+              changeOnSelect
             />
           </Form.Item>
           <Form.Item
