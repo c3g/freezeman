@@ -18,9 +18,3 @@ class IndexSet(TrackedModel):
         # Normalize and validate before saving, always!
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
-
-    def __str__(self):
-        return '%d: %s' % (self.id, self.name)
-
-    def __repr__(self):
-        return '%d: %s' % (self.id, self.name)

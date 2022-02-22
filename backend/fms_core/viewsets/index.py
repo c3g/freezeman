@@ -5,9 +5,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from fms_core.models import Index
 from fms_core.services.index import validate_indices
-from fms_core.serializers import IndexSerializer, IndexExportSerializer
+from fms_core.models import Index, IndexSet
+from fms_core.serializers import IndexSerializer, IndexExportSerializer, IndexSetSerializer
 from fms_core.template_importer.importers import IndexCreationImporter
 from fms_core.templates import INDEX_CREATION_TEMPLATE
 
@@ -60,6 +60,11 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
                 "warnings": warnings,
                 "results": results}
         return Response(data)
+
+    @action(detail=False, methods=["get"])
+    def list_sets(self, _request):
+        serializer = IndexSetSerializer(IndexSet.objects.all(), many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):

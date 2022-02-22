@@ -8,8 +8,10 @@ from .models import (
     ExperimentRun,
     RunType,
     Index,
+    IndexSet,
     Individual,
     Instrument,
+    InstrumentType,
     PropertyValue,
     PropertyType,
     Protocol,
@@ -29,9 +31,11 @@ __all__ = [
     "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndexSerializer",
+    "IndexSetSerializer",
     "IndexExportSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
+    "InstrumentTypeSerializer",
     "SampleKindSerializer",
     "PropertyValueSerializer",
     "ProcessSerializer",
@@ -123,6 +127,11 @@ class IndividualSerializer(serializers.ModelSerializer):
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instrument
+        fields = "__all__"
+
+class InstrumentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstrumentType
         fields = "__all__"
 
 
@@ -404,4 +413,9 @@ class IndexExportSerializer(serializers.ModelSerializer):
     index_structure = serializers.CharField(read_only=True, source="index_structure.name")
     class Meta:
         model = Index
+        fields = "__all__"
+
+class IndexSetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IndexSet
         fields = "__all__"

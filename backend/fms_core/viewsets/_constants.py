@@ -142,5 +142,6 @@ _index_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "index_set__name": CATEGORICAL_FILTERS_LOOSE,
+    "index_set__id": CATEGORICAL_FILTERS_LOOSE,
     "index_structure__name": CATEGORICAL_FILTERS_LOOSE,
 }

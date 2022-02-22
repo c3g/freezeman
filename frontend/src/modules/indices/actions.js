@@ -14,6 +14,7 @@ export const SET_FILTER_OPTION     = "INDICES.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "INDICES.CLEAR_FILTERS";
 export const SUMMARY               = createNetworkActionTypes("INDICES.SUMMARY");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("INDICES.LIST_TEMPLATE_ACTIONS");
+export const VALIDATE              = createNetworkActionTypes("INDICES.VALIDATE");
 
 export const get = id => async (dispatch, getState) => {
     const index = getState().indices.itemsByID[id];
@@ -81,6 +82,13 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.indices.template.actions()));
 };
 
+export const validate = (options) => async (dispatch, getState) => {
+    return await dispatch(networkAction(VALIDATE,
+        api.indices.validate(options),
+        { meta: options }
+    ));
+};
+
 export default {
     GET,
     LIST,
@@ -91,6 +99,7 @@ export default {
     CLEAR_FILTERS,
     SUMMARY,
     LIST_TEMPLATE_ACTIONS,
+    VALIDATE,
     get,
     setSortBy,
     setFilter,
@@ -100,6 +109,7 @@ export default {
     listTable,
     summary,
     listTemplateActions,
+    validate
 };
 
 // Helper to call list() after another action
