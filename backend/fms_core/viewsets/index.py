@@ -73,10 +73,10 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         
         length_5prime = int(_request.GET.get("5prime_length", 0))
         if length_5prime < 0:
-            form_errors["length_5prime"].append(f"Validation length for index at 5 prime end cannot be negative.")
+            form_errors["5prime_length"].append(f"Validation length for index at 5 prime end cannot be negative.")
         length_3prime = int(_request.GET.get("3prime_length", 0))
         if length_3prime < 0:
-            form_errors["length_3prime"].append(f"Validation length for index at 3 prime end cannot be negative.")
+            form_errors["3prime_length"].append(f"Validation length for index at 3 prime end cannot be negative.")
 
         threshold = _request.GET.get("threshold", None)
         threshold = threshold if threshold is None else int(threshold)
@@ -84,7 +84,9 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             form_errors["threshold"].append(f"Distance threshold cannot be negative.")
         if not form_errors:
             results, errors, warnings = validate_indices(indices, instrument_type, length_5prime, length_3prime, threshold)
-        data = {"form_errors": form_errors,
+        else:
+            raise ValidationError(form_errors)
+        data = {"form_errors": ValidationError(form_errors),
                 "validation_errors": ValidationError(errors),
                 "warnings": warnings,
                 "results": results}

@@ -85,7 +85,7 @@ export const listTemplateActions = () => (dispatch, getState) => {
 export const validate = (options) => async (dispatch, getState) => {
     return await dispatch(networkAction(VALIDATE,
         api.indices.validate(options),
-        { meta: options }
+        { meta: { ignoreError: 'APIError' } }
     ));
 };
 
