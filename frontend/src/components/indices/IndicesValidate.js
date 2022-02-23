@@ -178,14 +178,14 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
           </Form.Item>
           <Form.Item
             label="Index 3' length"
-            {...props("3prime_length")}
+            {...props("length_3prime")}
             extra="Desired sequence length for the index 3 prime"
           >
             <InputNumber step={1} />
           </Form.Item>
           <Form.Item
             label="Index 5' length"
-            {...props("5prime_length")}
+            {...props("length_5prime")}
             extra="Desired sequence length for the index 5 prime"
           >
             <InputNumber step={1} />

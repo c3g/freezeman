@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams, useLocation} from "react-router-dom";
-import {Descriptions, List, Collapse} from "antd";
+import {Descriptions, List, Collapse, Tag} from "antd";
 const { Panel } = Collapse;
 
 import AppPageHeader from "../AppPageHeader";
@@ -28,8 +28,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
   const {results, validation_errors, warnings} = state.response
   const indicesValidated = results.header
   const allIndicesLoaded = indicesValidated?.every(index => index in indicesByID)
-  const prime3Colissions = []
-  const prime5Colissions = []
+  const collisions = []
 
   if (!allIndicesLoaded)
     list({"id__in":indicesValidated.join()})
@@ -40,12 +39,9 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         if (j > i){
           const indexName1 = indicesByID[results.header[i]]?.name
           const indexName2 = indicesByID[results.header[j]]?.name
-          //3 prime
-          if (row[j][0] < results.threshold)
-            prime3Colissions.push(indexName1 + '  with ' + indexName2 + '. ')
-          //5 prime
-          if (row[j][1] < results.threshold)
-            prime5Colissions.push(indexName1 + '  with ' + indexName2 + '. ')
+          //if both  are below the threshold then we have a collision
+          if (row[j][0] < results.threshold && row[j][1] < results.threshold)
+            collisions.push(indexName1 + '  with ' + indexName2 + '. ')
         }
       }
   });
@@ -59,36 +55,26 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         onBack={() => history.push('/indices/validate')}
       />
       <PageContent>
-        <Descriptions bordered={true}>
+        <Descriptions column={2} bordered={true}>
             <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
             <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
             <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_3prime}</Descriptions.Item>
             <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
+            <Descriptions.Item label="Validation status">
+              {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
+            </Descriptions.Item>
             <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
-            <Descriptions.Item label="Validation status">{results.is_valid ? "Passed" : "Failed"} </Descriptions.Item>
             <Descriptions.Item label="Indices with collision (distance < threshold)" span={3} size={'default'}>
             <Collapse >
-              <Panel header="Expand  list" key="1">
-                <div style={{height: '400px', overflow: 'auto'}}>
-                  <List
-                     size="small"
-                     header={<div>3 prime collisions</div>}
-                     bordered
-                     dataSource={prime3Colissions}
-                     renderItem={item => <List.Item>{item}</List.Item>}
-                     style={{width: '45%', float:'left'}}
-                     loading={isFetching}
-                   />
-                   <List
-                     size="small"
-                     header={<div>5 prime collisions</div>}
-                     bordered
-                     dataSource={prime5Colissions}
-                     renderItem={item => <List.Item>{item}</List.Item>}
-                     style={{width: '45%', float:'right'}}
-                     loading={isFetching}
-                   />
-                </div>
+              <Panel header="Expand list" key="1">
+                <List
+                  size="small"
+                  header={<div>Collisions</div>}
+                  bordered
+                  dataSource={collisions}
+                  renderItem={item => <List.Item>{item}</List.Item>}
+                  loading={isFetching}
+                />
               </Panel>
             </Collapse>
             </Descriptions.Item>
