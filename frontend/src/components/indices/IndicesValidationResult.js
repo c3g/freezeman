@@ -2,7 +2,8 @@ import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams, useLocation} from "react-router-dom";
-import {Descriptions, List, Collapse, Tag, Table} from "antd";
+import {Descriptions, List, Collapse, Tag, Table, Typography, Alert} from "antd";
+const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
 import AppPageHeader from "../AppPageHeader";
@@ -95,6 +96,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         onBack={() => history.push('/indices/validate')}
       />
       <PageContent>
+        <Title level={3}> Validation Summary </Title>
         <Descriptions column={2} bordered={true}>
             <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
             <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
@@ -139,6 +141,18 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
             />
           </Panel>
         </Collapse>
+        { validation_errors.length > 0 ? <Title level={3} style={{ marginTop: '1em' }}> Validation Errors </Title>  : null }
+        {
+          validation_errors.map(error => {
+            return <Alert message={error} type="error" />
+          })
+        }
+        { warnings.length > 0 ? <Title level={3} style={{ marginTop: '1em' }}> Validation Warnings </Title> : null }
+        {
+          warnings.map(warning => {
+            return <Alert message={warning} type="warning" />
+          })
+        }
       </PageContent>
     </>
   );
