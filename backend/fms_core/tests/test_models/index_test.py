@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import Index, IndexSet, IndexStructure, Sequence
+from fms_core.models import Index, IndexSet, IndexStructure, Sequence, SequenceByIndex3Prime, SequenceByIndex5Prime
 
 
 class IndexTest(TestCase):
@@ -44,13 +44,13 @@ class IndexTest(TestCase):
         self.assertEqual(my_index.sequences_3prime.all().count(), 0)
         self.assertEqual(my_index.sequences_5prime.all().count(), 0)
 
-        my_index.sequences_3prime.add(self.sequence_3prime_1)
+        SequenceByIndex3Prime.objects.create(index=my_index, sequence=self.sequence_3prime_1)
         self.assertEqual(my_index.sequences_3prime.all().count(), 1)
-        my_index.sequences_3prime.add(self.sequence_3prime_2)
+        SequenceByIndex3Prime.objects.create(index=my_index, sequence=self.sequence_3prime_2)
         self.assertEqual(my_index.sequences_3prime.all().count(), 2)
 
-        my_index.sequences_5prime.add(self.sequence_5prime_1)
-        my_index.sequences_5prime.add(self.sequence_5prime_1)
+        SequenceByIndex5Prime.objects.create(index=my_index, sequence=self.sequence_5prime_1)
+        SequenceByIndex5Prime.objects.create(index=my_index, sequence=self.sequence_5prime_2)
         self.assertEqual(my_index.sequences_5prime.all().count(), 2)
 
 
