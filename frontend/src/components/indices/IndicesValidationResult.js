@@ -141,17 +141,21 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
             />
           </Panel>
         </Collapse>
-        { validation_errors.length > 0 ? <Title level={3} style={{ marginTop: '1em' }}> Validation Errors </Title>  : null }
-        {
-          validation_errors.map(error => {
-            return <Alert message={error} type="error" />
-          })
+        { validation_errors.length > 0 ?
+          <Alert
+             message="Validation Errors"
+             style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}
+             description={validation_errors.join(".\n")}
+             type="error"
+           /> : null
         }
-        { warnings.length > 0 ? <Title level={3} style={{ marginTop: '1em' }}> Validation Warnings </Title> : null }
-        {
-          warnings.map(warning => {
-            return <Alert message={warning} type="warning" />
-          })
+        { warnings.length > 0 ?
+          <Alert
+             message="Validation Warnings"
+             style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}
+             description={warnings.join(".\n")}
+             type="warning"
+           /> : null
         }
       </PageContent>
     </>
