@@ -15106,8 +15106,6 @@ def import_indices(apps, schema_editor):
             reversion.add_to_revision(current_index)
             # create sequences and M2M table for 5 prime index
             index_5_prime = index_value["index_5_prime"]
-            if not index_5_prime:
-                index_5_prime.append("")
             for index_5_prime_sequence in index_5_prime:
                 sequence_5_prime, _ = Sequence.objects.get_or_create(value=index_5_prime_sequence,
                                                                      defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})
@@ -15119,8 +15117,6 @@ def import_indices(apps, schema_editor):
                 reversion.add_to_revision(sequence_by_index)
             # create sequences and M2M table for 3 prime index
             index_3_prime = index_value["index_3_prime"]
-            if not index_3_prime:
-                index_3_prime.append("")
             for index_3_prime_sequence in index_3_prime:
                 sequence_3_prime, _ = Sequence.objects.get_or_create(value=index_3_prime_sequence,
                                                                      defaults={"created_by_id": admin_user_id, "updated_by_id": admin_user_id})

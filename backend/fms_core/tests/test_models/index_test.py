@@ -33,7 +33,7 @@ class IndexTest(TestCase):
         self.similar_name = "thisisvalidindexname"
 
 
-    def test_index_set(self):
+    def test_index(self):
         my_index = Index.objects.create(name=self.name,
                                         index_set=self.index_set,
                                         index_structure=self.index_structure)

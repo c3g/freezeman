@@ -147,13 +147,13 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
                 min_5prime_index_length = 0
                 max_5prime_index_length = STANDARD_SEQUENCE_FIELD_LENGTH * 2 # Assuming max size index and flanker
                 index["actual_5prime_sequences"] = []
-                for sequence_5prime in index["obj"].sequences_5prime.all():
+                for sequence_5prime in index["obj"].list_5prime_sequences:
                     if index_read_direction_5_prime == INDEX_READ_FORWARD:
-                        actual_5prime_sequence = sequence_5prime.value + flanker_5_prime
+                        actual_5prime_sequence = sequence_5prime + flanker_5_prime
                     else:
-                        actual_5prime_sequence = _reverse_complement(flanker_5_prime + sequence_5prime.value)
+                        actual_5prime_sequence = _reverse_complement(flanker_5_prime + sequence_5prime)
                     index["actual_5prime_sequences"].append(actual_5prime_sequence)
-                    min_5prime_index_length = max(min_5prime_index_length, len(sequence_5prime.value))
+                    min_5prime_index_length = max(min_5prime_index_length, len(sequence_5prime))
                     max_5prime_index_length = min(max_5prime_index_length, len(actual_5prime_sequence))
                 index["min_index_5prime_length"] = min_5prime_index_length
                 index["max_index_5prime_length"] = max_5prime_index_length
@@ -161,13 +161,13 @@ def validate_indices(indices_ids, instrument_type_id, length_5_prime=0, length_3
                 min_3prime_index_length = 0
                 max_3prime_index_length = STANDARD_SEQUENCE_FIELD_LENGTH * 2 # Assuming max size index and flanker
                 index["actual_3prime_sequences"] = []
-                for sequence_3prime in index["obj"].sequences_3prime.all():                        
+                for sequence_3prime in index["obj"].list_3prime_sequences():                        
                     if index_read_direction_3_prime == INDEX_READ_FORWARD:
-                        actual_3prime_sequence = sequence_3prime.value + flanker_3_prime
+                        actual_3prime_sequence = sequence_3prime + flanker_3_prime
                     else:
-                        actual_3prime_sequence = _reverse_complement(flanker_3_prime + sequence_3prime.value)
+                        actual_3prime_sequence = _reverse_complement(flanker_3_prime + sequence_3prime)
                     index["actual_3prime_sequences"].append(actual_3prime_sequence)
-                    min_3prime_index_length = max(min_3prime_index_length, len(sequence_3prime.value))
+                    min_3prime_index_length = max(min_3prime_index_length, len(sequence_3prime))
                     max_3prime_index_length = min(max_3prime_index_length, len(actual_3prime_sequence))
                     index["min_index_3prime_length"] = min_3prime_index_length
                     index["max_index_3prime_length"] = max_3prime_index_length

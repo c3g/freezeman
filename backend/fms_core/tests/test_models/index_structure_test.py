@@ -20,7 +20,7 @@ class IndexStructureTest(TestCase):
         self.similar_name = "thisisvalidstructurename"
 
 
-    def test_index_set(self):
+    def test_index_structure(self):
         my_index_structure = IndexStructure.objects.create(name=self.name,
                                                            flanker_3prime_forward=self.flanker_3prime_forward,
                                                            flanker_3prime_reverse=self.flanker_3prime_reverse,

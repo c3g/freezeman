@@ -2,6 +2,7 @@ import reversion
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from typing import List
 
 from .tracked_model import TrackedModel
 
@@ -27,6 +28,16 @@ class Index(TrackedModel):
                                               symmetrical=False, related_name="indices_3prime")
     sequences_5prime = models.ManyToManyField("Sequence", through="SequenceByIndex5Prime",
                                               symmetrical=False, related_name="indices_5prime")
+    
+    @property
+    def list_3prime_sequences(self) -> List["str"]:
+        list_sequences = [sequence.value for sequence in self.sequences_3prime.all()]
+        return list_sequences or [""]
+
+    @property
+    def list_5prime_sequences(self) -> List["str"]:
+        list_sequences = [sequence.value for sequence in self.sequences_5prime.all()]
+        return list_sequences or [""]
 
     def clean(self):
         super().clean()
