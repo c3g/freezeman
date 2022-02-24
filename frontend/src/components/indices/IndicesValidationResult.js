@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams, useLocation} from "react-router-dom";
-import {Descriptions, List, Collapse, Tag} from "antd";
+import {Descriptions, List, Collapse, Tag, Table} from "antd";
 const { Panel } = Collapse;
 
 import AppPageHeader from "../AppPageHeader";
@@ -29,22 +29,62 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
   const indicesValidated = results.header
   const allIndicesLoaded = indicesValidated?.every(index => index in indicesByID)
   const collisions = []
+  console.log(results.is_valid)
 
   if (!allIndicesLoaded)
     list({"id__in":indicesValidated.join()})
 
-  results.distances.map((row, i) => {
+  const columns = [
+    {
+      title: 'Name',
+      width: 100,
+      dataIndex: 'name',
+      key: 'name',
+      fixed: 'left'
+    },
+    ...results.header.map((i) => {
+      return {
+        title: indicesByID[i]?.name,
+        width: 100,
+        dataIndex: indicesByID[i]?.name,
+        key: indicesByID[i]?.name,
+        render: distances => (
+          <span>
+            {
+              distances?.map(distance => {
+                if (distance < results.threshold)
+                  return <Tag color="red"> {distance} </Tag>
+                else
+                  return <Tag color="green"> {distance} </Tag>
+              })
+            }
+          </span>
+    ),
+      }
+    })
+  ]
+
+  const data = [
+    ...results.distances.map((row, i) => {
+      const indexName1 = indicesByID[results.header[i]]?.name
+      let indexData = {
+        name: indexName1,
+        key: i,
+      }
       for (let j = 0; j < row.length; j++){
-        //upper diagonal matrix
+        const indexName2 = indicesByID[results.header[j]]?.name
         if (j > i){
-          const indexName1 = indicesByID[results.header[i]]?.name
-          const indexName2 = indicesByID[results.header[j]]?.name
+          indexData[indexName2] = [row[j][0], row[j][0]]
           //if both  are below the threshold then we have a collision
           if (row[j][0] < results.threshold && row[j][1] < results.threshold)
-            collisions.push(indexName1 + '  with ' + indexName2 + '. ')
+              collisions.push(indexName1 + '  with ' + indexName2 + '. ')
         }
+        else
+          indexData[indexName2] = [0, 0]
       }
-  });
+      return indexData
+    })
+  ]
 
   const title = 'Index Validation Results'
 
@@ -58,7 +98,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         <Descriptions column={2} bordered={true}>
             <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
             <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
-            <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_3prime}</Descriptions.Item>
+            <Descriptions.Item label="Validation Length 3 Prime">{results.validation_length_3prime}</Descriptions.Item>
             <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
             <Descriptions.Item label="Validation status">
               {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
@@ -66,10 +106,9 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
             <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
             <Descriptions.Item label="Indices with collision (distance < threshold)" span={3} size={'default'}>
             <Collapse >
-              <Panel header="Expand list" key="1">
+              <Panel header="Expand collision list" key="1">
                 <List
                   size="small"
-                  header={<div>Collisions</div>}
                   bordered
                   dataSource={collisions}
                   renderItem={item => <List.Item>{item}</List.Item>}
@@ -78,14 +117,28 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
               </Panel>
             </Collapse>
             </Descriptions.Item>
-            <Descriptions.Item label="Detailed distance matrix" span={3} size={'default'}>
-              <Collapse>
-                <Panel header="Expand matrix" key="1">
-
-                </Panel>
-              </Collapse>
-            </Descriptions.Item>
         </Descriptions>
+        <Collapse>
+          <Panel header="Expand detailed distance matrix" key="1">
+            <Table
+              columns={columns}
+              dataSource={data}
+              pagination={false}
+              scroll={{ x: 1500, y: 300 }}
+              title={() => {
+                return (
+                  <div>
+                    Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
+                    <div>
+                      <Tag color="green"> If greater than threshold</Tag>
+                      <Tag color="red"> If smaller than threshold </Tag>
+                    </div>
+                  </div>
+                )
+              }}
+            />
+          </Panel>
+        </Collapse>
       </PageContent>
     </>
   );
