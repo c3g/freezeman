@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
-import moment from "moment";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import {
   Alert,
   Button,
@@ -9,23 +8,22 @@ import {
   Input,
   InputNumber,
   Select,
-  Switch,
   Cascader,
 } from "antd";
 const {Option} = Select
-const {TextArea} = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import api, {withToken} from "../../utils/api";
 import {validate} from "../../modules/indices/actions";
-import {requiredRules, nameRules} from "../../constants";
+import {requiredRules} from "../../constants";
 
 // API functions
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
 
+//TODO: Use action/reducer to store it in Redux Store
 const listIndicesBySet = (token, options) =>
   withToken(token, api.indices.list)(options).then(res => res.data)
 
@@ -57,7 +55,6 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
     })
     //List sets and initialize the cascader options
     listSets(token, {}).then(sets => {
-      //sets.push({name: "Default"})
       sets.map(set => {
         setIndicesBySet((currentState) => [ ...currentState,
         {
@@ -97,7 +94,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState()
+  const [formData, setFormData] = useState({threshold : 2})
   const [formErrors, setFormErrors] = useState({})
 
   const onValuesChange = (values) => {
@@ -136,6 +133,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
     const newValues = {...values}
 
     if (newValues.indices){
+      //if the user checks a set box, retrieve all the index children
       newValues.indices = newValues.indices.map(index => {
         if (index.length > 1)
           return index[1]
@@ -209,6 +207,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
             label="Threshold"
             {...props("threshold")}
             extra="Number of allowed errors."
+            rules={requiredRules}
           >
             <InputNumber step={1} />
           </Form.Item>

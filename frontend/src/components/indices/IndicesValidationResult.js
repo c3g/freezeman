@@ -29,8 +29,8 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
   const indicesValidated = results.header
   const allIndicesLoaded = indicesValidated?.every(index => index in indicesByID)
   const collisions = []
-  console.log(results.is_valid)
 
+  //TODO: get it from Redux Store
   if (!allIndicesLoaded)
     list({"id__in":indicesValidated.join()})
 
