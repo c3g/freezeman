@@ -80,7 +80,7 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
         threshold = _request.GET.get("threshold", None)
         threshold = threshold if threshold is None else int(threshold)
-        if threshold < 0:
+        if threshold and threshold < 0:
             form_errors["threshold"].append(f"Distance threshold cannot be negative.")
         if not form_errors:
             results, errors, warnings = validate_indices(indices, instrument_type, length_5prime, length_3prime, threshold)

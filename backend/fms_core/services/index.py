@@ -258,5 +258,5 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
                     if threshold is not None:
                         is_valid = is_valid and (min_distance_3prime > threshold or min_distance_5prime > threshold)
                     results["distances"][reference_count][validation_count] = tuple([min_distance_3prime, min_distance_5prime])
-    results["is_valid"] = is_valid if threshold is not None else None
+    results["is_valid"] = is_valid and not errors if threshold is not None else None
     return (results, errors, warnings)
