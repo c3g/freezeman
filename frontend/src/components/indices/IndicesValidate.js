@@ -125,10 +125,6 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
       help: formErrors[name],
     }
 
-  function filter(inputValue, path) {
-    return path.some(option => option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1);
-  }
-
   function serialize(values) {
     const newValues = {...values}
 
@@ -170,8 +166,10 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
               placeholder="Select an instrument type"
               showSearch
               allowClear
-              filterOption={false}
               options={instrumentTypes}
+              filterOption={(input, option) =>
+                option.label.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
             />
           </Form.Item>
           <Form.Item
@@ -198,7 +196,10 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
               style={{ width: "100%" }}
               options={indicesBySet}
               multiple
-              showSearch={{ filter }}
+              showSearch={(inputValue, path) =>
+                path.some(option =>
+                  option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1)
+              }
               loadData={loadData}
               changeOnSelect
             />

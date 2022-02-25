@@ -2,7 +2,17 @@ import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
 import {useHistory, useParams, useLocation} from "react-router-dom";
-import {Descriptions, List, Collapse, Tag, Table, Typography, Alert} from "antd";
+import {
+  Descriptions,
+  List,
+  Collapse,
+  Tag,
+  Table,
+  Typography,
+  Alert,
+  Tooltip,
+  Button
+} from "antd";
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
 
@@ -37,51 +47,70 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
 
   const columns = [
     {
-      title: 'Name',
+      title: 'ID',
       width: 100,
-      dataIndex: 'name',
-      key: 'name',
-      fixed: 'left'
+      dataIndex: 'id',
+      key: 'id',
+      fixed: 'left',
+      render: id => {
+        return (
+          <Tooltip placement="right" title={indicesByID[id]?.name}>
+            <Tag>{id}</Tag>
+          </Tooltip>
+        )
+      }
     },
     ...results.header.map((i) => {
       return {
-        title: indicesByID[i]?.name,
+        title: () => {
+          return (
+            <Tooltip placement="bottom" title={indicesByID[i]?.name}>
+              <Tag>{i}</Tag>
+            </Tooltip>
+          )
+        },
         width: 100,
-        dataIndex: indicesByID[i]?.name,
-        key: indicesByID[i]?.name,
+        dataIndex: i,
+        key: i,
         render: distances => (
           <span>
             {
               distances?.map(distance => {
-                if (distance < results.threshold)
+                if ( distance < 0 )
+                  return <Tag color="gray"></Tag>
+                else if (distance <= results.threshold )
                   return <Tag color="red"> {distance} </Tag>
                 else
                   return <Tag color="green"> {distance} </Tag>
               })
             }
           </span>
-    ),
+        ),
       }
-    })
+    }),
   ]
 
   const data = [
     ...results.distances.map((row, i) => {
-      const indexName1 = indicesByID[results.header[i]]?.name
+      const index1ID = results.header[i]
+      const index1Name = indicesByID[index1ID]?.name
       let indexData = {
-        name: indexName1,
+        id: index1ID,
         key: i,
       }
       for (let j = 0; j < row.length; j++){
-        const indexName2 = indicesByID[results.header[j]]?.name
+        const index2ID = results.header[j]
+        const index2Name = indicesByID[index2ID]?.name
+        //upper triangle
         if (j > i){
-          indexData[indexName2] = [row[j][0], row[j][0]]
-          //if both  are below the threshold then we have a collision
-          if (row[j][0] < results.threshold && row[j][1] < results.threshold)
-              collisions.push(indexName1 + '  with ' + indexName2 + '. ')
+          indexData[index2ID] = [row[j][0], row[j][1]]
+          //if both are below the threshold then we have a collision
+          if (row[j][0] <= results.threshold  && row[j][1] <= results.threshold)
+              collisions.push(index1Name + '  with ' + index2Name + '. ')
         }
+        //lower triangle (ignore)
         else
-          indexData[indexName2] = [0, 0]
+          indexData[index2ID] = [-1, -1]
       }
       return indexData
     })
@@ -106,7 +135,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
               {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
             </Descriptions.Item>
             <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
-            <Descriptions.Item label="Indices with collision (distance < threshold)" span={3} size={'default'}>
+            <Descriptions.Item label="Indices with collision (distance <= threshold)" span={3} size={'default'}>
             <Collapse >
               <Panel header="Expand collision list" key="1">
                 <List
