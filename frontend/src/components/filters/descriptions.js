@@ -383,4 +383,14 @@ export const INDEX_FILTERS = {
     label: "Index Structure",
     batch: true,
   },
+  sequences_3prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_3prime__value",
+    label: "Sequence 3 prime",
+  },
+  sequences_5prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_5prime__value",
+    label: "Sequence 5 prime",
+  },
 }
