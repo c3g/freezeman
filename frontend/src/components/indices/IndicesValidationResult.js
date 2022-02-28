@@ -101,8 +101,8 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
       for (let j = 0; j < row.length; j++){
         const index2ID = results.header[j]
         const index2Name = indicesByID[index2ID]?.name
-        //upper triangle
-        if (i > j){
+        //lower triangle
+        if (row[j]){
           indexData[index2ID] = [row[j][0], row[j][1]]
           //if both are below or equal the threshold then we have a collision
           if (row[j][0] <= results.threshold  && row[j][1] <= results.threshold)
@@ -111,7 +111,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
                 value: `${index1Name} with ${index2Name}. `
               })
         }
-        //lower triangle (ignore)
+        //upper triangle (ignore)
         else
           indexData[index2ID] = [-1, -1]
       }

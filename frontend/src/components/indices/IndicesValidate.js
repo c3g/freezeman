@@ -95,6 +95,12 @@ const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
   const [formErrors, setFormErrors] = useState({})
 
   const onValuesChange = (values) => {
+    values.indices?.map(index => {
+      const selectedSet = indicesBySet.find(set => { return set.value === index[0] })
+      //load children if they are not loaded
+      if(!selectedSet.children) loadData([selectedSet])
+    })
+
     setFormData({ ...formData, ...values })
   }
 
@@ -130,8 +136,10 @@ const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
     if (newValues.indices){
       //if the user checks a set box, retrieve all the index children
       newValues.indices = newValues.indices.map(index => {
+        //When an index is chosen value returned is [setID, indexID]
         if (index.length > 1)
           return index[1]
+        //When a set is chosen you just get [setID]
         else
           return indicesBySet.find(set => {
             return set.value ===  index[0]
