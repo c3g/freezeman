@@ -102,7 +102,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         const index2ID = results.header[j]
         const index2Name = indicesByID[index2ID]?.name
         //upper triangle
-        if (j > i){
+        if (i > j){
           indexData[index2ID] = [row[j][0], row[j][1]]
           //if both are below or equal the threshold then we have a collision
           if (row[j][0] <= results.threshold  && row[j][1] <= results.threshold)
