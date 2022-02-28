@@ -143,4 +143,6 @@ _index_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
     "index_set__name": CATEGORICAL_FILTERS_LOOSE,
     "index_structure__name": CATEGORICAL_FILTERS_LOOSE,
+    "sequences_3prime__value": CATEGORICAL_FILTERS_LOOSE,
+    "sequences_5prime__value": CATEGORICAL_FILTERS_LOOSE,
 }

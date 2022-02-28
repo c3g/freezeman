@@ -9,6 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 import LinkButton from "../LinkButton";
+import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
 
@@ -54,6 +55,20 @@ const getTableColumns = () => [
       sorter: true,
       width: 80,
       render: (_, index) => index.index_structure,
+    },
+    {
+      title: "Sequence 3 prime (i7)",
+      dataIndex: "sequences_3prime__value",
+      sorter: true,
+      width: 80,
+      render: (_, index) => <DropdownListItems ListItems={index.sequences_3prime}/>
+    },
+    {
+      title: "Sequence 5 prime (i5)",
+      dataIndex: "sequences_5prime__value",
+      sorter: true,
+      width: 80,
+      render: (_, index) => <DropdownListItems ListItems={index.sequences_5prime}/>
     },
   ];
 
