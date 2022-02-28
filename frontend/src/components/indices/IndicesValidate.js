@@ -16,16 +16,12 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import api, {withToken} from "../../utils/api";
-import {validate} from "../../modules/indices/actions";
+import {validate, list} from "../../modules/indices/actions";
 import {requiredRules} from "../../constants";
 
 // API functions
 const listSets = (token, options) =>
   withToken(token, api.indices.listSets)(options).then(res => res.data)
-
-//TODO: Use action/reducer to store it in Redux Store
-const listIndicesBySet = (token, options) =>
-  withToken(token, api.indices.list)(options).then(res => res.data)
 
 const listInstrumentTypes = (token, options) =>
   withToken(token, api.instruments.listTypes)(options).then(res => res.data)
@@ -36,9 +32,9 @@ const mapStateToProps = state => ({
   indicesTotalCount: state.indices.totalCount,
 });
 
-const actionCreators = {validate};
+const actionCreators = {list, validate};
 
-const IndicesValidate = ({token, indicesTotalCount, validate}) => {
+const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
   const history = useHistory();
 
   /*
@@ -47,6 +43,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
 
   const [instrumentTypes, setInstrumentTypes] = useState([]);
   const [indicesBySet, setIndicesBySet] = useState([]);
+  const [validationLoading, setValidationLoading] = useState(false)
 
   useEffect(() => {
     //List instrument
@@ -74,7 +71,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
 
     // load options lazily
     setTimeout(() => {
-      listIndicesBySet(token, {...query, limit: indicesTotalCount}).then(response => {
+      list({...query}).then(response => {
         const indices = response.results
         //concatenate existing indices to the retrieved ones
         targetOption.children = indices?.map(index => {
@@ -103,8 +100,10 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
 
   const onSubmit = () => {
     const data = serialize(formData)
+    setValidationLoading(true)
     validate(data)
     .then((response) => {
+      setValidationLoading(false)
       setFormErrors({})
       history.push("/indices/validate/results", {response})
     })
@@ -230,7 +229,7 @@ const IndicesValidate = ({token, indicesTotalCount, validate}) => {
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{float:'right'}}>
+            <Button type="primary" htmlType="submit" loading={validationLoading} style={{float:'right'}}>
               Submit
             </Button>
           </Form.Item>

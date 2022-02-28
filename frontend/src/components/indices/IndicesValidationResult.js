@@ -104,9 +104,12 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         //upper triangle
         if (j > i){
           indexData[index2ID] = [row[j][0], row[j][1]]
-          //if both are below the threshold then we have a collision
+          //if both are below or equal the threshold then we have a collision
           if (row[j][0] <= results.threshold  && row[j][1] <= results.threshold)
-              collisions.push(index1Name + '  with ' + index2Name + '. ')
+              collisions.push({
+                key: index2ID,
+                value: `${index1Name} with ${index2Name}. `
+              })
         }
         //lower triangle (ignore)
         else
@@ -142,7 +145,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
                   size="small"
                   bordered
                   dataSource={collisions}
-                  renderItem={item => <List.Item>{item}</List.Item>}
+                  renderItem={item => <List.Item>{item.value}</List.Item>}
                   loading={isFetching}
                 />
               </Panel>
@@ -154,7 +157,6 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
             <Table
               columns={columns}
               dataSource={data}
-              pagination={false}
               scroll={{ x: 1500, y: 300 }}
               title={() => {
                 return (
