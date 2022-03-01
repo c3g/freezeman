@@ -76,7 +76,7 @@ class IndexStructureTest(TestCase):
                 self.assertTrue("name" in e.message_dict)
                 raise e
 
-    def test_index_set_with_similar_name(self):
+    def test_index_structure_with_similar_name(self):
         with self.assertRaises(ValidationError):
             # First IndexStructure is valid
             IndexStructure.objects.create(name=self.name,

@@ -32,7 +32,6 @@ class IndexTest(TestCase):
         #for similar name test
         self.similar_name = "thisisvalidindexname"
 
-
     def test_index(self):
         my_index = Index.objects.create(name=self.name,
                                         index_set=self.index_set,
@@ -52,7 +51,6 @@ class IndexTest(TestCase):
         SequenceByIndex5Prime.objects.create(index=my_index, sequence=self.sequence_5prime_1)
         SequenceByIndex5Prime.objects.create(index=my_index, sequence=self.sequence_5prime_2)
         self.assertEqual(my_index.sequences_5prime.all().count(), 2)
-
 
     def test_missing_name(self):
         with self.assertRaises(ValidationError):
@@ -88,7 +86,7 @@ class IndexTest(TestCase):
                 self.assertTrue("name" in e.message_dict)
                 raise e
 
-    def test_index_set_with_similar_name(self):
+    def test_index_with_similar_name(self):
         with self.assertRaises(ValidationError):
             # First Index is valid
             Index.objects.create(name=self.name,
