@@ -32,18 +32,26 @@ const mapStateToProps = state => ({
 
 const actionCreators = {list};
 
-const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices, isFetching, list}) => {
+const IndicesValidationResult = ({
+  token, indicesTotalCount,
+  indicesByID,
+  indices,
+  isFetching,
+  validationResult,
+  list
+}) => {
+
   const history = useHistory();
   const { state } = useLocation();
 
-  const {results, validation_errors, warnings} = state.response
-  const indicesValidated = results.header
+  const {results, validation_errors, warnings} = validationResult
+  const indicesValidated = results?.header
   const allIndicesLoaded = indicesValidated?.every(index => index in indicesByID)
   const collisions = []
 
   //TODO: get it from Redux Store
   if (!allIndicesLoaded)
-    list({"id__in":indicesValidated.join()})
+    list({"id__in":indicesValidated?.join()})
 
   const columns = [
     {
@@ -60,7 +68,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
         )
       }
     },
-    ...results.header.map((i) => {
+    ...results?.header.map((i) => {
       return {
         title: () => {
           return (
@@ -91,7 +99,7 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
   ]
 
   const data = [
-    ...results.distances.map((row, i) => {
+    ...results?.distances.map((row, i) => {
       const index1ID = results.header[i]
       const index1Name = indicesByID[index1ID]?.name
       let indexData = {
@@ -123,55 +131,50 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
 
   return (
     <>
-      <AppPageHeader
-        title={title}
-        onBack={() => history.push('/indices/validate')}
-      />
-      <PageContent>
-        <Title level={3}> Validation Summary </Title>
-        <Descriptions column={2} bordered={true}>
-            <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
-            <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
-            <Descriptions.Item label="Validation Length 3 Prime">{results.validation_length_3prime}</Descriptions.Item>
-            <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
-            <Descriptions.Item label="Validation status">
-              {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
-            </Descriptions.Item>
-            <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
-            <Descriptions.Item label="Indices with collision (distance <= threshold)" span={3} size={'default'}>
-            <Collapse >
-              <Panel header="Expand collision list" key="1">
-                <List
-                  size="small"
-                  bordered
-                  dataSource={collisions}
-                  renderItem={item => <List.Item>{item.value}</List.Item>}
-                  loading={isFetching}
-                />
-              </Panel>
-            </Collapse>
-            </Descriptions.Item>
+      <Title level={3}> Validation Summary </Title>
+      <Descriptions column={2} bordered={true}>
+        <Descriptions.Item label="Instrument Type">{results.instrument_type}</Descriptions.Item>
+        <Descriptions.Item label="Threshold">{results.threshold ? results.threshold : '2'}</Descriptions.Item>
+        <Descriptions.Item label="Validation Length 3 Prime">{results.validation_length_3prime}</Descriptions.Item>
+        <Descriptions.Item label="Validation Length 5 Prime">{results.validation_length_5prime}</Descriptions.Item>
+        <Descriptions.Item label="Validation status">
+          {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
+        </Descriptions.Item>
+        <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
+        <Descriptions.Item label="Indices with collision (distance <= threshold)" span={3} size={'default'}>
+          <Collapse>
+            <Panel header="Expand collision list" key="1">
+              <List
+                size="small"
+                bordered
+                dataSource={collisions}
+                renderItem={item => <List.Item>{item.value}</List.Item>}
+                loading={isFetching}
+              />
+            </Panel>
+          </Collapse>
+        </Descriptions.Item>
         </Descriptions>
-        <Collapse>
-          <Panel header="Expand detailed distance matrix" key="1">
-            <Table
-              columns={columns}
-              dataSource={data}
-              scroll={{ x: 1500, y: 300 }}
-              title={() => {
-                return (
-                  <div>
-                    Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
+          <Collapse>
+            <Panel header="Expand detailed distance matrix" key="1">
+              <Table
+                columns={columns}
+                dataSource={data}
+                scroll={{ x: 1500, y: 300 }}
+                title={() => {
+                  return (
                     <div>
-                      <Tag color="green"> If greater than threshold</Tag>
-                      <Tag color="red"> If smaller than threshold </Tag>
+                      Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
+                      <div>
+                        <Tag color="green"> If greater than threshold</Tag>
+                        <Tag color="red"> If smaller than threshold </Tag>
+                      </div>
                     </div>
-                  </div>
-                )
-              }}
-            />
-          </Panel>
-        </Collapse>
+                  )
+                }}
+              />
+            </Panel>
+          </Collapse>
         { validation_errors.length > 0 ?
           <Alert
              message="Validation Errors"
@@ -188,7 +191,6 @@ const IndicesValidationResult = ({token, indicesTotalCount, indicesByID, indices
              type="warning"
            /> : null
         }
-      </PageContent>
     </>
   );
 }

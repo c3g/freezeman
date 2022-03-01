@@ -11,9 +11,11 @@ import {
   Cascader,
 } from "antd";
 const {Option} = Select
+import { RedoOutlined } from '@ant-design/icons';
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
+import IndicesValidationResult from "./IndicesValidationResult";
 import * as Options from "../../utils/options";
 import api, {withToken} from "../../utils/api";
 import {validate, list} from "../../modules/indices/actions";
@@ -45,6 +47,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
   const [instrumentTypes, setInstrumentTypes] = useState([]);
   const [indicesBySet, setIndicesBySet] = useState([]);
   const [validationLoading, setValidationLoading] = useState(false)
+  const [validationResult, setValidationResult] = useState()
 
   useEffect(() => {
     //List instrument
@@ -69,6 +72,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
     const setID = targetOption.value
     const query = {"index_set__id__in": setID}
     targetOption.loading = true
+    setValidationLoading(true)
 
     // load options lazily
     setTimeout(() => {
@@ -83,6 +87,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
           }
         })
         targetOption.loading = false;
+        setValidationLoading(false)
         setIndicesBySet([...indicesBySet])
       })
     }, 1000);
@@ -112,7 +117,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
     .then((response) => {
       setValidationLoading(false)
       setFormErrors({})
-      history.push("/indices/validate/results", {response})
+      setValidationResult({...response})
     })
     .catch(err => {
       setValidationLoading(false)
@@ -162,96 +167,112 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
         onBack={() => history.push('/indices/list')}
       />
       <PageContent>
-        <Form
-          key={'validation'}
-          labelCol={{ span: 4 }}
-          wrapperCol={{ span: 14 }}
-          layout="horizontal"
-          initialValues={formData}
-          onValuesChange={onValuesChange}
-          onFinish={onSubmit}
-          style={{width: '70%'}}
-        >
-          <Form.Item label="Instrument Type" {...props("instrument_type")} rules={requiredRules}>
-            <Select
-              placeholder="Select an instrument type"
-              showSearch
-              allowClear
-              options={instrumentTypes}
-              filterOption={(input, option) =>
-                option.label.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-            />
-          </Form.Item>
-          <Form.Item
-            label="Index 3' length"
-            {...props("length_3prime")}
-            extra="Desired sequence length for the index 3 prime"
-          >
-            <InputNumber step={1} />
-          </Form.Item>
-          <Form.Item
-            label="Index 5' length"
-            {...props("length_5prime")}
-            extra="Desired sequence length for the index 5 prime"
-          >
-            <InputNumber step={1} />
-          </Form.Item>
-          <Form.Item
-            label="Indices"
-            {...props("indices")}
-            extra="Indices chosen for validation"
-            rules={requiredRules}
-          >
-            <Cascader
-              style={{ width: "100%" }}
-              options={indicesBySet}
-              multiple
-              showSearch={(inputValue, path) =>
-                path.some(option =>
-                  option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1)
-              }
-              loadData={loadData}
-              changeOnSelect
-            />
-          </Form.Item>
-          <Form.Item
-            label="Threshold"
-            {...props("threshold")}
-            extra="Number of allowed errors."
-            rules={requiredRules}
-          >
-            <InputNumber step={1} />
-          </Form.Item>
-          {formErrors?.non_field_errors &&
-            <Alert
-              showIcon
-              type="error"
-              style={{ marginBottom: '1em' }}
-              message="Validation error(s)"
-              description={
-                <ul>
-                  {
-                    formErrors.non_field_errors.map(e =>
-                      <li key={e}>{e}</li>
-                    )
-                  }
-                </ul>
-              }
-            />
-          }
-          <Form.Item>
+      { validationResult
+        ?
+          <>
+            <IndicesValidationResult validationResult={validationResult}/>
             <Button
               type="primary"
               htmlType="submit"
-              disabled={isFetching}
-              loading={validationLoading}
-              style={{float:'right'}}
+              style={{float:'left', marginTop: '1rem'}}
+              icon={<RedoOutlined />}
+              onClick={() => setValidationResult()}
             >
-              Submit
+              Modify validation parameters
             </Button>
-          </Form.Item>
-        </Form>
+          </>
+        :
+          <Form
+            key={'validation'}
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 14 }}
+            layout="horizontal"
+            initialValues={formData}
+            onValuesChange={onValuesChange}
+            onFinish={onSubmit}
+            style={{width: '70%'}}
+          >
+            <Form.Item label="Instrument Type" {...props("instrument_type")} rules={requiredRules}>
+              <Select
+                placeholder="Select an instrument type"
+                showSearch
+                allowClear
+                options={instrumentTypes}
+                filterOption={(input, option) =>
+                  option.label.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              label="Index 3' length"
+              {...props("length_3prime")}
+              extra="Desired sequence length for the index 3 prime"
+            >
+              <InputNumber step={1} />
+            </Form.Item>
+            <Form.Item
+              label="Index 5' length"
+              {...props("length_5prime")}
+              extra="Desired sequence length for the index 5 prime"
+            >
+              <InputNumber step={1} />
+            </Form.Item>
+            <Form.Item
+              label="Indices"
+              {...props("indices")}
+              extra="Indices chosen for validation"
+              rules={requiredRules}
+            >
+              <Cascader
+                style={{ width: "100%" }}
+                options={indicesBySet}
+                multiple
+                showSearch={(inputValue, path) =>
+                  path.some(option =>
+                    option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1)
+                }
+                loadData={loadData}
+                changeOnSelect
+              />
+            </Form.Item>
+            <Form.Item
+              label="Threshold"
+              {...props("threshold")}
+              extra="Number of allowed errors."
+              rules={requiredRules}
+            >
+              <InputNumber step={1} />
+            </Form.Item>
+            {formErrors?.non_field_errors &&
+              <Alert
+                showIcon
+                type="error"
+                style={{ marginBottom: '1em' }}
+                message="Validation error(s)"
+                description={
+                  <ul>
+                    {
+                      formErrors.non_field_errors.map(e =>
+                        <li key={e}>{e}</li>
+                      )
+                    }
+                  </ul>
+                }
+              />
+            }
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={isFetching}
+                loading={validationLoading}
+                style={{float:'right'}}
+              >
+                Submit
+              </Button>
+            </Form.Item>
+          </Form>
+      }
       </PageContent>
     </>
   );

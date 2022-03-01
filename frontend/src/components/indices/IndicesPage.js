@@ -13,7 +13,6 @@ const IndicesPage = () => <PageContainer>
   <Switch>
     <Route path="/indices/list"><IndicesListContent /></Route>
     <Route path="/indices/actions/:action"><ActionContent templateType="index" /></Route>
-    <Route path="/indices/validate/results"><IndicesValidationResult/></Route>
     <Route path="/indices/validate"><IndicesValidate/></Route>
     <Route path="/indices/:id"><IndicesDetailedContent/></Route>
     <Redirect to="/indices/list" />
