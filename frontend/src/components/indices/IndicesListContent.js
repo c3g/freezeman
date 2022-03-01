@@ -63,7 +63,7 @@ const getTableColumns = (sequencesByID) => [
       sorter: true,
       width: 80,
       render: (_, index) => { return index && index.sequences_3prime &&
-        <DropdownListItems ListItems={index.sequences_3prime.map(sequence =>
+        <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
           sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
@@ -74,7 +74,7 @@ const getTableColumns = (sequencesByID) => [
       sorter: true,
       width: 80,
       render: (_, index) => { return index && index.sequences_5prime &&
-        <DropdownListItems ListItems={index.sequences_5prime.map(sequence =>
+        <DropdownListItems listItems={index.sequences_5prime.map(sequence =>
           sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
