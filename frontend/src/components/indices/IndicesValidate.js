@@ -30,11 +30,12 @@ const listInstrumentTypes = (token, options) =>
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   indicesTotalCount: state.indices.totalCount,
+  isFetching: state.indices.isFetching,
 });
 
 const actionCreators = {list, validate};
 
-const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
+const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate}) => {
   const history = useHistory();
 
   /*
@@ -146,7 +147,7 @@ const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
         else
           return indicesBySet.find(set => {
             return set.value ===  index[0]
-          }).children.map(index => index.value)
+          }).children?.map(index => index.value)
       })
       newValues.indices = [].concat(...newValues.indices).join()
     }
@@ -240,7 +241,13 @@ const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={validationLoading} style={{float:'right'}}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              disabled={isFetching}
+              loading={validationLoading}
+              style={{float:'right'}}
+            >
               Submit
             </Button>
           </Form.Item>
