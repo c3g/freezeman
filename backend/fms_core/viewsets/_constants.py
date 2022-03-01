@@ -146,3 +146,8 @@ _index_filterset_fields: FiltersetFields = {
     "sequences_3prime__value": CATEGORICAL_FILTERS_LOOSE,
     "sequences_5prime__value": CATEGORICAL_FILTERS_LOOSE,
 }
+
+_sequence_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "value": CATEGORICAL_FILTERS_LOOSE,
+}

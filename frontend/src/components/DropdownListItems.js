@@ -1,8 +1,7 @@
 import React from "react";
-import {Dropdown, Menu} from "antd";
-import {MoreOutlined} from "@ant-design/icons";
+import {Button, Dropdown, Menu} from "antd";
+import {CloseOutlined, LineOutlined, MenuOutlined} from "@ant-design/icons";
 
-/* */
 const DropdownListItems = ({ListItems}) => {
   const menuListItems = (
     <Menu>
@@ -11,11 +10,16 @@ const DropdownListItems = ({ListItems}) => {
   );
 
   return (
-    <Dropdown overlay={menuListItems}>
+    ListItems && ListItems.length > 1 ? 
+    <Dropdown overlay={menuListItems} placement="bottomRight">
       <div>
-        {ListItems && ListItems[0]}{ListItems && ListItems.length > 1 && <MoreOutlined />}
+        <MenuOutlined /> {ListItems && ListItems[0]}
       </div>
     </Dropdown>
+    :
+    <div>
+      {ListItems ? <LineOutlined /> : <CloseOutlined />} {ListItems && ListItems[0]}
+    </div>
   )
 }
 

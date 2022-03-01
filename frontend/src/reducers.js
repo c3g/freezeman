@@ -46,6 +46,9 @@ import {
   indices,
   indicesTemplateActions
 } from "./modules/indices/reducers";
+import {
+  sequences,
+} from "./modules/sequences/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
@@ -92,6 +95,7 @@ const allReducers = combineReducers({
   indices,
   indicesTemplateActions,
   propertyValues,
+  sequences,
   users,
   groups,
   pagination,
