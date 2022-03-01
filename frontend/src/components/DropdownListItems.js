@@ -13,7 +13,7 @@ const DropdownListItems = ({ListItems}) => {
     ListItems && ListItems.length > 1 ? 
     <Dropdown overlay={menuListItems} placement="bottomRight">
       <div>
-        <MenuOutlined /> {ListItems && ListItems[0]}
+        <MenuOutlined /> {ListItems && "Expand pool..."}
       </div>
     </Dropdown>
     :
