@@ -362,7 +362,7 @@ export const PROJECT_FILTERS = {
 
 export const INDEX_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT,
+    type: FILTER_TYPE.INPUT_NUMBER,
     key: "id",
     label: "ID",
   },
