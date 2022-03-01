@@ -20,6 +20,7 @@ from .viewsets import (
     VersionViewSet,
     RevisionViewSet,
     ProjectViewSet,
+    SequenceViewSet,
 )
 
 __all__ = ["router"]
@@ -37,6 +38,7 @@ router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"property-values", PropertyValueViewSet)
 router.register(r"samples", SampleViewSet)
 router.register(r"indices", IndexViewSet)
+router.register(r"sequences", SequenceViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
 router.register(r"query", QueryViewSet, basename="query")
