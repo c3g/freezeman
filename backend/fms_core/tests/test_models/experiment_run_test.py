@@ -11,6 +11,8 @@ from fms_core.models import (
     Process,
     Protocol,
 )
+from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
+
 from fms_core.tests.constants import create_container
 from datetime import datetime
 
@@ -24,7 +26,10 @@ class ExperimentRunTest(TestCase):
         self.container_invalid_kind, _ = Container.objects.get_or_create(**create_container(name="NotABeadchip", barcode="NotABeadchip", kind="96-well plate"))
 
         platform, _ = Platform.objects.get_or_create(name="PlatformTest")
-        instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest", platform=platform)
+        instrument_type, _ = InstrumentType.objects.get_or_create(type="InstrumentTypeTest",
+                                                                  platform=platform,
+                                                                  index_read_5_prime=INDEX_READ_FORWARD,
+                                                                  index_read_3_prime=INDEX_READ_REVERSE)
         self.instrument_name = "Instrument1"
         self.instrument, _ = Instrument.objects.get_or_create(name=self.instrument_name,
                                                               type=instrument_type)

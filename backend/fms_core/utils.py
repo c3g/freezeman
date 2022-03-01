@@ -33,8 +33,8 @@ TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
 
 def comma_separated_string_to_array(s):
     """
-    Returns emtpy string if argument is a blank string or None,
-    otherwise it returns an array of strings
+    Returns empty list if argument is a blank string or None,
+    otherwise it returns a list of strings
     """
     return [v.strip() for v in s.split(',')] if s else []
 
