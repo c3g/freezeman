@@ -113,7 +113,10 @@ const IndicesValidate = ({token, indicesTotalCount, list, validate}) => {
       setFormErrors({})
       history.push("/indices/validate/results", {response})
     })
-    .catch(err => { setFormErrors(err.data || {}) })
+    .catch(err => {
+      setValidationLoading(false)
+      setFormErrors(err.data || {})
+    })
   }
 
   /*
