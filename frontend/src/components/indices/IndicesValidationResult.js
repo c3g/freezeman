@@ -155,26 +155,23 @@ const IndicesValidationResult = ({
           </Collapse>
         </Descriptions.Item>
         </Descriptions>
-          <Collapse>
-            <Panel header="Expand detailed distance matrix" key="1">
-              <Table
-                columns={columns}
-                dataSource={data}
-                scroll={{ x: 1500, y: 300 }}
-                title={() => {
-                  return (
-                    <div>
-                      Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
-                      <div>
-                        <Tag color="green"> If greater than threshold</Tag>
-                        <Tag color="red"> If smaller than threshold </Tag>
-                      </div>
-                    </div>
-                  )
-                }}
-              />
-            </Panel>
-          </Collapse>
+        <Title style={{marginTop: '2rem'}} level={5}> Distance matrix </Title>
+        <Table
+          columns={columns}
+          dataSource={data}
+          scroll={{ x: 1500, y: 300 }}
+          title={() => {
+            return (
+              <div>
+                Distance for both indices (3 prime and 5 prime) are shown together for each pair of indices.
+                <div>
+                  <Tag color="green"> If greater than threshold</Tag>
+                  <Tag color="red"> If smaller than threshold </Tag>
+                </div>
+              </div>
+            )
+          }}
+        />
         { validation_errors.length > 0 ?
           <Alert
              message="Validation Errors"
@@ -187,7 +184,7 @@ const IndicesValidationResult = ({
           <Alert
              message="Validation Warnings"
              style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}
-             description={warnings.join(".\n")}
+             description={warnings.join("\n")}
              type="warning"
            /> : null
         }

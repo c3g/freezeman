@@ -416,6 +416,11 @@ class IndexExportSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class IndexSetSerializer(serializers.ModelSerializer):
+    index_count = serializers.SerializerMethodField()
+
     class Meta:
         model = IndexSet
         fields = "__all__"
+
+    def get_index_count(self, obj):
+        return Index.objects.filter(index_set=obj.id).count()

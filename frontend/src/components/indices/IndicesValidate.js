@@ -44,8 +44,10 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
    * State management
    */
 
-  const [instrumentTypes, setInstrumentTypes] = useState([]);
-  const [indicesBySet, setIndicesBySet] = useState([]);
+  const [instrumentTypes, setInstrumentTypes] = useState([])
+  const [indicesBySet, setIndicesBySet] = useState([])
+  const [loadedIndices, setloadedIndices] = useState([])
+  const [indexCount, setIndexCount] = useState(0)
   const [validationLoading, setValidationLoading] = useState(false)
   const [validationResult, setValidationResult] = useState()
 
@@ -61,37 +63,45 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
         {
           label: set.name,
           value: set.id,
+          numChildren: set.index_count,
           isLeaf: false,
         }])
       })
     })
   }, [])
 
-  const loadData = (selectedOptions) => {
-    const targetOption = selectedOptions[selectedOptions.length - 1]
-    const setID = targetOption.value
+  useEffect(() => {
+    const allIndicesLoaded = indexCount === loadedIndices.length
+    if (allIndicesLoaded)
+      setValidationLoading(false)
+  }, [loadedIndices])
+
+  const loadData = (setOptions) => {
+    const targetSet = setOptions[setOptions.length - 1]
+    const setID = targetSet.value
+    const numIndicesInSet = targetSet.numChildren
     const query = {"index_set__id__in": setID}
-    targetOption.loading = true
+    targetSet.loading = true
     setValidationLoading(true)
+    setIndexCount(prevIndexCount =>  prevIndexCount + numIndicesInSet)
 
     // load options lazily
-    setTimeout(() => {
-      list({...query}).then(response => {
-        const indices = response.results
-        //concatenate existing indices to the retrieved ones
-        targetOption.children = indices?.map(index => {
-          return {
-            label: index.name,
-            value: index.id,
-            children: [],
-          }
-        })
-        targetOption.loading = false;
-        setValidationLoading(false)
-        setIndicesBySet([...indicesBySet])
+    list({...query}).then(response => {
+      const indices = response.results
+      const indicesID = indices.map(index => index.id)
+      //concatenate existing indices to the retrieved ones
+      targetSet.children = indices?.map(index => {
+        return {
+          label: index.name,
+          value: index.id,
+          children: [],
+        }
       })
-    }, 1000);
-  };
+      targetSet.loading = false;
+      setIndicesBySet([...indicesBySet])
+      setloadedIndices(currentIndices => ([...currentIndices, ...indicesID]))
+    })
+  }
 
   /*
    * Form Data submission
@@ -111,8 +121,8 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
   }
 
   const onSubmit = () => {
-    const data = serialize(formData)
     setValidationLoading(true)
+    const data = serialize(formData)
     validate(data)
     .then((response) => {
       setValidationLoading(false)
@@ -169,18 +179,21 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
       <PageContent>
       { validationResult
         ?
-          <>
+          <div style={{marginBottom: '3rem'}}>
             <IndicesValidationResult validationResult={validationResult}/>
             <Button
               type="primary"
               htmlType="submit"
-              style={{float:'left', marginTop: '1rem'}}
+              style={{
+                float:'right',
+                margin: '1rem 5rem 0rem 0rem',
+              }}
               icon={<RedoOutlined />}
               onClick={() => setValidationResult()}
             >
               Modify validation parameters
             </Button>
-          </>
+          </div>
         :
           <Form
             key={'validation'}
@@ -219,8 +232,10 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
             </Form.Item>
             <Form.Item
               label="Indices"
+              hasFeedback
+              validateStatus="warning"
               {...props("indices")}
-              extra="Indices chosen for validation"
+              extra="Indices chosen for validation. Loading some sets may take some time."
               rules={requiredRules}
             >
               <Cascader
@@ -264,8 +279,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
               <Button
                 type="primary"
                 htmlType="submit"
-                disabled={isFetching}
-                loading={validationLoading}
+                loading={validationLoading || isFetching}
                 style={{float:'right'}}
               >
                 Submit
