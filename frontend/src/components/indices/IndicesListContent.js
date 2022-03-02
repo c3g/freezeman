@@ -6,9 +6,8 @@ import {Button, Tag} from "antd";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
-import LinkButton from "../LinkButton";
+import FixedLengthText from "../FixedLengthText";
 
 import api, {withToken}  from "../../utils/api"
 
@@ -36,7 +35,7 @@ const getTableColumns = () => [
       dataIndex: "index_set__name",
       sorter: true,
       width: 80,
-      render: (_, index) => index.index_set,
+      render: (_, index) => <FixedLengthText text={index.index_set} fixedLength={40} />,
     },
     {
       title: "Index Name",
@@ -45,7 +44,7 @@ const getTableColumns = () => [
       width: 80,
       render: (name, index) =>
         <Link to={`/indices/${index.id}`}>
-          <div>{name}</div>
+          <FixedLengthText text={name} fixedLength={50} />
         </Link>,
     },
     {
