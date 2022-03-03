@@ -8,19 +8,23 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
+import DropdownListItems from "../DropdownListItems";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {withSample} from "../../utils/withItem";
+
+import {withSequence} from "../../utils/withItem";
 import {get} from "../../modules/indices/actions";
+
 
 const mapStateToProps = state => ({
     isFetching: state.indices.isFetching,
     indicesByID: state.indices.itemsByID,
+    sequencesByID: state.sequences.itemsByID,
 });
 
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-const IndicesDetailedContent = ({indicesByID, isFetching, get}) => {
+const IndicesDetailedContent = ({indicesByID, sequencesByID, isFetching, get}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in indicesByID;
@@ -41,6 +45,16 @@ const IndicesDetailedContent = ({indicesByID, isFetching, get}) => {
                 <Descriptions.Item label="Index name" span={4}>{index.name}</Descriptions.Item>
                 <Descriptions.Item label="Index Set" span={4}>{index.index_set}</Descriptions.Item>
                 <Descriptions.Item label="Index Structure" span={4}>{index.index_structure}</Descriptions.Item>
+                <Descriptions.Item label="Sequence 3 prime (i7)" span={4}>{index && index.sequences_3prime &&
+                  <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
+                    sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+                  />}
+                </Descriptions.Item>
+                <Descriptions.Item label="Sequence 5 prime (i5)" span={4}>{index && index.sequences_5prime &&
+                  <DropdownListItems listItems={index.sequences_5prime.map(sequence =>
+                    sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+                  />}
+                </Descriptions.Item>
             </Descriptions>
             <TrackingFieldsContent entity={index}/>
         </PageContent>

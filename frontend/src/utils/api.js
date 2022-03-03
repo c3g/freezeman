@@ -145,6 +145,11 @@ const api = {
     list: () => get("/sample-kinds/"),
   },
 
+  sequences: {
+    get: sequenceId => get(`/sequences/${sequenceId}/`),
+    list: (options, abort) => get("/sequences/", options, { abort }),
+  },
+
   users: {
     get: userId => get(`/users/${userId}/`),
     add: user => post("/users/", user),

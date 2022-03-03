@@ -20,7 +20,7 @@ from collections import defaultdict
 
 
 class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Index.objects.all()
+    queryset = Index.objects.all().distinct()
     serializer_class = IndexSerializer
     filter_class = IndexFilter
 

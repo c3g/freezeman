@@ -16,11 +16,11 @@ class IndexCreationTestCase(TestCase):
 
         #first 2 indices belong to set 1 and index structure TrueSeqLT
         #Thirs index belongs to set 2 and index structure IDTStubby
-        self.set_name_1 = 'set_1'
-        self.set_name_2 = 'set_2'
-        self.index_name_1 = 'index_1'
-        self.index_name_2 = 'index_2'
-        self.index_name_3 = 'index_3'
+        self.set_name_1 = 'Test_set_1'
+        self.set_name_2 = 'Test_set_2'
+        self.index_name_1 = 'Test_index_1'
+        self.index_name_2 = 'Test_index_2'
+        self.index_name_3 = 'Test_index_3'
         self.index_structure_name_1 = 'TruSeqHT'
         self.index_structure_name_2 = 'IDTStubby'
         self.sequence_1 = 'ACTG'

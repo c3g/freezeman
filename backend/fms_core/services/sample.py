@@ -111,9 +111,9 @@ def update_sample(sample_to_update, volume=None, concentration=None, depleted=No
     errors = []
     warnings = []
 
-    if volume:
+    if volume is not None:
         sample_to_update.volume = volume
-    if concentration:
+    if concentration is not None:
         sample_to_update.concentration = float_to_decimal(concentration)
     if depleted is not None:
         sample_to_update.depleted = depleted
