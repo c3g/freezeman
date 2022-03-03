@@ -17,6 +17,7 @@ from .sample_kind import SampleKindViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
+from .sequence import SequenceViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -37,5 +38,6 @@ __all__ = [
     "SampleKindViewSet",
     "UserViewSet",
     "VersionViewSet",
-    "ProjectViewSet"
+    "ProjectViewSet",
+    "SequenceViewSet",
 ]

@@ -18,7 +18,7 @@ from fms_core.filters import IndexFilter
 
 
 class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Index.objects.all()
+    queryset = Index.objects.all().distinct()
     serializer_class = IndexSerializer
     filter_class = IndexFilter
 
