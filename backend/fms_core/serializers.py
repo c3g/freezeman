@@ -8,8 +8,10 @@ from .models import (
     ExperimentRun,
     RunType,
     Index,
+    IndexSet,
     Individual,
     Instrument,
+    InstrumentType,
     PropertyValue,
     PropertyType,
     Protocol,
@@ -30,9 +32,11 @@ __all__ = [
     "RunTypeSerializer",
     "SimpleContainerSerializer",
     "IndexSerializer",
+    "IndexSetSerializer",
     "IndexExportSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
+    "InstrumentTypeSerializer",
     "SampleKindSerializer",
     "PropertyValueSerializer",
     "ProcessSerializer",
@@ -125,6 +129,11 @@ class IndividualSerializer(serializers.ModelSerializer):
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instrument
+        fields = "__all__"
+
+class InstrumentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstrumentType
         fields = "__all__"
 
 
@@ -419,6 +428,17 @@ class IndexExportSerializer(serializers.ModelSerializer):
     def get_sequences_5prime(self, obj):
         sequences = obj.list_5prime_sequences
         return ", ".join(sequences)
+
+
+class IndexSetSerializer(serializers.ModelSerializer):
+    index_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IndexSet
+        fields = "__all__"
+
+    def get_index_count(self, obj):
+        return Index.objects.filter(index_set=obj.id).count()
 
 class SequenceSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,14 +1,15 @@
-import React, {useRef} from "react";
+import React from "react";
 import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import {Link, useHistory} from "react-router-dom";
+import {Button} from "antd";
+import {CheckOutlined} from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
+
 import FixedLengthText from "../FixedLengthText";
-import LinkButton from "../LinkButton";
 import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
@@ -128,8 +129,13 @@ const IndicesListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const history = useHistory();
+
   return <>
     <AppPageHeader title="Indices" extra={[
+      <Button onClick={() => history.push("/indices/validate")}>
+        <CheckOutlined /> Validate Indices
+      </Button>,
       actionDropdown("/indices", actions),
       <ExportButton key='export' exportFunction={listExport} filename="indices" itemsCount={totalCount}/>,
     ]}/>

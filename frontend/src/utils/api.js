@@ -64,6 +64,7 @@ const api = {
 
   instruments: {
     list: () => get("/instruments/"),
+    listTypes: () => get("/instruments/list_types"),
   },
 
   processes: {
@@ -101,12 +102,14 @@ const api = {
     get: indexId => get(`/indices/${indexId}/`),
     list: (options, abort) => get("/indices", options, { abort }),
     listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
+    listSets: () => get("/indices/list_sets/"),
     summary: () => get("/indices/summary"),
     template: {
       actions: () => get(`/indices/template_actions/`),
       check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/indices/template_submit/`, form({ action, template })),
     },
+    validate: (options) => get("/indices/validate/", options),
   },
 
   propertyValues: {

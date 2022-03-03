@@ -19,7 +19,6 @@ INDEX_SETS = [
     "IDT_non-UMI_Unique_Dual_Index",
     "IDT_UMI_Unique_Dual_Index",
     "IDT_384_UMI_Unique_Dual_Index",
-    "IDT_for_Illumina_TruSeq_DNA_and_RNA_UD",
     "IDT_Nextera_Compatible_UDI",
     "Illumina_IDT_Nextera_UDP_V1",
     "Illumina_IDT_Nextera_UDP_V2",
