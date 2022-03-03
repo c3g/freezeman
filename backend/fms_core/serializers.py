@@ -15,9 +15,10 @@ from .models import (
     Protocol,
     Process,
     ProcessMeasurement,
+    Project,
     Sample,
     SampleKind,
-    Project,
+    Sequence,
 )
 
 
@@ -48,6 +49,7 @@ __all__ = [
     "GroupSerializer",
     "ProjectSerializer",
     "ProjectExportSerializer",
+    "SequenceSerializer",
 ]
 
 
@@ -402,6 +404,23 @@ class IndexSerializer(serializers.ModelSerializer):
 class IndexExportSerializer(serializers.ModelSerializer):
     index_set = serializers.CharField(read_only=True, source="index_set.name")
     index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+
+    sequences_3prime = serializers.SerializerMethodField()
+    sequences_5prime = serializers.SerializerMethodField()
+
     class Meta:
         model = Index
+        fields = ("id", "name", "index_set", "index_structure", "sequences_3prime", "sequences_5prime")
+
+    def get_sequences_3prime(self, obj):
+        sequences = obj.list_3prime_sequences
+        return ", ".join(sequences)
+    
+    def get_sequences_5prime(self, obj):
+        sequences = obj.list_5prime_sequences
+        return ", ".join(sequences)
+
+class SequenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sequence
         fields = "__all__"

@@ -4,6 +4,7 @@ import Individual from "../modules/individuals/actions.js"
 import User from "../modules/users/actions.js"
 import Process from "../modules/processMeasurements/actions.js"
 import Project from "../modules/projects/actions.js"
+import Sequence from "../modules/sequences/actions.js"
 import {networkAction} from "./actions";
 import api from ".//api"
 import wait from "./wait"
@@ -87,6 +88,7 @@ export const withIndividual = createWithItem(Individual, api.individuals)
 export const withUser = createWithItem(User, api.users)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
+export const withSequence = createWithItem(Sequence, api.sequences)
 export default {
   withContainer,
   withSample,
@@ -94,4 +96,5 @@ export default {
   withUser,
   withProcessMeasurement,
   withProject,
+  withSequence,
 };

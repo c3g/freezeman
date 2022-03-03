@@ -9,8 +9,10 @@ import PaginatedTable from "../PaginatedTable";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 import LinkButton from "../LinkButton";
+import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
+import {withSequence} from "../../utils/withItem";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
 import {actionDropdown} from "../../utils/templateActions";
@@ -20,7 +22,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = () => [
+const getTableColumns = (sequencesByID) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -55,12 +57,33 @@ const getTableColumns = () => [
       width: 80,
       render: (_, index) => index.index_structure,
     },
+    {
+      title: "Sequence 3 prime (i7)",
+      dataIndex: "sequences_3prime__value",
+      width: 80,
+      render: (_, index) => { return index && index.sequences_3prime &&
+        <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
+          sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+        />
+      }
+    },
+    {
+      title: "Sequence 5 prime (i5)",
+      dataIndex: "sequences_5prime__value",
+      width: 80,
+      render: (_, index) => { return index && index.sequences_5prime &&
+        <DropdownListItems listItems={index.sequences_5prime.map(sequence =>
+          sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+        />
+      }
+    },
   ];
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   indicesByID: state.indices.itemsByID,
   indices: state.indices.items,
+  sequencesByID: state.sequences.itemsByID,
   actions: state.indicesTemplateActions,
   page: state.indices.page,
   totalCount: state.indices.totalCount,
@@ -75,6 +98,7 @@ const IndicesListContent = ({
   token,
   indices,
   indicesByID,
+  sequencesByID,
   actions,
   isFetching,
   page,
@@ -93,7 +117,7 @@ const IndicesListContent = ({
     (mergedListQueryParams(INDEX_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-  const columns = getTableColumns()
+  const columns = getTableColumns(sequencesByID)
   .map(c => Object.assign(c, getFilterProps(
     c,
     INDEX_FILTERS,

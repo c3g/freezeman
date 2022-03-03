@@ -362,7 +362,7 @@ export const PROJECT_FILTERS = {
 
 export const INDEX_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT,
+    type: FILTER_TYPE.INPUT_NUMBER,
     key: "id",
     label: "ID",
   },
@@ -382,5 +382,15 @@ export const INDEX_FILTERS = {
     key: "index_set__name",
     label: "Index Structure",
     batch: true,
+  },
+  sequences_3prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_3prime__value",
+    label: "Sequence 3 prime",
+  },
+  sequences_5prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_5prime__value",
+    label: "Sequence 5 prime",
   },
 }
