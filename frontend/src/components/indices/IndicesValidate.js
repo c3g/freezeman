@@ -51,6 +51,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
   const [indicesBySet, setIndicesBySet] = useState([])
   const [loadedIndices, setloadedIndices] = useState([])
   const [indexCount, setIndexCount] = useState(0)
+  const allIndicesLoaded = indexCount === loadedIndices.length
   const [validationLoading, setValidationLoading] = useState(false)
   const [validationResult, setValidationResult] = useState()
 
@@ -73,19 +74,12 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
     })
   }, [])
 
-  useEffect(() => {
-    const allIndicesLoaded = indexCount === loadedIndices.length
-    if (allIndicesLoaded)
-      setValidationLoading(false)
-  }, [loadedIndices])
-
   const loadData = (setOptions) => {
     const targetSet = setOptions[setOptions.length - 1]
     const setID = targetSet.value
     const numIndicesInSet = targetSet.numChildren
     const query = {"index_set__id__in": setID}
     targetSet.loading = true
-    setValidationLoading(true)
     setIndexCount(prevIndexCount =>  prevIndexCount + numIndicesInSet)
 
     // load options lazily
@@ -119,7 +113,6 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
       //load children if they are not loaded
       if(!selectedSet.children) loadData([selectedSet])
     })
-
     setFormData({ ...formData, ...values })
   }
 
@@ -206,7 +199,6 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
             initialValues={formData}
             onValuesChange={onValuesChange}
             onFinish={onSubmit}
-            style={{width: '70%'}}
           >
             <Form.Item label="Instrument Type" {...props("instrument_type")} rules={requiredRules}>
               <Select
@@ -220,16 +212,16 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
               />
             </Form.Item>
             <Form.Item
-              label="Index 3' length"
+              label="Index 3' length (i7)"
               {...props("length_3prime")}
-              extra="Desired sequence length for the index 3 prime"
+              extra="Desired validation length for the index 3 prime"
             >
               <InputNumber step={1} />
             </Form.Item>
             <Form.Item
-              label="Index 5' length"
+              label="Index 5' length (i5)"
               {...props("length_5prime")}
-              extra="Desired sequence length for the index 5 prime"
+              extra="Desired validation length for the index 5 prime"
             >
               <InputNumber step={1} />
             </Form.Item>
@@ -238,6 +230,8 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
               {...props("indices")}
               extra="Indices chosen for validation."
               rules={requiredRules}
+              hasFeedback
+              validateStatus={!allIndicesLoaded ? "validating" : ''}
             >
               <Cascader
                 style={{ width: "100%" }}
@@ -248,9 +242,11 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
                     <div>
                       {menus}
                       <Divider style={{ margin: 0 }} />
-                      <div style={{padding:'8px'}}>
-                      <Text type="warning">Loading some sets may take some time.</Text>
-                      </div>
+                      <Alert
+                         style={{ padding: '5px', marginBottom:'-5px'}}
+                         description={"Loading some sets may take some time."}
+                         type="warning"
+                       />
                     </div>
                   )
                 }}
@@ -265,7 +261,7 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
             <Form.Item
               label="Threshold"
               {...props("threshold")}
-              extra="Number of allowed errors."
+              extra="Allowed read errors at sequencing time."
               rules={requiredRules}
             >
               <InputNumber step={1} />
@@ -287,16 +283,15 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
                 }
               />
             }
-            <Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
-                loading={validationLoading || isFetching}
-                style={{float:'right'}}
+                disabled={!allIndicesLoaded}
+                loading={validationLoading}
+                style={{float:'right', marginRight:'25rem'}}
               >
                 Submit
               </Button>
-            </Form.Item>
           </Form>
       }
       </PageContent>

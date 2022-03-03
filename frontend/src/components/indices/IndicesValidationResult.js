@@ -12,7 +12,6 @@ import {
   Alert,
   Tooltip,
   Button,
-  Spin
 } from "antd";
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -45,8 +44,6 @@ const IndicesValidationResult = ({
   const history = useHistory();
   const { state } = useLocation();
 
-  const [matrixLoading, setMatrixLoading] = useState(false)
-  const [columns, setColumns] = useState([])
   const {results, validation_errors, warnings} = validationResult
   const indicesValidated = results?.header
   const allIndicesLoaded = indicesValidated?.every(index => index in indicesByID)
@@ -56,56 +53,50 @@ const IndicesValidationResult = ({
   if (!allIndicesLoaded)
     list({"id__in":indicesValidated?.join()})
 
-  const onExpand = () => {
-    setMatrixLoading(true)
-    setTimeout(() => {
-      setColumns([
-        {
-          title: 'ID',
-          width: 100,
-          dataIndex: 'id',
-          key: 'id',
-          fixed: 'left',
-          render: id => {
-            return (
-              <Tooltip placement="right" title={indicesByID[id]?.name}>
-                <Tag>{id}</Tag>
-              </Tooltip>
-            )
-          }
+  const columns = [
+    {
+      title: 'ID',
+      width: 100,
+      dataIndex: 'id',
+      key: 'id',
+      fixed: 'left',
+      render: id => {
+        return (
+          <Tooltip placement="right" title={indicesByID[id]?.name}>
+          <Tag>{id}</Tag>
+          </Tooltip>
+        )
+      }
+    },
+    ...results?.header.map((i) => {
+      return {
+        title: () => {
+          return (
+            <Tooltip placement="bottom" title={indicesByID[i]?.name}>
+            <Tag>{i}</Tag>
+            </Tooltip>
+          )
         },
-        ...results?.header.map((i) => {
-          return {
-            title: () => {
-              return (
-                <Tooltip placement="bottom" title={indicesByID[i]?.name}>
-                  <Tag>{i}</Tag>
-                </Tooltip>
-              )
-            },
-            width: 100,
-            dataIndex: i,
-            key: i,
-            render: distances => (
-              <span>
-                {
-                  distances?.map(distance => {
-                    if ( distance < 0 )
-                      return <Tag color="gray"></Tag>
-                    else if (distance <= results.threshold )
-                      return <Tag color="red"> {distance} </Tag>
-                    else
-                      return <Tag color="green"> {distance} </Tag>
-                  })
-                }
-              </span>
-            ),
+        width: 120,
+        dataIndex: i,
+        key: i,
+        render: distances => (
+          <span>
+          {
+            distances?.map(distance => {
+              if ( distance < 0 )
+              return <Tag color="gray"></Tag>
+              else if (distance <= results.threshold )
+              return <Tag color="red"> {distance} </Tag>
+              else
+              return <Tag color="green"> {distance} </Tag>
+            })
           }
-        }),
-      ])
-      setMatrixLoading(false)
-    }, indicesValidated.length * 2)
-  }
+          </span>
+        ),
+      }
+    }),
+  ]
 
   const data = [
     ...results?.distances.map((row, i) => {
@@ -164,11 +155,9 @@ const IndicesValidationResult = ({
           </Collapse>
         </Descriptions.Item>
         </Descriptions>
-        <Title style={{marginTop: '2rem'}} level={5}> Distance matrix </Title>
-        <Collapse onChange={onExpand}>
-        <Panel header="Expand distance matrix" key="1" extra={<Spin size="small" spinning={matrixLoading} style={{marginLeft:'-58rem'}}/>}>
+        <Title level={4} style={{marginTop:'1rem'}}> Distance Matrix </Title>
         <Table
-          loading={matrixLoading}
+          loading={isFetching}
           columns={columns}
           dataSource={data}
           scroll={{ x: 1500, y: 300 }}
@@ -184,8 +173,6 @@ const IndicesValidationResult = ({
             )
           }}
         />
-        </Panel>
-        </Collapse>
         { validation_errors.length > 0 ?
           <Alert
              message="Validation Errors"
