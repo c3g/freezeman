@@ -9,8 +9,11 @@ import {
   InputNumber,
   Select,
   Cascader,
+  Divider,
+  Typography
 } from "antd";
 const {Option} = Select
+const {Text} = Typography;
 import { RedoOutlined } from '@ant-design/icons';
 
 import AppPageHeader from "../AppPageHeader";
@@ -232,16 +235,25 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
             </Form.Item>
             <Form.Item
               label="Indices"
-              hasFeedback
-              validateStatus="warning"
               {...props("indices")}
-              extra="Indices chosen for validation. Loading some sets may take some time."
+              extra="Indices chosen for validation."
               rules={requiredRules}
             >
               <Cascader
                 style={{ width: "100%" }}
                 options={indicesBySet}
                 multiple
+                dropdownRender={(menus) => {
+                  return(
+                    <div>
+                      {menus}
+                      <Divider style={{ margin: 0 }} />
+                      <div style={{padding:'8px'}}>
+                      <Text type="warning">Loading some sets may take some time.</Text>
+                      </div>
+                    </div>
+                  )
+                }}
                 showSearch={(inputValue, path) =>
                   path.some(option =>
                     option.label.toLowerCase().indexOf(inputValue.toLowerCase()) > -1)
