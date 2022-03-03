@@ -209,10 +209,10 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
         # warning if the minimal required index length for some indices is larger than the requested index length : sub-optimal validation
         indices_in_warning = list(filter(lambda x: x[1] > target_min_5prime_length, zip(indices, min_5prime_lengths)))
         if indices_in_warning: # 5 prime
-            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a length ({target_min_5prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
+            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a 5 prime length ({target_min_5prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
         indices_in_warning = list(filter(lambda x: x[1] > target_min_3prime_length, zip(indices, min_3prime_lengths)))
         if indices_in_warning: # 3 prime
-            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a length ({target_min_3prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
+            warnings.append(f"Sub-optimal. Indices in this list {[i.id for i, _ in indices_in_warning]} validate using a 3 prime length ({target_min_3prime_length}) that is smaller than their sequence length ({[length for _, length in indices_in_warning]}).")
 
         # warning if the minimal required index length for some indices is larger than the minimal required index length for other indices
         indices_in_warning = list(filter(lambda x: x[1] < target_min_5prime_length, zip(indices, min_5prime_lengths)))

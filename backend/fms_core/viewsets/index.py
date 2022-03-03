@@ -58,35 +58,42 @@ class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         warnings = []
         results = {}
         
-        indices_ids = [int(id) for id in _request.GET.get("indices", "").split(",")]
-        for index_id in indices_ids:
-            try:
-                indices.append(Index.objects.get(id=index_id))
-            except Index.DoesNotExist:
-                form_errors["indices"].append(f"Index with id {index_id} does not exist.")
-                
-        instrument_type_id = int(_request.GET.get("instrument_type", -1)) # defaults to an invalid id
+        indices_ids = _request.GET.get("indices", "").strip()
+        if not indices_ids or len(indices_ids.split(",")) < 2:
+            form_errors["indices"].append(f"At least two indices need to be selected.")
+        else:
+            indices_ids = indices_ids if indices_ids is None else [int(id) for id in indices_ids.split(",")]
+            for index_id in indices_ids:
+                try:
+                    indices.append(Index.objects.get(id=index_id))
+                except Index.DoesNotExist:
+                    form_errors["indices"].append(f"Index with id {index_id} does not exist.")
+
+        instrument_type_id = _request.GET.get("instrument_type", "").strip()
+        instrument_type_id = int(instrument_type_id) if instrument_type_id else -1 # defaults to an invalid id
         try:
             instrument_type = InstrumentType.objects.get(id=instrument_type_id)
         except InstrumentType.DoesNotExist:
             form_errors["instrument_type"].append(f"Instrument type with id {instrument_type_id} does not exist.")
         
-        length_5prime = int(_request.GET.get("length_5prime", 0))
+        length_5prime = _request.GET.get("length_5prime", "").strip()
+        length_5prime = int(length_5prime) if length_5prime else 0
         if length_5prime < 0:
             form_errors["length_5prime"].append(f"Validation length for index at 5 prime end cannot be negative.")
-        length_3prime = int(_request.GET.get("length_3prime", 0))
+        length_3prime = _request.GET.get("length_3prime", "").strip()
+        length_3prime = int(length_3prime) if length_3prime else 0
         if length_3prime < 0:
             form_errors["length_3prime"].append(f"Validation length for index at 3 prime end cannot be negative.")
 
-        threshold = _request.GET.get("threshold", None)
-        threshold = threshold if threshold is None else int(threshold)
+        threshold = _request.GET.get("threshold", "").strip()
+        threshold = int(threshold) if threshold else None
         if threshold and threshold < 0:
             form_errors["threshold"].append(f"Distance threshold cannot be negative.")
         if not form_errors:
             results, errors, warnings = validate_indices(indices, instrument_type, length_5prime, length_3prime, threshold)
         else:
             raise ValidationError(form_errors)
-        data = {"form_errors": ValidationError(form_errors),
+        data = {"form_errors": form_errors,
                 "validation_errors": ValidationError(errors),
                 "warnings": warnings,
                 "results": results}
