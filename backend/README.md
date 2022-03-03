@@ -131,7 +131,7 @@ coverage run ./manage.py test -v 2
 
 ## Database diagram
 
-[Database Schema Diagram](https://dbdiagram.io/d/61490235825b5b01460b402e)
+[Database Schema Diagram](https://dbdiagram.io/d/62012be785022f4ee54f72f3)
 
 
 ## pg_fzy
