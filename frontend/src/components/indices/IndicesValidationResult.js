@@ -68,7 +68,7 @@ const IndicesValidationResult = ({
         )
       }
     },
-    ...results?.header.map((i) => {
+    ...results?.header?.map((i) => {
       return {
         title: () => {
           return (
