@@ -63,7 +63,7 @@ const IndicesValidationResult = ({
       render: id => {
         return (
           <Tooltip placement="right" title={indicesByID[id]?.name}>
-          <Tag>{id}</Tag>
+            <Tag>{id}</Tag>
           </Tooltip>
         )
       }
@@ -73,7 +73,7 @@ const IndicesValidationResult = ({
         title: () => {
           return (
             <Tooltip placement="bottom" title={indicesByID[i]?.name}>
-            <Tag>{i}</Tag>
+              <Tag>{i}</Tag>
             </Tooltip>
           )
         },
@@ -83,13 +83,13 @@ const IndicesValidationResult = ({
         render: distances => (
           <span>
           {
-            distances?.map(distance => {
+            distances?.map((distance, j) => {
               if ( distance < 0 )
-              return <Tag color="gray"></Tag>
+              return <Tag key={`${i}, ${j}`} color="gray"></Tag>
               else if (distance <= results.threshold )
-              return <Tag color="red"> {distance} </Tag>
+              return <Tag key={`${i}, ${j}`} color="red"> {distance} </Tag>
               else
-              return <Tag color="green"> {distance} </Tag>
+              return <Tag key={`${i}, ${j}`} color="green"> {distance} </Tag>
             })
           }
           </span>
@@ -141,7 +141,7 @@ const IndicesValidationResult = ({
           {results.is_valid ? <Tag color="green">Passed</Tag> : <Tag color="red">Failed</Tag> }
         </Descriptions.Item>
         <Descriptions.Item label="Validation Length Calculated">{results.validation_length_is_calculated ? "Yes" : "No"} </Descriptions.Item>
-        <Descriptions.Item label="Indices with collision (distance <= threshold)" span={3} size={'default'}>
+        <Descriptions.Item label="Indices with collision (distance <= threshold)" size={'default'}>
           <Collapse>
             <Panel header="Expand collision list" key="1">
               <List
