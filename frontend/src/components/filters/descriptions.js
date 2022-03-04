@@ -41,6 +41,7 @@ export const SAMPLE_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "projects__name",
     label: "Projects",
+    batch: true,
   },
   projects__id: {
     type: FILTER_TYPE.SELECT,
@@ -356,5 +357,40 @@ export const PROJECT_FILTERS = {
     key: "samples__id",
     label: "Samples ID",
     mode: "multiple",
+  },
+}
+
+export const INDEX_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "ID",
+  },
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+    batch: true,
+  },
+  index_structure__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "index_structure__name",
+    label: "Index Structure",
+  },
+  index_set__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "index_set__name",
+    label: "Index Structure",
+    batch: true,
+  },
+  sequences_3prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_3prime__value",
+    label: "Sequence 3 prime",
+  },
+  sequences_5prime__value: {
+    type: FILTER_TYPE.INPUT,
+    key: "sequences_5prime__value",
+    label: "Sequence 5 prime",
   },
 }

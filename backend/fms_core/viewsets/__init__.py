@@ -3,6 +3,7 @@ from .container_kind import ContainerKindViewSet
 from .experiment_run import ExperimentRunViewSet
 from .run_type import RunTypeViewSet
 from .group import GroupViewSet
+from .index import IndexViewSet
 from .individual import IndividualViewSet
 from .instrument import InstrumentViewSet
 from .process import ProcessViewSet
@@ -16,6 +17,7 @@ from .sample_kind import SampleKindViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
+from .sequence import SequenceViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -23,6 +25,7 @@ __all__ = [
     "ExperimentRunViewSet",
     "RunTypeViewSet",
     "GroupViewSet",
+    "IndexViewSet",
     "IndividualViewSet",
     "InstrumentViewSet",
     "ProcessViewSet",
@@ -35,5 +38,6 @@ __all__ = [
     "SampleKindViewSet",
     "UserViewSet",
     "VersionViewSet",
-    "ProjectViewSet"
+    "ProjectViewSet",
+    "SequenceViewSet",
 ]

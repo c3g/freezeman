@@ -23,6 +23,7 @@ const checkRequests = {
   processMeasurement:   api.processMeasurements.template.check,
   experimentRun: api.experimentRuns.template.check,
   project: api.projects.template.check,
+  index: api.indices.template.check,
 }
 
 const submitRequests = {
@@ -31,6 +32,7 @@ const submitRequests = {
   processMeasurement:   api.processMeasurements.template.submit,
   experimentRun: api.experimentRuns.template.submit,
   project: api.projects.template.submit,
+  index: api.indices.template.submit,
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {
@@ -50,7 +52,7 @@ const ActionContent = ({token, templateType, templateActions}) => {
   const templateChoiceMenu = (
       <Menu>
         {actions.items[actionIndex]
-          ? action.template.map((template, i) => 
+          ? action.template.map((template, i) =>
             <Menu.Item key={i} onClick={() => window.location = template.file}>{template.description}</Menu.Item>) :
             <Menu.Item>Loading ...</Menu.Item>
         }
@@ -94,6 +96,7 @@ const mapStateToProps = state => ({
     processMeasurement: state.processMeasurementTemplateActions,
     experimentRun: state.experimentRunTemplateActions,
     project: state.projectTemplateActions,
+    index: state.indicesTemplateActions,
   },
 });
 
@@ -102,7 +105,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 ActionContent.propTypes = {
-  templateType: PropTypes.oneOf(["container", "sample", "processMeasurement", "experimentRun", "project"]).isRequired,
+  templateType: PropTypes.oneOf(["container", "sample", "processMeasurement", "experimentRun", "project", "index"]).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ActionContent);

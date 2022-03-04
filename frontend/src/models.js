@@ -134,3 +134,13 @@ export const project = {
 //     status: "Open",
 //     comment: "This is a comment",
 // }
+
+export const sequence = {
+  // id: Number,
+  value: "",
+}
+// Example:
+// {
+//     id: 2001,
+//     value: "GTCTAACTG",
+// }

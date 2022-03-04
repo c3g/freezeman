@@ -1,5 +1,5 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import {Link, useHistory} from "react-router-dom";
 
 import {Button, Menu, Dropdown} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined} from "@ant-design/icons";
@@ -21,18 +21,23 @@ export const actionIcon = a => {
 export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
   (actions.items || []).map((a, i) =>
     <Link key={i.toString()} to={`${urlBase}/actions/${i}/`}>
-      <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width: "100%"}} : {})}>{a.name}</Button>
+      <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width:"100%"}} : {})}>{a.name}</Button>
     </Link>
   );
 
 export const actionDropdown = (urlBase, actions, fullWidth=false) => {
+  const history = useHistory();
   const actionMenu = (
     <Menu>
       { actions.items ? actions.items.map((a, i) =>
           <Menu.Item key={i.toString()}>
-            <Link key={i.toString()} to={`${urlBase}/actions/${i}/`}>
-              <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width: "100%"}} : {})}>{a.name}</Button>
-            </Link>
+            <Button
+              icon={actionIcon(a)}
+              onClick={() => history.push(`${urlBase}/actions/${i}/`)}
+              {...(fullWidth ? {style:{width:"100%", border:0}} : {style:{border:0}})}
+            >
+              {a.name}
+            </Button>
           </Menu.Item>) :
           <Menu.Item>Loading ...</Menu.Item>
       }

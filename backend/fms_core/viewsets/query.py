@@ -62,7 +62,7 @@ class QueryViewSet(viewsets.ViewSet):
                 .order_by('-score')[:100]
             ]
 
-        containers = query_and_score(Container, ["name"])
+        containers = query_and_score(Container, ["barcode", "name"])
         individuals = query_and_score(Individual, ["name"])
         samples = query_and_score(Sample, ["name"])
         projects = query_and_score(Project, ["name"])

@@ -13,6 +13,7 @@ import {
   UserOutlined,
   InfoCircleOutlined,
   ProjectOutlined,
+  NodeIndexOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -22,7 +23,9 @@ import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import SamplesPage from "./samples/SamplesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
+import IndicesPage from "./indices/IndicesPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
+import ProcessesPage from "./processes/ProcessesPage";
 import ProjectsPage from "./projects/ProjectsPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
@@ -36,6 +39,7 @@ import {hour} from "../utils/time";
 
 import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
+import {get} from "../modules/users/actions";
 
 const { Title } = Typography;
 
@@ -57,6 +61,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
+    style: {marginBottom: '50px'}
   },
 ]
 
@@ -97,6 +102,11 @@ const MENU_ITEMS = [
     text: "Projects",
   },
   {
+    url: "/indices",
+    icon: <NodeIndexOutlined />,
+    text: "Indices",
+  },
+  {
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
@@ -119,12 +129,12 @@ const titleStyle = {
 
 export const mapStateToProps = state => ({
   userID: state.auth.currentUserID,
-  user: state.users.itemsByID[state.auth.currentUserID],
+  usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {fetchInitialData, fetchSummariesData, logOut};
+export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
 
-const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
+const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
   useEffect(() => {
     const interval = setInterval(fetchSummariesData, 30000);
     fetchInitialData();
@@ -132,6 +142,11 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
   }, []);
 
   const isLoggedIn = userID !== null;
+  const user = usersByID[userID];
+
+  if (!user && isLoggedIn)
+    get(userID);
+
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);
@@ -150,6 +165,7 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             breakpoint="md"
             collapsedWidth={80}
             width={224}
+            style={{overflow: 'auto'}}
           >
               <Title style={titleStyle} className="App__title">
                 <div>
@@ -200,11 +216,17 @@ const App = ({userID, user, logOut, fetchInitialData, fetchSummariesData}) => {
             <PrivateRoute path="/process-measurements">
               <ProcessMeasurementsPage/>
             </PrivateRoute>
+            <PrivateRoute path="/processes">
+              <ProcessesPage/>
+            </PrivateRoute>
             <PrivateRoute path="/experiment-runs">
               <ExperimentRunsPage/>
             </PrivateRoute>
             <PrivateRoute path="/projects">
               <ProjectsPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/indices">
+              <IndicesPage/>
             </PrivateRoute>
             <PrivateRoute path="/users">
               <UsersPage/>

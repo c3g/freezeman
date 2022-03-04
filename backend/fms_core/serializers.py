@@ -7,15 +7,20 @@ from .models import (
     Container,
     ExperimentRun,
     RunType,
+    Index,
+    IndexSet,
     Individual,
     Instrument,
+    InstrumentType,
     PropertyValue,
+    PropertyType,
     Protocol,
     Process,
     ProcessMeasurement,
+    Project,
     Sample,
     SampleKind,
-    Project,
+    Sequence,
 )
 
 
@@ -26,13 +31,18 @@ __all__ = [
     "ExperimentRunExportSerializer",
     "RunTypeSerializer",
     "SimpleContainerSerializer",
+    "IndexSerializer",
+    "IndexSetSerializer",
+    "IndexExportSerializer",
     "IndividualSerializer",
     "InstrumentSerializer",
+    "InstrumentTypeSerializer",
     "SampleKindSerializer",
     "PropertyValueSerializer",
     "ProcessSerializer",
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
+    "ProcessMeasurementWithPropertiesExportSerializer",
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
@@ -43,6 +53,7 @@ __all__ = [
     "GroupSerializer",
     "ProjectSerializer",
     "ProjectExportSerializer",
+    "SequenceSerializer",
 ]
 
 
@@ -120,6 +131,11 @@ class InstrumentSerializer(serializers.ModelSerializer):
         model = Instrument
         fields = "__all__"
 
+class InstrumentTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstrumentType
+        fields = "__all__"
+
 
 class SampleKindSerializer(serializers.ModelSerializer):
     class Meta:
@@ -133,16 +149,19 @@ class ProtocolSerializer(serializers.ModelSerializer):
 
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
+    children_processes = serializers.SerializerMethodField()
 
     class Meta:
         model = Process
         fields = "__all__"
         extra_fields = ('children_processes')
 
-
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
         return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
+
+    def get_children_processes(self, obj):
+        return Process.objects.filter(parent_process=obj.id).values_list('id', flat=True)
 
 class ProcessMeasurementSerializer(serializers.ModelSerializer):
     protocol = serializers.IntegerField(read_only=True, source="process.protocol.id")
@@ -150,9 +169,9 @@ class ProcessMeasurementSerializer(serializers.ModelSerializer):
     properties = serializers.SerializerMethodField()
 
     class Meta:
-      model = ProcessMeasurement
-      fields = "__all__"
-      extra_fields = ('protocol', 'child_sample')
+        model = ProcessMeasurement
+        fields = "__all__"
+        extra_fields = ('protocol', 'child_sample')
 
     def get_properties(self, obj):
         pm_content_type = ContentType.objects.get_for_model(ProcessMeasurement)
@@ -165,16 +184,59 @@ class ProcessMeasurementExportSerializer(serializers.ModelSerializer):
     source_sample_name = serializers.CharField(read_only=True)
 
     class Meta:
-      model = ProcessMeasurement
-      fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+        model = ProcessMeasurement
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializer):
+    DEFAULT_META_FIELDS = ( 'process_measurement_id',
+                            'process_id',
+                            'protocol_name',
+                            'source_sample_name',
+                            'child_sample_name',
+                            'volume_used',
+                            'execution_date',
+                            'comment' )
+
+    def __init__(self, *args, **kwargs):
+        # Reset Meta fields
+        self.Meta.fields = self.DEFAULT_META_FIELDS
+        # Instantiate the superclass normally
+        super(ProcessMeasurementWithPropertiesExportSerializer, self).__init__(*args, **kwargs)
+        # List all property fields that are tied to the protocol
+        self.property_types = self.list_property_types(self.instance)
+        for property_type in self.property_types:
+            self.fields[property_type.name] = serializers.CharField(read_only=True)
+            self.Meta.fields = self.Meta.fields + (property_type.name,)
+
+    process_measurement_id = serializers.IntegerField(read_only=True, source="id")
+    protocol_name = serializers.CharField(read_only=True, source="process.protocol.name")
+    child_sample_name = serializers.CharField(read_only=True)
+    source_sample_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = ProcessMeasurement
+        fields = ('process_measurement_id', 'process_id', 'protocol_name', 'source_sample_name', 'child_sample_name', 'volume_used', 'execution_date', 'comment')
+
+    def list_property_types(self, obj):
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        return PropertyType.objects.filter(object_id=obj[0].process.protocol.id, content_type=protocol_content_type)
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        for property_type in self.property_types:
+            pm_property_value = PropertyValue.objects.filter(object_id=instance.id, property_type=property_type)
+            p_property_value = PropertyValue.objects.filter(object_id=instance.process.id, property_type=property_type)
+            property_value = pm_property_value.union(p_property_value).first() # union between cases : process or process measurement property value
+            data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
+        return data
 
 class PropertyValueSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(read_only=True, source="property_type.name")
 
     class Meta:
-      model = PropertyValue
-      fields = "__all__"
-      extra_fields = ('property_name')
+        model = PropertyValue
+        fields = "__all__"
+        extra_fields = ('property_name')
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
@@ -340,3 +402,45 @@ class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ("id", "name", "principal_investigator", "requestor_name", "requestor_email", "status", "targeted_end_date",  "comment")
+
+class IndexSerializer(serializers.ModelSerializer):
+    index_set = serializers.CharField(read_only=True, source="index_set.name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+    class Meta:
+        model = Index
+        fields = "__all__"
+
+class IndexExportSerializer(serializers.ModelSerializer):
+    index_set = serializers.CharField(read_only=True, source="index_set.name")
+    index_structure = serializers.CharField(read_only=True, source="index_structure.name")
+
+    sequences_3prime = serializers.SerializerMethodField()
+    sequences_5prime = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Index
+        fields = ("id", "name", "index_set", "index_structure", "sequences_3prime", "sequences_5prime")
+
+    def get_sequences_3prime(self, obj):
+        sequences = obj.list_3prime_sequences
+        return ", ".join(sequences)
+    
+    def get_sequences_5prime(self, obj):
+        sequences = obj.list_5prime_sequences
+        return ", ".join(sequences)
+
+
+class IndexSetSerializer(serializers.ModelSerializer):
+    index_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IndexSet
+        fields = "__all__"
+
+    def get_index_count(self, obj):
+        return Index.objects.filter(index_set=obj.id).count()
+
+class SequenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sequence
+        fields = "__all__"

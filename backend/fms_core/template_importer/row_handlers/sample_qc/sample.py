@@ -31,8 +31,8 @@ class SampleQCRowHandler(GenericRowHandler):
             else:
                 self.errors['volume'] = 'Initial Volume, Measured Volume and Volume Used are required.'
 
-            if not sample_information['concentration']:
-                self.errors['concentration'] = 'Concentration is required'
+            if sample_information['concentration'] is None:
+                self.errors['concentration'] = 'Concentration value is required'
 
             _, self.errors['sample_update'], self.warnings['sample_update'] = \
                 update_sample(sample_to_update=sample_obj,

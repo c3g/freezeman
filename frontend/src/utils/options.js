@@ -49,3 +49,14 @@ export function renderSample(s) {
     )
   }
 }
+
+export function renderInstrumentType(i) {
+  return {
+    value: i.id,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {i.type}
+      </div>
+    )
+  }
+}

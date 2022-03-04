@@ -6,11 +6,15 @@ from fms_core.models import (
     Instrument,
     Platform,
 )
+from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE
 
 class InstrumentTest(TestCase):
     def setUp(self):
         self.platform, _ = Platform.objects.get_or_create(name="PlatformTest")
-        self.type, _ = InstrumentType.objects.get_or_create(type="MyType", platform=self.platform)
+        self.type, _ = InstrumentType.objects.get_or_create(type="MyType",
+                                                            platform=self.platform,
+                                                            index_read_5_prime=INDEX_READ_FORWARD,
+                                                            index_read_3_prime=INDEX_READ_REVERSE)
         self.name = "Instrument1"
         self.instrument, _ = Instrument.objects.get_or_create(name=self.name, type=self.type)
 

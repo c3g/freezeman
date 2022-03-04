@@ -137,3 +137,18 @@ _project_filterset_fields: FiltersetFields = {
     "status": CATEGORICAL_FILTERS,
     **_prefix_keys("samples__", _sample_minimal_filterset_fields),
 }
+
+_index_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "index_set__name": CATEGORICAL_FILTERS_LOOSE,
+    "index_set__id": PK_FILTERS,
+    "index_structure__name": CATEGORICAL_FILTERS_LOOSE,
+    "sequences_3prime__value": CATEGORICAL_FILTERS_LOOSE,
+    "sequences_5prime__value": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_sequence_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "value": CATEGORICAL_FILTERS_LOOSE,
+}

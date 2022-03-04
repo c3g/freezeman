@@ -20,6 +20,12 @@ from .experiment_run import ExperimentRun
 from .property_type import PropertyType
 from .property_value import PropertyValue
 from .project import Project
+from .index import Index
+from .index_set import IndexSet
+from .index_structure import IndexStructure
+from .sequence import Sequence
+from .sequencebyindex3prime import SequenceByIndex3Prime
+from .sequencebyindex5prime import SequenceByIndex5Prime
 
 __all__ = [
     "Biosample",
@@ -43,4 +49,10 @@ __all__ = [
     "PropertyType",
     "PropertyValue",
     "Project",
+    "Index",
+    "IndexSet",
+    "IndexStructure",
+    "Sequence",
+    "SequenceByIndex3Prime",
+    "SequenceByIndex5Prime",
 ]
