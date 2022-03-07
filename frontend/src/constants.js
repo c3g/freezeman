@@ -35,6 +35,7 @@ export const TAXON = [
   "Homo sapiens",
   "Mus musculus",
   "Sars-Cov-2",
+  "Ixodes scapularis",
 ]
 
 export const PROJECT_STATUS = [

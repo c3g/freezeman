@@ -96,7 +96,7 @@ INDEX_CREATION_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_7_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
