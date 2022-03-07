@@ -180,7 +180,18 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                                                                        'concentration'] is not None else dict()),
         )
 
-        # Retreive the sample to update
+        derived_sample_data = dict(
+            sample_kind_id=full_sample['sample_kind'],
+            tissue_source=full_sample['tissue_source']
+        )
+
+        biosample_data = dict(
+            alias=full_sample['alias'],
+            individual_id=full_sample['individual'],
+            collection_site=full_sample['collection_site']
+        )
+
+        # Retrieve the sample to update
         try:
             sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
             sample_to_update.__dict__.update(sample_data)
@@ -192,6 +203,33 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             sample_to_update.save()
         except Exception as err:
             raise ValidationError(err)
+
+        if sample_to_update:
+            if derived_sample_data:
+                try:
+                    derived_sample_to_update = DerivedSample.objects.select_for_update().get(pk=sample_to_update.derived_sample_not_pool.id)
+                    derived_sample_to_update.__dict__.update(derived_sample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated derived_sample
+                try:
+                    derived_sample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
+
+            if biosample_data:
+                try:
+                    biosample_to_update = Biosample.objects.select_for_update().get(pk=sample_to_update.biosample_not_pool.id)
+                    biosample_to_update.__dict__.update(biosample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated biosample
+                try:
+                    biosample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
 
         # Return updated sample
         # Serialize full sample using the created sample

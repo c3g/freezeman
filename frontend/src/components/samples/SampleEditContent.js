@@ -191,10 +191,10 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}>
-            <Input disabled={!isAdding}/>
+            <Input />
           </Form.Item>
-          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={isAdding && requiredRules}>
-            <Select disabled={!isAdding}>
+          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
+            <Select >
               {sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name)).map(sk =>
                 <Option key={sk.name} value={sk.id}>{sk.name}</Option>
               )}
@@ -207,7 +207,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" {...props("individual")} disabled={!isAdding}>
+          <Form.Item label="Individual" {...props("individual")}>
             <Select
               showSearch
               allowClear
@@ -215,7 +215,6 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
-              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Container" {...props("container")} rules={requiredRules}>
@@ -253,12 +252,11 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
             <Select mode="tags" disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")} rules={isAdding && requiredRules} disabled={!isAdding}>
+          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
-              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
@@ -320,6 +318,9 @@ function serialize(values) {
   /* tissue_source bottom value is '' for legacy reasons */
   if (!newValues.tissue_source)
     newValues.tissue_source = ''
+
+  if (!newValues.individual)
+    newValues.individual = ''
 
   if (newValues.concentration === '')
     newValues.concentration = null
