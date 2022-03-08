@@ -180,7 +180,18 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                                                                        'concentration'] is not None else dict()),
         )
 
-        # Retreive the sample to update
+        derived_sample_data = dict(
+            sample_kind_id=full_sample['sample_kind'],
+            tissue_source=full_sample['tissue_source']
+        )
+
+        biosample_data = dict(
+            alias=full_sample['alias'],
+            individual_id=full_sample['individual'],
+            collection_site=full_sample['collection_site']
+        )
+
+        # Retrieve the sample to update
         try:
             sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
             sample_to_update.__dict__.update(sample_data)
@@ -192,6 +203,33 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             sample_to_update.save()
         except Exception as err:
             raise ValidationError(err)
+
+        if sample_to_update and not sample_to_update.is_pool:
+            if derived_sample_data:
+                try:
+                    derived_sample_to_update = DerivedSample.objects.select_for_update().get(pk=sample_to_update.derived_sample_not_pool.id)
+                    derived_sample_to_update.__dict__.update(derived_sample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated derived_sample
+                try:
+                    derived_sample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
+
+            if biosample_data:
+                try:
+                    biosample_to_update = Biosample.objects.select_for_update().get(pk=sample_to_update.biosample_not_pool.id)
+                    biosample_to_update.__dict__.update(biosample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated biosample
+                try:
+                    biosample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
 
         # Return updated sample
         # Serialize full sample using the created sample
@@ -246,10 +284,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         Searches for samples that match the given query
         """
         search_input = _request.GET.get("q")
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(name__icontains=search_input)
-        query.add(Q(alias__icontains=search_input), Q.OR)
-        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(name=search_input)
+            query.add(Q(id=search_input), Q.OR)
+        else:
+            query = Q(name__icontains=search_input)
+            query.add(Q(id__icontains=search_input), Q.OR)
 
         full_sample_data = Sample.objects.filter(query)
         page = self.paginate_queryset(full_sample_data)

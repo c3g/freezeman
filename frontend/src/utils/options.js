@@ -24,6 +24,18 @@ export function renderIndividual(i) {
   }
 }
 
+export function renderSampleKind(sk) {
+  return {
+    value: sk.id,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {sk.name}{' '}
+        <Text type="secondary">{sk.id}</Text>
+      </div>
+    )
+  }
+}
+
 export function renderContainer(c) {
   return {
     value: c.id,

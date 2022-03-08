@@ -35,9 +35,14 @@ class IndividualViewSet(viewsets.ModelViewSet):
         Searches for individuals that match the given query
         """
         search_input = _request.GET.get("q")
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(id__icontains=search_input)
-        query.add(Q(name__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(id=search_input)
+            query.add(Q(name=search_input), Q.OR)
+        else:
+            query = Q(id__icontains=search_input)
+            query.add(Q(name__startswith=search_input), Q.OR)
 
         individuals_data = Individual.objects.filter(query)
         page = self.paginate_queryset(individuals_data)

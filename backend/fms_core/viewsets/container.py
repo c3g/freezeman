@@ -113,10 +113,16 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         search_input = _request.GET.get("q")
         is_parent = _request.GET.get("parent") == 'true'
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(barcode__icontains=search_input)
-        query.add(Q(name__icontains=search_input), Q.OR)
-        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(barcode=search_input)
+            query.add(Q(name=search_input), Q.OR)
+            query.add(Q(id=search_input), Q.OR)
+        else:
+            query = Q(barcode__icontains=search_input)
+            query.add(Q(name__icontains=search_input), Q.OR)
+            query.add(Q(id__icontains=search_input), Q.OR)
         if is_parent:
             query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
         if is_sample_holding:
