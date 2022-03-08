@@ -204,7 +204,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         except Exception as err:
             raise ValidationError(err)
 
-        if sample_to_update:
+        if sample_to_update and not sample_to_update.is_pool:
             if derived_sample_data:
                 try:
                     derived_sample_to_update = DerivedSample.objects.select_for_update().get(pk=sample_to_update.derived_sample_not_pool.id)

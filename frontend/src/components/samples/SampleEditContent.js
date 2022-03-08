@@ -302,6 +302,9 @@ function deserialize(values) {
   if (!newValues.tissue_source)
     newValues.tissue_source = null
 
+  if (newValues.individual)
+    newValues.individual = Number(newValues.individual)
+
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
   if (newValues.creation_date)
@@ -330,11 +333,6 @@ function serialize(values) {
 
   if (!newValues.comment)
     newValues.comment = ''
-
-  // We should not be able to modify the volume in the Sample directly yet
-  // if (newValues.volume) {
-  //   newValues.volume = Number(newValues.container)
-  // }
 
   return newValues
 }
