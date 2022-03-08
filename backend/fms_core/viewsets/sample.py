@@ -284,10 +284,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         Searches for samples that match the given query
         """
         search_input = _request.GET.get("q")
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(name__icontains=search_input)
-        query.add(Q(alias__icontains=search_input), Q.OR)
-        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(name=search_input)
+            query.add(Q(id=search_input), Q.OR)
+        else:
+            query = Q(name__icontains=search_input)
+            query.add(Q(id__icontains=search_input), Q.OR)
 
         full_sample_data = Sample.objects.filter(query)
         page = self.paginate_queryset(full_sample_data)
