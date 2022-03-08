@@ -30,11 +30,11 @@ import {requiredRules, nameRules} from "../../constants";
 const searchSamples = (token, input) =>
   withToken(token, api.samples.search)(input).then(res => res.data.results)
 
-const searchContainers = (token, input) =>
-  withToken(token, api.containers.search)(input, { sample_holding: true }).then(res => res.data.results)
+const searchContainers = (token, input, options) =>
+  withToken(token, api.containers.search)(input, {sample_holding: true, ...options}).then(res => res.data.results)
 
-const searchIndividuals = (token, input) =>
-  withToken(token, api.individuals.search)(input).then(res => res.data.results)
+const searchIndividuals = (token, input, options) =>
+  withToken(token, api.individuals.search)(input, options).then(res => res.data.results)
 
 let collectionSites = undefined
 const listCollectionSites = (token) => {
@@ -84,8 +84,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
 
   const [individualOptions, setIndividualOptions] = useState([]);
   const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
-  const onSearchIndividual = input => {
-    searchIndividuals(token, input).then(individuals => {
+  const onSearchIndividual = (input, options) => {
+    searchIndividuals(token, input, options).then(individuals => {
       setIndividualOptions(individuals.map(Options.renderIndividual))
     })
   }
@@ -108,8 +108,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
 
   const [containerOptions, setContainerOptions] = useState([]);
   const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
-  const onSearchContainer = input => {
-    searchContainers(token, input).then(containers => {
+  const onSearchContainer = (input, options) => {
+    searchContainers(token, input, options).then(containers => {
       setContainerOptions(containers.map(Options.renderContainer))
     })
   }
@@ -142,8 +142,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   useEffect(() => {
     const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
-    onSearchIndividual(newData.individual)
-    onSearchContainer(newData.container)
+    onSearchIndividual(newData.individual, {exact_match:true})
+    onSearchContainer(newData.container, {exact_match: true})
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
@@ -317,6 +317,9 @@ function deserialize(values) {
 
   if (newValues.individual)
     newValues.individual = Number(newValues.individual)
+
+  if (newValues.container)
+    newValues.container = Number(newValues.container)
 
   if (newValues.sample_kind)
     newValues.sample_kind = Number(newValues.sample_kind)

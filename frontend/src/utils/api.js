@@ -34,8 +34,8 @@ const api = {
       templates: () => get(`/containers/list_prefills/`),
       request: (options, template) => get(`/containers/prefill_template/`, {template: template, ...options}),
     },
-    search: (q, { parent, sample_holding }) =>
-      get("/containers/search/", { q, parent, sample_holding }),
+    search: (q, { parent, sample_holding, exact_match }) =>
+      get("/containers/search/", { q, parent, sample_holding, exact_match }),
   },
 
   experimentRuns: {
@@ -59,7 +59,7 @@ const api = {
     update: individual => patch(`/individuals/${individual.id}/`, individual),
     list: (options, abort) => get("/individuals/", options, { abort }),
     listExport: options => get("/individuals/list_export/", {format: "csv", ...options}),
-    search: q => get("/individuals/search/", { q }),
+    search: (q, options) => get("/individuals/search/", { q, ...options }),
   },
 
   instruments: {
