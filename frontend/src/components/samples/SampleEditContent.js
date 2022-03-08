@@ -143,7 +143,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, {exact_match:true})
-    onSearchContainer(newData.container, {exact_match: true})
+    onSearchContainer(newData.container, {exact_match:true})
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
