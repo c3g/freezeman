@@ -90,6 +90,18 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     })
   }
 
+
+    /*
+     * Sample Kind autocomplete
+     */
+    const sampleKindsSorted = sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name))
+    const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
+    const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
+    const onSearchSampleKind = input => {
+        const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
+        setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
+    }
+
   /*
    * Container (location) autocomplete
    */
@@ -132,6 +144,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual)
     onSearchContainer(newData.container)
+    onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
   const onValuesChange = (values) => {
@@ -194,11 +207,11 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
-            <Select >
-              {sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name)).map(sk =>
-                <Option key={sk.name} value={sk.id}>{sk.name}</Option>
-              )}
-            </Select>
+            <Select
+              options={sampleKindOptions}
+              onSearch={onSearchSampleKind}
+              onFocus={onFocusSampleKind}
+            />
           </Form.Item>
           <Form.Item label="Tissue" {...props("tissue_source")}s>
             <Select allowClear disabled={!isTissueEnabled}>
@@ -304,6 +317,9 @@ function deserialize(values) {
 
   if (newValues.individual)
     newValues.individual = Number(newValues.individual)
+
+  if (newValues.sample_kind)
+    newValues.sample_kind = Number(newValues.sample_kind)
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
