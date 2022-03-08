@@ -67,6 +67,9 @@ def get_or_create_container(barcode,
     else:
         errors.append(f"Barcode is required to get or create a container.")
 
+    if errors:
+        container = None
+
     return (container, created_entity, errors, warnings)
 
 def create_container(barcode, kind,
@@ -139,7 +142,7 @@ def move_container(container_to_move, destination_barcode,
         destination_container = Container.objects.get(barcode=destination_barcode)
     except Container.DoesNotExist as e:
         errors.append(f"Destination Container barcode {destination_barcode} does not exist.")
-
+        return (container_to_move, errors, warnings)
 
     if container_to_move.location == destination_container and container_to_move.coordinates == destination_coordinates:
         errors.append(f"Container {container_to_move.name } already is at container {destination_barcode} at coodinates {destination_coordinates}.")
