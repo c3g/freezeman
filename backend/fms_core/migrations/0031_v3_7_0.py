@@ -204,4 +204,9 @@ class Migration(migrations.Migration):
             init_instrument_type_read_direction,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.AlterField(
+            model_name='individual',
+            name='taxon',
+            field=models.CharField(choices=[('Homo sapiens', 'Homo sapiens'), ('Mus musculus', 'Mus musculus'), ('Sars-Cov-2', 'Sars-Cov-2'), ('Ixodes scapularis', 'Ixodes scapularis')], help_text='Taxonomic group of a species.', max_length=20),
+        ),
     ]

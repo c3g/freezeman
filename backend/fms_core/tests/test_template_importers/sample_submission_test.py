@@ -12,13 +12,13 @@ from fms_core.services.project import create_project
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_7_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
 
-        self.invalid_template_tests = ["Sample_submission_v3_5_0_bad_location.xlsx",
-                                       "Sample_submission_v3_5_0_dna_no_conc.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v3_7_0_bad_location.xlsx",
+                                       "Sample_submission_v3_7_0_dna_no_conc.xlsx",]
         self.prefill_data()
 
     def prefill_data(self):
