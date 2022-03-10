@@ -126,7 +126,7 @@ class DerivedSample(TrackedModel):
     quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20)
     quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20)
 
-    library = models.ForeignKey(Library, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_sample", help_text="Library associated to this Derived Sample.")
+    library = models.OneToOneField(Library, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_sample", help_text="Library associated to this Derived Sample.")
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)

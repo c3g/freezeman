@@ -3,7 +3,33 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import re
+from django.contrib.auth.models import User
+import reversion
 
+
+ADMIN_USERNAME = 'biobankadmin'
+
+def create_initial_library_types(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+
+    LIBRARY_TYPES = ["PCR-free",
+                     "PCR-enriched",
+                     "RNASeq",
+                     "WGBS",
+                     "16S",
+                     "18S",
+                     "miRNA",]
+    
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create objects related to the Sample Selection using qPCR protocol")
+        reversion.set_user(admin_user)
+
+        for library_type_name in LIBRARY_TYPES:
+            library_type = LibraryType.objects.create(name=library_type_name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            reversion.add_to_revision(library_type)
 
 class Migration(migrations.Migration):
 
@@ -53,6 +79,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='derivedsample',
             name='library',
-            field=models.ForeignKey(blank=True, help_text='Library associated to this Derived Sample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='derived_sample', to='fms_core.library'),
+            field=models.OneToOneField(blank=True, help_text='Library associated to this Derived Sample.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='derived_sample', to='fms_core.library'),
         ),
+        migrations.RunPython(
+            create_initial_library_types,
+            reverse_code=migrations.RunPython.noop,
+        )
     ]
