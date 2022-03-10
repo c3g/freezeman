@@ -9,6 +9,7 @@ from fms_core.services.property_value import create_process_properties
 
 from datetime import datetime
 
+
 def get_library_type(name):
     instrument = None
     errors = []
@@ -20,10 +21,11 @@ def get_library_type(name):
     except LibraryType.MultipleObjectsReturned as e:
         errors.append(f"More than one Experiment Type was found with the name {name}.")
 
-    return (instrument, errors, warnings)
+    return instrument, errors, warnings
 
 
-def create_library_batch(library_type, library_size, platform, library_date, library_rows_info, protocol, process_properties, comment):
+def create_library_batch(library_type, library_size, platform, library_date,
+                         library_rows_info, protocol, process_properties, comment):
     library = None
     errors = []
     warnings = []
@@ -34,7 +36,8 @@ def create_library_batch(library_type, library_size, platform, library_date, lib
 
     process, process_errors, process_warnings = \
         create_process(protocol=protocol,
-                       creation_comment=comment if comment else f"Automatically generated via library preparation on {datetime.utcnow().isoformat()}Z",)
+                       creation_comment=comment if comment else f"Automatically generated via library preparation "
+                                                                f"on {datetime.utcnow().isoformat()}Z",)
 
     # Create process' properties
     if not process_errors:
@@ -77,14 +80,15 @@ def create_library_batch(library_type, library_size, platform, library_date, lib
                     coordinates=container['parent_coordinates'] if container_obj else None,
                     creation_comment=comment)
 
-                sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=process,
-                                                                                         sample_source=source_sample,
-                                                                                         container_destination=container_obj,
-                                                                                         volume_used=volume_used,
-                                                                                         execution_date=library_date,
-                                                                                         coordinates_destination=container_coordinates,
-                                                                                         volume_destination=library_volume,
-                                                                                         comment=comment)
+                sample_destination, transfer_errors, transfer_warnings = \
+                    transfer_sample(process=process,
+                                    sample_source=source_sample,
+                                    container_destination=container_obj,
+                                    volume_used=volume_used,
+                                    execution_date=library_date,
+                                    coordinates_destination=container_coordinates,
+                                    volume_destination=library_volume,
+                                    comment=comment)
 
                 if sample_destination:
                     sample_destination.depleted = True  # deplete destination sample

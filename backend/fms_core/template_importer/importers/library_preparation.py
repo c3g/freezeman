@@ -14,16 +14,16 @@ class LibraryPreparationImporter(GenericImporter):
         super().__init__()
         self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
-
     def initialize_data_for_template(self, runtype, properties):
-        # Get protocol for Library Prepration
+        # Get protocol for Library Preparation
         protocol = Protocol.objects.get(name='Library Preparation')
 
         self.preloaded_data = {'protocol': protocol, 'process_properties': {}}
 
         # Preload PropertyType objects for this protocol in a dictionary for faster access
         try:
-            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(object_id=protocol.id))}
+            self.preloaded_data['process_properties'] = \
+                {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(object_id=protocol.id))}
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 
