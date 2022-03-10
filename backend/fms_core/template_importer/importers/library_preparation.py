@@ -1,7 +1,7 @@
 from fms_core.models import PropertyType, Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, SampleRowHandler
-from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
+from fms_core.templates import LIBRARY_PREPARATION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
@@ -12,6 +12,7 @@ TEMPLATE_PROPERTY_MAPPING = {
     "Library Technician Name": "Library Technician Name",
     "Shearing Technician Name": "Shearing Technician Name",
     "Shearing Method": "Shearing Method",
+    "Shearing Size (bp)": "Shearing Size (bp)",
     "Library Kit Used": "Library Kit Used",
     "Library Kit Lot": "Library Kit Lot",
     "PCR Cycles": "PCR Cycles",
@@ -21,7 +22,7 @@ TEMPLATE_PROPERTY_MAPPING = {
 }
 
 class LibraryPreparationImporter(GenericImporter):
-    SHEETS_INFO = EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
+    SHEETS_INFO = LIBRARY_PREPARATION_TEMPLATE['sheets info']
 
     def __init__(self):
         super().__init__()
@@ -32,7 +33,7 @@ class LibraryPreparationImporter(GenericImporter):
         # Get protocol for Library Prepration
         protocol = Protocol.objects.get(name='Library Preparation')
 
-        self.preloaded_data = { 'property_types_by_name': {}}
+        self.preloaded_data = {'protocol': protocol, 'process_properties': {}}
 
         # Preload PropertyType objects for this protocol in a dictionary for faster access
         try:
@@ -42,74 +43,72 @@ class LibraryPreparationImporter(GenericImporter):
 
     def import_template_inner(self):
         """
-            SAMPLES SHEET
+            LIBRARIES SHEET
         """
-        samples_sheet = self.sheets['Samples']
-        sample_rows_data = defaultdict(list)
-        for i, row_data in enumerate(samples_sheet.rows):
-            sample = {'library_batch_id': row_data['Library Batch ID'],
-                      'volume_used': float_to_decimal_and_none(row_data['Sample Volume Used (uL)']),
-                      'comment': row_data['Comment'],
-                      'library':
-                          {'container':
-                            {'library_container_barcode': row_data['Library Container Barcode'],
-                             'library_container_coordinates': row_data['Library Container Coordinates'],
-                             'library_container_name': row_data['Library Container Name'],
-                             'library_container_kind': row_data['Library Container Kind'],
-                             'library_container_parent_barcode': row_data['Library Parent Container Barcode'],
-                             'library_container_parent_coordinates': row_data['Library Container Coordinates']
+        libraries_sheet = self.sheets['Library']
+        libraries_rows_data = defaultdict(list)
+        for i, row_data in enumerate(libraries_sheet.rows):
+            library = {'library_batch_id': row_data['Library Batch ID'],
+                       'volume_used': float_to_decimal_and_none(row_data['Sample Volume Used (uL)']),
+                       'comment': row_data['Comment'],
+                       'container':
+                           {'barcode': row_data['Library Container Barcode'],
+                            'coordinates': row_data['Library Container Coordinates'],
+                            'name': row_data['Library Container Name'],
+                            'kind': row_data['Library Container Kind'],
+                            'parent_barcode': row_data['Library Parent Container Barcode'],
+                            'parent_coordinates': row_data['Library Container Coordinates']
                             },
-                           'volume': row_data['Library Volume'],
-                           'index': row_data['Index'],
-                           }
+                       'volume': float_to_decimal_and_none(row_data['Library Volume']),
+                       'index': row_data['Index'],
                       }
 
             sample_kwargs = dict(
                 barcode=row_data['Sample Container Barcode'],
                 coordinates=row_data['Sample Container Coordinates'],
-                volume_used=sample['volume_used']
+                volume_used=library['volume_used']
             )
 
-            (result, sample['sample_obj']) = self.handle_row(
+            (result, library['sample_obj']) = self.handle_row(
                 row_handler_class=SampleRowHandler,
-                sheet=samples_sheet,
+                sheet=libraries_sheet,
                 row_i=i,
                 **sample_kwargs,
             )
 
-            sample_rows_data[sample['library_batch_id']].append(sample)
+            libraries_rows_data[library['library_batch_id']].append(library)
 
         """
-            LIBRARY SHEET
+            LIBRARY BATCH SHEET
         """
-        libraries_sheet = self.sheets['Library']
+        library_batch_sheet = self.sheets['Library Batch']
 
         # Iterate through libraries rows
-        for row_id, row in enumerate(libraries_sheet.rows):
-            library_dict = {}
+        for row_id, row in enumerate(library_batch_sheet.rows):
+            library_batch_dict = {}
             process_properties = self.preloaded_data['process_properties']
             for i, (key, val) in enumerate(row.items()):
                 if i < self.properties_starting_index:
-                    library_dict[key] = row[key]
+                    library_batch_dict[key] = row[key]
                 else:
                     process_properties[key]['value'] = val
 
             library_preparation_kwargs = dict(
-                # ExperimentRun attributes data dictionary and related objects
-                library_type={'name' : library_dict['Experiment Type']},
-                container={'barcode': library_dict['Experiment Container Barcode'],
-                           'kind': library_dict['Experiment Container Kind']},
-                library_date=input_to_date_and_none(library_dict['Library Date (YYYY-MM-DD)']),
-                platform={'name' : library_dict['Platform']},
-                comment=library_dict['Comment'],
+                # Library attributes data dictionary and related objects
+                library_type={'name' : library_batch_dict['Experiment Type']},
+                library_size=process_properties['Shearing Size (bp)']['value'],
+                library_date=input_to_date_and_none(library_batch_dict['Library Date (YYYY-MM-DD)']),
+                platform={'name' : library_batch_dict['Platform']},
+                comment=library_batch_dict['Comment'],
                 # Additional data for this row
+                protocol=self.preloaded_data['protocol'],
                 process_properties=process_properties,
-                sample_rows_info=sample_rows_data[library_dict['Library Batch ID']],
+                library_rows_info=libraries_rows_data[library_batch_dict['Library Batch ID']],
             )
 
             (result, _) = self.handle_row(
                 row_handler_class=LibraryPreparationRowHandler,
-                sheet=libraries_sheet,
+                sheet=library_batch_sheet,
                 row_i=row_id,
                 **library_preparation_kwargs,
             )
