@@ -7,20 +7,6 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 PROPERTIES_STARTING_INDEX = 4
 
-# {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
-TEMPLATE_PROPERTY_MAPPING = {
-    "Library Technician Name": "Library Technician Name",
-    "Shearing Technician Name": "Shearing Technician Name",
-    "Shearing Method": "Shearing Method",
-    "Shearing Size (bp)": "Shearing Size (bp)",
-    "Library Kit Used": "Library Kit Used",
-    "Library Kit Lot": "Library Kit Lot",
-    "PCR Cycles": "PCR Cycles",
-    "PCR Enzyme Used": "PCR Enzyme Used",
-    "PCR Enzyme Lot": "PCR Enzyme Lot",
-    "EZ-96 DNA Methylation-Gold MagPrep Lot": "EZ-96 DNA Methylation-Gold MagPrep Lot",
-}
-
 class LibraryPreparationImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_PREPARATION_TEMPLATE['sheets info']
 
