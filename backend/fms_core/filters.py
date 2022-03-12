@@ -10,6 +10,7 @@ from .viewsets._constants import (
     _individual_filterset_fields,
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
+    _library_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -54,6 +55,15 @@ class SampleFilter(GenericFilter):
     class Meta:
         model = Sample
         fields = _sample_filterset_fields
+
+class LibraryFilter(GenericFilter):
+    name = django_filters.CharFilter(field_name="name", method="batch_filter")
+    container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
+    projects__name = django_filters.CharFilter(method="batch_filter")
+
+    class Meta:
+        model = Sample
+        fields = _library_filterset_fields
 
 class IndividualFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")

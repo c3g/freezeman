@@ -13,7 +13,8 @@ import {
   UserOutlined,
   InfoCircleOutlined,
   ProjectOutlined,
-  NodeIndexOutlined,
+  BarcodeOutlined,
+  HddOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -82,18 +83,23 @@ const MENU_ITEMS = [
     text: "Samples",
   },
   {
+    url: "/libraries",
+    icon: <ExperimentOutlined />,
+    text: "Libraries",
+  },
+  {
     url: "/individuals",
     icon: <TeamOutlined />,
     text: "Individuals",
   },
   {
     url: "/process-measurements",
-    icon: <ExperimentOutlined />, // ??
+    icon: <ExperimentOutlined />,
     text: "Protocols",
   },
   {
     url: "/experiment-runs",
-    icon: <ExperimentOutlined />, // ??
+    icon: <HddOutlined />,
     text: "Experiments",
   },
   {
@@ -103,7 +109,7 @@ const MENU_ITEMS = [
   },
   {
     url: "/indices",
-    icon: <NodeIndexOutlined />,
+    icon: <BarcodeOutlined />,
     text: "Indices",
   },
   {
@@ -208,6 +214,9 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
               <ContainersPage/>
             </PrivateRoute>
             <PrivateRoute path="/samples">
+              <SamplesPage/>
+            </PrivateRoute>
+            <PrivateRoute path="/libraries">
               <SamplesPage/>
             </PrivateRoute>
             <PrivateRoute path="/individuals">
