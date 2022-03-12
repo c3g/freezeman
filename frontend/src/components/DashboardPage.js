@@ -149,6 +149,19 @@ const DashboardPage = ({
               </Col>
             </Row>
           </Card>
+          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+          <Card title="Libraries" {...CARD_PROPS}>
+            <Row gutter={16}>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Total Libraries" value={librariessSummary.total_count || "—"} />
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              {actionsToButtonList("/libraries", templates.library, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
         </Col>
       </Row>
     </PageContent>
@@ -158,6 +171,7 @@ const DashboardPage = ({
 const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
+  librariesSummary: state.librariesSummary.data,
   processMeasurementsSummary: state.processMeasurementsSummary.data,
   projectsSummary: state.projectsSummary.data,
   indicesSummary: state.indicesSummary.data,
@@ -165,6 +179,7 @@ const mapStateToProps = state => ({
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
+    library: state.libraryTemplateActions,
     processMeasurement: state.processMeasurementTemplateActions,
     project: state.projectTemplateActions,
     index: state.indicesTemplateActions,
@@ -175,6 +190,7 @@ const mapDispatchToProps = dispatch => ({
   listActions: {
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
+    library: () => dispatch(LIBRARIES.listTemplateActions()),
     process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
     project: () => dispatch(PROJECTS.listTemplateActions()),
     indices: () => dispatch(INDICES.listTemplateActions()),

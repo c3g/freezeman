@@ -26,10 +26,6 @@ from fms_core.templates import (
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _prefix_keys, versions_detail
 
-from ._constants import (
-    _container_filterset_fields,
-    _sample_minimal_filterset_fields
-)
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",

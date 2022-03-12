@@ -95,6 +95,29 @@ INDEX_CREATION_TEMPLATE = {
   "prefill info": [],
 }
 
+LIBRARY_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to perform library preparation", "file": static("submission_templates/Library_preparation_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library Batch',
+          'headers': ['Library Batch ID', 'Experiment Type', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
+                      'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
+                      'Library Kit Used', 'Library Kit Lot', 'PCR Cycles', 'PCR Enzyme Used',
+                      'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Library Batch ID', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
+                      'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
+                      'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume  (uL)',
+                      'Index', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Samples", "Sample Container Barcode", "container__barcode"),
+      ("Samples", "Sample Container Coordinates", "coordinates"),],
+}
+
 SAMPLE_SUBMISSION_TEMPLATE = {
   "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_7_0.xlsx")},
   "sheets info": [

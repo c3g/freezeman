@@ -12,6 +12,8 @@ from .models import (
     Individual,
     Instrument,
     InstrumentType,
+    Library,
+    LibraryType,
     PropertyValue,
     PropertyType,
     Protocol,
@@ -37,6 +39,7 @@ __all__ = [
     "IndividualSerializer",
     "InstrumentSerializer",
     "InstrumentTypeSerializer",
+    "LibrarySerializer",
     "SampleKindSerializer",
     "PropertyValueSerializer",
     "ProcessSerializer",
@@ -135,7 +138,6 @@ class InstrumentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = InstrumentType
         fields = "__all__"
-
 
 class SampleKindSerializer(serializers.ModelSerializer):
     class Meta:
@@ -359,6 +361,96 @@ class NestedSampleSerializer(serializers.ModelSerializer):
         else:
             return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
 
+class LibrarySerializer(serializers.ModelSerializer):
+    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
+    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
+    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    concentration_ng_ul = serializers.DecimalField(read_only=True, source="concentration")
+    concentration_nm = serializers.SerializerMethodField()
+    quantity_ng = serializers.SerializerMethodField()
+    library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
+    platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
+    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.name")
+    library_size = serializers.DecimalField(read_only=True, source="derived_sample_not_pool.library.library_size")
+
+    class Meta:
+        model = Sample
+        exclude = ('derived_samples', )
+        fields = ('id', 'name', 'biosample_id', 'container_barcode', 'coordinates', 'volume', 
+                  'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
+                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
+    
+    def get_quality_flag(self, obj):
+        if obj.derived_sample_not_pool.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+
+    def get_quantity_flag(self, obj):
+        if obj.derived_sample_not_pool.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+
+    # TODO : update this formula to include RNA and single strand DNA
+    def get_concentration_nm(self, obj):
+        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
+            return None
+        else:
+            return (obj.concentration / obj.derived_sample_not_pool.library.library_size * 660) * 1000000
+
+    def get_quantity(self, obj):
+        if not obj.concentration:
+            return None
+        else:
+            return obj.concentration * obj.volume
+
+class LibraryExportSerializer(serializers.ModelSerializer):
+    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
+    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
+    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    concentration_ng_ul = serializers.DecimalField(read_only=True, source="concentration")
+    concentration_nm = serializers.SerializerMethodField()
+    quantity_ng = serializers.SerializerMethodField()
+    library_type = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.library_type")
+    platform = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.platform")
+    index = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.index")
+    library_size = serializers.DecimalField(read_only=True, source="derived_sample_not_pool.library.library_size")
+
+    class Meta:
+        model = Sample
+        exclude = ('derived_samples', )
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 
+                  'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
+                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
+    
+    def get_quality_flag(self, obj):
+        if obj.derived_sample_not_pool.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+
+    def get_quantity_flag(self, obj):
+        if obj.derived_sample_not_pool.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+
+    # TODO : update this formula to include RNA and single strand DNA
+    def get_concentration_nm(self, obj):
+        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
+            return None
+        else:
+            return (obj.concentration / obj.derived_sample_not_pool.library.library_size * 660) * 1000000
+
+    def get_quantity(self, obj):
+        if not obj.concentration:
+            return None
+        else:
+            return obj.concentration * obj.volume
 
 class VersionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -366,12 +458,10 @@ class VersionSerializer(serializers.ModelSerializer):
         fields = "__all__"
         depth = 1
 
-
 class RevisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Revision
         fields = "__all__"
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
