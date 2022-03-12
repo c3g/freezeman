@@ -4,7 +4,7 @@ from fms_core.models import LibraryType, Library
 
 from fms_core.services.process import create_process
 from fms_core.services.container import create_container, get_container
-from fms_core.services.sample import transfer_sample
+from fms_core.services.sample import transfer_sample, remove_qc_flags
 from fms_core.services.property_value import create_process_properties
 
 from datetime import datetime
@@ -23,9 +23,29 @@ def get_library_type(name):
 
     return instrument, errors, warnings
 
+def create_library(library_type, library_size, index, platform):
+    library = None
+    errors = []
+    warnings = []
 
-def create_library_batch(library_type, library_size, platform, library_date,
-                         library_rows_info, protocol, process_properties, comment):
+    if not all([library_type, index, platform]):
+        errors.append('Experiment type, Index and Platform are required to create a library.')
+        return library, errors, warnings
+
+    try:
+        library = Library.objects.create(library_type=library_type,
+                                         library_size=library_size,
+                                         index=index,
+                                         platform=platform)
+    except ValidationError as e:
+        errors.append(';'.join(e.messages))
+
+    return library, errors, warnings
+
+
+
+def prepare_library(library_type, library_size, platform, library_date,
+                    library_rows_info, protocol, process_properties, comment):
     library = None
     errors = []
     warnings = []
@@ -54,17 +74,13 @@ def create_library_batch(library_type, library_size, platform, library_date,
             index = library_info['index']
             volume_used = library_info['volume_used']
             comment = library_info['comment']
-            volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
-            try:
-                library = Library.objects.create(library_type=library_type,
-                                                 library_size=library_size,
-                                                 index=index,
-                                                 platform=platform)
-            except ValidationError as e:
-                errors.append(';'.join(e.messages))
+            library_obj, errors['library'], warnings['library'] = create_library(library_type=library_type,
+                                                                                 library_size=library_size,
+                                                                                 index=index,
+                                                                                 platform=platform)
 
-            if library:
+            if library_obj:
                 container = library_info['container']
                 container_coordinates = container['coordinates']
 
@@ -90,9 +106,8 @@ def create_library_batch(library_type, library_size, platform, library_date,
                                     volume_destination=library_volume,
                                     comment=comment)
 
-                if sample_destination:
-                    sample_destination.depleted = True  # deplete destination sample
-                    sample_destination.save()
+                # Remove qc flags which have to be re-assigned
+                _, errors['source_sample_qc_flags'], warnings['source_sample_qc_flag'] = remove_qc_flags(source_sample)
 
                 errors += transfer_errors
                 warnings += transfer_warnings
