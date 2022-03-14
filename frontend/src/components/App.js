@@ -217,7 +217,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
               <SamplesPage/>
             </PrivateRoute>
             <PrivateRoute path="/libraries">
-              <SamplesPage/>
+              <LibrariesPage/>
             </PrivateRoute>
             <PrivateRoute path="/individuals">
               <IndividualsPage/>
