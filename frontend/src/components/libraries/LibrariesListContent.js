@@ -15,14 +15,14 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer} from "../../utils/withItem";
+import {withContainer, withLibraryType, withIndex, withPlatform} from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, projectsByID) => [
+const getTableColumns = (containersByID, indicesByID, libraryTypesByID, PlatformsByID) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -46,9 +46,9 @@ const getTableColumns = (containersByID, projectsByID) => [
       title: "Container Barcode",
       dataIndex: "container__barcode",
       sorter: true,
-      render: (_, sample) => (sample.container &&
-        <Link to={`/containers/${sample.container}`}>
-          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+      render: (_, library) => (library.container &&
+        <Link to={`/containers/${library.container}`}>
+          {withContainer(containersByID, library.container, container => container.barcode, "loading...")}
         </Link>),
     },
     {
@@ -56,6 +56,33 @@ const getTableColumns = (containersByID, projectsByID) => [
       dataIndex: "coordinates",
       sorter: true,
       width: 70,
+    },
+    {
+      title: "Library Type",
+      dataIndex: "derived_samples__library__library_type__name",
+      sorter: true,
+      render: (_, library) => (library.library_type &&
+        <div>
+          {withLibraryType(libraryTypesByID, library.library_type, library_type => library_type.name, "loading...")}
+        </div>),
+    },
+    {
+      title: "Index",
+      dataIndex: "derived_samples__library__index__name",
+      sorter: true,
+      render: (_, library) => (library.index &&
+        <div>
+          {withIndex(indicesByID, library.index, index => index.name, "loading...")}
+        </div>),
+    },
+    {
+      title: "Platform",
+      dataIndex: "derived_samples__library__platform__name",
+      sorter: true,
+      render: (_, library) => (library.platform &&
+        <div>
+          {withPlatform(platformsByID, library.platform, platform => platform.name, "loading...")}
+        </div>),
     },
     {
       title: "Projects",
@@ -100,6 +127,15 @@ const getTableColumns = (containersByID, projectsByID) => [
       className: "table-column-numbers",
       render: qty => qty !== null ? parseFloat(qty).toFixed(3) : null,
       width: 115,
+    },
+    {
+      title: "Library Size",
+      dataIndex: "derived_samples__library__library_size",
+      sorter: true,
+      align: "right",
+      className: "table-column-numbers",
+      render: size => size !== null ? parseInt(size) : null,
+      width: 80,
     },
     {
       title: "QC Flag",

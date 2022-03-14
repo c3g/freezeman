@@ -5,6 +5,10 @@ import User from "../modules/users/actions.js"
 import Process from "../modules/processMeasurements/actions.js"
 import Project from "../modules/projects/actions.js"
 import Sequence from "../modules/sequences/actions.js"
+import Platform from "../modules/platforms/actions.js"
+import Index from "../modules/indeices/actions.js"
+import LibraryType from "../modules/libraryTypes/actions.js"
+
 import {networkAction} from "./actions";
 import api from ".//api"
 import wait from "./wait"
@@ -89,6 +93,10 @@ export const withUser = createWithItem(User, api.users)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
 export const withSequence = createWithItem(Sequence, api.sequences)
+export const withPlatform = createWithItem(Platform, api.platforms)
+export const withIndex = createWithItem(Index, api.indices)
+export const withLibraryType = createWithItem(LibraryType, api.libraryTypes)
+
 export default {
   withContainer,
   withSample,
@@ -97,4 +105,7 @@ export default {
   withProcessMeasurement,
   withProject,
   withSequence,
+  withPlatform,
+  withIndex,
+  withLibraryType,
 };
