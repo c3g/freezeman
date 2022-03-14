@@ -1,6 +1,6 @@
 from fms_core.models import PropertyType, Protocol
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, SampleRowHandler
+from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, LibraryRowHandler
 from fms_core.templates import LIBRARY_PREPARATION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
@@ -56,7 +56,7 @@ class LibraryPreparationImporter(GenericImporter):
             )
 
             (result, library['sample_obj']) = self.handle_row(
-                row_handler_class=SampleRowHandler,
+                row_handler_class=LibraryRowHandler,
                 sheet=libraries_sheet,
                 row_i=i,
                 **sample_kwargs,
@@ -81,10 +81,12 @@ class LibraryPreparationImporter(GenericImporter):
 
             library_preparation_kwargs = dict(
                 # Library attributes data dictionary and related objects
+                library_batch_id=library_batch_dict['Library Batch ID'],
                 library_type={'name' : library_batch_dict['Experiment Type']},
+                # TODO: Verify with lab if this is correct
                 library_size=process_properties['Shearing Size (bp)']['value'],
                 library_date=input_to_date_and_none(library_batch_dict['Library Date (YYYY-MM-DD)']),
-                platform={'name' : library_batch_dict['Platform']},
+                platform={'name': library_batch_dict['Platform']},
                 comment=library_batch_dict['Comment'],
                 # Additional data for this row
                 protocol=self.preloaded_data['protocol'],

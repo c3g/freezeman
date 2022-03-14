@@ -3,7 +3,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container
 
 
-class SampleRowHandler(GenericRowHandler):
+class LibraryRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 

@@ -1,7 +1,7 @@
 from .library_preparation import LibraryPreparationRowHandler
-from .sample import SampleRowHandler
+from .library import LibraryRowHandler
 
 __all__ = [
     "LibraryPreparationRowHandler",
-    "SampleRowHandler",
+    "LibraryRowHandler",
 ]

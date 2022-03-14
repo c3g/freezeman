@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from fms_core.models import LibraryType, Library
 
 from fms_core.services.process import create_process
-from fms_core.services.container import create_container, get_container
 from fms_core.services.sample import transfer_sample, remove_qc_flags
 from fms_core.services.property_value import create_process_properties
 
@@ -28,8 +27,16 @@ def create_library(library_type, library_size, index, platform):
     errors = []
     warnings = []
 
-    if not all([library_type, index, platform]):
-        errors.append('Experiment type, Index and Platform are required to create a library.')
+    if not library_type:
+        errors.append('Missing library type.')
+        return library, errors, warnings
+
+    if not index:
+        errors.append('Missing index.')
+        return library, errors, warnings
+
+    if not platform:
+        errors.append('Missing platform.')
         return library, errors, warnings
 
     try:
@@ -43,37 +50,45 @@ def create_library(library_type, library_size, index, platform):
     return library, errors, warnings
 
 
-
-def prepare_library(library_type, library_size, platform, library_date,
-                    library_rows_info, protocol, process_properties, comment):
-    library = None
+def prepare_library(libraries_info, protocol, process_properties, process_comment=None):
+    process = None
     errors = []
     warnings = []
 
-    if not library_type:
-        errors['library_type'] = "Invalid library type"
-        return library, errors, warnings
+    if not protocol:
+        errors['library_type'] = "Missing protocol."
+        return process, errors, warnings
+
+    if not process_properties:
+        errors['library_type'] = "Missing process properties."
+        return process, errors, warnings
 
     process, process_errors, process_warnings = \
         create_process(protocol=protocol,
-                       creation_comment=comment if comment else f"Automatically generated via library preparation "
-                                                                f"on {datetime.utcnow().isoformat()}Z",)
+                       creation_comment=process_comment if process_comment else
+                       f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z",)
 
     # Create process' properties
     if not process_errors:
         properties, properties_errors, properties_warnings = create_process_properties(process_properties,
                                                                                        process)
 
-    errors += process_errors + properties_errors
-    warnings += process_warnings + properties_warnings
+        errors += process_errors + properties_errors
+        warnings += process_warnings + properties_warnings
 
     if not errors:
-        for library_info in library_rows_info:
-            source_sample = library_info['sample_obj']
-            library_volume = library_info['volume']
+        for library_info in libraries_info:
+            # Library specific information
+            library_type = library_info['library_type']
+            library_size = library_info['library_size']
+            library_date = library_info['library_date']
+            platform = library_info['platform']
             index = library_info['index']
+            library_volume = library_info['volume']
+            library_comment = library_info['library_comment']
+            # Process measurement information
+            source_sample = library_info['source_sample']
             volume_used = library_info['volume_used']
-            comment = library_info['comment']
 
             library_obj, errors['library'], warnings['library'] = create_library(library_type=library_type,
                                                                                  library_size=library_size,
@@ -81,20 +96,8 @@ def prepare_library(library_type, library_size, platform, library_date,
                                                                                  platform=platform)
 
             if library_obj:
-                container = library_info['container']
-                container_coordinates = container['coordinates']
-
-                container_obj = None
-                if container['parent_barcode']:
-                    container_parent_obj = get_container(barcode=container['parent_barcode'])
-
-                container_obj, errors['library_container'], warnings['library_container'] = create_container(
-                    name=container['name'],
-                    barcode=container['barcode'],
-                    kind=container['kind'],
-                    container_parent=container_parent_obj if container_obj else None,
-                    coordinates=container['parent_coordinates'] if container_obj else None,
-                    creation_comment=comment)
+                container_obj = library_info['container']
+                container_coordinates = library_info['container_coordinates']
 
                 sample_destination, transfer_errors, transfer_warnings = \
                     transfer_sample(process=process,
@@ -104,7 +107,7 @@ def prepare_library(library_type, library_size, platform, library_date,
                                     execution_date=library_date,
                                     coordinates_destination=container_coordinates,
                                     volume_destination=library_volume,
-                                    comment=comment)
+                                    comment=library_comment)
 
                 # Remove qc flags which have to be re-assigned
                 _, errors['source_sample_qc_flags'], warnings['source_sample_qc_flag'] = remove_qc_flags(source_sample)
