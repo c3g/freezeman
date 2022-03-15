@@ -153,7 +153,7 @@ const DashboardPage = ({
           <Card title="Libraries" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...STATS_COL_PROPS}>
-                <Statistic title="Total Libraries" value={librariessSummary.total_count || "—"} />
+                <Statistic title="Total Libraries" value={librariesSummary.total_count || "—"} />
               </Col>
             </Row>
             <Row gutter={16}>
