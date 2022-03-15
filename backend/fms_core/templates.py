@@ -114,8 +114,8 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
   ],
   "prefill info": [
-      ("Samples", "Sample Container Barcode", "container__barcode"),
-      ("Samples", "Sample Container Coordinates", "coordinates"),],
+      ("Library", "Sample Container Barcode", "container__barcode"),
+      ("Library", "Sample Container Coordinates", "coordinates"),],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
