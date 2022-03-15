@@ -6,7 +6,7 @@ import Process from "../modules/processMeasurements/actions.js"
 import Project from "../modules/projects/actions.js"
 import Sequence from "../modules/sequences/actions.js"
 import Platform from "../modules/platforms/actions.js"
-import Index from "../modules/indeices/actions.js"
+import Index from "../modules/indices/actions.js"
 import LibraryType from "../modules/libraryTypes/actions.js"
 
 import {networkAction} from "./actions";

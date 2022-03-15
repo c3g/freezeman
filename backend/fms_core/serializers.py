@@ -384,13 +384,13 @@ class LibrarySerializer(serializers.ModelSerializer):
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
-    concentration_ng_ul = serializers.DecimalField(read_only=True, source="concentration")
+    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
     concentration_nm = serializers.SerializerMethodField()
     quantity_ng = serializers.SerializerMethodField()
     library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
     platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
     index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.name")
-    library_size = serializers.DecimalField(read_only=True, source="derived_sample_not_pool.library.library_size")
+    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
 
     class Meta:
         model = Sample
@@ -430,13 +430,13 @@ class LibraryExportSerializer(serializers.ModelSerializer):
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
-    concentration_ng_ul = serializers.DecimalField(read_only=True, source="concentration")
+    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
     concentration_nm = serializers.SerializerMethodField()
     quantity_ng = serializers.SerializerMethodField()
     library_type = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.library_type")
     platform = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.platform")
     index = serializers.IntegerField(read_only=True, source="derived_sample_not_pool.library.index")
-    library_size = serializers.DecimalField(read_only=True, source="derived_sample_not_pool.library.library_size")
+    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
 
     class Meta:
         model = Sample

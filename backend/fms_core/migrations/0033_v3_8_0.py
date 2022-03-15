@@ -54,8 +54,6 @@ def create_library_preparation_objects(apps, schema_editor):
                                                  created_by_id=admin_user_id, updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
 
-ADMIN_USERNAME = 'biobankadmin'
-
 def create_initial_library_types(apps, schema_editor):
     LibraryType = apps.get_model("fms_core", "LibraryType")
 
