@@ -49,7 +49,7 @@ const DashboardPage = ({
   useEffect(() => {
     listActions.container();
     listActions.sample();
-    listActions.libraries();
+    listActions.library();
     listActions.process();
     listActions.project();
     listActions.indices();
