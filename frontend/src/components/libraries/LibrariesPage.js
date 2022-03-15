@@ -2,7 +2,7 @@ import React from "react";
 
 import {Redirect, Route, Switch} from "react-router-dom";
 
-import SamplesListContent from "./SamplesListContent";
+import LibrariesListContent from "./LibrariesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
@@ -14,4 +14,4 @@ const LibrariesPage = () => <PageContainer>
   </Switch>
 </PageContainer>;
 
-export default SamplesPage;
+export default LibrariesPage;

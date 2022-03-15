@@ -2,7 +2,7 @@ import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
-import {QCFlag} from "../QCFlag";
+import {QCFlag} from "../../QCFlag";
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
 import {
   Card,
@@ -26,7 +26,7 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
-import {SampleDepletion} from "../SampleDepletion";
+import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {withContainer, withSample, withIndividual, withProcessMeasurement, withProject} from "../../../utils/withItem";
@@ -147,7 +147,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
                       ? "—"
                       : `${parseFloat(sample.concentration).toFixed(3)} ng/uL`}
               </Descriptions.Item>
-              <Descriptions.Item label="Depleted"><SampleDepletion depleted={sample.depleted} /></Descriptions.Item>
+              <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
           </Descriptions>
           <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
             <Descriptions.Item label="Individual Name">

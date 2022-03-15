@@ -23,6 +23,7 @@ import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import SamplesPage from "./samples/SamplesPage";
+import LibrariesPage from "./libraries/LibrariesPage";
 import IndividualsPage from "./individuals/IndividualsPage";
 import IndicesPage from "./indices/IndicesPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";

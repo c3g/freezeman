@@ -11,7 +11,7 @@ import {listFilter, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import {withIndividual} from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
-import {SampleDepletion} from "../samples/SampleDepletion";
+import {Depletion} from "../Depletion";
 
 const getTableColumns = (sampleKinds, individualsByID) => [
     {
@@ -67,7 +67,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
-      render: depleted => <SampleDepletion depleted={depleted} />,
+      render: depleted => <Depletion depleted={depleted} />,
       width: 50,
     }
   ];

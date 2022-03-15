@@ -5,6 +5,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
+import LIBRARIES from "../modules/libraries/actions";
 import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
 import PROJECTS from "../modules/projects/actions";
 import INDICES from "../modules/indices/actions";
@@ -37,6 +38,7 @@ const WIDE_BUTTON_COL_PROPS = {
 const DashboardPage = ({
   containersSummary,
   samplesSummary,
+  librariesSummary,
   processMeasurementsSummary,
   projectsSummary,
   indicesSummary,
@@ -47,6 +49,7 @@ const DashboardPage = ({
   useEffect(() => {
     listActions.container();
     listActions.sample();
+    listActions.libraries();
     listActions.process();
     listActions.project();
     listActions.indices();

@@ -6,8 +6,8 @@ import {Button, Tag} from "antd";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import {SampleDepletion} from "./SampleDepletion";
-import {QCFlag} from "./QCFlag";
+import {Depletion} from "../Depletion";
+import {QCFlag} from "../QCFlag";
 import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
@@ -159,7 +159,7 @@ const getTableColumns = (containersByID, indicesByID, libraryTypesByID, Platform
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
-      render: depleted => <SampleDepletion depleted={depleted} />,
+      render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
   ];
@@ -181,7 +181,7 @@ const mapStateToProps = state => ({
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const SamplesListContent = ({
+const LibrariesListContent = ({
   token,
   libraries,
   librariesByID,
