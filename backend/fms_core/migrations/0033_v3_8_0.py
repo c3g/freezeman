@@ -1,9 +1,58 @@
 from django.conf import settings
 import django.core.validators
+from django.contrib.auth.models import User
 from django.db import migrations, models
 import django.db.models.deletion
 import re
+import reversion
 
+ADMIN_USERNAME = 'biobankadmin'
+
+def create_library_preparation_objects(apps, schema_editor):
+    Protocol = apps.get_model("fms_core", "Protocol")
+    PropertyType = apps.get_model("fms_core", "PropertyType")
+    ContentType = apps.get_model('contenttypes', 'ContentType')
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment("Create objects related to the Library preparation protocol")
+        reversion.set_user(admin_user)
+
+        # Create PropertyType and Protocols
+        PROPERTY_TYPES_BY_PROTOCOL = {
+            "Library Preparation": [
+                                  ("Library Technician Name", "str"),
+                                  ("Shearing Technician Name", "str"),
+                                  ("Shearing Method", "str"),
+                                  ("Shearing Size (bp)", "str"),
+                                  ("Library Kit Used", "str"),
+                                  ("Library Kit Lot", "str"),
+                                  ("PCR Cycles", "str"),
+                                  ("PCR Enzyme Used", "str"),
+                                  ("PCR Enzyme Lot", "str"),
+                                  ("EZ-96 DNA Methylation-Gold MagPrep Lot", "str")
+                                 ]
+        }
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+
+        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
+            protocol = Protocol.objects.create(name=protocol_name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
+            reversion.add_to_revision(protocol)
+
+            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                if any([property == 'Library Technician Name', property == 'Library Kit Used', property == 'Library Kit Lot']):
+                    is_optional = False
+                else:
+                    is_optional = True
+                pt = PropertyType.objects.create(name=property,
+                                                 object_id=protocol.id,
+                                                 content_type=protocol_content_type,
+                                                 value_type=value_type,
+                                                 is_optional=is_optional,
+                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
+                reversion.add_to_revision(pt)
 
 class Migration(migrations.Migration):
 
@@ -13,6 +62,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            create_library_preparation_objects,
+            reverse_code=migrations.RunPython.noop,
+        ),
         migrations.RemoveField(
             model_name='derivedsample',
             name='index',

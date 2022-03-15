@@ -11,6 +11,7 @@ __all__ = [
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
+    "LIBRARY_PREPARATION_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -93,6 +94,29 @@ INDEX_CREATION_TEMPLATE = {
           'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
       },],
   "prefill info": [],
+}
+
+LIBRARY_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to perform library preparation", "file": static("submission_templates/Library_preparation_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library Batch',
+          'headers': ['Library Batch ID', 'Experiment Type', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
+                      'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
+                      'Library Kit Used', 'Library Kit Lot', 'PCR Cycles', 'PCR Enzyme Used',
+                      'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Library Batch ID', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
+                      'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
+                      'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume  (uL)',
+                      'Index', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Sample Container Barcode", "container__barcode"),
+      ("Library", "Sample Container Coordinates", "coordinates"),],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {

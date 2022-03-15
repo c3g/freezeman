@@ -349,6 +349,23 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
     except Error as e:
         errors.appends(';'.join(e.messages))
 
-    return (derived_sample, errors, warnings)
+    return derived_sample, errors, warnings
+
+def remove_qc_flags(sample):
+    errors = []
+    warnings = []
+
+    try:
+        # Update the QC flags for all the derived samples associated to the given sample
+        for derived_sample in sample.derived_samples.all():
+            derived_sample.quantity_flag = None
+            derived_sample.quality_flag = None
+            derived_sample.save()
+    except Error as e:
+        errors.appends(';'.join(e.messages))
+
+    return derived_sample, errors, warnings
+
+
 
 
