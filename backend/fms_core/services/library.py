@@ -109,6 +109,13 @@ def prepare_library(libraries_info, protocol, process_properties, process_commen
                                     volume_destination=library_volume,
                                     comment=library_comment)
 
+                # Connect the sample created with the corresponding library
+                try:
+                    sample_destination.derived_sample_not_pool.library = library_obj.id
+                    sample_destination.save()
+                except Exception as e:
+                    errors['sample_destination_library'] = str(e)
+
                 # Remove qc flags which have to be re-assigned
                 _, errors['source_sample_qc_flags'], warnings['source_sample_qc_flag'] = remove_qc_flags(source_sample)
 
