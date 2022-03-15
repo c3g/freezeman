@@ -28,7 +28,7 @@ export const get = id => async (dispatch, getState) => {
 export const list = (options) => async (dispatch, getState) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
-        api.samples.list(params),
+        api.libraries.list(params),
         { meta: params }
     ));
 };
@@ -112,17 +112,17 @@ export default {
     LIST,
     LIST_FILTER,
     LIST_TABLE,
-    SUMMARY,
     LIST_TEMPLATE_ACTIONS,
     LIST_PREFILL_TEMPLATES,
+    SUMMARY,
     get,
     setSortBy,
     setFilter,
     setFilterOption,
     clearFilters,
     list,
-    listTable,
     listFilter,
+    listTable,
     listTemplateActions,
     listPrefillTemplates,
     summary,

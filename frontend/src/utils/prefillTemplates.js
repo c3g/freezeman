@@ -23,7 +23,7 @@ export const templateIcon = t => {
 export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
-      { prefills.items ? prefills.items.map((prefill, i) =>
+      { prefills && prefills.items ? prefills.items.map((prefill, i) =>
           <Menu.Item key={i.toString()}>
             <PrefillTemplateButton
               style={{border:0}}

@@ -12,7 +12,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withLibraryType, withIndex, withPlatform} from "../../utils/withItem";
@@ -22,7 +22,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, indicesByID, libraryTypesByID, PlatformsByID) => [
+const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platformsByID) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -212,13 +212,13 @@ const LibrariesListContent = ({
       .then(response => response)
 
   const columns = getTableColumns(containersByID, projectsByID)
-  .map(c => Object.assign(c, getFilterProps(
-    c,
-    SAMPLE_FILTERS,
-    filters,
-    setFilter,
-    setFilterOption
-  )))
+    .map(c => Object.assign(c, getFilterProps(
+      c,
+      LIBRARY_FILTERS,
+      filters,
+      setFilter,
+      setFilterOption
+    )))
 
   const nFilters = getNFilters(filters)
 
