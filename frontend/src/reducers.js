@@ -52,7 +52,7 @@ import {
 import {
   librariesSummary,
   libraries,
-  librariesTemplateActions
+  libraryTemplateActions
 } from "./modules/libraries/reducers";
 import {
   libraryTypes,
@@ -109,7 +109,7 @@ const allReducers = combineReducers({
   sequences,
   librariesSummary,
   libraries,
-  librariesTemplateActions,
+  libraryTemplateActions,
   libraryTypes,
   platforms,
   users,
