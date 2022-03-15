@@ -32,6 +32,9 @@ class Library(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.library_size and self.library_size < 0:
+            add_error("library_size", f"Library size must be a positive number.")
+
         if errors:
             raise ValidationError(errors)
 
