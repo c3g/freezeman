@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 def get_library_type(name):
-    instrument = None
+    library_type = None
     errors = []
     warnings = []
     try:
@@ -20,7 +20,7 @@ def get_library_type(name):
     except LibraryType.MultipleObjectsReturned as e:
         errors.append(f"More than one Experiment Type was found with the name {name}.")
 
-    return instrument, errors, warnings
+    return library_type, errors, warnings
 
 def create_library(library_type, library_size, index, platform):
     library = None
