@@ -16,7 +16,7 @@ class LibraryPreparationRowHandler(GenericRowHandler):
 
         return super(self.__class__, self).process_row(**kwargs)
 
-    def process_row_inner(self, library_type, library_size, library_date, platform, comment,
+    def process_row_inner(self, library_batch_id, library_type, library_size, library_date, platform, comment,
                           library_rows_info, protocol, process_properties):
 
         library_type_obj, self.errors['experiment_type'], self.warnings['experiment_type'] = \

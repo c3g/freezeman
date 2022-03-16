@@ -5,16 +5,17 @@ from fms_core.templates import LIBRARY_PREPARATION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
-PROPERTIES_STARTING_INDEX = 4
+PROPERTIES_STARTING_INDEX = 5
 
 class LibraryPreparationImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_PREPARATION_TEMPLATE['sheets info']
 
     def __init__(self):
         super().__init__()
+        self.initialize_data_for_template()
         self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
-    def initialize_data_for_template(self, runtype, properties):
+    def initialize_data_for_template(self):
         # Get protocol for Library Preparation
         protocol = Protocol.objects.get(name='Library Preparation')
 
@@ -45,7 +46,7 @@ class LibraryPreparationImporter(GenericImporter):
                             'parent_barcode': row_data['Library Parent Container Barcode'],
                             'parent_coordinates': row_data['Library Container Coordinates']
                             },
-                       'volume': float_to_decimal_and_none(row_data['Library Volume']),
+                       'volume': float_to_decimal_and_none(row_data['Library Volume (uL)']),
                        'index': row_data['Index'],
                       }
 
