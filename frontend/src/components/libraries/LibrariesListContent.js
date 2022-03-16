@@ -229,7 +229,7 @@ const LibrariesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}

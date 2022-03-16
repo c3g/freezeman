@@ -97,7 +97,7 @@ INDEX_CREATION_TEMPLATE = {
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
-  "identity": {"description": "Template to perform library preparation", "file": static("submission_templates/Library_preparation_v3_8_0.xlsx")},
+  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_8_0.xlsx")},
   "sheets info": [
       {
           'name': 'Library Batch',
