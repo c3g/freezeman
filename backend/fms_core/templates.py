@@ -101,7 +101,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'Library Batch',
-          'headers': ['Library Batch ID', 'Experiment Type', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
+          'headers': ['Library Batch ID', 'Library Type', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
                       'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
                       'Library Kit Used', 'Library Kit Lot', 'PCR Cycles', 'PCR Enzyme Used',
                       'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],

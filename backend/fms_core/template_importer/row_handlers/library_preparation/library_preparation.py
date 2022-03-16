@@ -19,7 +19,7 @@ class LibraryPreparationRowHandler(GenericRowHandler):
     def process_row_inner(self, library_batch_id, library_type, library_size, library_date, platform, comment,
                           library_rows_info, protocol, process_properties):
 
-        library_type_obj, self.errors['experiment_type'], self.warnings['experiment_type'] = \
+        library_type_obj, self.errors['library_type'], self.warnings['library_type'] = \
             get_library_type(library_type['name'])
 
         platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(platform['name'])

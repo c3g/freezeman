@@ -16,9 +16,9 @@ def get_library_type(name):
     try:
         library_type = LibraryType.objects.get(name=name)
     except LibraryType.DoesNotExist as e:
-        errors.append(f"No Experiment Type named {name} could be found.")
+        errors.append(f"No Library Type named {name} could be found.")
     except LibraryType.MultipleObjectsReturned as e:
-        errors.append(f"More than one Experiment Type was found with the name {name}.")
+        errors.append(f"More than one Library Type was found with the name {name}.")
 
     return library_type, errors, warnings
 

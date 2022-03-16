@@ -83,7 +83,7 @@ class LibraryPreparationImporter(GenericImporter):
             library_preparation_kwargs = dict(
                 # Library attributes data dictionary and related objects
                 library_batch_id=library_batch_dict['Library Batch ID'],
-                library_type={'name' : library_batch_dict['Experiment Type']},
+                library_type={'name' : library_batch_dict['Library Type']},
                 # TODO: Verify with lab if this is correct
                 library_size=process_properties['Shearing Size (bp)']['value'],
                 library_date=input_to_date_and_none(library_batch_dict['Library Date (YYYY-MM-DD)']),
