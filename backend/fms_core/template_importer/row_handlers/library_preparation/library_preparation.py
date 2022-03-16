@@ -48,14 +48,14 @@ class LibraryPreparationRowHandler(GenericRowHandler):
                     library_type=library_type,
                     library_size=library_size,
                     library_date=library_date,
-                    platform=library_info['platform'],
+                    platform=platform,
                     index=library_info['index'],
                     library_volume=library_info['volume'],
                     library_comment=library_info['comment'],
                     container=container_obj,
                     container_coordinates=container_coordinates,
                     # Process measurement information,
-                    source_sample=library_info['sample'],
+                    source_sample=library_info['sample_obj'],
                     volume_used=library_info['volume_used'],
                 )
 
