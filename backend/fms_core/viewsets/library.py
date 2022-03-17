@@ -3,16 +3,14 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
-from django.core.exceptions import ValidationError
 
-from ..utils import RE_SEPARATOR
-
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
 from fms_core.templates import EXPERIMENT_MGI_TEMPLATE
+from fms_core.template_importer.importers import ExperimentRunImporter
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
 from fms_core.filters import LibraryFilter
 
@@ -30,7 +28,14 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     filter_class = LibraryFilter
 
-    template_action_list = []
+    template_action_list = [
+        {
+            "name": "Add Experiments",
+            "description": "Upload the provided template with experiment run information.",
+            "template": [EXPERIMENT_MGI_TEMPLATE["identity"]],
+            "importer": ExperimentRunImporter,
+        },
+    ]
 
     template_prefill_list = [
         {"template": EXPERIMENT_MGI_TEMPLATE},
@@ -84,7 +89,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     @action(detail=False, methods=["get"])
     def summary(self, _request):
         """
-        Returns summary statistics about the current set of samples in the
+        Returns summary statistics about the current set of libraries in the
         database.
         """
         return Response({"total_count": self.get_queryset().all().count()})
@@ -92,7 +97,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
-        Searches for samples that match the given query
+        Searches for libraries that match the given query
         """
         search_input = _request.GET.get("q")
         is_exact_match = _request.GET.get("exact_match") == 'true'

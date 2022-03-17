@@ -11,7 +11,7 @@ from fms_core.models import Sample, Container, Biosample, DerivedSample, Derived
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
-from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter
+from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE
@@ -66,6 +66,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "description": "Upload the provided template with up to 384 new samples.",
             "template": [LIBRARY_PREPARATION_TEMPLATE["identity"]],
             "importer": LibraryPreparationImporter,
+        },
+        {
+            "name": "Add Experiments",
+            "description": "Upload the provided template with experiment run information.",
+            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"]],
+            "importer": ExperimentRunImporter,
         },
     ]
 

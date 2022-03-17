@@ -15,6 +15,7 @@ export const actionIcon = a => {
   if (n.includes("Link")) return <LinkOutlined/>;
   if (n.includes("Quality")) return <CheckCircleOutlined />;
   if (n.includes("qPCR")) return <SelectOutlined />;
+  if (n.includes("Prepare")) return <ExperimentOutlined />;
   return <DownloadOutlined />;
 };
 
