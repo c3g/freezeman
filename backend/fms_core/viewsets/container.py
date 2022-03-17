@@ -60,6 +60,35 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         {"template": CONTAINER_RENAME_TEMPLATE},
     ]
 
+    def get_queryset(self):
+        container_name = self.request.query_params.get('location__name__recursive')
+        recursive = not container_name is None
+
+        if recursive:
+            containers = Container.objects.all()
+            if container_name:
+                containers = containers.filter(name=container_name)
+
+            container_ids = tuple(containers.values_list('id', flat=True))
+
+            if not container_ids:
+                container_ids = tuple([None])
+
+            parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                                   SELECT id, location_id
+                                                                   FROM fms_core_container
+                                                                   WHERE id IN %s
+                                                                   UNION ALL
+                                                                   SELECT child.id, child.location_id
+                                                                   FROM fms_core_container AS child, parent
+                                                                   WHERE child.location_id = parent.id
+                                                               )
+                                                               SELECT * FROM parent''', params=[container_ids])
+
+            return self.queryset.filter(location__in=parent_containers)
+
+        return self.queryset
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':

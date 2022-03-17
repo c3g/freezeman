@@ -160,6 +160,7 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "location__name",
     label: "Location",
+    recursive: true,
   },
   samples: {
     type: FILTER_TYPE.INPUT,
