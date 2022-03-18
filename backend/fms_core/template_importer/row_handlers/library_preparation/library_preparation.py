@@ -1,9 +1,11 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.library import prepare_library
-from fms_core.services.library import get_library_type
+from fms_core.services.library import prepare_library, get_library_type
+from fms_core.services.index import get_index
 from fms_core.services.platform import get_platform
 from fms_core.services.container import create_container, get_container
+
+from fms_core.models.index import Index
 
 
 class LibraryPreparationRowHandler(GenericRowHandler):
@@ -44,12 +46,14 @@ class LibraryPreparationRowHandler(GenericRowHandler):
                     coordinates=container['parent_coordinates'] if container_parent_obj else None,
                     creation_comment=library_info['comment'])
 
+                index_obj, self.errors['index'], self.warnings['index'] = get_index(library_info['index'])
+
                 library = dict(
-                    library_type=library_type,
+                    library_type=library_type_obj,
                     library_size=library_size,
                     library_date=library_date,
-                    platform=platform,
-                    index=library_info['index'],
+                    platform=platform_obj,
+                    index=index_obj,
                     library_volume=library_info['volume'],
                     library_comment=library_info['comment'],
                     container=container_obj,
@@ -61,7 +65,7 @@ class LibraryPreparationRowHandler(GenericRowHandler):
 
                 libraries_info.append(library)
 
-            if not self.errors:
+            if libraries_info:
                 _, self.errors['library'], self.warnings['library'] = prepare_library(libraries_info,
                                                                                       protocol=protocol,
                                                                                       process_properties=process_properties,
