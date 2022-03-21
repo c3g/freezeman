@@ -52,7 +52,8 @@ import {
 import {
   librariesSummary,
   libraries,
-  libraryTemplateActions
+  libraryTemplateActions,
+  libraryPrefillTemplates
 } from "./modules/libraries/reducers";
 import {
   libraryTypes,
@@ -110,6 +111,7 @@ const allReducers = combineReducers({
   librariesSummary,
   libraries,
   libraryTemplateActions,
+  libraryPrefillTemplates,
   libraryTypes,
   platforms,
   users,
