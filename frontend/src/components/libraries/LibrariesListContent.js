@@ -15,14 +15,14 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withLibraryType, withIndex, withPlatform} from "../../utils/withItem";
+import {withContainer, withIndex} from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platformsByID) => [
+const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -63,7 +63,7 @@ const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platform
       sorter: true,
       render: (_, library) => (library.library_type &&
         <div>
-          {withLibraryType(libraryTypesByID, library.library_type, library_type => library_type.name, "loading...")}
+          {library.library_type}
         </div>),
     },
     {
@@ -71,9 +71,9 @@ const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platform
       dataIndex: "derived_samples__library__index__name",
       sorter: true,
       render: (_, library) => (library.index &&
-        <div>
+        <Link to={`/indices/${library.index}`}>
           {withIndex(indicesByID, library.index, index => index.name, "loading...")}
-        </div>),
+        </Link>),
     },
     {
       title: "Platform",
@@ -81,7 +81,7 @@ const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platform
       sorter: true,
       render: (_, library) => (library.platform &&
         <div>
-          {withPlatform(platformsByID, library.platform, platform => platform.name, "loading...")}
+          {library.platform}
         </div>),
     },
     {
@@ -134,7 +134,7 @@ const getTableColumns = (containersByID, indicesByID, libraryTypesByID, platform
       sorter: true,
       align: "right",
       className: "table-column-numbers",
-      render: size => size !== null ? parseInt(size) : null,
+      render: (_, library) => library.library_size !== null ? parseInt(library.library_size) : null,
       width: 80,
     },
     {
@@ -176,6 +176,7 @@ const mapStateToProps = state => ({
   filters: state.libraries.filters,
   containersByID: state.containers.itemsByID,
   projectsByID: state.projects.itemsByID,
+  indicesByID: state.indices.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -193,6 +194,7 @@ const LibrariesListContent = ({
   filters,
   containersByID,
   projectsByID,
+  indicesByID,
   sortBy,
   listTable,
   setFilter,
@@ -211,7 +213,7 @@ const LibrariesListContent = ({
     (mergedListQueryParams(LIBRARY_FILTERS, filters, sortBy), template)
       .then(response => response)
 
-  const columns = getTableColumns(containersByID, projectsByID)
+  const columns = getTableColumns(containersByID, indicesByID, projectsByID)
     .map(c => Object.assign(c, getFilterProps(
       c,
       LIBRARY_FILTERS,

@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from fms_core.models import LibraryType, Library
 
 from fms_core.services.process import create_process
-from fms_core.services.sample import transfer_sample, remove_qc_flags
+from fms_core.services.sample import process_library_sample, remove_qc_flags
 from fms_core.services.property_value import create_process_properties
 
 from datetime import datetime
@@ -56,22 +56,24 @@ def prepare_library(libraries_info, protocol, process_properties, process_commen
     warnings = []
 
     if not protocol:
-        errors['library_type'] = "Missing protocol."
+        errors.append("Missing protocol.")
         return process, errors, warnings
 
     if not process_properties:
-        errors['library_type'] = "Missing process properties."
+        errors.append("Missing process properties.")
         return process, errors, warnings
 
-    process, process_errors, process_warnings = \
+    process_by_protocol, process_errors, process_warnings = \
         create_process(protocol=protocol,
                        creation_comment=process_comment if process_comment else
                        f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z",)
 
+    process_obj = process_by_protocol[protocol.id]
+
     # Create process' properties
     if not process_errors:
         properties, properties_errors, properties_warnings = create_process_properties(process_properties,
-                                                                                       process)
+                                                                                       process_by_protocol)
 
         errors += process_errors + properties_errors
         warnings += process_warnings + properties_warnings
@@ -84,43 +86,37 @@ def prepare_library(libraries_info, protocol, process_properties, process_commen
             library_date = library_info['library_date']
             platform = library_info['platform']
             index = library_info['index']
-            library_volume = library_info['volume']
+            library_volume = library_info['library_volume']
             library_comment = library_info['library_comment']
             # Process measurement information
             source_sample = library_info['source_sample']
             volume_used = library_info['volume_used']
 
-            library_obj, errors['library'], warnings['library'] = create_library(library_type=library_type,
-                                                                                 library_size=library_size,
-                                                                                 index=index,
-                                                                                 platform=platform)
+            library_obj, library_errors, library_warnings = create_library(library_type=library_type,
+                                                                           library_size=library_size,
+                                                                           index=index,
+                                                                           platform=platform)
+
+            errors += library_errors
+            warnings += library_warnings
 
             if library_obj:
                 container_obj = library_info['container']
                 container_coordinates = library_info['container_coordinates']
 
-                sample_destination, transfer_errors, transfer_warnings = \
-                    transfer_sample(process=process,
-                                    sample_source=source_sample,
-                                    container_destination=container_obj,
-                                    volume_used=volume_used,
-                                    execution_date=library_date,
-                                    coordinates_destination=container_coordinates,
-                                    volume_destination=library_volume,
-                                    comment=library_comment)
+                sample_destination, process_library_errors, process_library_warnings = \
+                    process_library_sample(process=process_obj,
+                                           sample_source=source_sample,
+                                           container_destination=container_obj,
+                                           library=library_obj,
+                                           volume_used=volume_used,
+                                           execution_date=library_date,
+                                           coordinates_destination=container_coordinates,
+                                           volume_destination=library_volume,
+                                           comment=library_comment)
 
-                # Connect the sample created with the corresponding library
-                try:
-                    sample_destination.derived_sample_not_pool.library = library_obj.id
-                    sample_destination.save()
-                except Exception as e:
-                    errors['sample_destination_library'] = str(e)
-
-                # Remove qc flags which have to be re-assigned
-                _, errors['source_sample_qc_flags'], warnings['source_sample_qc_flag'] = remove_qc_flags(source_sample)
-
-                errors += transfer_errors
-                warnings += transfer_warnings
+                errors += process_library_errors
+                warnings += process_library_warnings
 
     if errors:
         process = None

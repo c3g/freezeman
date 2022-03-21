@@ -3,6 +3,19 @@ from fms_core.models._constants import INDEX_READ_FORWARD, INDEX_READ_REVERSE, S
 from django.core.exceptions import ValidationError
 
 
+def get_index(name):
+    index = None
+    errors = []
+    warnings = []
+    try:
+        index = Index.objects.get(name=name)
+    except Index.DoesNotExist as e:
+        errors.append(f"No index named {name} could be found.")
+    except Index.MultipleObjectsReturned as e:
+        errors.append(f"More than one index was found with the name {name}.")
+
+    return index, errors, warnings
+
 def get_or_create_index_set(set_name):
     index_set = None
     created_entity = False

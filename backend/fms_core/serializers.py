@@ -82,10 +82,18 @@ class SimpleContainerSerializer(serializers.ModelSerializer):
 class ContainerExportSerializer(serializers.ModelSerializer):
     location = serializers.SlugRelatedField(slug_field='barcode', read_only=True)
     container_kind = serializers.CharField(source='kind')
+    children_containers_count = serializers.SerializerMethodField()
+    samples_contained_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Container
-        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'children_containers_count', 'samples_contained_count', 'comment')
+
+    def get_children_containers_count(self, obj):
+        return obj.children.all().count()
+    
+    def get_samples_contained_count(self, obj):
+        return obj.samples.all().count()
 
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
@@ -380,7 +388,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
 
 class LibrarySerializer(serializers.ModelSerializer):
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
+    container = serializers.CharField(read_only=True, source="container.id")
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
@@ -389,13 +397,12 @@ class LibrarySerializer(serializers.ModelSerializer):
     quantity_ng = serializers.SerializerMethodField()
     library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
     platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
-    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.name")
+    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.id")
     library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
 
     class Meta:
         model = Sample
-        exclude = ('derived_samples', )
-        fields = ('id', 'name', 'biosample_id', 'container_barcode', 'coordinates', 'volume', 
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
     
@@ -418,7 +425,7 @@ class LibrarySerializer(serializers.ModelSerializer):
         else:
             return (obj.concentration / obj.derived_sample_not_pool.library.library_size * 660) * 1000000
 
-    def get_quantity(self, obj):
+    def get_quantity_ng(self, obj):
         if not obj.concentration:
             return None
         else:

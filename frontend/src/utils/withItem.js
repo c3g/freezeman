@@ -5,9 +5,7 @@ import User from "../modules/users/actions.js"
 import Process from "../modules/processMeasurements/actions.js"
 import Project from "../modules/projects/actions.js"
 import Sequence from "../modules/sequences/actions.js"
-import Platform from "../modules/platforms/actions.js"
 import Index from "../modules/indices/actions.js"
-import LibraryType from "../modules/libraryTypes/actions.js"
 
 import {networkAction} from "./actions";
 import api from ".//api"
@@ -50,7 +48,7 @@ function createWithItem(type, apiType) {
         for(let i = 0; i < ids.size; i = i + MAX_IDS_BY_REQUEST){
           chunkedParams.push({id__in: Array.from(ids).slice(i, i + MAX_IDS_BY_REQUEST).join(',')})
         }
-        
+
         const listAction = Promise.all(chunkedParams.map(async (params) => store.dispatch(type.list(params))))
         ids = new Set()
         await listAction
@@ -93,9 +91,7 @@ export const withUser = createWithItem(User, api.users)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
 export const withSequence = createWithItem(Sequence, api.sequences)
-export const withPlatform = createWithItem(Platform, api.platforms)
 export const withIndex = createWithItem(Index, api.indices)
-export const withLibraryType = createWithItem(LibraryType, api.libraryTypes)
 
 export default {
   withContainer,
@@ -105,7 +101,5 @@ export default {
   withProcessMeasurement,
   withProject,
   withSequence,
-  withPlatform,
   withIndex,
-  withLibraryType,
 };

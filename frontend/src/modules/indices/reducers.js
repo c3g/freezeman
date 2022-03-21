@@ -65,9 +65,8 @@ export const indices = (
             return { ...state, isFetching: true, };
         case INDICES.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
-            const temporaryItems = action.data.results.map(r => r.id)
-            const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, temporaryItems, isFetching: false, error: undefined };
+            const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
+            return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case INDICES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
