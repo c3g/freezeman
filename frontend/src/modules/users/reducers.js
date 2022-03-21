@@ -22,23 +22,26 @@ export const users = (
 ) => {
   switch (action.type) {
     case USERS.SET_SORT_BY:
-      return { ...state, sortBy: action.data };
+      return { ...state, sortBy: action.data, items: [] };
     case USERS.SET_FILTER:
       return {
         ...state,
         filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+        items: [],
         page: set(state.page, ['offset'], 0),
       };
     case USERS.SET_FILTER_OPTION:
       return {
         ...state,
         filters: set(state.filters, [action.data.name, 'options'], action.data.options),
+        items: [],
         page: set(state.page, ['offset'], 0),
       };
     case USERS.CLEAR_FILTERS:
       return {
         ...state,
         filters: {},
+        items: [],
         page: set(state.page, ['offset'], 0),
       };
 
