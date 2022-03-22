@@ -82,10 +82,18 @@ class SimpleContainerSerializer(serializers.ModelSerializer):
 class ContainerExportSerializer(serializers.ModelSerializer):
     location = serializers.SlugRelatedField(slug_field='barcode', read_only=True)
     container_kind = serializers.CharField(source='kind')
+    children_containers_count = serializers.SerializerMethodField()
+    samples_contained_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Container
-        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'comment')
+        fields = ('name', 'container_kind', 'barcode', 'location', 'coordinates', 'children_containers_count', 'samples_contained_count', 'comment')
+
+    def get_children_containers_count(self, obj):
+        return obj.children.all().count()
+    
+    def get_samples_contained_count(self, obj):
+        return obj.samples.all().count()
 
 
 class ExperimentRunSerializer(serializers.ModelSerializer):
