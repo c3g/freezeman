@@ -119,6 +119,7 @@ class Migration(migrations.Migration):
                 ('index', models.ForeignKey(help_text='The index associated to this library.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.index')),
                 ('library_type', models.ForeignKey(help_text='Library type describing the library.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.librarytype')),
                 ('platform', models.ForeignKey(help_text='The platform for which the library has been prepared.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.platform')),
+                ('strandedness', models.CharField(choices=[('Double stranded', 'Double stranded'), ('Single stranded', 'Single stranded')], help_text='The status of the project.', max_length=20, default="Double stranded")),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_library_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={

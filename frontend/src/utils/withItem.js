@@ -6,6 +6,7 @@ import Process from "../modules/processMeasurements/actions.js"
 import Project from "../modules/projects/actions.js"
 import Sequence from "../modules/sequences/actions.js"
 import Index from "../modules/indices/actions.js"
+import Library from "../modules/libraries/actions.js"
 
 import {networkAction} from "./actions";
 import api from ".//api"
@@ -92,6 +93,7 @@ export const withProcessMeasurement = createWithItem(Process, api.processMeasure
 export const withProject = createWithItem(Project, api.projects)
 export const withSequence = createWithItem(Sequence, api.sequences)
 export const withIndex = createWithItem(Index, api.indices)
+export const withLibrary = createWithItem(Library, api.libraries)
 
 export default {
   withContainer,
@@ -102,4 +104,5 @@ export default {
   withProject,
   withSequence,
   withIndex,
+  withLibrary,
 };

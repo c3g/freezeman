@@ -266,6 +266,7 @@ class SampleSerializer(serializers.ModelSerializer):
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    is_library = serializers.CharField(read_only=True)
 
     class Meta:
         model = Sample
@@ -299,11 +300,12 @@ class SampleExportSerializer(serializers.ModelSerializer):
     location_coord = serializers.CharField(read_only=True, source="container.coordinates")
     location_barcode = serializers.SerializerMethodField()
     current_volume = serializers.SerializerMethodField()
-    #TODO: names?
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quantity_flag = serializers.SerializerMethodField()
     quality_flag = serializers.SerializerMethodField()
     depleted = serializers.SerializerMethodField()
+    # Library
+    is_library = serializers.CharField(read_only=True)
 
     class Meta:
         model = Sample
@@ -312,7 +314,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'comment')
+                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
 
     def get_location_barcode(self, obj):
         if obj.container and obj.container.location is None:

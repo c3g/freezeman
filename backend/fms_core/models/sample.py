@@ -61,6 +61,10 @@ class Sample(TrackedModel):
         return DerivedBySample.objects.filter(sample=self).count() > 1 # More than 1 DerivedBySample implies more than 1 DerivedSample
 
     @property
+    def is_library(self) -> bool:
+        return True if self.derived_sample_not_pool.library else False
+
+    @property
     def derived_sample_not_pool(self) -> DerivedSample:
         return self.derived_samples.first() if not self.is_pool else []  # Forces crash if pool
 

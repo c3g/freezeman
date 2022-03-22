@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from fms_core.models import LibraryType, Library
 
 from fms_core.services.process import create_process
-from fms_core.services.sample import process_library_sample, remove_qc_flags
+from fms_core.services.sample import process_library_sample
 from fms_core.services.property_value import create_process_properties
 
 from datetime import datetime
@@ -22,35 +22,40 @@ def get_library_type(name):
 
     return library_type, errors, warnings
 
-def create_library(library_type, library_size, index, platform):
+def create_library(library_type, index, platform, strandedness, library_size=None):
     library = None
     errors = []
     warnings = []
 
     if not library_type:
         errors.append('Missing library type.')
-        return library, errors, warnings
 
     if not index:
         errors.append('Missing index.')
-        return library, errors, warnings
 
     if not platform:
         errors.append('Missing platform.')
+
+    if not strandedness:
+        errors.append('Missing strandedness.')
+
+    if errors:
         return library, errors, warnings
 
     try:
         library = Library.objects.create(library_type=library_type,
                                          library_size=library_size,
                                          index=index,
-                                         platform=platform)
+                                         platform=platform,
+                                         strandedness=strandedness)
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 
     return library, errors, warnings
 
 
-def prepare_library(libraries_info, protocol, process_properties, process_comment=None):
+def prepare_library(library_type, library_date, platform, index, strandedness, library_volume, library_comment, container,
+                    container_coordinates, source_sample, volume_used, protocol, process_properties, process_comment=None):
     process = None
     errors = []
     warnings = []
@@ -79,44 +84,28 @@ def prepare_library(libraries_info, protocol, process_properties, process_commen
         warnings += process_warnings + properties_warnings
 
     if not errors:
-        for library_info in libraries_info:
-            # Library specific information
-            library_type = library_info['library_type']
-            library_size = library_info['library_size']
-            library_date = library_info['library_date']
-            platform = library_info['platform']
-            index = library_info['index']
-            library_volume = library_info['library_volume']
-            library_comment = library_info['library_comment']
-            # Process measurement information
-            source_sample = library_info['source_sample']
-            volume_used = library_info['volume_used']
+        library_obj, library_errors, library_warnings = create_library(library_type=library_type,
+                                                                       index=index,
+                                                                       platform=platform,
+                                                                       strandedness=strandedness,)
 
-            library_obj, library_errors, library_warnings = create_library(library_type=library_type,
-                                                                           library_size=library_size,
-                                                                           index=index,
-                                                                           platform=platform)
+        errors += library_errors
+        warnings += library_warnings
 
-            errors += library_errors
-            warnings += library_warnings
+        if library_obj:
+            sample_destination, process_library_errors, process_library_warnings = \
+                process_library_sample(process=process_obj,
+                                       sample_source=source_sample,
+                                       container_destination=container,
+                                       library=library_obj,
+                                       volume_used=volume_used,
+                                       execution_date=library_date,
+                                       coordinates_destination=container_coordinates,
+                                       volume_destination=library_volume,
+                                       comment=library_comment)
 
-            if library_obj:
-                container_obj = library_info['container']
-                container_coordinates = library_info['container_coordinates']
-
-                sample_destination, process_library_errors, process_library_warnings = \
-                    process_library_sample(process=process_obj,
-                                           sample_source=source_sample,
-                                           container_destination=container_obj,
-                                           library=library_obj,
-                                           volume_used=volume_used,
-                                           execution_date=library_date,
-                                           coordinates_destination=container_coordinates,
-                                           volume_destination=library_volume,
-                                           comment=library_comment)
-
-                errors += process_library_errors
-                warnings += process_library_warnings
+            errors += process_library_errors
+            warnings += process_library_warnings
 
     if errors:
         process = None

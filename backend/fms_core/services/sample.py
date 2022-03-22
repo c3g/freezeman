@@ -298,6 +298,7 @@ def extract_sample(process: Process,
     return (sample_destination, errors, warnings)
 
 
+# TODO: Think about a more suitable name
 def process_library_sample(process: Process,
                            sample_source: Sample,
                            container_destination: Container,

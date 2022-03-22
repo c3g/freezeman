@@ -111,7 +111,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'headers': ['Library Batch ID', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
-                      'Index', 'Comment'],
+                      'Index Set', 'Index', 'Strandedness', 'Comment'],
       },
   ],
   "prefill info": [

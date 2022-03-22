@@ -29,7 +29,16 @@ import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcessMeasurement, withProject} from "../../../utils/withItem";
+import {get as getLibrary} from "../../../modules/libraries/actions";
+import {
+  withContainer,
+  withSample,
+  withIndividual,
+  withProcessMeasurement,
+  withProject,
+  withLibrary,
+  withIndex
+} from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
@@ -67,13 +76,27 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
+  librariesByID: state.libraries.itemsByID,
+  indicesByID: state.indices.itemsByID,
   usersByID: state.users.itemsByID,
   projectsByID: state.projects.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, projectsByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({
+  samplesByID,
+  sampleKindsByID,
+  containersByID,
+  processMeasurementsByID,
+  individualsByID,
+  librariesByID,
+  indicesByID,
+  usersByID,
+  projectsByID,
+  getSample,
+  listVersions
+}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -94,6 +117,7 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
   let processMeasurements = []
   let experimentRunsIDs = []
+  const library = librariesByID[id]
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -112,6 +136,9 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   if (isLoaded && container?.experiment_run) {
     experimentRunsIDs.push(container.experiment_run)
   }
+
+  if (!librariesByID[id])
+    getLibrary(id)
 
   return <>
     <AppPageHeader
@@ -204,8 +231,27 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
             </Descriptions>
           ) : null}
 
+          {sample.is_library ? (
+            <>
+              <Title level={5} style={{ marginTop: '1rem'}}> Library Information </Title>
+              <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
+                <Descriptions.Item label="Library Size">{library?.library_size} (bp)</Descriptions.Item>
+                <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
+                <Descriptions.Item label="Volume">{library?.volume} µL</Descriptions.Item>
+                <Descriptions.Item label="Concentration">{library?.concentration_nm} (nm)</Descriptions.Item>
+                <Descriptions.Item label="Quantity">{library?.quantity_ng} (ng)</Descriptions.Item>
+                <Descriptions.Item label="Index">
+                  <Link to={`/samples/${sample.extracted_from}`}>
+                    {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
+                  </Link>
+                </Descriptions.Item>
+              </Descriptions>
+            </>
+          ) : null}
+
           <TrackingFieldsContent entity={sample}/>
-          <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
+          <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
               <div ref={timelineRef}>

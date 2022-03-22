@@ -9,22 +9,26 @@ class LibraryTest(TestCase):
         self.library_type = LibraryType.objects.create(name="ThisIsValidLibraryTypeName")
         self.platform = Platform.objects.create(name="TestPlatform")
         self.index = Index.objects.get(name="Index_1")
+        self.strandedness = "Double stranded"
 
 
     def test_library(self):
         my_library = Library.objects.create(library_type=self.library_type,
                                             platform=self.platform,
-                                            index=self.index,)
+                                            index=self.index,
+                                            strandedness=self.strandedness)
 
         self.assertEqual(my_library.library_type.name, "ThisIsValidLibraryTypeName")
         self.assertEqual(my_library.platform.name, "TestPlatform")
         self.assertEqual(my_library.index.name, "Index_1")
+        self.assertEqual(my_library.strandedness, self.strandedness)
 
     def test_missing_library_type(self):
         with self.assertRaises(ValidationError):
             try:
                 library_without_library_type = Library.objects.create(platform=self.platform,
-                                                                      index=self.index,)
+                                                                      index=self.index,
+                                                                      strandedness=self.strandedness)
             except ValidationError as e:
                 self.assertTrue("library_type" in e.message_dict)
                 raise e
@@ -33,7 +37,8 @@ class LibraryTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 library_without_platform = Library.objects.create(library_type=self.library_type,
-                                                                  index=self.index,)
+                                                                  index=self.index,
+                                                                  strandedness=self.strandedness)
             except ValidationError as e:
                 self.assertTrue("platform" in e.message_dict)
                 raise e
@@ -42,9 +47,20 @@ class LibraryTest(TestCase):
         with self.assertRaises(ValidationError):
             try:
                 library_without_index = Library.objects.create(library_type=self.library_type,
-                                                               platform=self.platform,)
+                                                               platform=self.platform,
+                                                               strandedness=self.strandedness)
             except ValidationError as e:
                 self.assertTrue("index" in e.message_dict)
+                raise e
+
+    def test_missing_strandedness(self):
+        with self.assertRaises(ValidationError):
+            try:
+                library_without_strandedness = Library.objects.create(library_type=self.library_type,
+                                                                      platform=self.platform,
+                                                                      index=self.index)
+            except ValidationError as e:
+                self.assertTrue("strandedness" in e.message_dict)
                 raise e
 
     def test_library_with_negative_library_size(self):
@@ -53,7 +69,8 @@ class LibraryTest(TestCase):
                 library_with_negative_library_size = Library.objects.create(library_type=self.library_type,
                                                                             platform=self.platform,
                                                                             index=self.index,
-                                                                            library_size = -1,)
+                                                                            strandedness=self.strandedness,
+                                                                            library_size=-1,)
             except ValidationError as e:
                 self.assertTrue("library_size" in e.message_dict)
                 raise e

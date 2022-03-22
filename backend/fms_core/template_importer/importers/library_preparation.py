@@ -1,6 +1,8 @@
+import copy
+
 from fms_core.models import PropertyType, Protocol
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, LibraryRowHandler
+from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, LibraryBatchRowHandler
 from fms_core.templates import LIBRARY_PREPARATION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
@@ -30,47 +32,12 @@ class LibraryPreparationImporter(GenericImporter):
 
     def import_template_inner(self):
         """
-            LIBRARIES SHEET
-        """
-        libraries_sheet = self.sheets['Library']
-        libraries_rows_data = defaultdict(list)
-        for i, row_data in enumerate(libraries_sheet.rows):
-            library = {'library_batch_id': row_data['Library Batch ID'],
-                       'volume_used': float_to_decimal_and_none(row_data['Sample Volume Used (uL)']),
-                       'comment': row_data['Comment'],
-                       'container':
-                           {'barcode': row_data['Library Container Barcode'],
-                            'coordinates': row_data['Library Container Coordinates'],
-                            'name': row_data['Library Container Name'],
-                            'kind': row_data['Library Container Kind'],
-                            'parent_barcode': row_data['Library Parent Container Barcode'],
-                            'parent_coordinates': row_data['Library Container Coordinates']
-                            },
-                       'volume': float_to_decimal_and_none(row_data['Library Volume (uL)']),
-                       'index': row_data['Index'],
-                      }
-
-            sample_kwargs = dict(
-                barcode=row_data['Sample Container Barcode'],
-                coordinates=row_data['Sample Container Coordinates'],
-                volume_used=library['volume_used']
-            )
-
-            (result, library['sample_obj']) = self.handle_row(
-                row_handler_class=LibraryRowHandler,
-                sheet=libraries_sheet,
-                row_i=i,
-                **sample_kwargs,
-            )
-
-            libraries_rows_data[library['library_batch_id']].append(library)
-
-        """
             LIBRARY BATCH SHEET
         """
         library_batch_sheet = self.sheets['Library Batch']
 
         # Iterate through libraries rows
+        library_batch_rows_data = defaultdict(list)
         for row_id, row in enumerate(library_batch_sheet.rows):
             library_batch_dict = {}
             process_properties = self.preloaded_data['process_properties']
@@ -80,24 +47,57 @@ class LibraryPreparationImporter(GenericImporter):
                 else:
                     process_properties[key]['value'] = val
 
-            library_preparation_kwargs = dict(
+            (result, batch_objects) = self.handle_row(
+                row_handler_class=LibraryBatchRowHandler,
+                sheet=library_batch_sheet,
+                row_i=row_id,
+                library_type=library_batch_dict['Library Type'],
+                platform=library_batch_dict['Platform'],
+            )
+
+            library_batch_info = dict(
                 # Library attributes data dictionary and related objects
-                library_batch_id=library_batch_dict['Library Batch ID'],
-                library_type={'name' : library_batch_dict['Library Type']},
-                # TODO: Verify with lab if this is correct
-                library_size=process_properties['Shearing Size (bp)']['value'],
                 library_date=input_to_date_and_none(library_batch_dict['Library Date (YYYY-MM-DD)']),
-                platform={'name': library_batch_dict['Platform']},
                 comment=library_batch_dict['Comment'],
+                # Library Type and Platform
+                **batch_objects,
                 # Additional data for this row
                 protocol=self.preloaded_data['protocol'],
-                process_properties=process_properties,
-                library_rows_info=libraries_rows_data[library_batch_dict['Library Batch ID']],
+                process_properties=copy.deepcopy(process_properties),
             )
+
+            library_batch_rows_data[library_batch_dict['Library Batch ID']] = library_batch_info
+
+        """
+            LIBRARIES SHEET
+        """
+        libraries_sheet = self.sheets['Library']
+        for i, row_data in enumerate(libraries_sheet.rows):
+            library_preparation_kwargs = {
+                'library_batch_info': library_batch_rows_data[row_data['Library Batch ID']],
+                'source_sample':
+                    {'barcode': row_data['Sample Container Barcode'],
+                     'coordinates': row_data['Sample Container Coordinates'],
+                     },
+                'volume_used': float_to_decimal_and_none(row_data['Sample Volume Used (uL)']),
+                'comment': row_data['Comment'],
+                'container':
+                    {'barcode': row_data['Library Container Barcode'],
+                     'coordinates': row_data['Library Container Coordinates'],
+                     'name': row_data['Library Container Name'],
+                     'kind': row_data['Library Container Kind'],
+                     'parent_barcode': row_data['Library Parent Container Barcode'],
+                     'parent_coordinates': row_data['Library Container Coordinates']
+                     },
+                'volume': float_to_decimal_and_none(row_data['Library Volume (uL)']),
+                'index': row_data['Index'],
+                'strandedness': row_data['Strandedness'],
+                 }
 
             (result, _) = self.handle_row(
                 row_handler_class=LibraryPreparationRowHandler,
-                sheet=library_batch_sheet,
-                row_i=row_id,
+                sheet=libraries_sheet,
+                row_i=i,
                 **library_preparation_kwargs,
             )
+

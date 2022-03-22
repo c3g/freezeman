@@ -106,6 +106,7 @@ function PaginatedTable ({
         loading={loading || isCurrentPageUnloaded}
         childrenColumnName={'UNEXISTENT_KEY'}
         onChange={onChangeTable}
+        scroll={{ x: 300 }}
       />
       <Pagination
         className="ant-table-pagination ant-table-pagination-right"
