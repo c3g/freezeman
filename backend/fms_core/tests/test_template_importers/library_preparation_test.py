@@ -214,7 +214,7 @@ class LibraryPreparationTestCase(TestCase):
         pt_3 = PropertyType.objects.get(name='Library Kit Lot', object_id=pm_3.process.protocol.id)
         p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_3.process.id)
 
-        self.assertEqual(p_1.value, self.library_1['library_technician_name'])
-        self.assertEqual(p_2.value, self.library_1['library_kit_used'])
-        self.assertEqual(p_3.value, self.library_1['library_kit_lot'])
+        self.assertEqual(p_1.value, self.library_3['library_technician_name'])
+        self.assertEqual(p_2.value, self.library_3['library_kit_used'])
+        self.assertEqual(p_3.value, self.library_3['library_kit_lot'])
 
