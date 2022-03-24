@@ -9,8 +9,7 @@ from .derived_sample import inherit_derived_sample
 from ..utils import RE_SEPARATOR, float_to_decimal
 
 def create_full_sample(name, volume, collection_site, creation_date,
-                       container, sample_kind,
-                       individual=None,
+                       container, sample_kind, library=None, individual=None,
                        coordinates=None, alias=None, concentration=None, tissue_source=None,
                        experimental_group=None, comment=None):
     sample = None
@@ -44,6 +43,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
             derived_sample_data = dict(
                 biosample_id=biosample.id,
                 sample_kind=sample_kind,
+                **(dict(library=library) if library is not None else dict()),
                 **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
             )
             if experimental_group:
