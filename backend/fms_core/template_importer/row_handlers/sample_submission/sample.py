@@ -9,13 +9,14 @@ from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
+from fms_core.services.library import create_library
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
 
-    def process_row_inner(self, sample, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
+    def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
@@ -104,6 +105,15 @@ class SampleRowHandler(GenericRowHandler):
                                concentration=sample['concentration'], tissue_source=sample['tissue_source'],
                                experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                sample_kind=sample_kind_obj, comment=comment)
+
+        # Library are submitted
+        if any([sample['library_type'], sample['platform'], sample['strandedness'], sample['index']]):
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=sample['library_type'],
+                                                                                           platform=sample['platform'],
+                                                                                           index=sample['index'])
+            if library_obj:
+                sample_obj.library = library_obj.id
+                sample_obj.save()
 
         # Link sample to project if requested
         if project_obj and sample_obj:
