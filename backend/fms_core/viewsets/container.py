@@ -24,12 +24,12 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _prefix_keys, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
 
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
-                          Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
+                          Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all().distinct()
 
     serializer_class = ContainerSerializer
     filter_class = ContainerFilter

@@ -6,9 +6,7 @@ import mergeArray from "../../utils/mergeArray";
 import {summaryReducerFactory} from "../../utils/summary";
 import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {prefillTemplatesReducerFactory} from "../../utils/prefillTemplates";
-import {resetTable} from "../../utils/reducers";
 
-import CONTAINERS from "../containers/actions";
 import LIBRARIES from "./actions";
 
 
@@ -41,11 +39,12 @@ export const libraries = (
               { error: action.error, isFetching: false, didFail: true });
 
         case LIBRARIES.SET_SORT_BY:
-            return { ...state, sortBy: action.data };
+            return { ...state, sortBy: action.data, items: [] };
         case LIBRARIES.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case LIBRARIES.SET_FILTER_OPTION:
@@ -56,12 +55,14 @@ export const libraries = (
                     [action.data.name, 'options', action.data.option],
                     action.data.value
                 ),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case LIBRARIES.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
 

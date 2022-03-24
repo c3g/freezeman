@@ -53,11 +53,12 @@ export const projects = (
             return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false });
 
         case PROJECTS.SET_SORT_BY:
-            return { ...state, sortBy: action.data };
+            return { ...state, sortBy: action.data, items: [] };
         case PROJECTS.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case PROJECTS.SET_FILTER_OPTION:
@@ -68,12 +69,14 @@ export const projects = (
                     [action.data.name, 'options', action.data.option],
                     action.data.value
                 ),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case PROJECTS.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
 
