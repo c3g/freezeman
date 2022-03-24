@@ -298,16 +298,15 @@ def extract_sample(process: Process,
     return (sample_destination, errors, warnings)
 
 
-# TODO: Think about a more suitable name
-def process_library_sample(process: Process,
-                           sample_source: Sample,
-                           container_destination: Container,
-                           library: Library,
-                           volume_used,
-                           execution_date: datetime.date,
-                           coordinates_destination=None,
-                           volume_destination=None,
-                           comment=None):
+def prepare_library(process: Process,
+                    sample_source: Sample,
+                    container_destination: Container,
+                    library: Library,
+                    volume_used,
+                    execution_date: datetime.date,
+                    coordinates_destination=None,
+                    volume_destination=None,
+                    comment=None):
     sample_destination = None
     errors = []
     warnings = []

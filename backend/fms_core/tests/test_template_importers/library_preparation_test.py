@@ -6,12 +6,10 @@ from fms_core.template_importer.importers import LibraryPreparationImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
 from fms_core.models import SampleKind, LibraryType, Platform, Index, ProcessMeasurement, PropertyType, PropertyValue
+from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
 from fms_core.services.container import create_container
 from fms_core.services.sample import create_full_sample, get_sample_from_container
-
-DOUBLE_STRANDEDNESS = 'Double stranded'
-SINGLE_STRANDEDNESS = 'Single stranded'
 
 
 class LibraryPreparationTestCase(TestCase):
@@ -26,7 +24,7 @@ class LibraryPreparationTestCase(TestCase):
 
         self.library_type_batch_1 = LibraryType.objects.get(name="PCR-free")
         self.library_type_batch_2 = LibraryType.objects.get(name="PCR-enriched")
-        self.platform_batch_1 = Platform.objects.get(name="LS454")
+        self.platform_batch_1 = Platform.objects.get(name="DNBSEQ")
         self.platform_batch_2 = Platform.objects.get(name="ILLUMINA")
 
         self.index_1 = Index.objects.get(name="Index_1")
@@ -64,7 +62,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=2,
             library_volume=2,
             index=self.index_1,
-            strandedness=DOUBLE_STRANDEDNESS,
+            strandedness=DOUBLE_STRANDED,
             library_comment='Library 1 Comment'
         )
 
@@ -76,7 +74,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=4,
             library_volume=3,
             index=self.index_2,
-            strandedness=SINGLE_STRANDEDNESS,
+            strandedness=SINGLE_STRANDED,
             library_comment='Library 2 Comment'
         )
 
@@ -88,7 +86,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=5,
             library_volume=5,
             index=self.index_3,
-            strandedness=DOUBLE_STRANDEDNESS,
+            strandedness=DOUBLE_STRANDED,
             library_comment='Library 3 Comment'
         )
 

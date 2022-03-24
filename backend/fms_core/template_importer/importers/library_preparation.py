@@ -88,7 +88,7 @@ class LibraryPreparationImporter(GenericImporter):
                      'name': row_data['Library Container Name'],
                      'kind': row_data['Library Container Kind'],
                      'parent_barcode': row_data['Library Parent Container Barcode'],
-                     'parent_coordinates': row_data['Library Container Coordinates']
+                     'parent_coordinates': row_data['Library Parent Container Coordinates']
                      },
                 'volume': float_to_decimal_and_none(row_data['Library Volume (uL)']),
                 'index': row_data['Index'],

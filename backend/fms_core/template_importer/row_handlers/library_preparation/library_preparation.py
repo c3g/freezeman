@@ -1,9 +1,9 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.sample import get_sample_from_container
+from fms_core.services.sample import get_sample_from_container, prepare_library
 from fms_core.services.container import create_container, get_container
 from fms_core.services.index import get_index
-from fms_core.services.library import prepare_library
+from fms_core.services.library import create_library
 
 
 
@@ -18,15 +18,15 @@ class LibraryRowHandler(GenericRowHandler):
             self.errors['library_preparation'] = 'No batch is associated with this library.'
 
         # Calling the service creator for Samples in LibraryPreparation
-        sample_obj, self.errors['container'], self.warnings['container'] = \
+        source_sample_obj, self.errors['container'], self.warnings['container'] = \
             get_sample_from_container(barcode=source_sample['barcode'], coordinates=source_sample['coordinates'])
 
         if not volume_used:
             self.errors['volume_used'] = f"Volume used must be entered"
-        elif sample_obj and volume_used > sample_obj.volume:
-            self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_obj.volume})"
+        elif source_sample_obj and volume_used > source_sample_obj.volume:
+            self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
 
-        if sample_obj:
+        if source_sample_obj:
             # Populate the libraries with the batch and  individual information
             container_coordinates = container['coordinates']
 
@@ -51,18 +51,28 @@ class LibraryRowHandler(GenericRowHandler):
                 platform=library_batch_info['platform'],
                 index=index_obj,
                 strandedness=strandedness,
-                library_volume=volume,
-                library_comment=comment,
-                container=container_obj,
-                container_coordinates=container_coordinates,
-                # Process measurement information,
-                source_sample=sample_obj,
-                volume_used=volume_used,
             )
 
-            _, self.errors['library'], self.warnings['library'] = \
-                prepare_library(**library_info,
-                                protocol=library_batch_info['protocol'],
-                                process_by_protocol=library_batch_info['process_by_protocol'])
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_info['library_type'],
+                                                                                           index=index_obj,
+                                                                                           platform=library_info['platform'],
+                                                                                           strandedness=strandedness)
+
+            protocol = library_batch_info['protocol']
+            process_by_protocol = library_batch_info['process_by_protocol']
+
+            # Retrieve process
+            process_obj = process_by_protocol[protocol.id]
+
+            sample_destination, self.errors['library_preparation'], self.warnings['library_preparation'] = \
+                prepare_library(process=process_obj,
+                                sample_source=source_sample_obj,
+                                container_destination=container_obj,
+                                library=library_obj,
+                                volume_used=volume_used,
+                                execution_date=library_info['library_date'],
+                                coordinates_destination=container_coordinates,
+                                volume_destination=volume,
+                                comment=comment)
         else:
             self.errors['sample_source'] = 'Sample source is needed to prepare a library.'
