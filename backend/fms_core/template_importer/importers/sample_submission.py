@@ -42,9 +42,9 @@ class SampleSubmissionImporter(GenericImporter):
             }
             library = {
                 'library_type': row_data['Library Type'],
+                'index': row_data['Index'],
                 'platform': row_data['Platform'],
                 'strandedness': row_data['Strandedness'],
-                'index': row_data['Index'],
             }
             project = {
                 'name': row_data['Project'],
@@ -65,13 +65,13 @@ class SampleSubmissionImporter(GenericImporter):
 
             sample_kwargs = dict(
                 sample=sample,
+                library=library,
                 container=container,
                 project=project,
                 parent_container=parent_container,
                 individual=individual,
                 individual_mother=individual_mother,
                 individual_father=individual_father,
-                library=library,
                 # Preloaded data
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )

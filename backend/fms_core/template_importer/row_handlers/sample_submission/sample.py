@@ -107,10 +107,11 @@ class SampleRowHandler(GenericRowHandler):
                                sample_kind=sample_kind_obj, comment=comment)
 
         # Library are submitted
-        if any([sample['library_type'], sample['platform'], sample['strandedness'], sample['index']]):
-            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=sample['library_type'],
-                                                                                           platform=sample['platform'],
-                                                                                           index=sample['index'])
+        if any([library['library_type'], library['index'], library['platform'], library['strandedness']]):
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library['library_type'],
+                                                                                           index=library['index'],
+                                                                                           platform=library['platform'],
+                                                                                           strandedness=library['strandedness'])
             if library_obj:
                 sample_obj.library = library_obj.id
                 sample_obj.save()
