@@ -1,8 +1,8 @@
 import copy
 
-from fms_core.models import PropertyType, Protocol
+from fms_core.models import PropertyType, Protocol, Process
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryPreparationRowHandler, LibraryBatchRowHandler
+from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
 from fms_core.templates import LIBRARY_PREPARATION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
@@ -51,19 +51,20 @@ class LibraryPreparationImporter(GenericImporter):
                 row_handler_class=LibraryBatchRowHandler,
                 sheet=library_batch_sheet,
                 row_i=row_id,
+                protocol=self.preloaded_data['protocol'],
+                process_properties=copy.deepcopy(process_properties),
                 library_type=library_batch_dict['Library Type'],
                 platform=library_batch_dict['Platform'],
+                comment=library_batch_dict['Comment']
             )
 
             library_batch_info = dict(
                 # Library attributes data dictionary and related objects
                 library_date=input_to_date_and_none(library_batch_dict['Library Date (YYYY-MM-DD)']),
-                comment=library_batch_dict['Comment'],
                 # Library Type and Platform
                 **batch_objects,
                 # Additional data for this row
                 protocol=self.preloaded_data['protocol'],
-                process_properties=copy.deepcopy(process_properties),
             )
 
             library_batch_rows_data[library_batch_dict['Library Batch ID']] = library_batch_info
@@ -95,7 +96,7 @@ class LibraryPreparationImporter(GenericImporter):
                  }
 
             (result, _) = self.handle_row(
-                row_handler_class=LibraryPreparationRowHandler,
+                row_handler_class=LibraryRowHandler,
                 sheet=libraries_sheet,
                 row_i=i,
                 **library_preparation_kwargs,

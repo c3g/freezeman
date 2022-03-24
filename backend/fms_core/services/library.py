@@ -2,9 +2,8 @@ from django.core.exceptions import ValidationError
 
 from fms_core.models import LibraryType, Library
 
-from fms_core.services.process import create_process
 from fms_core.services.sample import process_library_sample
-from fms_core.services.property_value import create_process_properties
+
 
 from datetime import datetime
 
@@ -29,17 +28,18 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
 
     if not library_type:
         errors.append('Missing library type.')
+        return library, errors, warnings
 
     if not index:
         errors.append('Missing index.')
+        return library, errors, warnings
 
     if not platform:
         errors.append('Missing platform.')
+        return library, errors, warnings
 
     if not strandedness:
         errors.append('Missing strandedness.')
-
-    if errors:
         return library, errors, warnings
 
     try:
@@ -54,34 +54,19 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
     return library, errors, warnings
 
 
-def prepare_library(library_type, library_date, platform, index, strandedness, library_volume, library_comment, container,
-                    container_coordinates, source_sample, volume_used, protocol, process_properties, process_comment=None):
-    process = None
+def prepare_library(library_type, library_date, platform, index, strandedness, library_volume,
+                    library_comment, container, container_coordinates, source_sample, volume_used,
+                    protocol, process_by_protocol):
+    library = None
     errors = []
     warnings = []
 
-    if not protocol:
-        errors.append("Missing protocol.")
-        return process, errors, warnings
+    if not process_by_protocol:
+        errors.append("Missing process.")
+        return library, errors, warnings
 
-    if not process_properties:
-        errors.append("Missing process properties.")
-        return process, errors, warnings
-
-    process_by_protocol, process_errors, process_warnings = \
-        create_process(protocol=protocol,
-                       creation_comment=process_comment if process_comment else
-                       f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z",)
-
+    # Retrieve process
     process_obj = process_by_protocol[protocol.id]
-
-    # Create process' properties
-    if not process_errors:
-        properties, properties_errors, properties_warnings = create_process_properties(process_properties,
-                                                                                       process_by_protocol)
-
-        errors += process_errors + properties_errors
-        warnings += process_warnings + properties_warnings
 
     if not errors:
         library_obj, library_errors, library_warnings = create_library(library_type=library_type,
@@ -92,7 +77,7 @@ def prepare_library(library_type, library_date, platform, index, strandedness, l
         errors += library_errors
         warnings += library_warnings
 
-        if library_obj:
+        if library_obj and process_obj:
             sample_destination, process_library_errors, process_library_warnings = \
                 process_library_sample(process=process_obj,
                                        sample_source=source_sample,
@@ -107,7 +92,7 @@ def prepare_library(library_type, library_date, platform, index, strandedness, l
             errors += process_library_errors
             warnings += process_library_warnings
 
-    if errors:
-        process = None
+    else:
+        library = None
 
-    return process, errors, warnings
+    return library, errors, warnings

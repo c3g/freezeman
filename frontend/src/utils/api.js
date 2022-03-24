@@ -103,6 +103,11 @@ const api = {
     list: (options, abort) => get("/library-types/", options, { abort }),
   },
 
+  platforms: {
+    get: platformId => get(`/platforms/${platformId}/`),
+    list: (options, abort) => get("/platforms/", options, { abort }),
+  },
+
   processes: {
     list: (options, abort) => get("/processes", options, { abort }),
   },

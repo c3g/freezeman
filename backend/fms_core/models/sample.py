@@ -62,7 +62,7 @@ class Sample(TrackedModel):
 
     @property
     def is_library(self) -> bool:
-        return True if self.derived_sample_not_pool.library else False
+        return True if any([derived_sample.library for derived_sample in self.derived_samples.all()]) else False
 
     @property
     def derived_sample_not_pool(self) -> DerivedSample:

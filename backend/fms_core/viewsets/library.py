@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
@@ -92,7 +92,13 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         Returns summary statistics about the current set of libraries in the
         database.
         """
-        return Response({"total_count": self.get_queryset().all().count()})
+        return Response({
+            "total_count": self.get_queryset().all().count(),
+            "library_type_counts": {
+                 c["derived_samples__library__library_type"]: c["derived_samples__library__library_type__count"]
+                 for c in self.queryset.values("derived_samples__library__library_type").annotate(Count("derived_samples__library__library_type"))
+            },
+        })
 
     @action(detail=False, methods=["get"])
     def search(self, _request):

@@ -5,6 +5,7 @@ import Users from "../users/actions";
 import Groups from "../groups";
 import Samples from "../samples/actions";
 import Libraries from "../libraries/actions";
+import LibraryTypes from "../libraryTypes/actions";
 import ProcessMeasurements from "../processMeasurements/actions";
 import Projects from "../projects/actions";
 import Protocols from "../protocols/actions";
@@ -31,6 +32,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         ProcessMeasurements.summary,
         Users.listTable,
         Groups.list,
+        LibraryTypes.list,
     ].map(a => dispatch(a())))
 
     await Promise.all([
@@ -69,6 +71,7 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
         Indices.summary,
         Samples.summary,
         Libraries.summary,
+        LibraryTypes.list,
         Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))

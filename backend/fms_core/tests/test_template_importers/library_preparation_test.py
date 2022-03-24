@@ -10,6 +10,9 @@ from fms_core.models import SampleKind, LibraryType, Platform, Index, ProcessMea
 from fms_core.services.container import create_container
 from fms_core.services.sample import create_full_sample, get_sample_from_container
 
+DOUBLE_STRANDEDNESS = 'Double stranded'
+SINGLE_STRANDEDNESS = 'Single stranded'
+
 
 class LibraryPreparationTestCase(TestCase):
     def setUp(self) -> None:
@@ -37,6 +40,7 @@ class LibraryPreparationTestCase(TestCase):
             platform=self.platform_batch_1,
             batch_comment='Library Batch Comment',
             library_technician_name='Tony Tir',
+            shearing_technician_name='Elizabeth Caron',
             library_kit_used='Illumina Tagmentation',
             library_kit_lot='1',
         )
@@ -60,7 +64,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=2,
             library_volume=2,
             index=self.index_1,
-            strandedness='Double stranded',
+            strandedness=DOUBLE_STRANDEDNESS,
             library_comment='Library 1 Comment'
         )
 
@@ -72,7 +76,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=4,
             library_volume=3,
             index=self.index_2,
-            strandedness='Single stranded',
+            strandedness=SINGLE_STRANDEDNESS,
             library_comment='Library 2 Comment'
         )
 
@@ -84,7 +88,7 @@ class LibraryPreparationTestCase(TestCase):
             volume_used=5,
             library_volume=5,
             index=self.index_3,
-            strandedness='Double stranded',
+            strandedness=DOUBLE_STRANDEDNESS,
             library_comment='Library 3 Comment'
         )
 
@@ -144,9 +148,13 @@ class LibraryPreparationTestCase(TestCase):
         pt_3 = PropertyType.objects.get(name='Library Kit Lot', object_id=pm_1.process.protocol.id)
         p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_1.process.id)
 
+        pt_4 = PropertyType.objects.get(name='Shearing Technician Name', object_id=pm_1.process.protocol.id)
+        p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_1.process.id)
+
         self.assertEqual(p_1.value, self.library_1['library_technician_name'])
         self.assertEqual(p_2.value, self.library_1['library_kit_used'])
         self.assertEqual(p_3.value, self.library_1['library_kit_lot'])
+        self.assertEqual(p_4.value, self.library_1['shearing_technician_name'])
 
         # Test second library
         sample_library_2, _, _ = get_sample_from_container(barcode='Container4Library2')
@@ -169,19 +177,8 @@ class LibraryPreparationTestCase(TestCase):
         self.assertEqual(pm_2.process.protocol.name, 'Library Preparation')
         self.assertEqual(pm_2.process.comment, self.library_2['batch_comment'])
 
-        # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Library Technician Name', object_id=pm_2.process.protocol.id)
-        p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm_2.process.id)
-
-        pt_2 = PropertyType.objects.get(name='Library Kit Used', object_id=pm_2.process.protocol.id)
-        p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm_2.process.id)
-
-        pt_3 = PropertyType.objects.get(name='Library Kit Lot', object_id=pm_2.process.protocol.id)
-        p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_2.process.id)
-
-        self.assertEqual(p_1.value, self.library_2['library_technician_name'])
-        self.assertEqual(p_2.value, self.library_2['library_kit_used'])
-        self.assertEqual(p_3.value, self.library_2['library_kit_lot'])
+        # Test if pm_2' process and pm_1's process are the same since they come from the same batch
+        self.assertEqual(pm_1.process, pm_2.process)
         
         # Test third library
         sample_library_3, _, _ = get_sample_from_container(barcode='Container4Library3')
@@ -214,7 +211,12 @@ class LibraryPreparationTestCase(TestCase):
         pt_3 = PropertyType.objects.get(name='Library Kit Lot', object_id=pm_3.process.protocol.id)
         p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_3.process.id)
 
+        pt_4 = PropertyType.objects.get(name='Shearing Technician Name', object_id=pm_3.process.protocol.id)
+        p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_3.process.id)
+
         self.assertEqual(p_1.value, self.library_3['library_technician_name'])
         self.assertEqual(p_2.value, self.library_3['library_kit_used'])
         self.assertEqual(p_3.value, self.library_3['library_kit_lot'])
+        self.assertEqual(p_4.value, ' ')
+
 

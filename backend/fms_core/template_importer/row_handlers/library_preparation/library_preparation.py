@@ -7,7 +7,7 @@ from fms_core.services.library import prepare_library
 
 
 
-class LibraryPreparationRowHandler(GenericRowHandler):
+class LibraryRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
@@ -63,7 +63,6 @@ class LibraryPreparationRowHandler(GenericRowHandler):
             _, self.errors['library'], self.warnings['library'] = \
                 prepare_library(**library_info,
                                 protocol=library_batch_info['protocol'],
-                                process_properties=library_batch_info['process_properties'],
-                                process_comment=library_batch_info['comment'])
+                                process_by_protocol=library_batch_info['process_by_protocol'])
         else:
             self.errors['sample_source'] = 'Sample source is needed to prepare a library.'

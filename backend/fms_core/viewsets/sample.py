@@ -57,13 +57,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         },
         {
             "name": "Sample Selection Using qPCR",
-            "description": "Upload the provided template with samples to perfom a sample selection using qPCR",
+            "description": "Upload the provided template with samples to perform a sample selection using qPCR.",
             "template": [SAMPLE_SELECTION_QPCR_TEMPLATE["identity"]],
             "importer": SampleSelectionQPCRImporter,
         },
         {
             "name": "Prepare Libraries",
-            "description": "Upload the provided template with up to 384 new samples.",
+            "description": "Upload the provided template with information to prepare libraries with the possibility to group them by batch.",
             "template": [LIBRARY_PREPARATION_TEMPLATE["identity"]],
             "importer": LibraryPreparationImporter,
         },
