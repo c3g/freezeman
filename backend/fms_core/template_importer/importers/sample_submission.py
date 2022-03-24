@@ -40,6 +40,12 @@ class SampleSubmissionImporter(GenericImporter):
             individual_father = {
                 'name': row_data['Father ID'],
             }
+            library = {
+                'library_type': row_data['Library Type'],
+                'platform': row_data['Platform'],
+                'strandedness': row_data['Strandedness'],
+                'index': row_data['Index'],
+            }
             project = {
                 'name': row_data['Project'],
             }
@@ -65,6 +71,7 @@ class SampleSubmissionImporter(GenericImporter):
                 individual=individual,
                 individual_mother=individual_mother,
                 individual_father=individual_father,
+                library=library,
                 # Preloaded data
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )
