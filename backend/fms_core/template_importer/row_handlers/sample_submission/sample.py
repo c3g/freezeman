@@ -9,7 +9,9 @@ from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
-from fms_core.services.library import create_library
+from fms_core.services.library import get_library_type, create_library
+from fms_core.services.platform import get_platform
+from fms_core.services.index import get_index
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
@@ -98,23 +100,26 @@ class SampleRowHandler(GenericRowHandler):
             self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found"]
         #TODO: sample kind str normalization
 
-
-        sample_obj, self.errors['sample'], self.warnings['sample'] = \
-            create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                               creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                               concentration=sample['concentration'], tissue_source=sample['tissue_source'],
-                               experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
-                               sample_kind=sample_kind_obj, comment=comment)
-
         # Library are submitted
         if any([library['library_type'], library['index'], library['platform'], library['strandedness']]):
-            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library['library_type'],
-                                                                                           index=library['index'],
-                                                                                           platform=library['platform'],
+            # Create library objects
+            library_type_obj, self.errors['library_type'], self.warnings['library_type']  = get_library_type(library['library_type'])
+            index_obj, self.errors['index'], self.warnings['index']  = get_index(library['index'])
+            platform_obj, self.errors['platform'], self.warnings['platform']  = get_platform(library['platform'])
+
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_type_obj,
+                                                                                           index=index_obj,
+                                                                                           platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
-            if library_obj:
-                sample_obj.library = library_obj.id
-                sample_obj.save()
+        if not self.errors:
+            sample_obj, self.errors['sample'], self.warnings['sample'] = \
+                create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                                  creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                                  concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                                  experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                                  library=library_obj, sample_kind=sample_kind_obj, comment=comment)
+
+        
 
         # Link sample to project if requested
         if project_obj and sample_obj:
