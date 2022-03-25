@@ -1,7 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import get_sample_from_container, prepare_library
-from fms_core.services.container import create_container, get_container
+from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.index import get_index
 from fms_core.services.library import create_library
 
@@ -35,13 +35,16 @@ class LibraryRowHandler(GenericRowHandler):
                 container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
                     get_container(barcode=container['parent_barcode'])
 
-            container_obj, self.errors['library_container'], self.warnings['library_container'] = create_container(
+            container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
                 name=container['name'],
                 barcode=container['barcode'],
                 kind=container['kind'],
                 container_parent=container_parent_obj if container_parent_obj else None,
                 coordinates=container['parent_coordinates'] if container_parent_obj else None,
                 creation_comment=comment)
+
+            if container_obj and not created:
+                self.warnings['library_container'] = f'Using existing container {container_obj.name}'
 
             index_obj, self.errors['index'], self.warnings['index'] = get_index(index)
 
