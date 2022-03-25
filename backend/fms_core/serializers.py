@@ -420,12 +420,13 @@ class LibrarySerializer(serializers.ModelSerializer):
         else:
             return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
 
-    # TODO : update this formula to include RNA and single strand DNA
+    # TODO : Confirm molecular weights with lab
     def get_concentration_nm(self, obj):
         if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
             return None
         else:
-            return (obj.concentration / obj.derived_sample_not_pool.library.library_size * 660) * 1000000
+            return (obj.concentration / obj.derived_sample_not_pool.library.library_size *
+                    obj.derived_sample_not_pool.library.molecular_weight_approx) * 1000000
 
     def get_quantity_ng(self, obj):
         if not obj.concentration:
@@ -471,7 +472,8 @@ class LibraryExportSerializer(serializers.ModelSerializer):
         if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
             return None
         else:
-            return (obj.concentration / obj.derived_sample_not_pool.library.library_size * 660) * 1000000
+            return (obj.concentration / obj.derived_sample_not_pool.library.library_size *
+                    obj.derived_sample_not_pool.library.molecular_weight_approx) * 1000000
 
     def get_quantity(self, obj):
         if not obj.concentration:
