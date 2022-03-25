@@ -101,25 +101,26 @@ class SampleRowHandler(GenericRowHandler):
         #TODO: sample kind str normalization
 
         # Library are submitted
-        if any([library['library_type'], library['index'], library['platform'], library['strandedness']]):
+        library_obj = None
+        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness']])
+        if is_library:
             # Create library objects
-            library_type_obj, self.errors['library_type'], self.warnings['library_type']  = get_library_type(library['library_type'])
-            index_obj, self.errors['index'], self.warnings['index']  = get_index(library['index'])
-            platform_obj, self.errors['platform'], self.warnings['platform']  = get_platform(library['platform'])
+            library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
+            index_obj, self.errors['index'], self.warnings['index'] = get_index(library['index'])
+            platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(library['platform'])
 
             library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_type_obj,
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
-        if not self.errors:
+        sample_obj = None
+        if library_obj is not None or not is_library:
             sample_obj, self.errors['sample'], self.warnings['sample'] = \
                 create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
                                   creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
                                   concentration=sample['concentration'], tissue_source=sample['tissue_source'],
                                   experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                   library=library_obj, sample_kind=sample_kind_obj, comment=comment)
-
-        
 
         # Link sample to project if requested
         if project_obj and sample_obj:
