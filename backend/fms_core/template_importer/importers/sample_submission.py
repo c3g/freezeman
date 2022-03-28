@@ -40,6 +40,12 @@ class SampleSubmissionImporter(GenericImporter):
             individual_father = {
                 'name': row_data['Father ID'],
             }
+            library = {
+                'library_type': row_data['Library Type'],
+                'index': row_data['Index'],
+                'platform': row_data['Platform'],
+                'strandedness': row_data['Strandedness'],
+            }
             project = {
                 'name': row_data['Project'],
             }
@@ -59,6 +65,7 @@ class SampleSubmissionImporter(GenericImporter):
 
             sample_kwargs = dict(
                 sample=sample,
+                library=library,
                 container=container,
                 project=project,
                 parent_container=parent_container,
