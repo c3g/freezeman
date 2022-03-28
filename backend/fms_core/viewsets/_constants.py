@@ -68,6 +68,7 @@ _sample_filterset_fields: FiltersetFields = {
 
     "container": FK_FILTERS,  # PK
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
+    "derived_samples__qc_flag": CATEGORICAL_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("projects__", _project_minimal_filterset_fields),
     **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),

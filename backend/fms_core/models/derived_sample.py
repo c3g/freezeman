@@ -132,6 +132,14 @@ class DerivedSample(TrackedModel):
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)
         return next(iter([(sample, sample.extracted_from) for sample in self.samples.all() if sample.extracted_from]), (None, None))
 
+    @property
+    def qc_flag(self): # Combine both quantity and quality into a single indicator for filtering nad ordering
+        if self.quality_flag is None or self.quantity_flag is None:
+            return None
+        else:
+            return "Passed" if self.quality_flag and self.quantity_flag else "Failed"
+
+
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
         self.tissue_source = str_cast_and_normalize(self.tissue_source)

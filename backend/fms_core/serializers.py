@@ -274,11 +274,12 @@ class SampleSerializer(serializers.ModelSerializer):
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    qc_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.qc_flag")
     is_library = serializers.CharField(read_only=True)
 
     class Meta:
         model = Sample
-        exclude = ('derived_samples', )
+        exclude = ('derived_samples')
 
     def get_extracted_from(self, obj):
         return obj.extracted_from and obj.extracted_from.id
@@ -299,8 +300,6 @@ class SampleExportSerializer(serializers.ModelSerializer):
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
-    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
@@ -369,6 +368,8 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     quantity_flag = serializers.SerializerMethodField()
     quality_flag = serializers.SerializerMethodField()
+    qc_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.qc_flag")
+    
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
@@ -394,6 +395,7 @@ class LibrarySerializer(serializers.ModelSerializer):
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
     quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    qc_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.qc_flag")
     concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
     concentration_nm = serializers.SerializerMethodField()
     quantity_ng = serializers.SerializerMethodField()
@@ -406,7 +408,7 @@ class LibrarySerializer(serializers.ModelSerializer):
         model = Sample
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
-                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
+                  'quantity_flag', 'qc_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
     
     def get_quality_flag(self, obj):
         if obj.derived_sample_not_pool.quality_flag is None:
