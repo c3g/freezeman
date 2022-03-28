@@ -57,7 +57,7 @@ class ProcessMeasurementViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def get_serializer_class(self):
         if self.action == "list_export":
             queryset = self.filter_queryset(self.get_queryset())
-            if queryset.distinct("process__protocol").count() == 1:
+            if queryset.values("process__protocol").distinct().count() == 1:
                 return ProcessMeasurementWithPropertiesExportSerializer
             else:
                 return ProcessMeasurementExportSerializer

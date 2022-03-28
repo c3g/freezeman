@@ -4,6 +4,8 @@ import Individuals from "../individuals/actions";
 import Users from "../users/actions";
 import Groups from "../groups";
 import Samples from "../samples/actions";
+import Libraries from "../libraries/actions";
+import LibraryTypes from "../libraryTypes/actions";
 import ProcessMeasurements from "../processMeasurements/actions";
 import Projects from "../projects/actions";
 import Protocols from "../protocols/actions";
@@ -24,11 +26,13 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Indices.summary,
         Samples.listKinds,
         Samples.summary,
+        Libraries.summary,
         Projects.summary,
         Protocols.list,
         ProcessMeasurements.summary,
         Users.listTable,
         Groups.list,
+        LibraryTypes.list,
     ].map(a => dispatch(a())))
 
     await Promise.all([
@@ -37,6 +41,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Indices.listTable,
         Individuals.listTable,
         Samples.listTable,
+        Libraries.listTable,
         Projects.listTable,
         ProcessMeasurements.listTable,
     ].map(a => dispatch(a())))
@@ -46,10 +51,12 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Containers.listTemplateActions,
         Indices.listTemplateActions,
         Samples.listTemplateActions,
+        Libraries.listTemplateActions,
         ProcessMeasurements.listTemplateActions,
         ExperimentRuns.listTemplateActions,
         Projects.listTemplateActions,
         Samples.listPrefillTemplates,
+        Libraries.listPrefillTemplates,
         Containers.listPrefillTemplates,
     ].map(a => dispatch(a())))
 }
@@ -63,6 +70,8 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
         Containers.summary,
         Indices.summary,
         Samples.summary,
+        Libraries.summary,
+        LibraryTypes.list,
         Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))
@@ -81,6 +90,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Indices.listTable,
         Individuals.listTable,
         Samples.listTable,
+        Libraries.listTable,
         Projects.listTable,
         ProcessMeasurements.listTable,
         Protocols.list,
@@ -91,6 +101,7 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Containers.summary,
         Indices.summary,
         Samples.summary,
+        Libraries.summary,
         Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))

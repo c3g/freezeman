@@ -10,17 +10,16 @@ from ..utils import RE_SEPARATOR
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleSelectionQPCRImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
+from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
 
-from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
+from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
-
-from rest_framework.response import Response
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
@@ -58,9 +57,21 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         },
         {
             "name": "Sample Selection Using qPCR",
-            "description": "Upload the provided template with samples to perfom a sample selection using qPCR",
+            "description": "Upload the provided template with samples to perform a sample selection using qPCR.",
             "template": [SAMPLE_SELECTION_QPCR_TEMPLATE["identity"]],
             "importer": SampleSelectionQPCRImporter,
+        },
+        {
+            "name": "Prepare Libraries",
+            "description": "Upload the provided template with information to prepare libraries with the possibility to group them by batch.",
+            "template": [LIBRARY_PREPARATION_TEMPLATE["identity"]],
+            "importer": LibraryPreparationImporter,
+        },
+        {
+            "name": "Add Experiments",
+            "description": "Upload the provided template with experiment run information.",
+            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"]],
+            "importer": ExperimentRunImporter,
         },
     ]
 
@@ -71,8 +82,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": PROJECT_LINK_SAMPLES_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
+        {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
-        {"template": EXPERIMENT_MGI_TEMPLATE},
     ]
 
     def get_queryset(self):

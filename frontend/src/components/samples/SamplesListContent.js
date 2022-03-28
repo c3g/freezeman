@@ -6,8 +6,8 @@ import {Button, Tag} from "antd";
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import {SampleDepletion} from "./SampleDepletion";
-import {QCFlag} from "./QCFlag";
+import {Depletion} from "../Depletion";
+import {QCFlag} from "../QCFlag";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
@@ -139,7 +139,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       title: "Depleted",
       dataIndex: "depleted",
       sorter: true,
-      render: depleted => <SampleDepletion depleted={depleted} />,
+      render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
   ];

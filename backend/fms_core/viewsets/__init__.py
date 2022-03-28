@@ -18,6 +18,9 @@ from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
 from .sequence import SequenceViewSet
+from .library import LibraryViewSet
+from .platform import PlatformViewSet
+from .library_type import LibraryTypeViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -40,4 +43,7 @@ __all__ = [
     "VersionViewSet",
     "ProjectViewSet",
     "SequenceViewSet",
+    "LibraryViewSet",
+    "PlatformViewSet",
+    "LibraryTypeViewSet",
 ]

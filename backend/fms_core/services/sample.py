@@ -2,15 +2,14 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
 from ..utils import RE_SEPARATOR, float_to_decimal
 
 def create_full_sample(name, volume, collection_site, creation_date,
-                       container, sample_kind,
-                       individual=None,
+                       container, sample_kind, library=None, individual=None,
                        coordinates=None, alias=None, concentration=None, tissue_source=None,
                        experimental_group=None, comment=None):
     sample = None
@@ -44,6 +43,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
             derived_sample_data = dict(
                 biosample_id=biosample.id,
                 sample_kind=sample_kind,
+                **(dict(library=library) if library is not None else dict()),
                 **(dict(tissue_source=tissue_source) if tissue_source is not None else dict()),
             )
             if experimental_group:
@@ -296,6 +296,86 @@ def extract_sample(process: Process,
             errors.append(e)
 
     return (sample_destination, errors, warnings)
+
+
+def prepare_library(process: Process,
+                    sample_source: Sample,
+                    container_destination: Container,
+                    library: Library,
+                    volume_used,
+                    execution_date: datetime.date,
+                    coordinates_destination=None,
+                    volume_destination=None,
+                    comment=None):
+    sample_destination = None
+    errors = []
+    warnings = []
+
+    if not process:
+        errors.append(f"Process is required.")
+    if not sample_source:
+        errors.append(f"Source sample is required.")
+    if not container_destination:
+        errors.append(f"Destination container is required.")
+
+    if volume_used is None:
+        errors.append(f"Volume used is required.")
+    else:
+        if volume_used <= 0:
+            errors.append(f"Volume used ({volume_used}) is invalid.")
+        if sample_source and volume_used > sample_source.volume:
+            errors.append(
+                f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample_source.volume}).")
+
+    if not isinstance(execution_date, date):
+        errors.append(f"Execution date is not valid.")
+
+    if not errors:
+        try:
+            sample_source.volume = sample_source.volume - volume_used
+            sample_source.save()
+
+            sample_destination_data = dict(
+                container_id=container_destination.id,
+                coordinates=coordinates_destination if coordinates_destination else "",
+                creation_date=execution_date,
+                volume=volume_destination if volume_destination is not None else volume_used,
+                depleted=False
+            )
+
+            new_derived_sample_data = {
+                "library_id": library.id,
+                "quality_flag": None,
+                "quantity_flag": None,
+            }
+            derived_samples_destination = []
+            volume_ratios = {}
+            for derived_sample_source in sample_source.derived_samples.all():
+                new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
+                                                                                              new_derived_sample_data)
+                errors.extend(errors_inherit)
+                warnings.extend(warnings_inherit)
+
+                derived_samples_destination.append(new_derived_sample)
+                volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source,
+                                                                                   derived_sample=derived_sample_source).volume_ratio
+
+            sample_destination, errors_process, warnings_process = _process_sample(process,
+                                                                                   sample_source,
+                                                                                   sample_destination_data,
+                                                                                   derived_samples_destination,
+                                                                                   volume_ratios,
+                                                                                   execution_date,
+                                                                                   volume_used,
+                                                                                   comment)
+            errors.extend(errors_process)
+            warnings.extend(warnings_process)
+
+        except Exception as e:
+            errors.append(e)
+
+    return sample_destination, errors, warnings
+
 
 def _process_sample(process,
                     sample_source,

@@ -49,6 +49,18 @@ import {
 import {
   sequences,
 } from "./modules/sequences/reducers";
+import {
+  librariesSummary,
+  libraries,
+  libraryTemplateActions,
+  libraryPrefillTemplates
+} from "./modules/libraries/reducers";
+import {
+  libraryTypes,
+} from "./modules/libraryTypes/reducers";
+import {
+  platforms,
+} from "./modules/platforms/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
@@ -96,6 +108,12 @@ const allReducers = combineReducers({
   indicesTemplateActions,
   propertyValues,
   sequences,
+  librariesSummary,
+  libraries,
+  libraryTemplateActions,
+  libraryPrefillTemplates,
+  libraryTypes,
+  platforms,
   users,
   groups,
   pagination,

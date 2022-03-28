@@ -1,70 +1,81 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.library import prepare_library
-from fms_core.services.library import get_library_type
-from fms_core.services.platform import get_platform
-from fms_core.services.container import create_container, get_container
+from fms_core.services.sample import get_sample_from_container, prepare_library
+from fms_core.services.container import get_container, get_or_create_container
+from fms_core.services.index import get_index
+from fms_core.services.library import create_library
 
 
-class LibraryPreparationRowHandler(GenericRowHandler):
+
+class LibraryRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row(self, **kwargs):
-        if len(kwargs['library_rows_info']) < 1:
-            self.errors['libraries'] = f"There is no library listed for your preparation {kwargs['library_batch_id']}."
+    def process_row_inner(self, library_batch_info, source_sample, volume_used,
+                          comment, container, volume, index, strandedness):
 
-        return super(self.__class__, self).process_row(**kwargs)
+        if not library_batch_info:
+            self.errors['library_preparation'] = 'No batch is associated with this library.'
 
-    def process_row_inner(self, library_type, library_size, library_date, platform, comment,
-                          library_rows_info, protocol, process_properties):
+        # Calling the service creator for Samples in LibraryPreparation
+        source_sample_obj, self.errors['container'], self.warnings['container'] = \
+            get_sample_from_container(barcode=source_sample['barcode'], coordinates=source_sample['coordinates'])
 
-        library_type_obj, self.errors['experiment_type'], self.warnings['experiment_type'] = \
-            get_library_type(library_type['name'])
+        if not volume_used:
+            self.errors['volume_used'] = f"Volume used must be entered"
+        elif source_sample_obj and volume_used > source_sample_obj.volume:
+            self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
 
-        platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(platform['name'])
-
-        if library_type_obj and platform_obj:
+        if source_sample_obj:
             # Populate the libraries with the batch and  individual information
-            libraries_info = []
-            for library_info in library_rows_info:
-                container = library_info['container']
-                container_coordinates = container['coordinates']
+            container_coordinates = container['coordinates']
 
-                container_parent_obj = None
-                if container['parent_barcode']:
-                    container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
-                        get_container(barcode=container['parent_barcode'])
+            container_parent_obj = None
+            if container['parent_barcode']:
+                container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
+                    get_container(barcode=container['parent_barcode'])
 
-                container_obj, self.errors['library_container'], self.warnings['library_container'] = create_container(
-                    name=container['name'],
-                    barcode=container['barcode'],
-                    kind=container['kind'],
-                    container_parent=container_parent_obj if container_parent_obj else None,
-                    coordinates=container['parent_coordinates'] if container_parent_obj else None,
-                    creation_comment=library_info['comment'])
+            container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
+                name=container['name'],
+                barcode=container['barcode'],
+                kind=container['kind'],
+                container_parent=container_parent_obj if container_parent_obj else None,
+                coordinates=container['parent_coordinates'] if container_parent_obj else None,
+                creation_comment=comment)
 
-                library = dict(
-                    library_type=library_type,
-                    library_size=library_size,
-                    library_date=library_date,
-                    platform=library_info['platform'],
-                    index=library_info['index'],
-                    library_volume=library_info['volume'],
-                    library_comment=library_info['comment'],
-                    container=container_obj,
-                    container_coordinates=container_coordinates,
-                    # Process measurement information,
-                    source_sample=library_info['sample'],
-                    volume_used=library_info['volume_used'],
-                )
+            if container_obj and not created:
+                self.warnings['library_container'] = f'Using existing container {container_obj.name}'
 
-                libraries_info.append(library)
+            index_obj, self.errors['index'], self.warnings['index'] = get_index(index)
 
-            if not self.errors:
-                _, self.errors['library'], self.warnings['library'] = prepare_library(libraries_info,
-                                                                                      protocol=protocol,
-                                                                                      process_properties=process_properties,
-                                                                                      process_comment=comment)
+            library_info = dict(
+                library_type=library_batch_info['library_type'],
+                library_date=library_batch_info['library_date'],
+                platform=library_batch_info['platform'],
+                index=index_obj,
+                strandedness=strandedness,
+            )
+
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_info['library_type'],
+                                                                                           index=index_obj,
+                                                                                           platform=library_info['platform'],
+                                                                                           strandedness=strandedness)
+
+            protocol = library_batch_info['protocol']
+            process_by_protocol = library_batch_info['process_by_protocol']
+
+            # Retrieve process
+            process_obj = process_by_protocol[protocol.id]
+
+            sample_destination, self.errors['library_preparation'], self.warnings['library_preparation'] = \
+                prepare_library(process=process_obj,
+                                sample_source=source_sample_obj,
+                                container_destination=container_obj,
+                                library=library_obj,
+                                volume_used=volume_used,
+                                execution_date=library_info['library_date'],
+                                coordinates_destination=container_coordinates,
+                                volume_destination=volume,
+                                comment=comment)
         else:
-            self.errors['library_preparation'] = f"Errors prevent the creation of the library."
+            self.errors['sample_source'] = 'Sample source is needed to prepare a library.'

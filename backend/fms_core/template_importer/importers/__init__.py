@@ -10,6 +10,7 @@ from .sample_selection_qpcr import SampleSelectionQPCRImporter
 from .extraction import ExtractionImporter
 from .transfer import TransferImporter
 from .project_link_sample import ProjectLinkSamples
+from .library_preparation import LibraryPreparationImporter
 
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     'ProjectLinkSamples',
     "ContainerRenameImporter",
     "ContainerMoveImporter",
+    "LibraryPreparationImporter",
 ]

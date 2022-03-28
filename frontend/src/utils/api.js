@@ -53,6 +53,20 @@ const api = {
     list: () => get("/run-types/"),
   },
 
+  indices: {
+    get: indexId => get(`/indices/${indexId}/`),
+    list: (options, abort) => get("/indices", options, { abort }),
+    listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
+    listSets: () => get("/indices/list_sets/"),
+    summary: () => get("/indices/summary"),
+    template: {
+      actions: () => get(`/indices/template_actions/`),
+      check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/indices/template_submit/`, form({ action, template })),
+    },
+    validate: (options) => get("/indices/validate/", options),
+  },
+
   individuals: {
     get: individualId => get(`/individuals/${individualId}/`),
     add: individual => post("/individuals/", individual),
@@ -65,6 +79,33 @@ const api = {
   instruments: {
     list: () => get("/instruments/"),
     listTypes: () => get("/instruments/list_types"),
+  },
+
+  libraries: {
+    get: libraryId => get(`/libraries/${libraryId}/`),
+    list: (options, abort) => get("/libraries", options, { abort }),
+    listExport: options => get("/libraries/list_export/", {format: "csv", ...options}),
+    summary: () => get("/libraries/summary/"),
+    template: {
+      actions: () => get(`/libraries/template_actions/`),
+      check:  (action, template) => post(`/libraries/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/libraries/template_submit/`, form({ action, template })),
+    },
+    prefill: {
+      templates: () => get(`/libraries/list_prefills/`),
+      request: (options, template) => get(`/libraries/prefill_template/`, {template: template, ...options}),
+    },
+    search: q => get("/libraries/search/", { q }),
+  },
+
+  libraryTypes: {
+    get: libraryTypeId => get(`/library-types/${libraryTypeId}/`),
+    list: (options, abort) => get("/library-types/", options, { abort }),
+  },
+
+  platforms: {
+    get: platformId => get(`/platforms/${platformId}/`),
+    list: (options, abort) => get("/platforms/", options, { abort }),
   },
 
   processes: {
@@ -98,20 +139,6 @@ const api = {
     },
   },
 
-  indices: {
-    get: indexId => get(`/indices/${indexId}/`),
-    list: (options, abort) => get("/indices", options, { abort }),
-    listExport: options => get("/indices/list_export/", {format: "csv", ...options}),
-    listSets: () => get("/indices/list_sets/"),
-    summary: () => get("/indices/summary"),
-    template: {
-      actions: () => get(`/indices/template_actions/`),
-      check:  (action, template) => post(`/indices/template_check/`, form({ action, template })),
-      submit: (action, template) => post(`/indices/template_submit/`, form({ action, template })),
-    },
-    validate: (options) => get("/indices/validate/", options),
-  },
-
   propertyValues: {
     list: (options, abort) => get("/property-values/", options, { abort }),
   },
@@ -138,7 +165,7 @@ const api = {
       templates: () => get(`/samples/list_prefills/`),
       request: (options, template) => get(`/samples/prefill_template/`, {template: template, ...options}),
     },
-    search: q => get("/full-samples/search/", { q }),
+    search: q => get("/samples/search/", { q }),
   },
 
   sampleKinds: {

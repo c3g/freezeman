@@ -37,11 +37,12 @@ export const indices = (
               { error: action.error, isFetching: false, didFail: true });
 
         case INDICES.SET_SORT_BY:
-            return { ...state, sortBy: action.data };
+            return { ...state, sortBy: action.data, items: [] };
         case INDICES.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case INDICES.SET_FILTER_OPTION:
@@ -52,12 +53,14 @@ export const indices = (
                     [action.data.name, 'options', action.data.option],
                     action.data.value
                 ),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case INDICES.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
 
@@ -65,9 +68,8 @@ export const indices = (
             return { ...state, isFetching: true, };
         case INDICES.LIST.RECEIVE: {
             const results = action.data.results.map(preprocess)
-            const temporaryItems = action.data.results.map(r => r.id)
-            const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            return { ...state, itemsByID, temporaryItems, isFetching: false, error: undefined };
+            const itemsByID = merge(state.itemsByID, [], indexByID(results, "id"));
+            return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case INDICES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };

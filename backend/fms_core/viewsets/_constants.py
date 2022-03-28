@@ -51,7 +51,6 @@ _sample_kind_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
-
 _project_minimal_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -151,4 +150,36 @@ _index_filterset_fields: FiltersetFields = {
 _sequence_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "value": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_library_type_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_platform_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+# library uses a sample queryset. basic fields are sample fields.
+_library_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "volume": SCALAR_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "creation_date": DATE_FILTERS,
+    "coordinates": FREE_TEXT_FILTERS,
+
+    "container": FK_FILTERS,  # PK
+    **_prefix_keys("container__", _container_filterset_fields),
+
+    **_prefix_keys("projects__", _project_minimal_filterset_fields),
+
+    "derived_samples__library": FK_FILTERS,  # PK
+    **_prefix_keys("derived_samples__library__library_type__", _library_type_filterset_fields),
+    **_prefix_keys("derived_samples__library__platform__", _platform_filterset_fields),
+    **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
+    "derived_samples__library__library_size": SCALAR_FILTERS,
 }

@@ -5,6 +5,7 @@ import {Button, Card, Col, Row, Statistic} from "antd";
 
 import CONTAINERS from "../modules/containers/actions";
 import SAMPLES from "../modules/samples/actions";
+import LIBRARIES from "../modules/libraries/actions";
 import PROCESS_MEASUREMENTS from "../modules/processMeasurements/actions";
 import PROJECTS from "../modules/projects/actions";
 import INDICES from "../modules/indices/actions";
@@ -37,16 +38,19 @@ const WIDE_BUTTON_COL_PROPS = {
 const DashboardPage = ({
   containersSummary,
   samplesSummary,
+  librariesSummary,
   processMeasurementsSummary,
   projectsSummary,
   indicesSummary,
   protocolsByID,
+  libraryTypesByID,
   templates,
   listActions,
 }) => {
   useEffect(() => {
     listActions.container();
     listActions.sample();
+    listActions.library();
     listActions.process();
     listActions.project();
     listActions.indices();
@@ -112,10 +116,19 @@ const DashboardPage = ({
             </Row>
           </Card>
           <div style={{ display: 'flex', marginBottom: '1em' }}></div>
-          <Card title="Indices" {...CARD_PROPS}>
-            <Statistic title="Total Indices" value={indicesSummary.total_count || "—"} />
+          <Card title="Libraries" {...CARD_PROPS}>
             <Row gutter={16}>
-              {actionsToButtonList("/indices", templates.index, true).map((l, i) =>
+              <Col {...STATS_COL_PROPS}>
+                <Statistic title="Total Libraries" value={librariesSummary.total_count || "—"} />
+              </Col>
+              <Col {...STATS_COL_PROPS}>
+                {((librariesSummary.library_type_counts && Object.keys(librariesSummary.library_type_counts)) || []).map((library_type) =>
+                  <Statistic title={libraryTypesByID[library_type]?.name} value={librariesSummary.library_type_counts[library_type] || "—"} />
+                )}
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              {actionsToButtonList("/libraries", templates.library, true).map((l, i) =>
                 <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
               )}
             </Row>
@@ -140,6 +153,15 @@ const DashboardPage = ({
             </Row>
           </Card>
           <div style={{ display: 'flex', marginBottom: '1em' }}></div>
+          <Card title="Indices" {...CARD_PROPS}>
+            <Statistic title="Total Indices" value={indicesSummary.total_count || "—"} />
+            <Row gutter={16}>
+              {actionsToButtonList("/indices", templates.index, true).map((l, i) =>
+                <Col key={i} {...WIDE_BUTTON_COL_PROPS}>{l}</Col>
+              )}
+            </Row>
+          </Card>
+          <div style={{ display: 'flex', marginBottom: '1em' }}></div>
           <Card title="Other" {...CARD_PROPS}>
             <Row gutter={16}>
               <Col {...WIDE_BUTTON_COL_PROPS}>
@@ -158,13 +180,16 @@ const DashboardPage = ({
 const mapStateToProps = state => ({
   containersSummary: state.containersSummary.data,
   samplesSummary: state.samplesSummary.data,
+  librariesSummary: state.librariesSummary.data,
   processMeasurementsSummary: state.processMeasurementsSummary.data,
   projectsSummary: state.projectsSummary.data,
   indicesSummary: state.indicesSummary.data,
   protocolsByID: state.protocols.itemsByID,
+  libraryTypesByID: state.libraryTypes.itemsByID,
   templates: {
     container: state.containerTemplateActions,
     sample: state.sampleTemplateActions,
+    library: state.libraryTemplateActions,
     processMeasurement: state.processMeasurementTemplateActions,
     project: state.projectTemplateActions,
     index: state.indicesTemplateActions,
@@ -175,6 +200,7 @@ const mapDispatchToProps = dispatch => ({
   listActions: {
     container: () => dispatch(CONTAINERS.listTemplateActions()),
     sample: () => dispatch(SAMPLES.listTemplateActions()),
+    library: () => dispatch(LIBRARIES.listTemplateActions()),
     process: () => dispatch(PROCESS_MEASUREMENTS.listTemplateActions()),
     project: () => dispatch(PROJECTS.listTemplateActions()),
     indices: () => dispatch(INDICES.listTemplateActions()),

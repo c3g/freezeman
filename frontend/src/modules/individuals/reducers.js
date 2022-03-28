@@ -76,11 +76,12 @@ export const individuals = (
             return { ...state, isFetching: false, error: action.error };
 
         case INDIVIDUALS.SET_SORT_BY:
-            return { ...state, sortBy: action.data };
+            return { ...state, sortBy: action.data, items: [] };
         case INDIVIDUALS.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.SET_FILTER_OPTION:
@@ -91,12 +92,14 @@ export const individuals = (
                     [action.data.name, 'options', action.data.option],
                     action.data.value
                 ),
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.CLEAR_FILTERS:
             return {
                 ...state,
                 filters: {},
+                items: [],
                 page: set(state.page, ['offset'], 0),
             };
 

@@ -8,9 +8,8 @@ from .library_type import LibraryType
 from .platform import Platform
 from .index import Index
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
-from ._validators import name_validator
 from ._utils import add_error as _add_error
+from ._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED, ssDNA_MW, dsDNA_MW
 
 __all__ = ["Library"]
 
@@ -24,6 +23,13 @@ class Library(TrackedModel):
                               help_text="The index associated to this library.")
     library_size = models.DecimalField(max_digits=20, decimal_places=0, null=True, blank=True,
                                         help_text="Average size of the nucleic acid strands in base pairs.")
+
+    strandedness = models.CharField(choices=((type, type) for type in STRANDEDNESS_CHOICES), max_length=20,
+                                    help_text="The status of the project.")
+
+    @property
+    def molecular_weight_approx(self) -> int:
+        return ssDNA_MW if self.strandedness is SINGLE_STRANDED else dsDNA_MW
     
     def clean(self):
         super().clean()
