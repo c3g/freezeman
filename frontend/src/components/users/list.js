@@ -18,6 +18,7 @@ const reports = [
    *   "groups": [],
    *   "is_staff": true,
    *   "is_superuser": true,
+   *   "is_active": true,
    *   "date_joined": "2020-05-25T20:35:40.599963Z"
    * }
    */

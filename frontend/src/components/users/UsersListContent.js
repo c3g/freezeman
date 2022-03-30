@@ -57,6 +57,12 @@ const getTableColumns = (groupsByID) => [
       sorter: true,
       render: value => value ? 'Yes' : 'No',
     },
+    {
+      title: "Active",
+      dataIndex: "is_active",
+      sorter: true,
+      render: value => value ? 'Yes' : 'No',
+    },
   ];
 
 
