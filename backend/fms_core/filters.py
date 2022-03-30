@@ -47,10 +47,8 @@ class SampleFilter(GenericFilter):
         condition = Q()
         for status in value.split(','):
             condition |= Q(value__icontains=status)
-            process_measurements_ids = property_values.filter(condition).values('object_id')
-            return queryset.filter(process_measurement__in=process_measurements_ids)
-        else:
-            return queryset
+        process_measurements_ids = property_values.filter(condition).values('object_id')
+        return queryset.filter(process_measurement__in=process_measurements_ids)
 
     class Meta:
         model = Sample
