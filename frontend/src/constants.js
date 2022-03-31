@@ -14,15 +14,16 @@ export const TISSUE_SOURCE = [
   "BAL",
   "Biopsy",
   "Blood",
+  "Buffy coat",
   "Cells",
   "Expectoration",
   "Gargle",
   "Plasma",
   "Saliva",
   "Swab",
-  "Tumor",
-  "Buffy coat",
   "Tail",
+  "Tissue",
+  "Tumor",
 ]
 
 export const SEX = [

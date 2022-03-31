@@ -25,7 +25,7 @@ class Library(TrackedModel):
                                         help_text="Average size of the nucleic acid strands in base pairs.")
 
     strandedness = models.CharField(choices=((type, type) for type in STRANDEDNESS_CHOICES), max_length=20,
-                                    help_text="The status of the project.")
+                                    help_text="Number of Library NA strands.")
 
     @property
     def molecular_weight_approx(self) -> int:

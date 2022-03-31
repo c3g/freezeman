@@ -76,6 +76,13 @@ def create_initial_library_types(apps, schema_editor):
             library_type = LibraryType.objects.create(name=library_type_name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
             reversion.add_to_revision(library_type)
 
+def add_tissue_sample_kind(apps, schema_editor):
+    SampleKind = apps.get_model("fms_core", "SampleKind")
+    with reversion.create_revision(manage_manually=True):
+        admin_id = User.objects.get(username="biobankadmin").id
+        tissue_sample_kind = SampleKind.objects.create(name='TISSUE', created_by_id=admin_id, updated_by_id=admin_id)
+        reversion.add_to_revision(tissue_sample_kind)
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -119,7 +126,7 @@ class Migration(migrations.Migration):
                 ('index', models.ForeignKey(help_text='The index associated to this library.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.index')),
                 ('library_type', models.ForeignKey(help_text='Library type describing the library.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.librarytype')),
                 ('platform', models.ForeignKey(help_text='The platform for which the library has been prepared.', on_delete=django.db.models.deletion.PROTECT, related_name='libraries', to='fms_core.platform')),
-                ('strandedness', models.CharField(choices=[('Double stranded', 'Double stranded'), ('Single stranded', 'Single stranded')], help_text='The status of the project.', max_length=20, default="Double stranded")),
+                ('strandedness', models.CharField(choices=[('Double stranded', 'Double stranded'), ('Single stranded', 'Single stranded')], help_text='Number of Library NA strands.', max_length=20)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_library_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -134,5 +141,14 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_initial_library_types,
             reverse_code=migrations.RunPython.noop,
-        )
+        ),
+        migrations.RunPython(
+            add_tissue_sample_kind,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='derivedsample',
+            name='tissue_source',
+            field=models.CharField(blank=True, choices=[('BAL', 'BAL'), ('Biopsy', 'Biopsy'), ('Blood', 'Blood'), ('Buffy coat', 'Buffy coat'), ('Cells', 'Cells'), ('Expectoration', 'Expectoration'), ('Gargle', 'Gargle'), ('Plasma', 'Plasma'), ('Saliva', 'Saliva'), ('Swab', 'Swab'), ('Tail', 'Tail'), ('Tissue', 'Tissue'), ('Tumor', 'Tumor')], help_text='Can only be specified if the biospecimen type is DNA or RNA.', max_length=200),
+        ),
     ]
