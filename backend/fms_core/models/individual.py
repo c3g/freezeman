@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from .tracked_model import TrackedModel
+from .taxon import Taxon
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
@@ -41,7 +42,8 @@ class Individual(TrackedModel):
     )
 
     name = models.CharField(max_length=200, unique=True, help_text="Unique identifier for the individual.")
-    taxon = models.CharField(choices=TAXON_CHOICES, max_length=20, help_text="Taxonomic group of a species.")
+    taxon =  models.ForeignKey(Taxon, on_delete=models.PROTECT,
+                               help_text="Taxonomic entry associated to the individual.")
     sex = models.CharField(choices=SEX_CHOICES, max_length=10, help_text="Sex of the individual.")
     pedigree = models.CharField(max_length=200, blank=True, help_text="Common ID to associate children and parents.")
     mother = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="mother_of",
