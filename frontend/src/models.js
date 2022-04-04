@@ -97,9 +97,9 @@ export const user = {
   password: "",
   groups: [],
   // user_permissions: [], // To be implemented maybe
-  // is_active: true, // To soft-delete the user
   is_staff: false,
   is_superuser: false,
+  is_active: true, // To soft-delete the user
   // last_login: null,
   date_joined: null,
 }
@@ -111,6 +111,7 @@ export const user = {
 //     "groups": [],
 //     "is_staff": true,
 //     "is_superuser": true,
+//     "is_active": true,
 //     "date_joined": "2021-02-19T17:10:07.503174Z"
 // }
 

@@ -1,10 +1,11 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import permission_required
 
 from rest_framework import viewsets
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions
+from rest_framework.permissions import IsAuthenticated, DjangoModelPermissions, IsAdminUser
 
 from fms_core.serializers import UserSerializer
 
@@ -18,6 +19,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "update_self":
             permission_classes = [IsAuthenticated]
+        elif self.action == "partial_update" or self.action == "update" or self.action == "create" or self.action == "destroy":
+            permission_classes = [IsAdminUser]
         else:
             permission_classes = [DjangoModelPermissions]
         return [permission() for permission in permission_classes]
@@ -39,7 +42,7 @@ class UserViewSet(viewsets.ModelViewSet):
         Updates the user's own data, excluding permission fields
         """
         data = request.data
-        restricted_fields = ["groups", "is_staff", "is_superuser", "username", "email"]
+        restricted_fields = ["groups", "is_staff", "is_superuser", "is_active", "username", "email"]
         if any([field in data for field in restricted_fields]):
             return Response({
                 "ok": False,
