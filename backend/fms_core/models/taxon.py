@@ -28,13 +28,14 @@ class Taxon(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        self.normalize()
+        taxon_similar_name = Taxon.objects.filter(name__iexact=self.name).first()
+        if taxon_similar_name and taxon_similar_name.id != self.id:
+            add_error("name", f"Another taxon with a similar name ({taxon_similar_name.name}) exists. Two taxon names cannot be distinguished only by letter case.")
 
         if errors:
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         # Normalize and validate before saving, always!
-        self.normalize()
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object

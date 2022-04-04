@@ -39,7 +39,7 @@ class FullSampleTest(TestCase):
         self.assertEqual(sample.volume, Decimal("5000.000"))
         self.assertEqual(sample.derived_sample_not_pool.biosample.individual_name, "jdoe")
         self.assertEqual(sample.derived_sample_not_pool.biosample.individual_sex, Individual.SEX_UNKNOWN)
-        self.assertEqual(sample.derived_sample_not_pool.biosample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
+        self.assertEqual(sample.derived_sample_not_pool.biosample.individual_taxon, "Homo Sapiens")
         self.assertEqual(sample.derived_sample_not_pool.biosample.individual_cohort, "covid-19")
         self.assertEqual(sample.derived_sample_not_pool.biosample.individual_pedigree, "")
         self.assertIsNone(sample.derived_sample_not_pool.biosample.individual_mother)

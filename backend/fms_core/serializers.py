@@ -137,6 +137,8 @@ class RunTypeSerializer(serializers.ModelSerializer):
 
 
 class IndividualSerializer(serializers.ModelSerializer):
+    taxon = serializers.CharField(read_only=True, source="taxon.name")
+
     class Meta:
         model = Individual
         fields = "__all__"
@@ -289,7 +291,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     sample_name = serializers.CharField(source="name")
     individual_name = serializers.CharField(read_only=True, source="biosample_not_pool.individual.name")
-    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon")
+    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon.name")
     sex = serializers.CharField(read_only=True, source="biosample_not_pool.individual.sex")
     pedigree = serializers.CharField(read_only=True, source="biosample_not_pool.individual.pedigree")
     cohort = serializers.CharField(read_only=True, source="biosample_not_pool.individual.cohort")

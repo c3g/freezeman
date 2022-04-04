@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, SampleKind, ProcessMeasurement, PropertyType, PropertyValue
+from fms_core.models import Sample, SampleKind, ProcessMeasurement, PropertyType, PropertyValue, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -44,11 +44,12 @@ class SampleSelectionQPCRTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name='SWAB')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         (container1, errors, warnings) = create_container(barcode='CONTAINER4QPCR1', kind='Tube', name='Container4QPCR1')
         (container2, errors, warnings) = create_container(barcode='CONTAINER4QPCR2', kind='Tube', name='Container4QPCR2')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4QPCR', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4QPCR', taxon=taxon)
 
         # self.positive_sample
         create_full_sample(name=self.positive_sample["sample_name"], volume=100, concentration=25, collection_site='TestCaseSite',

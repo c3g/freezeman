@@ -27,7 +27,7 @@ _container_filterset_fields: FiltersetFields = {
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
-    "taxon": CATEGORICAL_FILTERS,
+    "taxon": FK_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
     "cohort": CATEGORICAL_FILTERS_LOOSE,

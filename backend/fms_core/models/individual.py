@@ -19,18 +19,6 @@ class Individual(TrackedModel):
     Class to store information about an Individual.
     """
 
-    TAXON_HOMO_SAPIENS = "Homo sapiens"
-    TAXON_MUS_MUSCULUS = "Mus musculus"
-    TAXON_SARS_COV_2 = "Sars-Cov-2"
-    TAXON_IXODES_SCAPULARIS = "Ixodes scapularis"
-
-    TAXON_CHOICES = (
-        (TAXON_HOMO_SAPIENS, TAXON_HOMO_SAPIENS),
-        (TAXON_MUS_MUSCULUS, TAXON_MUS_MUSCULUS),
-        (TAXON_SARS_COV_2, TAXON_SARS_COV_2),
-        (TAXON_IXODES_SCAPULARIS, TAXON_IXODES_SCAPULARIS),
-    )
-
     SEX_MALE = "M"
     SEX_FEMALE = "F"
     SEX_UNKNOWN = "Unknown"

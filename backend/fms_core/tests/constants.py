@@ -67,7 +67,7 @@ def create_fullsample(name, alias, volume, individual, sample_kind, container, c
 def create_individual(individual_name, mother=None, father=None, **kwargs):
     return {
         'name': individual_name,
-        'taxon': Individual.TAXON_HOMO_SAPIENS,
+        'taxon': 1, # Matching TAXON_HOMO_SAPIENS
         'sex': Individual.SEX_UNKNOWN,
         'mother': mother,
         'father': father,

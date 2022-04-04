@@ -124,7 +124,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
+          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'NCBI Taxon ID #', 'Sample Coord',
                       'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
                       'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception Date', 'Comment']

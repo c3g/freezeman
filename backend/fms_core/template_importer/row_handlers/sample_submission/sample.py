@@ -7,7 +7,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.project_link_samples import create_link
 from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.individual import get_or_create_individual
+from fms_core.services.individual import get_or_create_individual, get_taxon
 from fms_core.services.sample import create_full_sample
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.platform import get_platform
@@ -41,11 +41,15 @@ class SampleRowHandler(GenericRowHandler):
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
         # Individual related section
+        taxon_obj = None
+        if individual['taxon']:
+            taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(ncbi_id=individual['taxon'])
+
         mother_obj = None
         if individual_mother['name']:
             mother_obj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=Individual.SEX_FEMALE,
                                          pedigree=individual["pedigree"])
 
@@ -53,7 +57,7 @@ class SampleRowHandler(GenericRowHandler):
         if individual_father['name']:
             father_obj, self.errors['individual_father'], self.warnings['individual_father'] = \
                 get_or_create_individual(name=individual_father['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=Individual.SEX_MALE,
                                          pedigree=individual["pedigree"])
 
@@ -83,7 +87,7 @@ class SampleRowHandler(GenericRowHandler):
         elif individual["name"]:
             individual_obj, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=individual['sex'],
                                          pedigree=individual['pedigree'],
                                          cohort=individual['cohort'],

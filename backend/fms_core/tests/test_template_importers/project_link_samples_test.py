@@ -6,7 +6,7 @@ import datetime
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import SampleKind, SampleByProject
+from fms_core.models import SampleKind, SampleByProject, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -41,12 +41,14 @@ class ProjectLinkSamplesTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
+        
 
         (container1, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES1', kind='Tube', name='Container4ProjectLinkSamples1')
         (container2, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES2', kind='Tube', name='Container4ProjectLinkSamples2')
         (container3, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES3', kind='Tube', name='Container4ProjectLinkSamples3')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon=taxon)
 
         self.sample1, _, _ = create_full_sample(name=self.sample1_name, volume=100, concentration=25,
                                                 collection_site='TestCaseSite', creation_date=datetime.datetime(2021, 1, 15, 0, 0),
