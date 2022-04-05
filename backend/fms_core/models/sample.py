@@ -47,6 +47,11 @@ class Sample(TrackedModel):
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage", symmetrical=False, related_name="parent_of")
 
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                       help_text='Quality flag of the sample.', max_length=20)
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                        help_text='Quantity flag of the sample.', max_length=20)
+
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
