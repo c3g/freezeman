@@ -24,12 +24,12 @@ const toOptions = values =>
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
-  taxonByID: state.taxons.itemsByID,
+  taxonsByID: state.taxons.itemsByID,
 });
 
 const actionCreators = {add, update, listTable};
 
-const IndividualEditContent = ({token, individualsByID, taxonByID, add, update, listTable}) => {
+const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update, listTable}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -85,7 +85,7 @@ const IndividualEditContent = ({token, individualsByID, taxonByID, add, update, 
    * Taxon autocomplete
    */
 
-  const [taxonOptions, setTaxonOptions] = useState(Object.values(taxonByID).map(Options.renderTaxon));
+  const [taxonOptions, setTaxonOptions] = useState(Object.values(taxonsByID).map(Options.renderTaxon));
   const onFocusTaxon = ev => { onSearchTaxon(ev.target.value) }
   const onSearchTaxon = input => {
     searchTaxons(token, input).then(taxons => {
