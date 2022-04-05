@@ -317,8 +317,8 @@ class SampleSerializer(serializers.ModelSerializer):
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
-    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    quality_flag = serializers.SerializerMethodField()
+    quantity_flag = serializers.SerializerMethodField()
     is_library = serializers.SerializerMethodField()
 
     class Meta:
@@ -330,6 +330,18 @@ class SampleSerializer(serializers.ModelSerializer):
     
     def get_is_library(self, obj):
         return obj.is_library
+
+    def get_quality_flag(self, obj):
+        if obj.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quality_flag else "Failed"
+
+    def get_quantity_flag(self, obj):
+        if obj.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quality_flag else "Failed"
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
