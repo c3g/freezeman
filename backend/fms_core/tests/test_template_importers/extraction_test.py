@@ -6,7 +6,7 @@ from decimal import Decimal
 from fms_core.template_importer.importers import ExtractionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement, SampleLineage
+from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement, SampleLineage, Taxon
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.individual import get_or_create_individual
@@ -24,6 +24,7 @@ class ExtractionTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name='BLOOD')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         samples_info = [
             {'name': 'sample1extraction', 'volume': 100, 'container_barcode': 'tube001', 'individual_name': 'Individual1Extraction'},
@@ -33,8 +34,7 @@ class ExtractionTestCase(TestCase):
         for info in samples_info:
             (container, _, errors, warnings) = get_or_create_container(barcode=info['container_barcode'], kind='tube', name=info['container_barcode'])
 
-            (individual, errors, warnings) = get_or_create_individual(name=info['individual_name'],
-                                                                      taxon='Homo sapiens')
+            (individual, errors, warnings) = get_or_create_individual(name=info['individual_name'], taxon=taxon)
             (sample, errors, warnings) = create_full_sample(name=info['name'], volume=info['volume'], collection_site='site1',
                                                             creation_date=datetime.datetime(2020, 5, 21, 0, 0),
                                                             container=container, individual=individual, sample_kind=sample_kind_BLOOD)

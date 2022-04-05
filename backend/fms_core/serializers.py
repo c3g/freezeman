@@ -23,6 +23,7 @@ from .models import (
     Sample,
     SampleKind,
     Sequence,
+    Taxon,
 )
 
 
@@ -37,6 +38,7 @@ __all__ = [
     "IndexSetSerializer",
     "IndexExportSerializer",
     "IndividualSerializer",
+    "IndividualExportSerializer",
     "InstrumentSerializer",
     "InstrumentTypeSerializer",
     "LibrarySerializer",
@@ -59,6 +61,7 @@ __all__ = [
     "ProjectSerializer",
     "ProjectExportSerializer",
     "SequenceSerializer",
+    "TaxonSerializer",
 ]
 
 
@@ -136,10 +139,52 @@ class RunTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class TaxonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Taxon
+        fields = "__all__"
+
+
 class IndividualSerializer(serializers.ModelSerializer):
     class Meta:
         model = Individual
         fields = "__all__"
+
+class IndividualExportSerializer(serializers.ModelSerializer):
+    individual_id = serializers.IntegerField(read_only=True, source="id")
+    individual_name = serializers.CharField(read_only=True, source="name")
+    mother_name = serializers.SerializerMethodField()
+    father_name = serializers.SerializerMethodField()
+    taxon_name = serializers.SerializerMethodField()
+    taxon_ncbi_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Individual
+        fields = ("individual_id",
+                  "individual_name",
+                  "mother_name",
+                  "father_name",
+                  "pedigree",
+                  "sex",
+                  "cohort",
+                  "taxon_name",
+                  "taxon_ncbi_id",)
+    
+    def get_father_name(self, obj):
+        father = '' if obj.father is None else obj.father.name
+        return father
+
+    def get_mother_name(self, obj):
+        mother = '' if obj.mother is None else obj.mother.name
+        return mother
+
+    def get_taxon_name(self, obj):
+        taxon = '' if obj.taxon is None else obj.taxon.name
+        return taxon
+
+    def get_taxon_ncbi_id(self, obj):
+        ncbi_id = '' if obj.taxon is None else obj.taxon.ncbi_id
+        return ncbi_id
 
 
 class InstrumentSerializer(serializers.ModelSerializer):
@@ -272,7 +317,9 @@ class SampleSerializer(serializers.ModelSerializer):
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    is_library = serializers.CharField(read_only=True)
+    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
+    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    is_library = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -280,6 +327,9 @@ class SampleSerializer(serializers.ModelSerializer):
 
     def get_extracted_from(self, obj):
         return obj.extracted_from and obj.extracted_from.id
+    
+    def get_is_library(self, obj):
+        return obj.is_library
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
@@ -287,7 +337,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     sample_name = serializers.CharField(source="name")
     individual_name = serializers.CharField(read_only=True, source="biosample_not_pool.individual.name")
-    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon")
+    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon.name")
     sex = serializers.CharField(read_only=True, source="biosample_not_pool.individual.sex")
     pedigree = serializers.CharField(read_only=True, source="biosample_not_pool.individual.pedigree")
     cohort = serializers.CharField(read_only=True, source="biosample_not_pool.individual.cohort")
@@ -309,7 +359,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
     quality_flag = serializers.SerializerMethodField()
     depleted = serializers.SerializerMethodField()
     # Library
-    is_library = serializers.CharField(read_only=True)
+    is_library = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -351,6 +401,9 @@ class SampleExportSerializer(serializers.ModelSerializer):
 
     def get_depleted(self, obj):
         return "Yes" if obj.depleted else "No"
+
+    def get_is_library(self, obj):
+        return obj.is_library
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):

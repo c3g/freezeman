@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import SampleUpdateImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement
+from fms_core.models import Sample, Individual, SampleKind, ProcessMeasurement, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -30,10 +30,11 @@ class SampleUpdateTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         (container, errors, warnings) = create_container(barcode='CONTAINER4SAMPLEUPDATE', kind='Tube', name='Container4SampleUpdate')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=100, concentration=25, collection_site='TestCaseSite',
                            creation_date=datetime.datetime(2021, 1, 15, 0, 0),

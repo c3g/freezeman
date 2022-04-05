@@ -12,6 +12,18 @@ export function renderGroup(g) {
   return { value: g.id, label: g.name }
 }
 
+export function renderTaxon(t) {
+  return {
+    value: t.id,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {t.name}{' '}
+        <Text type="secondary">NCBI:txid{t.ncbi_id}</Text>
+      </div>
+    )
+  }
+}
+
 export function renderIndividual(i) {
   return {
     value: i.id,

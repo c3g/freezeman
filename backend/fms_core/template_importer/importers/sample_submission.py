@@ -31,7 +31,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'name': row_data['Individual ID'],
                 'sex': row_data['Sex'],
                 'pedigree': row_data['Pedigree'],
-                'taxon': row_data['Taxon'],
+                'taxon': row_data['NCBI Taxon ID #'],
                 'cohort': row_data['Cohort'],
             }
             individual_mother = {
