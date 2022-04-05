@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.db import migrations, models
 import django.db.models.deletion
 import re
-from backend.fms_core.models.individual import Individual
 import reversion
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -39,7 +38,7 @@ def initialize_taxons(apps, schema_editor):
             taxon_map[name] = taxon.id
 
         for individual in Individual.objects.all():
-            individual.taxon_fk = taxon_map[individual.taxon]
+            individual.taxon_new = taxon_map[individual.taxon]
             individual.save()
             reversion.add_to_revision(individual)
 

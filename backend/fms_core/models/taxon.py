@@ -10,8 +10,7 @@ from ._utils import add_error as _add_error
 
 @reversion.register()
 class Taxon(TrackedModel):
-    name = models.CharField(max_length=200, unique=True,
-                            help_text="Taxon scientific name.")
+    name = models.CharField(max_length=200, unique=True, help_text="Taxon scientific name.")
     ncbi_id = models.PositiveBigIntegerField(unique=True, help_text="Numerical identifier used by the NCBI taxonomy catalog.")
     
     def __str__(self):

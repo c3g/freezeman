@@ -21,6 +21,7 @@ from .sequence import SequenceViewSet
 from .library import LibraryViewSet
 from .platform import PlatformViewSet
 from .library_type import LibraryTypeViewSet
+from .taxon import TaxonViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -46,4 +47,5 @@ __all__ = [
     "LibraryViewSet",
     "PlatformViewSet",
     "LibraryTypeViewSet",
+    "TaxonViewSet",
 ]

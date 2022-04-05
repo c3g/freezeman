@@ -10,6 +10,7 @@ import ProcessMeasurements from "../processMeasurements/actions";
 import Projects from "../projects/actions";
 import Protocols from "../protocols/actions";
 import ExperimentRuns from "../experimentRuns/actions";
+import Taxons from "../taxons/actions";
 import {refreshAuthToken} from "../auth/actions";
 
 export const fetchInitialData = () => async (dispatch, getState) => {
@@ -32,7 +33,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         ProcessMeasurements.summary,
         Users.listTable,
         Groups.list,
-        LibraryTypes.list,
+        Taxons.list,
     ].map(a => dispatch(a())))
 
     await Promise.all([

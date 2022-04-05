@@ -24,6 +24,7 @@ from .viewsets import (
     RevisionViewSet,
     ProjectViewSet,
     SequenceViewSet,
+    TaxonViewSet,
 )
 
 __all__ = ["router"]
@@ -45,6 +46,7 @@ router.register(r"library-types", LibraryTypeViewSet)
 router.register(r"platforms", PlatformViewSet)
 router.register(r"indices", IndexViewSet)
 router.register(r"sequences", SequenceViewSet)
+router.register(r"taxons", TaxonViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
 router.register(r"query", QueryViewSet, basename="query")

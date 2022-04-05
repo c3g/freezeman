@@ -24,16 +24,21 @@ _container_filterset_fields: FiltersetFields = {
     "location": NULLABLE_FK_FILTERS,
 }
 
+_taxon_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "ncbi_id": PK_FILTERS,
+}
+
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
-    "taxon": FK_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
     "cohort": CATEGORICAL_FILTERS_LOOSE,
-
     "mother": NULLABLE_FK_FILTERS,
     "father": NULLABLE_FK_FILTERS,
+    **_prefix_keys("taxon__", _taxon_filterset_fields),
 }
 
 _user_filterset_fields: FiltersetFields = {
@@ -43,7 +48,6 @@ _user_filterset_fields: FiltersetFields = {
 
 _group_filterset_fields: FiltersetFields = {
     "name": FREE_TEXT_FILTERS,
-
 }
 
 _sample_kind_filterset_fields: FiltersetFields = {

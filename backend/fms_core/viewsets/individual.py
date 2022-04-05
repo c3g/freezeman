@@ -7,16 +7,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from fms_core.models import Individual
-from fms_core.serializers import IndividualSerializer
+from fms_core.serializers import IndividualSerializer, IndividualExportSerializer
 from fms_core.filters import IndividualFilter
 
-from ._utils import TemplateActionsMixin, versions_detail
+from ._utils import TemplateActionsMixin, versions_detail, _list_keys
 from ._constants import _individual_filterset_fields
 
 
 class IndividualViewSet(viewsets.ModelViewSet):
-    queryset = Individual.objects.all()
+    queryset = Individual.objects.select_related("taxon").all()
     serializer_class = IndividualSerializer
+    ordering_fields = (
+        *_list_keys(_individual_filterset_fields),
+    )
     filter_class = IndividualFilter
 
     # noinspection PyUnusedLocal
@@ -26,8 +29,16 @@ class IndividualViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = IndividualSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        serializer = IndividualExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            fields = IndividualExportSerializer.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        return context
 
     @action(detail=False, methods=["get"])
     def search(self, _request):
