@@ -1,4 +1,4 @@
-from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample
+from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample, Taxon
 import datetime
 
 def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12", name='TestRack001'):
@@ -65,9 +65,10 @@ def create_fullsample(name, alias, volume, individual, sample_kind, container, c
 
 
 def create_individual(individual_name, mother=None, father=None, **kwargs):
+    taxon = Taxon.objects.get(name="Homo sapiens")
     return {
         'name': individual_name,
-        'taxon': 1, # Matching TAXON_HOMO_SAPIENS
+        'taxon': taxon, # Matching TAXON_HOMO_SAPIENS
         'sex': Individual.SEX_UNKNOWN,
         'mother': mother,
         'father': father,
