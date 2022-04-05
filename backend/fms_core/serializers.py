@@ -338,10 +338,10 @@ class SampleSerializer(serializers.ModelSerializer):
             return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
@@ -406,10 +406,10 @@ class SampleExportSerializer(serializers.ModelSerializer):
             return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     def get_depleted(self, obj):
         return "Yes" if obj.depleted else "No"
@@ -443,10 +443,10 @@ class NestedSampleSerializer(serializers.ModelSerializer):
             return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
 
 class LibrarySerializer(serializers.ModelSerializer):
@@ -476,10 +476,10 @@ class LibrarySerializer(serializers.ModelSerializer):
             return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     # TODO : Confirm molecular weights with lab
     def get_concentration_nm(self, obj):
@@ -523,10 +523,10 @@ class LibraryExportSerializer(serializers.ModelSerializer):
             return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     # TODO : update this formula to include RNA and single strand DNA
     def get_concentration_nm(self, obj):
