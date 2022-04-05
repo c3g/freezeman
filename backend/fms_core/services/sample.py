@@ -340,13 +340,14 @@ def prepare_library(process: Process,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination is not None else volume_used,
-                depleted=False
+                depleted=False,
+                # Reset QC flags
+                quantity_flag=None,
+                quality_flag=None
             )
 
             new_derived_sample_data = {
-                "library_id": library.id,
-                "quality_flag": None,
-                "quantity_flag": None,
+                "library_id": library.id
             }
             derived_samples_destination = []
             volume_ratios = {}
@@ -413,38 +414,38 @@ def _process_sample(process,
             warnings.extend(warnings_sample_lineage)
     return (sample_destination, errors, warnings)
 
+
 def update_qc_flags(sample, quantity_flag, quality_flag):
     errors = []
     warnings = []
 
     try:
-        # Update the QC flags for all the derived samples associated to the given sample
-        for derived_sample in sample.derived_samples.all():
-            if quantity_flag and quality_flag:
-                derived_sample.quantity_flag = (quantity_flag == 'Passed')
-                derived_sample.quality_flag = (quality_flag == 'Passed')
-                derived_sample.save()
-            else:
-                errors.append('Quantity and Quality flags are required.')
+        # Update the QC flags for the given sample
+        if quantity_flag and quality_flag:
+            sample.quantity_flag = (quantity_flag == 'Passed')
+            sample.quality_flag = (quality_flag == 'Passed')
+            sample.save()
+        else:
+            errors.append('Quantity and Quality flags are required.')
     except Error as e:
         errors.appends(';'.join(e.messages))
 
-    return derived_sample, errors, warnings
+    return sample, errors, warnings
+
 
 def remove_qc_flags(sample):
     errors = []
     warnings = []
 
     try:
-        # Update the QC flags for all the derived samples associated to the given sample
-        for derived_sample in sample.derived_samples.all():
-            derived_sample.quantity_flag = None
-            derived_sample.quality_flag = None
-            derived_sample.save()
+        # Remove the QC flags for the given sample
+        sample.quantity_flag = None
+        sample.quality_flag = None
+        sample.save()
     except Error as e:
         errors.appends(';'.join(e.messages))
 
-    return derived_sample, errors, warnings
+    return sample, errors, warnings
 
 
 
