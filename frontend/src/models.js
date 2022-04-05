@@ -69,7 +69,7 @@ export const sample = {
 
 export const individual = {
   name: "",
-  taxon: null,
+  taxon: null, // taxon.id
   sex: null,
   pedigree: "",
   cohort: "",
@@ -80,7 +80,7 @@ export const individual = {
 // {
 //     id: 100,
 //     name: "L00217559",
-//     taxon: "Sars-Cov-2",
+//     taxon: 1, 
 //     sex: "Unknown",
 //     pedigree: "L00217559",
 //     cohort: "INSPQ_COVID",
@@ -223,4 +223,16 @@ export const libraryType = {
 // {
 //     id: 202,
 //     name: "RNASeq",
+// }
+
+export const taxon = {
+  // id: Number,
+  name: "",
+  ncbi_id: null,
+}
+// Example:
+// {
+//     id: 1,
+//     name: "Homo sapiens",
+//     ncbi_id: 9606,
 // }

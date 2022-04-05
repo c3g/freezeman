@@ -118,6 +118,8 @@ const SampleDetailsContent = ({
   let processMeasurements = []
   let experimentRunsIDs = []
   const library = librariesByID[id]
+  const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
+  const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -168,11 +170,11 @@ const SampleDetailsContent = ({
               <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
               <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
               <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
-              <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
-              <Descriptions.Item label="Concentration">
+              <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
+              <Descriptions.Item label="Concentration (ng/µL)">
                   {sample.concentration == null
                       ? "—"
-                      : `${parseFloat(sample.concentration).toFixed(3)} ng/uL`}
+                      : `${parseFloat(sample.concentration).toFixed(3)}`}
               </Descriptions.Item>
               <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
           </Descriptions>
@@ -206,12 +208,12 @@ const SampleDetailsContent = ({
                 }
               </Descriptions.Item>
               <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
-              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
               <Descriptions.Item label="QC Flag">
                 {flags.quantity !== null && flags.quality !== null
                   ? <QCFlag flags={flags}/>
                   : null}
               </Descriptions.Item>
+              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
@@ -231,16 +233,15 @@ const SampleDetailsContent = ({
             </Descriptions>
           ) : null}
 
-          {sample.is_library ? (
+          {sample && sample.is_library ? (
             <>
               <Title level={5} style={{ marginTop: '1rem'}}> Library Information </Title>
               <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
-                <Descriptions.Item label="Library Size">{library?.library_size} (bp)</Descriptions.Item>
+                <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
-                <Descriptions.Item label="Volume">{library?.volume} µL</Descriptions.Item>
-                <Descriptions.Item label="Concentration">{library?.concentration_nm} (nm)</Descriptions.Item>
-                <Descriptions.Item label="Quantity">{library?.quantity_ng} (ng)</Descriptions.Item>
+                <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
+                <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
                 <Descriptions.Item label="Index">
                   <Link to={`/samples/${sample.extracted_from}`}>
                     {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}

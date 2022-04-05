@@ -181,13 +181,12 @@ export const INDIVIDUAL_FILTERS = {
     label: "Name",
     batch: true,
   },
-  taxon: {
+  taxon__name: {
     type: FILTER_TYPE.SELECT,
-    key: "taxon",
+    key: "taxon__name",
     label: "Taxon",
     mode: "multiple",
     placeholder: "All",
-    options: TAXON.map(x => ({ label: x, value: x })),
   },
   sex: {
     type: FILTER_TYPE.SELECT,

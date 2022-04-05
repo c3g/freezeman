@@ -12,6 +12,7 @@ import {
   containerPrefillTemplates,
   containers,
 } from "./modules/containers/reducers";
+import {taxons} from "./modules/taxons/reducers";
 import {individuals} from "./modules/individuals/reducers";
 import {
   sampleKinds,
@@ -89,6 +90,7 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  taxons,
   instruments,
   sampleKinds,
   samplesSummary,

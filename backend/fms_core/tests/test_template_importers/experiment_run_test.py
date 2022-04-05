@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement
+from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -27,10 +27,11 @@ class ExperimentRunInfiniumTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=29, collection_site='site1',
                            creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
@@ -208,10 +209,11 @@ class ExperimentRunMGITestCase(TestCase):
 
     def prefill_data(self):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
                            creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,

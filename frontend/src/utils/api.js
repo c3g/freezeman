@@ -177,6 +177,12 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  taxons: {
+    get: taxonId => get(`/taxons/${taxonId}/`),
+    list: (options, abort) => get("/taxons/", options, { abort }),
+    search: q => get("/taxons/search/", { q }),
+  },
+
   users: {
     get: userId => get(`/users/${userId}/`),
     add: user => post("/users/", user),
