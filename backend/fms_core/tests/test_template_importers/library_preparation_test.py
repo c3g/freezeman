@@ -117,6 +117,8 @@ class LibraryPreparationTestCase(TestCase):
         source_sample, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode)
         new_volume = self.source_sample_initial_volume - self.library_1['volume_used'] - self.library_2['volume_used'] - self.library_3['volume_used']
         self.assertEqual(source_sample.volume, new_volume)
+        self.assertEqual(source_sample.quantity_flag, True)
+        self.assertEqual(source_sample.quality_flag, True)
 
         # Test first library
         sample_library_1, _, _ = get_sample_from_container(barcode='Container4Library1')
