@@ -41,6 +41,7 @@ class SampleFilter(GenericFilter):
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
     projects__name = django_filters.CharFilter(method="batch_filter")
+    qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
@@ -49,6 +50,13 @@ class SampleFilter(GenericFilter):
             condition |= Q(value__icontains=status)
         process_measurements_ids = property_values.filter(condition).values('object_id')
         return queryset.filter(process_measurement__in=process_measurements_ids)
+
+    def qc_flag_filter(self, queryset, name, values):
+        condition = Q()
+        for value in values.split(','):
+            bool_value = (value == 'true')
+            condition |= Q(qc_flag=bool_value)
+        return queryset.filter(condition)
 
     class Meta:
         model = Sample

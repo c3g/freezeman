@@ -332,16 +332,10 @@ class SampleSerializer(serializers.ModelSerializer):
         return obj.is_library
 
     def get_quality_flag(self, obj):
-        if obj.quality_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quality_flag else "Failed"
+        return obj.quality_flag
 
     def get_quantity_flag(self, obj):
-        if obj.quantity_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quantity_flag else "Failed"
+        return obj.quantity_flag
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
