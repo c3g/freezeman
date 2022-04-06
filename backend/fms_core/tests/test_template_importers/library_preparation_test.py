@@ -9,7 +9,7 @@ from fms_core.models import SampleKind, LibraryType, Platform, Index, ProcessMea
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
 from fms_core.services.container import create_container
-from fms_core.services.sample import create_full_sample, get_sample_from_container
+from fms_core.services.sample import create_full_sample, get_sample_from_container, update_qc_flags
 
 
 class LibraryPreparationTestCase(TestCase):
@@ -100,9 +100,12 @@ class LibraryPreparationTestCase(TestCase):
                                                          kind='Tube',
                                                          name='Container4LibraryPrep')
 
-        create_full_sample(name=self.source_sample_name, volume=self.source_sample_initial_volume, concentration=25,
-                           collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                           container=container, sample_kind=sample_kind)
+        (source_sample, errors, warnings) = \
+            create_full_sample(name=self.source_sample_name, volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
+                               container=container, sample_kind=sample_kind)
+
+        update_qc_flags(source_sample, "Passed", "Passed")
 
 
     def test_import(self):
@@ -114,12 +117,16 @@ class LibraryPreparationTestCase(TestCase):
         source_sample, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode)
         new_volume = self.source_sample_initial_volume - self.library_1['volume_used'] - self.library_2['volume_used'] - self.library_3['volume_used']
         self.assertEqual(source_sample.volume, new_volume)
+        self.assertEqual(source_sample.quantity_flag, True)
+        self.assertEqual(source_sample.quality_flag, True)
 
         # Test first library
         sample_library_1, _, _ = get_sample_from_container(barcode='Container4Library1')
         library_1 = sample_library_1.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_1.volume, self.library_1['library_volume'])
+        self.assertEqual(sample_library_1.quality_flag, None)
+        self.assertEqual(sample_library_1.quantity_flag, None)
 
         # Library info tests
         self.assertEqual(library_1.library_type, self.library_1['library_type'])
@@ -159,6 +166,8 @@ class LibraryPreparationTestCase(TestCase):
         library_2 = sample_library_2.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_2.volume, self.library_2['library_volume'])
+        self.assertEqual(sample_library_2.quality_flag, None)
+        self.assertEqual(sample_library_2.quantity_flag, None)
 
         # Library info tests
         self.assertEqual(library_2.library_type, self.library_2['library_type'])
@@ -183,6 +192,9 @@ class LibraryPreparationTestCase(TestCase):
         library_3 = sample_library_3.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_3.volume, self.library_3['library_volume'])
+        self.assertEqual(sample_library_3.quality_flag, None)
+        self.assertEqual(sample_library_3.quantity_flag, None)
+
 
         # Library info tests
         self.assertEqual(library_3.library_type, self.library_3['library_type'])

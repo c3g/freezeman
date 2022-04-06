@@ -317,8 +317,8 @@ class SampleSerializer(serializers.ModelSerializer):
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
-    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
+    quality_flag = serializers.SerializerMethodField()
+    quantity_flag = serializers.SerializerMethodField()
     is_library = serializers.SerializerMethodField()
 
     class Meta:
@@ -330,6 +330,18 @@ class SampleSerializer(serializers.ModelSerializer):
     
     def get_is_library(self, obj):
         return obj.is_library
+
+    def get_quality_flag(self, obj):
+        if obj.quality_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quality_flag else "Failed"
+
+    def get_quantity_flag(self, obj):
+        if obj.quantity_flag is None:
+            return None
+        else:
+            return "Passed" if obj.quantity_flag else "Failed"
 
 
 class SampleExportSerializer(serializers.ModelSerializer):
@@ -347,8 +359,6 @@ class SampleExportSerializer(serializers.ModelSerializer):
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
     tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quality_flag")
-    quantity_flag = serializers.CharField(read_only=True, source="derived_sample_not_pool.quantity_flag")
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     container_kind = serializers.CharField(read_only=True, source="container.kind")
     container_name = serializers.CharField(read_only=True, source="container.name")
@@ -390,16 +400,16 @@ class SampleExportSerializer(serializers.ModelSerializer):
         return mother
 
     def get_quality_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quality_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     def get_depleted(self, obj):
         return "Yes" if obj.depleted else "No"
@@ -427,16 +437,16 @@ class NestedSampleSerializer(serializers.ModelSerializer):
         exclude = ('derived_samples', )
 
     def get_quality_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quality_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
 
 class LibrarySerializer(serializers.ModelSerializer):
@@ -460,16 +470,16 @@ class LibrarySerializer(serializers.ModelSerializer):
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
     
     def get_quality_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quality_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     # TODO : Confirm molecular weights with lab
     def get_concentration_nm(self, obj):
@@ -507,16 +517,16 @@ class LibraryExportSerializer(serializers.ModelSerializer):
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
     
     def get_quality_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quality_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quality_flag else "Failed"
 
     def get_quantity_flag(self, obj):
-        if obj.derived_sample_not_pool.quality_flag is None:
+        if obj.quantity_flag is None:
             return None
         else:
-            return "Passed" if obj.derived_sample_not_pool.quality_flag else "Failed"
+            return "Passed" if obj.quantity_flag else "Failed"
 
     # TODO : update this formula to include RNA and single strand DNA
     def get_concentration_nm(self, obj):

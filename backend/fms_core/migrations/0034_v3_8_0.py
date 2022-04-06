@@ -2,6 +2,7 @@ from django.conf import settings
 import django.core.validators
 from django.contrib.auth.models import User
 from django.db import migrations, models
+from django.db.models import Q
 import django.db.models.deletion
 import re
 import reversion
@@ -42,6 +43,14 @@ def initialize_taxons(apps, schema_editor):
             individual.save()
             reversion.add_to_revision(individual)
 
+def transfer_qc_flags(apps, schema_editor):
+    Sample = apps.get_model("fms_core", "Sample")
+    with reversion.create_revision(manage_manually=True):
+        samples_with_qc_flags = Sample.objects.filter(Q(derived_samples__quality_flag__isnull=False) | Q(derived_samples__quantity_flag__isnull=False))
+        for sample in samples_with_qc_flags:
+            sample.quality_flag = sample.derived_samples.first().quality_flag
+            sample.quantity_flag = sample.derived_samples.first().quantity_flag
+            sample.save()
 
 class Migration(migrations.Migration):
 
@@ -51,6 +60,30 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='sample',
+            name='quality_flag',
+            field=models.BooleanField(blank=True, choices=[(True, 'Passed'), (False, 'Failed')],
+                                      help_text='Quality flag of the sample.', max_length=20, null=True),
+        ),
+        migrations.AddField(
+            model_name='sample',
+            name='quantity_flag',
+            field=models.BooleanField(blank=True, choices=[(True, 'Passed'), (False, 'Failed')],
+                                      help_text='Quantity flag of the sample.', max_length=20, null=True),
+        ),
+        migrations.RunPython(
+            transfer_qc_flags,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RemoveField(
+            model_name='derivedsample',
+            name='quality_flag',
+        ),
+        migrations.RemoveField(
+            model_name='derivedsample',
+            name='quantity_flag',
+        ),
         migrations.CreateModel(
             name='Taxon',
             fields=[
