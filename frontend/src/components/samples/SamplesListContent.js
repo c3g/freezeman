@@ -120,7 +120,6 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "QC Flag",
       dataIndex: "qc_flag",
-      sorter: true,
       render: (_, sample) => {
         const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
         if (flags.quantity !== null && flags.quality !== null)

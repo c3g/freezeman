@@ -79,6 +79,18 @@ export const SAMPLE_FILTERS = {
       { label: "No",  value: "false"},
     ],
   },
+  qc_flag: {
+    type: FILTER_TYPE.SELECT,
+    key: "qc_flag",
+    label: "QC Flag",
+    placeholder: "All",
+    mode:"multiple",
+    options: [
+      { label: "None", value: "None" },
+      { label: "Passed", value: "true" },
+      { label: "Failed",  value: "false" },
+    ],
+  },
 
   // Detached filters
   derived_samples__biosample__individual__pedigree: {
@@ -478,6 +490,18 @@ export const LIBRARY_FILTERS = {
     options: [
       { label: "Yes", value: "true" },
       { label: "No",  value: "false"},
+    ],
+  },
+  qc_flag: {
+    type: FILTER_TYPE.SELECT,
+    key: "qc_flag",
+    label: "QC Flag",
+    placeholder: "All",
+    mode:"multiple",
+    options: [
+      { label: "None", value: "None" },
+      { label: "Passed", value: "true" },
+      { label: "Failed",  value: "false" },
     ],
   },
 }
