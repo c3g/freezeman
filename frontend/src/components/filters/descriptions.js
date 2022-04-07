@@ -86,8 +86,9 @@ export const SAMPLE_FILTERS = {
     placeholder: "All",
     mode:"multiple",
     options: [
+      { label: "None", value: "None" },
       { label: "Passed", value: "true" },
-      { label: "Failed",  value: "false"},
+      { label: "Failed",  value: "false" },
     ],
   },
 

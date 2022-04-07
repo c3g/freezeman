@@ -54,7 +54,10 @@ class SampleFilter(GenericFilter):
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
         for value in values.split(','):
-            bool_value = (value == 'true')
+            if value == "None":
+                bool_value = None
+            else:
+                bool_value = (value == 'true')
             condition |= Q(qc_flag=bool_value)
         return queryset.filter(condition)
 
