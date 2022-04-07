@@ -23,13 +23,14 @@ from fms_core.filters import SampleFilter
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
-    queryset = Sample.objects.annotate(
+    queryset = Sample.objects.select_related("container").all().distinct()
+    queryset = queryset.annotate(
         qc_flag=Case(
             When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
             default=None,
             output_field=BooleanField())
-        ).select_related("container").all().distinct()
+        )
     serializer_class = SampleSerializer
 
     ordering_fields = (
