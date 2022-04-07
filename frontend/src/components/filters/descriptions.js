@@ -492,4 +492,16 @@ export const LIBRARY_FILTERS = {
       { label: "No",  value: "false"},
     ],
   },
+  qc_flag: {
+    type: FILTER_TYPE.SELECT,
+    key: "qc_flag",
+    label: "QC Flag",
+    placeholder: "All",
+    mode:"multiple",
+    options: [
+      { label: "None", value: "None" },
+      { label: "Passed", value: "true" },
+      { label: "Failed",  value: "false" },
+    ],
+  },
 }

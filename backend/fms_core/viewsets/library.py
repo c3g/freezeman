@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, Count
+from django.db.models import Q, When, Count, Case, BooleanField
 
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
@@ -16,6 +16,13 @@ from fms_core.filters import LibraryFilter
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
+            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+            default=None,
+            output_field=BooleanField())
+    )
     serializer_class = LibrarySerializer
 
     ordering_fields = (
