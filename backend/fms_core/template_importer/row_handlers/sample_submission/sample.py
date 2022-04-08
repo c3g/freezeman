@@ -19,7 +19,7 @@ class SampleRowHandler(GenericRowHandler):
 
 
     def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
-        comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
+        comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
         parent_container_obj = None
