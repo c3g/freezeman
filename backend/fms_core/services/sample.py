@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library, SampleProperty
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -428,7 +428,7 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
         else:
             errors.append('Quantity and Quality flags are required.')
     except Error as e:
-        errors.appends(';'.join(e.messages))
+        errors.append(';'.join(e.messages))
 
     return sample, errors, warnings
 
@@ -443,9 +443,29 @@ def remove_qc_flags(sample):
         sample.quality_flag = None
         sample.save()
     except Error as e:
-        errors.appends(';'.join(e.messages))
+        errors.append(';'.join(e.messages))
 
     return sample, errors, warnings
+
+
+def add_sample_properties(sample, properties):
+    errors = []
+    warnings = []
+
+    if sample and properties:
+        try:
+            for property_name in properties.keys():
+                property_value = properties[property_name]
+                SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
+        except Error as e:
+            errors.append(';'.join(e.messages))
+    else:
+        errors.append('Sample and properties are required')
+
+    return properties, errors, warnings
+
+
+
 
 
 
