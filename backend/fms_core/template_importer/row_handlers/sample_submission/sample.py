@@ -8,7 +8,7 @@ from fms_core.services.project_link_samples import create_link
 from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual, get_taxon
-from fms_core.services.sample import create_full_sample, add_sample_properties
+from fms_core.services.sample import create_full_sample
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
