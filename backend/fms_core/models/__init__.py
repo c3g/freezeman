@@ -29,6 +29,7 @@ from .sequencebyindex5prime import SequenceByIndex5Prime
 from .library import Library
 from .library_type import LibraryType
 from .taxon import Taxon
+from .sample_property import SampleProperty
 
 __all__ = [
     "Biosample",
@@ -41,6 +42,7 @@ __all__ = [
     "SampleKind",
     "SampleLineage",
     "SampleByProject",
+    "SampleProperty",
     "Protocol",
     "Process",
     "ProcessMeasurement",
