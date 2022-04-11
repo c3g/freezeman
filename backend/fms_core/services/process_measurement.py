@@ -15,7 +15,7 @@ def create_process_measurement(process, source_sample, execution_date, volume_us
     if not source_sample:
         errors.append(f"Source sample is required for process measurement creation.")
     if not execution_date:
-        errors.append(f"Execution date is required for process measurement creation.")
+        errors.append(f"Execution date is required for process measurement creation. Format expected: YYYY-MM-DD")
 
     if not errors:
         try:
