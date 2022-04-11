@@ -15,5 +15,5 @@ class SampleProperty(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the property.")
     value = models.CharField(max_length=200, help_text="The value of the property.s")
-    sample_id = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name='properties',
+    sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name='properties',
                                   help_text="Sample associated to this property.")

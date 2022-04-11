@@ -502,7 +502,7 @@ def remove_sample_properties(sample, properties):
         try:
             for property_name in properties.keys():
                 property_value = properties[property_name]
-                num_objects_deleted, _ = SampleProperty.objects.filter(name=property_name, value=property_value, sample_id=sample.id).delete()
+                num_objects_deleted, _ = SampleProperty.objects.filter(name=property_name, value=property_value, sample=sample).delete()
         except ValidationError as e:
             errors.append(';'.join(e))
     else:

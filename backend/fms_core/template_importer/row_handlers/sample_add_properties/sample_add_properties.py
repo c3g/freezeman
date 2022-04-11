@@ -35,7 +35,7 @@ class SampleAddPropertiesHandler(GenericRowHandler):
                                                                                                            properties=properties)
 
             # Check if sample already has a property associated with it
-            if action == UPDATE_ACTION:
+            elif action == UPDATE_ACTION:
                 # Create link object if no errors
                 properties, self.errors['properties'], self.warnings['properties'] = update_sample_properties(sample=sample_obj,
                                                                                                               properties=properties)

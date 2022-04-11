@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(help_text='The name of the property.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('value', models.CharField(help_text='The value of the property.s', max_length=200)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sampleproperty_creation', to=settings.AUTH_USER_MODEL)),
-                ('sample_id', models.ForeignKey(help_text='Sample associated to this property.', on_delete=django.db.models.deletion.PROTECT, related_name='properties', to='fms_core.sample')),
+                ('sample', models.ForeignKey(help_text='Sample associated to this property.', on_delete=django.db.models.deletion.PROTECT, related_name='properties', to='fms_core.sample')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_sampleproperty_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
