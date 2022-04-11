@@ -456,13 +456,59 @@ def add_sample_properties(sample, properties):
         try:
             for property_name in properties.keys():
                 property_value = properties[property_name]
-                SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
-        except Error as e:
-            errors.append(';'.join(e.messages))
+                # Check if sample has already the property
+                if SampleProperty.objects.filter(name=property_name, sample_id=sample.id).exists():
+                    errors.append(f"[Sample {sample.name}] already has property [{property_name}] with value [{property_value}].")
+                else:
+                    SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
+        except ValidationError as e:
+            errors.append(';'.join(e))
     else:
         errors.append('Sample and properties are required')
 
     return properties, errors, warnings
+
+
+def update_sample_properties(sample, properties):
+    errors = []
+    warnings = []
+
+    if sample and properties:
+        try:
+            for property_name in properties.keys():
+                property_value = properties[property_name]
+                # Check if sample has already the property
+                if SampleProperty.objects.filter(name=property_name, sample_id=sample.id).exists():
+                    property = SampleProperty.objects.get(name=property_name, value=property_value, sample=sample)
+                    property.value = property_value
+                    property.save()
+                else:
+                    errors.append(f"[Sample {sample.name}] does not have property [{property_name}].")
+                SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
+        except ValidationError as e:
+            errors.append(';'.join(e))
+    else:
+        errors.append('Sample and properties are required')
+
+    return properties, errors, warnings
+
+
+def remove_sample_properties(sample, properties):
+    num_objects_deleted = 0
+    errors = []
+    warnings = []
+
+    if sample and properties:
+        try:
+            for property_name in properties.keys():
+                property_value = properties[property_name]
+                num_objects_deleted, _ = SampleProperty.objects.filter(name=property_name, value=property_value, sample_id=sample.id).delete()
+        except ValidationError as e:
+            errors.append(';'.join(e))
+    else:
+        errors.append('Sample and properties are required')
+
+    return num_objects_deleted, errors, warnings
 
 
 

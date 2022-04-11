@@ -3,6 +3,7 @@ from .container_rename import ContainerRenameImporter
 from .container_move import ContainerMoveImporter
 from .experiment_run import ExperimentRunImporter
 from .index_creation import IndexCreationImporter
+from .sample_add_properties import SampleAddPropertiesImporter
 from .sample_submission import SampleSubmissionImporter
 from .sample_update import SampleUpdateImporter
 from .sample_qc import SampleQCImporter
@@ -17,6 +18,7 @@ __all__ = [
     "ContainerCreationImporter",
     "ExperimentRunImporter",
     "IndexCreationImporter",
+    "SampleAddPropertiesImporter",
     "SampleSubmissionImporter",
     "SampleUpdateImporter",
     "SampleQCImporter",

@@ -12,6 +12,7 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
+    "SAMPLE_ADD_PROPERTIES_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -117,6 +118,21 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "prefill info": [
       ("Library", "Sample Container Barcode", "container__barcode"),
       ("Library", "Sample Container Coordinates", "coordinates"),],
+}
+
+SAMPLE_ADD_PROPERTIES_TEMPLATE = {
+  "identity": {"description": "Template to add properties to samples", "file": static("submission_templates/Sample_add_properties_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Properties',
+          'headers': ['Action', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates'],
+      },
+  ],
+  "prefill info": [
+      ("Samples", "Sample Name", "name"),
+      ("Samples", "Sample Container Barcode", "container__barcode"),
+      ("Samples", "Sample Container Coordinates", "coordinates"),
+  ],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
