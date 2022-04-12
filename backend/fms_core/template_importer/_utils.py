@@ -14,8 +14,8 @@ def input_to_date_and_none(date_input):
     elif isinstance(date_input, datetime.date):
         return date_input
     else:
-        year, month, day = date_input.split("-")
         try:
+            year, month, day = date_input.split("-")
             date = datetime.datetime(int(year), int(month), int(day))
         except ValueError:
             date = None
