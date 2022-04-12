@@ -4,18 +4,18 @@ from fms_core.models import SampleByProject
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.sample import get_sample_from_container, add_sample_properties, update_sample_properties, remove_sample_properties
+from fms_core.services.sample import get_sample_from_container, add_sample_metadata, update_sample_metadata, remove_sample_metadata
 
 ADD_ACTION = "ADD"
 UPDATE_ACTION = "UPDATE"
 REMOVE_ACTION = "REMOVE"
 
-class SampleAddPropertiesHandler(GenericRowHandler):
+class SampleAddMetadataHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
 
-    def process_row_inner(self, action, sample_info, properties):
+    def process_row_inner(self, action, sample_info, metadata):
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample_info['container_barcode'],
                                                                                                coordinates=sample_info['container_coordinates'])
@@ -28,24 +28,23 @@ class SampleAddPropertiesHandler(GenericRowHandler):
                               f"is named {sample_obj.name} not {sample_info['sample_name']}."
                 self.warnings['sample'].append(warning_msg)
 
-            # Check if sample does not have property ensure there's not a duplicated association
+            # Check if sample does not have the metadata and ensure there's not a duplicated association
             if action == ADD_ACTION:
                 # Create link object if no errors
-                properties, self.errors['properties'], self.warnings['properties'] = add_sample_properties(sample=sample_obj,
-                                                                                                           properties=properties)
+                metadata, self.errors['metadata'], self.warnings['metadata'] = add_sample_metadata(sample=sample_obj,
+                                                                                                   metadata=metadata)
 
-            # Check if sample already has a property associated with it
+            # Check if sample already has the metadata associated with it
             elif action == UPDATE_ACTION:
                 # Create link object if no errors
-                properties, self.errors['properties'], self.warnings['properties'] = update_sample_properties(sample=sample_obj,
-                                                                                                              properties=properties)
+                metadata, self.errors['metadata'], self.warnings['metadata'] = update_sample_metadata(sample=sample_obj,
+                                                                                                      metadata=metadata)
 
-
-            # Check that property exists and it is associated to the sample
+            # Check that the metadata exists and it is associated to the sample
             elif action == REMOVE_ACTION:
                 # Remove link object if no errors
-                num_objects_deleted, self.errors['properties'], self.warnings['properties'] = remove_sample_properties(sample=sample_obj,
-                                                                                                                       properties=properties)
+                _, self.errors['metadata'], self.warnings['metadata'] = remove_sample_metadata(sample=sample_obj,
+                                                                                               metadata=metadata)
 
             # Action not provided or invalid
             else:

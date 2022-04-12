@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library, SampleProperty
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library, SampleMetadata
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -448,65 +448,71 @@ def remove_qc_flags(sample):
     return sample, errors, warnings
 
 
-def add_sample_properties(sample, properties):
+def add_sample_metadata(sample, metadata):
     errors = []
     warnings = []
 
-    if sample and properties:
+    if sample and metadata:
         try:
-            for property_name in properties.keys():
-                property_value = properties[property_name]
-                # Check if sample has already the property
-                if SampleProperty.objects.filter(name=property_name, sample_id=sample.id).exists():
-                    errors.append(f"[Sample {sample.name}] already has property [{property_name}] with value [{property_value}].")
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for name in metadata.keys():
+                value = metadata[name]
+                # Check if sample has already the metadata
+                if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
+                    errors.append(f"[Sample {sample.name}] already has property [{name}] with value [{value}].")
                 else:
-                    SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
+                    SampleMetadata.objects.create(name=name, value=value, biosample=biosample_obj)
         except ValidationError as e:
             errors.append(';'.join(e))
     else:
-        errors.append('Sample and properties are required')
+        errors.append('Sample and metadata are required')
 
-    return properties, errors, warnings
+    return metadata, errors, warnings
 
 
-def update_sample_properties(sample, properties):
+def update_sample_metadata(sample, metadata):
     errors = []
     warnings = []
 
-    if sample and properties:
+    if sample and metadata:
         try:
-            for property_name in properties.keys():
-                property_value = properties[property_name]
-                # Check if sample has already the property
-                if SampleProperty.objects.filter(name=property_name, sample_id=sample.id).exists():
-                    property = SampleProperty.objects.get(name=property_name, value=property_value, sample=sample)
-                    property.value = property_value
-                    property.save()
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for name in metadata.keys():
+                value = metadata[name]
+                # Check if sample has already the metadata
+                if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
+                    metadata_obj = SampleMetadata.objects.get(name=name, value=value, biosample=biosample_obj)
+                    metadata_obj.value = value
+                    metadata_obj.save()
                 else:
-                    errors.append(f"[Sample {sample.name}] does not have property [{property_name}].")
-                SampleProperty.objects.create(name=property_name, value=property_value, sample=sample)
+                    errors.append(f"[Sample {sample.name}] does not have metadata with name [{name}].")
         except ValidationError as e:
             errors.append(';'.join(e))
     else:
-        errors.append('Sample and properties are required')
+        errors.append('Sample and metadata are required')
 
-    return properties, errors, warnings
+    return metadata, errors, warnings
 
 
-def remove_sample_properties(sample, properties):
+def remove_sample_metadata(sample, metadata):
     num_objects_deleted = 0
     errors = []
     warnings = []
 
-    if sample and properties:
+    if sample and metadata:
         try:
-            for property_name in properties.keys():
-                property_value = properties[property_name]
-                num_objects_deleted, _ = SampleProperty.objects.filter(name=property_name, value=property_value, sample=sample).delete()
-        except ValidationError as e:
-            errors.append(';'.join(e))
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for name in metadata.keys():
+                value = metadata[name]
+                property_obj = SampleMetadata.objects.get(name=name, value=value, biosample=biosample_obj)
+                property_obj.delete()
+        except SampleMetadata.DoesNotExist:
+            errors.append(f'Metadata with name [{name}] is not tied to sample [{sample.name}]')
     else:
-        errors.append('Sample and properties are required')
+        errors.append('Sample and metadata are required')
 
     return num_objects_deleted, errors, warnings
 

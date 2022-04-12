@@ -10,11 +10,11 @@ from ..utils import RE_SEPARATOR
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleAddPropertiesImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleAddMetadataImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
-from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_ADD_PROPERTIES_TEMPLATE
+from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_ADD_METADATA_TEMPLATE
 from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
@@ -81,10 +81,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "importer": ExperimentRunImporter,
         },
         {
-            "name": "Add Properties to Samples",
-            "description": "Upload the provided template with custom properties to be added to samples.",
-            "template": [SAMPLE_ADD_PROPERTIES_TEMPLATE["identity"]],
-            "importer": SampleAddPropertiesImporter,
+            "name": "Add Metadata to Samples",
+            "description": "Upload the provided template with custom metadata to be added to samples.",
+            "template": [SAMPLE_ADD_METADATA_TEMPLATE["identity"]],
+            "importer": SampleAddMetadataImporter,
         },
     ]
 
@@ -97,7 +97,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
-        {"template": SAMPLE_ADD_PROPERTIES_TEMPLATE},
+        {"template": SAMPLE_ADD_METADATA_TEMPLATE},
     ]
 
     def get_queryset(self):
