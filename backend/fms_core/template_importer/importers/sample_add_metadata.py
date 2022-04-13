@@ -23,7 +23,8 @@ class SampleAddMetadataImporter(GenericImporter):
             for i, (key, val) in enumerate(row.items()):
                 if i < self.metadata_starting_index:
                     row_data[key] = row[key]
-                else:
+                # Just add metadata if the cell is not empty, else ignore
+                elif row[key]:
                     metadata[key] = val
 
             sample_add_properties = dict(
