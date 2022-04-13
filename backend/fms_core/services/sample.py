@@ -460,7 +460,7 @@ def add_sample_metadata(sample, metadata):
                 value = metadata[name]
                 # Check if sample has already the metadata
                 if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
-                    errors.append(f"[Sample {sample.name}] already has property [{name}] with value [{value}].")
+                    errors.append(f'Sample [{sample.name}] already has property [{name}] with value [{value}].')
                 else:
                     SampleMetadata.objects.create(name=name, value=value, biosample=biosample_obj)
         except ValidationError as e:
@@ -483,11 +483,14 @@ def update_sample_metadata(sample, metadata):
                 value = metadata[name]
                 # Check if sample has already the metadata
                 if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
-                    metadata_obj = SampleMetadata.objects.get(name=name, value=value, biosample=biosample_obj)
+                    metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
+                    # Add warning if the new value is the same as the old value
+                    if metadata_obj.value == value:
+                        warnings.append(f'Sample [{sample.name}] has metadata [{name}] with the same value [{value}]')
                     metadata_obj.value = value
                     metadata_obj.save()
                 else:
-                    errors.append(f"[Sample {sample.name}] does not have metadata with name [{name}].")
+                    errors.append(f'Sample [{sample.name}] does not have metadata with name [{name}].')
         except ValidationError as e:
             errors.append(';'.join(e))
     else:
@@ -507,8 +510,11 @@ def remove_sample_metadata(sample, metadata):
             biosample_obj = sample.biosample_not_pool
             for name in metadata.keys():
                 value = metadata[name]
-                property_obj = SampleMetadata.objects.get(name=name, value=value, biosample=biosample_obj)
-                property_obj.delete()
+                metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
+                # Add warning if the new value is the same as the old value
+                if metadata_obj.value != value:
+                    warnings.append(f'Sample [{sample.name}] has metadata [{name}] with a different value [{value}]')
+                metadata_obj.delete()
         except SampleMetadata.DoesNotExist:
             errors.append(f'Metadata with name [{name}] is not tied to sample [{sample.name}]')
     else:

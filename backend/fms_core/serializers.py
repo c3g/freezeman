@@ -22,6 +22,7 @@ from .models import (
     Project,
     Sample,
     SampleKind,
+    SampleMetadata,
     Sequence,
     Taxon,
 )
@@ -51,6 +52,7 @@ __all__ = [
     "ProcessMeasurementExportSerializer",
     "ProcessMeasurementWithPropertiesExportSerializer",
     "ProtocolSerializer",
+    "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
@@ -305,6 +307,11 @@ class PropertyValueSerializer(serializers.ModelSerializer):
         model = PropertyValue
         fields = "__all__"
         extra_fields = ('property_name')
+
+class SampleMetadataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleMetadata
+        fields = "__all__"
 
 
 class SampleSerializer(serializers.ModelSerializer):
