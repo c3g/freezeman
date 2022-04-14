@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
@@ -30,6 +30,7 @@ import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {get as getLibrary} from "../../../modules/libraries/actions";
+import api, {withToken} from "../../../utils/api";
 import {
   withContainer,
   withSample,
@@ -70,7 +71,11 @@ const tabStyle = {
   height: "100%",
 }
 
+const listSampleMetadata = (token, options) =>
+  withToken(token, api.sampleMetadata.get)(options).then(res => res.data)
+
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
@@ -85,6 +90,7 @@ const mapStateToProps = state => ({
 const actionCreators = {getSample, listVersions};
 
 const SampleDetailsContent = ({
+  token,
   samplesByID,
   sampleKindsByID,
   containersByID,
@@ -120,6 +126,7 @@ const SampleDetailsContent = ({
   const library = librariesByID[id]
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
+  const [sampleMetadata, setSampleMetadata] = useState([])
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -141,6 +148,13 @@ const SampleDetailsContent = ({
 
   if (!librariesByID[id])
     getLibrary(id)
+
+  useEffect(() => {
+    const biosampleId = sample?.biosample_id
+    listSampleMetadata(token, {"biosample__id": biosampleId}).then(metadata => {
+      setSampleMetadata(metadata)
+    })
+  }, [sample])
 
   return <>
     <AppPageHeader
@@ -296,6 +310,18 @@ const SampleDetailsContent = ({
 
         <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
           <SamplesAssociatedProjects sampleID={sample.id} />
+        </TabPane>
+
+        <TabPane tab={`Metadata`} key="5" style={tabStyle}>
+          <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
+          <Descriptions bordered={true} size="small">
+            {
+              sampleMetadata.map(metadata => {
+                return  <Descriptions.Item label={metadata.name}>{metadata?.value} </Descriptions.Item>
+              })
+            }
+
+          </Descriptions>
         </TabPane>
 
       </Tabs>

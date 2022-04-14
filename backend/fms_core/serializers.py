@@ -319,6 +319,7 @@ class SampleSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     individual = serializers.CharField(read_only=True, source="biosample_not_pool.individual.id")
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
