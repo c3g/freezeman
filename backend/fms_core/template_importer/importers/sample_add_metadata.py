@@ -16,6 +16,15 @@ class SampleAddMetadataImporter(GenericImporter):
             METADATA SHEET
         """
         metadata_sheet = self.sheets['Metadata']
+
+        # Add the extra headers to the template sheet according to the metadata
+        metadata_headers = [key for i, (key, val) in enumerate(metadata_sheet.rows[0].items()) if i >= self.metadata_starting_index]
+        extra_headers = {
+            # sheet_number : extra metadata headers
+            0: metadata_headers
+        }
+        self.add_dynamic_headers(extra_headers)
+
         # Iterate through experiment rows
         for row_id, row in enumerate(metadata_sheet.rows):
             row_data = {}
