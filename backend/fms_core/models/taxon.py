@@ -14,7 +14,7 @@ class Taxon(TrackedModel):
     ncbi_id = models.PositiveBigIntegerField(unique=True, help_text="Numerical identifier used by the NCBI taxonomy catalog.")
     
     def __str__(self):
-        return self.name + " (NCBI:txid" + self.ncbi + ")"
+        return self.name + " (NCBI:txid" + str(self.ncbi_id) + ")"
 
     def normalize(self):
         # Normalize any string values to make searching / data manipulation easier
