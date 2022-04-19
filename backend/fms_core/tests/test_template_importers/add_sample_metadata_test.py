@@ -14,7 +14,7 @@ from fms_core.services.sample import create_full_sample
 class SampleMetadataTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleAddMetadataImporter()
-        self.file = APP_DATA_ROOT / "Sample_add_metadata_v3_8_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_metadata_v3_8_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.sample1_name = 'SampleTestMetadata'

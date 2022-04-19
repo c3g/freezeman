@@ -12,7 +12,7 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
-    "SAMPLE_ADD_METADATA_TEMPLATE",
+    "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -120,8 +120,8 @@ LIBRARY_PREPARATION_TEMPLATE = {
       ("Library", "Sample Container Coordinates", "coordinates"),],
 }
 
-SAMPLE_ADD_METADATA_TEMPLATE = {
-  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_add_metadata_v3_8_0.xlsx")},
+SAMPLE_METADATA_TEMPLATE = {
+  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
   "sheets info": [
       {
           'name': 'Metadata',

@@ -83,6 +83,10 @@ _sample_minimal_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_sample_metadata_filterset_fields: FiltersetFields = {
+    "biosample": PK_FILTERS,
+}
+
 _protocol_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,

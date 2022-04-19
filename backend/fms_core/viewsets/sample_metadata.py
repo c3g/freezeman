@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from fms_core.models import SampleMetadata
 from fms_core.serializers import SampleMetadataSerializer
 
-from ._constants import FK_FILTERS
+from ._constants import _sample_metadata_filterset_fields
 
 class SampleMetadataViewSet(viewsets.ModelViewSet):
     queryset = SampleMetadata.objects.all()
@@ -13,5 +13,5 @@ class SampleMetadataViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     filterset_fields = {
-        "biosample": FK_FILTERS,
+        **_sample_metadata_filterset_fields
     }

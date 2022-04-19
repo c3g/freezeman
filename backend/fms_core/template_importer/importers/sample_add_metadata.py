@@ -1,11 +1,11 @@
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_add_metadata import SampleAddMetadataHandler
-from fms_core.templates import SAMPLE_ADD_METADATA_TEMPLATE
+from fms_core.templates import SAMPLE_METADATA_TEMPLATE
 
 METADATA_STARTING_INDEX = 4
 
 class SampleAddMetadataImporter(GenericImporter):
-    SHEETS_INFO = SAMPLE_ADD_METADATA_TEMPLATE['sheets info']
+    SHEETS_INFO = SAMPLE_METADATA_TEMPLATE['sheets info']
 
     def __init__(self):
         super().__init__()

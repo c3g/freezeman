@@ -456,8 +456,7 @@ def add_sample_metadata(sample, metadata):
         try:
             # Retrieve the biosample of the given sample
             biosample_obj = sample.biosample_not_pool
-            for name in metadata.keys():
-                value = metadata[name]
+            for (name, value) in metadata.items():
                 # Check if sample has already the metadata
                 if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
                     errors.append(f'Sample [{sample.name}] already has property [{name}] with value [{value}].')
@@ -479,8 +478,7 @@ def update_sample_metadata(sample, metadata):
         try:
             # Retrieve the biosample of the given sample
             biosample_obj = sample.biosample_not_pool
-            for name in metadata.keys():
-                value = metadata[name]
+            for (name, value) in metadata.items():
                 # Check if sample has already the metadata
                 if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
                     metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
@@ -508,10 +506,9 @@ def remove_sample_metadata(sample, metadata):
         try:
             # Retrieve the biosample of the given sample
             biosample_obj = sample.biosample_not_pool
-            for name in metadata.keys():
-                value = metadata[name]
+            for (name, value) in metadata.items():
                 metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
-                # Add warning if the new value is the same as the old value
+                # Add warning if the value stored is different from the input value
                 if metadata_obj.value != value:
                     warnings.append(f'Sample [{sample.name}] has metadata [{name}] with a different value [{value}]')
                 metadata_obj.delete()
