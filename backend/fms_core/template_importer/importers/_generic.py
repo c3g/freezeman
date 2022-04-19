@@ -100,17 +100,6 @@ class GenericImporter():
         row_obj = row_handler_obj.row_object
         return (result, row_obj)
 
-    def add_dynamic_headers(self, headers_per_sheet):
-        """
-        Takes a dictionary { sheet_number : [extra_headers] } as input
-        """
-        for (sheet_num, extra_headers) in headers_per_sheet.items():
-            headers = self.SHEETS_INFO[sheet_num]['headers']
-            for extra_header in extra_headers:
-                if extra_header not in headers:
-                    headers.append(extra_header)
-
-
     @property
     def is_valid(self):
         if any(s.is_valid is None for s in list(self.sheets.values())):
