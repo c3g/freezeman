@@ -46,8 +46,11 @@ class SampleAddMetadataHandler(GenericRowHandler):
             # Check that the metadata exists and it is associated to the sample
             elif action == REMOVE_ACTION:
                 # Remove link object if no errors
-                _, self.errors['metadata'], self.warnings['metadata'] = remove_sample_metadata(sample=sample_obj,
-                                                                                               metadata=metadata)
+                is_removed, self.errors['metadata'], self.warnings['metadata'] = remove_sample_metadata(sample=sample_obj,
+                                                                                                        metadata=metadata)
+
+                if not is_removed:
+                    self.errors['remove_metadata'] = 'For metadata to be deleted values should match those stored.'
 
             # Action not provided or invalid
             else:

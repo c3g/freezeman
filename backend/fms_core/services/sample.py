@@ -498,7 +498,7 @@ def update_sample_metadata(sample, metadata):
 
 
 def remove_sample_metadata(sample, metadata):
-    num_objects_deleted = 0
+    deleted = False
     errors = []
     warnings = []
 
@@ -510,14 +510,16 @@ def remove_sample_metadata(sample, metadata):
                 metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
                 # Add warning if the value stored is different from the input value
                 if metadata_obj.value != value:
-                    warnings.append(f'Sample [{sample.name}] has metadata [{name}] with a different value [{value}]')
-                metadata_obj.delete()
+                    errors.append(f'Sample [{sample.name}] has metadata [{name}] with a different value [{value}]')
+                else:
+                    metadata_obj.delete()
+                    deleted = True
         except SampleMetadata.DoesNotExist:
             errors.append(f'Metadata with name [{name}] is not tied to sample [{sample.name}]')
     else:
         errors.append('Sample and metadata are required')
 
-    return num_objects_deleted, errors, warnings
+    return deleted, errors, warnings
 
 
 
