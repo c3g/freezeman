@@ -2,6 +2,8 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_add_metadata import SampleAddMetadataHandler
 from fms_core.templates import SAMPLE_METADATA_TEMPLATE
 
+from .._utils import input_string_to_snake_case
+
 METADATA_STARTING_INDEX = 4
 
 class SampleAddMetadataImporter(GenericImporter):
@@ -26,8 +28,8 @@ class SampleAddMetadataImporter(GenericImporter):
                     row_data[key] = row[key]
                 # Just add metadata if the cell is not empty, else ignore
                 elif row[key]:
-                    # TODO: metadata validation (name and value?)
-                    metadata[key] = val
+                    formatted_name = input_string_to_snake_case(key)
+                    metadata[formatted_name] = val
 
             sample_add_properties = dict(
                 # ExperimentRun attributes data dictionary and related objects

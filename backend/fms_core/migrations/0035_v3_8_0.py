@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('name', models.CharField(help_text='The name of the metadata.', max_length=2000, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('name', models.CharField(help_text='The name of the metadata.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('value', models.CharField(help_text='The value of the metadata.', max_length=2000)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplemetadata_creation', to=settings.AUTH_USER_MODEL)),
                 ('biosample', models.ForeignKey(help_text='Biosample associated to this metadata.', on_delete=django.db.models.deletion.PROTECT, related_name='metadata', to='fms_core.biosample')),

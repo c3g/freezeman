@@ -12,7 +12,7 @@ from ._validators import name_validator
 class SampleMetadata(TrackedModel):
     """ Class to store additional sample metadata. """
 
-    name = models.CharField(max_length=2000, validators=[name_validator],
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
                             help_text="The name of the metadata.")
     value = models.CharField(max_length=2000, help_text="The value of the metadata.")
     biosample = models.ForeignKey(Biosample, on_delete=models.PROTECT, related_name='metadata',

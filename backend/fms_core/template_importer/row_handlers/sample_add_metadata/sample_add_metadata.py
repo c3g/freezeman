@@ -16,6 +16,9 @@ class SampleAddMetadataHandler(GenericRowHandler):
 
 
     def process_row_inner(self, action, sample_info, metadata):
+        # Add generic format warning for metadata name
+        self.warnings['metadata_name'] = "Metadata names are stored in a lower case and underscore format. (example_metadata)"
+
         # Get sample object
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample_info['container_barcode'],
                                                                                                coordinates=sample_info['container_coordinates'])
@@ -23,10 +26,10 @@ class SampleAddMetadataHandler(GenericRowHandler):
 
         if sample_obj:
             if sample_obj.name != sample_info['name']:
-                warning_msg = f"Sample in container with barcode {sample_info['container_barcode']} " + \
-                              (f"at coordinate {sample_info['container_coordinates']} " if sample_info['container_coordinates'] else f"") + \
-                              f"is named {sample_obj.name} not {sample_info['sample_name']}."
-                self.warnings['sample'].append(warning_msg)
+                error_msg = f"Sample in container with barcode {sample_info['container_barcode']} " + \
+                            (f"at coordinate {sample_info['container_coordinates']} " if sample_info['container_coordinates'] else f"") + \
+                            f"is named {sample_obj.name} not {sample_info['sample_name']}."
+                self.errors['sample'].append(error_msg)
 
             # Check if sample does not have the metadata and ensure there's not a duplicated association
             if action == ADD_ACTION:

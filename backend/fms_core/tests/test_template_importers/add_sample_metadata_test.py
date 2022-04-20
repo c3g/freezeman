@@ -19,11 +19,11 @@ class SampleMetadataTestCase(TestCase):
 
         self.sample1_name = 'SampleTestMetadata'
         self.sample2_name = 'Sample2TestMetadata'
-        self.sample_metadata1_name = "MetadataName1"
+        self.sample_metadata1_name = "metadata_name_1"
         self.sample_metadata1_value = "MetadataValue1"
-        self.sample_metadata2_name = "MetadataName2"
+        self.sample_metadata2_name = "metadata_name_2"
         self.sample_metadata2_value = "MetadataValue2"
-        self.sample_metadata3_name = "MetadataName3"
+        self.sample_metadata3_name = "metadataname3"
         self.sample_metadata3_value = "MetadataValue3"
         self.sample_metadata4_value = "MetadataValue4"
         self.sample_metadata5_value = "MetadataValue5"

@@ -317,7 +317,7 @@ const SampleDetailsContent = ({
           <Descriptions bordered={true} size="small">
             {
               sampleMetadata.map(metadata => {
-                return  <Descriptions.Item label={metadata.name}>{metadata?.value} </Descriptions.Item>
+                return  <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
               })
             }
 
