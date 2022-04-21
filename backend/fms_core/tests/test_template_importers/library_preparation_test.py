@@ -41,6 +41,8 @@ class LibraryPreparationTestCase(TestCase):
             shearing_technician_name='Elizabeth Caron',
             library_kit_used='Illumina Tagmentation',
             library_kit_lot='1',
+            thermocycler_used='Biometra Rouge',
+            PCR_enzyme_used='KAPA HiFi HotStart Uracil+ Polymerase'
         )
 
         self.library_batch_2 = dict(
@@ -156,10 +158,18 @@ class LibraryPreparationTestCase(TestCase):
         pt_4 = PropertyType.objects.get(name='Shearing Technician Name', object_id=pm_1.process.protocol.id)
         p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_1.process.id)
 
+        pt_5 = PropertyType.objects.get(name='Thermocycler Used', object_id=pm_1.process.protocol.id)
+        p_5 = PropertyValue.objects.get(property_type_id=pt_5, object_id=pm_1.process.id)
+
+        pt_6 = PropertyType.objects.get(name='PCR Enzyme Used', object_id=pm_1.process.protocol.id)
+        p_6 = PropertyValue.objects.get(property_type_id=pt_6, object_id=pm_1.process.id)
+
         self.assertEqual(p_1.value, self.library_1['library_technician_name'])
         self.assertEqual(p_2.value, self.library_1['library_kit_used'])
         self.assertEqual(p_3.value, self.library_1['library_kit_lot'])
         self.assertEqual(p_4.value, self.library_1['shearing_technician_name'])
+        self.assertEqual(p_5.value, self.library_1['thermocycler_used'])
+        self.assertEqual(p_6.value, self.library_1['PCR_enzyme_used'])
 
         # Test second library
         sample_library_2, _, _ = get_sample_from_container(barcode='Container4Library2')
