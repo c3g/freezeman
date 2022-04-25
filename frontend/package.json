@@ -8,7 +8,7 @@
     "watch": "npx webpack --watch --mode development",
     "build": "npx webpack --mode production",
     "build-dev": "npx webpack --mode development",
-    "start": "npx webpack-dev-server --mode=development"
+    "start": "npx webpack-dev-server --mode=development "
   },
   "repository": {
     "type": "git",

@@ -68,6 +68,7 @@ module.exports = (env, argv) => ({
   ],
 
   devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
+  
   devServer: {
     static: {
       directory: path.join(__dirname, "dist")
