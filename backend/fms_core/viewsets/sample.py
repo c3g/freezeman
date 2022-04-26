@@ -5,10 +5,12 @@ from rest_framework.response import Response
 from django.db.models import Q, When, Case, BooleanField
 from django.core.exceptions import ValidationError
 
+import time
+
 from ..utils import RE_SEPARATOR
 
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
-from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer, serialize_sample_export
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
@@ -23,7 +25,7 @@ from fms_core.filters import SampleFilter
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
-    queryset = Sample.objects.select_related("container").all().distinct()
+    queryset = Sample.objects.select_related("container").prefetch_related('derived_samples').all().distinct()
     queryset = queryset.annotate(
         qc_flag=Case(
             When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
@@ -261,8 +263,16 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        return Response(serializer.data)
+        t0 = time.time()
+        serializer_data = [serialize_sample_export(sample) for sample in self.filter_queryset(self.get_queryset())]
+        #serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        #serializer_data = serializer.data
+        t1 = time.time()
+
+        total = t1 - t0
+        print(total)
+
+        return Response(serializer_data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -271,6 +281,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
+
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):

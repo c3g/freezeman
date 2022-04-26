@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from typing import Dict, Any
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
@@ -54,6 +55,7 @@ __all__ = [
     "ProtocolSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
+    "serialize_sample_export",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
@@ -339,10 +341,44 @@ class SampleSerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
 
+def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
+    return {
+        'sample_id': sample.id,
+        'sample_name': sample.name,
+        'biosample_id': sample.biosample_not_pool.id,
+        'alias': sample.derived_samples.first().biosample.alias,
+        'sample_kind': sample.derived_samples.first().sample_kind.name,
+        'tissue_source': sample.derived_samples.first().tissue_source,
+        'container': sample.container,
+        'container_kind': sample.container.kind,
+        'container_name': sample.container.name,
+        'container_barcode': sample.container.barcode,
+        'coordinates': sample.coordinates,
+        'location_barcode': '' if sample.container and sample.container.location is None else sample.container.location.barcode,
+        'location_coord': sample.container.coordinates,
+        'current_volume': sample.volume if sample.volume else None,
+        'concentration': sample.concentration,
+        'creation_date': sample.creation_date,
+        'collection_site': sample.biosample_not_pool.collection_site,
+        'experimental_group': sample.derived_samples.first().experimental_group,
+        'individual_name': sample.derived_samples.first().biosample.individual.name,
+        'sex': sample.derived_samples.first().biosample.individual.sex,
+        'taxon': sample.derived_samples.first().biosample.individual.taxon.name,
+        'cohort': sample.derived_samples.first().biosample.individual.cohort,
+        'pedigree': sample.derived_samples.first().biosample.individual.pedigree,
+        'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
+        'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
+        'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
+        'depleted': "Yes" if sample.depleted else "No",
+        'is_library': sample.is_library,
+        'comment': sample.comment,
+    }
+
+
 class SampleExportSerializer(serializers.ModelSerializer):
     sample_id = serializers.IntegerField(read_only=True, source="id")
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    sample_name = serializers.CharField(source="name")
+    sample_name = serializers.CharField(read_only=True, source="name")
     individual_name = serializers.CharField(read_only=True, source="biosample_not_pool.individual.name")
     taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon.name")
     sex = serializers.CharField(read_only=True, source="biosample_not_pool.individual.sex")
@@ -367,6 +403,21 @@ class SampleExportSerializer(serializers.ModelSerializer):
     depleted = serializers.SerializerMethodField()
     # Library
     is_library = serializers.SerializerMethodField()
+    comment = serializers.CharField()
+
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """ Perform necessary eager loading of data. """
+        # select_related for "to-one" relationships
+        queryset = queryset.select_related('container')
+
+        # prefetch_related for "to-many" relationships
+        queryset = queryset.prefetch_related(
+            'derived_samples',
+            'derived_samples__biosample',
+            'projects',
+        )
+        return queryset
 
     class Meta:
         model = Sample
@@ -376,6 +427,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
+
 
     def get_location_barcode(self, obj):
         if obj.container and obj.container.location is None:
