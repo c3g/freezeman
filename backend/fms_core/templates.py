@@ -129,9 +129,9 @@ SAMPLE_METADATA_TEMPLATE = {
       },
   ],
   "prefill info": [
-      ("Samples", "Sample Name", "name"),
-      ("Samples", "Sample Container Barcode", "container__barcode"),
-      ("Samples", "Sample Container Coordinates", "coordinates"),
+      ("Metadata", "Sample Name", "name"),
+      ("Metadata", "Sample Container Barcode", "container__barcode"),
+      ("Metadata", "Sample Container Coordinates", "coordinates"),
   ],
 }
 

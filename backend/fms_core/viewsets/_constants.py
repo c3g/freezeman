@@ -84,7 +84,7 @@ _sample_minimal_filterset_fields: FiltersetFields = {
 }
 
 _sample_metadata_filterset_fields: FiltersetFields = {
-    "biosample": PK_FILTERS,
+    "biosample__id": FK_FILTERS,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
