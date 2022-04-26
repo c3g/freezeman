@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library, SampleMetadata
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -428,7 +428,7 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
         else:
             errors.append('Quantity and Quality flags are required.')
     except Error as e:
-        errors.appends(';'.join(e.messages))
+        errors.append(';'.join(e.messages))
 
     return sample, errors, warnings
 
@@ -443,9 +443,86 @@ def remove_qc_flags(sample):
         sample.quality_flag = None
         sample.save()
     except Error as e:
-        errors.appends(';'.join(e.messages))
+        errors.append(';'.join(e.messages))
 
     return sample, errors, warnings
+
+
+def add_sample_metadata(sample, metadata):
+    errors = []
+    warnings = []
+
+    if sample and metadata:
+        try:
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for (name, value) in metadata.items():
+                # Check if sample has already the metadata
+                if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
+                    errors.append(f'Sample [{sample.name}] already has property [{name}] with value [{value}].')
+                else:
+                    SampleMetadata.objects.create(name=name, value=value, biosample=biosample_obj)
+        except ValidationError as e:
+            errors.append(';'.join(e))
+    else:
+        errors.append('Sample and metadata are required')
+
+    return metadata, errors, warnings
+
+
+def update_sample_metadata(sample, metadata):
+    errors = []
+    warnings = []
+
+    if sample and metadata:
+        try:
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for (name, value) in metadata.items():
+                # Check if sample has already the metadata
+                if SampleMetadata.objects.filter(name=name, biosample=biosample_obj).exists():
+                    metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
+                    # Add warning if the new value is the same as the old value
+                    if metadata_obj.value == value:
+                        warnings.append(f'Sample [{sample.name}] has metadata [{name}] with the same value [{value}]')
+                    metadata_obj.value = value
+                    metadata_obj.save()
+                else:
+                    errors.append(f'Sample [{sample.name}] does not have metadata with name [{name}].')
+        except ValidationError as e:
+            errors.append(';'.join(e))
+    else:
+        errors.append('Sample and metadata are required')
+
+    return metadata, errors, warnings
+
+
+def remove_sample_metadata(sample, metadata):
+    deleted = False
+    errors = []
+    warnings = []
+
+    if sample and metadata:
+        try:
+            # Retrieve the biosample of the given sample
+            biosample_obj = sample.biosample_not_pool
+            for (name, value) in metadata.items():
+                metadata_obj = SampleMetadata.objects.get(name=name, biosample=biosample_obj)
+                # Add warning if the value stored is different from the input value
+                if metadata_obj.value != value:
+                    errors.append(f'Sample [{sample.name}] has metadata [{name}] with a different value [{value}]')
+                else:
+                    metadata_obj.delete()
+                    deleted = True
+        except SampleMetadata.DoesNotExist:
+            errors.append(f'Metadata with name [{name}] is not tied to sample [{sample.name}]')
+    else:
+        errors.append('Sample and metadata are required')
+
+    return deleted, errors, warnings
+
+
+
 
 
 

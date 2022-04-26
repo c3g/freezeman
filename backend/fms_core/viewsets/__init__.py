@@ -14,6 +14,7 @@ from .query import QueryViewSet
 from .revision import RevisionViewSet
 from .sample import SampleViewSet
 from .sample_kind import SampleKindViewSet
+from .sample_metadata import SampleMetadataViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
@@ -40,6 +41,7 @@ __all__ = [
     "RevisionViewSet",
     "SampleViewSet",
     "SampleKindViewSet",
+    "SampleMetadataViewSet",
     "UserViewSet",
     "VersionViewSet",
     "ProjectViewSet",

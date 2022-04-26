@@ -168,6 +168,10 @@ const api = {
     search: q => get("/samples/search/", { q }),
   },
 
+  sampleMetadata: {
+    get: options => get(`/sample-metadata/`, options)
+  },
+
   sampleKinds: {
     list: () => get("/sample-kinds/"),
   },

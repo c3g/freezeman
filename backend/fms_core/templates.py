@@ -12,6 +12,7 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
+    "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -117,6 +118,21 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "prefill info": [
       ("Library", "Sample Container Barcode", "container__barcode"),
       ("Library", "Sample Container Coordinates", "coordinates"),],
+}
+
+SAMPLE_METADATA_TEMPLATE = {
+  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Metadata',
+          'headers': ['Action', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates'],
+      },
+  ],
+  "prefill info": [
+      ("Metadata", "Sample Name", "name"),
+      ("Metadata", "Sample Container Barcode", "container__barcode"),
+      ("Metadata", "Sample Container Coordinates", "coordinates"),
+  ],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {

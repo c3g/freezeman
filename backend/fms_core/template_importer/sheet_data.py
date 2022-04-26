@@ -57,7 +57,9 @@ class SheetData():
         has_row_errors = any((x['errors'] != [] or x['validation_error'].messages != []) for x in rows_results)
         self.is_valid = True if (len(self.base_errors) == 0 and not has_row_errors) else False
 
-        headers_for_preview = [''] + self.headers
+        # Add dynamic columns that might not be part of the hard coded headers
+        extra_columns = [column for column in self.dataframe.columns if column not in self.headers]
+        headers_for_preview = [''] + self.headers + extra_columns
 
         return {
             "name": self.name,

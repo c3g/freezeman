@@ -23,6 +23,7 @@ from .models import (
     Project,
     Sample,
     SampleKind,
+    SampleMetadata,
     Sequence,
     Taxon,
 )
@@ -52,6 +53,7 @@ __all__ = [
     "ProcessMeasurementExportSerializer",
     "ProcessMeasurementWithPropertiesExportSerializer",
     "ProtocolSerializer",
+    "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
     "NestedSampleSerializer",
@@ -307,12 +309,18 @@ class PropertyValueSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_fields = ('property_name')
 
+class SampleMetadataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleMetadata
+        fields = "__all__"
+
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     individual = serializers.CharField(read_only=True, source="biosample_not_pool.individual.id")
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
