@@ -34,6 +34,24 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
         </Link>,
     },
     {
+      title: "Platform",
+      dataIndex: "derived_samples__library__platform__name",
+      sorter: true,
+      render: (_, library) => (library.platform &&
+        <div>
+          {library.platform}
+        </div>),
+    },
+    {
+      title: "Projects",
+      dataIndex: "projects__name",
+      render: (_, library) => (library.projects &&
+        library.projects.map(id => {
+          return (<div> <Link to={`/projects/${id}`}> {projectsByID[id]?.name} </Link> </div>);
+        })
+      ),
+    },
+    {
       title: "Name",
       dataIndex: "name",
       sorter: true,
@@ -76,24 +94,6 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
         </Link>),
     },
     {
-      title: "Platform",
-      dataIndex: "derived_samples__library__platform__name",
-      sorter: true,
-      render: (_, library) => (library.platform &&
-        <div>
-          {library.platform}
-        </div>),
-    },
-    {
-      title: "Projects",
-      dataIndex: "projects__name",
-      render: (_, library) => (library.projects &&
-        library.projects.map(id => {
-          return (<div> <Link to={`/projects/${id}`}> {projectsByID[id]?.name} </Link> </div>);
-        })
-      ),
-    },
-    {
       title: "Vol. (µL)",
       dataIndex: "volume",
       sorter: true,
@@ -102,13 +102,13 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       width: 100,
     },
     {
-      title: "Conc. (ng/µL)",
-      dataIndex: "concentration_ng_ul",
+      title: "Library Size",
+      dataIndex: "derived_samples__library__library_size",
       sorter: true,
       align: "right",
       className: "table-column-numbers",
-      render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
-      width: 115,
+      render: (_, library) => library.library_size !== null ? parseInt(library.library_size) : null,
+      width: 80,
     },
     {
       title: "Conc. (nM)",
@@ -120,22 +120,22 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       width: 115,
     },
     {
-      title: "Qty (ng)",
+      title: "Conc. (ng/µL)",
+      dataIndex: "concentration_ng_ul",
+      sorter: true,
+      align: "right",
+      className: "table-column-numbers",
+      render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
+      width: 115,
+    },
+    {
+      title: "NA Qty (ng)",
       dataIndex: "quantity_ng",
       sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: qty => qty !== null ? parseFloat(qty).toFixed(3) : null,
       width: 115,
-    },
-    {
-      title: "Library Size",
-      dataIndex: "derived_samples__library__library_size",
-      sorter: true,
-      align: "right",
-      className: "table-column-numbers",
-      render: (_, library) => library.library_size !== null ? parseInt(library.library_size) : null,
-      width: 80,
     },
     {
       title: "QC Flag",

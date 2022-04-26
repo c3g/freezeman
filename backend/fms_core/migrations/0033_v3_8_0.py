@@ -29,6 +29,7 @@ def create_library_preparation_objects(apps, schema_editor):
                                   ("Shearing Size (bp)", "str"),
                                   ("Library Kit Used", "str"),
                                   ("Library Kit Lot", "str"),
+                                  ("Thermocycler Used", "str"),
                                   ("PCR Cycles", "str"),
                                   ("PCR Enzyme Used", "str"),
                                   ("PCR Enzyme Lot", "str"),

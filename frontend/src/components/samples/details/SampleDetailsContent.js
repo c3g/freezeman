@@ -252,15 +252,15 @@ const SampleDetailsContent = ({
               <Title level={5} style={{ marginTop: '1rem'}}> Library Information </Title>
               <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
-                <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
-                <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
-                <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
                 <Descriptions.Item label="Index">
                   <Link to={`/samples/${sample.extracted_from}`}>
                     {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
                   </Link>
                 </Descriptions.Item>
+                <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
+                <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
+                <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
               </Descriptions>
             </>
           ) : null}
