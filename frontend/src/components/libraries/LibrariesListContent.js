@@ -129,7 +129,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       width: 115,
     },
     {
-      title: "Qty (ng)",
+      title: "NA Qty (ng)",
       dataIndex: "quantity_ng",
       sorter: true,
       align: "right",
