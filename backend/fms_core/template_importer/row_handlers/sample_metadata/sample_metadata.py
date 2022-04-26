@@ -10,7 +10,7 @@ ADD_ACTION = "ADD"
 UPDATE_ACTION = "UPDATE"
 REMOVE_ACTION = "REMOVE"
 
-class SampleAddMetadataHandler(GenericRowHandler):
+class SampleMetadataHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 import datetime
 
-from fms_core.template_importer.importers import SampleAddMetadataImporter
+from fms_core.template_importer.importers import SampleMetadataImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
 from fms_core.models import Sample, SampleKind, SampleMetadata
@@ -13,7 +13,7 @@ from fms_core.services.sample import create_full_sample
 
 class SampleMetadataTestCase(TestCase):
     def setUp(self) -> None:
-        self.importer = SampleAddMetadataImporter()
+        self.importer = SampleMetadataImporter()
         self.file = APP_DATA_ROOT / "Sample_metadata_v3_8_0.xlsx"
         ContentType.objects.clear_cache()
 

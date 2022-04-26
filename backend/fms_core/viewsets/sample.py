@@ -10,7 +10,7 @@ from ..utils import RE_SEPARATOR
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleAddMetadataImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
@@ -84,7 +84,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "name": "Add Metadata to Samples",
             "description": "Upload the provided template with custom metadata to be added to samples.",
             "template": [SAMPLE_METADATA_TEMPLATE["identity"]],
-            "importer": SampleAddMetadataImporter,
+            "importer": SampleMetadataImporter,
         },
     ]
 
