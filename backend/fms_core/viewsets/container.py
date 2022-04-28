@@ -24,16 +24,12 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _prefix_keys, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
 
-from ._constants import (
-    _container_filterset_fields,
-    _sample_minimal_filterset_fields
-)
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
-                          Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all()
+                          Prefetch('samples', queryset=Sample.objects.order_by('coordinates'))).all().distinct()
 
     serializer_class = ContainerSerializer
     filter_class = ContainerFilter
@@ -63,6 +59,35 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         {"template": CONTAINER_MOVE_TEMPLATE},
         {"template": CONTAINER_RENAME_TEMPLATE},
     ]
+
+    def get_queryset(self):
+        container_name = self.request.query_params.get('location__name__recursive')
+        recursive = not container_name is None
+
+        if recursive:
+            containers = Container.objects.all()
+            if container_name:
+                containers = containers.filter(name=container_name)
+
+            container_ids = tuple(containers.values_list('id', flat=True))
+
+            if not container_ids:
+                container_ids = tuple([None])
+
+            parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
+                                                                   SELECT id, location_id
+                                                                   FROM fms_core_container
+                                                                   WHERE id IN %s
+                                                                   UNION ALL
+                                                                   SELECT child.id, child.location_id
+                                                                   FROM fms_core_container AS child, parent
+                                                                   WHERE child.location_id = parent.id
+                                                               )
+                                                               SELECT * FROM parent''', params=[container_ids])
+
+            return self.queryset.filter(location__in=parent_containers)
+
+        return self.queryset
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -113,10 +138,16 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         search_input = _request.GET.get("q")
         is_parent = _request.GET.get("parent") == 'true'
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(barcode__icontains=search_input)
-        query.add(Q(name__icontains=search_input), Q.OR)
-        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(barcode=search_input)
+            query.add(Q(name=search_input), Q.OR)
+            query.add(Q(id=search_input), Q.OR)
+        else:
+            query = Q(barcode__icontains=search_input)
+            query.add(Q(name__icontains=search_input), Q.OR)
+            query.add(Q(id__icontains=search_input), Q.OR)
         if is_parent:
             query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
         if is_sample_holding:

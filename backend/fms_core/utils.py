@@ -86,3 +86,16 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     value is false-y, returns a default string value instead.
     """
     return str_cast_and_normalize(d.get(key) or default)
+
+def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
+    """
+    Gets a concentration in ng/uL and convert it to molar concentration in nM.
+    If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
+    the function return None implying an erroneous state.
+    """
+    molar_concentration = None
+    if concentration is None or not molecular_weight or not molecule_count:  # Prevent division by 0 and operation on NoneType
+        return molar_concentration
+    molar_concentration = (concentration / molecule_count * molecular_weight) * 1000000
+
+    return molar_concentration

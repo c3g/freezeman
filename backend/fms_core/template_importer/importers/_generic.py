@@ -100,7 +100,6 @@ class GenericImporter():
         row_obj = row_handler_obj.row_object
         return (result, row_obj)
 
-
     @property
     def is_valid(self):
         if any(s.is_valid is None for s in list(self.sheets.values())):

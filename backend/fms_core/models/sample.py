@@ -47,6 +47,11 @@ class Sample(TrackedModel):
 
     child_of = models.ManyToManyField("self", blank=True, through="SampleLineage", symmetrical=False, related_name="parent_of")
 
+    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                       help_text='Quality flag of the sample.', max_length=20)
+    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True,
+                                        help_text='Quantity flag of the sample.', max_length=20)
+
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
@@ -59,6 +64,10 @@ class Sample(TrackedModel):
     @property
     def is_pool(self) -> bool:
         return DerivedBySample.objects.filter(sample=self).count() > 1 # More than 1 DerivedBySample implies more than 1 DerivedSample
+
+    @property
+    def is_library(self) -> bool:
+        return True if any([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
 
     @property
     def derived_sample_not_pool(self) -> DerivedSample:

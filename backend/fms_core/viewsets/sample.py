@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, When, Case, BooleanField
 from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
@@ -10,21 +10,27 @@ from ..utils import RE_SEPARATOR
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleSelectionQPCRImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
+from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
 
-from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE
-from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
+from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
+from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
 
-from rest_framework.response import Response
-
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
+            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+            default=None,
+            output_field=BooleanField())
+        )
     serializer_class = SampleSerializer
 
     ordering_fields = (
@@ -58,9 +64,27 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         },
         {
             "name": "Sample Selection Using qPCR",
-            "description": "Upload the provided template with samples to perfom a sample selection using qPCR",
+            "description": "Upload the provided template with samples to perform a sample selection using qPCR.",
             "template": [SAMPLE_SELECTION_QPCR_TEMPLATE["identity"]],
             "importer": SampleSelectionQPCRImporter,
+        },
+        {
+            "name": "Prepare Libraries",
+            "description": "Upload the provided template with information to prepare libraries with the possibility to group them by batch.",
+            "template": [LIBRARY_PREPARATION_TEMPLATE["identity"]],
+            "importer": LibraryPreparationImporter,
+        },
+        {
+            "name": "Add Experiments",
+            "description": "Upload the provided template with experiment run information.",
+            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"]],
+            "importer": ExperimentRunImporter,
+        },
+        {
+            "name": "Add Metadata to Samples",
+            "description": "Upload the provided template with custom metadata to be added to samples.",
+            "template": [SAMPLE_METADATA_TEMPLATE["identity"]],
+            "importer": SampleMetadataImporter,
         },
     ]
 
@@ -71,8 +95,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": PROJECT_LINK_SAMPLES_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
+        {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
-        {"template": EXPERIMENT_MGI_TEMPLATE},
+        {"template": SAMPLE_METADATA_TEMPLATE},
     ]
 
     def get_queryset(self):
@@ -180,7 +205,18 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                                                                        'concentration'] is not None else dict()),
         )
 
-        # Retreive the sample to update
+        derived_sample_data = dict(
+            sample_kind_id=full_sample['sample_kind'],
+            tissue_source=full_sample['tissue_source']
+        )
+
+        biosample_data = dict(
+            alias=full_sample['alias'],
+            individual_id=full_sample['individual'],
+            collection_site=full_sample['collection_site']
+        )
+
+        # Retrieve the sample to update
         try:
             sample_to_update = Sample.objects.select_for_update().get(pk=full_sample['id'])
             sample_to_update.__dict__.update(sample_data)
@@ -192,6 +228,33 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             sample_to_update.save()
         except Exception as err:
             raise ValidationError(err)
+
+        if sample_to_update and not sample_to_update.is_pool:
+            if derived_sample_data:
+                try:
+                    derived_sample_to_update = DerivedSample.objects.select_for_update().get(pk=sample_to_update.derived_sample_not_pool.id)
+                    derived_sample_to_update.__dict__.update(derived_sample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated derived_sample
+                try:
+                    derived_sample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
+
+            if biosample_data:
+                try:
+                    biosample_to_update = Biosample.objects.select_for_update().get(pk=sample_to_update.biosample_not_pool.id)
+                    biosample_to_update.__dict__.update(biosample_data)
+                except Exception as err:
+                    raise ValidationError(dict(non_field_errors=err))
+
+                # Save the updated biosample
+                try:
+                    biosample_to_update.save()
+                except Exception as err:
+                    raise ValidationError(err)
 
         # Return updated sample
         # Serialize full sample using the created sample
@@ -246,10 +309,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         Searches for samples that match the given query
         """
         search_input = _request.GET.get("q")
+        is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        query = Q(name__icontains=search_input)
-        query.add(Q(alias__icontains=search_input), Q.OR)
-        query.add(Q(id__icontains=search_input), Q.OR)
+        if is_exact_match:
+            query = Q(name=search_input)
+            query.add(Q(id=search_input), Q.OR)
+        else:
+            query = Q(name__icontains=search_input)
+            query.add(Q(id__icontains=search_input), Q.OR)
 
         full_sample_data = Sample.objects.filter(query)
         page = self.paginate_queryset(full_sample_data)

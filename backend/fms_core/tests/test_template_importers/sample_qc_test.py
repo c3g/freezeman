@@ -5,7 +5,7 @@ import datetime
 from fms_core.template_importer.importers import SampleQCImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, SampleKind, ProcessMeasurement, PropertyType, PropertyValue
+from fms_core.models import Sample, SampleKind, ProcessMeasurement, PropertyType, PropertyValue, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -33,10 +33,11 @@ class SampleQCTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
 
         (container, errors, warnings) = create_container(barcode='CONTAINER4SAMPLEQC', kind='Tube', name='Container4SampleQC')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleQC', taxon='Homo sapiens')
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleQC', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=100, concentration=25, collection_site='TestCaseSite',
                            creation_date=datetime.datetime(2021, 1, 15, 0, 0),
@@ -54,6 +55,9 @@ class SampleQCTestCase(TestCase):
         self.assertEqual(sample.volume, self.sample_new_volume)
         self.assertEqual(sample.concentration, self.sample_new_concentration)
         self.assertEqual(sample.depleted, self.sample_new_depleted)
+        # Sample flag tests
+        self.assertEqual(sample.quality_flag, self.quality_flag)
+        self.assertEqual(sample.quantity_flag, self.quantity_flag)
 
         # Process measurement tests
         self.assertTrue(ProcessMeasurement.objects.get(source_sample=sample,
@@ -65,11 +69,6 @@ class SampleQCTestCase(TestCase):
         self.assertEqual(pm.volume_used, self.process_volume_used)
 
         self.assertEqual(pm.process.protocol.name, 'Sample Quality Control')
-
-        # Derived sample flag tests
-        derived_sample = sample.derived_sample_not_pool
-        self.assertEqual(derived_sample.quality_flag, self.quality_flag)
-        self.assertEqual(derived_sample.quantity_flag, self.quantity_flag)
 
         # Property Values tests
         pt_1 = PropertyType.objects.get(name='Quantity Instrument', object_id=pm.process.protocol.id)

@@ -8,9 +8,13 @@ from .viewsets import (
     IndexViewSet,
     IndividualViewSet,
     InstrumentViewSet,
+    LibraryViewSet,
+    LibraryTypeViewSet,
+    PlatformViewSet,
     QueryViewSet,
     SampleViewSet,
     SampleKindViewSet,
+    SampleMetadataViewSet,
     ProtocolViewSet,
     ProcessViewSet,
     ProcessMeasurementViewSet,
@@ -21,6 +25,7 @@ from .viewsets import (
     RevisionViewSet,
     ProjectViewSet,
     SequenceViewSet,
+    TaxonViewSet,
 )
 
 __all__ = ["router"]
@@ -32,13 +37,18 @@ router.register(r"experiment-runs", ExperimentRunViewSet)
 router.register(r"run-types", RunTypeViewSet)
 router.register(r"projects", ProjectViewSet)
 router.register(r"sample-kinds", SampleKindViewSet, basename="sample-kind")
+router.register(r"sample-metadata", SampleMetadataViewSet, basename="sample-metadata")
 router.register(r"protocols", ProtocolViewSet)
 router.register(r"processes", ProcessViewSet)
 router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"property-values", PropertyValueViewSet)
 router.register(r"samples", SampleViewSet)
+router.register(r"libraries", LibraryViewSet)
+router.register(r"library-types", LibraryTypeViewSet)
+router.register(r"platforms", PlatformViewSet)
 router.register(r"indices", IndexViewSet)
 router.register(r"sequences", SequenceViewSet)
+router.register(r"taxons", TaxonViewSet)
 router.register(r"individuals", IndividualViewSet)
 router.register(r"instruments", InstrumentViewSet)
 router.register(r"query", QueryViewSet, basename="query")

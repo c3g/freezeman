@@ -14,10 +14,15 @@ from .query import QueryViewSet
 from .revision import RevisionViewSet
 from .sample import SampleViewSet
 from .sample_kind import SampleKindViewSet
+from .sample_metadata import SampleMetadataViewSet
 from .user import UserViewSet
 from .version import VersionViewSet
 from .project import ProjectViewSet
 from .sequence import SequenceViewSet
+from .library import LibraryViewSet
+from .platform import PlatformViewSet
+from .library_type import LibraryTypeViewSet
+from .taxon import TaxonViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -36,8 +41,13 @@ __all__ = [
     "RevisionViewSet",
     "SampleViewSet",
     "SampleKindViewSet",
+    "SampleMetadataViewSet",
     "UserViewSet",
     "VersionViewSet",
     "ProjectViewSet",
     "SequenceViewSet",
+    "LibraryViewSet",
+    "PlatformViewSet",
+    "LibraryTypeViewSet",
+    "TaxonViewSet",
 ]

@@ -79,6 +79,18 @@ export const SAMPLE_FILTERS = {
       { label: "No",  value: "false"},
     ],
   },
+  qc_flag: {
+    type: FILTER_TYPE.SELECT,
+    key: "qc_flag",
+    label: "QC Flag",
+    placeholder: "All",
+    mode:"multiple",
+    options: [
+      { label: "None", value: "None" },
+      { label: "Passed", value: "true" },
+      { label: "Failed",  value: "false" },
+    ],
+  },
 
   // Detached filters
   derived_samples__biosample__individual__pedigree: {
@@ -116,12 +128,12 @@ export const SAMPLE_FILTERS = {
     detached: true,
   },
   qPCR_status: {
-     type: FILTER_TYPE.SELECT,
-     key: "qPCR_status",
-     label: "qPCR Selection Status",
-     placeholder: "All",
-     mode: "multiple",
-     options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
+    type: FILTER_TYPE.SELECT,
+    key: "qPCR_status",
+    label: "qPCR Selection Status",
+    placeholder: "All",
+    mode: "multiple",
+    options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
     detached:true,
   },
 }
@@ -160,6 +172,7 @@ export const CONTAINER_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "location__name",
     label: "Location",
+    recursive: true,
   },
   samples: {
     type: FILTER_TYPE.INPUT,
@@ -180,13 +193,12 @@ export const INDIVIDUAL_FILTERS = {
     label: "Name",
     batch: true,
   },
-  taxon: {
+  taxon__name: {
     type: FILTER_TYPE.SELECT,
-    key: "taxon",
+    key: "taxon__name",
     label: "Taxon",
     mode: "multiple",
     placeholder: "All",
-    options: TAXON.map(x => ({ label: x, value: x })),
   },
   sex: {
     type: FILTER_TYPE.SELECT,
@@ -392,5 +404,104 @@ export const INDEX_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "sequences_5prime__value",
     label: "Sequence 5 prime",
+  },
+}
+
+export const LIBRARY_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Library ID",
+  },
+  name: {
+    type: FILTER_TYPE.INPUT,
+    key: "name",
+    label: "Name",
+    batch: true,
+  },
+  container__barcode: {
+    type: FILTER_TYPE.INPUT,
+    key: "container__barcode",
+    label: "Container Barcode",
+    recursive: true,
+    batch: true,
+  },
+  coordinates: {
+    type: FILTER_TYPE.INPUT,
+    key: "coordinates",
+    label: "Coordinates",
+  },
+  derived_samples__library__library_type__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_samples__library__library_type__name",
+    label: "Library Type",
+  },
+  derived_samples__library__index__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_samples__library__index__name",
+    label: "Index",
+  },
+  derived_samples__library__platform__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_samples__library__platform__name",
+    label: "Platform",
+  },
+  projects__name: {
+    type: FILTER_TYPE.INPUT,
+    key: "projects__name",
+    label: "Projects",
+    batch: true,
+  },
+  volume: {
+    type: FILTER_TYPE.RANGE,
+    key: "volume",
+    label: "Volume",
+  },
+  concentration_ng_ul: {
+    type: FILTER_TYPE.RANGE,
+    key: "concentration_ng_ul",
+    label: "Conc. (ng/ul)",
+  },
+  concentration_nm: {
+    type: FILTER_TYPE.RANGE,
+    key: "concentration_nm",
+    label: "Conc. (nM)",
+  },
+  quantity_ng: {
+    type: FILTER_TYPE.RANGE,
+    key: "quantity_ng",
+    label: "Qty (ng)",
+  },
+  derived_samples__library__library_size: {
+    type: FILTER_TYPE.RANGE,
+    key: "derived_samples__library__library_size",
+    label: "Library Size",
+  },
+  creation_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "creation_date",
+    label: "Creation Date",
+  },
+  depleted: {
+    type: FILTER_TYPE.SELECT,
+    key: "depleted",
+    label: "Depleted",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false"},
+    ],
+  },
+  qc_flag: {
+    type: FILTER_TYPE.SELECT,
+    key: "qc_flag",
+    label: "QC Flag",
+    placeholder: "All",
+    mode:"multiple",
+    options: [
+      { label: "None", value: "None" },
+      { label: "Passed", value: "true" },
+      { label: "Failed",  value: "false" },
+    ],
   },
 }

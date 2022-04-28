@@ -6,7 +6,7 @@ from ..schema_validators import JsonSchemaValidator, EXPERIMENTAL_GROUP_SCHEMA
 
 from .tracked_model import TrackedModel
 from .sample_kind import SampleKind
-from .index import Index
+from .library import Library
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
@@ -29,6 +29,7 @@ class DerivedSample(TrackedModel):
     BIOSPECIMEN_TYPE_PLASMA = "PLASMA"
     BIOSPECIMEN_TYPE_SALIVA = "SALIVA"
     BIOSPECIMEN_TYPE_SWAB = "SWAB"
+    BIOSPECIMEN_TYPE_TISSUE = "TISSUE"
 
     BIOSPECIMEN_TYPES = (BIOSPECIMEN_TYPE_DNA,
                          BIOSPECIMEN_TYPE_RNA,
@@ -41,7 +42,8 @@ class DerivedSample(TrackedModel):
                          BIOSPECIMEN_TYPE_GARGLE,
                          BIOSPECIMEN_TYPE_PLASMA,
                          BIOSPECIMEN_TYPE_SALIVA,
-                         BIOSPECIMEN_TYPE_SWAB)
+                         BIOSPECIMEN_TYPE_SWAB,
+                         BIOSPECIMEN_TYPE_TISSUE)
 
     # Nucleic acid biospecimen types and choices
     BIOSPECIMEN_TYPES_NA = (BIOSPECIMEN_TYPE_DNA, BIOSPECIMEN_TYPE_RNA)
@@ -67,34 +69,37 @@ class DerivedSample(TrackedModel):
         (BIOSPECIMEN_TYPE_PLASMA, BIOSPECIMEN_TYPE_PLASMA),
         (BIOSPECIMEN_TYPE_SALIVA, BIOSPECIMEN_TYPE_SALIVA),
         (BIOSPECIMEN_TYPE_SWAB, BIOSPECIMEN_TYPE_SWAB),
+        (BIOSPECIMEN_TYPE_TISSUE, BIOSPECIMEN_TYPE_TISSUE),
     )
 
     TISSUE_SOURCE_BAL = "BAL"
     TISSUE_SOURCE_BIOPSY = "Biopsy"
     TISSUE_SOURCE_BLOOD = "Blood"
+    TISSUE_SOURCE_BUFFY_COAT = "Buffy coat"
     TISSUE_SOURCE_CELLS = "Cells"
     TISSUE_SOURCE_EXPECTORATION = "Expectoration"
     TISSUE_SOURCE_GARGLE = "Gargle"
     TISSUE_SOURCE_PLASMA = "Plasma"
     TISSUE_SOURCE_SALIVA = "Saliva"
     TISSUE_SOURCE_SWAB = "Swab"
-    TISSUE_SOURCE_TUMOR = "Tumor"
-    TISSUE_SOURCE_BUFFY_COAT = "Buffy coat"
     TISSUE_SOURCE_TAIL = "Tail"
+    TISSUE_SOURCE_TISSUE = "Tissue"
+    TISSUE_SOURCE_TUMOR = "Tumor"
 
     TISSUE_SOURCE_CHOICES = (
         (TISSUE_SOURCE_BAL, TISSUE_SOURCE_BAL),
         (TISSUE_SOURCE_BIOPSY, TISSUE_SOURCE_BIOPSY),
         (TISSUE_SOURCE_BLOOD, TISSUE_SOURCE_BLOOD),
+        (TISSUE_SOURCE_BUFFY_COAT, TISSUE_SOURCE_BUFFY_COAT),
         (TISSUE_SOURCE_CELLS, TISSUE_SOURCE_CELLS),
         (TISSUE_SOURCE_EXPECTORATION, TISSUE_SOURCE_EXPECTORATION),
         (TISSUE_SOURCE_GARGLE, TISSUE_SOURCE_GARGLE),
         (TISSUE_SOURCE_PLASMA, TISSUE_SOURCE_PLASMA),
         (TISSUE_SOURCE_SALIVA, TISSUE_SOURCE_SALIVA),
         (TISSUE_SOURCE_SWAB, TISSUE_SOURCE_SWAB),
-        (TISSUE_SOURCE_TUMOR, TISSUE_SOURCE_TUMOR),
-        (TISSUE_SOURCE_BUFFY_COAT, TISSUE_SOURCE_BUFFY_COAT),
         (TISSUE_SOURCE_TAIL, TISSUE_SOURCE_TAIL),
+        (TISSUE_SOURCE_TISSUE, TISSUE_SOURCE_TISSUE),
+        (TISSUE_SOURCE_TUMOR, TISSUE_SOURCE_TUMOR),
     )
 
     # Map between biospecimen type and tissue source; used when processing
@@ -111,6 +116,7 @@ class DerivedSample(TrackedModel):
         BIOSPECIMEN_TYPE_PLASMA: TISSUE_SOURCE_PLASMA,
         BIOSPECIMEN_TYPE_SALIVA: TISSUE_SOURCE_SALIVA,
         BIOSPECIMEN_TYPE_SWAB: TISSUE_SOURCE_SWAB,
+        BIOSPECIMEN_TYPE_TISSUE: TISSUE_SOURCE_TISSUE,
     }
 
     biosample = models.ForeignKey("Biosample", on_delete=models.PROTECT, related_name="derived_samples",
@@ -123,10 +129,8 @@ class DerivedSample(TrackedModel):
     tissue_source = models.CharField(max_length=200, blank=True, choices=TISSUE_SOURCE_CHOICES,
                                      help_text="Can only be specified if the biospecimen type is DNA or RNA.")
 
-    quality_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quality flag of the sample.', max_length=20)
-    quantity_flag = models.BooleanField(choices=[(True, 'Passed'), (False, 'Failed')], null=True, blank=True, help_text='Quantity flag of the sample.', max_length=20)
 
-    index = models.ForeignKey(Index, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_samples", help_text="Index associated to this Derived Sample")
+    library = models.OneToOneField(Library, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_sample", help_text="Library associated to this Derived Sample.")
 
     @property
     def extracted_from(self): # returns a tuple of samples (extracted, extracted_from)

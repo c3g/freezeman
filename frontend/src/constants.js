@@ -14,28 +14,22 @@ export const TISSUE_SOURCE = [
   "BAL",
   "Biopsy",
   "Blood",
+  "Buffy coat",
   "Cells",
   "Expectoration",
   "Gargle",
   "Plasma",
   "Saliva",
   "Swab",
-  "Tumor",
-  "Buffy coat",
   "Tail",
+  "Tissue",
+  "Tumor",
 ]
 
 export const SEX = [
   "M",
   "F",
   "Unknown",
-]
-
-export const TAXON = [
-  "Homo sapiens",
-  "Mus musculus",
-  "Sars-Cov-2",
-  "Ixodes scapularis",
 ]
 
 export const PROJECT_STATUS = [

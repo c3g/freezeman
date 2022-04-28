@@ -1,7 +1,7 @@
 import React, {useState, useRef} from "react";
 import {connect} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
-import {Alert, Button, Checkbox, Form, Input, Select} from "antd";
+import {Alert, Button, Checkbox, Form, Input, Select, Tag} from "antd";
 
 import {withUser} from "../../utils/withItem"
 import AppPageHeader from "../AppPageHeader";
@@ -18,18 +18,21 @@ const hiddenField = {
 }
 
 const mapStateToProps = state => ({
+  requestorID: state.auth.currentUserID,
   isFetching: state.users.isFetching,
   usersByID: state.users.itemsByID,
+  groupsByID: state.groups.itemsByID,
   error: state.users.error,
   groups: Object.values(state.groups.itemsByID),
 });
 
 const actionCreators = {add, update, listTable};
 
-const UserEditContent = ({isFetching, groups, usersByID, error, add, update, listTable}) => {
+const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
+  const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)
 
   const user = usersByID[id];
 
@@ -125,10 +128,10 @@ const UserEditContent = ({isFetching, groups, usersByID, error, add, update, lis
           />
 
           <Form.Item label="Username" {...props("username")} rules={requiredRules}>
-            <Input autoComplete="not-a-username" />
+            <Input disabled={!isAdmin} autoComplete="not-a-username" />
           </Form.Item>
           <Form.Item label="Email" {...props("email")} rules={requiredRules}>
-            <Input />
+            <Input disabled={!isAdmin}/>
           </Form.Item>
           <Form.Item
             label="Password"
@@ -138,26 +141,35 @@ const UserEditContent = ({isFetching, groups, usersByID, error, add, update, lis
             <Input
               type="password"
               autoComplete="do-not-show-autocomplete"
+              disabled={!isAdmin}
             />
           </Form.Item>
           <Form.Item label="First Name" {...props("first_name")} rules={requiredRules}>
-            <Input />
+            <Input disabled={!isAdmin}/>
           </Form.Item>
           <Form.Item label="Last Name" {...props("last_name")} rules={requiredRules}>
-            <Input />
+            <Input disabled={!isAdmin}/>
           </Form.Item>
           <Form.Item label="Groups" {...props("groups")}>
-            <Select
-              mode="multiple"
-              allowClear
-              options={groups.map(Options.renderGroup)}
-            />
+            {isAdmin ?
+              <Select
+                mode="multiple"
+                allowClear
+                options={groups.map(Options.renderGroup)}
+              /> :
+              user?.groups?.length > 0 ? 
+                user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>) :
+                null
+            }
           </Form.Item>
           <Form.Item label="Is Staff" {...props("is_staff")} valuePropName="checked">
-            <Checkbox />
+            {isAdmin ? <Checkbox /> : user?.is_staff ? 'Yes' : 'No'}
           </Form.Item>
           <Form.Item label="Is Superuser" {...props("is_superuser")} valuePropName="checked">
-            <Checkbox />
+            {isAdmin ? <Checkbox /> : user?.is_superuser ? 'Yes' : 'No'}
+          </Form.Item>
+          <Form.Item label="Is Active" {...props("is_active")} valuePropName="checked">
+            {isAdmin ? <Checkbox /> : user?.is_active ? 'Yes' : 'No'}
           </Form.Item>
           {errors.length > 0 &&
             <Alert
@@ -181,6 +193,7 @@ const UserEditContent = ({isFetching, groups, usersByID, error, add, update, lis
               type="primary"
               htmlType="submit"
               loading={isFetching}
+              disabled={!isAdmin} 
             >
               Submit
             </Button>

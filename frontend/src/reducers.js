@@ -12,6 +12,7 @@ import {
   containerPrefillTemplates,
   containers,
 } from "./modules/containers/reducers";
+import {taxons} from "./modules/taxons/reducers";
 import {individuals} from "./modules/individuals/reducers";
 import {
   sampleKinds,
@@ -49,6 +50,18 @@ import {
 import {
   sequences,
 } from "./modules/sequences/reducers";
+import {
+  librariesSummary,
+  libraries,
+  libraryTemplateActions,
+  libraryPrefillTemplates
+} from "./modules/libraries/reducers";
+import {
+  libraryTypes,
+} from "./modules/libraryTypes/reducers";
+import {
+  platforms,
+} from "./modules/platforms/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";
@@ -77,6 +90,7 @@ const allReducers = combineReducers({
   experimentRunTemplateActions,
   runTypes,
   individuals,
+  taxons,
   instruments,
   sampleKinds,
   samplesSummary,
@@ -96,6 +110,12 @@ const allReducers = combineReducers({
   indicesTemplateActions,
   propertyValues,
   sequences,
+  librariesSummary,
+  libraries,
+  libraryTemplateActions,
+  libraryPrefillTemplates,
+  libraryTypes,
+  platforms,
   users,
   groups,
   pagination,

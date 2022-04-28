@@ -7,16 +7,19 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.project_link_samples import create_link
 from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.individual import get_or_create_individual
+from fms_core.services.individual import get_or_create_individual, get_taxon
 from fms_core.services.sample import create_full_sample
+from fms_core.services.library import get_library_type, create_library
+from fms_core.services.platform import get_platform
+from fms_core.services.index import get_index
 
 class SampleRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
 
-    def process_row_inner(self, sample, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
-        comment = f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
+    def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
+        comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
         parent_container_obj = None
@@ -38,11 +41,15 @@ class SampleRowHandler(GenericRowHandler):
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
         # Individual related section
+        taxon_obj = None
+        if individual['taxon']:
+            taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(ncbi_id=individual['taxon'])
+
         mother_obj = None
         if individual_mother['name']:
             mother_obj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=Individual.SEX_FEMALE,
                                          pedigree=individual["pedigree"])
 
@@ -50,7 +57,7 @@ class SampleRowHandler(GenericRowHandler):
         if individual_father['name']:
             father_obj, self.errors['individual_father'], self.warnings['individual_father'] = \
                 get_or_create_individual(name=individual_father['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=Individual.SEX_MALE,
                                          pedigree=individual["pedigree"])
 
@@ -80,7 +87,7 @@ class SampleRowHandler(GenericRowHandler):
         elif individual["name"]:
             individual_obj, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
-                                         taxon=individual['taxon'],
+                                         taxon=taxon_obj,
                                          sex=individual['sex'],
                                          pedigree=individual['pedigree'],
                                          cohort=individual['cohort'],
@@ -97,13 +104,27 @@ class SampleRowHandler(GenericRowHandler):
             self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found"]
         #TODO: sample kind str normalization
 
+        # Library are submitted
+        library_obj = None
+        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness']])
+        if is_library:
+            # Create library objects
+            library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
+            index_obj, self.errors['index'], self.warnings['index'] = get_index(library['index'])
+            platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(library['platform'])
 
-        sample_obj, self.errors['sample'], self.warnings['sample'] = \
-            create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                               creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                               concentration=sample['concentration'], tissue_source=sample['tissue_source'],
-                               experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
-                               sample_kind=sample_kind_obj, comment=comment)
+            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_type_obj,
+                                                                                           index=index_obj,
+                                                                                           platform=platform_obj,
+                                                                                           strandedness=library['strandedness'])
+        sample_obj = None
+        if library_obj is not None or not is_library:
+            sample_obj, self.errors['sample'], self.warnings['sample'] = \
+                create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                                  creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                                  concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                                  experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                                  library=library_obj, sample_kind=sample_kind_obj, comment=comment)
 
         # Link sample to project if requested
         if project_obj and sample_obj:

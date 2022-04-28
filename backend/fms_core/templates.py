@@ -11,6 +11,8 @@ __all__ = [
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
+    "LIBRARY_PREPARATION_TEMPLATE",
+    "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
     "SAMPLE_UPDATE_TEMPLATE",
@@ -95,15 +97,53 @@ INDEX_CREATION_TEMPLATE = {
   "prefill info": [],
 }
 
+LIBRARY_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library Batch',
+          'headers': ['Library Batch ID', 'Library Type', 'Library Date (YYYY-MM-DD)', 'Platform', 'Comment',
+                      'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
+                      'Library Kit Used', 'Library Kit Lot', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used',
+                      'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Library Batch ID', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
+                      'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
+                      'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
+                      'Index Set', 'Index', 'Strandedness', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Sample Container Barcode", "container__barcode"),
+      ("Library", "Sample Container Coordinates", "coordinates"),],
+}
+
+SAMPLE_METADATA_TEMPLATE = {
+  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Metadata',
+          'headers': ['Action', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates'],
+      },
+  ],
+  "prefill info": [
+      ("Metadata", "Sample Name", "name"),
+      ("Metadata", "Sample Container Barcode", "container__barcode"),
+      ("Metadata", "Sample Container Coordinates", "coordinates"),
+  ],
+}
+
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_7_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_8_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'Taxon', 'Sample Coord',
+          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'NCBI Taxon ID #', 'Sample Coord',
                       'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
                       'Individual ID', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Reception Date', 'Comment']
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception Date', 'Comment']
       },],
   "prefill info": [],
 }

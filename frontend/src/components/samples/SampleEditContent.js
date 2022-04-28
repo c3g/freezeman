@@ -30,11 +30,11 @@ import {requiredRules, nameRules} from "../../constants";
 const searchSamples = (token, input) =>
   withToken(token, api.samples.search)(input).then(res => res.data.results)
 
-const searchContainers = (token, input) =>
-  withToken(token, api.containers.search)(input, { sample_holding: true }).then(res => res.data.results)
+const searchContainers = (token, input, options) =>
+  withToken(token, api.containers.search)(input, {sample_holding: true, ...options}).then(res => res.data.results)
 
-const searchIndividuals = (token, input) =>
-  withToken(token, api.individuals.search)(input).then(res => res.data.results)
+const searchIndividuals = (token, input, options) =>
+  withToken(token, api.individuals.search)(input, options).then(res => res.data.results)
 
 let collectionSites = undefined
 const listCollectionSites = (token) => {
@@ -84,11 +84,23 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
 
   const [individualOptions, setIndividualOptions] = useState([]);
   const onFocusIndividual = ev => { onSearchIndividual(ev.target.value) }
-  const onSearchIndividual = input => {
-    searchIndividuals(token, input).then(individuals => {
+  const onSearchIndividual = (input, options) => {
+    searchIndividuals(token, input, options).then(individuals => {
       setIndividualOptions(individuals.map(Options.renderIndividual))
     })
   }
+
+
+    /*
+     * Sample Kind autocomplete
+     */
+    const sampleKindsSorted = sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name))
+    const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
+    const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
+    const onSearchSampleKind = input => {
+        const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
+        setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
+    }
 
   /*
    * Container (location) autocomplete
@@ -96,8 +108,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
 
   const [containerOptions, setContainerOptions] = useState([]);
   const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
-  const onSearchContainer = input => {
-    searchContainers(token, input).then(containers => {
+  const onSearchContainer = (input, options) => {
+    searchContainers(token, input, options).then(containers => {
       setContainerOptions(containers.map(Options.renderContainer))
     })
   }
@@ -130,8 +142,9 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   useEffect(() => {
     const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
-    onSearchIndividual(newData.individual)
-    onSearchContainer(newData.container)
+    onSearchIndividual(newData.individual, {exact_match:true})
+    onSearchContainer(newData.container, {exact_match:true})
+    onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
   const onValuesChange = (values) => {
@@ -191,14 +204,14 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Alias" {...props("alias")}>
-            <Input disabled={!isAdding}/>
+            <Input />
           </Form.Item>
-          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={isAdding && requiredRules}>
-            <Select disabled={!isAdding}>
-              {sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name)).map(sk =>
-                <Option key={sk.name} value={sk.id}>{sk.name}</Option>
-              )}
-            </Select>
+          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
+            <Select
+              options={sampleKindOptions}
+              onSearch={onSearchSampleKind}
+              onFocus={onFocusSampleKind}
+            />
           </Form.Item>
           <Form.Item label="Tissue" {...props("tissue_source")}s>
             <Select allowClear disabled={!isTissueEnabled}>
@@ -207,7 +220,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               )}
             </Select>
           </Form.Item>
-          <Form.Item label="Individual" {...props("individual")} disabled={!isAdding}>
+          <Form.Item label="Individual" {...props("individual")}>
             <Select
               showSearch
               allowClear
@@ -215,7 +228,6 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               options={individualOptions}
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
-              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Container" {...props("container")} rules={requiredRules}>
@@ -253,12 +265,11 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
             <Select mode="tags" disabled={!isAdding}/>
           </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")} rules={isAdding && requiredRules} disabled={!isAdding}>
+          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
-              disabled={!isAdding}
             />
           </Form.Item>
           <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
@@ -304,6 +315,15 @@ function deserialize(values) {
   if (!newValues.tissue_source)
     newValues.tissue_source = null
 
+  if (newValues.individual)
+    newValues.individual = Number(newValues.individual)
+
+  if (newValues.container)
+    newValues.container = Number(newValues.container)
+
+  if (newValues.sample_kind)
+    newValues.sample_kind = Number(newValues.sample_kind)
+
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
   if (newValues.creation_date)
@@ -321,6 +341,9 @@ function serialize(values) {
   if (!newValues.tissue_source)
     newValues.tissue_source = ''
 
+  if (!newValues.individual)
+    newValues.individual = ''
+
   if (newValues.concentration === '')
     newValues.concentration = null
 
@@ -329,11 +352,6 @@ function serialize(values) {
 
   if (!newValues.comment)
     newValues.comment = ''
-
-  // We should not be able to modify the volume in the Sample directly yet
-  // if (newValues.volume) {
-  //   newValues.volume = Number(newValues.container)
-  // }
 
   return newValues
 }

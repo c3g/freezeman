@@ -31,7 +31,7 @@ class Biosample(TrackedModel):
 
     @property
     def individual_taxon(self) -> str:
-        return self.individual.taxon if self.individual else ""
+        return self.individual.taxon.name if self.individual else ""
 
     @property
     def individual_cohort(self) -> str:

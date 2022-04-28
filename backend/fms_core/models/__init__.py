@@ -26,6 +26,10 @@ from .index_structure import IndexStructure
 from .sequence import Sequence
 from .sequencebyindex3prime import SequenceByIndex3Prime
 from .sequencebyindex5prime import SequenceByIndex5Prime
+from .library import Library
+from .library_type import LibraryType
+from .taxon import Taxon
+from .sample_metadata import SampleMetadata
 
 __all__ = [
     "Biosample",
@@ -38,6 +42,7 @@ __all__ = [
     "SampleKind",
     "SampleLineage",
     "SampleByProject",
+    "SampleMetadata",
     "Protocol",
     "Process",
     "ProcessMeasurement",
@@ -55,4 +60,7 @@ __all__ = [
     "Sequence",
     "SequenceByIndex3Prime",
     "SequenceByIndex5Prime",
+    "Library",
+    "LibraryType",
+    "Taxon",
 ]

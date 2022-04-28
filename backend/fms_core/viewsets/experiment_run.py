@@ -5,8 +5,6 @@ from rest_framework.response import Response
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
-from fms_core.template_importer.importers import ExperimentRunImporter
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -30,15 +28,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         **_experiment_run_filterset_fields,
     }
 
-    template_action_list = [
-        {
-            "name": "Add Experiments",
-            "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_INFINIUM_TEMPLATE["identity"],
-                         EXPERIMENT_MGI_TEMPLATE["identity"]],
-            "importer": ExperimentRunImporter,
-        },
-    ]
+    template_action_list = []
 
     def get_renderer_context(self):
         context = super().get_renderer_context()

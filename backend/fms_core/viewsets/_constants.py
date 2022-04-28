@@ -24,16 +24,21 @@ _container_filterset_fields: FiltersetFields = {
     "location": NULLABLE_FK_FILTERS,
 }
 
+_taxon_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "ncbi_id": PK_FILTERS,
+}
+
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
-    "taxon": CATEGORICAL_FILTERS,
     "sex": CATEGORICAL_FILTERS,
     "pedigree": CATEGORICAL_FILTERS_LOOSE,
     "cohort": CATEGORICAL_FILTERS_LOOSE,
-
     "mother": NULLABLE_FK_FILTERS,
     "father": NULLABLE_FK_FILTERS,
+    **_prefix_keys("taxon__", _taxon_filterset_fields),
 }
 
 _user_filterset_fields: FiltersetFields = {
@@ -43,14 +48,12 @@ _user_filterset_fields: FiltersetFields = {
 
 _group_filterset_fields: FiltersetFields = {
     "name": FREE_TEXT_FILTERS,
-
 }
 
 _sample_kind_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
-
 
 _project_minimal_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
@@ -78,6 +81,10 @@ _sample_filterset_fields: FiltersetFields = {
 _sample_minimal_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_sample_metadata_filterset_fields: FiltersetFields = {
+    "biosample__id": FK_FILTERS,
 }
 
 _protocol_filterset_fields: FiltersetFields = {
@@ -151,4 +158,36 @@ _index_filterset_fields: FiltersetFields = {
 _sequence_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "value": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_library_type_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_platform_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+# library uses a sample queryset. basic fields are sample fields.
+_library_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "volume": SCALAR_FILTERS,
+    "concentration": SCALAR_FILTERS,
+    "depleted": ["exact"],
+    "creation_date": DATE_FILTERS,
+    "coordinates": FREE_TEXT_FILTERS,
+
+    "container": FK_FILTERS,  # PK
+    **_prefix_keys("container__", _container_filterset_fields),
+
+    **_prefix_keys("projects__", _project_minimal_filterset_fields),
+
+    "derived_samples__library": FK_FILTERS,  # PK
+    **_prefix_keys("derived_samples__library__library_type__", _library_type_filterset_fields),
+    **_prefix_keys("derived_samples__library__platform__", _platform_filterset_fields),
+    **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
+    "derived_samples__library__library_size": SCALAR_FILTERS,
 }

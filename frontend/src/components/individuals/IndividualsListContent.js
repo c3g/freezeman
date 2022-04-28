@@ -16,9 +16,10 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { withTaxon } from "../../utils/withItem";
 
 
-const TABLE_COLUMNS = [
+const TABLE_COLUMNS = (taxons) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -33,9 +34,10 @@ const TABLE_COLUMNS = [
   },
   {
     title: "Taxon",
-    dataIndex: "taxon",
+    dataIndex: "taxon__name",
     sorter: true,
-    render: taxon => <em>{taxon}</em>,
+    options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+    render: (_, individual) => <em>{(individual.taxon && withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
   },
   {
     title: "Sex",
@@ -60,6 +62,7 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
   individuals: state.individuals.items,
+  taxons: state.taxons,
   page: state.individuals.page,
   totalCount: state.individuals.totalCount,
   isFetching: state.individuals.isFetching,
@@ -73,6 +76,7 @@ const IndividualsListContent = ({
   token,
   individuals,
   individualsByID,
+  taxons,
   isFetching,
   page,
   totalCount,
@@ -89,7 +93,7 @@ const IndividualsListContent = ({
     (mergedListQueryParams(INDIVIDUAL_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-  const columns = TABLE_COLUMNS.map(c => Object.assign(c, getFilterProps(
+  const columns = TABLE_COLUMNS(taxons).map(c => Object.assign(c, getFilterProps(
     c,
     INDIVIDUAL_FILTERS,
     filters,

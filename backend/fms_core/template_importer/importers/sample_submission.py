@@ -31,7 +31,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'name': row_data['Individual ID'],
                 'sex': row_data['Sex'],
                 'pedigree': row_data['Pedigree'],
-                'taxon': row_data['Taxon'],
+                'taxon': row_data['NCBI Taxon ID #'],
                 'cohort': row_data['Cohort'],
             }
             individual_mother = {
@@ -39,6 +39,12 @@ class SampleSubmissionImporter(GenericImporter):
             }
             individual_father = {
                 'name': row_data['Father ID'],
+            }
+            library = {
+                'library_type': row_data['Library Type'],
+                'index': row_data['Index'],
+                'platform': row_data['Platform'],
+                'strandedness': row_data['Strandedness'],
             }
             project = {
                 'name': row_data['Project'],
@@ -59,6 +65,7 @@ class SampleSubmissionImporter(GenericImporter):
 
             sample_kwargs = dict(
                 sample=sample,
+                library=library,
                 container=container,
                 project=project,
                 parent_container=parent_container,

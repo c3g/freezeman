@@ -16,7 +16,7 @@ class BiosampleTest(TestCase):
         self.assertEqual(biosample.collection_site, "Site1")
         self.assertEqual(biosample.individual_name, "jdoe")
         self.assertEqual(biosample.individual_sex, Individual.SEX_UNKNOWN)
-        self.assertEqual(biosample.individual_taxon, Individual.TAXON_HOMO_SAPIENS)
+        self.assertEqual(biosample.individual_taxon, "Homo sapiens")
         self.assertEqual(biosample.individual_cohort, "covid-19")
         self.assertEqual(biosample.individual_pedigree, "")
         self.assertIsNone(biosample.individual_mother)

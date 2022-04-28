@@ -39,10 +39,10 @@ class SampleQCRowHandler(GenericRowHandler):
                               volume=new_volume,
                               concentration=sample_information['concentration'])
 
-            # Update derived_sample's flags with sample information
-            _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample_obj,
-                                                                              sample_information['quantity_flag'],
-                                                                              sample_information['quality_flag'])
+            # Update the sample's flags with sample information
+            _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj,
+                                                                              quantity_flag=sample_information['quantity_flag'],
+                                                                              quality_flag=sample_information['quality_flag'])
 
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(

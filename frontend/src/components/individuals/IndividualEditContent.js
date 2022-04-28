@@ -8,12 +8,15 @@ import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import {add, update, listTable} from "../../modules/individuals/actions";
 import {individual as EMPTY_INDIVIDUAL} from "../../models";
-import {SEX, TAXON} from "../../constants";
+import {SEX} from "../../constants";
 import api, {withToken} from "../../utils/api";
 import {requiredRules} from "../../constants";
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
+
+const searchTaxons = (token, input) =>
+  withToken(token, api.taxons.search)(input).then(res => res.data.results)
 
 const toOptions = values =>
     values.map(v => ({label: v, value: v}))
@@ -21,11 +24,12 @@ const toOptions = values =>
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
+  taxonsByID: state.taxons.itemsByID,
 });
 
 const actionCreators = {add, update, listTable};
 
-const IndividualEditContent = ({token, individualsByID, add, update, listTable}) => {
+const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update, listTable}) => {
   const history = useHistory();
   const {id} = useParams();
   const isAdding = id === undefined
@@ -78,6 +82,18 @@ const IndividualEditContent = ({token, individualsByID, add, update, listTable})
   }
 
   /*
+   * Taxon autocomplete
+   */
+
+  const [taxonOptions, setTaxonOptions] = useState(Object.values(taxonsByID).map(Options.renderTaxon));
+  const onFocusTaxon = ev => { onSearchTaxon(ev.target.value) }
+  const onSearchTaxon = input => {
+    searchTaxons(token, input).then(taxons => {
+      setTaxonOptions(taxons.map(Options.renderTaxon))
+    })
+  }
+
+  /*
    * Render
    */
 
@@ -113,9 +129,13 @@ const IndividualEditContent = ({token, individualsByID, add, update, listTable})
             <Input />
           </Form.Item>
           <Form.Item label="Taxon" {...props("taxon")}>
-            <Radio.Group
-              optionType="button"
-              options={toOptions(TAXON)}
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
+              options={taxonOptions}
+              onSearch={onSearchTaxon}
+              onFocus={onFocusTaxon}
             />
           </Form.Item>
           <Form.Item label="Sex" {...props("sex")}>
@@ -184,6 +204,10 @@ function deserialize(values) {
     const newValues = { ...values }
     if (newValues.sex === null)
         newValues.sex = ''
+
+    if (newValues.taxon)
+        newValues.taxon = Number(newValues.taxon)
+
     return newValues
 }
 
@@ -191,6 +215,10 @@ function serialize(values) {
     const newValues = { ...values }
     if (newValues.sex === '')
         newValues.sex = null
+
+    if (newValues.taxon)
+        newValues.taxon = Number(newValues.taxon)
+
     return newValues
 }
 

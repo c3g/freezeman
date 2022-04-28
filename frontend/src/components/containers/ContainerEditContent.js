@@ -14,8 +14,8 @@ import {container as EMPTY_CONTAINER} from "../../models";
 import api, {withToken} from "../../utils/api";
 import {requiredRules, barcodeRules, nameRules} from "../../constants";
 
-const searchContainers = (token, input, isParent = false) =>
-  withToken(token, api.containers.search)(input, { parent: isParent })
+const searchContainers = (token, input, options) =>
+  withToken(token, api.containers.search)(input, options)
   .then(res => res.data.results)
 
 const mapStateToProps = state => ({
@@ -39,8 +39,8 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
 
   const [locationOptions, setLocationOptions] = useState([]);
   const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
-  const onSearchLocation = input => {
-    searchContainers(token, input, true).then(containers => {
+  const onSearchLocation = (input, options) => {
+    searchContainers(token, input, {...options, parent:true}).then(containers => {
       setLocationOptions(containers.map(Options.renderContainer))
     })
   }
@@ -60,7 +60,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const containerValue = container || EMPTY_CONTAINER
   useEffect(() => {
     const newData = deserialize(containerValue)
-    onSearchLocation(newData.location)
+    onSearchLocation(newData.location, {exact_match:true})
   }, [containerValue])
 
   const onValuesChange = (values) => {

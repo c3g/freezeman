@@ -133,7 +133,9 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
       <Title level={2}>Details</Title>
       <Descriptions bordered={true} size="small" column={1}>
         <Descriptions.Item label="ID">{user.id}</Descriptions.Item>
-        <Descriptions.Item label="Name">{user.username}</Descriptions.Item>
+        <Descriptions.Item label="Username">{user.username}</Descriptions.Item>
+        <Descriptions.Item label="Last name">{user.last_name}</Descriptions.Item>
+        <Descriptions.Item label="First name">{user.first_name}</Descriptions.Item>
         <Descriptions.Item label="Date joined">{dateToString(user.date_joined)}</Descriptions.Item>
         <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
         <Descriptions.Item label="Groups">
@@ -141,6 +143,7 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
         </Descriptions.Item>
         <Descriptions.Item label="Staff">{user.is_staff ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
         <Descriptions.Item label="Superuser">{user.is_superuser ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
+        <Descriptions.Item label="Active">{user.is_active ? <CheckOutlined /> : <CloseOutlined />}</Descriptions.Item>
       </Descriptions>
 
       <Title level={2} style={{ marginTop: '1em' }}>

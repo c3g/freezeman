@@ -1,8 +1,8 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 
-import {QCFlag} from "../QCFlag";
+import {QCFlag} from "../../QCFlag";
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
 import {
   Card,
@@ -26,10 +26,20 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
-import {SampleDepletion} from "../SampleDepletion";
+import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {withContainer, withSample, withIndividual, withProcessMeasurement, withProject} from "../../../utils/withItem";
+import {get as getLibrary} from "../../../modules/libraries/actions";
+import api, {withToken} from "../../../utils/api";
+import {
+  withContainer,
+  withSample,
+  withIndividual,
+  withProcessMeasurement,
+  withProject,
+  withLibrary,
+  withIndex
+} from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
@@ -61,19 +71,38 @@ const tabStyle = {
   height: "100%",
 }
 
+const listSampleMetadata = (token, options) =>
+  withToken(token, api.sampleMetadata.get)(options).then(res => res.data)
+
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   sampleKindsByID: state.sampleKinds.itemsByID,
   containersByID: state.containers.itemsByID,
   processMeasurementsByID: state.processMeasurements.itemsByID,
   individualsByID: state.individuals.itemsByID,
+  librariesByID: state.libraries.itemsByID,
+  indicesByID: state.indices.itemsByID,
   usersByID: state.users.itemsByID,
   projectsByID: state.projects.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
 
-const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, processMeasurementsByID, individualsByID, usersByID, projectsByID, getSample, listVersions}) => {
+const SampleDetailsContent = ({
+  token,
+  samplesByID,
+  sampleKindsByID,
+  containersByID,
+  processMeasurementsByID,
+  individualsByID,
+  librariesByID,
+  indicesByID,
+  usersByID,
+  projectsByID,
+  getSample,
+  listVersions
+}) => {
   const history = useHistory();
   const {id} = useParams();
 
@@ -94,6 +123,10 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
   let processMeasurements = []
   let experimentRunsIDs = []
+  const library = librariesByID[id]
+  const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
+  const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
+  const [sampleMetadata, setSampleMetadata] = useState([])
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -112,6 +145,16 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
   if (isLoaded && container?.experiment_run) {
     experimentRunsIDs.push(container.experiment_run)
   }
+
+  if (!librariesByID[id])
+    getLibrary(id)
+
+  useEffect(() => {
+    const biosampleId = sample?.biosample_id
+    listSampleMetadata(token, {"biosample__id": biosampleId}).then(metadata => {
+      setSampleMetadata(metadata)
+    })
+  }, [sample])
 
   return <>
     <AppPageHeader
@@ -141,13 +184,13 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
               <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
               <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
               <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
-              <Descriptions.Item label="Volume">{volume} µL</Descriptions.Item>
-              <Descriptions.Item label="Concentration">
+              <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
+              <Descriptions.Item label="Concentration (ng/µL)">
                   {sample.concentration == null
                       ? "—"
-                      : `${parseFloat(sample.concentration).toFixed(3)} ng/uL`}
+                      : `${parseFloat(sample.concentration).toFixed(3)}`}
               </Descriptions.Item>
-              <Descriptions.Item label="Depleted"><SampleDepletion depleted={sample.depleted} /></Descriptions.Item>
+              <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
           </Descriptions>
           <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
             <Descriptions.Item label="Individual Name">
@@ -179,12 +222,12 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
                 }
               </Descriptions.Item>
               <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
-              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
               <Descriptions.Item label="QC Flag">
                 {flags.quantity !== null && flags.quality !== null
                   ? <QCFlag flags={flags}/>
                   : null}
               </Descriptions.Item>
+              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
@@ -204,8 +247,26 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
             </Descriptions>
           ) : null}
 
+          {sample && sample.is_library ? (
+            <>
+              <Title level={5} style={{ marginTop: '1rem'}}> Library Information </Title>
+              <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
+                <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
+                <Descriptions.Item label="Index">
+                  <Link to={`/samples/${sample.extracted_from}`}>
+                    {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
+                  </Link>
+                </Descriptions.Item>
+                <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
+                <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
+                <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
+              </Descriptions>
+            </>
+          ) : null}
+
           <TrackingFieldsContent entity={sample}/>
-          <Title level={2} style={{ marginTop: '1em' }}>Versions</Title>
+          <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
               <div ref={timelineRef}>
@@ -249,6 +310,18 @@ const SampleDetailsContent = ({samplesByID, sampleKindsByID, containersByID, pro
 
         <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
           <SamplesAssociatedProjects sampleID={sample.id} />
+        </TabPane>
+
+        <TabPane tab={`Metadata`} key="5" style={tabStyle}>
+          <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
+          <Descriptions bordered={true} size="small">
+            {
+              sampleMetadata.map(metadata => {
+                return  <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+              })
+            }
+
+          </Descriptions>
         </TabPane>
 
       </Tabs>

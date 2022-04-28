@@ -4,7 +4,7 @@ import {Link} from "react-router-dom";
 import PrefillTemplateButton from "../components/PrefillTemplateButton";
 
 import {Button, Menu, Dropdown, Modal} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, ExclamationCircleOutlined, SelectOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, SelectOutlined} from "@ant-design/icons";
 
 export const templateIcon = t => {
   const n = t.description || t
@@ -17,13 +17,14 @@ export const templateIcon = t => {
   if (n.includes("link")) return <LinkOutlined/>;
   if (n.includes("quality")) return <CheckCircleOutlined />;
   if (n.includes("qPCR")) return <SelectOutlined />;
+  if (n.includes("prepare")) return <ExperimentOutlined />;
   return undefined;
 };
 
 export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
-      { prefills.items ? prefills.items.map((prefill, i) =>
+      { prefills && prefills.items && prefills.items.map((prefill, i) =>
           <Menu.Item key={i.toString()}>
             <PrefillTemplateButton
               style={{border:0}}
@@ -35,8 +36,7 @@ export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, pr
               template={i}
               icon={(templateIcon(prefill))}
             />
-          </Menu.Item>) :
-          <Menu.Item>Loading ...</Menu.Item>
+          </Menu.Item>)
       }
     </Menu>
   ) ;
