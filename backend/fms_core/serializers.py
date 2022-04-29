@@ -342,13 +342,15 @@ class SampleSerializer(serializers.ModelSerializer):
 
 
 def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
+    first_derived_sample = sample.derived_sample_not_pool
+    biosample = first_derived_sample.biosample
     return {
         'sample_id': sample.id,
         'sample_name': sample.name,
-        'biosample_id': sample.biosample_not_pool.id,
-        'alias': sample.derived_samples.first().biosample.alias,
-        'sample_kind': sample.derived_samples.first().sample_kind.name,
-        'tissue_source': sample.derived_samples.first().tissue_source,
+        'biosample_id': biosample.id,
+        'alias': biosample.alias,
+        'sample_kind': first_derived_sample.sample_kind.name,
+        'tissue_source': first_derived_sample.tissue_source,
         'container': sample.container,
         'container_kind': sample.container.kind,
         'container_name': sample.container.name,
@@ -359,13 +361,15 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'current_volume': sample.volume if sample.volume else None,
         'concentration': sample.concentration,
         'creation_date': sample.creation_date,
-        'collection_site': sample.biosample_not_pool.collection_site,
-        'experimental_group': sample.derived_samples.first().experimental_group,
-        'individual_name': sample.derived_samples.first().biosample.individual.name,
-        'sex': sample.derived_samples.first().biosample.individual.sex,
-        'taxon': sample.derived_samples.first().biosample.individual.taxon.name,
-        'cohort': sample.derived_samples.first().biosample.individual.cohort,
-        'pedigree': sample.derived_samples.first().biosample.individual.pedigree,
+        'collection_site': biosample.collection_site,
+        'experimental_group': first_derived_sample.experimental_group,
+        'individual_name': biosample.individual.name,
+        'sex': biosample.individual.sex,
+        'taxon': biosample.individual.taxon.name,
+        'cohort': biosample.individual.cohort,
+        'father_name': '' if not biosample.individual or biosample.individual.father is None else biosample.individual.father.name,
+        'mother_name': '' if not biosample.individual or biosample.individual.mother is None else biosample.individual.mother.name,
+        'pedigree': biosample.individual.pedigree,
         'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
         'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
         'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
@@ -374,7 +378,7 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'comment': sample.comment,
     }
 
-
+# TODO: get rid of this ?
 class SampleExportSerializer(serializers.ModelSerializer):
     sample_id = serializers.IntegerField(read_only=True, source="id")
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
@@ -404,20 +408,6 @@ class SampleExportSerializer(serializers.ModelSerializer):
     # Library
     is_library = serializers.SerializerMethodField()
     comment = serializers.CharField()
-
-    @staticmethod
-    def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data. """
-        # select_related for "to-one" relationships
-        queryset = queryset.select_related('container')
-
-        # prefetch_related for "to-many" relationships
-        queryset = queryset.prefetch_related(
-            'derived_samples',
-            'derived_samples__biosample',
-            'projects',
-        )
-        return queryset
 
     class Meta:
         model = Sample

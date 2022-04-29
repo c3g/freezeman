@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField
+from django.db.models import Q, When, Case, BooleanField, Prefetch
 from django.core.exceptions import ValidationError
 
 import time
@@ -25,14 +25,15 @@ from fms_core.filters import SampleFilter
 
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
-    queryset = Sample.objects.select_related("container").prefetch_related('derived_samples').all().distinct()
+    queryset = Sample.objects.select_related("container").all().distinct()
     queryset = queryset.annotate(
         qc_flag=Case(
             When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
             default=None,
-            output_field=BooleanField())
+            output_field=BooleanField()
         )
+    )
     serializer_class = SampleSerializer
 
     ordering_fields = (
@@ -263,14 +264,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        t0 = time.time()
-        serializer_data = [serialize_sample_export(sample) for sample in self.filter_queryset(self.get_queryset())]
-        #serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        #serializer_data = serializer.data
-        t1 = time.time()
+        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
 
-        total = t1 - t0
-        print(total)
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
+        # Serialize queryset
+        serializer_data = [serialize_sample_export(sample) for sample in queryset]
 
         return Response(serializer_data)
 
