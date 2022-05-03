@@ -10,22 +10,6 @@ export const FILTER_TYPE = {
   INPUT_NUMBER: "INPUT_NUMBER"
 }
 
-export const TISSUE_SOURCE = [
-  "BAL",
-  "Biopsy",
-  "Blood",
-  "Buffy coat",
-  "Cells",
-  "Expectoration",
-  "Gargle",
-  "Plasma",
-  "Saliva",
-  "Swab",
-  "Tail",
-  "Tissue",
-  "Tumor",
-]
-
 export const SEX = [
   "M",
   "F",

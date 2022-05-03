@@ -39,7 +39,7 @@ export const sample = {
   depleted: false,
   experimental_group: null, // string[]
   collection_site: "", // string(200)
-  tissue_source: null, // enum
+  tissue_source: null,
   creation_date: null, // date
   comment: "", // string(200)
   coordinates: "", // string(10)
@@ -58,7 +58,7 @@ export const sample = {
 //     depleted: false,
 //     experimental_group: [],
 //     collection_site: "JGH",
-//     tissue_source: "Blood",
+//     tissue_source: 5,
 //     creation_date: "2020-06-16",
 //     comment: "Extraction done using Chemagen CMG-1091",
 //     coordinates: "",
