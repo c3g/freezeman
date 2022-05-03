@@ -18,12 +18,12 @@ __all__ = ["DerivedSample"]
 class DerivedSample(TrackedModel):
     biosample = models.ForeignKey("Biosample", on_delete=models.PROTECT, related_name="derived_samples",
                                   help_text="Biosample associated to this DerivedSample")
-    sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT,
+    sample_kind = models.ForeignKey(SampleKind, on_delete=models.PROTECT, related_name="kind_derived_samples",
                                     help_text="Biological material collected from study subject during the conduct of a genomic study project.")
     experimental_group = models.JSONField(blank=True, default=list, validators=[JsonSchemaValidator(EXPERIMENTAL_GROUP_SCHEMA)],
                                           help_text="Sample group having some common characteristics. "
                                                     "It is the way to designate a subgroup within a study.")
-    tissue_source = models.ForeignKey(SampleKind, null=True, blank=True, on_delete=models.PROTECT,
+    tissue_source = models.ForeignKey(SampleKind, null=True, blank=True, on_delete=models.PROTECT, related_name="source_derived_samples",
                                       help_text="Can only be specified if the sample kind is DNA or RNA (i.e. is an extracted sample kind).")
     library = models.OneToOneField(Library, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_sample",
                                    help_text="Library associated to this Derived Sample.")

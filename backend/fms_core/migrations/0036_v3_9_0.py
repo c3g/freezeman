@@ -1,7 +1,7 @@
 import reversion
 from django.db import migrations, models
-import django.db.models.deletion
-
+from django.db.models import deletion
+from django.db.models import Q
 from django.contrib.auth.models import User
 
 ADMIN_USERNAME = 'biobankadmin'
@@ -63,7 +63,7 @@ def initialize_tissue_source(apps, schema_editor):
         reversion.set_comment("Replace string base tissue source by a foreign key to sample kind.")
         reversion.set_user(admin_user)
 
-        for derived_sample in DerivedSample.objects.filter(tissue_source__isnull=False):
+        for derived_sample in DerivedSample.objects.filter(Q(tissue_source__isnull=False) & ~Q(tissue_source="")):
             derived_sample.tissue_source_new = sample_kind_dic[derived_sample.tissue_source.upper()]
             derived_sample.save()
             reversion.add_to_revision(derived_sample)
@@ -87,6 +87,12 @@ class Migration(migrations.Migration):
             name='concentration_required',
             field=models.BooleanField(default=False, help_text='Sample kind requires a concentration value for sample processing.'),
             preserve_default=False,
+        ),
+        migrations.AlterField(
+            model_name='derivedsample',
+            name='sample_kind',
+            field=models.ForeignKey(on_delete=deletion.PROTECT, to='fms_core.samplekind', related_name="kind_derived_samples",
+                                    help_text='Biological material collected from study subject during the conduct of a genomic study project.'),
         ),
         migrations.AlterField(
             model_name='samplekind',
@@ -122,7 +128,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='derivedsample',
             name='tissue_source',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='fms_core.samplekind',
+            field=models.ForeignKey(blank=True, null=True, on_delete=deletion.PROTECT,
+                                    to='fms_core.samplekind', related_name="source_derived_samples",
                                     help_text='Can only be specified if the sample kind is DNA or RNA (i.e. is an extracted sample kind).'),
         ),
 
