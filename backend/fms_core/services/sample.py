@@ -275,7 +275,7 @@ def extract_sample(process: Process,
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample in sample_source.derived_samples.all():
-                new_derived_sample_data["tissue_source"] = DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[derived_sample.sample_kind.name]
+                new_derived_sample_data["tissue_source_id"] = derived_sample.sample_kind.id
                 inherited_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample, new_derived_sample_data)
                 errors.extend(errors_inherit)
                 warnings.extend(warnings_inherit)

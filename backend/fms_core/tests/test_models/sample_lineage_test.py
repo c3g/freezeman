@@ -19,8 +19,8 @@ from fms_core.tests.constants import create_container, create_individual, create
 class SampleLineageTest(TestCase):
 
     def setUp(self):
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
-        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA")
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
         self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
         # tube rack 8x12
         self.parent_tube_rack = Container.objects.create(**create_container(barcode='R1234567'))
@@ -39,7 +39,7 @@ class SampleLineageTest(TestCase):
         self.constants = dict(
             individual=self.valid_individual,
             container=self.tube_container,
-            tissue_source=DerivedSample.TISSUE_SOURCE_BLOOD
+            tissue_source=self.sample_kind_BLOOD
         )
 
         # create parent samples

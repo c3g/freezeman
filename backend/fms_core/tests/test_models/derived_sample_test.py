@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.test import TestCase
 
 from fms_core.models import Biosample, DerivedSample, Individual, SampleKind
@@ -11,8 +11,7 @@ class DerivedSampleTest(TestCase):
     def setUp(self) -> None:
         self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_biosample = Biosample.objects.create(**create_biosample(individual=self.valid_individual))
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
-        self.sample_kind_PUDDING, _ = SampleKind.objects.get_or_create(name="PUDDING")
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
 
     def test_derivedsample(self):
         derivedsample = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
@@ -27,18 +26,18 @@ class DerivedSampleTest(TestCase):
                 # tissue_source can only be specified for DNA and RNA
                 tissue_source_for_blood = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
                                                                                               sample_kind=self.sample_kind_BLOOD,
-                                                                                              tissue_source=DerivedSample.TISSUE_SOURCE_BLOOD))
+                                                                                              tissue_source=self.sample_kind_BLOOD))
             except ValidationError as e:
                 self.assertIn("tissue_source", e.message_dict)
                 raise e
 
     def test_invalid_sample_kind(self):
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(ObjectDoesNotExist):
             try:
+                self.sample_kind_PUDDING, _ = SampleKind.objects.get(name="PUDDING")
                 invalid_sample_kind = DerivedSample.objects.create(**create_derivedsample(biosample=self.valid_biosample,
                                                                                           sample_kind=self.sample_kind_PUDDING))
-            except ValidationError as e:
-                self.assertTrue('sample_kind' in e.message_dict)
+            except ObjectDoesNotExist as e:
                 raise e
 
     def test_invalid_biosample(self):

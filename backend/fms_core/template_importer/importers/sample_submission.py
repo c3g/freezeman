@@ -56,7 +56,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'concentration': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                 'collection_site': row_data['Collection Site'],
-                'tissue_source': row_data['Tissue Source'],
+                'tissue_source': row_data['Tissue Source'].upper() if row_data['Tissue Source'] else None,
                 'creation_date': input_to_date_and_none(row_data['Reception Date']),
                 'comment': row_data['Comment'],
                 'coordinates': row_data['Sample Coord'],

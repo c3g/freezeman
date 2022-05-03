@@ -101,8 +101,16 @@ class SampleRowHandler(GenericRowHandler):
         try:
             sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
         except KeyError as e:
-            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found"]
+            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found."]
         #TODO: sample kind str normalization
+        tissue_source_obj = None
+        if sample['tissue_source']:
+            try:
+                tissue_source_obj = sample_kind_objects_by_name[sample['tissue_source']]
+            except KeyError as e:
+                self.errors['tissue_source'] = [f"Tissue source {sample['tissue_source']} not found."]
+
+
 
         # Library are submitted
         library_obj = None
@@ -122,7 +130,7 @@ class SampleRowHandler(GenericRowHandler):
             sample_obj, self.errors['sample'], self.warnings['sample'] = \
                 create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
                                   creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                                  concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                                  concentration=sample['concentration'], tissue_source=tissue_source_obj,
                                   experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                   library=library_obj, sample_kind=sample_kind_obj, comment=comment)
 
