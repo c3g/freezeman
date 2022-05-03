@@ -97,6 +97,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
 
     def get_queryset(self):
+        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
+        self.queryset = self.queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -264,15 +268,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
-        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
-
-        queryset = self.filter_queryset(self.get_queryset())
-        queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
-
-        # Serialize queryset
-        serializer_data = [serialize_sample_export(sample) for sample in queryset]
-
+        serializer_data = [serialize_sample_export(sample) for sample in self.filter_queryset(self.get_queryset())]
         return Response(serializer_data)
 
     def get_renderer_context(self):
