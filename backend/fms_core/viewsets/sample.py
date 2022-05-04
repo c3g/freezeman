@@ -193,7 +193,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     def update(self, request, *args, **kwargs):
         full_sample = request.data
 
-        print(full_sample['tissue_source'])
         sample_data = dict(
             name=full_sample['name'],
             volume=full_sample['volume'],
@@ -201,8 +200,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             container_id=full_sample['container'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
             **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
-            **(dict(concentration=full_sample['concentration']) if full_sample[
-                                                                       'concentration'] is not None else dict()),
+            **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 
         derived_sample_data = dict(
