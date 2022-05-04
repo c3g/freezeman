@@ -350,7 +350,7 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'biosample_id': biosample.id,
         'alias': biosample.alias,
         'sample_kind': first_derived_sample.sample_kind.name,
-        'tissue_source': first_derived_sample.tissue_source,
+        'tissue_source': first_derived_sample.tissue_source.name,
         'container': sample.container,
         'container_kind': sample.container.kind,
         'container_name': sample.container.name,
