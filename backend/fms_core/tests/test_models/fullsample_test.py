@@ -25,7 +25,7 @@ class FullSampleTest(TestCase):
         self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
         self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
         self.wrong_container = Container.objects.create(**create_container(barcode='R123456'))
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
 
     def test_fullsample(self):
         sample = create_fullsample(name="TestFullSample",
@@ -55,8 +55,9 @@ class FullSampleTest(TestCase):
 class ExtractedSampleTest(TestCase):
 
     def setUp(self) -> None:
-        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA")
-        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD")
+        self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
+        self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+        self.sample_kind_PLASMA, _ = SampleKind.objects.get_or_create(name="PLASMA", is_extracted=False, concentration_required=False)
         self.extraction_protocol, _ = Protocol.objects.get_or_create(name="Extraction")
         # tube rack 8x12
         self.parent_tube_rack = Container.objects.create(**create_container(barcode='R123456'))
@@ -95,7 +96,7 @@ class ExtractedSampleTest(TestCase):
         self.constants = dict(
             individual=self.valid_individual,
             container=self.tube_container,
-            tissue_source=DerivedSample.TISSUE_SOURCE_BLOOD
+            tissue_source=self.sample_kind_BLOOD
         )
 
     def test_extracted_sample(self):
@@ -132,7 +133,7 @@ class ExtractedSampleTest(TestCase):
                                       volume=0,
                                       concentration=Decimal('1.0'),
                                       sample_kind=self.sample_kind_DNA,
-                                      **{**self.constants, "tissue_source": ""})
+                                      **{**self.constants, "tissue_source": None})
                 p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_no_tissue_source_extracted_sample")
                 pm = ProcessMeasurement.objects.create(process=p,
                                                        source_sample=parent_sample,
@@ -186,13 +187,13 @@ class ExtractedSampleTest(TestCase):
         volume_used = Decimal('0.01')
         parent_sample = self.parent_sample
         invalid_tissue_source = create_fullsample(name="test_extracted_sample_01",
-                                                alias="12",
-                                                volume=0,
-                                                concentration=Decimal('1.0'),
-                                                sample_kind=self.sample_kind_DNA,
-                                                tissue_source=DerivedSample.TISSUE_SOURCE_PLASMA,
-                                                individual=self.valid_individual,
-                                                container=self.tube_container)
+                                                  alias="12",
+                                                  volume=0,
+                                                  concentration=Decimal('1.0'),
+                                                  sample_kind=self.sample_kind_DNA,
+                                                  tissue_source=self.sample_kind_PLASMA,
+                                                  individual=self.valid_individual,
+                                                  container=self.tube_container)
         p = Process.objects.create(protocol=self.extraction_protocol, comment="Process test_sample_kind")
         pm = ProcessMeasurement.objects.create(process=p,
                                                source_sample=parent_sample,

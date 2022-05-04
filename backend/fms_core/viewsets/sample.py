@@ -149,8 +149,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             derived_sample_data = dict(
                 biosample_id=biosample.id,
                 sample_kind_id=full_sample_data['sample_kind'],
-                **(dict(tissue_source=full_sample_data['tissue_source']) if full_sample_data[
-                                                                                'tissue_source'] is not None else dict()),
+                **(dict(tissue_source_id=full_sample_data['tissue_source']) if full_sample_data['tissue_source'] is not None else dict()),
             )
             if full_sample_data['experimental_group']:
                 derived_sample_data['experimental_group'] = json.dumps([
@@ -201,13 +200,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             container_id=full_sample['container'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
             **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
-            **(dict(concentration=full_sample['concentration']) if full_sample[
-                                                                       'concentration'] is not None else dict()),
+            **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 
         derived_sample_data = dict(
             sample_kind_id=full_sample['sample_kind'],
-            tissue_source=full_sample['tissue_source']
+            tissue_source_id=full_sample['tissue_source']
         )
 
         biosample_data = dict(

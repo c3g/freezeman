@@ -13,7 +13,9 @@ class SampleKind(TrackedModel):
     name = models.CharField(max_length=200, unique=True,
                             help_text="Biological material collected from study subject during the conduct of a genomic study project.")
     molecule_ontology_curie = models.CharField(max_length=20, blank=True,
-                                               help_text="SO ontology term to describe an molecule, such as ‘SO:0000991’ (‘genomic_DNA’).")
+                                               help_text="SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’).")
+    is_extracted = models.BooleanField(help_text="Indicator to identify kinds that were extracted. Sample will have tissue source.")
+    concentration_required = models.BooleanField(help_text="Sample kind requires a concentration value for sample processing.")
 
     def __str__(self):
         return self.name

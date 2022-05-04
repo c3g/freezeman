@@ -21,7 +21,6 @@ import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import {add, update, listTable, summary} from "../../modules/samples/actions";
 import {sample as EMPTY_SAMPLE} from "../../models";
-import {TISSUE_SOURCE} from "../../constants";
 import api, {withToken} from "../../utils/api";
 import {requiredRules, nameRules} from "../../constants";
 
@@ -48,8 +47,6 @@ const listCollectionSites = (token) => {
     })
   return collectionSites
 }
-
-
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -91,16 +88,27 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   }
 
 
-    /*
-     * Sample Kind autocomplete
-     */
-    const sampleKindsSorted = sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name))
-    const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
-    const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
-    const onSearchSampleKind = input => {
-        const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
-        setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
-    }
+  /*
+   * Sample Kind autocomplete
+   */
+  const sampleKindsSorted = sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name))
+  const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
+  const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
+  const onSearchSampleKind = input => {
+      const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
+      setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
+  }
+
+  /*
+   * Tissue Source autocomplete
+   */
+  const tissueSourceSorted = sampleKindsSorted.filter(item => !item.is_extracted)
+  const [tissueSourceOptions, setTissueSourceOptions] = useState(tissueSourceSorted.map(Options.renderSampleKind))
+  const onFocusTissueSource = ev => { onSearchTissueSource(ev.target.value) }
+  const onSearchTissueSource = input => {
+      const tissueSourceOptions = input ? [sampleKinds.itemsByID[input]] : [...tissueSourceSorted]
+      setTissueSourceOptions(tissueSourceOptions.map(Options.renderSampleKind))
+  }
 
   /*
    * Container (location) autocomplete
@@ -180,9 +188,9 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
       help: formErrors[name],
     }
 
-  const sampleKindName = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]?.name
+  const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
-  const isTissueEnabled = tissueEnabled(sampleKindName(formData?.sample_kind))
+  const isTissueEnabled = formData?.sample_kind && sampleKind(formData?.sample_kind).is_extracted
 
   return (
     <>
@@ -213,12 +221,14 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               onFocus={onFocusSampleKind}
             />
           </Form.Item>
-          <Form.Item label="Tissue" {...props("tissue_source")}s>
-            <Select allowClear disabled={!isTissueEnabled}>
-              {TISSUE_SOURCE.map(type =>
-                <Option key={type} value={type}>{type}</Option>
-              )}
-            </Select>
+          <Form.Item label="Tissue Source" {...props("tissue_source")}s>
+            <Select
+              allowClear
+              disabled={!isTissueEnabled}
+              options={tissueSourceOptions}
+              onSearch={onSearchTissueSource}
+              onFocus={onFocusTissueSource}
+            />
           </Form.Item>
           <Form.Item label="Individual" {...props("individual")}>
             <Select
@@ -311,7 +321,6 @@ function deserialize(values) {
     return undefined
   const newValues = {...values}
 
-  /* tissue_source bottom value is '' for legacy reasons */
   if (!newValues.tissue_source)
     newValues.tissue_source = null
 
@@ -337,9 +346,8 @@ function serialize(values) {
   if (newValues.creation_date)
     newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')
 
-  /* tissue_source bottom value is '' for legacy reasons */
   if (!newValues.tissue_source)
-    newValues.tissue_source = ''
+    newValues.tissue_source = null
 
   if (!newValues.individual)
     newValues.individual = ''
@@ -357,12 +365,3 @@ function serialize(values) {
 }
 
 export default connect(mapStateToProps, actionCreators)(SampleEditContent);
-
-
-// Helpers
-
-function tissueEnabled(type) {
-  if (type === 'DNA' || type === 'RNA')
-    return true
-  return false
-}
