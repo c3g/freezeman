@@ -40,6 +40,7 @@ import {
   withLibrary,
   withIndex
 } from "../../../utils/withItem";
+import Tree from "../../../utils/graph";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 
 const { Title, Text } = Typography;
@@ -85,6 +86,7 @@ const mapStateToProps = state => ({
   indicesByID: state.indices.itemsByID,
   usersByID: state.users.itemsByID,
   projectsByID: state.projects.itemsByID,
+  protocolsByID: state.protocols.itemsByID,
 });
 
 const actionCreators = {getSample, listVersions};
@@ -100,6 +102,7 @@ const SampleDetailsContent = ({
   indicesByID,
   usersByID,
   projectsByID,
+  protocolsByID,
   getSample,
   listVersions
 }) => {
@@ -128,6 +131,24 @@ const SampleDetailsContent = ({
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
+
+  const tree = generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample)
+
+  // convert Tree class into an object that is compatible
+  // with bkrem/react-d3-tree
+  const root = tree.fold((data, children) => {
+    const [sample, process] = data
+    return {
+      name: sample?.name,
+      attributes: {
+        id: sample?.id,
+        ...(
+          process ? { protocol: protocolsByID[process.protocol]?.name } : {}
+        )
+      },
+      children: children
+    }
+  })
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -299,6 +320,8 @@ const SampleDetailsContent = ({
               </div>
             </Col>
           </Row>
+          <Title level={2} style={{ marginTop: '1rem' }}>Lineage</Title>
+          <pre>{JSON.stringify(root, null, 2)}</pre>
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
@@ -330,6 +353,87 @@ const SampleDetailsContent = ({
     </PageContent>
   </>;
 };
+
+function generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample) {
+  let root = new Tree([sample, undefined])
+
+  // perform Depth-First Search
+  const stack = [root]
+  while (stack.length > 0) {
+    const top = stack.pop()
+    const [sample, _] = top.data
+
+    // find children for sample on top of stack
+    top.neighbors = sample
+      ?.process_measurements
+      ?.map((id) => {
+        // get process measurement
+
+        if (!(id in processMeasurementsByID))
+          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
+
+        return processMeasurementsByID[id]
+      })
+      .filter((p) => {
+        // ignore process measurement if
+        // child_sample field is null (or undefined)
+
+        const id = p?.child_sample
+
+        if (id !== undefined && !samplesByID[id]) {
+          withSample(samplesByID, id, sample => sample.id)
+        }
+
+        return id !== undefined && id !== null
+      })
+      .map((p) => {
+        // create new subtree
+
+        const id = p?.child_sample
+        const s = id in samplesByID ? samplesByID[id] : undefined
+
+        return new Tree([s, p])
+      })
+    top.neighbors = top.neighbors ? top.neighbors : []
+
+    stack.push(...top.neighbors)
+  }
+
+  // add parents
+  while (root.data[0]?.child_of?.length > 0) {
+    const child = root.data[0].id
+
+    const child_of = root.data[0].child_of
+    const parent_sample = samplesByID[child_of]
+    const parent_process = parent_sample
+      ?.process_measurements
+      ?.map((id) => {
+        // get process measurement
+
+        if (!(id in processMeasurementsByID))
+          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
+
+        return processMeasurementsByID[id]
+      })
+      ?.find((p) =>
+        // find process measurement that created 'child'
+
+        p?.child_sample == child
+      )
+
+    // fetch parent
+    if (!parent_sample)
+      withSample(samplesByID, child_of, sample => sample.id)
+
+    // update process measurement for 'child'
+    root.data[1] = parent_process
+
+    // create new supertree
+    root = new Tree([parent_sample, undefined], [root])
+  }
+
+  return root
+}
 
 function renderTimelineLabel(version, usersByID) {
   const user = usersByID[version.revision.user];
