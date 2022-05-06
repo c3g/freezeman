@@ -134,69 +134,6 @@ const SampleDetailsContent = ({
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
 
-  const graphData =
-    generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample)
-      .fold((old_data, new_children, old_chilren) => {
-        // produce nodes and edges objects
-        // that React Flow recognizes
-
-        const [parent_sample, _] = old_data
-        const nodes = new_children.reduce(
-          (prev, curr) => {
-            return [...prev, ...curr.nodes]
-          },
-          []
-        )
-        const links = new_children.reduce(
-          (prev, curr) => {
-            return [...prev, ...curr.links]
-          },
-          []
-        )
-        nodes.push({
-          id: parent_sample?.id?.toString() || "",
-          label: parent_sample?.name || ""
-        })
-        links.push(...old_chilren.map((c) => {
-          const [sample_child, process] = c.data
-
-          return {
-            id: process?.id?.toString() || "",
-            label: process?.protocol in protocolsByID ? protocolsByID[process?.protocol]?.name : "",
-            source: parent_sample?.id?.toString() || "",
-            target: sample_child?.id?.toString() || "",
-          }
-        }))
-        return {nodes, links}
-      })
-  const graphConfig = {
-    height: 400,
-    width: 400,
-    staticGraph: false,
-    directed: true,
-    maxZoom: 12,
-    minZoom: 0.05,
-    panAndZoom: true,
-    d3: {
-        gravity: -500,
-        linkLength: 120,
-        linkStrength: 2,
-    },
-    node: {
-      color: "#d3d3d3",
-      fontColor: "black",
-      renderLabel: true,
-      labelProperty: node => `${node.label} (#${node.id})`
-    },
-    link: {
-      color: "lightgray",
-      fontColor: "black",
-      strokeWidth: 3,
-      type: "STRAIGHT",
-      renderLabel: true,
-    },
-  }
-
   // TODO: This spams API requests
   if (!samplesByID[id])
     getSample(id);
@@ -368,21 +305,7 @@ const SampleDetailsContent = ({
             </Col>
           </Row>
           <Title level={2} style={{ marginTop: '1rem' }}>Lineage</Title>
-          <div style={{ height: 500, width: 500 }}>
-            <Graph
-              id="graph-id"
-              data={graphData}
-              config={graphConfig}
-              onClickNode={(id, _) => location.href = `/samples/${id}`}
-              onClickLink={(source, target) => {
-                const linkId = graphData.links.find(
-                  (link) => {
-                    return (link.source === source && link.target === target)
-                  })?.id
-                location.href = `/process-measurements/${linkId}`
-              }}
-            />
-          </div>
+          <Lineage {... {samplesByID, processMeasurementsByID, protocolsByID, sample}}/>
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
@@ -415,10 +338,11 @@ const SampleDetailsContent = ({
   </>;
 };
 
-function generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample) {
+
+function Lineage({ samplesByID, processMeasurementsByID, protocolsByID, sample }) {
   let root = new Tree([sample, undefined])
 
-  // perform Depth-First Search
+  // Depth-First Search
   const stack = [root]
   while (stack.length > 0) {
     const top = stack.pop()
@@ -493,7 +417,86 @@ function generateLineageData(samplesByID, processMeasurementsByID, protocolsByID
     root = new Tree([parent_sample, undefined], [root])
   }
 
-  return root
+  const graphData = root.fold((old_data, new_children, old_chilren) => {
+    // produce nodes and edges objects
+    // that React Flow recognizes
+
+    const [parent_sample, _] = old_data
+    const nodes = new_children.reduce(
+      (prev, curr) => {
+        return [...prev, ...curr.nodes]
+      },
+      []
+    )
+    const links = new_children.reduce(
+      (prev, curr) => {
+        return [...prev, ...curr.links]
+      },
+      []
+    )
+    nodes.push({
+      id: parent_sample?.id?.toString() || "",
+      label: parent_sample?.name || ""
+    })
+    links.push(...old_chilren.map((c) => {
+      const [sample_child, process] = c.data
+
+      return {
+        id: process?.id?.toString() || "",
+        label: process?.protocol in protocolsByID ? protocolsByID[process?.protocol]?.name : "",
+        source: parent_sample?.id?.toString() || "",
+        target: sample_child?.id?.toString() || "",
+      }
+    }))
+    return { nodes, links }
+  })
+
+  const graphConfig = {
+    height: 400,
+    width: 400,
+    staticGraph: false,
+    directed: true,
+    maxZoom: 12,
+    minZoom: 0.05,
+    panAndZoom: true,
+    d3: {
+      gravity: -500,
+      linkLength: 120,
+      linkStrength: 2,
+    },
+    node: {
+      color: "#d3d3d3",
+      fontColor: "black",
+      renderLabel: true,
+      labelProperty: node => `${node.label} (#${node.id})`
+    },
+    link: {
+      color: "lightgray",
+      fontColor: "black",
+      strokeWidth: 3,
+      type: "STRAIGHT",
+      renderLabel: true,
+      labelProperty: link => `${link.label} (#${link.id})`
+    },
+  }
+
+  return (
+    <>
+      <Graph
+        id="graph-id"
+        data={graphData}
+        config={graphConfig}
+        onClickNode={(id, _) => location.href = `/samples/${id}`}
+        onClickLink={(source, target) => {
+          const linkId = graphData.links.find(
+            (link) => {
+              return (link.source === source && link.target === target)
+            })?.id
+          location.href = `/process-measurements/${linkId}`
+        }}
+      />
+    </>
+  )
 }
 
 function renderTimelineLabel(version, usersByID) {
