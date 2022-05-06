@@ -131,23 +131,44 @@ const SampleDetailsContent = ({
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
 
-  const tree = generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample)
+  const [nodes, edges] =
+    generateLineageData(samplesByID, processMeasurementsByID, protocolsByID, sample)
+      .fold((old_data, new_children, old_chilren) => {
+        // produce nodes and edges objects
+        // that React Flow recognizes
 
-  // convert Tree class into an object that is compatible
-  // with bkrem/react-d3-tree
-  const root = tree.fold((data, children) => {
-    const [sample, process] = data
-    return {
-      name: sample?.name,
-      attributes: {
-        id: sample?.id,
-        ...(
-          process ? { protocol: protocolsByID[process.protocol]?.name } : {}
+        const [parent_sample, _] = old_data
+        const nodes = new_children.reduce(
+          (prev, curr) => {
+            return [...prev, ...curr[0]]
+          },
+          []
         )
-      },
-      children: children
-    }
-  })
+        const edges = new_children.reduce(
+          (prev, curr) => {
+            return [...prev, ...curr[1]]
+          },
+          []
+        )
+        nodes.push({
+          id: parent_sample?.id?.toString() || "",
+          data: {
+            label: parent_sample?.name || ""
+          }
+        })
+        edges.push(...old_chilren.map((c) => {
+          const [sample_child, process] = c.data
+
+          return {
+            id: process?.id?.toString(),
+            source: parent_sample?.id?.toString() || "",
+            target: sample_child?.id?.toString() || "",
+            label: process?.protocol in protocolsByID ? protocolsByID[process?.protocol]?.name : ""
+          }
+        }
+        ))
+        return [nodes, edges]
+      })
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -320,7 +341,8 @@ const SampleDetailsContent = ({
             </Col>
           </Row>
           <Title level={2} style={{ marginTop: '1rem' }}>Lineage</Title>
-          <pre>{JSON.stringify(root, null, 2)}</pre>
+          <pre>{JSON.stringify(nodes, null, 2)}</pre>
+          <pre>{JSON.stringify(edges, null, 2)}</pre>
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
