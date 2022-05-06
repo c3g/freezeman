@@ -16,7 +16,8 @@ class Tree {
   fold(f) {
     return f(
       this.data,
-      this.neighbors.map((v) => v.fold(f))
+      this.neighbors.map((v) => v.fold(f)),
+      this.neighbors,
     )
   }
 }
