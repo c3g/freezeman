@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from fms_core.models import Sample, Container
 
-INPUT_FILENAME = "/home/ulysse/Documents/SampleRenamingSource.csv"
-OUTPUT_FILENAME = "/home/ulysse/Documents/SampleRenamingOut.txt"
+INPUT_FILENAME = "/home/ulysse/Documents/SampleContainerListIn.csv"
+OUTPUT_FILENAME = "/home/ulysse/Documents/SampleContainerListOut.txt"
 
 class Command(BaseCommand):
 
@@ -12,14 +12,19 @@ class Command(BaseCommand):
             samplesInfo = {}
             for line in in_file:
                 entry = line.strip().split("\t")
-                container_barcode = entry[0]
-                old_sample_name = entry[2]
-                new_sample_name = entry[3]
-                old_alias = entry[4]
-                new_alias = entry[5]
+                container_id = entry[0]
+                #old_sample_name = entry[2]
+                #new_sample_name = entry[3]
+                #old_alias = entry[4]
+                #new_alias = entry[5]
 
-                sample = Sample.objects.filter(container__barcode=container_barcode).get()
-                samplesInfo[sample.id] = {"old_name": old_sample_name, "new_name": new_sample_name, "old_alias": old_alias, "new_alias": new_alias}
+                sample = Sample.objects.filter(container__id=container_id).get()
+                samplesInfo[sample.id] = {"container_id": container_id}#{"old_name": old_sample_name, "new_name": new_sample_name, "old_alias": old_alias, "new_alias": new_alias}
+        
+        with open(OUTPUT_FILENAME, "w") as out_file: 
+            for key in samplesInfo:
+                out_file.write('\t\t{"id":' + str(key) + '}\n')
+        '''
         with open(OUTPUT_FILENAME, "w") as out_file:
             index = 1
             for key in samplesInfo:
@@ -57,3 +62,4 @@ class Command(BaseCommand):
                 out_file.write('},\n')
 
                 index += 1
+        '''
