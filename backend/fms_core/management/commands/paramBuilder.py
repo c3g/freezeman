@@ -19,7 +19,7 @@ class Command(BaseCommand):
                 #new_alias = entry[5]
 
                 sample = Sample.objects.filter(id=sample_id).get()
-                samplesInfo[sample.id] = {"id": sample_id}#{"old_name": old_sample_name, "new_name": new_sample_name, "old_alias": old_alias, "new_alias": new_alias}
+                samplesInfo[sample.derived_sample_not_pool.id] = {"id": sample_id}#{"old_name": old_sample_name, "new_name": new_sample_name, "old_alias": old_alias, "new_alias": new_alias}
         
         with open(OUTPUT_FILENAME, "w") as out_file: 
             for key in samplesInfo:
