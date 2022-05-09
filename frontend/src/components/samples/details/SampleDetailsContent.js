@@ -423,18 +423,10 @@ function Lineage({ samplesByID, processMeasurementsByID, protocolsByID, sample }
     // that React Flow recognizes
 
     const [parent_sample, _] = old_data
-    const nodes = new_children.reduce(
-      (prev, curr) => {
-        return [...prev, ...curr.nodes]
-      },
-      []
-    )
-    const links = new_children.reduce(
-      (prev, curr) => {
-        return [...prev, ...curr.links]
-      },
-      []
-    )
+    
+    const nodes = new_children.map((c) => c.nodes).flat()
+    const links = new_children.map((c) => c.links).flat()
+
     nodes.push({
       id: parent_sample?.id?.toString() || "",
       label: parent_sample?.name || ""
