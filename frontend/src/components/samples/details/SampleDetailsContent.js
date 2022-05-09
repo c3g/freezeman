@@ -482,6 +482,7 @@ function Lineage({ samplesByID, processMeasurementsByID, protocolsByID, sample }
 
   return (
     <>
+      <React.StrictMode>
       <Graph
         id="graph-id"
         data={graphData}
@@ -495,6 +496,7 @@ function Lineage({ samplesByID, processMeasurementsByID, protocolsByID, sample }
           location.href = `/process-measurements/${linkId}`
         }}
       />
+      </React.StrictMode>
     </>
   )
 }
