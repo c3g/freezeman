@@ -340,7 +340,7 @@ const SampleDetailsContent = ({
 
 
 function Lineage({ samplesByID, processMeasurementsByID, protocolsByID, sample }) {
-  let root = new Tree([sample, undefined])
+  let root = new Tree([sample, []])
 
   // Depth-First Search
   const stack = [root]
