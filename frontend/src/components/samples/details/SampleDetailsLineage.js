@@ -106,10 +106,11 @@ const SampleDetailsLineage = ({
     
     const nodes = new_children.map((c) => c.nodes).flat()
     const links = new_children.map((c) => c.links).flat()
-
+    
     nodes.push({
       id: parent_sample?.id?.toString() || "",
-      label: parent_sample?.name || ""
+      label: parent_sample?.name || "",
+      color: parent_sample?.id === sample?.id ? "red" : "black"
     })
     links.push(...old_chilren.map((c) => {
       const [sample_child, process] = c.data
