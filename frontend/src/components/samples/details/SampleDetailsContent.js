@@ -303,8 +303,6 @@ const SampleDetailsContent = ({
               </div>
             </Col>
           </Row>
-          <Title level={2} style={{ marginTop: '1rem' }}>Lineage</Title>
-          <Lineage {... {samplesByID, processMeasurementsByID, protocolsByID, sample}}/>
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
@@ -331,6 +329,9 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
+        <TabPane tab={`Lineage`} key="6" style={tabStyle}>
+          <Lineage {... { samplesByID, processMeasurementsByID, protocolsByID, sample }} />
+        </TabPane>
       </Tabs>
 
     </PageContent>
