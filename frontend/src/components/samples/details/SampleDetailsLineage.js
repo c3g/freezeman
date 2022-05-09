@@ -141,7 +141,7 @@ const SampleDetailsLineage = ({
       color: "#d3d3d3",
       fontColor: "black",
       renderLabel: true,
-      labelProperty: node => `${node.label} (#${node.id})`
+      labelProperty: node => `${node.label}`
     },
     link: {
       color: "lightgray",
@@ -149,7 +149,7 @@ const SampleDetailsLineage = ({
       strokeWidth: 3,
       type: "STRAIGHT",
       renderLabel: true,
-      labelProperty: link => `${link.label} (#${link.id})`
+      labelProperty: link => `${link.label}`
     },
   }
 
