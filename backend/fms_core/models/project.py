@@ -23,6 +23,10 @@ class Project(TrackedModel):
     targeted_end_date = models.DateField(blank=True, null=True, help_text="Targeted date to conclude the project.")
     status = models.CharField(choices=((type, type) for type in PROJECT_STATUS_CHOICES), max_length=20, default="Open",
                               help_text="The status of the project.")
+
+    external_id = models.CharField(blank=True, max_length=200, help_text="Identifier to connect to an external system.")
+    external_name = models.CharField(blank=True, max_length=200, help_text="Original project name used by external client.")
+
     comment = models.TextField(blank=True, help_text="Other relevant information about the project.")
     samples = models.ManyToManyField("sample", blank=True, through="SampleByProject", related_name="projects")
 

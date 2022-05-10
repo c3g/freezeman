@@ -372,6 +372,7 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'collection_site': biosample.collection_site,
         'experimental_group': first_derived_sample.experimental_group,
         'individual_name': biosample.individual.name,
+        'individual_alias': biosample.individual.alias,
         'sex': biosample.individual.sex,
         'taxon': biosample.individual.taxon.name,
         'cohort': biosample.individual.cohort,
@@ -381,6 +382,8 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
         'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
         'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
+        'projects_external_id': ''.join([project.external_id for project in sample.projects.all()]) if sample.projects.all() else None,
+        'projects_external_name': ''.join([project.external_name for project in sample.projects.all()]) if sample.projects.all() else None,
         'depleted': "Yes" if sample.depleted else "No",
         'is_library': sample.is_library,
         'comment': sample.comment,
@@ -390,7 +393,7 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
 class SampleExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'sample_kind', 'tissue_source',
+        fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
