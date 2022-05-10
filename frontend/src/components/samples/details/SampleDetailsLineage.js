@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import { useHistory } from "react-router-dom";
 
 import { Graph } from "react-d3-graph"
 
@@ -21,6 +22,8 @@ const SampleDetailsLineage = ({
   processMeasurementsByID,
   protocolsByID,
 }) => {
+  const history = useHistory()
+
   let root = new GraphADT([sample, undefined])
 
   // Depth-First Search
@@ -167,13 +170,14 @@ const SampleDetailsLineage = ({
           id="graph-id"
           data={graphData}
           config={graphConfig}
-          onClickNode={(id, _) => location.href = `/samples/${id}`}
+          onClickNode={(id, _) => history.push(`/samples/${id}`)}
           onClickLink={(source, target) => {
             const linkId = graphData.links.find(
               (link) => {
                 return (link.source === source && link.target === target)
               })?.id
-            location.href = `/process-measurements/${linkId}`
+
+            history.push(`/process-measurements/${linkId ?? sample?.id}`)
           }}
         />
       </React.StrictMode>
