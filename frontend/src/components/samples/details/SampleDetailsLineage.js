@@ -95,7 +95,7 @@ const SampleDetailsLineage = ({
         return new GraphADT({ sample, process: undefined }, [subTree])
       })
       ?.map(prependPredecessors)
-      ?.flat() ?? [subTree]
+      ?.flat() || [subTree]
   }
 
   try {
