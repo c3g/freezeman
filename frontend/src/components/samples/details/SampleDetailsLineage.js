@@ -21,91 +21,90 @@ const SampleDetailsLineage = ({
   processMeasurementsByID,
   protocolsByID,
 }) => {
-  let root = new GraphADT([sample, undefined])
+  function createSubGraph(sample) {
+    return new GraphADT({ sample, process: undefined },
+      sample
+        ?.process_measurements
+        ?.map((id) => {
+          // get process measurement
 
-  // Depth-First Search
-  const stack = [root]
-  while (stack.length > 0) {
-    const top = stack.pop()
-    const [sample, _] = top.data
+          if (!(id in processMeasurementsByID))
+            withProcessMeasurement(processMeasurementsByID, id, process => process.id)
 
-    // find children for sample on top of stack
-    top.neighbors = sample
-      ?.process_measurements
+          return processMeasurementsByID[id]
+        })
+        .filter((p) => {
+          // ignore process measurement if
+          // child_sample field is null (or undefined)
+
+          const id = p?.child_sample
+
+          if (id !== undefined && !samplesByID[id]) {
+            withSample(samplesByID, id, sample => sample.id)
+          }
+
+          return id !== undefined && id !== null
+        })
+        .map((p) => {
+          // create new subtree
+          const id = p?.child_sample
+          const s = id in samplesByID ? samplesByID[id] : undefined
+          const g = createSubGraph(s)
+          g.data.process = p
+
+          return g
+        }))
+  }
+
+  // the process used will not be correct
+  function prependPredecessors(subTree) {
+    return subTree.data.sample?.child_of
       ?.map((id) => {
-        // get process measurement
-
-        if (!(id in processMeasurementsByID))
-          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
-
-        return processMeasurementsByID[id]
-      })
-      .filter((p) => {
-        // ignore process measurement if
-        // child_sample field is null (or undefined)
-
-        const id = p?.child_sample
-
-        if (id !== undefined && !samplesByID[id]) {
+        if (!(id in samplesByID))
           withSample(samplesByID, id, sample => sample.id)
-        }
 
-        return id !== undefined && id !== null
+        return samplesByID[id]
       })
-      .map((p) => {
-        // create new subtree
+      ?.map((sample) => {
+        const process = sample
+          ?.process_measurements
+          ?.map((id) => {
+            // get process measurement
 
-        const id = p?.child_sample
-        const s = id in samplesByID ? samplesByID[id] : undefined
+            if (!(id in processMeasurementsByID))
+              withProcessMeasurement(processMeasurementsByID, id, process => process.id)
 
-        return new GraphADT([s, p])
+            return processMeasurementsByID[id]
+          })
+          ?.find((p) =>
+            // find process measurement that created 'child'
+
+            p?.child_sample === subTree.data.sample?.id
+          )
+          subTree.data.process = process
+
+        return new GraphADT({ sample, process: undefined }, [subTree])
       })
-    top.neighbors = top.neighbors ? top.neighbors : []
-
-    stack.push(...top.neighbors)
+      ?.map(prependPredecessors)
+      ?.flat() ?? [subTree]
   }
 
-  // add parents
-  while (root.data[0]?.child_of?.length > 0) {
-    const child = root.data[0].id
-
-    const child_of = root.data[0].child_of
-    const parent_sample = samplesByID[child_of]
-    const parent_process = parent_sample
-      ?.process_measurements
-      ?.map((id) => {
-        // get process measurement
-
-        if (!(id in processMeasurementsByID))
-          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
-
-        return processMeasurementsByID[id]
-      })
-      ?.find((p) =>
-        // find process measurement that created 'child'
-
-        p?.child_sample == child
-      )
-
-    // fetch parent
-    if (!parent_sample)
-      withSample(samplesByID, child_of, sample => sample.id)
-
-    // update process measurement for 'child'
-    root.data[1] = parent_process
-
-    // create new supertree
-    root = new GraphADT([parent_sample, undefined], [root])
-  }
+  // create dummy root for all parents
+  const root = new GraphADT(null, prependPredecessors(createSubGraph(sample)))
 
   const graphData = root.reduceNeighbors((oldData, oldChildren, newChildren) => {
     // produce nodes and edges objects
-    // that React Flow recognizes
-
-    const [parent_sample, _] = oldData
+    // that react-d3-graph recognizes
 
     const nodes = newChildren.map((c) => c.nodes).flat()
     const links = newChildren.map((c) => c.links).flat()
+
+    if (oldData === null) {
+      // we're at the dummy root
+      return {nodes, links}
+    }
+
+    const {sample: parent_sample} = oldData
 
     let color = "black"
     if (parent_sample?.quality_flag !== null && parent_sample?.quantity_flag !== null) {
@@ -119,7 +118,7 @@ const SampleDetailsLineage = ({
       color
     })
     links.push(...oldChildren.map((c) => {
-      const [sample_child, process] = c.data
+      const {sample: sample_child, process} = c.data
 
       return {
         id: process?.id?.toString() || "",
