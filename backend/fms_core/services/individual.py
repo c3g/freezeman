@@ -32,17 +32,6 @@ def get_or_create_individual(name, sex=None, taxon=None, pedigree=None, cohort=N
     if not name:
         errors.append(f"Individual name must be provided.")
     else:
-        individual_data = dict(
-            name=name,
-            sex=sex or Individual.SEX_UNKNOWN,
-            taxon=taxon,
-            # Optional
-            **(dict(pedigree=pedigree) if pedigree is not None else dict()),
-            **(dict(cohort=cohort) if cohort is not None else dict()),
-            **(dict(mother=mother) if mother is not None else dict()),
-            **(dict(father=father) if father is not None else dict()),
-        )
-
         try:
             individual = Individual.objects.get(name=name)
             warnings.append(f"Using existing individual '{individual}'.")
@@ -66,10 +55,23 @@ def get_or_create_individual(name, sex=None, taxon=None, pedigree=None, cohort=N
                     f"Provided father {father.name} does not match the individual father {individual.father.name if individual.father else ''} of the individual retrieved using the name {name}.")
 
         except Individual.DoesNotExist:
-            try:
-                individual = Individual.objects.create(**individual_data)
-            except ValidationError as e:
-                errors.append(';'.join(e.messages))
+            if taxon is not None:
+                individual_data = dict(
+                    name=name,
+                    sex=sex or Individual.SEX_UNKNOWN,
+                    taxon=taxon,
+                    # Optional
+                    **(dict(pedigree=pedigree) if pedigree is not None else dict()),
+                    **(dict(cohort=cohort) if cohort is not None else dict()),
+                    **(dict(mother=mother) if mother is not None else dict()),
+                    **(dict(father=father) if father is not None else dict()),
+                )
+                try:
+                    individual = Individual.objects.create(**individual_data)
+                except ValidationError as e:
+                    errors.append(';'.join(e.messages))
+            else:
+                errors.append(f"A taxon is required to create an individual.")
 
     if errors:
         individual = None
