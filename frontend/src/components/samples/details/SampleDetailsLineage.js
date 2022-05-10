@@ -7,7 +7,7 @@ import {
   withSample,
   withProcessMeasurement,
 } from "../../../utils/withItem";
-import Tree from "../../../utils/graph";
+import GraphADT from "../../../utils/graph";
 
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
@@ -21,7 +21,7 @@ const SampleDetailsLineage = ({
   processMeasurementsByID,
   protocolsByID,
 }) => {
-  let root = new Tree([sample, []])
+  let root = new GraphADT([sample, undefined])
 
   // Depth-First Search
   const stack = [root]
@@ -58,7 +58,7 @@ const SampleDetailsLineage = ({
         const id = p?.child_sample
         const s = id in samplesByID ? samplesByID[id] : undefined
 
-        return new Tree([s, p])
+        return new GraphADT([s, p])
       })
     top.neighbors = top.neighbors ? top.neighbors : []
 
@@ -95,24 +95,24 @@ const SampleDetailsLineage = ({
     root.data[1] = parent_process
 
     // create new supertree
-    root = new Tree([parent_sample, undefined], [root])
+    root = new GraphADT([parent_sample, undefined], [root])
   }
 
-  const graphData = root.fold((old_data, new_children, old_chilren) => {
+  const graphData = root.reduceNeighbors((oldData, oldChildren, newChildren) => {
     // produce nodes and edges objects
     // that React Flow recognizes
 
-    const [parent_sample, _] = old_data
+    const [parent_sample, _] = oldData
     
-    const nodes = new_children.map((c) => c.nodes).flat()
-    const links = new_children.map((c) => c.links).flat()
+    const nodes = newChildren.map((c) => c.nodes).flat()
+    const links = newChildren.map((c) => c.links).flat()
     
     nodes.push({
       id: parent_sample?.id?.toString() || "",
       label: parent_sample?.name || "",
       color: parent_sample?.id === sample?.id ? "red" : "black"
     })
-    links.push(...old_chilren.map((c) => {
+    links.push(...oldChildren.map((c) => {
       const [sample_child, process] = c.data
 
       return {
