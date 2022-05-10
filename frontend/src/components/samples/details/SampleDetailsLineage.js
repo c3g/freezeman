@@ -1,5 +1,5 @@
 import React from "react";
-import {connect} from "react-redux";
+import { connect } from "react-redux";
 
 import { Graph } from "react-d3-graph"
 
@@ -103,15 +103,20 @@ const SampleDetailsLineage = ({
     // that React Flow recognizes
 
     const [parent_sample, _] = oldData
-    
+
     const nodes = newChildren.map((c) => c.nodes).flat()
     const links = newChildren.map((c) => c.links).flat()
-    
+
+    let color = "black"
+    if (parent_sample?.quality_flag !== null && parent_sample?.quantity_flag !== null) {
+      color = parent_sample?.quality_flag && parent_sample?.quantity_flag ? "green" : "red"
+    }
+
     nodes.push({
       id: parent_sample?.id?.toString() || "",
       label: parent_sample?.name || "",
       symbolType: parent_sample?.id === sample?.id ? "star" : "circle",
-      color: "black",
+      color
     })
     links.push(...oldChildren.map((c) => {
       const [sample_child, process] = c.data
@@ -158,19 +163,19 @@ const SampleDetailsLineage = ({
   return (
     <>
       <React.StrictMode>
-      <Graph
-        id="graph-id"
-        data={graphData}
-        config={graphConfig}
-        onClickNode={(id, _) => location.href = `/samples/${id}`}
-        onClickLink={(source, target) => {
-          const linkId = graphData.links.find(
-            (link) => {
-              return (link.source === source && link.target === target)
-            })?.id
-          location.href = `/process-measurements/${linkId}`
-        }}
-      />
+        <Graph
+          id="graph-id"
+          data={graphData}
+          config={graphConfig}
+          onClickNode={(id, _) => location.href = `/samples/${id}`}
+          onClickLink={(source, target) => {
+            const linkId = graphData.links.find(
+              (link) => {
+                return (link.source === source && link.target === target)
+              })?.id
+            location.href = `/process-measurements/${linkId}`
+          }}
+        />
       </React.StrictMode>
     </>
   )
