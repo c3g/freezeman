@@ -53,7 +53,7 @@ const SampleDetailsLineage = ({
         .map((p) => {
           // create new subtree
           const id = p?.child_sample
-          const s = id in samplesByID ? samplesByID[id] : undefined
+          const s = samplesByID[id] || undefined
           const g = createSubGraph(s)
           g.data.process = p
 
@@ -190,7 +190,7 @@ const SampleDetailsLineage = ({
     )
   } catch (err) {
     if (err instanceof Incomplete) {
-    return <></>
+    return <div>Loading...</div>
     } else {
       throw err
     }
