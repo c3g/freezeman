@@ -2,6 +2,11 @@
  * A class that represents a graph
  */
 class Graph {
+  /**
+   * 
+   * @param {any} data data
+   * @param {Graph[]} neighbors neighbors/children
+   */
   constructor(data, neighbors = []) {
     this.data = data;
     this.neighbors = neighbors;
