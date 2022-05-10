@@ -189,7 +189,11 @@ const SampleDetailsLineage = ({
       </>
     )
   } catch (err) {
+    if (err instanceof Incomplete) {
     return <></>
+    } else {
+      throw err
+    }
   }
 }
 
