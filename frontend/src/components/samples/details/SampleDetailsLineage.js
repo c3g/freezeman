@@ -110,7 +110,8 @@ const SampleDetailsLineage = ({
     nodes.push({
       id: parent_sample?.id?.toString() || "",
       label: parent_sample?.name || "",
-      color: parent_sample?.id === sample?.id ? "red" : "black"
+      symbolType: parent_sample?.id === sample?.id ? "star" : "circle",
+      color: "black",
     })
     links.push(...oldChildren.map((c) => {
       const [sample_child, process] = c.data
