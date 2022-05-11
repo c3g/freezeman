@@ -24,16 +24,16 @@ const SampleDetailsLineage = ({
 }) => {
   const history = useHistory()
 
-  let root = new GraphADT([sample, undefined])
+  let root = new GraphADT(sample)
 
   // Depth-First Search
-  const stack = [root]
+  const stack = [[undefined, root]]
   while (stack.length > 0) {
-    const top = stack.pop()
-    const [sample, _] = top.data
+    const [_, top] = stack.pop()
+    const sample = top.data
 
     // find children for sample on top of stack
-    top.neighbors = sample
+    top.edges = sample
       ?.process_measurements
       ?.map((id) => {
         // get process measurement
@@ -61,11 +61,11 @@ const SampleDetailsLineage = ({
         const id = p?.child_sample
         const s = id in samplesByID ? samplesByID[id] : undefined
 
-        return new GraphADT([s, p])
+        return [p, new GraphADT(s)]
       })
-    top.neighbors = top.neighbors ? top.neighbors : []
+    top.edges = top.edges ? top.edges : []
 
-    stack.push(...top.neighbors)
+    stack.push(...top.edges)
   }
 
   // add parents
@@ -94,21 +94,16 @@ const SampleDetailsLineage = ({
     if (!parent_sample)
       withSample(samplesByID, child_of, sample => sample.id)
 
-    // update process measurement for 'child'
-    root.data[1] = parent_process
-
     // create new supertree
-    root = new GraphADT([parent_sample, undefined], [root])
+    root = new GraphADT(parent_sample, [[parent_process, root]])
   }
 
-  const graphData = root.reduceNeighbors((oldData, oldChildren, newChildren) => {
+  const graphData = root.reduceNeighbors((parent_sample, children) => {
     // produce nodes and edges objects
     // that React Flow recognizes
 
-    const [parent_sample, _] = oldData
-
-    const nodes = newChildren.map((c) => c.nodes).flat()
-    const links = newChildren.map((c) => c.links).flat()
+    const nodes = children.map(([_0, _1, c]) => c.nodes).flat()
+    const links = children.map(([_0, _1, c]) => c.links).flat()
 
     let color = "black"
     if (parent_sample?.quality_flag !== null && parent_sample?.quantity_flag !== null) {
@@ -121,8 +116,8 @@ const SampleDetailsLineage = ({
       symbolType: parent_sample?.id === sample?.id ? "star" : "circle",
       color
     })
-    links.push(...oldChildren.map((c) => {
-      const [sample_child, process] = c.data
+    links.push(...children.map(([process, child_graph, _]) => {
+      const sample_child = child_graph.data
 
       return {
         id: process?.id?.toString() || "",
