@@ -18,11 +18,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='project',
             name='external_name',
-            field=models.CharField(blank=True, help_text='Original project name used by external client.', max_length=200),
+            field=models.CharField(blank=True, null=True, help_text='Original project name used by external client.', max_length=200),
         ),
         migrations.AddField(
             model_name='project',
             name='external_id',
-            field=models.CharField(blank=True, help_text='Identifier to connect to an external system.', max_length=200),
+            field=models.CharField(blank=True, null=True, help_text='Identifier to connect to an external system.', max_length=200),
         ),
     ]

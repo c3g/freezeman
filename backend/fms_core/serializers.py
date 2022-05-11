@@ -382,8 +382,6 @@ def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
         'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
         'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
         'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
-        'projects_external_id': ''.join([project.external_id for project in sample.projects.all()]) if sample.projects.all() else None,
-        'projects_external_name': ''.join([project.external_name for project in sample.projects.all()]) if sample.projects.all() else None,
         'depleted': "Yes" if sample.depleted else "No",
         'is_library': sample.is_library,
         'comment': sample.comment,
