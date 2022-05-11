@@ -1,3 +1,5 @@
+let nodeID = 0
+
 /*
  * A class that represents a graph
  */
@@ -5,34 +7,24 @@ class Graph {
   /**
    * 
    * @param {any} data data
-   * @param {Graph[]} neighbors neighbors/children
+   * @param {any[]} edges array of [edge data, child graph]
    */
-  constructor(data, neighbors = []) {
+  constructor(data, edges = []) {
+    this.id = nodeID++;
     this.data = data;
-    this.neighbors = neighbors;
+    this.edges = edges;
   }
 
   /**
    * Reduce neighbors into `this` with function `f`.
-   * @param {(oldData: any, oldNeighbors: any[], newNeighbors: any[], visited: Set<any>) => any} f reducer function
-   * @param {number} maxDepth maximum depth to search (max 25000?)
-   * @param {boolean} skipVisited skip visited node in case of cycle in graph
-   * @param {Set<Graph>} visited for internal use only
+   * @param {(oldData: any, edges: any[]) => any} f reducer function
    */
-  reduceNeighbors(f, maxDepth = 25000, skipVisited = false, visited = new Set()) {
-    if (maxDepth == 0) {
-      return f(this.data, [], [], visited)
-    }
-
+  reduceNeighbors(f) {
     // visit neighbors first
-    const newNeighbors = this.neighbors
-      .filter((n) => !skipVisited && !visited.has(n))
-      .map((n) => n.reduceNeighbors(f, maxDepth-1, skipVisited, visited))
-    this.neighbors.forEach((n) => visited.add(n))
+    const neighbors = this.edges.map(([e, n]) => [e, n, n.reduceNeighbors(f)])
 
     // visit this node
-    const newData = f(this.data, this.neighbors, newNeighbors, visited)
-    visited.add(this)
+    const newData = f(this.data, neighbors)
 
     return newData
   }
