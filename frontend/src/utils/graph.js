@@ -1,5 +1,3 @@
-let nodeID = 0
-
 /*
  * A class that represents a graph
  */
@@ -10,7 +8,6 @@ class Graph {
    * @param {any[]} edges array of [edge data, child graph]
    */
   constructor(data, edges = []) {
-    this.id = nodeID++;
     this.data = data;
     this.edges = edges;
   }

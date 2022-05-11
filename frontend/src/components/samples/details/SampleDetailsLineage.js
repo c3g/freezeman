@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
@@ -24,110 +24,145 @@ const SampleDetailsLineage = ({
 }) => {
   const history = useHistory()
 
-  let root = new GraphADT(sample)
+  const [loading, setLoading] = useState(true)
+  const [nodes, setNodes] = useState([])
+  const [links, setLinks] = useState([])
 
-  // Depth-First Search
-  const stack = [[undefined, root]]
-  while (stack.length > 0) {
-    const [_, top] = stack.pop()
-    const sample = top.data
+  class MissingData extends Error {}
 
-    // find children for sample on top of stack
-    top.edges = sample
-      ?.process_measurements
-      ?.map((id) => {
-        // get process measurement
+  async function fetchProcessMeasurement(id) {
+    if (id in processMeasurementsByID && processMeasurementsByID[id]) {
+      return processMeasurementsByID[id]
+    } else {
+      withProcessMeasurement(processMeasurementsByID, id, process => process)
+      throw new MissingData(`Missing Process Measurement #${id}`)
+    }
+  }
 
-        if (!(id in processMeasurementsByID))
-          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
+  async function fetchSample(id) {
+    if (id in samplesByID && samplesByID[id]) {
+      return samplesByID[id]
+    } else {
+      withSample(samplesByID, id, s => s)
+      throw new MissingData(`Missing Sample #${id}`)
+    }
+  }
 
-        return processMeasurementsByID[id]
+  async function fetchEdgesOfSample(sample, graphs = new Map()) {
+    const processMeasurements = (await Promise.all(
+      sample
+        .process_measurements
+        .map(fetchProcessMeasurement)
+    )).filter((p) => p.child_sample !== null)
+
+    const processMeasurementsAndChildSamples = (await Promise.all(
+      processMeasurements.map(async (p) => {
+        return [p, await fetchSample(p.child_sample)]
       })
-      .filter((p) => {
-        // ignore process measurement if
-        // child_sample field is null (or undefined)
+    ))
 
-        const id = p?.child_sample
+    // had to use reduce in order to avoid
+    // race condition on the `graphs`
+    const edges = await
+      processMeasurementsAndChildSamples
+        .reduce(async (promise, [p, s]) => {
+          const prev = await promise
 
-        if (id !== undefined && !samplesByID[id]) {
-          withSample(samplesByID, id, sample => sample.id)
+          if (!graphs.has(s.id)) {
+            graphs.set(s.id, new GraphADT(s, await fetchEdgesOfSample(s)))
+          }
+
+          return [...prev, [p, graphs.get(s.id)]]
+        }, Promise.resolve([]))
+
+    return edges
+  }
+
+  async function fetchParentRoots(rootOfSubGraph, graphs = new Map()) {
+    const parentSamples = (await Promise.all(
+      rootOfSubGraph.data.child_of.map(fetchSample)
+    ))
+
+    const parentGraphs = (await
+      parentSamples.reduce(async (promise, s) => {
+        const prev = await promise
+
+        if (!graphs.has(s.id)) {
+          const p = (
+            await Promise.all(
+              s.process_measurements.map(fetchProcessMeasurement)
+            )
+          ).find((p) => {
+            // find process that created the child
+
+            p.child_sample === rootOfSubGraph.data.id
+          })
+
+          graphs.set(s.id, new GraphADT(s, [p, rootOfSubGraph]))
         }
 
-        return id !== undefined && id !== null
-      })
-      .map((p) => {
-        // create new subtree
+        return [...prev, ...await fetchParentRoots(graphs.get(s.id))]
+      }, Promise.resolve([]))
+    ).flat()
 
-        const id = p?.child_sample
-        const s = id in samplesByID ? samplesByID[id] : undefined
-
-        return [p, new GraphADT(s)]
-      })
-    top.edges = top.edges ? top.edges : []
-
-    stack.push(...top.edges)
+    return parentGraphs
   }
 
-  // add parents
-  while (root.data[0]?.child_of?.length > 0) {
-    const child = root.data[0].id
+  useEffect(() => {
+    const graphs = new Map();
 
-    const child_of = root.data[0].child_of
-    const parent_sample = samplesByID[child_of]
-    const parent_process = parent_sample
-      ?.process_measurements
-      ?.map((id) => {
-        // get process measurement
+    (async () => {
+      // i realized i don't really need to build a graph
+      // because the `graphs` already contains all the nodes
+      // and each node contains edges
 
-        if (!(id in processMeasurementsByID))
-          withProcessMeasurement(processMeasurementsByID, id, process => process.id)
+      const children = await fetchEdgesOfSample(sample, graphs)
+      const subRoot = new GraphADT(sample, children)
+      await fetchParentRoots(subRoot, graphs)
 
-        return processMeasurementsByID[id]
-      })
-      ?.find((p) =>
-        // find process measurement that created 'child'
+      const [nodes, links] = Array.from(graphs.values()).reduce(([nodes, links], g) => {
+        const parent_sample = g.data
+        const children = g.edges
+        
+        let color = "black"
+        if (parent_sample.quality_flag !== null && parent_sample.quantity_flag !== null) {
+          color = parent_sample.quality_flag && parent_sample.quantity_flag ? "green" : "red"
+        }
 
-        p?.child_sample == child
-      )
+        return [
+          [
+            {
+              id: parent_sample.id.toString(),
+              label: parent_sample.name,
+              symbolType: parent_sample.id === sample.id ? "star" : "circle",
+              color
+            },
+            ...nodes
+          ],
+          [
+            ...children.map(([process, child_graph]) => {
+              const child_sample = child_graph.data
 
-    // fetch parent
-    if (!parent_sample)
-      withSample(samplesByID, child_of, sample => sample.id)
+              return {
+                id: process.id.toString(),
+                label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
+                source: parent_sample.id.toString(),
+                target: child_sample.id.toString(),
+              }
+            }),
+            ...links
+          ]
+        ]
+      }, [[], []])
 
-    // create new supertree
-    root = new GraphADT(parent_sample, [[parent_process, root]])
-  }
+      setNodes(nodes)
+      setLinks(links)
+      setLoading(false)
+    })().catch((err) => console.error(err))
 
-  const graphData = root.reduceNeighbors((parent_sample, children) => {
-    // produce nodes and edges objects
-    // that React Flow recognizes
+  }, [samplesByID, processMeasurementsByID, protocolsByID])
 
-    const nodes = children.map(([_0, _1, c]) => c.nodes).flat()
-    const links = children.map(([_0, _1, c]) => c.links).flat()
-
-    let color = "black"
-    if (parent_sample?.quality_flag !== null && parent_sample?.quantity_flag !== null) {
-      color = parent_sample?.quality_flag && parent_sample?.quantity_flag ? "green" : "red"
-    }
-
-    nodes.push({
-      id: parent_sample?.id?.toString() || "",
-      label: parent_sample?.name || "",
-      symbolType: parent_sample?.id === sample?.id ? "star" : "circle",
-      color
-    })
-    links.push(...children.map(([process, child_graph, _]) => {
-      const sample_child = child_graph.data
-
-      return {
-        id: process?.id?.toString() || "",
-        label: process?.protocol in protocolsByID ? protocolsByID[process?.protocol]?.name : "",
-        source: parent_sample?.id?.toString() || "",
-        target: sample_child?.id?.toString() || "",
-      }
-    }))
-    return { nodes, links }
-  })
+  const graphData = { nodes, links }
 
   const graphConfig = {
     height: 400,
@@ -160,20 +195,24 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-        <Graph
-          id="graph-id"
-          data={graphData}
-          config={graphConfig}
-          onClickNode={(id, _) => history.push(`/samples/${id}`)}
-          onClickLink={(source, target) => {
-            const linkId = graphData.links.find(
-              (link) => {
-                return (link.source === source && link.target === target)
-              })?.id
+      {
+        loading
+          ? "Loading..."
+          : <Graph
+            id="graph-id"
+            data={graphData}
+            config={graphConfig}
+            onClickNode={(id, _) => history.push(`/samples/${id}`)}
+            onClickLink={(source, target) => {
+              const linkId = graphData.links.find(
+                (link) => {
+                  return (link.source === source && link.target === target)
+                })?.id
 
-            history.push(`/process-measurements/${linkId ?? sample?.id}`)
-          }}
-        />
+              history.push(`/process-measurements/${linkId ?? sample?.id}`)
+            }}
+          />
+      }
     </>
   )
 }
