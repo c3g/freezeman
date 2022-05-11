@@ -160,7 +160,6 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-      <React.StrictMode>
         <Graph
           id="graph-id"
           data={graphData}
@@ -175,7 +174,6 @@ const SampleDetailsLineage = ({
             history.push(`/process-measurements/${linkId ?? sample?.id}`)
           }}
         />
-      </React.StrictMode>
     </>
   )
 }
