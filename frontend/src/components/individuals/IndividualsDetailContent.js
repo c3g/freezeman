@@ -42,6 +42,7 @@ const IndividualsDetailContent = ({individualsByID, taxonsByID, get}) => {
             <Descriptions bordered={true} size="small" column={3}>
                 <Descriptions.Item label="ID">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
+                <Descriptions.Item label="Alias">{individual.alias}</Descriptions.Item>
                 <Descriptions.Item label="Taxon"><em>{individual.taxon && withTaxon(taxonsByID, individual.taxon, taxon => taxon.name, "Loading...")}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>
