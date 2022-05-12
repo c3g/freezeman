@@ -66,6 +66,7 @@ class SampleRowHandler(GenericRowHandler):
                                individual["sex"],
                                individual["pedigree"],
                                individual["cohort"],
+                               individual["alias"],
                                mother_obj,
                                father_obj])
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
@@ -80,6 +81,8 @@ class SampleRowHandler(GenericRowHandler):
                 self.errors['individual'].append(f"Individual pedigree requires an individual name to be provided to be saved.")
             if individual["cohort"]:
                 self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
+            if individual["alias"]:
+                self.errors['individual'].append(f"Individual alias requires an individual name to be provided to be saved.")
             if mother_obj:
                 self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
             if father_obj:
@@ -87,6 +90,7 @@ class SampleRowHandler(GenericRowHandler):
         elif individual["name"]:
             individual_obj, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
+                                         alias=individual['alias'],
                                          taxon=taxon_obj,
                                          sex=individual['sex'],
                                          pedigree=individual['pedigree'],

@@ -12,7 +12,7 @@ from fms_core.services.project import create_project
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_8_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_9_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
@@ -34,6 +34,7 @@ class SampleSubmissionTestCase(TestCase):
         sample_names = ['Sample_DNA1', 'Sample_RNA1', 'Sample_Blood1', 'Sample_Expectoration1',
                         'Sample_gargle1', 'Sample_plasma1', 'Sample_saliva1', 'Library_pcr_free']
         individual_name = 'MrTest'
+        individual_alias = 'MonsieurTest'
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
@@ -44,6 +45,7 @@ class SampleSubmissionTestCase(TestCase):
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
             self.assertEqual(biosample.individual.name, individual_name)
+            self.assertEqual(biosample.individual.alias, individual_alias)
 
         # Verify the library is created
         library_derived_sample = Sample.objects.get(name='Library_pcr_free').derived_sample_not_pool

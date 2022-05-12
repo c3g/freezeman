@@ -24,7 +24,7 @@ def get_taxon(name=None, ncbi_id=None):
 
     return (taxon, errors, warnings)
 
-def get_or_create_individual(name, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None):
+def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None):
     individual = None
     errors = []
     warnings = []
@@ -47,6 +47,9 @@ def get_or_create_individual(name, sex=None, taxon=None, pedigree=None, cohort=N
             if cohort and cohort != individual.cohort:
                 errors.append(
                     f"Provided cohort {cohort} does not match the individual cohort {individual.cohort} of the individual retrieved using the name {name}.")
+            if alias and alias != individual.alias:
+                errors.append(
+                    f"Provided alias {alias} does not match the individual alias {individual.alias} of the individual retrieved using the name {name}.")
             if mother and mother != individual.mother:
                 errors.append(
                     f"Provided mother {mother.name} does not match the individual mother {individual.mother.name if individual.mother else ''} of the individual retrieved using the name {name}.")
@@ -61,6 +64,7 @@ def get_or_create_individual(name, sex=None, taxon=None, pedigree=None, cohort=N
                     sex=sex or Individual.SEX_UNKNOWN,
                     taxon=taxon,
                     # Optional
+                    **(dict(alias=alias) if alias is not None else dict()),
                     **(dict(pedigree=pedigree) if pedigree is not None else dict()),
                     **(dict(cohort=cohort) if cohort is not None else dict()),
                     **(dict(mother=mother) if mother is not None else dict()),

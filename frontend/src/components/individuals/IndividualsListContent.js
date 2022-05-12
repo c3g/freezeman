@@ -30,7 +30,13 @@ const TABLE_COLUMNS = (taxons) => [
     title: "Name",
     dataIndex: "name",
     sorter: true,
-    render: (name, individual) => <Link to={`/individuals/${individual.id}`}>{name}</Link>,
+    render: (name, individual) =>
+      <Link to={`/individuals/${individual.id}`}>
+        <div>{name}</div>
+        {individual.alias &&
+          <div><small>alias: {individual.alias}</small></div>
+        }
+      </Link>,
   },
   {
     title: "Taxon",

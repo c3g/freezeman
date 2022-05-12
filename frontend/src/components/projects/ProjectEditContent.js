@@ -116,6 +116,12 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
           </Form.Item>
+          <Form.Item label="External ID" {...props("external_id")} >
+            <Input />
+          </Form.Item>
+          <Form.Item label="External Name" {...props("external_name")} >
+            <Input />
+          </Form.Item>
           <Form.Item label="Comment" {...props("comment")}>
             <TextArea />
           </Form.Item>

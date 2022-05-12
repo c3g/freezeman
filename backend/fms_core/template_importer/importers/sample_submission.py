@@ -29,6 +29,7 @@ class SampleSubmissionImporter(GenericImporter):
             }
             individual = {
                 'name': row_data['Individual ID'],
+                'alias': row_data['Individual Alias'],
                 'sex': row_data['Sex'],
                 'pedigree': row_data['Pedigree'],
                 'taxon': row_data['NCBI Taxon ID #'],
