@@ -24,149 +24,121 @@ const SampleDetailsLineage = ({
 }) => {
   const history = useHistory()
 
-  const [loading, setLoading] = useState(true)
-  const [nodes, setNodes] = useState([])
-  const [links, setLinks] = useState([])
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] })
 
-  class MissingData extends Error {}
+  const [width, setWidth] = useState(400)
+  const [height, setHeight] = useState(400)
 
-  async function fetchProcessMeasurement(id) {
-    if (id in processMeasurementsByID && processMeasurementsByID[id]) {
-      return processMeasurementsByID[id]
-    } else {
-      withProcessMeasurement(processMeasurementsByID, id, process => process)
-      throw new MissingData(`Missing Process Measurement #${id}`)
-    }
+  function fetchProcessMeasurement(id) {
+    return withProcessMeasurement(processMeasurementsByID, id, process => process)
   }
 
-  async function fetchSample(id) {
-    if (id in samplesByID && samplesByID[id]) {
-      return samplesByID[id]
-    } else {
-      withSample(samplesByID, id, s => s)
-      throw new MissingData(`Missing Sample #${id}`)
-    }
+  function fetchSample(id) {
+    return withSample(samplesByID, id, s => s)
   }
 
-  async function fetchEdgesOfSample(sample, graphs = new Map()) {
-    const processMeasurements = (await Promise.all(
-      sample
-        .process_measurements
+  function fetchEdgesOfSample(sample, graphs) {
+    const processMeasurements =
+      sample.process_measurements
         .map(fetchProcessMeasurement)
-    )).filter((p) => p.child_sample !== null)
+        .filter((p) => p)
+        .filter((p) => p.child_sample !== null)
 
-    const processMeasurementsAndChildSamples = (await Promise.all(
-      processMeasurements.map(async (p) => {
-        return [p, await fetchSample(p.child_sample)]
-      })
-    ))
+    const processMeasurementsAndChildSamples =
+      processMeasurements
+        .map((p) => [p, fetchSample(p.child_sample)])
+        .filter(([_, s]) => s)
 
-    // had to use reduce in order to avoid
-    // race condition on the `graphs`
-    const edges = await
+    const edges =
       processMeasurementsAndChildSamples
-        .reduce(async (promise, [p, s]) => {
-          const prev = await promise
-
+        .reduce((prev, [p, s]) => {
           if (!graphs.has(s.id)) {
-            graphs.set(s.id, new GraphADT(s, await fetchEdgesOfSample(s)))
+            graphs.set(s.id, new GraphADT(s, fetchEdgesOfSample(s, graphs)))
           }
 
           return [...prev, [p, graphs.get(s.id)]]
-        }, Promise.resolve([]))
+        }, [])
 
     return edges
   }
 
-  async function fetchParentRoots(rootOfSubGraph, graphs = new Map()) {
-    const parentSamples = (await Promise.all(
-      rootOfSubGraph.data.child_of.map(fetchSample)
-    ))
+  function fetchParentRoots(rootOfSubGraph, graphs) {
+    const parentSamples =
+      rootOfSubGraph.data.child_of
+        .map(fetchSample)
+        .filter((s) => s)
 
-    const parentGraphs = (await
-      parentSamples.reduce(async (promise, s) => {
-        const prev = await promise
+    const parentGraphs =
+      parentSamples
+        .reduce((prev, s) => {
+          if (!graphs.has(s.id)) {
+            const ps =
+              s.process_measurements
+                .map(fetchProcessMeasurement)
+                .filter((p) => p)
+                .filter((p) => p.child_sample === rootOfSubGraph.data.id)
 
-        if (!graphs.has(s.id)) {
-          const p = (
-            await Promise.all(
-              s.process_measurements.map(fetchProcessMeasurement)
-            )
-          ).find((p) => {
-            // find process that created the child
+            graphs.set(s.id, new GraphADT(s, ps.map((p) => [p, rootOfSubGraph])))
+          }
 
-            p.child_sample === rootOfSubGraph.data.id
-          })
+          return [...prev, ...fetchParentRoots(graphs.get(s.id), graphs)]
+        }, []).flat()
 
-          graphs.set(s.id, new GraphADT(s, [p, rootOfSubGraph]))
-        }
-
-        return [...prev, ...await fetchParentRoots(graphs.get(s.id))]
-      }, Promise.resolve([]))
-    ).flat()
-
-    return parentGraphs
+    return parentGraphs.length > 0 ? parentGraphs : [rootOfSubGraph]
   }
 
   useEffect(() => {
     const graphs = new Map();
 
-    (async () => {
-      // i realized i don't really need to build a graph
-      // because the `graphs` already contains all the nodes
-      // and each node contains edges
+    const children = fetchEdgesOfSample(sample, graphs)
+    const midRoot = new GraphADT(sample, children)
+    graphs.set(sample.id, midRoot)
+    const roots = fetchParentRoots(midRoot, graphs)
 
-      const children = await fetchEdgesOfSample(sample, graphs)
-      const subRoot = new GraphADT(sample, children)
-      await fetchParentRoots(subRoot, graphs)
-
-      const [nodes, links] = Array.from(graphs.values()).reduce(([nodes, links], g) => {
-        const parent_sample = g.data
+    setGraphData(
+      Array.from(graphs.values()).reduce(({ nodes, links }, g) => {
+        const curr_sample = g.data
         const children = g.edges
-        
+
         let color = "black"
-        if (parent_sample.quality_flag !== null && parent_sample.quantity_flag !== null) {
-          color = parent_sample.quality_flag && parent_sample.quantity_flag ? "green" : "red"
+        if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
+          color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
         }
 
-        return [
-          [
+        return {
+          nodes: [
+            ...nodes,
             {
-              id: parent_sample.id.toString(),
-              label: parent_sample.name,
-              symbolType: parent_sample.id === sample.id ? "star" : "circle",
-              color
+              id: curr_sample.id.toString(),
+              label: curr_sample.name,
+              symbolType: curr_sample.id === sample.id ? "star" : "circle",
+              color,
+              x: (width / 2).toFixed(),
+              y: (height / 2).toFixed(),
             },
-            ...nodes
           ],
-          [
-            ...children.map(([process, child_graph]) => {
-              const child_sample = child_graph.data
+          links: [
+            ...links,
+            ...children
+              .map(([process, child_graph]) => {
+                const child_sample = child_graph.data
 
-              return {
-                id: process.id.toString(),
-                label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
-                source: parent_sample.id.toString(),
-                target: child_sample.id.toString(),
-              }
-            }),
-            ...links
+                return {
+                  id: process.id.toString(),
+                  label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
+                  source: curr_sample.id.toString(),
+                  target: child_sample.id.toString(),
+                }
+              }),
           ]
-        ]
-      }, [[], []])
-
-      setNodes(nodes)
-      setLinks(links)
-      setLoading(false)
-    })().catch((err) => console.error(err))
-
-  }, [samplesByID, processMeasurementsByID, protocolsByID])
-
-  const graphData = { nodes, links }
+        }
+      }, { nodes: [], links: [] })
+    )
+  }, [sample, samplesByID, processMeasurementsByID, protocolsByID])
 
   const graphConfig = {
-    height: 400,
-    width: 400,
+    height,
+    width,
     staticGraph: false,
     directed: true,
     maxZoom: 12,
@@ -180,13 +152,17 @@ const SampleDetailsLineage = ({
     node: {
       color: "#d3d3d3",
       fontColor: "black",
+      fontSize: 10,
       renderLabel: true,
-      labelProperty: node => `${node.label}`
+      labelProperty: node => `${node.label}`,
+      x: (width / 2).toFixed(),
+      y: (height / 2).toFixed(),
     },
     link: {
       color: "lightgray",
       fontColor: "black",
-      strokeWidth: 3,
+      fontSize: 10,
+      strokeWidth: 5,
       type: "STRAIGHT",
       renderLabel: true,
       labelProperty: link => `${link.label}`
@@ -196,9 +172,8 @@ const SampleDetailsLineage = ({
   return (
     <>
       {
-        loading
-          ? "Loading..."
-          : <Graph
+        graphData.nodes.length > 0
+          ? <Graph
             id="graph-id"
             data={graphData}
             config={graphConfig}
@@ -209,9 +184,10 @@ const SampleDetailsLineage = ({
                   return (link.source === source && link.target === target)
                 })?.id
 
-              history.push(`/process-measurements/${linkId ?? sample?.id}`)
+              history.push(`/process-measurements/${linkId}`)
             }}
           />
+          : <>Loading...</>
       }
     </>
   )
