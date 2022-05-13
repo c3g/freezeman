@@ -26,8 +26,18 @@ const SampleDetailsLineage = ({
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
 
-  const [width, setWidth] = useState(400)
-  const [height, setHeight] = useState(400)
+  const [width, setWidth] = useState(1280)
+  const [height, setHeight] = useState(720)
+
+  class MissingData extends Error { }
+
+  function rejectUndefined(x) {
+    if (x) {
+      return true
+    } else {
+      throw new MissingData()
+    }
+  }
 
   function fetchProcessMeasurement(id) {
     return withProcessMeasurement(processMeasurementsByID, id, process => process)
@@ -41,13 +51,14 @@ const SampleDetailsLineage = ({
     const processMeasurements =
       sample.process_measurements
         .map(fetchProcessMeasurement)
-        .filter((p) => p)
+        .filter(rejectUndefined)
         .filter((p) => p.child_sample !== null)
 
     const processMeasurementsAndChildSamples =
       processMeasurements
-        .map((p) => [p, fetchSample(p.child_sample)])
-        .filter(([_, s]) => s)
+        .map((p) => fetchSample(p.child_sample))
+        .filter(rejectUndefined)
+        .map((s, i) => [processMeasurements[i], s])
 
     const edges =
       processMeasurementsAndChildSamples
@@ -66,7 +77,7 @@ const SampleDetailsLineage = ({
     const parentSamples =
       rootOfSubGraph.data.child_of
         .map(fetchSample)
-        .filter((s) => s)
+        .filter(rejectUndefined)
 
     const parentGraphs =
       parentSamples
@@ -75,7 +86,7 @@ const SampleDetailsLineage = ({
             const ps =
               s.process_measurements
                 .map(fetchProcessMeasurement)
-                .filter((p) => p)
+                .filter(rejectUndefined)
                 .filter((p) => p.child_sample === rootOfSubGraph.data.id)
 
             graphs.set(s.id, new GraphADT(s, ps.map((p) => [p, rootOfSubGraph])))
@@ -88,52 +99,58 @@ const SampleDetailsLineage = ({
   }
 
   useEffect(() => {
-    const graphs = new Map();
+    try {
+      const graphs = new Map();
 
-    const children = fetchEdgesOfSample(sample, graphs)
-    const midRoot = new GraphADT(sample, children)
-    graphs.set(sample.id, midRoot)
-    const roots = fetchParentRoots(midRoot, graphs)
+      const children = fetchEdgesOfSample(sample, graphs)
+      const midRoot = new GraphADT(sample, children)
+      graphs.set(sample.id, midRoot)
+      const roots = fetchParentRoots(midRoot, graphs)
 
-    setGraphData(
-      Array.from(graphs.values()).reduce(({ nodes, links }, g) => {
-        const curr_sample = g.data
-        const children = g.edges
+      setGraphData(
+        Array.from(graphs.values()).reduce(({ nodes, links }, g) => {
+          const curr_sample = g.data
+          const children = g.edges
 
-        let color = "black"
-        if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
-          color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
-        }
+          let color = "black"
+          if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
+            color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
+          }
 
-        return {
-          nodes: [
-            ...nodes,
-            {
-              id: curr_sample.id.toString(),
-              label: curr_sample.name,
-              symbolType: curr_sample.id === sample.id ? "star" : "circle",
-              color,
-              x: (width / 2).toFixed(),
-              y: (height / 2).toFixed(),
-            },
-          ],
-          links: [
-            ...links,
-            ...children
-              .map(([process, child_graph]) => {
-                const child_sample = child_graph.data
+          return {
+            nodes: [
+              ...nodes,
+              {
+                id: curr_sample.id.toString(),
+                label: curr_sample.name,
+                symbolType: curr_sample.id === sample.id ? "star" : "circle",
+                color,
+                x: (width / 2).toFixed(),
+                y: (height / 2).toFixed(),
+              },
+            ],
+            links: [
+              ...links,
+              ...children
+                .map(([process, child_graph]) => {
+                  const child_sample = child_graph.data
 
-                return {
-                  id: process.id.toString(),
-                  label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
-                  source: curr_sample.id.toString(),
-                  target: child_sample.id.toString(),
-                }
-              }),
-          ]
-        }
-      }, { nodes: [], links: [] })
-    )
+                  return {
+                    id: process.id.toString(),
+                    label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
+                    source: curr_sample.id.toString(),
+                    target: child_sample.id.toString(),
+                  }
+                }),
+            ]
+          }
+        }, { nodes: [], links: [] })
+      )
+    } catch (err) {
+      if (!(err instanceof MissingData)) {
+        throw err
+      }
+    }
   }, [sample, samplesByID, processMeasurementsByID, protocolsByID])
 
   const graphConfig = {
