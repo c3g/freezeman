@@ -35,7 +35,7 @@ const SampleDetailsLineage = ({
     if (x) {
       return true
     } else {
-      throw new MissingData()
+      return false
     }
   }
 
