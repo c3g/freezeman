@@ -31,7 +31,7 @@ class SheetData():
         if self.header_row_nb:
             self.prepare_rows()
         else:
-            self.base_errors.append(f"SheetData headers could not be found.")
+            self.base_errors.append(f"SheetData headers could not be found for sheet " + self.name + ". Template may be outdated.")
 
 
     def prepare_rows(self):

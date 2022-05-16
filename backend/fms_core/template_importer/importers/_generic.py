@@ -115,7 +115,7 @@ class GenericImporter():
     @property
     def is_valid(self):
         if any(s.is_valid is None for s in list(self.sheets.values())):
-            self.base_errors.append(f"Some data sheets were not validated yet. "
+            self.base_errors.append(f"Some data sheets were not validated or recognized. "
                                     f"Importer property is_valid can only be obtained after all its sheets are validated.")
             return False
 
