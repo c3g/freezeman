@@ -10,6 +10,8 @@ import {
 } from "../../../utils/withItem";
 import GraphADT from "../../../utils/graph";
 
+import dagre from "dagre"
+
 const mapStateToProps = state => ({
   samplesByID: state.samples.itemsByID,
   processMeasurementsByID: state.processMeasurements.itemsByID,
@@ -107,45 +109,50 @@ const SampleDetailsLineage = ({
       graphs.set(sample.id, midRoot)
       const roots = fetchParentRoots(midRoot, graphs)
 
-      setGraphData(
-        Array.from(graphs.values()).reduce(({ nodes, links }, g) => {
-          const curr_sample = g.data
-          const children = g.edges
+      const g = new dagre.graphlib.Graph({ directed: true })
+        .setGraph({ rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 })
+        .setDefaultEdgeLabel(function () { return {}; });
 
-          let color = "black"
-          if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
-            color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
-          }
+      for (const [_, graph] of graphs) {
+        const curr_sample = graph.data
 
+        let color = "black"
+        if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
+          color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
+        }
+
+        g.setNode(curr_sample.id.toString(), {
+          id: curr_sample.id.toString(),
+          label: curr_sample.name,
+          width: 10,
+          height: 10,
+          color,
+          symbolType: curr_sample.id === sample.id ? "star" : "circle",
+        })
+        graph.edges.forEach(([_, graph]) => {
+          g.setEdge(curr_sample.id.toString(), graph.data.id.toString())
+        })
+      }
+
+      dagre.layout(g)
+
+      setGraphData({
+        nodes: g.nodes().map((v) => {
           return {
-            nodes: [
-              ...nodes,
-              {
-                id: curr_sample.id.toString(),
-                label: curr_sample.name,
-                symbolType: curr_sample.id === sample.id ? "star" : "circle",
-                color,
-                x: (width / 2).toFixed(),
-                y: (height / 2).toFixed(),
-              },
-            ],
-            links: [
-              ...links,
-              ...children
-                .map(([process, child_graph]) => {
-                  const child_sample = child_graph.data
-
-                  return {
-                    id: process.id.toString(),
-                    label: process.protocol in protocolsByID ? protocolsByID[process.protocol]?.name : "",
-                    source: curr_sample.id.toString(),
-                    target: child_sample.id.toString(),
-                  }
-                }),
-            ]
+            ...g.node(v),
+            id: v,
           }
-        }, { nodes: [], links: [] })
-      )
+        }),
+        links: g.edges().map((e) => {
+          const [p, _] = graphs.get(parseInt(e.v)).edges.find(([_, s]) => s.data.id.toString() === e.w)
+          return {
+            id: p.id.toString(),
+            source: e.v,
+            target: e.w,
+            label: p.protocol in protocolsByID ? protocolsByID[p.protocol]?.name : "",
+          }
+        })
+      })
     } catch (err) {
       if (!(err instanceof MissingData)) {
         throw err
@@ -156,29 +163,22 @@ const SampleDetailsLineage = ({
   const graphConfig = {
     height,
     width,
-    staticGraph: false,
-    directed: true,
+    staticGraphWithDragAndDrop: true,
     maxZoom: 12,
     minZoom: 0.05,
     panAndZoom: true,
-    d3: {
-      gravity: -500,
-      linkLength: 120,
-      linkStrength: 2,
-    },
     node: {
       color: "#d3d3d3",
       fontColor: "black",
-      fontSize: 10,
+      fontSize: 12,
       renderLabel: true,
       labelProperty: node => `${node.label}`,
-      x: (width / 2).toFixed(),
-      y: (height / 2).toFixed(),
+      labelPosition: "top",
     },
     link: {
       color: "lightgray",
       fontColor: "black",
-      fontSize: 10,
+      fontSize: 12,
       strokeWidth: 5,
       type: "STRAIGHT",
       renderLabel: true,
