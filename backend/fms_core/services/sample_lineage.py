@@ -27,13 +27,13 @@ def create_sample_lineage(parent_sample, child_sample, process_measurement):
 
     return (sample_lineage, errors, warnings)
 
-def create_sample_lineage_graph(parent_sample):
+def create_sample_lineage_graph(mid_sample):
     errors = []
 
-    if not parent_sample:
+    if not mid_sample:
         errors.append(f"Sample is required for sample lineage graph creation")
 
-    nodes = [parent_sample]
+    nodes = [mid_sample]
     edges = []
 
     if not errors:
@@ -52,13 +52,13 @@ def create_sample_lineage_graph(parent_sample):
                     yield None
 
         # fetch children
-        stack = [parent_sample]
-        visited = {parent_sample.id}
+        stack = [mid_sample]
+        visited = {mid_sample.id}
         while stack:
-            parent_sample = stack.pop()
+            child_sample = stack.pop()
             new_process_measurements = [
                 p
-                for p in add_lineage(parent_sample.process_measurement.all())
+                for p in add_lineage(child_sample.process_measurement.all())
             ]
 
             sample_lineages = [
@@ -77,6 +77,31 @@ def create_sample_lineage_graph(parent_sample):
 
             stack.extend(new_child_samples)
             visited.update(s.id for s in new_child_samples)
+        
+        def find_process_measurement(parent_sample, child_sample):
+            process_measurements = list(add_lineage(parent_sample.process_measurement.all()))
+            for p in process_measurements:
+                if p.child_sample == child_sample.id:
+                    return p
+
+        # fetch parents
+        stack = [mid_sample]
+        while stack:
+            child_sample = stack.pop()
+            
+            new_parent_samples = [
+                s for s in child_sample.child_of.all() if s.id not in visited
+            ]
+
+            new_process_measurements = [
+                find_process_measurement(s, child_sample) for s in new_parent_samples
+            ]
+
+            nodes.extend(new_parent_samples)
+            edges.extend(new_process_measurements)
+
+            stack.extend(new_parent_samples)
+            visited.update(s.id for s in new_parent_samples)
 
     
     return (nodes, edges, errors)
