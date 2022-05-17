@@ -1,6 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.library import get_library_type
 from fms_core.services.platform import get_platform
 from fms_core.services.process import create_process
 from fms_core.services.property_value import create_process_properties

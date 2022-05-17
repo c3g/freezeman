@@ -2,7 +2,7 @@ import copy
 
 from fms_core.models import PropertyType, Protocol
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
+from fms_core.template_importer.row_handlers.library_conversion import LibraryRowHandler, LibraryBatchRowHandler
 from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
@@ -89,6 +89,7 @@ class LibraryConversionImporter(GenericImporter):
                      'parent_barcode': row_data['Destination Library Parent Container Barcode'],
                      'parent_coordinates': row_data['Destination Library Parent Container Coordinates']
                      },
+                'concentration': row_data['Library Source Concentration (ng/uL)'],
                 'library_size': row_data['Library Size (bp)'],
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                  }

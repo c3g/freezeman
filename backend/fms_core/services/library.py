@@ -53,8 +53,8 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
     return library, errors, warnings
 
 
-def convert_library(process, platform, sample_source, library_size, container_destination, coordinates_destination,
-                    volume_used, volume_destination, execution_date, comment):
+def convert_library(process, platform, sample_source, concentration, library_size, container_destination,
+                    coordinates_destination, volume_used, volume_destination, execution_date, comment):
     library_destination = None
     errors = []
     warnings = []
@@ -93,6 +93,7 @@ def convert_library(process, platform, sample_source, library_size, container_de
     # Create new destination library
     library_destination, errors_library_destination, warnings_library_destinations = \
         create_library(library_type=library_source_obj.library_type,
+                       # TODO: Verify this with Janick
                        library_size=library_size,
                        index=library_source_obj.index,
                        platform=platform,
@@ -107,7 +108,8 @@ def convert_library(process, platform, sample_source, library_size, container_de
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                concentration=None,
+                # TODO: Verify this with Janick
+                concentration=concentration if concentration is not None else None,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False,
                 # Reset QC flags

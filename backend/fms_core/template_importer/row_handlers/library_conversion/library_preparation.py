@@ -10,7 +10,8 @@ class LibraryRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, library_batch_info, library_source, volume_used, comment, container, library_size, volume):
+    def process_row_inner(self, library_batch_info, library_source, volume_used, comment,
+                          container, concentration, library_size, volume):
 
         if not library_batch_info:
             self.errors['library_conversion'] = 'No batch is associated with this library.'
@@ -54,6 +55,7 @@ class LibraryRowHandler(GenericRowHandler):
                 convert_library(process=process_obj,
                                 platform=library_info['platform'],
                                 sample_source=sample_source_obj,
+                                concentration=concentration,
                                 library_size=library_size,
                                 container_destination=container_obj,
                                 coordinates_destination=container_coordinates,
