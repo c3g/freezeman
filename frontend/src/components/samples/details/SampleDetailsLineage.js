@@ -11,14 +11,17 @@ import {
 import GraphADT from "../../../utils/graph";
 
 import dagre from "dagre"
+import api, { withToken } from "../../../utils/api";
 
 const mapStateToProps = state => ({
+  token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
   processMeasurementsByID: state.processMeasurements.itemsByID,
   protocolsByID: state.protocols.itemsByID,
 });
 
 const SampleDetailsLineage = ({
+  token,
   sample,
   samplesByID,
   processMeasurementsByID,
@@ -31,134 +34,70 @@ const SampleDetailsLineage = ({
   const [width, setWidth] = useState(1280)
   const [height, setHeight] = useState(720)
 
-  class MissingData extends Error { }
-
-  function rejectUndefined(x) {
-    if (x) {
-      return true
-    } else {
-      return false
-    }
-  }
-
-  function fetchProcessMeasurement(id) {
-    return withProcessMeasurement(processMeasurementsByID, id, process => process)
-  }
-
-  function fetchSample(id) {
-    return withSample(samplesByID, id, s => s)
-  }
-
-  function fetchEdgesOfSample(sample, graphs) {
-    const processMeasurements =
-      sample.process_measurements
-        .map(fetchProcessMeasurement)
-        .filter(rejectUndefined)
-        .filter((p) => p.child_sample !== null)
-
-    const processMeasurementsAndChildSamples =
-      processMeasurements
-        .map((p) => fetchSample(p.child_sample))
-        .filter(rejectUndefined)
-        .map((s, i) => [processMeasurements[i], s])
-
-    const edges =
-      processMeasurementsAndChildSamples
-        .reduce((prev, [p, s]) => {
-          if (!graphs.has(s.id)) {
-            graphs.set(s.id, new GraphADT(s, fetchEdgesOfSample(s, graphs)))
-          }
-
-          return [...prev, [p, graphs.get(s.id)]]
-        }, [])
-
-    return edges
-  }
-
-  function fetchParentRoots(rootOfSubGraph, graphs) {
-    const parentSamples =
-      rootOfSubGraph.data.child_of
-        .map(fetchSample)
-        .filter(rejectUndefined)
-
-    const parentGraphs =
-      parentSamples
-        .reduce((prev, s) => {
-          if (!graphs.has(s.id)) {
-            const ps =
-              s.process_measurements
-                .map(fetchProcessMeasurement)
-                .filter(rejectUndefined)
-                .filter((p) => p.child_sample === rootOfSubGraph.data.id)
-
-            graphs.set(s.id, new GraphADT(s, ps.map((p) => [p, rootOfSubGraph])))
-          }
-
-          return [...prev, ...fetchParentRoots(graphs.get(s.id), graphs)]
-        }, []).flat()
-
-    return parentGraphs.length > 0 ? parentGraphs : [rootOfSubGraph]
-  }
-
   useEffect(() => {
-    try {
-      const graphs = new Map();
+    if (sample?.id !== undefined) {
+      withToken(token, api.sample_lineage.get)(sample.id).then((graph) => {
+        graph = graph.data
 
-      const children = fetchEdgesOfSample(sample, graphs)
-      const midRoot = new GraphADT(sample, children)
-      graphs.set(sample.id, midRoot)
-      const roots = fetchParentRoots(midRoot, graphs)
+        const g = new dagre.graphlib.Graph({ directed: true })
+          .setGraph({ rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 })
+          .setDefaultEdgeLabel(function () { return {}; });
 
-      const g = new dagre.graphlib.Graph({ directed: true })
-        .setGraph({ rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 })
-        .setDefaultEdgeLabel(function () { return {}; });
-
-      for (const [_, graph] of graphs) {
-        const curr_sample = graph.data
-
-        let color = "black"
-        if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
-          color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
-        }
-
-        g.setNode(curr_sample.id.toString(), {
-          id: curr_sample.id.toString(),
-          label: curr_sample.name,
-          width: 10,
-          height: 10,
-          color,
-          symbolType: curr_sample.id === sample.id ? "star" : "circle",
-        })
-        graph.edges.forEach(([_, graph]) => {
-          g.setEdge(curr_sample.id.toString(), graph.data.id.toString())
-        })
-      }
-
-      dagre.layout(g)
-
-      setGraphData({
-        nodes: g.nodes().map((v) => {
-          return {
-            ...g.node(v),
-            id: v,
+        graph.nodes.forEach((curr_sample) => {
+          let color = "black"
+          if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
+            color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
           }
-        }),
-        links: g.edges().map((e) => {
-          const [p, _] = graphs.get(parseInt(e.v)).edges.find(([_, s]) => s.data.id.toString() === e.w)
-          return {
-            id: p.id.toString(),
-            source: e.v,
-            target: e.w,
-            label: p.protocol in protocolsByID ? protocolsByID[p.protocol]?.name : "",
-          }
+
+          g.setNode(curr_sample.id.toString(), {
+            id: curr_sample.id.toString(),
+            label: curr_sample.name,
+            width: 10,
+            height: 10,
+            color,
+            symbolType: curr_sample.id === sample.id ? "star" : "circle",
+          })
+        })
+
+        graph.edges
+          .filter((process) => process.child_sample !== null)
+          .forEach((process) => {
+            g.setEdge(process.source_sample, process.child_sample)
+          })
+
+        const pair_to_process = graph.edges
+          .filter((process) => process.child_sample !== null)
+          .reduce((prev, p) => {
+            return {
+              ...prev,
+              [`${p.source_sample}:${p.child_sample}`]: p
+            }
+          }, {})
+
+        dagre.layout(g)
+
+        setGraphData({
+          nodes: g.nodes()
+            .map((v) => {
+              return {
+                ...g.node(v),
+                id: v
+              }
+            }),
+          links: g.edges()
+            .map((e) => {
+              const p = pair_to_process[`${e.v}:${e.w}`]
+              return {
+                id: p.id.toString(),
+                source: e.v,
+                target: e.w,
+                label: p.protocol in protocolsByID ? protocolsByID[p.protocol]?.name : "",
+              }
+            })
         })
       })
-    } catch (err) {
-      if (!(err instanceof MissingData)) {
-        throw err
-      }
     }
-  }, [sample, samplesByID, processMeasurementsByID, protocolsByID])
+  }, [sample])
 
   const graphConfig = {
     height,
@@ -199,7 +138,7 @@ const SampleDetailsLineage = ({
               const linkId = graphData.links.find(
                 (link) => {
                   return (link.source === source && link.target === target)
-                })?.id
+                }).id
 
               history.push(`/process-measurements/${linkId}`)
             }}
