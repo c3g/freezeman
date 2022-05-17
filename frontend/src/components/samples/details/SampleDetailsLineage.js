@@ -30,6 +30,7 @@ const SampleDetailsLineage = ({
   const history = useHistory()
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
+  const [pairToProcess, setPairToProcess] = useState({})
 
   const [width, setWidth] = useState(1280)
   const [height, setHeight] = useState(720)
@@ -65,7 +66,7 @@ const SampleDetailsLineage = ({
             g.setEdge(process.source_sample, process.child_sample)
           })
 
-        const pair_to_process = graph.edges
+        const localPairToProcess = graph.edges
           .filter((process) => process.child_sample !== null)
           .reduce((prev, p) => {
             return {
@@ -73,6 +74,8 @@ const SampleDetailsLineage = ({
               [`${p.source_sample}:${p.child_sample}`]: p
             }
           }, {})
+        
+        setPairToProcess(localPairToProcess)
 
         dagre.layout(g)
 
@@ -86,7 +89,7 @@ const SampleDetailsLineage = ({
             }),
           links: g.edges()
             .map((e) => {
-              const p = pair_to_process[`${e.v}:${e.w}`]
+              const p = localPairToProcess[`${e.v}:${e.w}`]
               return {
                 id: p.id.toString(),
                 source: e.v,
@@ -135,11 +138,7 @@ const SampleDetailsLineage = ({
             config={graphConfig}
             onClickNode={(id, _) => history.push(`/samples/${id}`)}
             onClickLink={(source, target) => {
-              const linkId = graphData.links.find(
-                (link) => {
-                  return (link.source === source && link.target === target)
-                }).id
-
+              const linkId = pairToProcess[`${source}:${target}`].id
               history.push(`/process-measurements/${linkId}`)
             }}
           />
