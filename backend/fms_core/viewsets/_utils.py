@@ -104,11 +104,12 @@ class TemplateActionsMixin:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, file = action_data
+        _, file_format = os.path.splitext(file.name)
 
         importer_instance = action_def["importer"]()
 
         try:
-            result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
+            result = importer_instance.import_template(file=file, format=file_format, dry_run=True)
         except Exception as e:
             result = {
                 'valid': False,
@@ -132,11 +133,12 @@ class TemplateActionsMixin:
             return HttpResponseBadRequest(json.dumps({"detail": action_data}), content_type="application/json")
 
         action_def, file = action_data
+        _, file_format = os.path.splitext(file.name)
 
         importer_instance = action_def["importer"]()
 
         try:
-            importer_instance.import_template(file=file, format='xlsx', dry_run=False)
+            importer_instance.import_template(file=file, format=file_format, dry_run=False)
             if not importer_instance.is_valid:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
                                               content_type="application/json")

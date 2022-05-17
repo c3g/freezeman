@@ -21,16 +21,20 @@ class GenericImporter():
 
     def import_template(self, file, format, dry_run):
         self.file = file
+        self.format = format
 
-        for sheet_info in self.SHEETS_INFO:
-            sheet_name = sheet_info['name']
-            sheet_created = self.create_sheet_data(**sheet_info)
+        if not self.format == ".xlsx" and len(self.SHEETS_INFO) > 1:
+            self.base_errors.append(f"Templates with multiple sheets need to be submitted as xlsx files.")
+        else:
+            for sheet_info in self.SHEETS_INFO:
+                sheet_name = sheet_info['name']
+                sheet_created = self.create_sheet_data(**sheet_info)
 
-            if sheet_created.base_errors:
-                self.base_errors += sheet_created.base_errors
+                if sheet_created is not None and sheet_created.base_errors:
+                    self.base_errors += sheet_created.base_errors
 
-            if sheet_created is not None:
-                self.sheets[sheet_name] = sheet_created
+                if sheet_created is not None:
+                    self.sheets[sheet_name] = sheet_created
 
 
         if not self.base_errors:
@@ -68,7 +72,15 @@ class GenericImporter():
 
     def create_sheet_data(self, name, headers):
         try:
-            pd_sheet = pd.read_excel(self.file, sheet_name=name)
+            if self.format == ".xlsx":
+                pd_sheet = pd.read_excel(self.file, sheet_name=name)
+            elif self.format == ".csv" or format == ".txt":
+                pd_sheet = pd.read_csv(self.file)
+            elif self.format == ".tsv":
+                pd_sheet = pd.read_csv(self.file, sep="\t")
+            else:
+                self.base_errors.append(f"Template file format " + self.format + " not supported.")
+                return None
             # Convert blank and NaN cells to None and Store it in self.sheets
             dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
             return SheetData(name=name, dataframe=dataframe, headers=headers)
@@ -103,7 +115,7 @@ class GenericImporter():
     @property
     def is_valid(self):
         if any(s.is_valid is None for s in list(self.sheets.values())):
-            self.base_errors.append(f"Some data sheets were not validated yet. "
+            self.base_errors.append(f"Some data sheets were not validated or recognized. "
                                     f"Importer property is_valid can only be obtained after all its sheets are validated.")
             return False
 
