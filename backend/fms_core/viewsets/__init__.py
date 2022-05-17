@@ -23,6 +23,7 @@ from .library import LibraryViewSet
 from .platform import PlatformViewSet
 from .library_type import LibraryTypeViewSet
 from .taxon import TaxonViewSet
+from .sample_lineage import SampleLineageViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -50,4 +51,5 @@ __all__ = [
     "PlatformViewSet",
     "LibraryTypeViewSet",
     "TaxonViewSet",
+    "SampleLineageViewSet"
 ]
