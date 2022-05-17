@@ -97,6 +97,29 @@ INDEX_CREATION_TEMPLATE = {
   "prefill info": [],
 }
 
+LIBRARY_CONVERSION_TEMPLATE = {
+  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v3_9_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Library Batch',
+          'headers': ['Library Batch ID', 'Date (YYYY-MM-DD)', 'Platform', 'Comment'
+                      'Technician Name', 'Library Kit Used', 'Library Kit Lot', 'Thermocycler Used', 'PCR Cycles'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Library Batch ID', 'Library Source Container Barcode', 'Library Source Container Coordinates',
+                      'Destination Library Container Barcode', 'Destination Library Coordinates',
+                      'Destination Library Container Name', 'Destination Library Container Kind',
+                      'Destination Library Parent Container Barcode', 'Destination Library Parent Container Coordinates',
+                      'Library Source Concentration (ng/uL)', 'Library Size (bp)', 'Volume Used (uL)', 'Volume (uL)',
+                      'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Library Source Container Barcode", "container__barcode"),
+      ("Library", "Library Source Container Coordinates", "coordinates"),],
+}
+
 LIBRARY_PREPARATION_TEMPLATE = {
   "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_9_0.xlsx")},
   "sheets info": [
