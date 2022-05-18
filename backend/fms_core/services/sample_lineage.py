@@ -1,4 +1,4 @@
-from django.db.models import F
+from django.db.models import F, Q, Count
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from fms_core.models import SampleLineage, Sample, ProcessMeasurement
 
@@ -33,75 +33,98 @@ def create_sample_lineage_graph(mid_sample):
     if not mid_sample:
         errors.append(f"Sample is required for sample lineage graph creation")
 
-    nodes = [mid_sample]
-    edges = []
-
     if not errors:
-        def add_lineage(process_measurements):
-            queryset = process_measurements.select_related("process").prefetch_related("lineage")
+        def annotate_process_measurements(process_measurements):
+            queryset = process_measurements.prefetch_related("process").prefetch_related("lineage")
             queryset = queryset.annotate(child_sample=F("lineage__child"))
-            queryset = queryset.annotate(child_sample_name=F("lineage__child__name"))
-            queryset = queryset.annotate(source_sample_name=F("source_sample__name"))
+            return queryset
+        
+        def annotate_samples(samples):
+            queryset = samples.select_related("process_measurement").prefetch_related("process_measurement__lineage")
+            queryset = queryset.annotate(
+                child_count=Count(
+                    'process_measurement',
+                    filter=~Q(process_measurement__lineage__child=None)
+                )
+            )
             return queryset
 
-        def query_set_iterator(f, l):
-            for x in l:
-                try:
-                    yield f(x)
-                except ObjectDoesNotExist:
-                    yield None
+
+        total_new_samples = [Sample.objects.filter(pk=mid_sample.id)]
+        total_new_process_measurements = []
 
         # fetch children
-        stack = [mid_sample]
+        stack = [mid_sample.id]
         visited = {mid_sample.id}
         while stack:
-            child_sample = stack.pop()
-            new_process_measurements = [
-                p
-                for p in add_lineage(child_sample.process_measurement.all())
+            parent_sample_id = stack.pop()
+
+            new_process_measurements = annotate_process_measurements(
+                ProcessMeasurement.objects.filter(source_sample=parent_sample_id)
+            ).filter(
+                ~Q(child_sample=None)
+            )
+            
+            new_child_samples_id = [
+                p.child_sample for p in new_process_measurements.filter(~Q(child_sample=None)).exclude(id__in=visited)
             ]
+            new_child_samples = Sample.objects.filter(id__in=new_child_samples_id)
 
-            sample_lineages = [
-                sl
-                for sl in query_set_iterator(lambda p: p.lineage.get(), new_process_measurements)
-            ]
+            total_new_samples.append(new_child_samples)
+            total_new_process_measurements.append(new_process_measurements)
 
-            new_child_samples = [
-                sl.child
-                for sl in sample_lineages
-                if sl and sl.child.id not in visited
-            ]
-
-            nodes.extend(new_child_samples)
-            edges.extend(new_process_measurements)
-
-            stack.extend(new_child_samples)
-            visited.update(s.id for s in new_child_samples)
-        
-        def find_process_measurement(parent_sample, child_sample):
-            process_measurements = list(add_lineage(parent_sample.process_measurement.all()))
-            for p in process_measurements:
-                if p.child_sample == child_sample.id:
-                    return p
+            stack.extend(s.id for s in new_child_samples)
+            visited.update(p.id for p in new_process_measurements)
 
         # fetch parents
-        stack = [mid_sample]
+        stack = [mid_sample.id]
         while stack:
-            child_sample = stack.pop()
-            
-            new_parent_samples = [
-                s for s in child_sample.child_of.all() if s.id not in visited
-            ]
+            child_sample_id = stack.pop()
+            child_sample = Sample.objects.filter(id=child_sample_id)
 
-            new_process_measurements = [
-                find_process_measurement(s, child_sample) for s in new_parent_samples
-            ]
+            child_of = child_sample.values('child_of').get()['child_of']
+            # child_of is either a None, a single int, or a list of int
+            try:
+                list(child_of)
+            except TypeError:
+                child_of = [child_of]
 
-            nodes.extend(new_parent_samples)
-            edges.extend(new_process_measurements)
+            new_parent_samples = Sample.objects.filter(id__in=child_of).exclude(id__in=visited)
+            new_process_measurements = annotate_process_measurements(
+                ProcessMeasurement.objects.all()
+            ).filter(
+                child_sample=child_sample_id
+            )
 
-            stack.extend(new_parent_samples)
-            visited.update(s.id for s in new_parent_samples)
+            total_new_samples.append(new_parent_samples)
+            total_new_process_measurements.append(new_process_measurements)
+
+            stack.extend(s.id for s in new_parent_samples)
+            visited.update(p.id for p in new_process_measurements)
+
+
+        nodes = [
+            s
+            for queryset in total_new_samples
+            for s in annotate_samples(queryset).values(
+                'id',
+                'name',
+                'quality_flag',
+                'quantity_flag',
+                'child_count'
+            )
+        ]
+
+        edges = [
+            p
+            for queryset in total_new_process_measurements
+            for p in queryset.values(
+                'id',
+                'source_sample',
+                'child_sample',
+                'process__protocol__name',
+            )
+        ]
 
     
     return (nodes, edges, errors)

@@ -18,6 +18,6 @@ class SampleLineageViewSet(viewsets.ViewSet):
             raise ValidationError(errors)
         else:
             return Response({
-                "nodes": [SampleSerializer(s).data for s in nodes],
-                "edges": [ProcessMeasurementSerializer(p).data for p in edges]
+                "nodes": nodes,
+                "edges": edges,
             })
