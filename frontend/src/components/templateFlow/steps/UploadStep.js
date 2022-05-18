@@ -9,7 +9,7 @@ export const UploadStep = ({action, onChangeFile}) => (
         <Upload
           name="template"
           multiple={false}
-          accept=".xlsx"
+          accept=".xlsx,.csv,.txt,.tsv"
           beforeUpload={file => { onChangeFile(file); return false }}
           fileList={[]}
         >
