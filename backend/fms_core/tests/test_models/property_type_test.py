@@ -20,12 +20,12 @@ class PropertyTypeTest(TestCase):
         self.assertEqual(pt.name, name)
         self.assertEqual(pt.content_object, content_object)
 
-    def test_duplicate_name(self):
+    def test_duplicate_name_and_protocol(self):
         with self.assertRaises(ValidationError):
             try:
                 PropertyType.objects.create(name=self.name, value_type="str", content_object=self.protocol)
             except ValidationError as e:
-                self.assertTrue('name' in e.message_dict)
+                self.assertTrue('Name and Object id' in '; '.join(e.messages))
                 raise e
 
     def test_invalid_value_type(self):

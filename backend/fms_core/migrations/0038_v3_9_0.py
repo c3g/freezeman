@@ -60,6 +60,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='propertytype',
+            name='name',
+            field=models.CharField(help_text='The name of the property.', max_length=200, validators=[
+                django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='propertytype',
+            unique_together={('name', 'object_id')},
+        ),
         migrations.RunPython(
             create_library_conversion_objects,
             reverse_code=migrations.RunPython.noop,

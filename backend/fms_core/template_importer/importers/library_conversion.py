@@ -7,7 +7,7 @@ from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
-PROPERTIES_STARTING_INDEX = 3
+PROPERTIES_STARTING_INDEX = 4
 
 class LibraryConversionImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_CONVERSION_TEMPLATE['sheets info']
@@ -34,7 +34,7 @@ class LibraryConversionImporter(GenericImporter):
         """
             LIBRARY BATCH SHEET
         """
-        library_batch_sheet = self.sheets['Library Batch']
+        library_batch_sheet = self.sheets['Conversion Batch']
 
         # Iterate through libraries rows
         library_batch_rows_data = defaultdict(list)
