@@ -53,6 +53,8 @@ def create_sample_lineage_graph(mid_sample):
                 .filter(source_sample__in=sampleIds)
                 .select_related("process__lineage")
                 .annotate(child_sample=F("lineage__child"))
+                .select_related("process_protocol")
+                .annotate(protocol_name=F("process__protocol__name"))
         )
 
         nodes = list(samples.values(
@@ -66,7 +68,7 @@ def create_sample_lineage_graph(mid_sample):
             'id',
             'source_sample',
             'child_sample',
-            'process__protocol__name',
+            'protocol_name',
         ))
     
     return (nodes, edges, errors)

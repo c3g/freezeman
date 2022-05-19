@@ -94,7 +94,7 @@ const SampleDetailsLineage = ({
                 id: p.id.toString(),
                 source: e.v,
                 target: e.w,
-                label: p.process__protocol__name,
+                label: p.protocol_name,
               }
             })
         })
