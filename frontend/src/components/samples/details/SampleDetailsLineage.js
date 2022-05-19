@@ -53,11 +53,10 @@ const SampleDetailsLineage = ({
           g.setNode(curr_sample.id.toString(), {
             id: curr_sample.id.toString(),
             label: curr_sample.name,
-            width: 40,
-            height: 40,
+            width: 10,
+            height: 10,
             color,
             symbolType: curr_sample.id === sample.id ? "star" : "circle",
-            child_count: curr_sample.child_count
           })
         })
 
@@ -75,7 +74,7 @@ const SampleDetailsLineage = ({
               [`${p.source_sample}:${p.child_sample}`]: p
             }
           }, {})
-
+        
         setPairToProcess(localPairToProcess)
 
         dagre.layout(g)
@@ -83,13 +82,9 @@ const SampleDetailsLineage = ({
         setGraphData({
           nodes: g.nodes()
             .map((v) => {
-              const child_count = g.node(v).child_count
               return {
                 ...g.node(v),
-                id: v,
-                viewGenerator: (_) => {
-                  return Node(child_count)
-                }
+                id: v
               }
             }),
           links: g.edges()
@@ -99,7 +94,7 @@ const SampleDetailsLineage = ({
                 id: p.id.toString(),
                 source: e.v,
                 target: e.w,
-                label: p.process__protocol__name,
+                label: p.protocol in protocolsByID ? protocolsByID[p.protocol]?.name : "",
               }
             })
         })
@@ -150,20 +145,6 @@ const SampleDetailsLineage = ({
           : <>Loading...</>
       }
     </>
-  )
-}
-
-function Node(child_count) {
-  return (
-    <div style={{
-      display: "flex",
-      width: 20,
-      height: 20,
-      backgroundColor: "green",
-      borderRadius: "50%",
-    }}>
-      {child_count}
-    </div>
   )
 }
 
