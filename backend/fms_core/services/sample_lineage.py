@@ -46,6 +46,7 @@ def create_sample_lineage_graph(mid_sample):
 
         sampleIds = DerivedBySample.objects.filter(derived_sample__biosample__id__in=derivedBySample).values_list("sample__id", flat=True)
         samples = Sample.objects.filter(id__in=sampleIds)
+
         process_measurements = (
             ProcessMeasurement
                 .objects
