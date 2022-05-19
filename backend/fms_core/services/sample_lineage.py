@@ -29,14 +29,13 @@ def create_sample_lineage(parent_sample, child_sample, process_measurement):
 
 def create_sample_lineage_graph(mid_sample):
     errors = []
+    nodes = []
+    edges = []
 
     if not mid_sample:
         errors.append(f"Sample is required for sample lineage graph creation")
 
     if not errors:
-        nodes = []
-        edges = []
-
         derivedBySample = (
             DerivedBySample.objects
                 .filter(sample__id=mid_sample.id)
