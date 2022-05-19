@@ -41,7 +41,7 @@ def create_sample_lineage_graph(mid_sample):
                 .filter(sample__id=mid_sample.id)
                 .select_related("derived_sample__biosample")
                 .annotate(biosample_id=F("derived_sample__biosample_id"))
-                .values_list("biosample_id")
+                .values_list("biosample_id", flat=True)
         )
 
         sampleIds = DerivedBySample.objects.filter(derived_sample__biosample__id__in=derivedBySample).values_list("sample__id", flat=True)
