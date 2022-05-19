@@ -102,13 +102,11 @@ const SampleDetailsLineage = ({
                       id: v
                     }
                   }),
-          links: g.edges()
-                  .map((e) => {
-                    const p = localPairToProcess[`${e.v}:${e.w}`]
+          links: graph.edges.filter((p) => p.child_sample !== null).map((p) => {
                     return {
                       id: p.id.toString(),
-                      source: e.v,
-                      target: e.w,
+                      source: p.source_sample.toString(),
+                      target: p.child_sample.toString(),
                       label: p.protocol_name,
                     }
                   })
