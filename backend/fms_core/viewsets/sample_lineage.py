@@ -10,8 +10,7 @@ from fms_core.serializers import SampleSerializer, ProcessMeasurementSerializer
 class SampleLineageViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["get"])
     def graph(self, _request, pk):
-        parent_sample = Sample.objects.get(pk=pk)
-        nodes, edges, errors = create_sample_lineage_graph(parent_sample)
+        nodes, edges, errors = create_sample_lineage_graph(pk)
 
         if errors:
             raise ValidationError(errors)

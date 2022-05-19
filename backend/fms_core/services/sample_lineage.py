@@ -27,48 +27,27 @@ def create_sample_lineage(parent_sample, child_sample, process_measurement):
 
     return (sample_lineage, errors, warnings)
 
-def create_sample_lineage_graph(mid_sample):
+def create_sample_lineage_graph(sampleId):
     errors = []
     nodes = []
     edges = []
 
-    if not mid_sample:
-        errors.append(f"Sample is required for sample lineage graph creation")
+    if not Sample.objects.filter(pk=sampleId).exists():
+        errors.append(f"Sample with id ${sampleId} does not exist")
 
     if not errors:
-        derivedBySample = (
-            DerivedBySample.objects
-                .filter(sample__id=mid_sample.id)
-                .select_related("derived_sample__biosample")
-                .annotate(biosample_id=F("derived_sample__biosample_id"))
-                .values_list("biosample_id", flat=True)
-        )
+        derivedBySample = DerivedBySample.objects.filter(sample__id=sampleId) \
+                                                 .values_list("derived_sample__biosample_id", flat=True)
 
-        sampleIds = DerivedBySample.objects.filter(derived_sample__biosample__id__in=derivedBySample).values_list("sample__id", flat=True)
+        sampleIds = DerivedBySample.objects.filter(derived_sample__biosample__id__in=derivedBySample) \
+                                           .values_list("sample__id", flat=True)
         samples = Sample.objects.filter(id__in=sampleIds)
 
-        process_measurements = (
-            ProcessMeasurement
-                .objects
-                .filter(source_sample__in=sampleIds)
-                .select_related("process__lineage")
-                .annotate(child_sample=F("lineage__child"))
-                .select_related("process_protocol")
-                .annotate(protocol_name=F("process__protocol__name"))
-        )
+        process_measurements = ProcessMeasurement.objects.filter(source_sample__in=sampleIds) \
+                                                         .select_related("process__lineage").annotate(child_sample=F("lineage__child")) \
+                                                         .select_related("process_protocol").annotate(protocol_name=F("process__protocol__name"))
 
-        nodes = list(samples.values(
-            'id',
-            'name',
-            'quality_flag',
-            'quantity_flag',
-        ))
-
-        edges = list(process_measurements.values(
-            'id',
-            'source_sample',
-            'child_sample',
-            'protocol_name',
-        ))
+        nodes = list(samples.values("id", "name", "quality_flag", "quantity_flag"))
+        edges = list(process_measurements.values("id", "source_sample", "child_sample", "protocol_name"))
     
     return (nodes, edges, errors)
