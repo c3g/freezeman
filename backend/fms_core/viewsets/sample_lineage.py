@@ -1,4 +1,3 @@
-from tkinter import W
 from fms_core.services.sample_lineage import create_sample_lineage_graph
 from rest_framework import viewsets
 from rest_framework.decorators import action
