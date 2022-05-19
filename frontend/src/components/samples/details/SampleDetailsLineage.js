@@ -4,11 +4,6 @@ import { useHistory } from "react-router-dom";
 
 import { Graph } from "react-d3-graph"
 
-import {
-  withSample,
-  withProcessMeasurement,
-} from "../../../utils/withItem";
-
 import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
 
@@ -22,15 +17,13 @@ const mapStateToProps = state => ({
 const SampleDetailsLineage = ({
   token,
   sample,
-  samplesByID,
-  processMeasurementsByID,
-  protocolsByID,
 }) => {
   const history = useHistory()
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
   const [pairToProcess, setPairToProcess] = useState({})
 
+  // TODO automatically adjust width and height
   const [width, setWidth] = useState(1280)
   const [height, setHeight] = useState(720)
 
