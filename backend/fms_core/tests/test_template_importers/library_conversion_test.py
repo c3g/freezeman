@@ -39,7 +39,7 @@ class LibraryConversionTestCase(TestCase):
             technician_name='Janick St-Cyr',
             kit_used='MGI_Conversion_AppA',
             kit_lot='1',
-            thermocycler_used='Biometra Rouge',
+            thermocycler_used='Eppendorf 1 Pre-PCR',
         )
 
         self.library_batch_2 = dict(
@@ -143,12 +143,9 @@ class LibraryConversionTestCase(TestCase):
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
 
-        # Test source sample
+        # Test first source sample
         source_sample_1, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode_1)
         source_library_1 = source_sample_1.derived_sample_not_pool.library
-
-        source_sample_2, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode_2)
-        source_library_2 = source_sample_2.derived_sample_not_pool.library
 
         new_volume = self.source_sample_initial_volume - self.library_1['volume_used'] - self.library_2['volume_used']
         self.assertEqual(source_sample_1.volume, new_volume)
@@ -195,3 +192,94 @@ class LibraryConversionTestCase(TestCase):
         self.assertEqual(p_2.value, self.library_1['kit_used'])
         self.assertEqual(p_3.value, self.library_1['kit_lot'])
         self.assertEqual(p_4.value, self.library_1['thermocycler_used'])
+
+        # Test second library conversion
+        sample_library_2, _, _ = get_sample_from_container(barcode='Container4LibraryDest2')
+        library_2 = sample_library_2.derived_sample_not_pool.library
+
+        self.assertEqual(sample_library_2.volume, self.library_2['library_volume'])
+        self.assertEqual(sample_library_2.quality_flag, None)
+        self.assertEqual(sample_library_2.quantity_flag, None)
+
+        # Library info tests
+        self.assertEqual(library_2.platform, self.library_2['platform'])
+        self.assertEqual(library_2.library_type, source_library_1.library_type)
+        self.assertEqual(library_2.index, source_library_1.index)
+        self.assertEqual(library_2.strandedness, SINGLE_STRANDED)
+
+        # Process and process measurements tests
+        pm_2 = ProcessMeasurement.objects.get(source_sample=source_sample_1,
+                                              execution_date=self.library_2['date'],
+                                              volume_used=self.library_2['volume_used'])
+        self.assertEqual(pm_2.volume_used, self.library_2['volume_used'])
+        self.assertEqual(pm_2.comment, self.library_2['library_comment'])
+        self.assertEqual(pm_2.process.protocol.name, 'Library Conversion')
+        self.assertEqual(pm_2.process.comment, self.library_2['batch_comment'])
+
+        # Property Values tests
+        pt_1 = PropertyType.objects.get(name='Technician Name', object_id=pm_2.process.protocol.id)
+        p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm_2.process.id)
+
+        pt_2 = PropertyType.objects.get(name='Kit Used', object_id=pm_2.process.protocol.id)
+        p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm_2.process.id)
+
+        pt_3 = PropertyType.objects.get(name='Kit Lot', object_id=pm_2.process.protocol.id)
+        p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_2.process.id)
+
+        pt_4 = PropertyType.objects.get(name='Thermocycler Used', object_id=pm_2.process.protocol.id)
+        p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_2.process.id)
+
+        self.assertEqual(p_1.value, self.library_2['technician_name'])
+        self.assertEqual(p_2.value, self.library_2['kit_used'])
+        self.assertEqual(p_3.value, self.library_2['kit_lot'])
+        self.assertEqual(p_4.value, self.library_2['thermocycler_used'])
+
+        # Test second source sample
+        source_sample_2, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode_2)
+        source_library_2 = source_sample_2.derived_sample_not_pool.library
+
+        new_volume = self.source_sample_initial_volume - self.library_3['volume_used']
+        self.assertEqual(source_sample_2.volume, new_volume)
+        self.assertEqual(source_sample_2.quantity_flag, True)
+        self.assertEqual(source_sample_2.quality_flag, True)
+
+        # Test third library conversion
+        sample_library_3, _, _ = get_sample_from_container(barcode='Container4LibraryDest3')
+        library_3 = sample_library_3.derived_sample_not_pool.library
+
+        self.assertEqual(sample_library_3.volume, self.library_3['library_volume'])
+        self.assertEqual(sample_library_3.quality_flag, None)
+        self.assertEqual(sample_library_3.quantity_flag, None)
+
+        # Library info tests
+        self.assertEqual(library_3.platform, self.library_3['platform'])
+        self.assertEqual(library_3.library_type, source_library_2.library_type)
+        self.assertEqual(library_3.index, source_library_2.index)
+        self.assertEqual(library_3.strandedness, SINGLE_STRANDED)
+
+        # Process and process measurements tests
+        pm_3 = ProcessMeasurement.objects.get(source_sample=source_sample_2,
+                                              execution_date=self.library_3['date'],
+                                              volume_used=self.library_3['volume_used'])
+        self.assertEqual(pm_3.volume_used, self.library_3['volume_used'])
+        self.assertEqual(pm_3.comment, self.library_3['library_comment'])
+        self.assertEqual(pm_3.process.protocol.name, 'Library Conversion')
+        self.assertEqual(pm_3.process.comment, self.library_3['batch_comment'])
+
+        # Property Values tests
+        pt_1 = PropertyType.objects.get(name='Technician Name', object_id=pm_3.process.protocol.id)
+        p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm_3.process.id)
+
+        pt_2 = PropertyType.objects.get(name='Kit Used', object_id=pm_3.process.protocol.id)
+        p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm_3.process.id)
+
+        pt_3 = PropertyType.objects.get(name='Kit Lot', object_id=pm_3.process.protocol.id)
+        p_3 = PropertyValue.objects.get(property_type_id=pt_3, object_id=pm_3.process.id)
+
+        pt_4 = PropertyType.objects.get(name='Thermocycler Used', object_id=pm_3.process.protocol.id)
+        p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_3.process.id)
+
+        self.assertEqual(p_1.value, self.library_3['technician_name'])
+        self.assertEqual(p_2.value, self.library_3['kit_used'])
+        self.assertEqual(p_3.value, self.library_3['kit_lot'])
+        self.assertEqual(p_4.value, ' ')
