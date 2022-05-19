@@ -82,24 +82,21 @@ def convert_library(process, platform, sample_source, concentration, library_siz
         errors.append(f"Execution date is not valid.")
 
     # Retrieve library object linked to the source sample
-    if sample_source.is_library:
-        library_source_obj = sample_source.derived_sample_not_pool.library
-    else:
+    library_source_obj = sample_source.derived_sample_not_pool.library
+    if not sample_source.is_library or library_source_obj is None:
         errors.append(f"Sample in container {sample_source.name} is not a library.")
-
-    if library_source_obj.platform == platform:
+    elif library_source_obj.platform == platform:
         errors.append(f"Source library platform and destination library platform can't be the same.")
 
-    # Create new destination library
-    library_destination, errors_library_destination, warnings_library_destinations = \
-        create_library(library_type=library_source_obj.library_type,
-                       # TODO: Verify this with Janick
-                       library_size=library_size,
-                       index=library_source_obj.index,
-                       platform=platform,
-                       strandedness=SINGLE_STRANDED)
-
     if not errors:
+        # Create new destination library
+        library_destination, errors_library_destination, warnings_library_destinations = \
+            create_library(library_type=library_source_obj.library_type,
+                           # TODO: Verify this with Janick
+                           library_size=library_size,
+                           index=library_source_obj.index,
+                           platform=platform,
+                           strandedness=SINGLE_STRANDED)
         try:
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()

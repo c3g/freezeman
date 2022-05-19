@@ -41,7 +41,7 @@ class LibraryRowHandler(GenericRowHandler):
                 self.warnings['library_container'] = f'Using existing container {container_obj.name}'
 
             library_info = dict(
-                library_date=library_batch_info['execution_date'],
+                execution_date=library_batch_info['execution_date'],
                 platform=library_batch_info['platform'],
             )
 

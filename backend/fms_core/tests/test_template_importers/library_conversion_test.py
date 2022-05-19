@@ -27,16 +27,16 @@ class LibraryConversionTestCase(TestCase):
         self.source_sample_container_barcode_1 = 'SOURCECONTAINER4LIBRARYCONVERSION1'
         self.source_sample_container_barcode_2 = 'SOURCECONTAINER4LIBRARYCONVERSION2'
 
-        self.platform_illumina = get_platform(name="ILLUMINA")
-        self.platform_mgi = get_platform(name="DNBSEQ")
-        self.library_type = get_library_type(name="PCR-free")
+        self.platform_illumina, errors, warnings = get_platform(name="ILLUMINA")
+        self.platform_mgi, errors, warnings = get_platform(name="DNBSEQ")
+        self.library_type, errors, warnings = get_library_type(name="PCR-free")
 
         self.library_batch_1 = dict(
             ID='batch_1',
             date='2022-05-16',
             platform=self.platform_mgi,
             batch_comment='Comment batch 1',
-            technician_name='Tony Tir',
+            technician_name='Janick St-Cyr',
             kit_used='MGI_Conversion_AppA',
             kit_lot='1',
             thermocycler_used='Biometra Rouge',
@@ -47,15 +47,15 @@ class LibraryConversionTestCase(TestCase):
             date='2022-05-17',
             platform=self.platform_mgi,
             batch_comment='Comment batch 2',
-            technician_name='Janick St-Cyr',
+            technician_name='Tony Tir',
             kit_used='MGI_Conversion_AppB',
             kit_lot='2',
         )
 
         self.library_1 = dict(
             **self.library_batch_1,
-            library_source_container_barcode='Container4LibrarySource1',
-            library_source_container_name='Container4LibrarySource1',
+            library_source_container_barcode=self.source_sample_container_barcode_1,
+            library_source_container_name='Container4LibraryConversion1',
             library_source_container_kind='Tube',
             library_destination_container_barcode='Container4LibraryDest1',
             library_destination_container_coord='A01',
@@ -69,8 +69,8 @@ class LibraryConversionTestCase(TestCase):
 
         self.library_2 = dict(
             **self.library_batch_1,
-            library_source_container_barcode='Container4LibrarySource1',
-            library_source_container_name='Container4LibrarySource1',
+            library_source_container_barcode=self.source_sample_container_barcode_1,
+            library_source_container_name='Container4LibraryConversion1',
             library_source_container_kind='Tube',
             library_destination_container_barcode='Container4LibraryDest2',
             library_destination_container_coord='A02',
@@ -84,8 +84,8 @@ class LibraryConversionTestCase(TestCase):
 
         self.library_3 = dict(
             **self.library_batch_2,
-            library_source_container_barcode='Container4LibrarySource2',
-            library_source_container_name='Container4LibrarySource2',
+            library_source_container_barcode=self.source_sample_container_barcode_2,
+            library_source_container_name='Container4LibraryConversion2',
             library_source_container_kind='Tube',
             library_destination_container_barcode='Container4LibraryDest3',
             library_destination_container_coord='A03',
@@ -104,7 +104,7 @@ class LibraryConversionTestCase(TestCase):
 
         (container_1, errors, warnings) = create_container(barcode=self.source_sample_container_barcode_1,
                                                            kind='Tube',
-                                                           name='Container4LibraryConversion')
+                                                           name='Container4LibraryConversion1')
 
         (container_2, errors, warnings) = create_container(barcode=self.source_sample_container_barcode_2,
                                                            kind='Tube',
@@ -112,7 +112,7 @@ class LibraryConversionTestCase(TestCase):
 
         (index_1, errors, warnings) = get_index(name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001")
 
-        (index_2, errors, warnings) = get_index(name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_002")
+        (index_2, errors, warnings) = get_index(name="IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002")
 
         (library_1, errors, warnings) = create_library(index=index_1,
                                                        library_type=self.library_type,
@@ -128,12 +128,12 @@ class LibraryConversionTestCase(TestCase):
         (source_sample_1, errors, warnings) = \
             create_full_sample(name=self.source_sample_name_1, volume=self.source_sample_initial_volume, concentration=20,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_1, sample_kind=sample_kind)
+                               container=container_1, sample_kind=sample_kind, library=library_1)
 
         (source_sample_2, errors, warnings) = \
             create_full_sample(name=self.source_sample_name_2, volume=self.source_sample_initial_volume, concentration=25,
                                collection_site='TestCaseSite', creation_date=datetime.datetime(2022, 1, 15, 0, 0),
-                               container=container_2, sample_kind=sample_kind)
+                               container=container_2, sample_kind=sample_kind, library=library_2)
 
         update_qc_flags(source_sample_1, "Passed", "Passed")
         update_qc_flags(source_sample_2, "Passed", "Passed")
@@ -141,7 +141,6 @@ class LibraryConversionTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Test source sample
@@ -192,7 +191,7 @@ class LibraryConversionTestCase(TestCase):
         pt_4 = PropertyType.objects.get(name='Thermocycler Used', object_id=pm_1.process.protocol.id)
         p_4 = PropertyValue.objects.get(property_type_id=pt_4, object_id=pm_1.process.id)
 
-        self.assertEqual(p_1.value, self.library_1['library_technician_name'])
-        self.assertEqual(p_2.value, self.library_1['library_kit_used'])
-        self.assertEqual(p_3.value, self.library_1['library_kit_lot'])
+        self.assertEqual(p_1.value, self.library_1['technician_name'])
+        self.assertEqual(p_2.value, self.library_1['kit_used'])
+        self.assertEqual(p_3.value, self.library_1['kit_lot'])
         self.assertEqual(p_4.value, self.library_1['thermocycler_used'])
