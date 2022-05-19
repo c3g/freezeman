@@ -8,7 +8,6 @@ import {
   withSample,
   withProcessMeasurement,
 } from "../../../utils/withItem";
-import GraphADT from "../../../utils/graph";
 
 import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
