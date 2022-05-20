@@ -116,31 +116,35 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-    <div style={{
-      border: "solid",
-      width: "fit-content",
-      padding: "1em",
-      borderBottom: "none",
-      borderWidth: "thin"
-    }}>
-      <Legend />
-    </div>
-    <div style={{...graphSize, border: "solid", borderWidth: "thin"}}>
-      {
-        graphData.nodes.length > 0
-          ? <Graph
-            id="graph-id"
-            data={graphData}
-            config={graphConfig}
-            onClickNode={(id, _) => history.push(`/samples/${id}`)}
-            onClickLink={(source, target) => {
-              const linkId = pairToProcess[`${source}:${target}`].id
-              history.push(`/process-measurements/${linkId}`)
-            }}
-          />
-          : <>Loading...</>
-      }
-    </div>
+      <div style={{
+        border: "solid",
+        width: "fit-content",
+        padding: "1em",
+        borderBottom: "none",
+        borderWidth: "thin"
+      }}>
+        <Legend />
+
+        <div>Click on nodes to visit the sample</div>
+        <div>Click on edges to visit the process</div>
+        <div>Use the mouse to move and zoom the graph</div>
+      </div>
+      <div style={{ ...graphSize, border: "solid", borderWidth: "thin" }}>
+        {
+          graphData.nodes.length > 0
+            ? <Graph
+              id="graph-id"
+              data={graphData}
+              config={graphConfig}
+              onClickNode={(id, _) => history.push(`/samples/${id}`)}
+              onClickLink={(source, target) => {
+                const linkId = pairToProcess[`${source}:${target}`].id
+                history.push(`/process-measurements/${linkId}`)
+              }}
+            />
+            : <>Loading...</>
+        }
+      </div>
     </>
   )
 }
@@ -149,7 +153,7 @@ function Legend() {
   function Symbol({ shape, color }) {
     const output = {
       "circle": <>&#9679;</>,
-      "start": <>&#9733;</>
+      "star": <>&#9733;</>
     }
     return <span style={{ fontSize: 20, color }}>
       {output[shape]}
@@ -163,7 +167,7 @@ function Legend() {
   }
 
   const entries = [
-    ["start", "black", "You are here"],
+    ["star", "black", "You are here"],
     ["circle", "black", "Awaiting QC"],
     ["circle", "red", "Failed QC"],
     ["circle", "green", "Passed QC"],
