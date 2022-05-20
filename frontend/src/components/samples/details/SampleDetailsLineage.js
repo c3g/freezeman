@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
+import { Typography, Divider, Card, Space } from 'antd';
+
+const { Text } = Typography;
+
 import { Graph } from "react-d3-graph"
 
 import dagre from "dagre"
@@ -26,7 +30,7 @@ const SampleDetailsLineage = ({
   const nodeSize = { width: 10, height: 10 }
   const dagreConfig = { rankdir: "TB", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
-  const graphSize = { width: 720, height: 1280 }
+  const graphSize = { width: 800, height: 600 }
   const graphConfig = {
     ...graphSize,
     staticGraphWithDragAndDrop: true,
@@ -116,20 +120,10 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-      <div style={{
-        border: "solid",
-        width: "fit-content",
-        padding: "1em",
-        borderBottom: "none",
-        borderWidth: "thin"
-      }}>
-        <Legend />
-
-        <div>Click on nodes to visit the sample</div>
-        <div>Click on edges to visit the process</div>
-        <div>Use the mouse to move and zoom the graph</div>
-      </div>
-      <div style={{ ...graphSize, border: "solid", borderWidth: "thin" }}>
+      <Card style={{ ...graphSize, position: "relative" }} size={"small"}>
+        <Card style={{ width: "fit-content", margin: "1em", position: "absolute", top: 0, right: 0 }} size={"small"}>
+          <Details />
+        </Card>
         {
           graphData.nodes.length > 0
             ? <Graph
@@ -144,9 +138,27 @@ const SampleDetailsLineage = ({
             />
             : <>Loading...</>
         }
-      </div>
+      </Card>
     </>
   )
+}
+
+function Details() {
+  return <>
+    <Legend />
+    <Divider />
+    <Space direction={"vertical"} size={"small"}>
+      <Text>
+        Click on nodes to visit the sample
+      </Text>
+      <Text>
+        Click on edges to visit the process
+      </Text>
+      <Text>
+        Use the mouse to move and zoom the graph
+      </Text>
+    </Space>
+  </>
 }
 
 function Legend() {
@@ -155,15 +167,16 @@ function Legend() {
       "circle": <>&#9679;</>,
       "star": <>&#9733;</>
     }
-    return <span style={{ fontSize: 20, color }}>
+    return <Text style={{ fontSize: 20, color }}>
       {output[shape]}
-    </span>
+    </Text>
   }
 
   const Entry = ({ symbol, text }) => {
-    return <div>
-      <Symbol {...symbol} /> {text}
-    </div>
+    return <Space direction={"horizontal"} size={"small"}>
+      <Symbol {...symbol} />
+      <Text>{text}</Text>
+    </Space>
   }
 
   const entries = [
@@ -174,7 +187,9 @@ function Legend() {
   ].map(([shape, color, text]) => ({ symbol: { shape, color }, text }))
 
   return <>
-    {entries.map((entry) => <Entry {...entry} />)}
+    <Space direction={"vertical"}>
+      {entries.map((entry) => <Entry {...entry} />)}
+    </Space>
   </>
 }
 
