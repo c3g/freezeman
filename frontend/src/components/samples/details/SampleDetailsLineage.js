@@ -116,6 +116,11 @@ const SampleDetailsLineage = ({
 
   return (
     <>
+    <div style={{
+      border: "solid", width: "fit-content", padding: "1em", borderBottom: "none"
+    }}>
+      <Legend />
+    </div>
     <div style={{...graphSize, border: "solid"}}>
       {
         graphData.nodes.length > 0
@@ -134,6 +139,35 @@ const SampleDetailsLineage = ({
     </div>
     </>
   )
+}
+
+function Legend() {
+  function Symbol({ shape, color }) {
+    const output = {
+      "circle": <>&#9679;</>,
+      "start": <>&#9733;</>
+    }
+    return <span style={{ fontSize: 20, color }}>
+      {output[shape]}
+    </span>
+  }
+
+  const Entry = ({ symbol, text }) => {
+    return <div>
+      <Symbol {...symbol} /> {text}
+    </div>
+  }
+
+  const entries = [
+    ["start", "black", "You are here"],
+    ["circle", "black", "Awaiting QC"],
+    ["circle", "red", "Failed QC"],
+    ["circle", "green", "Passed QC"],
+  ].map(([shape, color, text]) => ({ symbol: { shape, color }, text }))
+
+  return <>
+    {entries.map((entry) => <Entry {...entry} />)}
+  </>
 }
 
 export default connect(mapStateToProps, undefined)(SampleDetailsLineage);
