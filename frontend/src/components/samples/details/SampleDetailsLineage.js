@@ -117,11 +117,15 @@ const SampleDetailsLineage = ({
   return (
     <>
     <div style={{
-      border: "solid", width: "fit-content", padding: "1em", borderBottom: "none"
+      border: "solid",
+      width: "fit-content",
+      padding: "1em",
+      borderBottom: "none",
+      borderWidth: "thin"
     }}>
       <Legend />
     </div>
-    <div style={{...graphSize, border: "solid"}}>
+    <div style={{...graphSize, border: "solid", borderWidth: "thin"}}>
       {
         graphData.nodes.length > 0
           ? <Graph
