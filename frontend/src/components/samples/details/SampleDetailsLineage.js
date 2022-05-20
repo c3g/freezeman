@@ -24,12 +24,11 @@ const SampleDetailsLineage = ({
   const [pairToProcess, setPairToProcess] = useState({})
 
   const nodeSize = { width: 10, height: 10 }
-
   const dagreConfig = { rankdir: "TB", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
+  const graphSize = { width: 720, height: 1280 }
   const graphConfig = {
-    width: 720,
-    height: 1280,
+    ...graphSize,
     staticGraphWithDragAndDrop: true,
     maxZoom: 12,
     minZoom: 0.05,
@@ -117,6 +116,7 @@ const SampleDetailsLineage = ({
 
   return (
     <>
+    <div style={{...graphSize, border: "solid"}}>
       {
         graphData.nodes.length > 0
           ? <Graph
@@ -131,6 +131,7 @@ const SampleDetailsLineage = ({
           />
           : <>Loading...</>
       }
+    </div>
     </>
   )
 }
