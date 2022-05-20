@@ -58,14 +58,13 @@ const SampleDetailsLineage = ({
 
   useEffect(() => {
     if (sample?.id !== undefined) {
-      withToken(token, api.sample_lineage.get)(sample.id).then((graph) => {
-        graph = graph.data
+      withToken(token, api.sample_lineage.get)(sample.id).then(({data}) => {
 
         const g = new dagre.graphlib.Graph({ directed: true })
                            .setGraph(dagreConfig)
                            .setDefaultEdgeLabel(function () { return {}; });
 
-        graph.nodes.forEach((curr_sample) => {
+        data.nodes.forEach((curr_sample) => {
           let color = "black"
           if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
             color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
@@ -80,12 +79,12 @@ const SampleDetailsLineage = ({
           })
         })
 
-        graph.edges.filter((process) => process.child_sample !== null)
+        data.edges.filter((process) => process.child_sample !== null)
                    .forEach((process) => {
                       g.setEdge(process.source_sample, process.child_sample)
                     })
 
-        const localPairToProcess = graph.edges.filter((process) => process.child_sample !== null)
+        const localPairToProcess = data.edges.filter((process) => process.child_sample !== null)
                                               .reduce((prev, p) => {
                                                 return {
                                                   ...prev,
@@ -105,7 +104,7 @@ const SampleDetailsLineage = ({
                       id: v
                     }
                   }),
-          links: graph.edges.filter((p) => p.child_sample !== null).map((p) => {
+          links: data.edges.filter((p) => p.child_sample !== null).map((p) => {
                     return {
                       id: p.id.toString(),
                       source: p.source_sample.toString(),
