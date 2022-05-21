@@ -23,6 +23,10 @@
 ## Installation
 
 ```bash
+# Route git: protocol to allow recursive clone
+git config --global url."https://github.com/".insteadOf 'git://github.com/'
+# git config --global url."git@github.com:".insteadOf 'git://github.com/'
+
 # Clone the repository
 git clone https://github.com/c3g/freezeman
 cd freezeman
