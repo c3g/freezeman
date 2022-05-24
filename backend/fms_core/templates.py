@@ -144,9 +144,8 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
   ],
   "prefill info": [
-      # prefill_sheet_name, template_column, queryset_column
-      ("LibraryQC", "Library Container Barcode", "??"),
-      ("LibraryQC", "Library Container Coord", "??"),],
+      ("Library", "Sample Container Barcode", "container__barcode"),
+      ("Library", "Sample Container Coordinates", "coordinates"),],
 }
 
 LIBRARY_QC_TEMPLATE = {
