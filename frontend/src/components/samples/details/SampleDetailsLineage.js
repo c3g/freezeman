@@ -96,23 +96,31 @@ const SampleDetailsLineage = ({
 
         dagre.layout(g)
 
-        setGraphData({
-          nodes: g.nodes()
-                  .map((v) => {
-                    return {
-                      ...g.node(v),
-                      id: v
-                    }
-                  }),
-          links: data.edges.filter((p) => p.child_sample !== null).map((p) => {
-                    return {
-                      id: p.id.toString(),
-                      source: p.source_sample.toString(),
-                      target: p.child_sample.toString(),
-                      label: p.protocol_name,
-                    }
-                  })
-        })
+	const { x: cx, y: cy }  = g.node(sample.id.toString())
+	const dx = -cx + nodeSize.width * 5
+	const dy = -cy + nodeSize.height * 5
+
+	const nodes =  g.nodes()
+                        .map((v) => {
+			  const n = g.node(v)
+                          return {
+                            ...n,
+                            id: v,
+			    x: n.x + dx,
+			    y: n.y + dy,
+                          }
+                        })
+
+	const links = data.edges.filter((p) => p.child_sample !== null).map((p) => {
+            return {
+              id: p.id.toString(),
+              source: p.source_sample.toString(),
+              target: p.child_sample.toString(),
+              label: p.protocol_name,
+            }
+          })
+
+        setGraphData({nodes, links})
       })
     }
   }, [sample])
