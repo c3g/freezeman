@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import { Typography, Divider, Card, Space } from 'antd';
+import { Typography, Divider, Card, Space, Row, Col } from 'antd';
 
 const { Text } = Typography;
 
@@ -28,7 +28,7 @@ const SampleDetailsLineage = ({
   const [pairToProcess, setPairToProcess] = useState({})
 
   const nodeSize = { width: 10, height: 10 }
-  const dagreConfig = { rankdir: "TB", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
+  const dagreConfig = { rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
   const graphSize = { width: 800, height: 600 }
   const graphConfig = {
@@ -97,8 +97,8 @@ const SampleDetailsLineage = ({
         dagre.layout(g)
 
 	const { x: cx, y: cy }  = g.node(sample.id.toString())
-	const dx = -cx + nodeSize.width * 5
-	const dy = -cy + nodeSize.height * 5
+	const dx = graphSize.width/2 - cx
+	const dy = graphSize.height*3/4 - cy
 
 	const nodes =  g.nodes()
                         .map((v) => {
@@ -128,7 +128,7 @@ const SampleDetailsLineage = ({
   return (
     <>
       <Card style={{ ...graphSize, position: "relative" }} size={"small"}>
-        <Card style={{ width: "fit-content", margin: "1em", position: "absolute", top: 0, right: 0 }} size={"small"}>
+        <Card style={{ width: "100%", padding: "1em", position: "absolute", top: 0, right: 0 }} size={"default"}>
           <Details />
         </Card>
         {
@@ -151,21 +151,24 @@ const SampleDetailsLineage = ({
 }
 
 function Details() {
-  return <>
-    <Legend />
-    <Divider />
-    <Space direction={"vertical"} size={"small"}>
-      <Text>
-        Click on nodes to visit the sample
-      </Text>
-      <Text>
-        Click on edges to visit the process
-      </Text>
-      <Text>
-        Use the mouse to move and zoom the graph
-      </Text>
-    </Space>
-  </>
+  return <Row>
+    <Col span={12}>
+      <Legend />
+    </Col>
+    <Col span={12}>
+      <Space direction={"vertical"} size={"small"}>
+        <Text>
+          Click on nodes to visit the sample
+        </Text>
+        <Text>
+          Click on edges to visit the process
+        </Text>
+        <Text>
+          Use the mouse to move and zoom the graph
+        </Text>
+      </Space>
+    </Col>
+  </Row>
 }
 
 function Legend() {
