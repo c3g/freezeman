@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import { Typography, Divider, Card, Space, Row, Col } from 'antd';
+import { Typography, Card, Space, Popover, Button } from 'antd';
 
 const { Text } = Typography;
 
@@ -127,10 +127,13 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-      <Card style={{ ...graphSize, position: "relative" }} size={"small"}>
-        <Card style={{ width: "100%", padding: "1em", position: "absolute", top: 0, right: 0 }} size={"default"}>
-          <Details />
-        </Card>
+      <Card style={{ ...graphSize }} size={"small"}>
+        <Popover
+	  content={<Details />}
+	  placement={"topRight"}
+	>
+	  <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
+        </Popover>
         {
           graphData.nodes.length > 0
             ? <Graph
@@ -151,24 +154,24 @@ const SampleDetailsLineage = ({
 }
 
 function Details() {
-  return <Row>
-    <Col span={12}>
+  return <div>
+    <Card>
       <Legend />
-    </Col>
-    <Col span={12}>
+    </Card>
+    <Card>
       <Space direction={"vertical"} size={"small"}>
         <Text>
-          Click on nodes to visit the sample
+          Click on node to visit the sample
         </Text>
         <Text>
-          Click on edges to visit the process
+          Click on edge to visit the process
         </Text>
         <Text>
           Use the mouse to move and zoom the graph
         </Text>
       </Space>
-    </Col>
-  </Row>
+    </Card>
+  </div>
 }
 
 function Legend() {
