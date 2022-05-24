@@ -30,7 +30,7 @@ const SampleDetailsLineage = ({
   const nodeSize = { width: 10, height: 10 }
   const dagreConfig = { rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
-  const graphSize = { width: 800, height: 600 }
+  const graphSize = { width: 800, height: 800 }
   const graphConfig = {
     ...graphSize,
     staticGraphWithDragAndDrop: true,
@@ -97,8 +97,8 @@ const SampleDetailsLineage = ({
         dagre.layout(g)
 
 	const { x: cx, y: cy }  = g.node(sample.id.toString())
-	const dx = graphSize.width/2  - cx
-	const dy = graphSize.height/2 - cy
+	const dx = graphSize.width/2.2  - cx
+	const dy = graphSize.height/2.4 - cy
 
 	const nodes =  g.nodes()
                         .map((v) => {
