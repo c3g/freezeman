@@ -97,8 +97,8 @@ const SampleDetailsLineage = ({
         dagre.layout(g)
 
 	const { x: cx, y: cy }  = g.node(sample.id.toString())
-	const dx = graphSize.width/2 - cx
-	const dy = graphSize.height*3/4 - cy
+	const dx = graphSize.width/2  - cx
+	const dy = graphSize.height/2 - cy
 
 	const nodes =  g.nodes()
                         .map((v) => {
