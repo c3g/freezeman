@@ -80,17 +80,17 @@ const SampleDetailsLineage = ({
         })
 
         data.edges.filter((process) => process.child_sample !== null)
-                   .forEach((process) => {
-                      g.setEdge(process.source_sample, process.child_sample)
-                    })
+                  .forEach((process) => {
+                     g.setEdge(process.source_sample, process.child_sample)
+                   })
 
         const localPairToProcess = data.edges.filter((process) => process.child_sample !== null)
-                                              .reduce((prev, p) => {
-                                                return {
-                                                  ...prev,
-                                                  [`${p.source_sample}:${p.child_sample}`]: p
-                                                }
-                                              }, {})
+                                             .reduce((prev, p) => {
+                                               return {
+                                                 ...prev,
+                                                 [`${p.source_sample}:${p.child_sample}`]: p
+                                               }
+                                             }, {})
         
         setPairToProcess(localPairToProcess)
 
