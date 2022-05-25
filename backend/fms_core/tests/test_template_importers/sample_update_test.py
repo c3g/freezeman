@@ -21,9 +21,10 @@ class SampleUpdateTestCase(TestCase):
         self.sample_name = 'SampleTestForUpdate'
         self.sample_new_volume = 90
         self.sample_new_concentration = 20
-        self.sample_new_depleted = False
-        self.delta_volume = 10.0
-        self.update_date = datetime.datetime(2021, 10, 21, 0, 0)
+        self.sample_new_depleted = True
+        self.delta_volume = -20.0
+        self.update_date_1 = datetime.datetime(2022, 5, 4, 0, 0)
+        self.update_date_2 = datetime.datetime(2022, 4, 3, 0, 0)
 
         self.prefill_data()
 
@@ -37,7 +38,7 @@ class SampleUpdateTestCase(TestCase):
         (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=100, concentration=25, collection_site='TestCaseSite',
-                           creation_date=datetime.datetime(2021, 1, 15, 0, 0),
+                           creation_date=datetime.datetime(2021, 10, 21, 0, 0),
                            container=container, individual=individual, sample_kind=sample_kind)
 
 
@@ -48,19 +49,24 @@ class SampleUpdateTestCase(TestCase):
 
         # #Custom tests for each template
         sample = Sample.objects.get(name=self.sample_name)
-        self.assertEqual(sample.volume, self.sample_new_volume)
+        self.assertEqual(sample.volume, self.sample_new_volume + self.delta_volume)
         self.assertEqual(sample.concentration, self.sample_new_concentration)
         self.assertEqual(sample.depleted, self.sample_new_depleted)
 
         self.assertTrue(ProcessMeasurement.objects.get(source_sample=sample,
-                                            execution_date=self.update_date
-                                            ))
-        pm = ProcessMeasurement.objects.get(source_sample=sample,
-                                            execution_date=self.update_date
-                                            )
-        self.assertEqual(pm.volume_used, self.delta_volume)
+                                                       execution_date=self.update_date_1))
+        pm1 = ProcessMeasurement.objects.get(source_sample=sample,
+                                             execution_date=self.update_date_1)
+        self.assertEqual(pm1.volume_used, 100 - self.sample_new_volume)
+        self.assertEqual(pm1.process.protocol.name, 'Update')
 
-        self.assertEqual(pm.process.protocol.name, 'Update')
+        self.assertTrue(ProcessMeasurement.objects.get(source_sample=sample,
+                                                       execution_date=self.update_date_2))
+        pm2 = ProcessMeasurement.objects.get(source_sample=sample,
+                                             execution_date=self.update_date_2)
+        self.assertEqual(pm2.volume_used, -self.delta_volume)
+        self.assertEqual(pm2.process.protocol.name, 'Update')
+
 
 
 
