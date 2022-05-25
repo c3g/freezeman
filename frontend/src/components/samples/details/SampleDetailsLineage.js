@@ -161,13 +161,13 @@ function Details() {
     <Card>
       <Space direction={"vertical"} size={"small"}>
         <Text>
-          Click on node to visit the sample
+          Click on node to visit the sample.
         </Text>
         <Text>
-          Click on edge to visit the process
+          Click on edge to visit the process.
         </Text>
         <Text>
-          Use the mouse to move and zoom the graph
+          Use the mouse to move and zoom the graph.
         </Text>
       </Space>
     </Card>
