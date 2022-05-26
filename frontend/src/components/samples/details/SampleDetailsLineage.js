@@ -96,22 +96,23 @@ const SampleDetailsLineage = ({
 
         dagre.layout(g)
 
-	const { x: cx, y: cy }  = g.node(sample.id.toString())
-	const dx = graphSize.width/2.2  - cx
-	const dy = graphSize.height/2.4 - cy
+        const { x: cx, y: cy }  = g.node(sample.id.toString())
 
-	const nodes =  g.nodes()
+        const dx = graphSize.width/2.2  - cx
+        const dy = graphSize.height/2.4 - cy
+
+        const nodes =  g.nodes()
                         .map((v) => {
-			  const n = g.node(v)
+                          const n = g.node(v)
                           return {
                             ...n,
                             id: v,
-			    x: n.x + dx,
-			    y: n.y + dy,
+                            x: n.x + dx,
+                            y: n.y + dy,
                           }
                         })
 
-	const links = data.edges.filter((p) => p.child_sample !== null).map((p) => {
+        const links = data.edges.filter((p) => p.child_sample !== null).map((p) => {
             return {
               id: p.id.toString(),
               source: p.source_sample.toString(),
@@ -129,10 +130,10 @@ const SampleDetailsLineage = ({
     <>
       <Card style={{ ...graphSize }} size={"small"}>
         <Popover
-	  content={<Details />}
-	  placement={"topRight"}
-	>
-	  <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
+          content={<Details />}
+          placement={"topRight"}
+        >
+          <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
         </Popover>
         {
           graphData.nodes.length > 0
