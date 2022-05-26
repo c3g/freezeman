@@ -10,6 +10,7 @@ import { Graph } from "react-d3-graph"
 
 import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
+import { useResizeObserver } from "../../../utils/ref"
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -24,13 +25,17 @@ const SampleDetailsLineage = ({
 }) => {
   const history = useHistory()
 
+  const { resizeRef, maxSize } = useResizeObserver(720, 720)
+
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
   const [pairToProcess, setPairToProcess] = useState({})
+
+  // size.height sometimes goes to 1
+  const graphSize = { width: maxSize.width, height: Math.max(maxSize.width, maxSize.height) }
 
   const nodeSize = { width: 10, height: 10 }
   const dagreConfig = { rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
-  const graphSize = { width: 800, height: 800 }
   const graphConfig = {
     ...graphSize,
     staticGraphWithDragAndDrop: true,
@@ -99,7 +104,7 @@ const SampleDetailsLineage = ({
         const { x: cx, y: cy }  = g.node(sample.id.toString())
 
         const dx = nodeSize.width*5  - cx
-        const dy = graphSize.height/2.4 - cy
+        const dy = graphSize.height/2 - cy
 
         const nodes =  g.nodes()
                         .map((v) => {
@@ -128,28 +133,30 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-      <Card style={{ ...graphSize }} size={"small"}>
-        <Popover
-          content={<Details />}
-          placement={"topRight"}
-        >
-          <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
-        </Popover>
-        {
-          graphData.nodes.length > 0
-            ? <Graph
-              id="graph-id"
-              data={graphData}
-              config={graphConfig}
-              onClickNode={(id, _) => history.push(`/samples/${id}`)}
-              onClickLink={(source, target) => {
-                const linkId = pairToProcess[`${source}:${target}`].id
-                history.push(`/process-measurements/${linkId}`)
-              }}
-            />
-            : <>Loading...</>
-        }
-      </Card>
+      <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
+        <Card style={{ ...graphSize }} size={"small"}>
+          <Popover
+            content={<Details />}
+            placement={"topRight"}
+          >
+            <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
+          </Popover>
+          {
+            graphData.nodes.length > 0
+              ? <Graph
+                id="graph-id"
+                data={graphData}
+                config={graphConfig}
+                onClickNode={(id, _) => history.push(`/samples/${id}`)}
+                onClickLink={(source, target) => {
+                  const linkId = pairToProcess[`${source}:${target}`].id
+                  history.push(`/process-measurements/${linkId}`)
+                }}
+              />
+              : <>Loading...</>
+          }
+        </Card>
+      </div>
     </>
   )
 }
