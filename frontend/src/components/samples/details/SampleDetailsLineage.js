@@ -98,7 +98,7 @@ const SampleDetailsLineage = ({
 
         const { x: cx, y: cy }  = g.node(sample.id.toString())
 
-        const dx = graphSize.width/2.2  - cx
+        const dx = nodeSize.width*5  - cx
         const dy = graphSize.height/2.4 - cy
 
         const nodes =  g.nodes()
