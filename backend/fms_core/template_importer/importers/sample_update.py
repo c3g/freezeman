@@ -3,7 +3,7 @@ from fms_core.models import Process, Protocol
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_update import SampleRowHandler
 from fms_core.templates import SAMPLE_UPDATE_TEMPLATE
-from .._utils import float_to_decimal_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 class SampleUpdateImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_UPDATE_TEMPLATE["sheets info"]
@@ -34,7 +34,7 @@ class SampleUpdateImporter(GenericImporter):
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
-                'execution_date': row_data['Update Date'],
+                'execution_date': input_to_date_and_none(row_data['Update Date']),
                 'comment': row_data['Update Comment'],
             }
 
