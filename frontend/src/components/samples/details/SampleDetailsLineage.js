@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
-import { Typography, Card, Space, Popover, Button } from 'antd';
+import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
 const { Text } = Typography;
 
@@ -23,6 +23,7 @@ const SampleDetailsLineage = ({
   token,
   sample,
 }) => {
+  const history = useHistory()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
@@ -58,6 +59,14 @@ const SampleDetailsLineage = ({
     },
   }
 
+  const dagreConfig = {
+    rankdir: "LR",
+    ranksep: 150,
+    nodesep: 150,
+    marginx: 50,
+    marginy: 50
+  }
+
   useEffect(() => {
     if (sample?.id !== undefined) {
       withToken(token, api.sample_lineage.get)(sample.id).then(({data}) => {
@@ -67,14 +76,6 @@ const SampleDetailsLineage = ({
         }), {})
 
         // use dagre to position nodes
-
-        const dagreConfig = {
-          rankdir: "LR",
-          ranksep: 150,
-          nodesep: 150,
-          marginx: 50,
-          marginy: 50
-        }
         const g = new dagre.graphlib.Graph({ directed: true })
                            .setGraph(dagreConfig)
                            .setDefaultEdgeLabel(function () { return {}; });
@@ -88,14 +89,13 @@ const SampleDetailsLineage = ({
                   .forEach((process) => {
                      g.setEdge(process.source_sample, process.child_sample)
                   })
-
         dagre.layout(g)
+
+        // create final nodes and links
 
         const { x: cx, y: cy }  = g.node(sample.id.toString())
         const dx = nodeSize.width*5  - cx
         const dy = graphSize.height/2 - cy
-
-        // create final nodes and links
 
         const nodes = g.nodes()
                        .map((v) => {
@@ -115,7 +115,6 @@ const SampleDetailsLineage = ({
                            symbolType: curr_sample.id === sample.id ? "star" : "circle",
                          }
                        })
-
         const links = data.edges.filter((p) => p.child_sample !== null).map((p) => {
             return {
               id: p.id.toString(),
@@ -124,8 +123,8 @@ const SampleDetailsLineage = ({
               label: p.protocol_name,
             }
           })
-
         setGraphData({nodes, links})
+
         setNodesToEdges(
           data.edges.filter((process) => process.child_sample !== null)
                     .reduce((prev, p) => {
@@ -139,9 +138,12 @@ const SampleDetailsLineage = ({
     }
   }, [sample?.id])
 
+  // Take advantage of the fact that
+  // useEffect runs after rendering page.
+  // The graph will be remounted after
+  // being unmounted.
   useEffect(() => {
     if (reset) {
-      // make the graph visible again
       setReset(false)
     }
   }, [reset])
@@ -172,41 +174,28 @@ const SampleDetailsLineage = ({
           </Space>
           <Card style={{ ...graphSize }} size={"small"}>
             {
+              // graphData must contain at least one node
+              // after fetching all nodes and edges
               graphData.nodes.length > 0
-                ? <GraphComponent
-                  data={graphData}
-                  config={graphConfig}
-                  nodesToEdge={nodesToEdges}
-                  reset={reset}
-                />
-                : <Text>Loading...</Text>
+                ? reset
+                  ? <Spin />
+                  : <Graph
+                    id="graph-id"
+                    data={graphData}
+                    config={graphConfig}
+                    onClickNode={(id, _) => history.push(`/samples/${id}`)}
+                    onClickLink={(source, target) => {
+                      const linkId = nodesToEdges[`${source}:${target}`].id
+                      history.push(`/process-measurements/${linkId}`)
+                    }}
+                  />
+                : <Spin /> 
             }
           </Card>
         </Space>
       </div>
     </>
   )
-}
-
-function GraphComponent({ data, config, nodesToEdge, reset }) {
-  const history = useHistory()
-
-  console.log(data)
-
-  // reset will force the graph to rerender
-
-  return reset
-    ? <Text>Loading...</Text>
-    : <Graph
-        id="graph-id"
-        data={data}
-        config={config}
-        onClickNode={(id, _) => history.push(`/samples/${id}`)}
-        onClickLink={(source, target) => {
-          const linkId = nodesToEdge[`${source}:${target}`].id
-          history.push(`/process-measurements/${linkId}`)
-        }}
-      />
 }
 
 function Details() {
