@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useHistory } from "react-router-dom";
 
@@ -27,6 +27,7 @@ const SampleDetailsLineage = ({
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
   const [nodesToEdges, setNodesToEdges] = useState({})
+  const [reset, setReset] = useState(false)
 
   const nodeSize = { width: 10, height: 10 }
 
@@ -138,21 +139,37 @@ const SampleDetailsLineage = ({
     }
   }, [sample?.id])
 
+  useEffect(() => {
+    if (reset) {
+      // make the graph visible again
+      setReset(false)
+    }
+  }, [reset])
+
   return (
     <>
       <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
         <Space direction={"vertical"}>
-          <Popover
-            content={<Details />}
-            placement={"topLeft"}
-          >
+          <Space>
             <Button
               type="primary"
               style={{ width: "fit-content" }}
+              onClick={() => setReset(true)}
             >
-              ?
+              Reset
             </Button>
-          </Popover>
+            <Popover
+              content={<Details />}
+              placement={"topLeft"}
+            >
+              <Button
+                type="primary"
+                style={{ width: "fit-content" }}
+              >
+                ?
+              </Button>
+            </Popover>
+          </Space>
           <Card style={{ ...graphSize }} size={"small"}>
             {
               graphData.nodes.length > 0
@@ -160,8 +177,9 @@ const SampleDetailsLineage = ({
                   data={graphData}
                   config={graphConfig}
                   nodesToEdge={nodesToEdges}
+                  reset={reset}
                 />
-                : <>Loading...</>
+                : <Text>Loading...</Text>
             }
           </Card>
         </Space>
@@ -170,19 +188,25 @@ const SampleDetailsLineage = ({
   )
 }
 
-function GraphComponent({ data, config, nodesToEdge }) {
+function GraphComponent({ data, config, nodesToEdge, reset }) {
   const history = useHistory()
 
-  return <Graph
-    id="graph-id"
-    data={data}
-    config={config}
-    onClickNode={(id, _) => history.push(`/samples/${id}`)}
-    onClickLink={(source, target) => {
-      const linkId = nodesToEdge[`${source}:${target}`].id
-      history.push(`/process-measurements/${linkId}`)
-    }}
-  />
+  console.log(data)
+
+  // reset will force the graph to rerender
+
+  return reset
+    ? <Text>Loading...</Text>
+    : <Graph
+        id="graph-id"
+        data={data}
+        config={config}
+        onClickNode={(id, _) => history.push(`/samples/${id}`)}
+        onClickLink={(source, target) => {
+          const linkId = nodesToEdge[`${source}:${target}`].id
+          history.push(`/process-measurements/${linkId}`)
+        }}
+      />
 }
 
 function Details() {
