@@ -23,19 +23,15 @@ const SampleDetailsLineage = ({
   token,
   sample,
 }) => {
-  const history = useHistory()
-
-  const { resizeRef, maxSize } = useResizeObserver(720, 720)
+  const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
-  const [pairToProcess, setPairToProcess] = useState({})
-
-  // size.height sometimes goes to 1
-  const graphSize = { width: maxSize.width, height: Math.max(maxSize.width, maxSize.height) }
+  const [nodesToEdges, setNodesToEdges] = useState({})
 
   const nodeSize = { width: 10, height: 10 }
-  const dagreConfig = { rankdir: "LR", ranksep: 150, nodesep: 150, marginx: 50, marginy: 50 }
 
+  // maxSize.height is sometimes outrageously large
+  const graphSize = { width: maxSize.width, height: maxSize.width }
   const graphConfig = {
     ...graphSize,
     staticGraphWithDragAndDrop: true,
@@ -64,58 +60,60 @@ const SampleDetailsLineage = ({
   useEffect(() => {
     if (sample?.id !== undefined) {
       withToken(token, api.sample_lineage.get)(sample.id).then(({data}) => {
+        const samples = data.nodes.reduce((prev, curr) => ({
+          ...prev,
+          [curr.id.toString()]: curr
+        }), {})
 
+        // use dagre to position nodes
+
+        const dagreConfig = {
+          rankdir: "LR",
+          ranksep: 150,
+          nodesep: 150,
+          marginx: 50,
+          marginy: 50
+        }
         const g = new dagre.graphlib.Graph({ directed: true })
                            .setGraph(dagreConfig)
                            .setDefaultEdgeLabel(function () { return {}; });
-
-        data.nodes.forEach((curr_sample) => {
-          let color = "black"
-          if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
-            color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
-          }
-
-          g.setNode(curr_sample.id.toString(), {
-            id: curr_sample.id.toString(),
-            label: curr_sample.name,
+        data.nodes.forEach((sample) => {
+          g.setNode(sample.id.toString(), {
+            id: sample.id.toString(),
             ...nodeSize,
-            color,
-            symbolType: curr_sample.id === sample.id ? "star" : "circle",
           })
         })
-
         data.edges.filter((process) => process.child_sample !== null)
                   .forEach((process) => {
                      g.setEdge(process.source_sample, process.child_sample)
-                   })
-
-        const localPairToProcess = data.edges.filter((process) => process.child_sample !== null)
-                                             .reduce((prev, p) => {
-                                               return {
-                                                 ...prev,
-                                                 [`${p.source_sample}:${p.child_sample}`]: p
-                                               }
-                                             }, {})
-        
-        setPairToProcess(localPairToProcess)
+                  })
 
         dagre.layout(g)
 
         const { x: cx, y: cy }  = g.node(sample.id.toString())
-
         const dx = nodeSize.width*5  - cx
         const dy = graphSize.height/2 - cy
 
-        const nodes =  g.nodes()
-                        .map((v) => {
-                          const n = g.node(v)
-                          return {
-                            ...n,
-                            id: v,
-                            x: n.x + dx,
-                            y: n.y + dy,
-                          }
-                        })
+        // create final nodes and links
+
+        const nodes = g.nodes()
+                       .map((v) => {
+                         const n = g.node(v)
+                         const curr_sample = samples[n.id]
+                         let color = "black"
+                         if (curr_sample.quality_flag !== null && curr_sample.quantity_flag !== null) {
+                           color = curr_sample.quality_flag && curr_sample.quantity_flag ? "green" : "red"
+                         }
+                         return {
+                           ...n,
+                           id: v,
+                           x: n.x + dx,
+                           y: n.y + dy,
+                           color,
+                           label: curr_sample.name,
+                           symbolType: curr_sample.id === sample.id ? "star" : "circle",
+                         }
+                       })
 
         const links = data.edges.filter((p) => p.child_sample !== null).map((p) => {
             return {
@@ -127,38 +125,64 @@ const SampleDetailsLineage = ({
           })
 
         setGraphData({nodes, links})
+        setNodesToEdges(
+          data.edges.filter((process) => process.child_sample !== null)
+                    .reduce((prev, p) => {
+                      return {
+                        ...prev,
+                        [`${p.source_sample}:${p.child_sample}`]: p
+                      }
+                    }, {})
+        )
       })
     }
-  }, [sample])
+  }, [sample?.id])
 
   return (
     <>
       <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
-        <Card style={{ ...graphSize }} size={"small"}>
+        <Space direction={"vertical"}>
           <Popover
             content={<Details />}
-            placement={"topRight"}
+            placement={"topLeft"}
           >
-            <Button type="primary" style={{ width: "fit-content", float: "right" }}>?</Button>
+            <Button
+              type="primary"
+              style={{ width: "fit-content" }}
+            >
+              ?
+            </Button>
           </Popover>
-          {
-            graphData.nodes.length > 0
-              ? <Graph
-                id="graph-id"
-                data={graphData}
-                config={graphConfig}
-                onClickNode={(id, _) => history.push(`/samples/${id}`)}
-                onClickLink={(source, target) => {
-                  const linkId = pairToProcess[`${source}:${target}`].id
-                  history.push(`/process-measurements/${linkId}`)
-                }}
-              />
-              : <>Loading...</>
-          }
-        </Card>
+          <Card style={{ ...graphSize }} size={"small"}>
+            {
+              graphData.nodes.length > 0
+                ? <GraphComponent
+                  data={graphData}
+                  config={graphConfig}
+                  nodesToEdge={nodesToEdges}
+                />
+                : <>Loading...</>
+            }
+          </Card>
+        </Space>
       </div>
     </>
   )
+}
+
+function GraphComponent({ data, config, nodesToEdge }) {
+  const history = useHistory()
+
+  return <Graph
+    id="graph-id"
+    data={data}
+    config={config}
+    onClickNode={(id, _) => history.push(`/samples/${id}`)}
+    onClickLink={(source, target) => {
+      const linkId = nodesToEdge[`${source}:${target}`].id
+      history.push(`/process-measurements/${linkId}`)
+    }}
+  />
 }
 
 function Details() {
@@ -209,7 +233,7 @@ function Legend() {
 
   return <>
     <Space direction={"vertical"}>
-      {entries.map((entry) => <Entry {...entry} />)}
+      {entries.map((entry, index) => <Entry key={index} {...entry} />)}
     </Space>
   </>
 }
