@@ -291,7 +291,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
         <Space>
           <Button
             type="primary"
-            onClick={confirm}
+            onClick={() => confirm()}
             icon={<SearchOutlined />}
             size="small"
             style={{ width: 90 }}
@@ -359,7 +359,7 @@ function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
         <Space>
           <Button
             type="primary"
-            onClick={confirm}
+            onClick={() => confirm()}
             icon={<SearchOutlined />}
             size="small"
             style={{ width: 90 }}
