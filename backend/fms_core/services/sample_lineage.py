@@ -36,18 +36,20 @@ def create_sample_lineage_graph(sampleId):
         errors.append(f"Sample with id ${sampleId} does not exist")
 
     if not errors:
-        derivedBySample = DerivedBySample.objects.filter(sample__id=sampleId) \
-                                                 .values_list("derived_sample__biosample_id", flat=True)
+        biosampleIds = DerivedBySample.objects.filter(sample__id=sampleId) \
+                                              .values_list("derived_sample__biosample_id", flat=True)
 
-        sampleIds = DerivedBySample.objects.filter(derived_sample__biosample__id__in=derivedBySample) \
-                                           .values_list("sample__id", flat=True)
-        samples = Sample.objects.filter(id__in=sampleIds)
+        derivedBySamples = DerivedBySample.objects.filter(derived_sample__biosample__id__in=biosampleIds) \
+                                                  .annotate(name=F("sample__name")) \
+                                                  .annotate(quality_flag=F("sample__quality_flag")) \
+                                                  .annotate(quantity_flag=F("sample__quantity_flag")) \
 
+        sampleIds = derivedBySamples.values_list("sample__id", flat=True)
         process_measurements = ProcessMeasurement.objects.filter(source_sample__in=sampleIds) \
                                                          .select_related("process__lineage").annotate(child_sample=F("lineage__child")) \
                                                          .select_related("process_protocol").annotate(protocol_name=F("process__protocol__name"))
 
-        nodes = list(samples.values("id", "name", "quality_flag", "quantity_flag"))
+        nodes = list(derivedBySamples.values("name", "quality_flag", "quantity_flag").annotate(id=F("sample_id")))
         edges = list(process_measurements.values("id", "source_sample", "child_sample", "protocol_name"))
     
     return (nodes, edges, errors)
