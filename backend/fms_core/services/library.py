@@ -53,8 +53,8 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
     return library, errors, warnings
 
 
-def convert_library(process, platform, sample_source, concentration, library_size, container_destination,
-                    coordinates_destination, volume_used, volume_destination, execution_date, comment):
+def convert_library(process, platform, sample_source, container_destination, coordinates_destination, volume_used,
+                    volume_destination, execution_date, comment):
     library_destination = None
     errors = []
     warnings = []
@@ -63,14 +63,14 @@ def convert_library(process, platform, sample_source, concentration, library_siz
         errors.append(f"Process is required.")
     if not platform:
         errors.append(f"Platform is required.")
-    if not library_size:
-        errors.append(f"Library size is required.")
     if not sample_source:
         errors.append(f"Source sample is required.")
     if not container_destination:
         errors.append(f"Destination container is required.")
     if volume_used is None:
         errors.append(f"Volume used is required.")
+    if volume_destination is None:
+        errors.append(f"Volume destination is required.")
     else:
         if volume_used <= 0:
             errors.append(f"Volume used ({volume_used}) is invalid.")
@@ -93,7 +93,7 @@ def convert_library(process, platform, sample_source, concentration, library_siz
         library_destination, errors_library_destination, warnings_library_destinations = \
             create_library(library_type=library_source_obj.library_type,
                            # TODO: Verify this with Janick
-                           library_size=library_size,
+                           library_size=library_source_obj.library_size,
                            index=library_source_obj.index,
                            platform=platform,
                            strandedness=SINGLE_STRANDED)
@@ -101,13 +101,13 @@ def convert_library(process, platform, sample_source, concentration, library_siz
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
-            library_destination_data = dict(
+            sample_destination_data = dict(
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
                 # TODO: Verify this with Janick
-                concentration=concentration if concentration is not None else None,
-                volume=volume_destination if volume_destination is not None else volume_used,
+                concentration=sample_source.concentration if sample_source.concentration is not None else None,
+                volume=volume_destination,
                 depleted=False,
                 # Reset QC flags
                 quantity_flag=None,
@@ -129,9 +129,9 @@ def convert_library(process, platform, sample_source, concentration, library_siz
                 volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source,
                                                                                    derived_sample=derived_sample_source).volume_ratio
 
-            library_destination, errors_process, warnings_process = _process_sample(process,
+            sample_destination, errors_process, warnings_process = _process_sample(process,
                                                                                    sample_source,
-                                                                                   library_destination_data,
+                                                                                   sample_destination_data,
                                                                                    derived_samples_destination,
                                                                                    volume_ratios,
                                                                                    execution_date,

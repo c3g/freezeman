@@ -24,10 +24,12 @@ class LibraryBatchRowHandler(GenericRowHandler):
             create_process_properties(process_properties, process_by_protocol)
 
         if not platform_obj:
-            self.errors['library_conversion'] = f"Destination platform is required for library conversion."
+            self.errors['library_conversion'] = \
+                f"A valid destination platform is required for library conversion. Choice(s) for the destination platform are: [DNBSEQ]"
 
         if not properties:
-            self.errors['library_conversion'] = f"Unable to process this library batch."
+            self.errors['library_conversion'] = \
+                f"Unable to process this library batch without the required valid metadata columns."
 
 
         self.row_object = {

@@ -28,7 +28,9 @@ class PropertyType(TrackedModel):
     content_object = GenericForeignKey('content_type', 'object_id')
 
     class Meta:
-        unique_together = ("name", "object_id")
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'object_id'], name='property_per_protocol')
+        ]
 
     def __str__(self):
         return self.name

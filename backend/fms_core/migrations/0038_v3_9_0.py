@@ -68,7 +68,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='propertytype',
-            unique_together={('name', 'object_id')},
+            unique_together=set(),
+        ),
+        migrations.AddConstraint(
+            model_name='propertytype',
+            constraint=models.UniqueConstraint(fields=('name', 'object_id'), name='property_per_protocol'),
         ),
         migrations.RunPython(
             create_library_conversion_objects,

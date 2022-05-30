@@ -117,7 +117,11 @@ LIBRARY_CONVERSION_TEMPLATE = {
   ],
   "prefill info": [
       ("Library", "Library Source Container Barcode", "container__barcode"),
-      ("Library", "Library Source Container Coordinates", "coordinates"),],
+      ("Library", "Library Source Container Coordinates", "coordinates"),
+      ("Library", "Library Source Concentration (ng/uL)", "concentration"),
+      ("Library", "Library Size (bp)", "derived_samples__library__library_size"),
+
+  ],
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
