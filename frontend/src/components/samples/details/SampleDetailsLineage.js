@@ -93,8 +93,10 @@ const SampleDetailsLineage = ({
 
         // create final nodes and links
 
+        const enclosedWidth = Math.max(...g.nodes().map((v) => g.node(v).x))
+
         const { x: cx, y: cy }  = g.node(sample.id.toString())
-        const dx = nodeSize.width*5  - cx
+        const dx = graphSize.width/2  - cx
         const dy = graphSize.height/2 - cy
 
         const nodes = g.nodes()
@@ -108,7 +110,7 @@ const SampleDetailsLineage = ({
                          return {
                            ...n,
                            id: v,
-                           x: n.x + dx,
+                           x: n.x + (enclosedWidth > (graphSize.width - nodeSize.width) ? dx : 0),
                            y: n.y + dy,
                            color,
                            label: curr_sample.name,
