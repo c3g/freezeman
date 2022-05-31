@@ -32,7 +32,7 @@ const SampleDetailsLineage = ({
 
   const nodeSize = { width: 10, height: 10 }
 
-  // maxSize.height is sometimes outrageously large
+  // maxSize.height is sometimes outrageously large or extremely small
   const graphSize = { width: maxSize.width, height: maxSize.width }
   const graphConfig = {
     ...graphSize,
@@ -150,29 +150,29 @@ const SampleDetailsLineage = ({
 
   return (
     <>
-      <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
-        <Space direction={"vertical"}>
-          <Space>
+      <Space direction={"vertical"} style={{ height: "100%", width: "100%" }}>
+        <Space>
+          <Button
+            type="primary"
+            style={{ width: "fit-content" }}
+            onClick={() => setReset(true)}
+          >
+            Reset
+          </Button>
+          <Popover
+            content={<Details />}
+            placement={"topLeft"}
+          >
             <Button
               type="primary"
               style={{ width: "fit-content" }}
-              onClick={() => setReset(true)}
             >
-              Reset
+              ?
             </Button>
-            <Popover
-              content={<Details />}
-              placement={"topLeft"}
-            >
-              <Button
-                type="primary"
-                style={{ width: "fit-content" }}
-              >
-                ?
-              </Button>
-            </Popover>
-          </Space>
-          <Card style={{ ...graphSize }} size={"small"}>
+          </Popover>
+        </Space>
+        <div ref={resizeRef} style={{ height: "100%", width: "100%" }}>
+          <div style={{ ...graphSize, border: "solid 1px gray" }}>
             {
               // graphData must contain at least one node
               // after fetching all nodes and edges
@@ -189,11 +189,11 @@ const SampleDetailsLineage = ({
                       history.push(`/process-measurements/${linkId}`)
                     }}
                   />
-                : <Spin /> 
+                : <Spin />
             }
-          </Card>
-        </Space>
-      </div>
+          </div>
+        </div>
+      </Space>
     </>
   )
 }
