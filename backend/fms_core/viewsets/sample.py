@@ -208,6 +208,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
             **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
             **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
+            **(dict(quality_flag=full_sample['quality_flag']) if full_sample['quality_flag'] is not None else dict()),
+            **(dict(quantity_flag=full_sample['quantity_flag']) if full_sample['quantity_flag'] is not None else dict()),
         )
 
         derived_sample_data = dict(

@@ -6,6 +6,7 @@ import {
   Alert,
   AutoComplete,
   Button,
+  Checkbox,
   DatePicker,
   Form,
   Input,
@@ -137,15 +138,15 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   /*
    * Form Data submission
    */
-
+  
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
   const [formErrors, setFormErrors] = useState({})
-
+    
   if (!isAdding && formData === undefined && sample !== undefined) {
     const newData = deserialize(sample)
     setFormData(newData)
   }
-
+    
   const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
     const newData = deserialize(sampleValue)
@@ -288,6 +289,15 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
           <Form.Item label="Comment" {...props("comment")}>
             <TextArea />
           </Form.Item>
+          <Form.Item label="Sample Quality" name="sample_quality">
+            <Switch/>
+          </Form.Item>
+          <Form.Item label="Sample Quality Flags" name="sample_quality_flags">
+            <Checkbox.Group disabled={!formData?.sample_quality}>
+              <Checkbox value="quality_flag" style={{ lineHeight: '32px' }}>Quality Passed</Checkbox>
+              <Checkbox value="quantity_flag" style={{ lineHeight: '32px' }}>Quantity Passed</Checkbox>
+            </Checkbox.Group>
+          </Form.Item>
           {formErrors?.non_field_errors &&
             <Alert
               showIcon
@@ -337,6 +347,10 @@ function deserialize(values) {
     newValues.experimental_group = []
   if (newValues.creation_date)
     newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+
+  newValues.sample_quality_flags = ["quality_flag", "quantity_flag"].filter((key) => key in newValues && newValues[key])
+  newValues.sample_quality = newValues.quality_flag !== null && newValues.quantity_flag !== null
+
   return newValues
 }
 
@@ -360,6 +374,15 @@ function serialize(values) {
 
   if (!newValues.comment)
     newValues.comment = ''
+  
+  newValues.quality_flag = !!newValues.sample_quality
+  ? !!values?.sample_quality_flags?.includes("quality_flag")
+  : null
+  newValues.quantity_flag = !!newValues.sample_quality
+    ? !!values?.sample_quality_flags?.includes("quantity_flag")
+    : null
+  delete newValues.sample_quality
+  delete newValues.sample_quality_flags
 
   return newValues
 }
