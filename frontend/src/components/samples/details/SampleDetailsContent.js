@@ -41,6 +41,7 @@ import {
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
+import { NumberFormat } from "../../../utils/functions";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -114,7 +115,7 @@ const SampleDetailsContent = ({
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
   const tissueSource = sampleKindsByID[sample.tissue_source]?.name
-  const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
+  const volume = sample.volume ? NumberFormat(parseFloat(sample.volume), 1) : undefined
   const container = containersByID[sample.container]
   const experimentalGroups = sample.experimental_group || [];
   const versions = sample.versions;
@@ -125,8 +126,8 @@ const SampleDetailsContent = ({
   let processMeasurements = []
   let experimentRunsIDs = []
   const library = librariesByID[id]
-  const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
-  const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
+  const quantity = library && library.quantity_ng ? NumberFormat(parseFloat(library.quantity_ng), 1) : undefined
+  const concentration_nm = library && library.concentration_nm ? NumberFormat(parseFloat(library.concentration_nm), 1) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
 
   // TODO: This spams API requests
@@ -189,7 +190,7 @@ const SampleDetailsContent = ({
               <Descriptions.Item label="Concentration (ng/µL)">
                   {sample.concentration == null
                       ? "—"
-                      : `${parseFloat(sample.concentration).toFixed(3)}`}
+                      : `${NumberFormat(parseFloat(sample.concentration), 1)}`}
               </Descriptions.Item>
               <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
           </Descriptions>
