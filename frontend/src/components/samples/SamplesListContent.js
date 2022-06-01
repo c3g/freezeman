@@ -23,6 +23,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { NumberFormat } from "../../utils/functions";
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
@@ -107,6 +108,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       align: "right",
       className: "table-column-numbers",
       width: 100,
+      render: (_, sample) => (<>{NumberFormat(Number(sample.volume), 1)}</>)
     },
     {
       title: "Conc. (ng/µL)",
