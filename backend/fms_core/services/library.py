@@ -89,14 +89,6 @@ def convert_library(process, platform, sample_source, container_destination, coo
         errors.append(f"Source library platform and destination library platform can't be the same.")
 
     if not errors:
-        # Create new destination library
-        library_destination, errors_library_destination, warnings_library_destinations = \
-            create_library(library_type=library_source_obj.library_type,
-                           # TODO: Verify this with Janick
-                           library_size=library_source_obj.library_size,
-                           index=library_source_obj.index,
-                           platform=platform,
-                           strandedness=SINGLE_STRANDED)
         try:
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
@@ -105,8 +97,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
-                # TODO: Verify this with Janick
-                concentration=sample_source.concentration if sample_source.concentration is not None else None,
+                concentration=None,
                 volume=volume_destination,
                 depleted=False,
                 # Reset QC flags
@@ -114,12 +105,20 @@ def convert_library(process, platform, sample_source, container_destination, coo
                 quality_flag=None
             )
 
-            new_derived_sample_data = {
-                "library_id": library_destination.id
-            }
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample_source in sample_source.derived_samples.all():
+                # Create new destination library for each derived sample
+                library_destination, errors_library_destination, warnings_library_destinations = \
+                    create_library(library_type=library_source_obj.library_type,
+                                   library_size=library_source_obj.library_size,
+                                   index=library_source_obj.index,
+                                   platform=platform,
+                                   strandedness=SINGLE_STRANDED)
+
+                new_derived_sample_data = {
+                    "library_id": library_destination.id
+                }
                 new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
                                                                                               new_derived_sample_data)
                 errors.extend(errors_inherit)

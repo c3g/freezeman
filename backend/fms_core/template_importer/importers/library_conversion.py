@@ -89,8 +89,6 @@ class LibraryConversionImporter(GenericImporter):
                      'parent_barcode': row_data['Destination Library Parent Container Barcode'],
                      'parent_coordinates': row_data['Destination Library Parent Container Coordinates']
                      },
-                'concentration': row_data['Library Source Concentration (ng/uL)'],
-                'library_size': row_data['Library Size (bp)'],
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                  }
 
