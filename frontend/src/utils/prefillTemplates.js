@@ -18,6 +18,7 @@ export const templateIcon = t => {
   if (n.includes("quality")) return <CheckCircleOutlined />;
   if (n.includes("qPCR")) return <SelectOutlined />;
   if (n.includes("prepare")) return <ExperimentOutlined />;
+  if (n.includes("convert")) return <EditOutlined />;
   return undefined;
 };
 
