@@ -34,7 +34,7 @@ class LibraryQCImporter(GenericImporter):
                 'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)'])
             }
 
-            quality = {
+            qc = {
                 'quality_instrument': row_data['Quality Instrument'],
                 'quality_flag': row_data['Quality Flag'],
                 'quantity_instrument': row_data['Quantity Instrument'],
@@ -46,7 +46,7 @@ class LibraryQCImporter(GenericImporter):
             library_qc_kwargs = {
                 'container': container,
                 'measures': measures,
-                'quality': quality
+                'qc': qc
             }
 
             (result, _) = self.handle_row(

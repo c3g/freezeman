@@ -99,3 +99,14 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weig
     molar_concentration = (concentration / molecule_count * molecular_weight) * 1000000
 
     return molar_concentration
+
+def convert_concentration_from_nm_to_ngbyul(concentration_nm: float, molecular_weight: float, molecule_count: float) -> float:
+    """
+    Gets a concentration in nM and convert it to molar concentration in ng/uL.
+    If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
+    the function returns None implying an erroneous state.
+    """
+    if concentration_nm is None or not molecular_weight or not molecule_count:
+        return None
+    concentration = (concentration_nm * molecule_count) / (molecular_weight * 1000000)
+    return concentration
