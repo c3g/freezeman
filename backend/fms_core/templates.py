@@ -160,13 +160,13 @@ LIBRARY_QC_TEMPLATE = {
       },
   ],
   "prefill info": [
-      # TODO queryset columns
-      ("LibraryQC", "Library Name", "?"),
-      ("LibraryQC", "Library Container Barcode", "?"),
-      ("LibraryQC", "Library Container Coord", "?"),
-      ("LibraryQC", "Initial Volume (uL)", "?"),
-      ("LibraryQC", "Strandedness", "?"),
-      ("LibraryQC", "Library size (bp)", "?"),
+    # TODO queryset columns
+    ("LibraryQC", "Library Name", "name"),
+    ("LibraryQC", "Library Container Barcode", "container__barcode"),
+    ("LibraryQC", "Library Container Coord", "coordinates"),
+    ("LibraryQC", "Initial Volume (uL)", "volume"),
+    # ("LibraryQC", "Strandedness", "derived_samples__not_pool__library__strandedness"),   (doesn't work...)
+    #   ("LibraryQC", "Library size (bp)", "?"),
       ],
 }
 
