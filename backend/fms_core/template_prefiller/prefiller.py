@@ -14,7 +14,7 @@ def PrefillTemplate(template_path, template_info, queryset):
     """
     out_stream = BytesIO()
 
-    workbook = load_workbook(filename=template_path, keep_links=True, keep_vba=True)
+    workbook = load_workbook(filename=template_path)
     position_dict = load_position_dict(workbook, template_info["sheets info"], template_info["prefill info"])
 
     for sheet_name, sheet_dict in position_dict.items():
