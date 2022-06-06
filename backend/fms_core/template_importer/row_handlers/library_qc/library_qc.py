@@ -1,28 +1,27 @@
+
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
-from fms_core.services.sample import get_sample_from_container
+from fms_core.services.sample import update_sample, get_sample_from_container
+from fms_core.services.process_measurement import create_process_measurement
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 class LibraryQCRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, container, measures, qc):
+    def process_row_inner(self, container, measures, qc, process, process_measurement_properties):
          # Get the library sample that was checked
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
             get_sample_from_container(barcode=container['barcode'], coordinates=container['coordinates'])
 
         if source_sample_obj is None:
             self.errors['sample_source'] = 'Library sample for QC was not found at the specified container.'
-            return
 
         # volume
         if measures['initial_volume'] is None and measures['measured_volume'] is None:
             self.errors['measured_volume'] = 'Either measured or initial volume must be specified.'
-            return
 
         if measures['volume_used'] is None:
             self.errors['volume_used'] = 'Volume used must be specified.'
-            return
 
         final_volume = measures['measured_volume'] if measures['measured_volume'] is not None else measures['initial_volume']
         final_volume -= measures['volume_used']
@@ -53,8 +52,26 @@ class LibraryQCRowHandler(GenericRowHandler):
         if qc['quantity_flag'] is None:
             self.error['qc'] = 'Quantity flag must be specified'
         if qc['date'] is None:
-            self.error['qc'] = 'QC date must be specified'
-            # TODO verify valid date format
+            self.error['qc'] = 'QC date is missing or badly formatted (use YYYY-MM-DD)'
+
+        # update the sample volume and concentration
+        _, self.errors['sample_update'], self.warnings['sample_update'] = \
+            update_sample(sample_to_update=source_sample_obj,
+                            volume=final_volume,
+                            concentration=concentration)
+        
+        # library qc flags are stored as process measurements
+        process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
+            create_process_measurement(
+                process=process,
+                source_sample=source_sample_obj,
+                execution_date=qc['date'],
+                volume_used=measures['volume_used'],
+                comment=qc['comment'],
+            )
+
+
+        
         
         
 

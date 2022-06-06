@@ -8,7 +8,7 @@ from fms_core.templates import LIBRARY_QC_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
-PROPERTIES_STARTING_INDEX = 5
+PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
 
 class LibraryQCImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_QC_TEMPLATE['sheets info']
@@ -16,10 +16,31 @@ class LibraryQCImporter(GenericImporter):
     def __init__(self):
         super().__init__()
         self.properties_starting_index = PROPERTIES_STARTING_INDEX
+        self.initialize_data_for_template()
+
+    def initialize_data_for_template(self):
+        #Get protocol for SampleQC
+        protocol = Protocol.objects.get(name='Library Quality Control')
+
+         #Preload data
+        self.preloaded_data = {'process': None, 'process_properties': {}}
+
+        self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
+                                                                comment='Library Quality Control (imported from template)')
+
+        # Preload PropertyType objects for the sample qc in a dictionary for faster access
+        try:
+            self.preloaded_data['process_properties'] = { property.name: {'property_type_obj': property } for property in
+                                                         list(PropertyType.objects.filter(object_id=protocol.id))}
+        except Exception as e:
+            self.base_errors.append(f'Property Type could not be found. {e}')
+
 
     def import_template_inner(self):
         libraries_sheet = self.sheets['LibraryQC']
         for i, row_data in enumerate(libraries_sheet.rows):
+
+            process_measurement_properties = self.preloaded_data['process_properties']
 
             container = {
                 'container_barcode': row_data['Library Container Barcode'],
@@ -43,11 +64,13 @@ class LibraryQCImporter(GenericImporter):
                 'comment': row_data['Comment']
             }
 
-            library_qc_kwargs = {
-                'container': container,
-                'measures': measures,
-                'qc': qc
-            }
+            library_qc_kwargs = dict(
+                container = container,
+                measures = measures,
+                qc = qc,
+                process = self.preloaded_data['process'],
+                process_measurement_properties = process_measurement_properties,
+            )
 
             (result, _) = self.handle_row(
                 row_handler_class=LibraryQCRowHandler,
