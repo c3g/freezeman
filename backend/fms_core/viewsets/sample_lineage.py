@@ -1,0 +1,47 @@
+from fms_core.services.sample_lineage import create_sample_lineage_graph
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.core.exceptions import ValidationError
+
+from fms_core.models import Sample
+from fms_core.serializers import SampleSerializer, ProcessMeasurementSerializer
+
+class SampleLineageViewSet(viewsets.ViewSet):
+    @action(detail=True, methods=["get"])
+    def graph(self, _request, pk) -> Response:
+        """
+        Generates a sample lineage that is
+        acyclical where each node is a sample
+        and each edge is a process. For more
+        information, visit
+        `fms_core.services.sample_lineage.create_sample_lineage_graph`
+
+        Parameters
+        ----------
+        `_request` : `Any`
+            ignored
+        `pk` : `int`
+            ID of an existing sample
+
+        Returns
+        -------
+        `Response`
+            `Response` object consisting of `"data"`
+            and `"edges"`
+
+        Raises
+        ------
+        `ValidationError`
+            the ID corresponds to a sample that does not exist.
+        """
+
+        nodes, edges, errors = create_sample_lineage_graph(pk)
+
+        if errors:
+            raise ValidationError(errors)
+        else:
+            return Response({
+                "nodes": nodes,
+                "edges": edges,
+            })

@@ -28,6 +28,7 @@ import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
+import SampleDetailsLineage from "./SampleDetailsLineage";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {get as getLibrary} from "../../../modules/libraries/actions";
 import api, {withToken} from "../../../utils/api";
@@ -325,6 +326,9 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
+        <TabPane tab={`Lineage`} key="6" style={tabStyle}>
+          <SampleDetailsLineage sample={sample}/>
+        </TabPane>
       </Tabs>
 
     </PageContent>
