@@ -1,5 +1,5 @@
 import copy
-from fms_core.template_importer.row_handlers.library_qc.library import LibraryQCRowHandler
+from fms_core.template_importer.row_handlers.library_qc.library_qc import LibraryQCRowHandler
 
 from fms_core.models import PropertyType, Protocol, Process
 from ._generic import GenericImporter
