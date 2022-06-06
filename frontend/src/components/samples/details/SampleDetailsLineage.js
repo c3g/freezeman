@@ -95,6 +95,7 @@ const SampleDetailsLineage = ({
 
         const enclosedWidth = Math.max(...g.nodes().map((v) => g.node(v).x))
 
+        // deltas to center current sample
         const { x: cx, y: cy }  = g.node(sample.id.toString())
         const dx = graphSize.width/2  - cx
         const dy = graphSize.height/2 - cy
@@ -110,6 +111,7 @@ const SampleDetailsLineage = ({
                          return {
                            ...n,
                            id: v,
+                           // if node too far to the right, center it horizontally in the canvas
                            x: n.x + (enclosedWidth > (graphSize.width - nodeSize.width) ? dx : 0),
                            y: n.y + dy,
                            color,
@@ -180,7 +182,7 @@ const SampleDetailsLineage = ({
               // after fetching all nodes and edges
               graphData.nodes.length > 0
                 ? reset
-                  ? <Spin />
+                  ? <Spin size={"large"} />
                   : <Graph
                     id="graph-id"
                     data={graphData}
@@ -191,7 +193,7 @@ const SampleDetailsLineage = ({
                       history.push(`/process-measurements/${linkId}`)
                     }}
                   />
-                : <Spin />
+                : <Spin size={"large"} />
             }
           </div>
         </div>
