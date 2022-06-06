@@ -1,17 +1,23 @@
 
+
+from fms_core.models.instrument_type import InstrumentType
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
+from fms_core.services.property_value import create_process_measurement_properties
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
+
+INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
+LIBRARY_QC_PLATFORM = "Library Quality Control"
 
 class LibraryQCRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, container, measures, qc, process, process_measurement_properties):
+    def process_row_inner(self, sample_container, measures, process, process_measurement, process_measurement_properties):
          # Get the library sample that was checked
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
-            get_sample_from_container(barcode=container['barcode'], coordinates=container['coordinates'])
+            get_sample_from_container(barcode=sample_container['container_barcode'], coordinates=sample_container['container_coord'])
 
         if source_sample_obj is None:
             self.errors['sample_source'] = 'Library sample for QC was not found at the specified container.'
@@ -42,17 +48,18 @@ class LibraryQCRowHandler(GenericRowHandler):
                 if concentration is None:
                     self.error['concentration'] = 'Concentration could not be converted from nM to ng/uL'
 
+        # TODO Shouldn't the QC properties be checked?
         # quality
-        if qc['quality_instrument'] is None:
-            self.error['qc'] = 'Quality instrument must be specified'
-        if qc['quality_flag'] is None:
-            self.error['qc'] = 'Quality flag must be specified'
-        if qc['quantity_instrument'] is None:
-            self.error['qc'] = 'Quantity instrument must be specified'
-        if qc['quantity_flag'] is None:
-            self.error['qc'] = 'Quantity flag must be specified'
-        if qc['date'] is None:
-            self.error['qc'] = 'QC date is missing or badly formatted (use YYYY-MM-DD)'
+        # if qc['quality_instrument'] is None:
+        #     self.error['qc'] = 'Quality instrument must be specified'
+        # if qc['quality_flag'] is None:
+        #     self.error['qc'] = 'Quality flag must be specified'
+        # if qc['quantity_instrument'] is None:
+        #     self.error['qc'] = 'Quantity instrument must be specified'
+        # if qc['quantity_flag'] is None:
+        #     self.error['qc'] = 'Quantity flag must be specified'
+        # if qc['date'] is None:
+        #     self.error['qc'] = 'QC date is missing or badly formatted (use YYYY-MM-DD)'
 
         # update the sample volume and concentration
         _, self.errors['sample_update'], self.warnings['sample_update'] = \
@@ -65,10 +72,28 @@ class LibraryQCRowHandler(GenericRowHandler):
             create_process_measurement(
                 process=process,
                 source_sample=source_sample_obj,
-                execution_date=qc['date'],
-                volume_used=measures['volume_used'],
-                comment=qc['comment'],
+                execution_date=process_measurement['execution_date'],
+                volume_used=process_measurement['volume_used'],
+                comment=process_measurement['comment'],
             )
+
+         # Create process measurement's properties
+        if process_measurement_obj:
+            properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
+                process_measurement_properties,
+                process_measurement_obj)
+
+        if process_measurement_obj and properties_obj:
+            # Validate instruments according to platform
+            for instrument in INSTRUMENT_PROPERTIES:
+                try:
+                    type = process_measurement_properties[instrument]['value']
+                    it = InstrumentType.objects.get(type=type)
+                    # Validate platform and type
+                    if it.platform.name != LIBRARY_QC_PLATFORM:
+                        self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
+                except Exception as e:
+                    self.errors['instrument'] = f'Invalid instrument {type}.'
 
 
         

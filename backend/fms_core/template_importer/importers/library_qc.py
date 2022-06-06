@@ -10,6 +10,16 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
 PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
 
+# {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
+TEMPLATE_PROPERTY_MAPPING = {
+    "Measured Volume (uL)": "Library Measured Volume",
+    "Concentration (ng/uL)": "Library Concentration",
+    "Quality Instrument": "Library Quality Instrument",
+    "Quality Flag": "Library Quality QC Flag",
+    "Quantity Instrument": "Library Quantity Instrument",
+    "Quantity Flag": "Library Quantity QC Flag",   
+}
+
 class LibraryQCImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_QC_TEMPLATE['sheets info']
 
@@ -42,7 +52,12 @@ class LibraryQCImporter(GenericImporter):
 
             process_measurement_properties = self.preloaded_data['process_properties']
 
-            container = {
+             #Populate process properties
+            for i, (key, val) in enumerate(row_data.items()):
+                if key in TEMPLATE_PROPERTY_MAPPING.keys():
+                    process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
+
+            sample_container = {
                 'container_barcode': row_data['Library Container Barcode'],
                 'container_coord': row_data['Libary Container Coord']
             }
@@ -55,20 +70,26 @@ class LibraryQCImporter(GenericImporter):
                 'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)'])
             }
 
-            qc = {
-                'quality_instrument': row_data['Quality Instrument'],
-                'quality_flag': row_data['Quality Flag'],
-                'quantity_instrument': row_data['Quantity Instrument'],
-                'quantity_flag': row_data['Quantity Flag'],
-                'qc_date': input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)']),
-                'comment': row_data['Comment']
+            # qc = {
+            #     'quality_instrument': row_data['Quality Instrument'],
+            #     'quality_flag': row_data['Quality Flag'],
+            #     'quantity_instrument': row_data['Quantity Instrument'],
+            #     'quantity_flag': row_data['Quantity Flag'],
+            #     'qc_date': input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)']),
+            #     'comment': row_data['Comment']
+            # }
+
+            process_measurement = {
+                'execution_date': input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)']),
+                'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
+                'comment': row_data['Comment'],
             }
 
             library_qc_kwargs = dict(
-                container = container,
+                container = sample_container,
                 measures = measures,
-                qc = qc,
                 process = self.preloaded_data['process'],
+                process_measurement = process_measurement,
                 process_measurement_properties = process_measurement_properties,
             )
 
