@@ -2,6 +2,8 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_creation import ContainerRowHandler
 from fms_core.templates import CONTAINER_CREATION_TEMPLATE
 
+from fms_core.utils import str_cast_and_normalize
+
 class ContainerCreationImporter(GenericImporter):
     SHEETS_INFO = CONTAINER_CREATION_TEMPLATE["sheets info"]
 
@@ -14,12 +16,12 @@ class ContainerCreationImporter(GenericImporter):
         for row_id, row_data in enumerate(containers_sheet.rows):
             container = {
                 'kind': row_data['Container Kind'],
-                'name': row_data['Container Name'],
-                'barcode': row_data['Container Barcode'],
-                'coordinates': row_data['Parent Container Coordinates'],
+                'name': str_cast_and_normalize(row_data['Container Name']),
+                'barcode': str_cast_and_normalize(row_data['Container Barcode']),
+                'coordinates': str_cast_and_normalize(row_data['Parent Container Coordinates']),
             }
             parent_container = {
-                'barcode': row_data['Parent Container Barcode'],
+                'barcode': str_cast_and_normalize(row_data['Parent Container Barcode']),
             }
 
             container_kwargs = dict(
