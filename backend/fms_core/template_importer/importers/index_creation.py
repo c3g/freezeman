@@ -2,8 +2,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.index_creation import IndexCreationHandler
 from fms_core.templates import INDEX_CREATION_TEMPLATE
 
-from fms_core.utils import comma_separated_string_to_array
-
+from fms_core.utils import comma_separated_string_to_array, str_cast_and_normalize
 
 class IndexCreationImporter(GenericImporter):
     SHEETS_INFO = INDEX_CREATION_TEMPLATE["sheets info"]
@@ -16,14 +15,14 @@ class IndexCreationImporter(GenericImporter):
 
         for row_id, row_data in enumerate(index_creation_sheet.rows):
             index = {
-                'name': row_data['Index Name'],
-                'index_structure': row_data['Index Structure'],
+                'name': str_cast_and_normalize(row_data['Index Name']),
+                'index_structure': str_cast_and_normalize(row_data['Index Structure']),
                 'index_3prime': comma_separated_string_to_array(row_data['Index 3 Prime']),
                 'index_5prime': comma_separated_string_to_array(row_data['Index 5 Prime']),
             }
 
             index_creation_kwargs = dict(
-                set_name=row_data['Set Name'],
+                set_name=str_cast_and_normalize(row_data['Set Name']),
                 index=index,
             )
 

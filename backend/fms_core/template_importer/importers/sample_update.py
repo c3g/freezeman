@@ -5,6 +5,8 @@ from fms_core.template_importer.row_handlers.sample_update import SampleRowHandl
 from fms_core.templates import SAMPLE_UPDATE_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 
+from fms_core.utils import str_cast_and_normalize
+
 class SampleUpdateImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_UPDATE_TEMPLATE["sheets info"]
 
@@ -23,19 +25,19 @@ class SampleUpdateImporter(GenericImporter):
 
         for row_id, row_data in enumerate(sampleupdate_sheet.rows):
             sample = {
-                'coordinates': row_data['Coord (if plate)'],
-                'container': {'barcode': row_data['Container Barcode']}
+                'coordinates': str_cast_and_normalize(row_data['Coord (if plate)']),
+                'container': {'barcode': str_cast_and_normalize(row_data['Container Barcode'])}
             }
             sample_updated = {
                 'volume': float_to_decimal_and_none(row_data['New Volume (uL)']),
                 'concentration': float_to_decimal_and_none(row_data['New Conc. (ng/uL)']),
-                'depleted': row_data['Depleted'],
+                'depleted': str_cast_and_normalize(row_data['Depleted']),
             }
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
                 'execution_date': input_to_date_and_none(row_data['Update Date']),
-                'comment': row_data['Update Comment'],
+                'comment': str_cast_and_normalize(row_data['Update Comment']),
             }
 
             sample_update_kwargs = dict(

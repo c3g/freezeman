@@ -4,6 +4,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
 from fms_core.templates import SAMPLE_QC_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.utils import str_cast_and_normalize
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
@@ -52,22 +53,22 @@ class SampleQCImporter(GenericImporter):
                     process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample = {
-                'coordinates': row_data['Sample Container Coord'],
-                'container': {'barcode': row_data['Sample Container Barcode']}
+                'coordinates': str_cast_and_normalize(row_data['Sample Container Coord']),
+                'container': {'barcode': str_cast_and_normalize(row_data['Sample Container Barcode'])}
             }
             sample_information = {
                 'initial_volume': float_to_decimal_and_none(row_data['Initial Volume (uL)']),
                 'measured_volume': float_to_decimal_and_none(row_data['Measured Volume (uL)']),
                 'concentration': float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
-                'quantity_flag': row_data['Quantity Flag'],
-                'quality_flag': row_data['Quality Flag']
+                'quantity_flag': str_cast_and_normalize(row_data['Quantity Flag']),
+                'quality_flag': str_cast_and_normalize(row_data['Quality Flag'])
             }
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
                 'execution_date': input_to_date_and_none(row_data['QC Date']),
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
-                'comment': row_data['Comment'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
             }
 
             sample_qc_kwargs = dict(

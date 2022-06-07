@@ -4,6 +4,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_selection_qpcr import SampleSelectionQPCRRowHandler
 from fms_core.templates import SAMPLE_SELECTION_QPCR_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.utils import str_cast_and_normalize
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
@@ -52,16 +53,16 @@ class SampleSelectionQPCRImporter(GenericImporter):
                     process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample = {
-                'coordinates': row_data['Sample Container Coord'],
-                'container': {'barcode': row_data['Sample Container Barcode']},
-                'depleted': row_data['Source Depleted'],
+                'coordinates': str_cast_and_normalize(row_data['Sample Container Coord']),
+                'container': {'barcode': str_cast_and_normalize(row_data['Sample Container Barcode'])},
+                'depleted': str_cast_and_normalize(row_data['Source Depleted']),
             }
 
             process_measurement = {
                 'process': self.preloaded_data['process'],
                 'execution_date': input_to_date_and_none(row_data['qPCR Date']),
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
-                'comment': row_data['Comment'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
             }
 
             sample_selection_qpcr_kwargs = dict(
