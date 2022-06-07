@@ -11,29 +11,19 @@ class SampleLineageViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["get"])
     def graph(self, _request, pk) -> Response:
         """
-        Generates a sample lineage that is
-        acyclical where each node is a sample
-        and each edge is a process. For more
-        information, visit
-        `fms_core.services.sample_lineage.create_sample_lineage_graph`
+        Generates a sample lineage that is acyclical where each node is a sample and each edge is a process.
+        For more information, visit `fms_core.services.sample_lineage.create_sample_lineage_graph`.
 
-        Parameters
-        ----------
-        `_request` : `Any`
-            ignored
-        `pk` : `int`
-            ID of an existing sample
+        Args:
+            `_request`: ignored
 
-        Returns
-        -------
-        `Response`
-            `Response` object consisting of `"data"`
-            and `"edges"`
+            `pk`: ID of an existing sample
 
-        Raises
-        ------
-        `ValidationError`
-            the ID corresponds to a sample that does not exist.
+        Returns:
+            `Response` object consisting of `"nodes"` and `"edges"`
+
+        Raises:
+            `ValidationError`: the ID corresponds to a sample that does not exist.
         """
 
         nodes, edges, errors = create_sample_lineage_graph(pk)
