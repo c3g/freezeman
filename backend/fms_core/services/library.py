@@ -143,3 +143,23 @@ def convert_library(process, platform, sample_source, container_destination, coo
             errors.append(e)
 
     return library_destination, errors, warnings
+    
+def set_library_size(sample, library_size = None):
+    errors = []
+    warnings = []
+
+    if sample is None:
+        errors.append('Missing sample')
+
+    if not sample.is_library:
+        errors.append('No library associated with sample')
+
+    try:
+        library = sample.derived_sample_not_pool.library
+        library.library_size = library_size
+        library.save()
+    except Exception as e:
+        errors.append(str(e))
+
+    return sample, errors, warnings
+

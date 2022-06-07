@@ -110,6 +110,6 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
     """
     if concentration_nm is None or not molecular_weight or not molecule_count:
         return None
-    concentration = (decimal.Decimal(concentration_nm) * decimal.Decimal(molecule_count) * decimal.Decimal(molecular_weight)) / decimal.Decimal(1000000)
+    concentration = (Decimal(concentration_nm) * Decimal(molecule_count) * Decimal(molecular_weight)) / Decimal(1000000)
 
     return concentration

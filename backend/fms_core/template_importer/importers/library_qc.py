@@ -69,7 +69,7 @@ class LibraryQCImporter(GenericImporter):
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Concentration (nM)']),
                 'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
-                'library_size': float_to_decimal_and_none(row_data['Library size (bp)'])
+                'library_size': float_to_decimal_and_none(row_data['Library size (bp)']).to_integral_value()
             }
 
             # qc = {

@@ -1,10 +1,12 @@
 
 
+
 from fms_core.models.instrument_type import InstrumentType
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
+from fms_core.services.library import set_library_size
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Library Quality Instrument', 'Library Quantity Instrument']
@@ -21,6 +23,9 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         if source_sample_obj is None:
             self.errors['sample_source'] = 'Library sample for QC was not found at the specified container.'
+
+        if not source_sample_obj.is_library:
+            self.errors['sample_source'] = f'The sample at the specified location is not a library: ${source_sample_obj.name}, id: ${source_sample_obj.id}'
 
         # volume
         if measures['initial_volume'] is None and measures['measured_volume'] is None:
@@ -57,27 +62,16 @@ class LibraryQCRowHandler(GenericRowHandler):
                 else:
                     process_measurement_properties["Library Concentration"]['value'] = concentration
 
-        # TODO Shouldn't the QC properties be checked?
-        # quality
-        # if qc['quality_instrument'] is None:
-        #     self.error['qc'] = 'Quality instrument must be specified'
-        # if qc['quality_flag'] is None:
-        #     self.error['qc'] = 'Quality flag must be specified'
-        # if qc['quantity_instrument'] is None:
-        #     self.error['qc'] = 'Quantity instrument must be specified'
-        # if qc['quantity_flag'] is None:
-        #     self.error['qc'] = 'Quantity flag must be specified'
-        # if qc['date'] is None:
-        #     self.error['qc'] = 'QC date is missing or badly formatted (use YYYY-MM-DD)'
-
         # update the sample volume and concentration
         _, self.errors['sample_update'], self.warnings['sample_update'] = \
             update_sample(sample_to_update=source_sample_obj,
                             volume=final_volume,
                             concentration=concentration)
 
-        #TODO store the library size in the library
-        
+        # set the library size on the library
+        _, self.errors['library-size'], self.warnings['library-size'] = \
+           set_library_size(source_sample_obj, library_size)
+            
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
             create_process_measurement(
