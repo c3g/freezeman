@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography, Spin} from "antd";
+import {Descriptions, Typography, Spin, Row, Col, Card, Statistic} from "antd";
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
@@ -12,21 +12,26 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import ProjectsAssociatedSamples from "./ProjectsAssociatedSamples";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/projects/actions";
+import ProjectsCharts from "./charts/ProjectsCharts";
+import api, { withToken } from "../../utils/api";
 
 const mapStateToProps = state => ({
     isFetching: state.projects.isFetching,
     projectsByID: state.projects.itemsByID,
     samplesByID: state.samples.itemsByID,
+    token: state.auth.tokens.access,
 });
 
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) => {
+const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get, token}) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};
+    
+    const [summary, setSummary] = useState(null)
 
     if (!isLoaded)
         get(id);
@@ -34,6 +39,13 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) =
     const isLoading = !isLoaded;
     const title =
         `Project ${project.name}`;
+
+    useEffect(() => {
+        withToken(token, api.report.summary)(id).then(({data}) => {
+            console.log(JSON.stringify(data))
+            setSummary(data)
+        })
+    }, [id])
 
     return <>
         <AppPageHeader title={title} onBack={() => history.push("/projects/list")} extra={ <EditButton url={`/projects/${id}/update`}/> }/>
@@ -51,7 +63,35 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) =
                 <Descriptions.Item label="Comment" span={4}>{project.comment}</Descriptions.Item>
             </Descriptions>
             <TrackingFieldsContent entity={project}/>
-            <Title level={4} style={{marginTop: '2rem'}}> Associated Samples </Title>
+            {
+                summary == undefined
+                    ? <Spin size={"large"} />
+                    : <Row>
+                        <Col>
+                            <Card title="Samples Received">
+                                <Statistic title="Total Samples" value={summary.new_sample_count} />
+                            </Card>
+                        </Col>
+                        <Col>
+                            <Card title="Samples Extracted">
+                                <Statistic title="Total Samples" value={summary.extraction_count} />
+                            </Card>
+                        </Col>
+                        <Col>
+                            <Card title="Samples QC">
+                                <Statistic title="Awaiting" value={summary.qc.awaiting} />
+                                <Statistic title="Passed" value={summary.qc.passed} />
+                                <Statistic title="Failed" value={summary.qc.failed} />
+                            </Card>
+                        </Col>
+                        <Col>
+                            <Card title="Libraries">
+                                <Statistic title="Libraries Prepared" value={summary.libraries_prepared_count} />
+                            </Card>
+                        </Col>
+                    </Row>
+            }
+            <Title level={4} style={{ marginTop: '2rem' }}> Associated Samples </Title>
             <ProjectsAssociatedSamples projectID={project.id} />
         </PageContent>
     </>;

@@ -1,8 +1,16 @@
+from __future__ import annotations
+import datetime
+from fms_core.models.process_measurement import ProcessMeasurement
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from fms_core.models import Project
+from django.core.exceptions import ValidationError
+from django.db.models import Count, F, Q
+
+import json
+
+from fms_core.models import Project, SampleByProject, Sample
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE
@@ -46,7 +54,7 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])
-    def summary(self, _request):
+    def summary(self, request):
         """
         Returns summary statistics about the current set of projects in the
         database.

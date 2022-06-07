@@ -207,6 +207,10 @@ const api = {
 
   sample_lineage: {
     get: sampleId => get(`/sample-lineage/${sampleId}/graph`)
+  },
+
+  report: {
+    summary: (projectId) => get(`/report/summary`, { project_id: projectId })
   }
 };
 
