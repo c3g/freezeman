@@ -27,13 +27,14 @@ const SampleDetailsLineage = ({
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
+
   const [nodesToEdges, setNodesToEdges] = useState({})
   const [reset, setReset] = useState(false)
 
   const nodeSize = { width: 10, height: 10 }
 
   // maxSize.height is sometimes outrageously large or extremely small
-  const graphSize = { width: maxSize.width, height: maxSize.width }
+  const graphSize = { width: maxSize.width - 50, height: maxSize.height - 150 }
   const graphConfig = {
     ...graphSize,
     staticGraphWithDragAndDrop: true,
@@ -67,6 +68,30 @@ const SampleDetailsLineage = ({
     marginy: 50
   }
 
+  const { nodes, links } = graphData
+  let dx = 0
+  let dy = 0
+  if (nodes.length > 0 && sample?.id !== undefined) {
+    const enclosedWidth = Math.max(...nodes.map((n) => n.x))
+
+    // find position of current node
+    const { x: cx, y: cy } = nodes.find((n) => n.id === sample.id.toString())
+
+    // if graph too wide
+    if (enclosedWidth > (graphSize.width - nodeSize.width)) {
+      dx = graphSize.width / 2 - cx
+    }
+    dy = (graphSize.height) / 2 - cy
+  }
+  const adjustedGraphData = {
+    nodes: nodes.map((n) => ({
+      ...n,
+      x: n.x + dx,
+      y: n.y + dy
+    })),
+    links,
+  }
+
   useEffect(() => {
     if (sample?.id !== undefined) {
       withToken(token, api.sample_lineage.get)(sample.id).then(({data}) => {
@@ -93,13 +118,6 @@ const SampleDetailsLineage = ({
 
         // create final nodes and links
 
-        const enclosedWidth = Math.max(...g.nodes().map((v) => g.node(v).x))
-
-        // deltas to center current sample
-        const { x: cx, y: cy }  = g.node(sample.id.toString())
-        const dx = graphSize.width/2  - cx
-        const dy = graphSize.height/2 - cy
-
         const nodes = g.nodes()
                        .map((v) => {
                          const n = g.node(v)
@@ -111,9 +129,6 @@ const SampleDetailsLineage = ({
                          return {
                            ...n,
                            id: v,
-                           // if node too far to the right, center it horizontally in the canvas
-                           x: n.x + (enclosedWidth > (graphSize.width - nodeSize.width) ? dx : 0),
-                           y: n.y + dy,
                            color,
                            label: curr_sample.name,
                            symbolType: curr_sample.id === sample.id ? "star" : "circle",
@@ -140,7 +155,7 @@ const SampleDetailsLineage = ({
         )
       })
     }
-  }, [sample?.id])
+  }, [sample])
 
   // Take advantage of the fact that
   // useEffect runs after rendering page.
@@ -175,7 +190,7 @@ const SampleDetailsLineage = ({
             </Button>
           </Popover>
         </Space>
-        <div ref={resizeRef} style={{ height: "100%", width: "100%" }}>
+        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }}>
           <div style={{ ...graphSize, border: "solid 1px gray" }}>
             {
               // graphData must contain at least one node
@@ -185,7 +200,7 @@ const SampleDetailsLineage = ({
                   ? <Spin size={"large"} />
                   : <Graph
                     id="graph-id"
-                    data={graphData}
+                    data={adjustedGraphData}
                     config={graphConfig}
                     onClickNode={(id, _) => history.push(`/samples/${id}`)}
                     onClickLink={(source, target) => {

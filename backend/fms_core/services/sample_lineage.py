@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 from django.db.models import F
 from django.core.exceptions import ValidationError
 from fms_core.models import SampleLineage, Sample, DerivedBySample, ProcessMeasurement
@@ -28,24 +28,19 @@ def create_sample_lineage(parent_sample, child_sample, process_measurement):
 
     return (sample_lineage, errors, warnings)
 
-def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict], List[Dict], List[str]]:
+def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
     """
     Generates a sample lineage of all samples that share the
     same biosample ID of the `sampleId`. Returns a graph that
     is acyclical and consists of `nodes` and `edges`.
 
-    Parameters
-    ----------
-    `sampleId` : `int`
-        ID of an existing sample
-        
+    Args:
+        `sampleId`: ID of an existing sample
 
-    Returns
-    -------
-    `Tuple[List[Dict], List[Dict], List[str]]`
-        consisting of `nodes`, `edges` and `errors`.
+    Returns:
+        `Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]` consisting of `nodes`, `edges` and `errors`.
         Each node consists of sample `"name"`, `"quality_flag"` and `"quantity_flag"`.
-        Each edge consists of process `"id"`, `"source_sample"`, `"child_sample"`, `"protocol_name"`
+        Each edge consists of process `"id"`, `"source_sample"`, `"child_sample"`, `"protocol_name"`.
         `errors` contains an error if the ID in `sampleId` does not correspond
         to an existing sample.
 
