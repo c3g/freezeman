@@ -13,6 +13,7 @@ PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
     "Measured Volume (uL)": "Library Measured Volume",
+    "Volume Used (uL)": "Library Volume Used",
     "Concentration (ng/uL)": "Library Concentration",
     "Quality Instrument": "Library Quality Instrument",
     "Quality Flag": "Library Quality QC Flag",
@@ -48,7 +49,7 @@ class LibraryQCImporter(GenericImporter):
 
     def import_template_inner(self):
         libraries_sheet = self.sheets['LibraryQC']
-        for i, row_data in enumerate(libraries_sheet.rows):
+        for row_id, row_data in enumerate(libraries_sheet.rows):
 
             process_measurement_properties = self.preloaded_data['process_properties']
 
@@ -59,7 +60,7 @@ class LibraryQCImporter(GenericImporter):
 
             sample_container = {
                 'container_barcode': row_data['Library Container Barcode'],
-                'container_coord': row_data['Libary Container Coord']
+                'container_coord': row_data['Library Container Coord']
             }
 
             measures = {
@@ -67,7 +68,8 @@ class LibraryQCImporter(GenericImporter):
                 'measured_volume': float_to_decimal_and_none(row_data['Measured Volume (uL)']),
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Concentration (nM)']),
-                'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)'])
+                'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
+                'library_size': float_to_decimal_and_none(row_data['Library size (bp)'])
             }
 
             # qc = {
@@ -86,7 +88,7 @@ class LibraryQCImporter(GenericImporter):
             }
 
             library_qc_kwargs = dict(
-                container = sample_container,
+                sample_container = sample_container,
                 measures = measures,
                 process = self.preloaded_data['process'],
                 process_measurement = process_measurement,
@@ -96,7 +98,7 @@ class LibraryQCImporter(GenericImporter):
             (result, _) = self.handle_row(
                 row_handler_class=LibraryQCRowHandler,
                 sheet=libraries_sheet,
-                row_i=i,
+                row_i=row_id,
                 **library_qc_kwargs,
            )
 

@@ -7,8 +7,8 @@ from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
-LIBRARY_QC_PLATFORM = "Library Quality Control"
+INSTRUMENT_PROPERTIES = ['Library Quality Instrument', 'Library Quantity Instrument']
+QC_PLATFORM = "Quality Control"
 
 class LibraryQCRowHandler(GenericRowHandler):
     def __init__(self):
@@ -29,6 +29,9 @@ class LibraryQCRowHandler(GenericRowHandler):
         if measures['volume_used'] is None:
             self.errors['volume_used'] = 'Volume used must be specified.'
 
+        if measures['volume_used'] < 0:
+            self.errors['Volume used should be a positive number.']
+
         final_volume = measures['measured_volume'] if measures['measured_volume'] is not None else measures['initial_volume']
         final_volume -= measures['volume_used']
 
@@ -36,17 +39,23 @@ class LibraryQCRowHandler(GenericRowHandler):
         if measures['concentration_nm'] is not None and measures['concentration_uL'] is not None:
             self.warning['concentration'] = 'The concentration should be specified in nM or uL, not both. nM will be ignored.'
 
+
+        library_size = measures['library_size']
+        if library_size is None:
+            self.errors['library_size'] = 'Library size must be specified'
+
         concentration = measures['concentration_uL']
         if concentration is None:
             concentration = measures['concentration_nm']
             if concentration is None:
-                self.error['concentration'] = 'A concentration in either nM or uL must be specified.'
+                self.errors['concentration'] = 'A concentration in either nM or uL must be specified.'
             else:
                 molecular_weight = source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx
-                molecule_count = source_sample_obj.derived_sample_not_pool.library.library_size
-                concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, molecule_count)
+                concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
                 if concentration is None:
-                    self.error['concentration'] = 'Concentration could not be converted from nM to ng/uL'
+                    self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
+                else:
+                    process_measurement_properties["Library Concentration"]['value'] = concentration
 
         # TODO Shouldn't the QC properties be checked?
         # quality
@@ -66,6 +75,8 @@ class LibraryQCRowHandler(GenericRowHandler):
             update_sample(sample_to_update=source_sample_obj,
                             volume=final_volume,
                             concentration=concentration)
+
+        #TODO store the library size in the library
         
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
@@ -86,11 +97,11 @@ class LibraryQCRowHandler(GenericRowHandler):
         if process_measurement_obj and properties_obj:
             # Validate instruments according to platform
             for instrument in INSTRUMENT_PROPERTIES:
+                type = process_measurement_properties[instrument]['value']
                 try:
-                    type = process_measurement_properties[instrument]['value']
                     it = InstrumentType.objects.get(type=type)
                     # Validate platform and type
-                    if it.platform.name != LIBRARY_QC_PLATFORM:
+                    if it.platform.name != QC_PLATFORM:
                         self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
                 except Exception as e:
                     self.errors['instrument'] = f'Invalid instrument {type}.'
