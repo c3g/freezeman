@@ -18,38 +18,39 @@ class ReportViewSet(viewsets.ViewSet):
         if project.exists():
             project = project[0]
 
-            response = {
-                "new_sample_count": 0,
-                "extraction_count": 0,
-                "extracted_samples_count": {},
-                "qc": {
-                    "awaiting": 0,
-                    "failed": 0,
-                    "passed": 0,
-                },
-                "libraries_prepared_count": 0
-            }
+            response = {}
 
             end_date = datetime.today()
             start_date = end_date - timedelta(days=300)
 
             samples_by_project = service.samples_by_project(project, start_date, end_date)
-            samples = Sample.objects.filter(id__in=samples_by_project.values_list('sample_id', flat=True))
-            samples_extracted = service.extracted_samples(samples)
 
-            response["new_sample_count"] = service.root_samples(samples).count()
-            response["extraction_count"] = samples_extracted.count()
-            response["libraries_prepared_count"] = service.samples_with_libraries(samples).count()
+            filters = {
+                "all": service.identity,
+                "collected": service.is_collected,
+                "extracted": service.extracted,
+                "library": service.is_library,
+            }
+            
+            for t, f in filters.items():
+                samples_by_project_ = f(samples_by_project)
 
-            with_sample_kinds = service.annotate_sample_kind(samples_extracted)
-            for s in with_sample_kinds:
-                key = s.sample_kind_names.lower()
-                response["extracted_samples_count"].setdefault(key, 0)
-                response["extracted_samples_count"][key] += 1
+                response[t] = {}
+                response[t]["total"] = samples_by_project_.count()
 
-            response["qc"]["awaiting"] = samples_extracted.filter(Q(quality_flag=None) & Q(quantity_flag=None)).count()
-            response["qc"]["passed"] = samples_extracted.filter(Q(quality_flag=True) & Q(quantity_flag=True)).count()
-            response["qc"]["failed"] = samples_extracted.filter(Q(quality_flag=False) | Q(quantity_flag=False)).count()
+                response[t]["qc"] = {}
+                response[t]["qc"]["passed"] = service.annotate_qc(samples_by_project_) \
+                                                     .filter(Q(quality_flag=True) & Q(quantity_flag=True)) \
+                                                     .count()
+                response[t]["qc"]["failed"] = service.annotate_qc(samples_by_project_) \
+                                                     .filter(Q(quality_flag=False) | Q(quantity_flag=False)) \
+                                                     .count()
+
+                response[t]["kinds"] = {}
+                for s in service.annotate_sample_kind(samples_by_project_):
+                    key = s.sample_kind_name.lower()
+                    prev = response[t]["kinds"].setdefault(key, 0)
+                    response[t]["kinds"][key] = prev + 1
             
             return Response(response)
         else:

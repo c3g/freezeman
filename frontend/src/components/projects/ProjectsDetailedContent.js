@@ -66,30 +66,18 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get, to
             {
                 summary == undefined
                     ? <Spin size={"large"} />
-                    : <Row>
-                        <Col>
-                            <Card title="Samples Received">
-                                <Statistic title="Total Samples" value={summary.new_sample_count} />
-                            </Card>
-                        </Col>
-                        <Col>
-                            <Card title="Samples Extracted">
-                                <Statistic title="Total Samples" value={summary.extraction_count} />
-                            </Card>
-                        </Col>
-                        <Col>
-                            <Card title="Samples QC">
-                                <Statistic title="Awaiting" value={summary.qc.awaiting} />
-                                <Statistic title="Passed" value={summary.qc.passed} />
-                                <Statistic title="Failed" value={summary.qc.failed} />
-                            </Card>
-                        </Col>
-                        <Col>
-                            <Card title="Libraries">
-                                <Statistic title="Libraries Prepared" value={summary.libraries_prepared_count} />
-                            </Card>
-                        </Col>
-                    </Row>
+                    : Object.entries(summary).map(([type, data]) => (
+                        <Card title={type}>
+                            <Statistic title="Total" value={data.total} />
+                            <Statistic title="Failed QC" value={data.qc.failed} />
+                            <Statistic title="Passed QC" value={data.qc.passed} />
+                            {
+                                Object.entries(data.kinds).map(([kind, count]) => (
+                                    <Statistic title={kind} value={count} />
+                                ))
+                            }
+                        </Card>
+                    ))
             }
             <Title level={4} style={{ marginTop: '2rem' }}> Associated Samples </Title>
             <ProjectsAssociatedSamples projectID={project.id} />
