@@ -1,7 +1,10 @@
 from django.core.exceptions import ValidationError
+from datetime import date
+from fms_core.models import LibraryType, Library, DerivedBySample
 
-from fms_core.models import LibraryType, Library
+from fms_core.services.sample import inherit_derived_sample, _process_sample
 
+from fms_core.models._constants import SINGLE_STRANDED
 
 def get_library_type(name):
     library_type = None
@@ -48,3 +51,95 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
         errors.append(';'.join(e.messages))
 
     return library, errors, warnings
+
+
+def convert_library(process, platform, sample_source, container_destination, coordinates_destination, volume_used,
+                    volume_destination, execution_date, comment):
+    library_destination = None
+    errors = []
+    warnings = []
+
+    if not process:
+        errors.append(f"Process is required.")
+    if not platform:
+        errors.append(f"Platform is required.")
+    if not sample_source:
+        errors.append(f"Source sample is required.")
+    if not container_destination:
+        errors.append(f"Destination container is required.")
+    if volume_used is None:
+        errors.append(f"Volume used is required.")
+    if volume_destination is None:
+        errors.append(f"Volume destination is required.")
+    else:
+        if volume_used <= 0:
+            errors.append(f"Volume used ({volume_used}) is invalid.")
+        if sample_source and volume_used > sample_source.volume:
+            errors.append(
+                f"Volume used ({volume_used}) exceeds the current volume of the library ({sample_source.volume}).")
+
+    if not isinstance(execution_date, date):
+        errors.append(f"Execution date is not valid.")
+
+    # Retrieve library object linked to the source sample
+    library_source_obj = sample_source.derived_sample_not_pool.library
+    if not sample_source.is_library or library_source_obj is None:
+        errors.append(f"Sample in container {sample_source.name} is not a library.")
+    elif library_source_obj.platform == platform:
+        errors.append(f"Source library platform and destination library platform can't be the same.")
+
+    if not errors:
+        try:
+            sample_source.volume = sample_source.volume - volume_used
+            sample_source.save()
+
+            sample_destination_data = dict(
+                container_id=container_destination.id,
+                coordinates=coordinates_destination if coordinates_destination else "",
+                creation_date=execution_date,
+                concentration=None,
+                volume=volume_destination,
+                depleted=False,
+                # Reset QC flags
+                quantity_flag=None,
+                quality_flag=None
+            )
+
+            derived_samples_destination = []
+            volume_ratios = {}
+            for derived_sample_source in sample_source.derived_samples.all():
+                # Create new destination library for each derived sample
+                library_destination, errors_library_destination, warnings_library_destinations = \
+                    create_library(library_type=library_source_obj.library_type,
+                                   library_size=library_source_obj.library_size,
+                                   index=library_source_obj.index,
+                                   platform=platform,
+                                   strandedness=SINGLE_STRANDED)
+
+                new_derived_sample_data = {
+                    "library_id": library_destination.id
+                }
+                new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
+                                                                                              new_derived_sample_data)
+                errors.extend(errors_inherit)
+                warnings.extend(warnings_inherit)
+
+                derived_samples_destination.append(new_derived_sample)
+                volume_ratios[new_derived_sample.id] = DerivedBySample.objects.get(sample=sample_source,
+                                                                                   derived_sample=derived_sample_source).volume_ratio
+
+            sample_destination, errors_process, warnings_process = _process_sample(process,
+                                                                                   sample_source,
+                                                                                   sample_destination_data,
+                                                                                   derived_samples_destination,
+                                                                                   volume_ratios,
+                                                                                   execution_date,
+                                                                                   volume_used,
+                                                                                   comment)
+            errors.extend(errors_process)
+            warnings.extend(warnings_process)
+
+        except Exception as e:
+            errors.append(e)
+
+    return library_destination, errors, warnings

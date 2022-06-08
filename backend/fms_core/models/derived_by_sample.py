@@ -25,8 +25,8 @@ class DerivedBySample(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         # Check concentration fields given sample_kind (moved from sample because information unavailable until relation created)
-        if self.sample.concentration is None and self.derived_sample.sample_kind.concentration_required:
-            add_error("concentration", "Concentration must be specified for a pool or if the sample_kind is DNA")
+        if self.sample.concentration is None and (self.derived_sample.sample_kind.concentration_required and self.derived_sample.library is None):
+            add_error("concentration", "Concentration must be specified for a pool or if the sample_kind is DNA (except for a library)")
 
         if errors:
             raise ValidationError(errors)

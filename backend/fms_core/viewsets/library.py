@@ -7,8 +7,8 @@ from django.db.models import Q, When, Count, Case, BooleanField
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
-from fms_core.templates import EXPERIMENT_MGI_TEMPLATE
-from fms_core.template_importer.importers import ExperimentRunImporter
+from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE
+from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
@@ -42,10 +42,17 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             "template": [EXPERIMENT_MGI_TEMPLATE["identity"]],
             "importer": ExperimentRunImporter,
         },
+        {
+            "name": "Convert Libraries",
+            "description": "Upload the provided template with libraries to convert.",
+            "template": [LIBRARY_CONVERSION_TEMPLATE["identity"]],
+            "importer": LibraryConversionImporter,
+        },
     ]
 
     template_prefill_list = [
         {"template": EXPERIMENT_MGI_TEMPLATE},
+        {"template": LIBRARY_CONVERSION_TEMPLATE},
     ]
 
     def get_queryset(self):
