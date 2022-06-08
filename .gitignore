@@ -3,3 +3,5 @@ node_modules/
 .env
 .DS_Store
 backend/fms.log
+launch.json
+fms.log
