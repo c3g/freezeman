@@ -8,7 +8,7 @@ from ..containers import (
     CONTAINER_KIND_CHOICES,
     PARENT_CONTAINER_KINDS,
 )
-from ..coordinates import CoordinateError, check_coordinate_overlap
+from ..coordinates import CoordinateError, detect_coordinate_overlap
 from ..utils import str_cast_and_normalize
 
 from .tracked_model import TrackedModel
@@ -87,14 +87,9 @@ class Container(TrackedModel):
                 if not errors.get("coordinates") and not errors.get("location") \
                         and not parent_spec.coordinate_overlap_allowed:
                     # Check for coordinate overlap with existing child containers of the parent
-                    try:
-                        check_coordinate_overlap(self.location.children, self, self.location)
-                    except CoordinateError as e:
-                        add_error("coordinates", str(e))
-                    except Container.DoesNotExist:
-                        # Fine, the coordinates are free to use.
-                        pass
-
+                    overlap, error = detect_coordinate_overlap(self.location.children, self, self.location)
+                    if overlap:
+                        add_error("coordinates", error)
         if errors:
             raise ValidationError(errors)
 
