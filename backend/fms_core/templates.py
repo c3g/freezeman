@@ -160,7 +160,6 @@ LIBRARY_QC_TEMPLATE = {
       },
   ],
   "prefill info": [
-    # TODO queryset columns
     ("LibraryQC", "Library Name", "name"),
     ("LibraryQC", "Library Container Barcode", "container__barcode"),
     ("LibraryQC", "Library Container Coord", "coordinates"),
