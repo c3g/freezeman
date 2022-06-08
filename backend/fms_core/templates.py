@@ -208,7 +208,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
-  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
+  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_9_0.xlsx")},
   "sheets info": [
       {
           'name': 'Samples',
