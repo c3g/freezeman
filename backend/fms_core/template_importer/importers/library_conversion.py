@@ -6,6 +6,7 @@ from fms_core.template_importer.row_handlers.library_conversion import LibraryRo
 from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.utils import str_cast_and_normalize
 
 PROPERTIES_STARTING_INDEX = 4
 
@@ -53,8 +54,8 @@ class LibraryConversionImporter(GenericImporter):
                 row_i=row_id,
                 protocol=self.preloaded_data['protocol'],
                 process_properties=copy.deepcopy(process_properties),
-                platform=library_batch_dict['Platform'],
-                comment=library_batch_dict['Comment']
+                platform=str_cast_and_normalize(library_batch_dict['Platform']),
+                comment=str_cast_and_normalize(library_batch_dict['Comment'])
             )
 
             library_batch_info = dict(
@@ -76,18 +77,18 @@ class LibraryConversionImporter(GenericImporter):
             library_conversion_kwargs = {
                 'library_batch_info': library_batch_rows_data[row_data['Library Batch ID']],
                 'library_source':
-                    {'barcode': row_data['Library Source Container Barcode'],
-                     'coordinates': row_data['Library Source Container Coordinates'],
+                    {'barcode': str_cast_and_normalize(row_data['Library Source Container Barcode']),
+                     'coordinates': str_cast_and_normalize(row_data['Library Source Container Coordinates']),
                      },
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
-                'comment': row_data['Comment'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
                 'container':
-                    {'barcode': row_data['Destination Library Container Barcode'],
-                     'coordinates': row_data['Destination Library Container Coordinates'],
-                     'name': row_data['Destination Library Container Name'],
-                     'kind': row_data['Destination Library Container Kind'],
-                     'parent_barcode': row_data['Destination Library Parent Container Barcode'],
-                     'parent_coordinates': row_data['Destination Library Parent Container Coordinates']
+                    {'barcode': str_cast_and_normalize(row_data['Destination Library Container Barcode']),
+                     'coordinates': str_cast_and_normalize(row_data['Destination Library Container Coordinates']),
+                     'name': str_cast_and_normalize(row_data['Destination Library Container Name']),
+                     'kind': str_cast_and_normalize(row_data['Destination Library Container Kind']),
+                     'parent_barcode': str_cast_and_normalize(row_data['Destination Library Parent Container Barcode']),
+                     'parent_coordinates': str_cast_and_normalize(row_data['Destination Library Parent Container Coordinates'])
                      },
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                  }
