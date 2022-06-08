@@ -165,9 +165,8 @@ LIBRARY_QC_TEMPLATE = {
     ("LibraryQC", "Library Container Barcode", "container__barcode"),
     ("LibraryQC", "Library Container Coord", "coordinates"),
     ("LibraryQC", "Initial Volume (uL)", "volume"),
-    # ("LibraryQC", "Strandedness", "derived_samples__not_pool__library__strandedness"),   (doesn't work...)
-    #   ("LibraryQC", "Library size (bp)", "?"),
-      ],
+    ("LibraryQC", "Strandedness", "sample_strandedness"),
+    ],
 }
 
 

@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Count, Case, BooleanField
+from django.db.models import Q, When, Count, Case, BooleanField, F
 
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
@@ -22,6 +22,9 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
             default=None,
             output_field=BooleanField())
+    )
+    queryset = queryset.annotate(
+        sample_strandedness=F('derived_samples__library__strandedness')
     )
     serializer_class = LibrarySerializer
 
