@@ -73,11 +73,11 @@ class GenericImporter():
     def create_sheet_data(self, name, headers):
         try:
             if self.format == ".xlsx":
-                pd_sheet = pd.read_excel(self.file, sheet_name=name)
+                pd_sheet = pd.read_excel(self.file, sheet_name=name, header=None)
             elif self.format == ".csv" or format == ".txt":
-                pd_sheet = pd.read_csv(self.file)
+                pd_sheet = pd.read_csv(self.file, header=None)
             elif self.format == ".tsv":
-                pd_sheet = pd.read_csv(self.file, sep="\t")
+                pd_sheet = pd.read_csv(self.file, sep="\t", header=None)
             else:
                 self.base_errors.append(f"Template file format " + self.format + " not supported.")
                 return None
