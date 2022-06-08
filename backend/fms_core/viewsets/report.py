@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from fms_core.models import ProcessMeasurement, Project, Sample, SampleByProject
 import fms_core.services.report as service
 from django.db.models import Count, F, Q
+from django.contrib.postgres.aggregates import ArrayAgg
 from rest_framework.decorators import action
 from ._constants import _project_minimal_filterset_fields
 
@@ -23,34 +24,42 @@ class ReportViewSet(viewsets.ViewSet):
             end_date = datetime.today()
             start_date = end_date - timedelta(days=300)
 
-            samples_by_project = service.samples_by_project(project, start_date, end_date)
+            sbps = service.samples_by_project(project, start_date, end_date)
+            sbps = sbps.annotate(
+                child_of_count=Count("child_of"),
+                quality_flag=F("quality_flag"),
+                quantity_flag=F("quantity_flag"),
+            )
+            sbps = sbps.aggregate(
+                          libraries=ArrayAgg("sample__derived_samples__library"),
+                          extractions=ArrayAgg("sample__derived_samples__sample_kind__is_extracted"),
+                          sample_kinds=ArrayAgg("sample__derived_samples__sample_kind__name"),
+                      )
 
-            filters = {
-                "all": service.identity,
-                "collected": service.is_collected,
-                "extracted": service.extracted,
-                "library": service.is_library,
-            }
-            
-            for t, f in filters.items():
-                samples_by_project_ = f(samples_by_project)
+            filters = {}
 
-                response[t] = {}
-                response[t]["total"] = samples_by_project_.count()
+            for t in filters:
+                response.setdefault(t, {
+                            "total": 0,
+                            "qc": {
+                                "passed": 0,
+                                "failed": 0,
+                            },
+                            "kinds": {}
+                        })
 
-                response[t]["qc"] = {}
-                response[t]["qc"]["passed"] = service.annotate_qc(samples_by_project_) \
-                                                     .filter(Q(quality_flag=True) & Q(quantity_flag=True)) \
-                                                     .count()
-                response[t]["qc"]["failed"] = service.annotate_qc(samples_by_project_) \
-                                                     .filter(Q(quality_flag=False) | Q(quantity_flag=False)) \
-                                                     .count()
+            for sbp in sbps:
+                for t, f in filters.items():
+                    if f(sbp):
+                        response[t]["total"] += 1
 
-                response[t]["kinds"] = {}
-                for s in service.annotate_sample_kind(samples_by_project_):
-                    key = s.sample_kind_name.lower()
-                    prev = response[t]["kinds"].setdefault(key, 0)
-                    response[t]["kinds"][key] = prev + 1
+                        response[t]["qc"]["passed"] += (sbp.quality_flag == True and sbp.quantity_flag == True)
+                        response[t]["qc"]["failed"] += (sbp.quality_flag == False or sbp.quantity_flag == False)
+
+                        response[t].setdefault("kinds", {})
+                        key = sbp.sample_kind_name.lower()
+                        prev = response[t]["kinds"].setdefault(key, 0)
+                        response[t]["kinds"][key] = prev + 1
             
             return Response(response)
         else:
