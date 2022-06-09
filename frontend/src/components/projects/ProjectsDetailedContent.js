@@ -12,8 +12,8 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import ProjectsAssociatedSamples from "./ProjectsAssociatedSamples";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/projects/actions";
-import ProjectsCharts from "./charts/ProjectsCharts";
 import api, { withToken } from "../../utils/api";
+import { Pie } from '@ant-design/plots';
 
 const mapStateToProps = state => ({
     isFetching: state.projects.isFetching,
@@ -71,11 +71,7 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get, to
                             <Statistic title="Total" value={data.total} />
                             <Statistic title="Failed QC" value={data.qc.failed} />
                             <Statistic title="Passed QC" value={data.qc.passed} />
-                            {
-                                Object.entries(data.kinds).map(([kind, count]) => (
-                                    <Statistic title={kind} value={count} />
-                                ))
-                            }
+                            <SampleKindChart kinds={data.kinds} />
                         </Card>
                     ))
             }
@@ -84,5 +80,34 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get, to
         </PageContent>
     </>;
 };
+
+function SampleKindChart({kinds}) {
+    const data = Object.entries(kinds).map(([kind, count]) => ({
+        type: kind,
+        value: count
+    }))
+    const config = {
+        appendPadding: 10,
+        data,
+        angleField: 'value',
+        colorField: 'type',
+        radius: 0.75,
+        label: {
+          type: 'spider',
+          labelHeight: 28,
+          content: '{value} {name}\n{percentage}',
+        },
+        interactions: [
+          {
+            type: 'element-selected',
+          },
+          {
+            type: 'element-active',
+          },
+        ],
+      };
+    
+    return <Pie {...config} />
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProjectsDetailedContent);
