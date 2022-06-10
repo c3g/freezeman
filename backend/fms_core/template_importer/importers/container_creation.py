@@ -15,7 +15,7 @@ class ContainerCreationImporter(GenericImporter):
 
         for row_id, row_data in enumerate(containers_sheet.rows):
             container = {
-                'kind': row_data['Container Kind'],
+                'kind': str_cast_and_normalize(row_data['Container Kind']),
                 'name': str_cast_and_normalize(row_data['Container Name']),
                 'barcode': str_cast_and_normalize(row_data['Container Barcode']),
                 'coordinates': str_cast_and_normalize(row_data['Parent Container Coordinates']),
