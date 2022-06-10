@@ -8,6 +8,10 @@ def float_to_decimal_and_none(val):
     return float_to_decimal(val) if val is not None else None
 
 
+def input_to_integer_and_none(val):
+    return int(val) if val is not None else None
+
+
 def input_to_date_and_none(date_input):
     if not date_input: 
         return None

@@ -2,7 +2,7 @@ from fms_core.models import SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
 from fms_core.utils import str_cast_and_normalize
 
 class SampleSubmissionImporter(GenericImporter):
@@ -33,7 +33,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'alias': str_cast_and_normalize(row_data['Individual Alias']),
                 'sex': str_cast_and_normalize(row_data['Sex']),
                 'pedigree': str_cast_and_normalize(row_data['Pedigree']),
-                'taxon': int(row_data['NCBI Taxon ID #']),
+                'taxon': input_to_integer_and_none(row_data['NCBI Taxon ID #']),
                 'cohort': str_cast_and_normalize(row_data['Cohort']),
             }
             individual_mother = {
