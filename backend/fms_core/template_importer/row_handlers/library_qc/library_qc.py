@@ -73,7 +73,7 @@ class LibraryQCRowHandler(GenericRowHandler):
        
         # Set the process measurement properties
         process_measurement_properties['Concentration']['value'] = concentration
-        process_measurement_properties['Library Size'] = library_size
+        process_measurement_properties['Library Size']['value'] = library_size
         process_measurement_properties['Measured Volume']['value'] = measures['measured_volume']
         process_measurement_properties['Quality Instrument']['value'] = measures['quality_instrument']
         process_measurement_properties['Sample Quality QC Flag']['value'] = measures['quality_flag']
@@ -92,7 +92,7 @@ class LibraryQCRowHandler(GenericRowHandler):
                 self.errors['instrument'] = f'Invalid instrument {type} for {instrument}.'
 
         # Return if there are any validation errors
-        if self.errors:
+        if any(self.errors.values()):
             return
 
         # update the sample volume and concentration

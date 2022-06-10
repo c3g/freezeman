@@ -53,11 +53,11 @@ class LibraryQCImporter(GenericImporter):
         for row_id, row_data in enumerate(libraries_sheet.rows):
 
             process_measurement_properties = self.preloaded_data['process_properties']
-
-             #Populate process properties
-            # for i, (key, val) in enumerate(row_data.items()):
-            #     if key in TEMPLATE_PROPERTY_MAPPING.keys():
-            #         process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
+            # Make sure every property has a value property, even if it is not used.
+            # Otherwise create_process_measurement_properties will raise an exception when
+            # it tries to get the value for a property.
+            for property in process_measurement_properties.values():
+                property['value'] = None
 
             sample_container = {
                 'container_barcode': str_cast_and_normalize(row_data['Library Container Barcode']),
