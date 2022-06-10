@@ -28,7 +28,7 @@ class SheetData():
                 self.header_row_nb = i
                 break
 
-        if self.header_row_nb:
+        if self.header_row_nb is not None:
             self.prepare_rows()
         else:
             self.base_errors.append(f"SheetData headers could not be found for sheet " + self.name + ". Template may be outdated.")
