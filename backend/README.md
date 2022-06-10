@@ -180,5 +180,12 @@ homebrew then no user is created and you can use your MacOS user without sudo.
 After importing the new db data you will need to run migrations to bring the db
 up to date:
 ```
+cd backend
 python ./manage.py migrate
+```
+
+To run a specific migration, this command can be used where, as an example, `0039` refers to
+a specific migration file, `0039_v3_9_0.py`:
+```
+python ./manage.py migrate fms_core 0039
 ```
