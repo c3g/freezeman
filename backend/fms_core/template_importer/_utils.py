@@ -4,8 +4,8 @@ from fms_core.utils import float_to_decimal
 import datetime
 
 
-def float_to_decimal_and_none(val):
-    return float_to_decimal(val) if val is not None else None
+def float_to_decimal_and_none(val, decimals: int = 3):
+    return float_to_decimal(val, decimals) if val is not None else None
 
 
 def input_to_date_and_none(date_input):

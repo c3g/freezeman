@@ -8,7 +8,7 @@ import reversion
 ADMIN_USERNAME = 'biobankadmin'
 
 
-def create_library_qc_objects(apps, schema_editor):
+def add_property_types_for_library_qc(apps, schema_editor):
     Protocol = apps.get_model("fms_core", "Protocol")
     PropertyType = apps.get_model("fms_core", "PropertyType")
     ContentType = apps.get_model('contenttypes', 'ContentType')
@@ -17,37 +17,24 @@ def create_library_qc_objects(apps, schema_editor):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
         admin_user_id = admin_user.id
 
-        reversion.set_comment("Create objects related to protocol Library Quality Control")
+        reversion.set_comment("Add property type 'Library Size' for library QC")
         reversion.set_user(admin_user)
 
-        # Create PropertyType and Protocols
-        PROPERTY_TYPES_BY_PROTOCOL = {
-            # note: property type values must be unique so these all need the Library prefix
-            # (unless we mix and match types like 'Concentration' from different protocols?)
-            # TODO "When Sebastian merge his branch, the unique constraint will be with both
-            #  the name and the protocol id so they'll be unique."
-            "Library Quality Control": [("Library Quality QC Flag", "str"),
-                                       ("Library Quantity QC Flag", "str"),
-                                       ("Library Measured Volume", "str"),
-                                       ("Library Volume Used", "str"),
-                                       ("Library Concentration",  "str"),
-                                       ("Library Quantity Instrument", "str"),
-                                       ("Library Quality Instrument", "str")],
-        }
+        # Add a "Library Size" property type for library QC process measurements,
+        # associated with the Sample Quality Control protocol
+
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        sample_qc_protocol = Protocol.objects.get(name='Sample Quality Control')
+       
+        property_type = PropertyType.objects.create(name="Library Size",
+                                                    object_id=sample_qc_protocol.id,
+                                                    content_type=protocol_content_type,
+                                                    value_type="str",
+                                                    is_optional=False,
+                                                    created_by_id=admin_user_id,
+                                                    updated_by_id=admin_user_id)
 
-        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
-            protocol = Protocol.objects.create(name=protocol_name, created_by_id=admin_user_id, updated_by_id=admin_user_id)
-            reversion.add_to_revision(protocol)
-
-            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                pt = PropertyType.objects.create(name=property,
-                                                 object_id=protocol.id,
-                                                 content_type=protocol_content_type,
-                                                 value_type=value_type,
-                                                 is_optional=False,
-                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
-                reversion.add_to_revision(pt)
+        reversion.add_to_reversion(property_type)
 
 
 class Migration(migrations.Migration):
@@ -58,7 +45,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            create_library_qc_objects,
+            add_property_types_for_library_qc,
             reverse_code=migrations.RunPython.noop,
         )
     ]

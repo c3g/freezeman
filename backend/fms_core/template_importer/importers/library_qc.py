@@ -1,24 +1,25 @@
 import copy
-from fms_core.template_importer.row_handlers.library_qc.library_qc import LibraryQCRowHandler
+from collections import defaultdict
 
+from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.utils import str_cast_and_normalize
 from fms_core.models import PropertyType, Protocol, Process
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
 from fms_core.templates import LIBRARY_QC_TEMPLATE
-from collections import defaultdict
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
+from fms_core.template_importer.row_handlers.library_qc.library_qc import LibraryQCRowHandler
+
 
 PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
 
 # {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
 TEMPLATE_PROPERTY_MAPPING = {
-    "Measured Volume (uL)": "Library Measured Volume",
-    "Volume Used (uL)": "Library Volume Used",
-    "Concentration (ng/uL)": "Library Concentration",
-    "Quality Instrument": "Library Quality Instrument",
-    "Quality Flag": "Library Quality QC Flag",
-    "Quantity Instrument": "Library Quantity Instrument",
-    "Quantity Flag": "Library Quantity QC Flag",   
+    "Measured Volume (uL)": "Measured Volume",
+    "Concentration (ng/uL)": "Concentration",
+    "Quality Instrument": "Quality Instrument",
+    "Quality Flag": "Sample Quality QC Flag",
+    "Quantity Instrument": "Quantity Instrument",
+    "Quantity Flag": "Sample Quantity QC Flag",   
 }
 
 class LibraryQCImporter(GenericImporter):
@@ -30,8 +31,8 @@ class LibraryQCImporter(GenericImporter):
         self.initialize_data_for_template()
 
     def initialize_data_for_template(self):
-        #Get protocol for SampleQC
-        protocol = Protocol.objects.get(name='Library Quality Control')
+        #Get protocol for SampleQC, which is used for samples and libraries
+        protocol = Protocol.objects.get(name='Sample Quality Control')
 
          #Preload data
         self.preloaded_data = {'process': None, 'process_properties': {}}
@@ -54,37 +55,31 @@ class LibraryQCImporter(GenericImporter):
             process_measurement_properties = self.preloaded_data['process_properties']
 
              #Populate process properties
-            for i, (key, val) in enumerate(row_data.items()):
-                if key in TEMPLATE_PROPERTY_MAPPING.keys():
-                    process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
+            # for i, (key, val) in enumerate(row_data.items()):
+            #     if key in TEMPLATE_PROPERTY_MAPPING.keys():
+            #         process_measurement_properties[TEMPLATE_PROPERTY_MAPPING[key]]['value'] = val
 
             sample_container = {
-                'container_barcode': row_data['Library Container Barcode'],
-                'container_coord': row_data['Library Container Coord']
+                'container_barcode': str_cast_and_normalize(row_data['Library Container Barcode']),
+                'container_coord': str_cast_and_normalize(row_data['Library Container Coord'])
             }
 
             measures = {
                 'initial_volume': float_to_decimal_and_none(row_data['Initial Volume (uL)']),
                 'measured_volume': float_to_decimal_and_none(row_data['Measured Volume (uL)']),
-                'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Concentration (nM)']),
                 'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
-                'library_size': float_to_decimal_and_none(row_data['Library size (bp)']).to_integral_value()
+                'library_size': float_to_decimal_and_none(row_data['Library size (bp)'], 0),
+                'quality_instrument': str_cast_and_normalize(row_data['Quality Instrument']),
+                'quality_flag': str_cast_and_normalize(row_data['Quality Flag']),
+                'quantity_instrument': str_cast_and_normalize(row_data['Quantity Instrument']),
+                'quantity_flag': str_cast_and_normalize(row_data['Quantity Flag'])
             }
-
-            # qc = {
-            #     'quality_instrument': row_data['Quality Instrument'],
-            #     'quality_flag': row_data['Quality Flag'],
-            #     'quantity_instrument': row_data['Quantity Instrument'],
-            #     'quantity_flag': row_data['Quantity Flag'],
-            #     'qc_date': input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)']),
-            #     'comment': row_data['Comment']
-            # }
 
             process_measurement = {
                 'execution_date': input_to_date_and_none(row_data['QC Date (YYYY-MM-DD)']),
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
-                'comment': row_data['Comment'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
             }
 
             library_qc_kwargs = dict(
