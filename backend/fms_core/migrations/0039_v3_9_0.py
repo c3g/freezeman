@@ -34,7 +34,7 @@ def add_property_types_for_library_qc(apps, schema_editor):
                                                     created_by_id=admin_user_id,
                                                     updated_by_id=admin_user_id)
 
-        reversion.add_to_reversion(property_type)
+        reversion.add_to_revision(property_type)
 
 
 class Migration(migrations.Migration):
