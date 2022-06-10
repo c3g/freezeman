@@ -20,7 +20,7 @@ __all__ = [
     "ints",
 
     "validate_and_normalize_coordinates",
-    "detect_coordinate_overlap",
+    "check_coordinate_overlap",
 ]
 
 
@@ -76,6 +76,17 @@ def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str
         raise CoordinateError(f"Invalid coordinates {c} specified for coordinate system {coordinate_regex_str}")
 
     return c
+
+
+def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
+    """
+    Check for coordinate overlap with existing child containers/samples of the
+    parent using a queryset, assuming that the queried model has a coordinates
+    field which specifies possibly-overlapping item locations.
+    """
+    existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
+    raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing} at "
+                          f"coordinates {obj.coordinates}")
 
 def detect_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
     """
