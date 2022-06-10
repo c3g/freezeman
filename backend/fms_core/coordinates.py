@@ -87,15 +87,3 @@ def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container")
     existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
     raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing} at "
                           f"coordinates {obj.coordinates}")
-
-def detect_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
-    """
-    Check for coordinate overlap with existing child containers/samples of the
-    parent using a queryset, assuming that the queried model has a coordinates
-    field which specifies possibly-overlapping item locations.
-    """
-    error = None
-    exists = queryset.exclude(pk=obj.pk).filter(coordinates=obj.coordinates).exists()
-    if exists:
-        error = f"Parent container {parent} already contains {obj_type} at coordinates {obj.coordinates}"
-    return (exists, error)
