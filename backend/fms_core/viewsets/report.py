@@ -8,11 +8,13 @@ import fms_core.services.report as service
 from django.db.models import Count, F, Q
 from rest_framework.decorators import action
 
-def samples_by_project(project: Project) -> QuerySet[SampleByProject]:
-    return SampleByProject.objects.filter(project=project)
+def samples(sbps: QuerySet[SampleByProject]) -> QuerySet[Sample]:
+    s_ids = sbps.values_list("sample", flat=True)
+    ss = Sample.objects.filter(id__in=s_ids)
+    return ss
 
-def derived_samples(sbps: QuerySet[SampleByProject]) -> QuerySet[DerivedSample]:
-    ds_ids = sbps.values_list("sample__derived_samples", flat=True)
+def derived_samples(ss: QuerySet[Sample]) -> QuerySet[DerivedSample]:
+    ds_ids = ss.values_list("derived_samples", flat=True)
     dss = DerivedSample.objects.filter(id__in=ds_ids)
     return dss
 
@@ -27,15 +29,36 @@ class ReportViewSet(viewsets.ViewSet):
         project = Project.objects.filter(pk=projectId).first()
 
         if project:
+            sbps = SampleByProject.objects.filter(project=project)
 
-            sbps = samples_by_project(project)
+            ss = samples(sbps)
+            dss = derived_samples(ss)
 
-            dss = derived_samples(sbps)
+            pms = ProcessMeasurement.objects.filter(source_sample__in=ss)
+            extractions = pms.filter(process__protocol__name__icontains="extraction")
+            libration = pms.filter(process__protocol__name__icontains="library")
 
             response = {}
-            response["total"] = count_biosamples(dss)
-            response["extracted"] = count_biosamples(dss.filter(sample_kind__is_extracted=True))
-            response["libraried"] = count_biosamples(dss.filter(~Q(library=None)))
+
+            # biosample
+            response["biosample"] = {
+                "total": count_biosamples(dss),
+                "extracted": count_biosamples(dss.filter(sample_kind__is_extracted=True)),
+                "libraried": count_biosamples(dss.filter(~Q(library=None))),
+            }
+
+            # process measurement
+            response["protocol"] = {
+                "total": pms.count(),
+                "extraction": {
+                    "total": extractions.count(),
+                },
+                "library": libration.count(),
+            }
+
+            for name in extractions.annotate(dcount=Count("lineage__child__derived_samples")).filter(dcount__lte=1).values_list("lineage__child__derived_samples__sample_kind__name", flat=True):
+                response["protocol"]["extraction"].setdefault(name, 0)
+                response["protocol"]["extraction"][name] += 1
 
             return Response(response)
         else:
