@@ -4,7 +4,7 @@ from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
-from fms_core.services.library import set_library_size
+from fms_core.services.library import update_library
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
@@ -111,7 +111,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # set the library size on the library
         _, self.errors['library-size'], self.warnings['library-size'] = \
-           set_library_size(source_sample_obj, library_size)
+           update_library(source_sample_obj, **{'library_size': library_size})
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \

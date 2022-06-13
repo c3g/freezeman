@@ -1,10 +1,11 @@
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from datetime import date
 from fms_core.models import LibraryType, Library, DerivedBySample
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
-from fms_core.models._constants import SINGLE_STRANDED
+from fms_core.models._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED
 
 def get_library_type(name):
     library_type = None
@@ -163,3 +164,51 @@ def set_library_size(sample, library_size = None):
 
     return sample, errors, warnings
 
+
+def update_library(sample, **kwargs):
+    errors = []
+    warnings = []
+
+    if sample is None:
+        errors.append('Missing sample')
+    elif not sample.is_library:
+        errors.append('Sample {sample.name} is not a library')
+    else:
+        try:
+            library = sample.derived_sample_not_pool.library
+
+            if 'library_type' in kwargs:
+                library.library_type = kwargs['library_type']
+                pass
+
+            if 'platform' in kwargs:
+                library.platform = kwargs['platform']
+                pass
+
+            if 'index' in kwargs:
+                library.index = kwargs['index']
+                pass
+
+            if 'strandedness' in kwargs:
+                strandedness = kwargs['strandedness']
+                if strandedness is None or strandedness in STRANDEDNESS_CHOICES:
+                    library.strandedness = strandedness
+                else:
+                    errors.append(f'Unexpected value for strandedness ({strandedness})')
+                    
+            if 'library_size' in kwargs:
+                library_size = kwargs['library_size']
+                if library_size is not None:
+                    library_size = Decimal(kwargs['library_size'])
+                library.library_size = library_size
+
+            library.save()
+            
+        except Exception as e:
+            errors.append(str(e))
+
+    return sample, errors, warnings
+
+    
+
+    
