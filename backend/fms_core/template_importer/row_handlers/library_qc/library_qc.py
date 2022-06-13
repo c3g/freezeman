@@ -37,6 +37,9 @@ class LibraryQCRowHandler(GenericRowHandler):
             self.errors['measured_volume'] = 'Measured volume must be specified.'
         if measures['measured_volume'] < 0:
             self.errors['measured_volume'] = f'Measured volume must be a positive value.'
+        # If the measured volume > initial volume, output a warning in case this is a user error.
+        if measures['measured_volume'] > measures['initial_volume']:
+            self.warnings['measured_volume'] = f"Measured volume {measures['measured_volume']} is greater than initial volume {measures['initial_volume']}"
 
         if process_measurement['volume_used'] is None:
             self.errors['volume_used'] = 'Volume used must be specified.'
