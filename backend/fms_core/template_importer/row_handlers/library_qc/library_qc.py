@@ -20,10 +20,10 @@ class LibraryQCRowHandler(GenericRowHandler):
             get_sample_from_container(barcode=sample_container['container_barcode'], coordinates=sample_container['container_coord'])
 
         if source_sample_obj is None:
-            self.errors['sample_source'] = f"Library sample for QC was not found in container {sample_container['container_barcode']} at {sample_container['coordinates']}."
+            self.errors['library'] = f"Library sample for QC was not found in container {sample_container['container_barcode']} at {sample_container['coordinates']}."
 
         if not source_sample_obj.is_library:
-            self.errors['sample_source'] = f'The sample at the specified location is not a library: ${source_sample_obj.name}'
+            self.errors['sample'] = f'The sample at the specified location is not a library: ${source_sample_obj.name}'
 
         # volumes
         if measures['initial_volume'] is None:
@@ -75,14 +75,14 @@ class LibraryQCRowHandler(GenericRowHandler):
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
        
         # Set the process measurement properties
+        process_measurement_properties['Measured Volume']['value'] = measures['measured_volume']
         process_measurement_properties['Concentration']['value'] = concentration
         process_measurement_properties['Library Size']['value'] = library_size
-        process_measurement_properties['Measured Volume']['value'] = measures['measured_volume']
+        process_measurement_properties['Library Quality QC Flag']['value'] = measures['quality_flag']
         process_measurement_properties['Quality Instrument']['value'] = measures['quality_instrument']
-        process_measurement_properties['Sample Quality QC Flag']['value'] = measures['quality_flag']
+        process_measurement_properties['Library Quantity QC Flag']['value'] = measures['quantity_flag']
         process_measurement_properties['Quantity Instrument']['value'] = measures['quantity_instrument']
-        process_measurement_properties['Sample Quantity QC Flag']['value'] = measures['quantity_flag']
-       
+        
          # Validate instruments according to platform
         for instrument in INSTRUMENT_PROPERTIES:
             type = process_measurement_properties[instrument]['value']

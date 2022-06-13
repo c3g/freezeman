@@ -12,16 +12,6 @@ from fms_core.template_importer.row_handlers.library_qc.library_qc import Librar
 
 PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
 
-# {{TEMPLATE PROPERTY NAME : DB PROPERTY NAME}
-TEMPLATE_PROPERTY_MAPPING = {
-    "Measured Volume (uL)": "Measured Volume",
-    "Concentration (ng/uL)": "Concentration",
-    "Quality Instrument": "Quality Instrument",
-    "Quality Flag": "Sample Quality QC Flag",
-    "Quantity Instrument": "Quantity Instrument",
-    "Quantity Flag": "Sample Quantity QC Flag",   
-}
-
 class LibraryQCImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_QC_TEMPLATE['sheets info']
 
@@ -32,7 +22,7 @@ class LibraryQCImporter(GenericImporter):
 
     def initialize_data_for_template(self):
         #Get protocol for SampleQC, which is used for samples and libraries
-        protocol = Protocol.objects.get(name='Sample Quality Control')
+        protocol = Protocol.objects.get(name='Library Quality Control')
 
          #Preload data
         self.preloaded_data = {'process': None, 'process_properties': {}}

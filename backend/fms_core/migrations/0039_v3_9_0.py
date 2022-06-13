@@ -21,14 +21,15 @@ def add_property_types_for_library_qc(apps, schema_editor):
         reversion.set_user(admin_user)
 
         PROPERTY_TYPES_BY_PROTOCOL = {
-            "Library Quality Control": [("Quality QC Flag", "str"),
-                                        ("Quality Instrument", "str"),
-                                        ("Quantity QC Flag", "str"),
-                                        ("Quantity Instrument", "str"),
-                                        ("Measured Volume", "str"),
-                                        ("Volume Used", "str"),
-                                        ("Concentration",  "str"),
-                                        ("Library Size")],
+            "Library Quality Control": [
+                ("Measured Volume", "str"),
+                ("Concentration",  "str"),
+                ("Library Size", "str"),
+                ("Library Quality QC Flag", "str"),
+                ("Quality Instrument", "str"),
+                ("Library Quantity QC Flag", "str"),
+                ("Quantity Instrument", "str"),
+            ]                             
         }
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
