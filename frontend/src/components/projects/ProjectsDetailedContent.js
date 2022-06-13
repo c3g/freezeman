@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography, Spin, Row, Col, Card, Statistic} from "antd";
+import {Descriptions, Typography, Spin, Row, Col, Card, Statistic, Space} from "antd";
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
@@ -66,14 +66,39 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get, to
             {
                 summary == undefined
                     ? <Spin size={"large"} />
-                    : Object.entries(summary).map(([type, data]) => (
-                        <Card title={type}>
-                            <Statistic title="Total" value={data.total} />
-                            <Statistic title="Failed QC" value={data.qc.failed} />
-                            <Statistic title="Passed QC" value={data.qc.passed} />
-                            <SampleKindChart kinds={data.kinds} />
+                    : <Space>
+                        <Card title={"Submitted Samples"}>
+                            <Row>
+                                {Object.entries(summary.biosample).map(([k, v]) => {
+                                    return <Col style={{ margin: 12 }}>
+                                        <Statistic title={k} value={v} />
+                                    </Col>
+                                })}
+                            </Row>
                         </Card>
-                    ))
+                        <Card title={"Processes"} style={{ width: "fit-content" }}>
+                            <Space direction={"horizontal"}>
+                                <Statistic title={"total"} value={summary.protocol.total} style={{ margin: 12 }} />
+                                <Space direction={"vertical"} style={{ margin: 6 }}>
+                                    {Object.entries(summary.protocol.extraction).map(([k, v]) => {
+                                        return <Statistic title={`${k} extraction`} value={v} />
+                                    })}
+                                </Space>
+                                <Statistic title={"library prepared"} value={summary.protocol.library} />
+                            </Space>
+                        </Card>
+                        {Object.entries(summary.user).map(([username, counts]) => (
+                            <Card title={`User - ${username}`}>
+                                <Space direction={"horizontal"}>
+                                    <Space direction={"vertical"} style={{ margin: 6 }}>
+                                        {Object.entries(counts).map(([kind, count]) => {
+                                            return <Statistic title={kind} value={count} style={{ margin: 6 }} />
+                                        })}
+                                    </Space>
+                                </Space>
+                            </Card>
+                        ))}
+                    </Space>
             }
             <Title level={4} style={{ marginTop: '2rem' }}> Associated Samples </Title>
             <ProjectsAssociatedSamples projectID={project.id} />
