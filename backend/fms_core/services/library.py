@@ -159,15 +159,12 @@ def update_library(sample, **kwargs):
 
             if 'library_type' in kwargs:
                 library.library_type = kwargs['library_type']
-                pass
 
             if 'platform' in kwargs:
                 library.platform = kwargs['platform']
-                pass
 
             if 'index' in kwargs:
                 library.index = kwargs['index']
-                pass
 
             if 'strandedness' in kwargs:
                 strandedness = kwargs['strandedness']

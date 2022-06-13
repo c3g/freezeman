@@ -111,7 +111,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # set the library size on the library
         _, self.errors['library-size'], self.warnings['library-size'] = \
-           update_library(source_sample_obj, **{'library_size': library_size})
+           update_library(source_sample_obj, **process_measurement_properties)
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
