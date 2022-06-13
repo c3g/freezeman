@@ -20,21 +20,35 @@ def add_property_types_for_library_qc(apps, schema_editor):
         reversion.set_comment("Add property type 'Library Size' for library QC")
         reversion.set_user(admin_user)
 
-        # Add a "Library Size" property type for library QC process measurements,
-        # associated with the Sample Quality Control protocol
+        PROPERTY_TYPES_BY_PROTOCOL = {
+            "Library Quality Control": [("Quality QC Flag", "str"),
+                                        ("Quality Instrument", "str"),
+                                        ("Quantity QC Flag", "str"),
+                                        ("Quantity Instrument", "str"),
+                                        ("Measured Volume", "str"),
+                                        ("Volume Used", "str"),
+                                        ("Concentration",  "str"),
+                                        ("Library Size")],
+        }
 
         protocol_content_type = ContentType.objects.get_for_model(Protocol)
-        sample_qc_protocol = Protocol.objects.get(name='Sample Quality Control')
-       
-        property_type = PropertyType.objects.create(name="Library Size",
-                                                    object_id=sample_qc_protocol.id,
-                                                    content_type=protocol_content_type,
-                                                    value_type="str",
-                                                    is_optional=False,
-                                                    created_by_id=admin_user_id,
-                                                    updated_by_id=admin_user_id)
 
-        reversion.add_to_revision(property_type)
+        for protocol_name in PROPERTY_TYPES_BY_PROTOCOL.keys():
+            protocol = Protocol.objects.create(name=protocol_name, created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
+            reversion.add_to_revision(protocol)
+
+            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+                # All properties are required for library qc
+                is_optional = False
+                pt = PropertyType.objects.create(name=property,
+                                                 object_id=protocol.id,
+                                                 content_type=protocol_content_type,
+                                                 value_type=value_type,
+                                                 is_optional=is_optional,
+                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
+                reversion.add_to_revision(pt)
+
 
 
 class Migration(migrations.Migration):
