@@ -1,11 +1,18 @@
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from pandas import pandas as pd
 from django.db import transaction
+from django.utils import timezone
 import reversion
+import os
 
 from ..sheet_data import SheetData
 from .._utils import blank_and_nan_to_none
 from fms_core.utils import str_normalize
+
+from fms_core.models import ImportedFile
+
+UPLOAD_PATH = os.path.join(settings.MEDIA_ROOT, 'uploads/')
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -19,9 +26,12 @@ class GenericImporter():
         self.sheets = {}
         self.previews_info = []
 
-    def import_template(self, file, format, dry_run):
+    def import_template(self, file, dry_run, user = None):
         self.file = file
-        self.format = format
+        file_name, file_format = os.path.splitext(file.name)
+        self.format = file_format
+        self.imported_file = None
+        file_path = None
 
         if not self.format == ".xlsx" and len(self.SHEETS_INFO) > 1:
             self.base_errors.append(f"Templates with multiple sheets need to be submitted as xlsx files.")
@@ -46,13 +56,27 @@ class GenericImporter():
                         reversion.set_comment("Template import - dry run")
                     transaction.set_rollback(True)
                 else:
-                    self.import_template_inner()
+                    # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
+                    if user is not None:
+                        new_file_name = f"{file_name}_{timezone.now().strftime('%Y-%m-%d_%H:%M:%S')}_{user.username}{file_format}"
+                        file_path = os.path.join(UPLOAD_PATH, new_file_name)
+                        try:
+                            self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
+                        except Exception as err:
+                            self.base_errors.append(err)
+                    self.import_template_inner()                            
                     reversion.set_comment("Template import")
 
             # Add processed rows with errors/warnings/diffs to self.previews_info list
             for sheet in list(self.sheets.values()):
                 preview_info = sheet.generate_preview_info_from_rows_results(rows_results=sheet.rows_results)
                 self.previews_info.append(preview_info)
+
+            # Save the template on the server if the template is valid.
+            if self.is_valid and file_path is not None:
+                with open(file_path, "wb") as output:
+                    for line in self.file:
+                        output.write(line)
 
         has_warnings = False
         for sheet_preview in self.previews_info:
