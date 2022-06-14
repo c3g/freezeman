@@ -101,6 +101,7 @@ class ExperimentRunImporter(GenericImporter):
                 # Preloaded data
                 run_type_obj=self.preloaded_data['run_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],
+                imported_template=self.imported_file
             )
 
             (result, _) = self.handle_row(

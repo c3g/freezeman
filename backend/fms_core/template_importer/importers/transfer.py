@@ -23,6 +23,11 @@ class TransferImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['SampleTransfer']
 
+        # Add the template to the process
+        if self.imported_file is not None:
+            self.preloaded_data['process'].imported_template_id = self.imported_file.id
+            self.preloaded_data['process'].save()
+
         for row_id, row_data in enumerate(sheet.rows):
             volume_used_decimal = float_to_decimal_and_none(row_data['Volume Used (uL)'])
             transfer_date = input_to_date_and_none(row_data['Transfer Date'])
