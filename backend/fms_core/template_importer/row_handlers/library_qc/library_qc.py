@@ -15,43 +15,69 @@ class LibraryQCRowHandler(GenericRowHandler):
         super().__init__()
 
     def process_row_inner(self, sample_container, measures, process, process_measurement, process_measurement_properties):
-         # Get the library sample that was checked
-        source_sample_obj, self.errors['container'], self.warnings['container'] = \
-            get_sample_from_container(barcode=sample_container['container_barcode'], coordinates=sample_container['container_coord'])
 
+        barcode = sample_container['container_barcode']
+        coordinates = sample_container['container_coord']
+
+        if barcode is None:
+            self.errors['container'] = 'Library container barcode is missing'
+        
+        if coordinates is None:
+            self.errors['container'] = 'Library coordinates are missing'
+
+        source_sample_obj = None
+        if barcode and coordinates:    
+            # Get the library sample that was checked
+            source_sample_obj, self.errors['container'], self.warnings['container'] = \
+                get_sample_from_container(barcode=barcode, coordinates=coordinates)
+
+        # If library sample cannot be found then bail.
         if source_sample_obj is None:
-            self.errors['library'] = f"Library sample for QC was not found in container {sample_container['container_barcode']} at {sample_container['coordinates']}."
+            self.errors['library'] = f"Library sample for QC was not found in container ({barcode}) at ({coordinates})"
+            return
 
         if not source_sample_obj.is_library:
-            self.errors['sample'] = f'The sample at the specified location is not a library: ${source_sample_obj.name}'
+            self.errors['sample'] = f'The sample at {barcode}@{coordinates} is not a library ({source_sample_obj.name})'
 
         # volumes
-        if measures['initial_volume'] is None:
-            self.errors['initial_volume'] = 'Initial volume must be specified.'
-        else:
-            change_in_volume = abs(measures['initial_volume'] - source_sample_obj.volume)
-            if (change_in_volume) > 0.0:
-                self.warnings['initial volume'] = f"The current library volume {source_sample_obj.volume }uL differs from the initial volume {measures['initial_volume']}uL"
-            
-        if measures['measured_volume'] is None:
-            self.errors['measured_volume'] = 'Measured volume must be specified.'
-        if measures['measured_volume'] < 0:
-            self.errors['measured_volume'] = f'Measured volume must be a positive value.'
-        # If the measured volume > initial volume, output a warning in case this is a user error.
-        if measures['measured_volume'] > measures['initial_volume']:
-            self.warnings['measured_volume'] = f"Measured volume {measures['measured_volume']} is greater than initial volume {measures['initial_volume']}"
+        initial_volume = measures['initial_volume']
+        measured_volume = measures['measured_volume']
+        volume_used = process_measurement['volume_used']
+        sample_volume = source_sample_obj.volume
+        final_volume = None
+        
+        if initial_volume is None:
+            self.errors['initial_volume'] = 'Initial volume must be specified'
+        if measured_volume is None:
+            self.errors['measured_volume'] = 'Measured volume must be specified'
+        if volume_used is None:
+            self.errors['volume_used'] = 'Volume used must be specified'
+        if sample_volume is None:
+            self.errors['library volume'] = 'Library volume is missing'
 
-        if process_measurement['volume_used'] is None:
-            self.errors['volume_used'] = 'Volume used must be specified.'
-        if process_measurement['volume_used'] < 0:
-            self.errors['volume_used'] = 'Volume used must be a positive value.'
+        if not None in (initial_volume, measured_volume, volume_used, sample_volume):
+            if initial_volume < 0:
+                self.errors['initial_volume'] = f"Initial volume ({initial_volume}) must be a positive value."
 
-        delta_volume = measures['measured_volume'] - measures['initial_volume']
-        final_volume = source_sample_obj.volume + delta_volume - process_measurement['volume_used']
+            if measured_volume < 0:
+                self.errors['measured_volume'] = f'Measured volume ({measured_volume}) must be a positive value.'
+            elif measured_volume > initial_volume:
+                self.warnings['measured_volume'] = f"Measured volume {measured_volume} is greater than initial volume {initial_volume}"
 
-        change_in_initial_volume = abs(measures['initial_volume'] - source_sample_obj.volume)
-        if (change_in_initial_volume) > 0.0:
-            self.warnings['initial volume'] = f"The current library volume ({source_sample_obj.volume }uL) differs from the initial volume ({measures['initial_volume']}uL) in the template. The library volume will be set to {final_volume}uL."
+            if volume_used < 0:
+                self.errors['volume_used'] = f'Volume used ({volume_used}) must be a positive value.'
+            if volume_used > measured_volume:
+                self.errors['volume_used'] = f'Volume used ({volume_used}) is greater than measured volume ({measured_volume})'
+
+            delta_volume = measured_volume - initial_volume
+            final_volume = sample_volume + delta_volume - volume_used
+
+            change_in_initial_volume = abs(initial_volume - sample_volume)
+            if (change_in_initial_volume) > 0.0:
+                self.warnings['initial_volume'] = f"The current library volume ({sample_volume}uL) differs from the initial volume ({initial_volume}uL) in the template. The library volume will be set to {final_volume}uL."
+
+            if final_volume < 0:
+                self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume})'
 
         # library size
         library_size = measures['library_size']
@@ -75,7 +101,7 @@ class LibraryQCRowHandler(GenericRowHandler):
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
        
         # Set the process measurement properties
-        process_measurement_properties['Measured Volume']['value'] = measures['measured_volume']
+        process_measurement_properties['Measured Volume']['value'] = measured_volume
         process_measurement_properties['Concentration']['value'] = concentration
         process_measurement_properties['Library Size']['value'] = library_size
         process_measurement_properties['Library Quality QC Flag']['value'] = measures['quality_flag']
