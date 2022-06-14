@@ -1,3 +1,5 @@
+from decimal import Decimal
+from fms_core.models.sample import Sample
 from fms_core.services.sample import update_qc_flags
 from fms_core.models.instrument_type import InstrumentType
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
@@ -19,17 +21,8 @@ class LibraryQCRowHandler(GenericRowHandler):
         barcode = sample_container['container_barcode']
         coordinates = sample_container['container_coord']
 
-        if barcode is None:
-            self.errors['container'] = 'Library container barcode is missing'
-        
-        if coordinates is None:
-            self.errors['container'] = 'Library coordinates are missing'
-
-        source_sample_obj = None
-        if barcode and coordinates:    
-            # Get the library sample that was checked
-            source_sample_obj, self.errors['container'], self.warnings['container'] = \
-                get_sample_from_container(barcode=barcode, coordinates=coordinates)
+        source_sample_obj, self.errors['container'], self.warnings['container'] = \
+                    get_sample_from_container(barcode=barcode, coordinates=coordinates)
 
         # If library sample cannot be found then bail.
         if source_sample_obj is None:
@@ -37,7 +30,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             return
 
         if not source_sample_obj.is_library:
-            self.errors['sample'] = f'The sample at {barcode}@{coordinates} is not a library ({source_sample_obj.name})'
+            self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library '
 
         # volumes
         initial_volume = measures['initial_volume']
@@ -55,7 +48,7 @@ class LibraryQCRowHandler(GenericRowHandler):
         if sample_volume is None:
             self.errors['library volume'] = 'Library volume is missing'
 
-        if not None in (initial_volume, measured_volume, volume_used, sample_volume):
+        if not any(self.errors.values()):
             if initial_volume < 0:
                 self.errors['initial_volume'] = f"Initial volume ({initial_volume}) must be a positive value."
 
@@ -102,7 +95,7 @@ class LibraryQCRowHandler(GenericRowHandler):
        
         # Set the process measurement properties
         process_measurement_properties['Measured Volume']['value'] = measured_volume
-        process_measurement_properties['Concentration']['value'] = concentration
+        process_measurement_properties['Concentration']['value'] = round(concentration, 3)  # constrain to 3 decimal positions
         process_measurement_properties['Library Size']['value'] = library_size
         process_measurement_properties['Library Quality QC Flag']['value'] = measures['quality_flag']
         process_measurement_properties['Quality Instrument']['value'] = measures['quality_instrument']

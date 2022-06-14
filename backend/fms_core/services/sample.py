@@ -83,26 +83,29 @@ def get_sample_from_container(barcode, coordinates=None):
     errors = []
     warnings = []
 
-    try:
-        container = Container.objects.get(barcode=barcode)
-    except Container.DoesNotExist as e:
-        errors.append(f"Sample from container with barcode {barcode} not found.")
-
-    if container:
-        sample_info = dict(
-            container=container
-        )
-        if coordinates:
-            sample_info['coordinates'] = coordinates
+    if barcode is None:
+        errors.append("Barcode must be specified")
+    else:
         try:
-            sample = Sample.objects.get(**sample_info)
-        except Sample.DoesNotExist as e:
-            errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found.")
-        except Sample.MultipleObjectsReturned  as e:
+            container = Container.objects.get(barcode=barcode)
+        except Container.DoesNotExist as e:
+            errors.append(f"Sample from container with barcode {barcode} not found.")
+
+        if container:
+            sample_info = dict(
+                container=container
+            )
             if coordinates:
-                errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
-            else:
-                errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
+                sample_info['coordinates'] = coordinates
+            try:
+                sample = Sample.objects.get(**sample_info)
+            except Sample.DoesNotExist as e:
+                errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found.")
+            except Sample.MultipleObjectsReturned  as e:
+                if coordinates:
+                    errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
+                else:
+                    errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
 
     return (sample, errors, warnings)
 
