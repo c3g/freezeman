@@ -70,7 +70,7 @@ class LibraryQCRowHandler(GenericRowHandler):
                 self.warnings['initial_volume'] = f"The current library volume ({sample_volume}uL) differs from the initial volume ({initial_volume}uL) in the template. The library volume will be set to {final_volume}uL."
 
             if final_volume < 0:
-                self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume})'
+                self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume}). Please verify the volume currently stored for the library.'
 
         # library size
         library_size = measures['library_size']
@@ -92,10 +92,14 @@ class LibraryQCRowHandler(GenericRowHandler):
                 concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
                 if concentration is None:
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
+        
+        # Round concentration to 3 decimal places
+        if concentration is not None:
+            concentration = round(concentration, 3)
        
         # Set the process measurement properties
         process_measurement_properties['Measured Volume']['value'] = measured_volume
-        process_measurement_properties['Concentration']['value'] = round(concentration, 3)  # constrain to 3 decimal positions
+        process_measurement_properties['Concentration']['value'] = concentration
         process_measurement_properties['Library Size']['value'] = library_size
         process_measurement_properties['Library Quality QC Flag']['value'] = measures['quality_flag']
         process_measurement_properties['Quality Instrument']['value'] = measures['quality_instrument']
@@ -109,9 +113,9 @@ class LibraryQCRowHandler(GenericRowHandler):
                 it = InstrumentType.objects.get(type=type)
                 # Validate platform and type
                 if it.platform.name != QC_PLATFORM:
-                    self.errors['instrument_type'] = f'Invalid type: {it.platform} for instrument: {it.type}.'
+                    self.errors['instrument_type'] = f'Invalid type: ({it.platform}) for instrument: {it.type}.'
             except Exception as e:
-                self.errors['instrument'] = f'Invalid instrument {type} for {instrument}.'
+                self.errors['instrument'] = f'Invalid instrument ({type}) for {instrument}.'
 
         # Return if there are any validation errors
         if any(self.errors.values()):
