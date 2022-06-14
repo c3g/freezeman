@@ -149,7 +149,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
 }
 
 LIBRARY_QC_TEMPLATE = {
-  "identity": {"description": "Template to add library QC", "file": static("submission_templates/Library_QC_v3_9_0.xlsx")},
+  "identity": {"description": "Template to perform library quality control", "file": static("submission_templates/Library_QC_v3_9_0.xlsx")},
   "sheets info": [
       {
         'name': 'LibraryQC',
