@@ -84,7 +84,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
     # Retrieve library object linked to the source sample
     library_source_obj = sample_source.derived_sample_not_pool.library
     if not sample_source.is_library or library_source_obj is None:
-        errors.append(f"Sample in container {sample_source.name} is not a library.")
+        errors.append(f"Sample {sample_source.name} is not a library.")
     elif library_source_obj.platform == platform:
         errors.append(f"Source library platform and destination library platform can't be the same.")
 
