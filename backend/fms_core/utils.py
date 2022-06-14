@@ -1,3 +1,4 @@
+import decimal
 import re
 import unicodedata
 
@@ -96,6 +97,19 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weig
     molar_concentration = None
     if concentration is None or not molecular_weight or not molecule_count:  # Prevent division by 0 and operation on NoneType
         return molar_concentration
-    molar_concentration = (concentration / molecule_count * molecular_weight) * 1000000
+    molar_concentration = (concentration / (molecule_count * molecular_weight)) * 1000000
 
     return molar_concentration
+
+#TODO Test this
+def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, molecule_count) -> Decimal:
+    """
+    Gets a concentration in nM and convert it to molar concentration in ng/uL.
+    If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
+    the function returns None implying an erroneous state.
+    """
+    if concentration_nm is None or not molecular_weight or not molecule_count:
+        return None
+    concentration = (Decimal(concentration_nm) * Decimal(molecule_count) * Decimal(molecular_weight)) / Decimal(1000000)
+
+    return concentration
