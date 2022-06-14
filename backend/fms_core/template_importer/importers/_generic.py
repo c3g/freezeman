@@ -3,6 +3,7 @@ from django.conf import settings
 from pandas import pandas as pd
 from django.db import transaction
 from django.utils import timezone
+import time
 import reversion
 import os
 
@@ -58,7 +59,9 @@ class GenericImporter():
                 else:
                     # Save template on disk with modified name (append timestamp and id) and insert path in imported_file
                     if user is not None:
-                        new_file_name = f"{file_name}_{timezone.now().strftime('%Y-%m-%d_%H:%M:%S')}_{user.username}{file_format}"
+                        os.environ["TZ"] = settings.LOCAL_TZ
+                        time.tzset()
+                        new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H:%M:%S')}_{user.username}{file_format}"
                         file_path = os.path.join(UPLOAD_PATH, new_file_name)
                         try:
                             self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
