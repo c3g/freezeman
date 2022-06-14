@@ -14,7 +14,8 @@ def create_experiment_run(experiment_run_name,
                           samples_info,
                           process_properties,
                           comment=None,
-                          protocols_dict = None):
+                          protocols_dict=None, 
+                          imported_template=None):
     experiment_run = None
     errors = []
     warnings = []
@@ -27,7 +28,8 @@ def create_experiment_run(experiment_run_name,
     processes_by_protocol_id, process_errors, process_warnings = create_process(protocol=main_protocol,
                                                                                 creation_comment=comment if comment else f"Automatically generated via experiment run creation on {datetime.utcnow().isoformat()}Z",
                                                                                 create_children=True, 
-                                                                                children_protocols=protocols_dict[main_protocol])
+                                                                                children_protocols=protocols_dict[main_protocol],
+                                                                                imported_template=imported_template)
 
     # Create process' properties
     if not process_errors:

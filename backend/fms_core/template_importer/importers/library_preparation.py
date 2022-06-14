@@ -56,7 +56,8 @@ class LibraryPreparationImporter(GenericImporter):
                 process_properties=copy.deepcopy(process_properties),
                 library_type=str_cast_and_normalize(library_batch_dict['Library Type']),
                 platform=str_cast_and_normalize(library_batch_dict['Platform']),
-                comment=str_cast_and_normalize(library_batch_dict['Comment'])
+                comment=str_cast_and_normalize(library_batch_dict['Comment']),
+                imported_template=self.imported_file
             )
 
             library_batch_info = dict(
