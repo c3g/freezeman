@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from pandas import pandas as pd
 from django.db import transaction
-from django.utils import timezone
 import time
 import reversion
 import os
@@ -24,6 +23,8 @@ class GenericImporter():
 
         self.preloaded_data = {}
         self.file = None
+        self.format = None
+        self.imported_file = None
         self.sheets = {}
         self.previews_info = []
 
@@ -31,7 +32,6 @@ class GenericImporter():
         self.file = file
         file_name, file_format = os.path.splitext(file.name)
         self.format = file_format
-        self.imported_file = None
         file_path = None
 
         if not self.format == ".xlsx" and len(self.SHEETS_INFO) > 1:

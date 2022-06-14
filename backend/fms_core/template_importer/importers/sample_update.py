@@ -23,6 +23,11 @@ class SampleUpdateImporter(GenericImporter):
     def import_template_inner(self):
         sampleupdate_sheet = self.sheets['SampleUpdate']
 
+        # Add the template to the process
+        if self.imported_file is not None:
+            self.preloaded_data['process'].imported_template_id = self.imported_file.id
+            self.preloaded_data['process'].save()
+
         for row_id, row_data in enumerate(sampleupdate_sheet.rows):
             sample = {
                 'coordinates': str_cast_and_normalize(row_data['Coord (if plate)']),

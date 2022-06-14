@@ -55,7 +55,8 @@ class LibraryConversionImporter(GenericImporter):
                 protocol=self.preloaded_data['protocol'],
                 process_properties=copy.deepcopy(process_properties),
                 platform=str_cast_and_normalize(library_batch_dict['Platform']),
-                comment=str_cast_and_normalize(library_batch_dict['Comment'])
+                comment=str_cast_and_normalize(library_batch_dict['Comment']),
+                imported_template=self.imported_file
             )
 
             library_batch_info = dict(
