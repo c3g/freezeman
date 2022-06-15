@@ -12,7 +12,6 @@ from fms_core.utils import str_normalize
 
 from fms_core.models import ImportedFile
 
-UPLOAD_PATH = os.path.join(settings.MEDIA_ROOT, 'uploads/')
 
 class GenericImporter():
     ERRORS_CUTOFF = 20
@@ -61,8 +60,8 @@ class GenericImporter():
                     if user is not None:
                         os.environ["TZ"] = settings.LOCAL_TZ
                         time.tzset()
-                        new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H:%M:%S')}_{user.username}{file_format}"
-                        file_path = os.path.join(UPLOAD_PATH, new_file_name)
+                        new_file_name = f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}_{user.username}{file_format}"
+                        file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, new_file_name)
                         try:
                             self.imported_file = ImportedFile.objects.create(filename=new_file_name, location=file_path, created_by_id=user.id)
                         except Exception as err:
@@ -77,10 +76,12 @@ class GenericImporter():
 
             # Save the template on the server if the template is valid.
             if self.is_valid and file_path is not None:
-                with open(file_path, "wb") as output:
-                    for line in self.file:
-                        output.write(line)
-
+                try:  # Submission is rolled back by request transaction on failure. Inform the users to contact support.
+                    with open(file_path, "xb") as output:
+                        for line in self.file:
+                            output.write(line)
+                except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
+                    self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
         has_warnings = False
         for sheet_preview in self.previews_info:
             if any([r['warnings'] for r in sheet_preview['rows']]):
