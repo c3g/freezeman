@@ -194,6 +194,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 # uploaded files will be saved here
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
+
 MEDIA_URL = '/media/'
 
 

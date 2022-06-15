@@ -138,7 +138,8 @@ class TemplateActionsMixin:
         try:
             importer_instance.import_template(file=file, dry_run=False, user=request.user)
             if not importer_instance.is_valid:
-                return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
+                return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission",
+                                                          "base_errors": ", ".join(importer_instance.base_errors)}),
                                               content_type="application/json")
         except Exception as e:
             raise(e)
