@@ -8,6 +8,7 @@ from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize
 
 PROPERTIES_STARTING_INDEX = 6
+RUN_TYPE_INDEX = 2
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
@@ -72,7 +73,7 @@ class ExperimentRunImporter(GenericImporter):
 
 
         # PRELOADING - Set values for global data
-        runtype_name = experiments_df.values[1][1]
+        runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
 
         self.initialize_data_for_template(runtype=runtype_name,
                                           properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
