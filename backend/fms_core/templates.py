@@ -12,6 +12,7 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
+    "LIBRARY_QC_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -147,6 +148,27 @@ LIBRARY_PREPARATION_TEMPLATE = {
       ("Library", "Sample Container Coordinates", "coordinates"),],
 }
 
+LIBRARY_QC_TEMPLATE = {
+  "identity": {"description": "Template to perform library quality control", "file": static("submission_templates/Library_QC_v3_9_0.xlsx")},
+  "sheets info": [
+      {
+        'name': 'LibraryQC',
+        'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Initial Volume (uL)',
+                    'Measured Volume (uL)', 'Volume Used (uL)', 'Strandedness', 'Library size (bp)', 'Concentration (nM)',
+                    'Concentration (ng/uL)', 'NA Quantity (ng)', 'Quality Instrument', 'Quality Flag',
+                    'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment'],
+      },
+  ],
+  "prefill info": [
+    ("LibraryQC", "Library Name", "name"),
+    ("LibraryQC", "Library Container Barcode", "container__barcode"),
+    ("LibraryQC", "Library Container Coord", "coordinates"),
+    ("LibraryQC", "Initial Volume (uL)", "volume"),
+    ("LibraryQC", "Strandedness", "sample_strandedness"),
+    ],
+}
+
+
 SAMPLE_METADATA_TEMPLATE = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
   "sheets info": [
@@ -224,7 +246,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleTransfer',
-          'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 
+          'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
                       'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                       'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
                       'Volume Used (uL)', 'Transfer Date', 'Comment'],
@@ -235,7 +257,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
-  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_6_0.xlsx")},
+  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_9_0.xlsx")},
   "sheets info": [
       {
           'name': 'Samples',

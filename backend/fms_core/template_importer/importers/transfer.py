@@ -4,6 +4,7 @@ from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
 from fms_core.templates import SAMPLE_TRANSFER_TEMPLATE
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
+from fms_core.utils import str_cast_and_normalize
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_TRANSFER_TEMPLATE["sheets info"]
@@ -27,28 +28,28 @@ class TransferImporter(GenericImporter):
             transfer_date = input_to_date_and_none(row_data['Transfer Date'])
 
             source_sample = {
-                'coordinates': row_data['Source Container Coord'],
-                'container': {'barcode': row_data['Source Container Barcode']},
-                'depleted': row_data['Source Depleted'],
+                'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
+                'container': {'barcode': str_cast_and_normalize(row_data['Source Container Barcode'])},
+                'depleted': str_cast_and_normalize(row_data['Source Depleted']),
             }
 
             resulting_sample = {
-                'coordinates': row_data['Destination Container Coord'],
+                'coordinates': str_cast_and_normalize(row_data['Destination Container Coord']),
                 'volume': volume_used_decimal,
                 'creation_date': transfer_date,
                 'container': {
-                    'barcode': row_data['Destination Container Barcode'],
-                    'name': row_data['Destination Container Name'],
-                    'kind': row_data['Destination Container Kind'],
-                    'coordinates': row_data['Destination Parent Container Coord'],
-                    'parent_barcode': row_data['Destination Parent Container Barcode'],
+                    'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
+                    'name': str_cast_and_normalize(row_data['Destination Container Name']),
+                    'kind': str_cast_and_normalize(row_data['Destination Container Kind']),
+                    'coordinates': str_cast_and_normalize(row_data['Destination Parent Container Coord']),
+                    'parent_barcode': str_cast_and_normalize(row_data['Destination Parent Container Barcode']),
                 },
             }
 
             process_measurement = {
                 'execution_date': transfer_date,
                 'volume_used': volume_used_decimal,
-                'comment': row_data['Comment'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
                 'process': self.preloaded_data['process']
             }
 

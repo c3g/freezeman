@@ -1,4 +1,5 @@
 import reversion
+from decimal import Decimal
 
 from django.db import models
 from django.core.exceptions import ValidationError
@@ -10,6 +11,7 @@ from .index import Index
 
 from ._utils import add_error as _add_error
 from ._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED, SSDNA_MW, DSDNA_MW
+
 
 __all__ = ["Library"]
 
@@ -28,8 +30,8 @@ class Library(TrackedModel):
                                     help_text="Number of Library NA strands.")
 
     @property
-    def molecular_weight_approx(self) -> int:
-        return SSDNA_MW if self.strandedness is SINGLE_STRANDED else DSDNA_MW
+    def molecular_weight_approx(self):
+        return Decimal(SSDNA_MW if self.strandedness is SINGLE_STRANDED else DSDNA_MW)
     
     def clean(self):
         super().clean()

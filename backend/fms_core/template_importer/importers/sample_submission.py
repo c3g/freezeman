@@ -2,7 +2,8 @@ from fms_core.models import SampleKind
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
-from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
+from fms_core.utils import str_cast_and_normalize
 
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_SUBMISSION_TEMPLATE["sheets info"]
@@ -19,49 +20,49 @@ class SampleSubmissionImporter(GenericImporter):
 
         for row_id, row_data in enumerate(samples_sheet.rows):
             container = {
-                'kind': row_data['Container Kind'],
-                'name': row_data['Container Name'],
-                'barcode': row_data['Container Barcode'],
-                'coordinates': row_data['Container Coord'],
+                'kind': str_cast_and_normalize(row_data['Container Kind']),
+                'name': str_cast_and_normalize(row_data['Container Name']),
+                'barcode': str_cast_and_normalize(row_data['Container Barcode']),
+                'coordinates': str_cast_and_normalize(row_data['Container Coord']),
             }
             parent_container = {
-                'barcode': row_data['Location Barcode'],
+                'barcode': str_cast_and_normalize(row_data['Location Barcode']),
             }
             individual = {
-                'name': row_data['Individual ID'],
-                'alias': row_data['Individual Alias'],
-                'sex': row_data['Sex'],
-                'pedigree': row_data['Pedigree'],
-                'taxon': row_data['NCBI Taxon ID #'],
-                'cohort': row_data['Cohort'],
+                'name': str_cast_and_normalize(row_data['Individual ID']),
+                'alias': str_cast_and_normalize(row_data['Individual Alias']),
+                'sex': str_cast_and_normalize(row_data['Sex']),
+                'pedigree': str_cast_and_normalize(row_data['Pedigree']),
+                'taxon': input_to_integer_and_none(row_data['NCBI Taxon ID #']),
+                'cohort': str_cast_and_normalize(row_data['Cohort']),
             }
             individual_mother = {
-                'name': row_data['Mother ID'],
+                'name': str_cast_and_normalize(row_data['Mother ID']),
             }
             individual_father = {
-                'name': row_data['Father ID'],
+                'name': str_cast_and_normalize(row_data['Father ID']),
             }
             library = {
-                'library_type': row_data['Library Type'],
-                'index': row_data['Index'],
-                'platform': row_data['Platform'],
-                'strandedness': row_data['Strandedness'],
+                'library_type': str_cast_and_normalize(row_data['Library Type']),
+                'index': str_cast_and_normalize(row_data['Index']),
+                'platform': str_cast_and_normalize(row_data['Platform']),
+                'strandedness': str_cast_and_normalize(row_data['Strandedness']),
             }
             project = {
-                'name': row_data['Project'],
+                'name': str_cast_and_normalize(row_data['Project']),
             }
             sample = {
-                'name': row_data['Sample Name'],
-                'alias': row_data['Alias'],
-                'experimental_group': row_data['Experimental Group'],
+                'name': str_cast_and_normalize(row_data['Sample Name']),
+                'alias': str_cast_and_normalize(row_data['Alias']),
+                'experimental_group': str_cast_and_normalize(row_data['Experimental Group']),
                 'concentration': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
-                'collection_site': row_data['Collection Site'],
-                'tissue_source': row_data['Tissue Source'].upper() if row_data['Tissue Source'] else None,
+                'collection_site': str_cast_and_normalize(row_data['Collection Site']),
+                'tissue_source': str_cast_and_normalize(row_data['Tissue Source']).upper() if row_data['Tissue Source'] else None,
                 'creation_date': input_to_date_and_none(row_data['Reception Date']),
-                'comment': row_data['Comment'],
-                'coordinates': row_data['Sample Coord'],
-                'sample_kind': row_data['Sample Kind'],
+                'comment': str_cast_and_normalize(row_data['Comment']),
+                'coordinates': str_cast_and_normalize(row_data['Sample Coord']),
+                'sample_kind': str_cast_and_normalize(row_data['Sample Kind']),
             }
 
             sample_kwargs = dict(

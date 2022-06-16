@@ -5,8 +5,10 @@ from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 from collections import defaultdict
 from datetime import datetime
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
+from fms_core.utils import str_cast_and_normalize
 
 PROPERTIES_STARTING_INDEX = 6
+RUN_TYPE_INDEX = 2
 
 class ExperimentRunImporter(GenericImporter):
     SHEETS_INFO = EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
@@ -42,15 +44,15 @@ class ExperimentRunImporter(GenericImporter):
         samples_sheet = self.sheets['Samples']
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
-            sample = {'experiment_name': row_data['Experiment Name'],
+            sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
                       'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
-                      'experiment_container_coordinates': row_data['Experiment Container Coordinates'],
-                      'comment': row_data['Comment']
+                      'experiment_container_coordinates': str_cast_and_normalize(row_data['Experiment Container Coordinates']),
+                      'comment': str_cast_and_normalize(row_data['Comment'])
                       }
 
             sample_kwargs = dict(
-                barcode=row_data['Source Container Barcode'],
-                coordinates=row_data['Source Container Coordinates'],
+                barcode=str_cast_and_normalize(row_data['Source Container Barcode']),
+                coordinates=str_cast_and_normalize(row_data['Source Container Coordinates']),
                 volume_used=sample['volume_used']
             )
 
@@ -71,7 +73,7 @@ class ExperimentRunImporter(GenericImporter):
 
 
         # PRELOADING - Set values for global data
-        runtype_name = experiments_df.values[1][1]
+        runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
 
         self.initialize_data_for_template(runtype=runtype_name,
                                           properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
@@ -88,15 +90,15 @@ class ExperimentRunImporter(GenericImporter):
 
             experiment_run_kwargs = dict(
                 # ExperimentRun attributes data dictionary and related objects
-                experiment_run_name=experiment_run_dict['Experiment Name'],
-                instrument={'name': experiment_run_dict['Instrument Name']},
-                container={'barcode': experiment_run_dict['Experiment Container Barcode'],
-                           'kind': experiment_run_dict['Experiment Container Kind']},
+                experiment_run_name=str_cast_and_normalize(experiment_run_dict['Experiment Name']),
+                instrument={'name': str_cast_and_normalize(experiment_run_dict['Instrument Name'])},
+                container={'barcode': str_cast_and_normalize(experiment_run_dict['Experiment Container Barcode']),
+                           'kind': str_cast_and_normalize(experiment_run_dict['Experiment Container Kind'])},
                 start_date=input_to_date_and_none(experiment_run_dict['Experiment Start Date']),
-                comment=experiment_run_dict['Comment'],
+                comment=str_cast_and_normalize(experiment_run_dict['Comment']),
                 # Additional data for this row
                 process_properties=process_properties,
-                sample_rows_info=sample_rows_data[experiment_run_dict['Experiment Name']],
+                sample_rows_info=sample_rows_data[str_cast_and_normalize(experiment_run_dict['Experiment Name'])],
                 # Preloaded data
                 run_type_obj=self.preloaded_data['run_type'],
                 protocols_dict=self.preloaded_data['protocols_dict'],

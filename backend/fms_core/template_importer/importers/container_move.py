@@ -4,6 +4,8 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_move import ContainerRowHandler
 from fms_core.templates import CONTAINER_MOVE_TEMPLATE
 
+from fms_core.utils import str_cast_and_normalize
+
 class ContainerMoveImporter(GenericImporter):
     SHEETS_INFO = CONTAINER_MOVE_TEMPLATE["sheets info"]
 
@@ -15,12 +17,12 @@ class ContainerMoveImporter(GenericImporter):
 
         for row_id, row_data in enumerate(container_move_sheet.rows):
             container = {
-                'barcode': row_data['Container Barcode to move']
+                'barcode': str_cast_and_normalize(row_data['Container Barcode to move'])
             }
             destination_container = {
-                'destination_barcode': row_data['Dest. Location Barcode'],
-                'destination_coordinates': row_data['Dest. Location Coord'],
-                'comment': row_data['Update Comment'],
+                'destination_barcode': str_cast_and_normalize(row_data['Dest. Location Barcode']),
+                'destination_coordinates': str_cast_and_normalize(row_data['Dest. Location Coord']),
+                'comment': str_cast_and_normalize(row_data['Update Comment']),
             }
 
             container_move_kwargs = dict(
