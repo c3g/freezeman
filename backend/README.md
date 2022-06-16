@@ -146,3 +146,46 @@ algorithm. To manage it, here are the useful commands, to be run in the
 
 When updating the extension, you might need to run `drop extension fzy;` before uninstalling it and
 `create extension fzy;` after installing it.
+
+## Updating Your Local Database
+
+After each release, we update our local fms database with the latest data from prod.
+To update, you need to drop your current fms database and import a new one from a .pgsql
+file, which someone will generate post-release.
+
+The following shell script shows an example of the steps required on a Linux system:
+
+```
+echo '<<< Drop DB fms >>>'
+sudo -u postgres dropdb fms
+echo '<<< Create DB fms >>>'
+sudo -u postgres createdb fms
+sudo -u postgres psql < /home/ufgauthi/Work/freezeman/instance/RollbackDB.pgsql
+echo '<<< Set user permission >>>'
+sudo -u postgres psql -d fms -c 'ALTER ROLE admin CREATEDB;'
+```
+
+On OS X, you can run these commands in the terminal (replacing the path to the .pgsql file with your own path):
+```
+dropdb fms
+createdb fms
+psql -d fms < /Users/ckostiw/Downloads/2022-05-04.pgsql 
+psql -d fms -c 'ALTER ROLE admin CREATEDB;'
+```
+> Note: You may need to use `sudo -u <USER>` where `<USER>` is the user created
+for postgres (usually named "postgres") by the postgres installer. The downloadable
+installer from postgressql.org creates a 'postgres' user. If you install with
+homebrew then no user is created and you can use your MacOS user without sudo.
+
+After importing the new db data you will need to run migrations to bring the db
+up to date:
+```
+cd backend
+python ./manage.py migrate
+```
+
+To run a specific migration, this command can be used where, as an example, `0039` refers to
+a specific migration file, `0039_v3_9_0.py`:
+```
+python ./manage.py migrate fms_core 0039
+```
