@@ -82,6 +82,7 @@ class GenericImporter():
                             output.write(line)
                 except Exception as Err: # Either same file name already exists (unlikely) or lack of disk space (more likely)
                     self.base_errors.append(f"Could not save the template on server. Operation aborted. Contact support.")
+
         has_warnings = False
         for sheet_preview in self.previews_info:
             if any([r['warnings'] for r in sheet_preview['rows']]):
