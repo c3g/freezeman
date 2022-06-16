@@ -42,6 +42,11 @@ class SampleSelectionQPCRImporter(GenericImporter):
     def import_template_inner(self):
         sample_qpcr_sheet = self.sheets['Samples']
 
+        # Add the template to the process
+        if self.imported_file is not None:
+            self.preloaded_data['process'].imported_template_id = self.imported_file.id
+            self.preloaded_data['process'].save()
+
         for row_id, row_data in enumerate(sample_qpcr_sheet.rows):
             process_measurement_properties = self.preloaded_data['process_properties']
 

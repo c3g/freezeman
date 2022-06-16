@@ -171,6 +171,8 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
 
+LOCAL_TZ = 'America/Montreal'
+
 USE_I18N = True
 
 USE_L10N = True
@@ -191,6 +193,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles/')
 
 # uploaded files will be saved here
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 
 MEDIA_URL = '/media/'
 

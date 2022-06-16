@@ -12,7 +12,7 @@ class LibraryBatchRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, protocol, process_properties, library_type, platform, comment):
+    def process_row_inner(self, protocol, process_properties, library_type, platform, comment, imported_template=None):
 
         library_type_obj, self.errors['library_type'], self.warnings['library_type'] = \
             get_library_type(library_type)
@@ -22,7 +22,8 @@ class LibraryBatchRowHandler(GenericRowHandler):
         process_by_protocol, self.errors['library_preparation'], self.warnings['library_preparation'] = \
             create_process(protocol=protocol,
                            creation_comment=comment if comment
-                           else f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z")
+                           else f"Automatically generated via library preparation "f"on {datetime.utcnow().isoformat()}Z",
+                           imported_template=imported_template)
 
         # Create process' properties
         properties, self.errors['process_properties'], self.warnings['process_properties'] = \

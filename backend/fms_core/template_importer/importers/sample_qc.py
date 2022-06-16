@@ -44,6 +44,11 @@ class SampleQCImporter(GenericImporter):
     def import_template_inner(self):
         sample_qc_sheet = self.sheets['SampleQC']
 
+        # Add the template to the process
+        if self.imported_file is not None:
+            self.preloaded_data['process'].imported_template_id = self.imported_file.id
+            self.preloaded_data['process'].save()
+
         for row_id, row_data in enumerate(sample_qc_sheet.rows):
             process_measurement_properties = self.preloaded_data['process_properties']
 
