@@ -41,7 +41,7 @@ class SheetData():
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
 
-            row_repr = f"#{row_id + 2}"
+            row_repr = f"#{row_id + 1}"
 
             result = {
                 'row_repr': row_repr,
