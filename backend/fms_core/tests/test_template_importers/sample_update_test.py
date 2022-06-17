@@ -66,7 +66,3 @@ class SampleUpdateTestCase(TestCase):
                                              execution_date=self.update_date_2)
         self.assertEqual(pm2.volume_used, -self.delta_volume)
         self.assertEqual(pm2.process.protocol.name, 'Update')
-
-
-
-

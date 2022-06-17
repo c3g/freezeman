@@ -40,6 +40,8 @@ class Individual(TrackedModel):
                                help_text="Father of the individual.")
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
 
+    alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
+
     def __str__(self):
         return self.name
 

@@ -172,6 +172,11 @@ class Sample(TrackedModel):
             # TODO: This isn't performant for bulk ingestion
             # - Check for coordinate overlap with existing child containers of the parent
             if not errors.get("container") and not parent_spec.coordinate_overlap_allowed:
+                #TODO Exceptions should not be used for normal processing flow. In this case, we expect
+                # that Sample.DoesNotExist will be thrown if everything is okay (the normal case). 
+                # This should be refactored to use a "do_coordinates_overlap" function that returns a value, rather than throwing.
+                # Using exceptions like this makes debugging difficult, since the exception stops the
+                # debugger constantly.
                 try:
                     check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
                 except CoordinateError as e:

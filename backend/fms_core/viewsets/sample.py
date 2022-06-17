@@ -2,13 +2,15 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField
+from django.db.models import Q, When, Case, BooleanField, Prefetch
 from django.core.exceptions import ValidationError
+
+import time
 
 from ..utils import RE_SEPARATOR
 
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
-from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer, serialize_sample_export
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter
@@ -29,8 +31,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
             default=None,
-            output_field=BooleanField())
+            output_field=BooleanField()
         )
+    )
     serializer_class = SampleSerializer
 
     ordering_fields = (
@@ -101,6 +104,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
 
     def get_queryset(self):
+        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
+        self.queryset = self.queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -149,8 +156,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             derived_sample_data = dict(
                 biosample_id=biosample.id,
                 sample_kind_id=full_sample_data['sample_kind'],
-                **(dict(tissue_source=full_sample_data['tissue_source']) if full_sample_data[
-                                                                                'tissue_source'] is not None else dict()),
+                **(dict(tissue_source_id=full_sample_data['tissue_source']) if full_sample_data['tissue_source'] is not None else dict()),
             )
             if full_sample_data['experimental_group']:
                 derived_sample_data['experimental_group'] = json.dumps([
@@ -201,13 +207,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             container_id=full_sample['container'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
             **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
-            **(dict(concentration=full_sample['concentration']) if full_sample[
-                                                                       'concentration'] is not None else dict()),
+            **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 
         derived_sample_data = dict(
             sample_kind_id=full_sample['sample_kind'],
-            tissue_source=full_sample['tissue_source']
+            tissue_source_id=full_sample['tissue_source']
         )
 
         biosample_data = dict(
@@ -268,8 +273,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = SampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        return Response(serializer.data)
+        serializer_data = [serialize_sample_export(sample) for sample in self.filter_queryset(self.get_queryset())]
+        return Response(serializer_data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -278,6 +283,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
+
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):

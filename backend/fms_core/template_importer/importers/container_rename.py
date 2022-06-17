@@ -4,6 +4,8 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.container_rename import ContainerRowHandler
 from fms_core.templates import CONTAINER_RENAME_TEMPLATE
 
+from fms_core.utils import str_cast_and_normalize
+
 class ContainerRenameImporter(GenericImporter):
     SHEETS_INFO = CONTAINER_RENAME_TEMPLATE["sheets info"]
 
@@ -15,12 +17,12 @@ class ContainerRenameImporter(GenericImporter):
 
         for row_id, row_data in enumerate(container_rename_sheet.rows):
             container = {
-                'barcode': row_data['Old Container Barcode']
+                'barcode': str_cast_and_normalize(row_data['Old Container Barcode'])
             }
             container_rename = {
-                'new_barcode': row_data['New Container Barcode'],
-                'new_name': row_data['New Container Name'],
-                'comment': row_data['Update Comment'],
+                'new_barcode': str_cast_and_normalize(row_data['New Container Barcode']),
+                'new_name': str_cast_and_normalize(row_data['New Container Name']),
+                'comment': str_cast_and_normalize(row_data['Update Comment']),
             }
 
             container_rename_kwargs = dict(

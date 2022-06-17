@@ -16,7 +16,7 @@ class ExperimentRunRowHandler(GenericRowHandler):
 
 
     def process_row_inner(self, experiment_run_name, run_type_obj, instrument, container, start_date, comment,
-                          sample_rows_info, process_properties, protocols_dict):
+                          sample_rows_info, process_properties, protocols_dict, imported_template=None):
 
         instrument_obj, self.errors['instrument'], self.warnings['instrument'] = get_instrument(instrument['name'])
 
@@ -34,6 +34,7 @@ class ExperimentRunRowHandler(GenericRowHandler):
                                                                                               sample_rows_info,
                                                                                               process_properties,
                                                                                               comment,
-                                                                                              protocols_dict)
+                                                                                              protocols_dict,
+                                                                                              imported_template)
         else:
             self.errors['experiment'] = f"Errors prevent the creation of the experiment."

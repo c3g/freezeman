@@ -128,6 +128,9 @@ const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update,
           <Form.Item label="Name" {...props("name")} rules={requiredRules}>
             <Input />
           </Form.Item>
+          <Form.Item label="Alias" {...props("alias")}>
+            <Input />
+          </Form.Item>
           <Form.Item label="Taxon" {...props("taxon")}>
             <Select
               showSearch

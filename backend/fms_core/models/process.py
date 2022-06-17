@@ -5,6 +5,7 @@ from django.db import models
 
 from .tracked_model import TrackedModel
 from .protocol import Protocol
+from .imported_file import ImportedFile
 
 from ._utils import add_error as _add_error
 
@@ -16,6 +17,9 @@ class Process(TrackedModel):
     parent_process = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="child_process",
                                        help_text="Process in which this sub-process is contained")
     protocol = models.ForeignKey(Protocol, on_delete=models.PROTECT, related_name="processes", help_text="Protocol")
+    imported_template = models.ForeignKey(ImportedFile, blank=True, null=True,
+                                          on_delete=models.PROTECT,
+                                          help_text="Template used for submission.")
     comment = models.TextField(blank=True, help_text="Relevant information about the process.")
 
     def __str__(self):

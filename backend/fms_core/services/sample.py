@@ -83,26 +83,29 @@ def get_sample_from_container(barcode, coordinates=None):
     errors = []
     warnings = []
 
-    try:
-        container = Container.objects.get(barcode=barcode)
-    except Container.DoesNotExist as e:
-        errors.append(f"Sample from container with barcode {barcode} not found.")
-
-    if container:
-        sample_info = dict(
-            container=container
-        )
-        if coordinates:
-            sample_info['coordinates'] = coordinates
+    if barcode is None:
+        errors.append("Barcode must be specified")
+    else:
         try:
-            sample = Sample.objects.get(**sample_info)
-        except Sample.DoesNotExist as e:
-            errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found.")
-        except Sample.MultipleObjectsReturned  as e:
+            container = Container.objects.get(barcode=barcode)
+        except Container.DoesNotExist as e:
+            errors.append(f"Sample from container with barcode {barcode} not found.")
+
+        if container:
+            sample_info = dict(
+                container=container
+            )
             if coordinates:
-                errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
-            else:
-                errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
+                sample_info['coordinates'] = coordinates
+            try:
+                sample = Sample.objects.get(**sample_info)
+            except Sample.DoesNotExist as e:
+                errors.append(f"Sample from container with barcode {barcode} at coordinates {coordinates} not found.")
+            except Sample.MultipleObjectsReturned  as e:
+                if coordinates:
+                    errors.append(f"More than one sample in container with barcode {barcode} found at coordinates {coordinates}.")
+                else:
+                    errors.append(f"Multiple samples found in container with barcode {barcode}. You may want to specify coordinates.")
 
     return (sample, errors, warnings)
 
@@ -275,7 +278,7 @@ def extract_sample(process: Process,
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample in sample_source.derived_samples.all():
-                new_derived_sample_data["tissue_source"] = DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[derived_sample.sample_kind.name]
+                new_derived_sample_data["tissue_source_id"] = derived_sample.sample_kind.id
                 inherited_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample, new_derived_sample_data)
                 errors.extend(errors_inherit)
                 warnings.extend(warnings_inherit)

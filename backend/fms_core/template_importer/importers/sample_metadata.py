@@ -3,6 +3,7 @@ from fms_core.template_importer.row_handlers.sample_metadata import SampleMetada
 from fms_core.templates import SAMPLE_METADATA_TEMPLATE
 
 from .._utils import input_string_to_snake_case
+from fms_core.utils import str_cast_and_normalize
 
 METADATA_STARTING_INDEX = 4
 
@@ -33,11 +34,11 @@ class SampleMetadataImporter(GenericImporter):
 
             sample_metadata = dict(
                 # ExperimentRun attributes data dictionary and related objects
-                action=row_data['Action'].upper() if row_data['Action'] else None,
+                action=str_cast_and_normalize(row_data['Action']).upper() if row_data['Action'] else None,
                 sample_info={
-                    'name': row_data['Sample Name'],
-                    'container_barcode': row_data['Sample Container Barcode'],
-                    'container_coordinates': row_data['Sample Container Coordinates'],
+                    'name': str_cast_and_normalize(row_data['Sample Name']),
+                    'container_barcode': str_cast_and_normalize(row_data['Sample Container Barcode']),
+                    'container_coordinates': str_cast_and_normalize(row_data['Sample Container Coordinates']),
                 },
                 metadata=metadata,
             )

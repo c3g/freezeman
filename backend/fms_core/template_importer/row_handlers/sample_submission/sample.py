@@ -66,6 +66,7 @@ class SampleRowHandler(GenericRowHandler):
                                individual["sex"],
                                individual["pedigree"],
                                individual["cohort"],
+                               individual["alias"],
                                mother_obj,
                                father_obj])
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
@@ -80,6 +81,8 @@ class SampleRowHandler(GenericRowHandler):
                 self.errors['individual'].append(f"Individual pedigree requires an individual name to be provided to be saved.")
             if individual["cohort"]:
                 self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
+            if individual["alias"]:
+                self.errors['individual'].append(f"Individual alias requires an individual name to be provided to be saved.")
             if mother_obj:
                 self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
             if father_obj:
@@ -87,6 +90,7 @@ class SampleRowHandler(GenericRowHandler):
         elif individual["name"]:
             individual_obj, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
+                                         alias=individual['alias'],
                                          taxon=taxon_obj,
                                          sex=individual['sex'],
                                          pedigree=individual['pedigree'],
@@ -101,8 +105,16 @@ class SampleRowHandler(GenericRowHandler):
         try:
             sample_kind_obj = sample_kind_objects_by_name[sample['sample_kind']]
         except KeyError as e:
-            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found"]
+            self.errors['sample_kind'] = [f"Sample Kind {sample['sample_kind']} not found."]
         #TODO: sample kind str normalization
+        tissue_source_obj = None
+        if sample['tissue_source']:
+            try:
+                tissue_source_obj = sample_kind_objects_by_name[sample['tissue_source']]
+            except KeyError as e:
+                self.errors['tissue_source'] = [f"Tissue source {sample['tissue_source']} not found."]
+
+
 
         # Library are submitted
         library_obj = None
@@ -122,7 +134,7 @@ class SampleRowHandler(GenericRowHandler):
             sample_obj, self.errors['sample'], self.warnings['sample'] = \
                 create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
                                   creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                                  concentration=sample['concentration'], tissue_source=sample['tissue_source'],
+                                  concentration=sample['concentration'], tissue_source=tissue_source_obj,
                                   experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
                                   library=library_obj, sample_kind=sample_kind_obj, comment=comment)
 

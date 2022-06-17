@@ -108,7 +108,7 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         try:
-            result = importer_instance.import_template(file=file, format='xlsx', dry_run=True)
+            result = importer_instance.import_template(file=file, dry_run=True, user=request.user)
         except Exception as e:
             result = {
                 'valid': False,
@@ -136,9 +136,10 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         try:
-            importer_instance.import_template(file=file, format='xlsx', dry_run=False)
+            importer_instance.import_template(file=file, dry_run=False, user=request.user)
             if not importer_instance.is_valid:
-                return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission"}),
+                return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission",
+                                                          "base_errors": ", ".join(importer_instance.base_errors)}),
                                               content_type="application/json")
         except Exception as e:
             raise(e)

@@ -28,10 +28,10 @@ class SheetData():
                 self.header_row_nb = i
                 break
 
-        if self.header_row_nb:
+        if self.header_row_nb is not None:
             self.prepare_rows()
         else:
-            self.base_errors.append(f"SheetData headers could not be found.")
+            self.base_errors.append(f"SheetData headers could not be found for sheet " + self.name + ". Template may be outdated.")
 
 
     def prepare_rows(self):
@@ -41,7 +41,7 @@ class SheetData():
             row_data = self.dataframe.iloc[row_id]
             self.rows.append(row_data)
 
-            row_repr = f"#{row_id + 2}"
+            row_repr = f"#{row_id + 1}"
 
             result = {
                 'row_repr': row_repr,

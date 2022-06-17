@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from typing import Dict, Any
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
@@ -56,6 +57,7 @@ __all__ = [
     "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
+    "serialize_sample_export",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
@@ -317,15 +319,15 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
 
 class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
-    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.id")
+    sample_kind = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.sample_kind")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
     projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    individual = serializers.CharField(read_only=True, source="biosample_not_pool.individual.id")
+    individual = serializers.PrimaryKeyRelatedField(read_only=True, source="biosample_not_pool.individual")
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
+    tissue_source = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.tissue_source")
     quality_flag = serializers.SerializerMethodField()
     quantity_flag = serializers.SerializerMethodField()
     is_library = serializers.SerializerMethodField()
@@ -347,78 +349,54 @@ class SampleSerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
 
-class SampleExportSerializer(serializers.ModelSerializer):
-    sample_id = serializers.IntegerField(read_only=True, source="id")
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    sample_name = serializers.CharField(source="name")
-    individual_name = serializers.CharField(read_only=True, source="biosample_not_pool.individual.name")
-    taxon = serializers.CharField(read_only=True, source="biosample_not_pool.individual.taxon.name")
-    sex = serializers.CharField(read_only=True, source="biosample_not_pool.individual.sex")
-    pedigree = serializers.CharField(read_only=True, source="biosample_not_pool.individual.pedigree")
-    cohort = serializers.CharField(read_only=True, source="biosample_not_pool.individual.cohort")
-    mother_name = serializers.SerializerMethodField()
-    father_name = serializers.SerializerMethodField()
-    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
-    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
-    container_kind = serializers.CharField(read_only=True, source="container.kind")
-    container_name = serializers.CharField(read_only=True, source="container.name")
-    container_barcode = serializers.CharField(read_only=True, source="container.barcode")
-    location_coord = serializers.CharField(read_only=True, source="container.coordinates")
-    location_barcode = serializers.SerializerMethodField()
-    current_volume = serializers.SerializerMethodField()
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quantity_flag = serializers.SerializerMethodField()
-    quality_flag = serializers.SerializerMethodField()
-    depleted = serializers.SerializerMethodField()
-    # Library
-    is_library = serializers.SerializerMethodField()
+def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
+    first_derived_sample = sample.derived_sample_not_pool
+    biosample = first_derived_sample.biosample
+    return {
+        'sample_id': sample.id,
+        'sample_name': sample.name,
+        'biosample_id': biosample.id,
+        'alias': biosample.alias,
+        'sample_kind': first_derived_sample.sample_kind.name,
+        'tissue_source': first_derived_sample.tissue_source.name if first_derived_sample.tissue_source else "",
+        'container': sample.container,
+        'container_kind': sample.container.kind,
+        'container_name': sample.container.name,
+        'container_barcode': sample.container.barcode,
+        'coordinates': sample.coordinates,
+        'location_barcode': '' if sample.container and sample.container.location is None else sample.container.location.barcode,
+        'location_coord': sample.container.coordinates,
+        'current_volume': sample.volume if sample.volume else None,
+        'concentration': sample.concentration,
+        'creation_date': sample.creation_date,
+        'collection_site': biosample.collection_site,
+        'experimental_group': first_derived_sample.experimental_group,
+        'individual_name': biosample.individual.name,
+        'individual_alias': biosample.individual.alias,
+        'sex': biosample.individual.sex,
+        'taxon': biosample.individual.taxon.name,
+        'cohort': biosample.individual.cohort,
+        'father_name': '' if not biosample.individual or biosample.individual.father is None else biosample.individual.father.name,
+        'mother_name': '' if not biosample.individual or biosample.individual.mother is None else biosample.individual.mother.name,
+        'pedigree': biosample.individual.pedigree,
+        'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
+        'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
+        'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
+        'depleted': "Yes" if sample.depleted else "No",
+        'is_library': sample.is_library,
+        'comment': sample.comment,
+    }
 
+
+class SampleExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'sample_kind', 'tissue_source',
+        fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
-
-    def get_location_barcode(self, obj):
-        if obj.container and obj.container.location is None:
-            return ''
-        else:
-            return obj.container.location.barcode
-
-    def get_current_volume(self, obj):
-        return obj.volume if obj.volume else None
-
-    def get_father_name(self, obj):
-        father = '' if not obj.biosample_not_pool.individual or obj.biosample_not_pool.individual.father is None else obj.biosample_not_pool.individual.father.name
-        return father
-
-    def get_mother_name(self, obj):
-        mother = '' if not obj.biosample_not_pool.individual or obj.biosample_not_pool.individual.mother is None else obj.biosample_not_pool.individual.mother.name
-        return mother
-
-    def get_quality_flag(self, obj):
-        if obj.quality_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quality_flag else "Failed"
-
-    def get_quantity_flag(self, obj):
-        if obj.quantity_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quantity_flag else "Failed"
-
-    def get_depleted(self, obj):
-        return "Yes" if obj.depleted else "No"
-
-    def get_is_library(self, obj):
-        return obj.is_library
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):
@@ -429,7 +407,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
     collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
     experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source")
+    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source.name")
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     quantity_flag = serializers.SerializerMethodField()
     quality_flag = serializers.SerializerMethodField()

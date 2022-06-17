@@ -28,6 +28,7 @@ import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import {Depletion} from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
+import SampleDetailsLineage from "./SampleDetailsLineage";
 import {get as getSample, listVersions} from "../../../modules/samples/actions";
 import {get as getLibrary} from "../../../modules/libraries/actions";
 import api, {withToken} from "../../../utils/api";
@@ -113,6 +114,7 @@ const SampleDetailsContent = ({
   const isLoaded = samplesByID[id] && !sample.isFetching && !sample.didFail;
   const isFetching = !samplesByID[id] || sample.isFetching;
   const sampleKind = sampleKindsByID[sample.sample_kind]?.name
+  const tissueSource = sampleKindsByID[sample.tissue_source]?.name
   const volume = sample.volume ? parseFloat(sample.volume).toFixed(3) : undefined
   const container = containersByID[sample.container]
   const experimentalGroups = sample.experimental_group || [];
@@ -208,7 +210,7 @@ const SampleDetailsContent = ({
                 }
               </Descriptions.Item>
               <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
-              <Descriptions.Item label="Tissue Source">{sample.tissue_source}</Descriptions.Item>
+              <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
               <Descriptions.Item label="Experimental Groups" span={2}>
                   {experimentalGroups.map((g, i) =>
                       <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
@@ -324,6 +326,9 @@ const SampleDetailsContent = ({
           </Descriptions>
         </TabPane>
 
+        <TabPane tab={`Lineage`} key="6" style={tabStyle}>
+          <SampleDetailsLineage sample={sample}/>
+        </TabPane>
       </Tabs>
 
     </PageContent>

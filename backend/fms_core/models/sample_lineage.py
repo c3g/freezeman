@@ -32,14 +32,14 @@ class SampleLineage(TrackedModel):
             except MultipleObjectsReturned:
                 add_error("derived_sample", "Extraction child and/or parent has more than one derived sample.")
                 
-            if child_derived.sample_kind.name not in DerivedSample.BIOSPECIMEN_TYPES_NA:
+            if not child_derived.sample_kind.is_extracted:
                 add_error("sample_kind", "Extracted sample need to be a type of Nucleic Acid.")
-            if parent_derived.sample_kind.name in DerivedSample.BIOSPECIMEN_TYPES_NA:
+            if parent_derived.sample_kind.is_extracted:
                 add_error("extracted_from",
-                          f"Extraction process cannot be run on sample of type {', '.join(DerivedSample.BIOSPECIMEN_TYPES_NA)}.")
+                          "Extraction process cannot be run on samples of extracted kinds like DNA and RNA.")
             if not child_derived.tissue_source:
                 add_error("tissue_source", "Extracted sample need to have a tissue source.")
-            elif child_derived.tissue_source != DerivedSample.BIOSPECIMEN_TYPE_TO_TISSUE_SOURCE[parent_derived.sample_kind.name]:
+            elif child_derived.tissue_source != parent_derived.sample_kind:
                 add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
         elif protocol_name == "Transfer":
             if list(self.child.derived_samples.values_list("id", flat=True).order_by("id")) != list(self.parent.derived_samples.values_list("id", flat=True).order_by("id")):

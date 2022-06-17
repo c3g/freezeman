@@ -1,5 +1,7 @@
+from typing import Any, Dict, List, Tuple
+from django.db.models import F
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleLineage
+from fms_core.models import SampleLineage, Sample, DerivedBySample, ProcessMeasurement
 
 
 def create_sample_lineage(parent_sample, child_sample, process_measurement):
@@ -25,3 +27,47 @@ def create_sample_lineage(parent_sample, child_sample, process_measurement):
             errors.append(str(e))
 
     return (sample_lineage, errors, warnings)
+
+def create_sample_lineage_graph(sampleId: int) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
+    """
+    Generates a sample lineage of all samples that share the
+    same biosample ID of the `sampleId`. Returns a graph that
+    is acyclical and consists of `nodes` and `edges`.
+
+    Args:
+        `sampleId`: ID of an existing sample
+
+    Returns:
+        `Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]` consisting of `nodes`, `edges` and `errors`.
+        Each node consists of sample `"name"`, `"quality_flag"` and `"quantity_flag"`.
+        Each edge consists of process `"id"`, `"source_sample"`, `"child_sample"`, `"protocol_name"`.
+        `errors` contains an error if the ID in `sampleId` does not correspond
+        to an existing sample.
+
+    """
+
+    errors = []
+    nodes = []
+    edges = []
+
+    if not Sample.objects.filter(pk=sampleId).exists():
+        errors.append(f"Sample with id ${sampleId} does not exist")
+
+    if not errors:
+        biosampleIds = DerivedBySample.objects.filter(sample__id=sampleId) \
+                                              .values_list("derived_sample__biosample_id", flat=True)
+
+        derivedBySamples = DerivedBySample.objects.filter(derived_sample__biosample__id__in=biosampleIds) \
+                                                  .annotate(name=F("sample__name")) \
+                                                  .annotate(quality_flag=F("sample__quality_flag")) \
+                                                  .annotate(quantity_flag=F("sample__quantity_flag")) \
+
+        sampleIds = derivedBySamples.values_list("sample__id", flat=True)
+        process_measurements = ProcessMeasurement.objects.filter(source_sample__in=sampleIds) \
+                                                         .annotate(child_sample=F("lineage__child")) \
+                                                         .annotate(protocol_name=F("process__protocol__name"))
+
+        nodes = list(derivedBySamples.values("name", "quality_flag", "quantity_flag").annotate(id=F("sample_id")))
+        edges = list(process_measurements.values("id", "source_sample", "child_sample", "protocol_name"))
+    
+    return (nodes, edges, errors)

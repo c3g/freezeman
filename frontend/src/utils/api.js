@@ -204,6 +204,10 @@ const api = {
   query: {
     search: q => get("/query/search/", { q }, { abort: true }),
   },
+
+  sample_lineage: {
+    get: sampleId => get(`/sample-lineage/${sampleId}/graph`)
+  }
 };
 
 
