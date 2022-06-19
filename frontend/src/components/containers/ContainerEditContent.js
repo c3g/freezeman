@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Alert, Button, Form, Input, Select} from "antd";
 const {Option} = Select;
 const {Item} = Form;
@@ -27,7 +27,7 @@ const mapStateToProps = state => ({
 const actionCreators = {add, update, listTable, summary};
 
 const ContainerEditContent = ({token, containerKinds, containersByID, add, update, listTable, summary}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
   const isAdding = id === undefined
 

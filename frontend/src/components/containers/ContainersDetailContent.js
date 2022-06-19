@@ -1,6 +1,6 @@
 import React from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams, Link} from "react-router-dom";
+import {useNavigate, useParams, Link} from "react-router-dom";
 import {Space, Descriptions, Typography, List, Tabs} from "antd";
 const {Title} = Typography;
 const {TabPane} = Tabs;
@@ -43,7 +43,7 @@ const ContainersDetailContent = ({
   get,
   listParents
 }) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
 
   const container = containersByID[id] || {};

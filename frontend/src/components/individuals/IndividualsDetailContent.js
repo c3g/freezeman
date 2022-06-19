@@ -1,7 +1,7 @@
 import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Descriptions, Typography} from "antd";
 const {Title} = Typography;
 
@@ -21,7 +21,7 @@ const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
 const IndividualsDetailContent = ({individualsByID, taxonsByID, get}) => {
-    const history = useHistory();
+    const history = useNavigate();
     const {id} = useParams();
     const isLoaded = id in individualsByID;
     const individual = individualsByID[id] || {};

@@ -1,6 +1,6 @@
 import React, {useState, useRef} from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Alert, Button, Form, Input, Tag, Typography} from "antd";
 import { UserOutlined } from "@ant-design/icons";
 
@@ -29,7 +29,7 @@ const mapStateToProps = state => ({
 const actionCreators = {updateSelf};
 
 const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const [state, setState] = useState({ message: undefined, success: undefined });
 
 

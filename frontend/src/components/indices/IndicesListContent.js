@@ -1,6 +1,6 @@
 import React from "react";
 import {connect} from "react-redux";
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {Button} from "antd";
 import {CheckOutlined} from "@ant-design/icons";
 
@@ -129,7 +129,7 @@ const IndicesListContent = ({
 
   const nFilters = getNFilters(filters)
 
-  const history = useHistory();
+  const history = useNavigate();
 
   return <>
     <AppPageHeader title="Indices" extra={[

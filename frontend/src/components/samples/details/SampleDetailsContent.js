@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 
 import {QCFlag} from "../../QCFlag";
 import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
@@ -104,7 +104,7 @@ const SampleDetailsContent = ({
   getSample,
   listVersions
 }) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
 
   const [timelineMarginLeft, timelineRef] = useTimeline();

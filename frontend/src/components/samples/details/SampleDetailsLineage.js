@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
@@ -23,7 +23,7 @@ const SampleDetailsLineage = ({
   token,
   sample,
 }) => {
-  const history = useHistory()
+  const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })

@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {useHistory, useRouteMatch} from "react-router-dom";
+import {useNavigate, useRouteMatch} from "react-router-dom";
 import PropTypes from "prop-types";
 import {Menu, Dropdown, Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
@@ -38,7 +38,7 @@ const submitRequests = {
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const match = useRouteMatch();
 
   const actionIndex = parseInt(match.params.action, 10) || 0;

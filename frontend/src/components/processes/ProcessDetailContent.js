@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Button, Descriptions, Typography, Tabs, notification} from "antd";
 const {TabPane} = Tabs;
 const {Title} = Typography;
@@ -31,7 +31,7 @@ const ProcessDetailContent = ({
   getProcess,
   token
 }) => {
-    const history = useHistory();
+    const history = useNavigate();
     const {id} = useParams();
     const isLoaded = id in processesByID;
     const process = processesByID[id] || {};

@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {
   Alert,
   AutoComplete,
@@ -57,7 +57,7 @@ const mapStateToProps = state => ({
 const actionCreators = {add, update, listTable, summary};
 
 const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTable, summary}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
   const isAdding = id === undefined
 

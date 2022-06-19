@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Alert, Button, Form, Input, Radio, Select} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
@@ -30,7 +30,7 @@ const mapStateToProps = state => ({
 const actionCreators = {add, update, listTable};
 
 const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update, listTable}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
   const isAdding = id === undefined
 

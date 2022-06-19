@@ -1,7 +1,7 @@
 import React from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Descriptions, Typography, Spin} from "antd";
 const {Title} = Typography;
 
@@ -23,7 +23,7 @@ const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
 const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) => {
-    const history = useHistory();
+    const history = useNavigate();
     const {id} = useParams();
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};

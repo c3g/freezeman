@@ -1,6 +1,6 @@
 import React, {useState, useRef} from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Alert, Button, Checkbox, Form, Input, Select, Tag} from "antd";
 
 import {withUser} from "../../utils/withItem"
@@ -29,7 +29,7 @@ const mapStateToProps = state => ({
 const actionCreators = {add, update, listTable};
 
 const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
   const isAdding = id === undefined
   const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)

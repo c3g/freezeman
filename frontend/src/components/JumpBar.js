@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState, useRef} from "react";
 import {connect} from "react-redux";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {
   UserOutlined,
   TableOutlined,
@@ -41,7 +41,7 @@ const JumpBar = (props) => {
   const [error, setError] = useState(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const [items, setItems] = useState(lastItems);
-  const history = useHistory();
+  const history = useNavigate();
   const selectRef = useRef();
 
   const search = useMemo(() => debounce(150, query => {

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {
   Alert,
   Button,
@@ -41,7 +41,7 @@ const mapStateToProps = state => ({
 const actionCreators = {list, validate};
 
 const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate}) => {
-  const history = useHistory();
+  const history = useNavigate();
 
   /*
    * State management

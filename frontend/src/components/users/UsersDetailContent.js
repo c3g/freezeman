@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {set} from "object-path-immutable";
 import {
   Button,
@@ -56,7 +56,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {get, listRevisions, listVersions};
 
 const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions}) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isLoadRevisions, setIsLoadRevisions] = useState(false);

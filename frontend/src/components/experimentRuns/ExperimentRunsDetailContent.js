@@ -1,6 +1,6 @@
 import React from "react";
 import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {Descriptions, Tag, Tabs} from "antd";
 const { TabPane } = Tabs;
 
@@ -54,7 +54,7 @@ const ExperimentRunsDetailContent = ({
   listPropertyValues,
   propertyValuesByID,
 }) => {
-  const history = useHistory();
+  const history = useNavigate();
   const {id} = useParams();
 
   const experimentRun = experimentRunsByID[id] || {};
