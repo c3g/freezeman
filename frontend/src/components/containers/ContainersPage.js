@@ -1,5 +1,5 @@
 import React from "react";
-import {Navigate, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import ContainerEditContent from "./ContainerEditContent";
 import ContainersDetailContent from "./ContainersDetailContent";
@@ -8,14 +8,14 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const ContainersPage = () => <PageContainer>
-  <Switch>
+  <Routes>
     <Route path="/containers/list"><ContainersListContent /></Route>
     <Route path="/containers/actions/:action"><ActionContent templateType="container" /></Route>
     <Route path="/containers/add"><ContainerEditContent /></Route>
     <Route path="/containers/:id/update"><ContainerEditContent /></Route>
     <Route path="/containers/:id"><ContainersDetailContent /></Route>
     <Navigate to="/containers/list" />
-  </Switch>
+  </Routes>
 </PageContainer>;
 
 export default ContainersPage;

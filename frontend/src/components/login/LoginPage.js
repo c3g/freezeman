@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {useNavigate, useLocation, Route, Switch} from "react-router-dom";
+import {useNavigate, useLocation, Route, Routes} from "react-router-dom";
 import {Card} from "antd";
 
 import {performAuth} from "../../modules/auth/actions";
@@ -47,14 +47,14 @@ const LoginPage = ({isFetching, isAuthenticated, login}) => {
   return (
     <div style={containerStyle}>
       <Card style={cardStyle}>
-        <Switch>
+        <Routes>
           <Route exact path="/login">
             <LoginForm login={login} isFetching={isFetching} />
           </Route>
           <Route exact path="/login/forgot-password">
             <ResetPasswordForm />
           </Route>
-        </Switch>
+        </Routes>
       </Card>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, {useRef} from "react";
-import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
+import {Button, Input, InputNumber, Radio, Select, Routes, Space, Tooltip, DatePicker} from "antd";
 import {SearchOutlined} from "@ant-design/icons";
 import moment from 'moment';
 
@@ -73,7 +73,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
           />
           <div style={{ padding: 8, alignItems: 'right' }}>
             <Tooltip title="Exact Match">
-              <Switch
+              <Routes
                 size="large"
                 checkedChildren="Exact"
                 unCheckedChildren="Exact"
@@ -84,7 +84,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
             </Tooltip>
             {description.recursive &&
               <Tooltip title="Exhaustive">
-                <Switch
+                <Routes
                   checkedChildren="Recursive"
                   unCheckedChildren="Recursive"
                   checked={options?.recursiveMatch ?? false}

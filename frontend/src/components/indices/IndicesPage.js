@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Navigate, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import IndicesListContent from "./IndicesListContent";
 import IndicesDetailedContent from "./IndicesDetailedContent";
@@ -10,13 +10,13 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const IndicesPage = () => <PageContainer>
-  <Switch>
+  <Routes>
     <Route path="/indices/list"><IndicesListContent /></Route>
     <Route path="/indices/actions/:action"><ActionContent templateType="index" /></Route>
     <Route path="/indices/validate"><IndicesValidate/></Route>
     <Route path="/indices/:id"><IndicesDetailedContent/></Route>
     <Navigate to="/indices/list" />
-  </Switch>
+  </Routes>
 </PageContainer>;
 
 export default IndicesPage;

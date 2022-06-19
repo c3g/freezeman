@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
-import {Navigate, Route, Switch, withRouter} from "react-router-dom";
+import {Navigate, Route, Routes, withRouter} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import {
   AuditOutlined,
@@ -204,7 +204,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
           </Layout.Sider>
         }
         <Layout.Content style={{position: "relative"}}>
-          <Switch>
+          <Routes>
             <Route path="/login">
               <LoginPage/>
             </Route>
@@ -248,7 +248,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
               <About/>
             </PrivateRoute>
             <Navigate from="/" to="/dashboard" />
-          </Switch>
+          </Routes>
         </Layout.Content>
       </Layout>
     </Layout>
