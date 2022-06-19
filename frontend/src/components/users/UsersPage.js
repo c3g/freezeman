@@ -1,5 +1,5 @@
 import React from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Switch} from "react-router-dom";
 
 import UserEditContent from "./UserEditContent";
 import UsersDetailContent from "./UsersDetailContent";
@@ -12,7 +12,7 @@ const UsersPage = () => <PageContainer>
     <Route path="/users/add"><UserEditContent /></Route>
     <Route path="/users/:id/update"><UserEditContent /></Route>
     <Route path="/users/:id"><UsersDetailContent /></Route>
-    <Redirect to="/users/list" />
+    <Navigate to="/users/list" />
   </Switch>
 </PageContainer>;
 

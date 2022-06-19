@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
-import {Redirect, Route, Switch, withRouter} from "react-router-dom";
+import {Navigate, Route, Switch, withRouter} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import {
   AuditOutlined,
@@ -247,7 +247,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             <PrivateRoute path="/about">
               <About/>
             </PrivateRoute>
-            <Redirect from="/" to="/dashboard" />
+            <Navigate from="/" to="/dashboard" />
           </Switch>
         </Layout.Content>
       </Layout>

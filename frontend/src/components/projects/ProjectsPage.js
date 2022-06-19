@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Switch} from "react-router-dom";
 
 import ProjectsListContent from "./ProjectsListContent";
 import ProjectEditContent from "./ProjectEditContent";
@@ -15,7 +15,7 @@ const ProjectsPage = () => <PageContainer>
     <Route path="/projects/add"><ProjectEditContent /></Route>
     <Route path="/projects/:id/update"><ProjectEditContent /></Route>
     <Route path="/projects/:id"><ProjectsDetailedContent/></Route>
-    <Redirect to="/projects/list" />
+    <Navigate to="/projects/list" />
   </Switch>
 </PageContainer>;
 

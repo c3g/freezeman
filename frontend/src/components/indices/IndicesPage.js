@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Switch} from "react-router-dom";
 
 import IndicesListContent from "./IndicesListContent";
 import IndicesDetailedContent from "./IndicesDetailedContent";
@@ -15,7 +15,7 @@ const IndicesPage = () => <PageContainer>
     <Route path="/indices/actions/:action"><ActionContent templateType="index" /></Route>
     <Route path="/indices/validate"><IndicesValidate/></Route>
     <Route path="/indices/:id"><IndicesDetailedContent/></Route>
-    <Redirect to="/indices/list" />
+    <Navigate to="/indices/list" />
   </Switch>
 </PageContainer>;
 
