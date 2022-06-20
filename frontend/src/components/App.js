@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
-import {Navigate, Route, Routes, withRouter} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import {
   AuditOutlined,
@@ -264,5 +264,13 @@ function onDidMount() {
   if (title) {
     const span = title.querySelectorAll('span')[0]
     span.style.width = span.getBoundingClientRect().width + 'px'
+  }
+}
+
+function withRouter(Child) {
+  return (props) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    return <Child {...props} navigate={navigate} location={location} />;
   }
 }
