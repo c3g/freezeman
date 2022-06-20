@@ -53,6 +53,10 @@ const api = {
     list: () => get("/run-types/"),
   },
 
+  importedFiles: {
+    get: fileId => get(`/imported-files/${fileId}/`),
+  },
+
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
     list: (options, abort) => get("/indices", options, { abort }),
