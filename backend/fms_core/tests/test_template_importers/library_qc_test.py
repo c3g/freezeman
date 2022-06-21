@@ -28,6 +28,8 @@ from fms_core.services.sample import get_sample_from_container
 from fms_core.template_importer.importers.library_qc import LibraryQCImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
+logger = logging.getLogger(__name__)
+
 # Hardcoded strings from library QC importer (move these to a constants file?)
 LIBRARY_QC_PROTOCOL_NAME = 'Library Quality Control'
 LIBRARY_QC_PROCESS_COMMENT = 'Library Quality Control (imported from template)'
@@ -146,8 +148,8 @@ class LibraryQCTestCase(TestCase):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
-        logging.error('*** LOGGING RESULT ***')
-        logging.error(result['base_errors'])
+        logger.error('*** LOGGING RESULT ***')
+        logger.error(result['base_errors'])
         
 
         self.verify_sample(LIBRARY_DATA_1, EXPECTED_VALUES_1)
@@ -180,7 +182,7 @@ class LibraryQCTestCase(TestCase):
         (sample, errors, warnings) = create_full_sample(
             name=data.name, volume=data.initial_volume, concentration=data.concentration,
             collection_site=data.collection_site, creation_date=data.creation_date,
-            container=container, sample_kind=sample_kind, library=library)
+            container=container, coordinates=data.coord, sample_kind=sample_kind, library=library)
 
 
     def verify_sample(self, library_data: LibraryData, expected_values: ExpectedQCValues):
