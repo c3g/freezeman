@@ -70,7 +70,7 @@ module.exports = (env, argv) => ({
   devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
   devServer: {
     hot: true,
-    contentBase: path.join(__dirname, "dist"),
+    static: path.join(__dirname, "dist"),
     compress: true,
     port: 9000,
     historyApiFallback: true,
