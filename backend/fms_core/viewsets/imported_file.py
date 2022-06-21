@@ -37,9 +37,7 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
         Returns:
             Byte stream file. Typically either an excel or csv template file.
         """
-        print("Patate")
         queryset = self.get_queryset().filter(id=pk)
-
         filename = queryset.first().filename
         file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, filename)
         mime_type_guess = mimetypes.guess_type(file_path)

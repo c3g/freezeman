@@ -10,16 +10,19 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
-import {download} from "../../modules/importedFiles/actions";
+import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
+import api, {withToken}  from "../../utils/api"
+
 
 const mapStateToProps = state => ({
+    token: state.auth.tokens.access,
     processesByID: state.processes.itemsByID,
     propertyValuesByID: state.propertyValues.itemsByID,
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues, download};
+const actionCreators = {listProcesses, listPropertyValues, templateDownload};
 
 const ProcessDetailContent = ({
   processesByID,
@@ -27,7 +30,7 @@ const ProcessDetailContent = ({
   protocolsByID,
   listPropertyValues,
   listProcesses,
-  download
+  token
 }) => {
     const history = useHistory();
     const {id} = useParams();
@@ -41,7 +44,9 @@ const ProcessDetailContent = ({
                                             every(property => property in propertyValuesByID))
     const allPropertiesAreLoaded = propertiesAreLoaded && childrenPropertiesAreLoaded
 
-    const onClickHandler = id => download(id).then(response => downloadFromFile(response.filename, response.data))
+    const onClickHandler = fileID =>
+      withToken(token, api.importedFiles.download)(fileID)
+        .then(response => downloadFromFile(response.filename, response.data))
 
     if (!isLoaded) {
       listProcesses({id__in: id});
@@ -75,9 +80,11 @@ const ProcessDetailContent = ({
                   }
                   <Descriptions.Item label="Template Submitted" span={4}>
                       {process?.imported_template &&
-                          <Button onClick={() => onClickHandler(process?.imported_template)}>
+                          <Link>
+                            <div onClick={() => onClickHandler(process?.imported_template)}>
                               {process.imported_template_filename}
-                          </Button>
+                            </div>
+                          </Link>
                       }
                   </Descriptions.Item>
                   <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>

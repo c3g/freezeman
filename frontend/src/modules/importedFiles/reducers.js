@@ -37,13 +37,6 @@ export const importedFiles = (
         case IMPORTEDFILES.LIST.ERROR:
             return { ...state, isFetching: false, error: action.error, };
         
-        case IMPORTEDFILES.DOWNLOAD.REQUEST:
-            return { ...state, error: undefined, isFetching: true };
-        case IMPORTEDFILES.DOWNLOAD.RECEIVE:
-            return { ...state, isFetching: false, items: action.data, };
-        case IMPORTEDFILES.DOWNLOAD.ERROR:
-            return { ...state, isFetching: false, error: action.error, };
-
         default:
             return state;
     }

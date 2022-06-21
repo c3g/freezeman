@@ -3,7 +3,6 @@ import api from "../../utils/api";
 
 export const GET                   = createNetworkActionTypes("IMPORTEDFILES.GET");
 export const LIST                  = createNetworkActionTypes("IMPORTEDFILES.LIST");
-export const DOWNLOAD              = createNetworkActionTypes("IMPORTEDFILES.DOWNLOAD");
 
 export const get = id => async (dispatch, getState) => {
     const importedFile = getState().importedFiles.itemsByID[id];
@@ -21,15 +20,9 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const download = id => async (dispatch, getState) => {
-  return await dispatch(networkAction(DOWNLOAD, api.importedFiles.download(id), { meta: { id } }));
-};
-
 export default {
     GET,
     LIST,
-    DOWNLOAD,
     get,
     list,
-    download,
 };
