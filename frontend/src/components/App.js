@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
-import {Navigate, Route, Routes, useLocation} from "react-router-dom";
+import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import {
   AuditOutlined,
