@@ -11,7 +11,7 @@ import {
   Input,
   InputNumber,
   Select,
-  Routes,
+  Switch,
 } from "antd";
 const {Option} = Select
 const {TextArea} = Input
@@ -253,7 +253,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <Input />
           </Form.Item>
           <Form.Item label="Depleted" {...props("depleted")} valuePropName="checked">
-            <Routes />
+            <Switch />
           </Form.Item>
           {isAdding &&
             <Form.Item

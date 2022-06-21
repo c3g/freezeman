@@ -9,7 +9,7 @@ import {
   Form,
   Input,
   Select,
-  Routes,
+  Switch,
 } from "antd";
 const {Option} = Select
 const {TextArea} = Input
@@ -110,7 +110,7 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
             <Input />
           </Form.Item>
           <Form.Item label="Status" {...props("status")} valuePropName="checked">
-            <Routes style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked={isAdding}/>
+            <Switch style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked={isAdding}/>
           </Form.Item>
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
