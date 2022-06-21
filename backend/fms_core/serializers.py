@@ -27,6 +27,7 @@ from .models import (
     SampleMetadata,
     Sequence,
     Taxon,
+    ImportedFile
 )
 
 
@@ -67,6 +68,7 @@ __all__ = [
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
+    "ImportedFileSerializer",
 ]
 
 
@@ -614,4 +616,9 @@ class PlatformSerializer(serializers.ModelSerializer):
 class LibraryTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LibraryType
+        fields = "__all__"
+
+class ImportedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportedFile
         fields = "__all__"

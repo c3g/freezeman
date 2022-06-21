@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography, Tabs} from "antd";
+import {Button, Descriptions, Typography, Tabs} from "antd";
 const {TabPane} = Tabs;
 const {Title} = Typography;
 
@@ -10,7 +10,8 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
-import api from "../../utils/api";
+import {download} from "../../modules/importedFiles/actions";
+import {downloadFromFile} from "../../utils/download";
 
 const mapStateToProps = state => ({
     processesByID: state.processes.itemsByID,
@@ -18,14 +19,15 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues};
+const actionCreators = {listProcesses, listPropertyValues, download};
 
 const ProcessDetailContent = ({
   processesByID,
   propertyValuesByID,
   protocolsByID,
   listPropertyValues,
-  listProcesses
+  listProcesses,
+  download
 }) => {
     const history = useHistory();
     const {id} = useParams();
@@ -38,6 +40,8 @@ const ProcessDetailContent = ({
                                           every(process => processesByID[process]?.children_properties?.
                                             every(property => property in propertyValuesByID))
     const allPropertiesAreLoaded = propertiesAreLoaded && childrenPropertiesAreLoaded
+
+    const onClickHandler = id => download(id).then(response => downloadFromFile(response.filename, response.data))
 
     if (!isLoaded) {
       listProcesses({id__in: id});
@@ -71,9 +75,9 @@ const ProcessDetailContent = ({
                   }
                   <Descriptions.Item label="Template Submitted" span={4}>
                       {process?.imported_template &&
-                          <Link onClick={api.importedFiles.get(process.imported_template)} to={`/imported-files/${process.imported_template}/`}>
+                          <Button onClick={() => onClickHandler(process?.imported_template)}>
                               {process.imported_template_filename}
-                          </Link>
+                          </Button>
                       }
                   </Descriptions.Item>
                   <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>
