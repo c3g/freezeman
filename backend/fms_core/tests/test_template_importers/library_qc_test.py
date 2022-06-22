@@ -30,6 +30,7 @@ LIBRARY_QC_PROCESS_COMMENT = 'Library Quality Control (imported from template)'
 
 # LibraryData holds the values we need to create libraries for the tests.
 class LibraryData(NamedTuple):
+    """ LibraryData contains the parameters needed to create a library for testing QC """
     name: str
     container_name: str
     container_kind: str
@@ -48,6 +49,7 @@ class LibraryData(NamedTuple):
 # ExpectedQCValues holds the values we expect to find in the sample,
 # library or process measurement after import.
 class ExpectedQCValues(NamedTuple):
+    """ ExpectedQCValues contains the values we expect to find in a library after QC """
     measured_volume: float
     volume_used: float
     final_volume: float
@@ -126,6 +128,7 @@ EXPECTED_VALUES_2 = ExpectedQCValues(
 class LibraryQCTestCase(TestCase):
     
     def setUp(self) -> None:
+        """ Test initialization """
         self.importer = LibraryQCImporter()
         self.file = APP_DATA_ROOT / "Library_QC_v3_9_0.xlsx"
         ContentType.objects.clear_cache()
@@ -134,11 +137,13 @@ class LibraryQCTestCase(TestCase):
 
 
     def prefill_data(self):
+        """ Create library objects on which we will run QC """
         self.create_library(LIBRARY_DATA_1)
         self.create_library(LIBRARY_DATA_2)
 
 
     def test_import(self):
+        """ Import the library QC template and check the results """
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
