@@ -30,6 +30,8 @@ from .library import Library
 from .library_type import LibraryType
 from .taxon import Taxon
 from .sample_metadata import SampleMetadata
+from .dataset import Dataset
+from .dataset_file import DatasetFile
 
 __all__ = [
     "Biosample",
@@ -63,4 +65,6 @@ __all__ = [
     "Library",
     "LibraryType",
     "Taxon",
+    "Dataset",
+    "DatasetFile",
 ]
