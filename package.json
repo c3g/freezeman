@@ -9,6 +9,8 @@
     "//1": "These map 1-to-1 with entries in ./Profile",
     "proc:backend_runserver": "cd backend && ./setup_testing.sh runserver",
     "proc:backend_test":      "cd backend && ./setup_testing.sh test",
+    "//1a": "This sets up the db for tests but does not launch the test runner",
+    "proc:backend_setup_test_db":  "cd backend && ./setup_testing.sh",
     "proc:frontend":          "cd frontend && npm start",
     "//2": "cypress_xxx use sleep 10 to allow DB setup & frontend server to spawn",
     "proc:cypress_open":      "cd frontend && sleep 10 && npx cypress open",
