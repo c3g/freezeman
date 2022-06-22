@@ -9,15 +9,8 @@ from unicodedata import name
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
-from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED, DSDNA_MW
 from fms_core.models import Library, Process, ProcessMeasurement, PropertyType, PropertyValue, Protocol, Sample, SampleKind, Taxon
-# from fms_core.models.library import Library
-# from fms_core.models.process import Process
-# from fms_core.models.process_measurement import ProcessMeasurement
-# from fms_core.models.sample import Sample
-# from fms_core.models.sample_kind import SampleKind
-# from fms_core.models.taxon import Taxon
+from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
 from fms_core.services.container import create_container
 from fms_core.services.index import get_index
 from fms_core.services.individual import get_or_create_individual
@@ -27,6 +20,7 @@ from fms_core.services.sample import create_full_sample
 from fms_core.services.sample import get_sample_from_container
 from fms_core.template_importer.importers.library_qc import LibraryQCImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
 logger = logging.getLogger(__name__)
 
@@ -151,13 +145,12 @@ class LibraryQCTestCase(TestCase):
         logger.error('*** LOGGING RESULT ***')
         logger.error(result['base_errors'])
         
-
-        self.verify_sample(LIBRARY_DATA_1, EXPECTED_VALUES_1)
-        self.verify_sample(LIBRARY_DATA_2, EXPECTED_VALUES_2)
+        self.verify_library(LIBRARY_DATA_1, EXPECTED_VALUES_1)
+        self.verify_library(LIBRARY_DATA_2, EXPECTED_VALUES_2)
 
 
     def create_library(self, data: LibraryData):
-
+        """ Create a library with the given data. Library QC will be run on the library afterwards. """
         # container
         (container, errors, warnings) = create_container(barcode=data.container_barcode,
         kind = data.container_kind,
@@ -185,7 +178,8 @@ class LibraryQCTestCase(TestCase):
             container=container, coordinates=data.coord, sample_kind=sample_kind, library=library)
 
 
-    def verify_sample(self, library_data: LibraryData, expected_values: ExpectedQCValues):
+    def verify_library(self, library_data: LibraryData, expected_values: ExpectedQCValues):
+        """ Verify that the db contains a library and that the library contains the expected values. """
 
         sample: Sample
         sample, _, _ = get_sample_from_container(barcode=library_data.container_barcode)
@@ -241,6 +235,7 @@ class LibraryQCTestCase(TestCase):
 
         
     def get_process_measurement_value(self, measurement_name: str, protocol: Protocol, process_measurement: ProcessMeasurement):
+        """ A utility function to lookup a process measurement value by name, given a process measurement and its protocol. """
         pt = PropertyType.objects.get(name=measurement_name, object_id=protocol.id)
         value_measured_volume = PropertyValue.objects.get(property_type=pt, object_id=process_measurement.id)
         return value_measured_volume.value
