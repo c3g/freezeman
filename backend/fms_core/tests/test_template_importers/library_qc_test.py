@@ -1,28 +1,22 @@
 
 from collections import namedtuple
-import datetime
 from decimal import Decimal
-import logging
-import sys
 from typing import NamedTuple, Union
-from unicodedata import name
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
-from fms_core.models import Library, Process, ProcessMeasurement, PropertyType, PropertyValue, Protocol, Sample, SampleKind, Taxon
-from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
-from fms_core.services.container import create_container
+from fms_core.models import Library, Process, ProcessMeasurement, PropertyType, PropertyValue, Protocol, Sample, SampleKind
+from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED, DSDNA_MW, SSDNA_MW
+from fms_core.services.container import get_or_create_container
+from fms_core.services.container import get_or_create_container
 from fms_core.services.index import get_index
-from fms_core.services.individual import get_or_create_individual
 from fms_core.services.library import create_library, get_library_type
 from fms_core.services.platform import get_platform
-from fms_core.services.sample import create_full_sample
-from fms_core.services.sample import get_sample_from_container
+from fms_core.services.sample import create_full_sample, get_sample_from_container
 from fms_core.template_importer.importers.library_qc import LibraryQCImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
-logger = logging.getLogger(__name__)
 
 # Hardcoded strings from library QC importer (move these to a constants file?)
 LIBRARY_QC_PROTOCOL_NAME = 'Library Quality Control'
@@ -62,7 +56,7 @@ class ExpectedQCValues(NamedTuple):
     qc_date: str
     comment: str
 
-
+# Library in a Tube
 LIBRARY_DATA_1 = LibraryData(
     name = 'LIBRARY_SAMPLE_1',
     container_name = 'LIBRARYQCTUBE1',
@@ -94,6 +88,7 @@ EXPECTED_VALUES_1 = ExpectedQCValues(
     comment = 'comment1'
 )
 
+# Library in a 96-well plate
 LIBRARY_DATA_2 = LibraryData(
     name='LIBRARY_SAMPLE_2',
     container_name = 'LIBRARYQCPLATE2',
@@ -125,6 +120,38 @@ EXPECTED_VALUES_2 = ExpectedQCValues(
     comment = 'comment2'
 )
 
+# Test RNA sample QC (verify nM concentration computed for RNA)
+LIBRARY_DATA_3 = LibraryData(
+    name='LIBRARY_SAMPLE_3',
+    container_name = 'LIBRARYQCPLATE2',
+    container_kind='96-well plate',
+    container_barcode='LIBRARYQCPLATE2',
+    coord='A02',
+    index_name= 'IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001',
+    library_type = 'PCR-free',
+    platform = 'ILLUMINA',
+    strandedness = SINGLE_STRANDED,
+    initial_volume = Decimal(100),
+    concentration = Decimal(25),
+    collection_site='MUHC',
+    creation_date='2022-02-28',
+    sample_kind='RNA'
+)
+
+EXPECTED_VALUES_3 = ExpectedQCValues(
+    measured_volume=100,
+    volume_used=10,
+    final_volume=90,
+    library_size=1000,
+    concentration=float(convert_concentration_from_nm_to_ngbyul(Decimal(100), Decimal(SSDNA_MW), Decimal(1000))),
+    quality_instrument='Agarose Gel',
+    quality_flag='Passed',
+    quantity_instrument='PicoGreen',
+    quantity_flag='Failed',
+    qc_date='2022-06-21',
+    comment = 'comment3'
+)
+
 class LibraryQCTestCase(TestCase):
     
     def setUp(self) -> None:
@@ -140,6 +167,7 @@ class LibraryQCTestCase(TestCase):
         """ Create library objects on which we will run QC """
         self.create_library(LIBRARY_DATA_1)
         self.create_library(LIBRARY_DATA_2)
+        self.create_library(LIBRARY_DATA_3)
 
 
     def test_import(self):
@@ -147,19 +175,18 @@ class LibraryQCTestCase(TestCase):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
-        logger.error('*** LOGGING RESULT ***')
-        logger.error(result['base_errors'])
         
         self.verify_library(LIBRARY_DATA_1, EXPECTED_VALUES_1)
         self.verify_library(LIBRARY_DATA_2, EXPECTED_VALUES_2)
+        self.verify_library(LIBRARY_DATA_3, EXPECTED_VALUES_3)
 
 
     def create_library(self, data: LibraryData):
         """ Create a library with the given data. Library QC will be run on the library afterwards. """
         # container
-        (container, errors, warnings) = create_container(barcode=data.container_barcode,
-        kind = data.container_kind,
-        name = data.container_name)
+        (container, _, errors, warnings) = get_or_create_container(barcode=data.container_barcode,
+                                                                    kind = data.container_kind,
+                                                                    name = data.container_name)
 
         # index
         (index, errors, warnings) = get_index(data.index_name)
@@ -187,7 +214,7 @@ class LibraryQCTestCase(TestCase):
         """ Verify that the db contains a library and that the library contains the expected values. """
 
         sample: Sample
-        sample, _, _ = get_sample_from_container(barcode=library_data.container_barcode)
+        sample, _, _ = get_sample_from_container(barcode=library_data.container_barcode, coordinates=library_data.coord)
 
         # Sample values
         self.assertEqual(sample.volume, expected_values.final_volume)
