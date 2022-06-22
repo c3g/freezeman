@@ -53,5 +53,11 @@ export DJANGO_SUPERUSER_PASSWORD=secret
 export DJANGO_SUPERUSER_EMAIL=user@example.com
 python "$__dirname/manage.py" createsuperuser --noinput
 
-echo "Running server with database $PG_DATABASE"
-python "$__dirname/manage.py" $django_command
+# Make the test running optional so that we can launch the tests in a debugger.
+# Invoking this script without the 'test' argument just sets up the test db
+# without launching any tests.
+if $1
+then
+    echo "Running server with database $PG_DATABASE"
+    python "$__dirname/manage.py" $django_command
+fi
