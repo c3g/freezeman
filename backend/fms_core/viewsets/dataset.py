@@ -53,7 +53,7 @@ def create_datasets(data):
     errors = []
     warnings = []
 
-    for rv in data["run_validations"]:
+    for rv in data["run_validation"]:
         dataset_args = {}
 
         dataset_args["project_name"] = rv["project"]
@@ -70,8 +70,8 @@ def create_dataset_files(data, dataset: Dataset):
     warnings = []
 
     rv = None
-    for rv in data["run_validations"]:
-        if rv["project"] == dataset.project_name and rv["run"] == dataset.run_name:
+    for rv in data["run_validation"]:
+        if rv["project"] == dataset.project_name and data["run"] == dataset.run_name:
             break
     if rv is None:
         errors.append("Could not find run validation for dataset")
@@ -81,7 +81,7 @@ def create_dataset_files(data, dataset: Dataset):
         return (dataset_files, errors, warnings)
 
     dataset_file_args = {}
-    for readset in data["readsets"]:
+    for readset in data["readsets"].values():
         # TODO: actually find the closest matching sample_name
         # TODO: create dataset_file for each file path
         if readset["sample_name"] in rv["sample"]:
