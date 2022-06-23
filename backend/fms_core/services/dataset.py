@@ -112,7 +112,7 @@ def dataset_file_to_dict(dataset_file: DatasetFile):
         id=dataset_file.id,
         dataset_id=dataset_file.dataset_id,
         file_path=dataset_file.file_path,
-        completion_date=dataset_file.completion_date,
-        validation_date=dataset_file.validation_date,
+        completion_date=dataset_file.completion_date.strftime('%Y-%m-%d') if dataset_file.completion_date else None,
+        validation_date=dataset_file.validation_date.strftime('%Y-%m-%d') if dataset_file.validation_date else None,
         sample_name=dataset_file.sample_name,
     )
