@@ -1,5 +1,4 @@
 import React, {useEffect} from "react";
-import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
 import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
@@ -255,7 +254,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
   );
 };
 
-export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
+export default withRouter(connect(mapStateToProps, actionCreators)(App));
 
 // Helpers
 

@@ -1,6 +1,6 @@
+import {hot} from 'react-hot-loader/root';
 import React from "react";
 import {render} from "react-dom";
-import {hot} from 'react-hot-loader/root';
 
 import {persistStore} from "redux-persist";
 import {PersistGate} from "redux-persist/integration/react";

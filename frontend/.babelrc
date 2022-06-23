@@ -4,6 +4,7 @@
     ["import", {
       "libraryName": "antd",
       "style": "css"
-    }]
+    }],
+    "react-hot-loader/babel"
   ]
 }

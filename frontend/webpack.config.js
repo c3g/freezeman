@@ -11,7 +11,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
 module.exports = (env, argv) => ({
-  entry: ["babel-polyfill", path.resolve(__dirname, "./src/index.js")],
+  entry: ['react-hot-loader/patch', "babel-polyfill", path.resolve(__dirname, "./src/index.js")],
   module: {
     rules: [
       {
@@ -32,7 +32,13 @@ module.exports = (env, argv) => ({
         resolve: {
             fullySpecified: false
         }
-    },
+      },
+      // would only land a "hot-patch" to react-dom
+      {
+        test: /\.js$/,
+        include: /node_modules\/react-dom/,
+        use: ['react-hot-loader/webpack'],
+      },
     ]
   },
   resolve: {
