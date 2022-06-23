@@ -78,8 +78,6 @@ def delete_dataset_files(*, dataset_file: Union[DatasetFile, None] = None, datas
             query.delete()
     except ValidationError as e:
         errors.append(';'.join(e.messages))
-    except ObjectDoesNotExist:
-        errors.append(f"Dataset file with id '{dataset_file.id}' doesn't exist")
 
     return (errors, warnings)
 
@@ -98,8 +96,6 @@ def delete_dataset(dataset: Dataset):
             query.delete()
     except ValidationError as e:
         errors.append(';'.join(e.messages))
-    except ObjectDoesNotExist:
-        errors.append(f"Dataset with id '{dataset.id}' doesn't exist")
 
     return (errors, warnings)
 
