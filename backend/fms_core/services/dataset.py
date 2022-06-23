@@ -43,20 +43,20 @@ def create_dataset_file(dataset: Dataset, file_path: str, completion_date: Union
 
     return (dataset_file, errors, warnings)
 
-def update_dataset_file(dataset_file: DatasetFile, **kwargs):
+def update_dataset_file(pk: int, **kwargs):
     errors = []
     warnings = []
 
     dataset_file = None
 
     try:
-        query = DatasetFile.objects.filter(pk=dataset_file.id)
+        query = DatasetFile.objects.filter(pk=pk)
         query.update(**kwargs)
         dataset_file = query.get()
     except ValidationError as e:
         errors.append(';'.join(e.messages))
     except ObjectDoesNotExist:
-        errors.append(f"DatasetFile with id '{dataset_file.id}' doesn't exist")
+        errors.append(f"DatasetFile with id '{pk}' doesn't exist")
     
     return  (dataset_file, errors, warnings)
 
