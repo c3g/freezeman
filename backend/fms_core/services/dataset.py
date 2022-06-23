@@ -3,7 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime
 from typing import List, Union
-from fms_core.utils import propagate_errors_and_warnings
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -25,13 +24,14 @@ def create_dataset(project_name: str, run_name: str, lane: str):
 
     return (dataset, errors, warnings)
 
-def create_dataset_file(file_path: str, completion_date: Union[datetime, None], validation_date: Union[datetime, None], sample_name: str):
+def create_dataset_file(dataset: Dataset, file_path: str, completion_date: Union[datetime, None], validation_date: Union[datetime, None], sample_name: str):
     dataset_file = None
     errors = []
     warnings = []
 
     try:
         dataset_file_data = dict(
+            dataset=dataset,
             file_path=file_path,
             completion_date=completion_date,
             validation_date=validation_date,
