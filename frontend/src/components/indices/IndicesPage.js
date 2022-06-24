@@ -11,10 +11,10 @@ import ActionContent from "../ActionContent";
 
 const IndicesPage = () => <PageContainer>
   <Routes>
-    <Route path="/indices/list"><IndicesListContent /></Route>
-    <Route path="/indices/actions/:action"><ActionContent templateType="index" /></Route>
-    <Route path="/indices/validate"><IndicesValidate/></Route>
-    <Route path="/indices/:id"><IndicesDetailedContent/></Route>
+    <Route path="/indices/list" element={<IndicesListContent />}/>
+    <Route path="/indices/actions/:action" element={<ActionContent templateType="index" />}/>
+    <Route path="/indices/validate" element={<IndicesValidate/>}/>
+    <Route path="/indices/:id" element={<IndicesDetailedContent/>}/>
     <Navigate to="/indices/list" />
   </Routes>
 </PageContainer>;

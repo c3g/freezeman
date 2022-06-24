@@ -8,10 +8,10 @@ import PageContainer from "../PageContainer";
 
 const UsersPage = () => <PageContainer>
   <Routes>
-    <Route path="/users/list"><UsersListContent /></Route>
-    <Route path="/users/add"><UserEditContent /></Route>
-    <Route path="/users/:id/update"><UserEditContent /></Route>
-    <Route path="/users/:id"><UsersDetailContent /></Route>
+    <Route path="/users/list" element={<UsersListContent />}/>
+    <Route path="/users/add" element={<UserEditContent />}/>
+    <Route path="/users/:id/update" element={<UserEditContent />}/>
+    <Route path="/users/:id" element={<UsersDetailContent />}/>
     <Navigate to="/users/list" />
   </Routes>
 </PageContainer>;

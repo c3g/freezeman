@@ -48,12 +48,8 @@ const LoginPage = ({isFetching, isAuthenticated, login}) => {
     <div style={containerStyle}>
       <Card style={cardStyle}>
         <Routes>
-          <Route exact path="/login">
-            <LoginForm login={login} isFetching={isFetching} />
-          </Route>
-          <Route exact path="/login/forgot-password">
-            <ResetPasswordForm />
-          </Route>
+          <Route exact path="/login" element={<LoginForm login={login} isFetching={isFetching} />}/>
+          <Route exact path="/login/forgot-password" element={<ResetPasswordForm />}/>
         </Routes>
       </Card>
     </div>

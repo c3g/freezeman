@@ -204,9 +204,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
         }
         <Layout.Content style={{position: "relative"}}>
           <Routes>
-            <Route path="/login">
-              <LoginPage/>
-            </Route>
+            <Route path="/login" element={<LoginPage/>}/>
             <PrivateRoute path="/dashboard">
               <DashboardPage/>
             </PrivateRoute>

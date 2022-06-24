@@ -10,11 +10,11 @@ import ActionContent from "../ActionContent";
 
 const ProjectsPage = () => <PageContainer>
   <Routes>
-    <Route path="/projects/list"><ProjectsListContent /></Route>
-    <Route path="/projects/actions/:action"><ActionContent templateType="project" /></Route>
-    <Route path="/projects/add"><ProjectEditContent /></Route>
-    <Route path="/projects/:id/update"><ProjectEditContent /></Route>
-    <Route path="/projects/:id"><ProjectsDetailedContent/></Route>
+    <Route path="/projects/list" element={<ProjectsListContent />}/>
+    <Route path="/projects/actions/:action" element={<ActionContent templateType="project" />}/>
+    <Route path="/projects/add" element={<ProjectEditContent />}/>
+    <Route path="/projects/:id/update" element={<ProjectEditContent />}/>
+    <Route path="/projects/:id" element={<ProjectsDetailedContent/>}/>
     <Navigate to="/projects/list" />
   </Routes>
 </PageContainer>;

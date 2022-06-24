@@ -9,9 +9,9 @@ import ActionContent from "../ActionContent";
 
 const ExperimentRunsPage = () => <PageContainer>
   <Routes>
-    <Route path="/experiment-runs/list"><ExperimentRunsListContent /></Route>
-    <Route path="/experiment-runs/actions/:action"><ActionContent templateType="experimentRun" /></Route>
-    <Route path="/experiment-runs/:id"><ExperimentRunsDetailContent /></Route>
+    <Route path="/experiment-runs/list" element={<ExperimentRunsListContent />}/>
+    <Route path="/experiment-runs/actions/:action" element={<ActionContent templateType="experimentRun" />}/>
+    <Route path="/experiment-runs/:id" element={<ExperimentRunsDetailContent />}/>
     <Navigate to="/experiment-runs/list" />
   </Routes>
 </PageContainer>;
