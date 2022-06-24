@@ -59,10 +59,10 @@ module.exports = (env, argv) => ({
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
-      GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
-      GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
-      GIT_LASTUPDATE: JSON.stringify(child_process.execSync('git log -1 --format=%cI').toString().trim()),
-      FMS_VERSION: JSON.stringify(fs.readFileSync('../backend/VERSION', 'utf8')),
+      GIT_COMMITHASH: JSON.stringify(process.env.GIT_COMMITHASH || gitRevisionPlugin.commithash()),
+      GIT_BRANCH: JSON.stringify(process.env.GIT_BRANCH || gitRevisionPlugin.branch()),
+      GIT_LASTUPDATE: JSON.stringify(process.env.GIT_LASTUPDATE || child_process.execSync('git log -1 --format=%cI').toString().trim()),
+      FMS_VERSION: JSON.stringify(process.env.FMS_VERSION || fs.readFileSync('../backend/VERSION', 'utf8')),
       FMS_ENV: JSON.stringify(process.env.FMS_ENV || "LOCAL")
     }),
   ],
@@ -76,7 +76,7 @@ module.exports = (env, argv) => ({
     historyApiFallback: true,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: `http://${process.env.FMS_HOST}:8000`,
       },
     },
   },
