@@ -15,7 +15,7 @@ const IndicesPage = () => <PageContainer>
     <Route path="/actions/:action" element={<ActionContent templateType="index" />}/>
     <Route path="/validate" element={<IndicesValidate/>}/>
     <Route path="/:id" element={<IndicesDetailedContent/>}/>
-    <Route path="/" element={<Navigate to="/list" />}/>
+    <Route path="/" element={<Navigate to="/indices/list" />}/>
   </Routes>
 </PageContainer>;
 

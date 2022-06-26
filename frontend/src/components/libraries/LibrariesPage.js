@@ -10,7 +10,7 @@ const LibrariesPage = () => <PageContainer>
   <Routes>
     <Route path="/list" element={<LibrariesListContent />}/>
     <Route path="/actions/:action" element={<ActionContent templateType="library" />}/>
-    <Route path="/" element={<Navigate to="/list" />}/>
+    <Route path="/" element={<Navigate to="/libraries/list" />}/>
   </Routes>
 </PageContainer>;
 

@@ -12,7 +12,7 @@ const ProcessMeasurementsPage = () => <PageContainer>
     <Route path="/list" element={<ProcessMeasurementsListContent />}/>
     <Route path="/actions/:action" element={<ActionContent templateType="processMeasurement" />}/>
     <Route path="/:id" element={<ProcessMeasurementsDetailContent />}/>
-    <Navigate to="/process-measurements/list" />
+    <Route path="/" element={<Navigate to="/process-measurements/list" />}/>
   </Routes>
 </PageContainer>;
 
