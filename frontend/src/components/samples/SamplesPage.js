@@ -10,11 +10,11 @@ import ActionContent from "../ActionContent";
 
 const SamplesPage = () => <PageContainer>
   <Routes>
-    <Route path="/samples/list" element={<SamplesListContent />}/>
-    <Route path="/samples/actions/:action" element={<ActionContent templateType="sample" />}/>
-    <Route path="/samples/add" element={<SampleEditContent />}/>
-    <Route path="/samples/:id/update" element={<SampleEditContent />}/>
-    <Route path="/samples/:id" element={<SamplesDetailContent />}/>
+    <Route path="/list" element={<SamplesListContent />}/>
+    <Route path="/actions/:action" element={<ActionContent templateType="sample" />}/>
+    <Route path="/add" element={<SampleEditContent />}/>
+    <Route path="/:id/update" element={<SampleEditContent />}/>
+    <Route path="/:id" element={<SamplesDetailContent />}/>
     <Navigate to="/samples/list" />
   </Routes>
 </PageContainer>;

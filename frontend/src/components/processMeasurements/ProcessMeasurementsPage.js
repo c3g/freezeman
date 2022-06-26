@@ -9,9 +9,9 @@ import ActionContent from "../ActionContent";
 
 const ProcessMeasurementsPage = () => <PageContainer>
   <Routes>
-    <Route path="/process-measurements/list" element={<ProcessMeasurementsListContent />}/>
-    <Route path="/process-measurements/actions/:action" element={<ActionContent templateType="processMeasurement" />}/>
-    <Route path="/process-measurements/:id" element={<ProcessMeasurementsDetailContent />}/>
+    <Route path="/list" element={<ProcessMeasurementsListContent />}/>
+    <Route path="/actions/:action" element={<ActionContent templateType="processMeasurement" />}/>
+    <Route path="/:id" element={<ProcessMeasurementsDetailContent />}/>
     <Navigate to="/process-measurements/list" />
   </Routes>
 </PageContainer>;

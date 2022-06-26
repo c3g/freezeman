@@ -8,8 +8,8 @@ import ActionContent from "../ActionContent";
 
 const LibrariesPage = () => <PageContainer>
   <Routes>
-    <Route path="/libraries/list" element={<LibrariesListContent />}/>
-    <Route path="/libraries/actions/:action" element={<ActionContent templateType="library" />}/>
+    <Route path="/list" element={<LibrariesListContent />}/>
+    <Route path="/actions/:action" element={<ActionContent templateType="library" />}/>
     <Navigate to="/libraries/list" />
   </Routes>
 </PageContainer>;
