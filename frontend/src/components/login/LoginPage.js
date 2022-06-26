@@ -40,7 +40,7 @@ const LoginPage = ({isFetching, isAuthenticated, login}) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      history.push("/dashboard");
+      history("/dashboard");
     }
   });
 

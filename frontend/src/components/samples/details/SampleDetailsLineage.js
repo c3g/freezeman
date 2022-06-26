@@ -202,10 +202,10 @@ const SampleDetailsLineage = ({
                     id="graph-id"
                     data={adjustedGraphData}
                     config={graphConfig}
-                    onClickNode={(id, _) => history.push(`/samples/${id}`)}
+                    onClickNode={(id, _) => history(`/samples/${id}`)}
                     onClickLink={(source, target) => {
                       const linkId = nodesToEdges[`${source}:${target}`].id
-                      history.push(`/process-measurements/${linkId}`)
+                      history(`/process-measurements/${linkId}`)
                     }}
                   />
                 : <Spin size={"large"} />

@@ -6,7 +6,7 @@ import {LinkOutlined} from "@ant-design/icons";
 const LinkButton = ({url, ...rest}) => {
   const history = useNavigate();
   return (
-    <Button onClick={() => history.push(url)} {...rest}>
+    <Button onClick={() => history(url)} {...rest}>
       <LinkOutlined /> Link Samples
     </Button>
   )

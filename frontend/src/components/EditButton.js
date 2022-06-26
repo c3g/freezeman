@@ -6,7 +6,7 @@ import {EditOutlined} from "@ant-design/icons";
 const EditButton = ({url}) => {
   const history = useNavigate();
   return (
-    <Button onClick={() => history.push(url)}>
+    <Button onClick={() => history(url)}>
       <EditOutlined /> Edit
     </Button>
   )

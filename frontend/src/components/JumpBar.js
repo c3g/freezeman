@@ -69,7 +69,7 @@ const JumpBar = (props) => {
     setValue(null)
     pushItem(item)
     setItems(lastItems)
-    history.push(path)
+    history(path)
     selectRef.current?.blur()
   }
 

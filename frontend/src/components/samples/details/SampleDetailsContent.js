@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from "react";
-import {connect} from "react-redux";
-import {Link, useNavigate, useParams} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-import {QCFlag} from "../../QCFlag";
-import {LoadingOutlined, UserOutlined} from "@ant-design/icons";
+import { QCFlag } from "../../QCFlag";
+import { LoadingOutlined, UserOutlined } from "@ant-design/icons";
 import {
   Card,
   Col,
@@ -26,12 +26,12 @@ import ErrorMessage from "../../ErrorMessage";
 import EditButton from "../../EditButton";
 import TrackingFieldsContent from "../../TrackingFieldsContent";
 import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
-import {Depletion} from "../../Depletion";
+import { Depletion } from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import SampleDetailsLineage from "./SampleDetailsLineage";
-import {get as getSample, listVersions} from "../../../modules/samples/actions";
-import {get as getLibrary} from "../../../modules/libraries/actions";
-import api, {withToken} from "../../../utils/api";
+import { get as getSample, listVersions } from "../../../modules/samples/actions";
+import { get as getLibrary } from "../../../modules/libraries/actions";
+import api, { withToken } from "../../../utils/api";
 import {
   withContainer,
   withSample,
@@ -88,7 +88,7 @@ const mapStateToProps = state => ({
   projectsByID: state.projects.itemsByID,
 });
 
-const actionCreators = {getSample, listVersions};
+const actionCreators = { getSample, listVersions };
 
 const SampleDetailsContent = ({
   token,
@@ -105,7 +105,7 @@ const SampleDetailsContent = ({
   listVersions
 }) => {
   const history = useNavigate();
-  const {id} = useParams();
+  const { id } = useParams();
 
   const [timelineMarginLeft, timelineRef] = useTimeline();
 
@@ -153,7 +153,7 @@ const SampleDetailsContent = ({
 
   useEffect(() => {
     const biosampleId = sample?.biosample_id
-    listSampleMetadata(token, {"biosample__id": biosampleId}).then(metadata => {
+    listSampleMetadata(token, { "biosample__id": biosampleId }).then(metadata => {
       setSampleMetadata(metadata)
     })
   }, [sample])
@@ -163,15 +163,15 @@ const SampleDetailsContent = ({
       title={`Sample ${sample.name || id}`}
       extra={isLoaded ?
         <Space>
-          <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>
-              <Tag>{sampleKind}</Tag>
+          <div key="kind" style={{ display: "inline-block", verticalAlign: "top", marginTop: "4px" }}>
+            <Tag>{sampleKind}</Tag>
           </div>
           <div key="depleted" style={depletedStyle}>
-              <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
+            <Tag color={sample.depleted ? "red" : "green"}>{sample.depleted ? "" : "NOT "}DEPLETED</Tag>
           </div>
           <EditButton url={`/samples/${id}/update`} />
         </Space>
-      : []}
+        : []}
     />
 
     <PageContent loading={isFetching} style={pageStyle} tabs={true}>
@@ -181,57 +181,57 @@ const SampleDetailsContent = ({
       <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
         <TabPane tab="Overview" key="1" style={tabStyle}>
           <Descriptions bordered={true} size="small">
-              <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
-              <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
-              <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
-              <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
-              <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
-              <Descriptions.Item label="Concentration (ng/µL)">
-                  {sample.concentration == null
-                      ? "—"
-                      : `${parseFloat(sample.concentration).toFixed(3)}`}
-              </Descriptions.Item>
-              <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
+            <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
+            <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
+            <Descriptions.Item label="Alias">{sample.alias}</Descriptions.Item>
+            <Descriptions.Item label="Sample Kind">{sampleKind}</Descriptions.Item>
+            <Descriptions.Item label="Volume (µL)">{volume}</Descriptions.Item>
+            <Descriptions.Item label="Concentration (ng/µL)">
+              {sample.concentration == null
+                ? "—"
+                : `${parseFloat(sample.concentration).toFixed(3)}`}
+            </Descriptions.Item>
+            <Descriptions.Item label="Depleted"><Depletion depleted={sample.depleted} /></Descriptions.Item>
           </Descriptions>
-          <Descriptions bordered={true} size="small" style={{marginTop: "24px"}}>
+          <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
             <Descriptions.Item label="Individual Name">
-                {sample.individual &&
-                  <Link to={`/individuals/${sample.individual}`}>
-                    {
-                      withIndividual(
-                        individualsByID,
-                        sample.individual,
-                        individual => individual.name,
-                        "Loading..."
-                      )
-                    }
-                  </Link>
-                }
-              </Descriptions.Item>
-              <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
-              <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
-              <Descriptions.Item label="Experimental Groups" span={2}>
-                  {experimentalGroups.map((g, i) =>
-                      <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-              <Descriptions.Item label="Container">
-                {sample.container &&
-                  <Link to={`/containers/${sample.container}`}>
-                    {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
-                  </Link>
-                }
-              </Descriptions.Item>
-              <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
-              <Descriptions.Item label="QC Flag">
-                {flags.quantity !== null && flags.quality !== null
-                  ? <QCFlag flags={flags}/>
-                  : null}
-              </Descriptions.Item>
-              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
+              {sample.individual &&
+                <Link to={`/individuals/${sample.individual}`}>
+                  {
+                    withIndividual(
+                      individualsByID,
+                      sample.individual,
+                      individual => individual.name,
+                      "Loading..."
+                    )
+                  }
+                </Link>
+              }
+            </Descriptions.Item>
+            <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
+            <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
+            <Descriptions.Item label="Experimental Groups" span={2}>
+              {experimentalGroups.map((g, i) =>
+                <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
+            <Descriptions.Item label="Container">
+              {sample.container &&
+                <Link to={`/containers/${sample.container}`}>
+                  {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
+                </Link>
+              }
+            </Descriptions.Item>
+            <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
+            <Descriptions.Item label="QC Flag">
+              {flags.quantity !== null && flags.quality !== null
+                ? <QCFlag flags={flags} />
+                : null}
+            </Descriptions.Item>
+            <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
-            <Descriptions bordered={true} size="small" title="Extraction Details" style={{marginTop: "24px"}}>
+            <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>
               <Descriptions.Item label="Extracted From">
                 <Link to={`/samples/${sample.extracted_from}`}>
                   {withSample(samplesByID, sample.extracted_from, sample => sample.name, "Loading...")}
@@ -250,7 +250,7 @@ const SampleDetailsContent = ({
 
           {sample && sample.is_library ? (
             <>
-              <Title level={5} style={{ marginTop: '1rem'}}> Library Information </Title>
+              <Title level={5} style={{ marginTop: '1rem' }}> Library Information </Title>
               <Descriptions bordered={true} size="small">
                 <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
@@ -266,7 +266,7 @@ const SampleDetailsContent = ({
             </>
           ) : null}
 
-          <TrackingFieldsContent entity={sample}/>
+          <TrackingFieldsContent entity={sample} />
           <Title level={2} style={{ marginTop: '1rem' }}>Versions</Title>
           <Row>
             <Col sm={24} md={24}>
@@ -302,11 +302,11 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
-          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
+          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements} />
         </TabPane>
 
         <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
-           <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+          <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
         <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
@@ -314,11 +314,11 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Metadata`} key="5" style={tabStyle}>
-          <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
+          <Title level={5} style={{ marginTop: '1rem' }}> Metadata </Title>
           <Descriptions bordered={true} size="small">
             {
               sampleMetadata.map(metadata => {
-                return  <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+                return <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
               })
             }
 
@@ -326,7 +326,7 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Lineage`} key="6" style={tabStyle}>
-          <SampleDetailsLineage sample={sample}/>
+          <SampleDetailsLineage sample={sample} />
         </TabPane>
       </Tabs>
 

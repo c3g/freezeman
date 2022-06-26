@@ -84,7 +84,7 @@ function ChangePasswordForm({token}) {
   const onFinish = values => {
     setIsFetching(true)
     changePassword(token, values.password)
-    .then(() => history.push("/login"))
+    .then(() => history("/login"))
     .catch(err => setMessage(err))
     .finally(() => setIsFetching(false))
   }

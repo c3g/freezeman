@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import {connect} from "react-redux";
-import {useNavigate, useParams} from "react-router-dom";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
   Button,
@@ -11,25 +11,25 @@ import {
   Select,
   Switch,
 } from "antd";
-const {Option} = Select
-const {TextArea} = Input
+const { Option } = Select
+const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import {add, update, listTable, summary} from "../../modules/projects/actions";
-import {project as EMPTY_PROJECT} from "../../models";
-import {requiredRules, emailRules} from "../../constants";
+import { add, update, listTable, summary } from "../../modules/projects/actions";
+import { project as EMPTY_PROJECT } from "../../models";
+import { requiredRules, emailRules } from "../../constants";
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   projectsByID: state.projects.itemsByID,
 });
 
-const actionCreators = {add, update, listTable, summary};
+const actionCreators = { add, update, listTable, summary };
 
-const ProjectEditContent = ({token, projectsByID, add, update, listTable, summary}) => {
+const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summary }) => {
   const history = useNavigate();
-  const {id} = useParams();
+  const { id } = useParams();
   const isAdding = id === undefined
 
   const project = projectsByID[id];
@@ -37,7 +37,7 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
    * Form Data submission
    */
 
-  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT: project))
+  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_PROJECT : project))
   const [formErrors, setFormErrors] = useState({})
 
   if (!isAdding && formData === undefined && project !== undefined) {
@@ -58,12 +58,12 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(project => { history.push(`/projects/${project.id}`) }) :
-        update(id, data).then(() => { history.push(`/projects/${id}`) })
+        add(data).then(project => { history(`/projects/${project.id}`) }) :
+        update(id, data).then(() => { history(`/projects/${id}`) })
     action
-    .then(() => { setFormErrors({}) })
-    .catch(err => { setFormErrors(err.data || {}) })
-    .then(() => Promise.all([listTable(), summary()]))
+      .then(() => { setFormErrors({}) })
+      .catch(err => { setFormErrors(err.data || {}) })
+      .then(() => Promise.all([listTable(), summary()]))
   }
 
   /*
@@ -110,7 +110,7 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
             <Input />
           </Form.Item>
           <Form.Item label="Status" {...props("status")} valuePropName="checked">
-            <Switch style={{width: 80}} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked={isAdding}/>
+            <Switch style={{ width: 80 }} checkedChildren="Open" unCheckedChildren="Closed" defaultChecked={isAdding} />
           </Form.Item>
           <Form.Item label="Target End Date" {...props("targeted_end_date")} >
             <DatePicker />
@@ -155,7 +155,7 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
 function deserialize(values) {
   if (!values)
     return undefined
-  const newValues = {...values}
+  const newValues = { ...values }
 
   if (!newValues.status || newValues.status === "Closed")
     newValues.status = false
@@ -168,7 +168,7 @@ function deserialize(values) {
 }
 
 function serialize(values) {
-  const newValues = {...values}
+  const newValues = { ...values }
 
   if (newValues.status === false)
     newValues.status = "Closed"

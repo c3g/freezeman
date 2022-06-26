@@ -37,7 +37,7 @@ export const actionDropdown = (urlBase, actions, fullWidth=false) => {
           <Menu.Item key={i.toString()}>
             <Button
               icon={actionIcon(a)}
-              onClick={() => history.push(`${urlBase}/actions/${i}/`)}
+              onClick={() => history(`${urlBase}/actions/${i}/`)}
               {...(fullWidth ? {style:{width:"100%", border:0}} : {style:{border:0}})}
             >
               {a.name}

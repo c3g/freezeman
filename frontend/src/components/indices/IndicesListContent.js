@@ -133,7 +133,7 @@ const IndicesListContent = ({
 
   return <>
     <AppPageHeader title="Indices" extra={[
-      <Button onClick={() => history.push("/indices/validate")}>
+      <Button onClick={() => history("/indices/validate")}>
         <CheckOutlined /> Validate Indices
       </Button>,
       actionDropdown("/indices", actions),

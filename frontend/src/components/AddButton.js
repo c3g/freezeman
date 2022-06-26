@@ -6,7 +6,7 @@ import {PlusOutlined} from "@ant-design/icons";
 const AddButton = ({url, ...rest}) => {
   const history = useNavigate();
   return (
-    <Button onClick={() => history.push(url)} {...rest}>
+    <Button onClick={() => history(url)} {...rest}>
       <PlusOutlined /> Add
     </Button>
   )
