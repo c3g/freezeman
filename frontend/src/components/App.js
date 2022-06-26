@@ -244,7 +244,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             <PrivateRoute path="/about">
               <About/>
             </PrivateRoute>
-            <Navigate from="/" to="/dashboard" />
+            <Route path="/" element={<Navigate to="/dashboard" />}/>
           </Routes>
         </Layout.Content>
       </Layout>

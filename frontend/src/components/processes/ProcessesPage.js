@@ -9,7 +9,7 @@ import ActionContent from "../ActionContent";
 const ProcessesPage = () => <PageContainer>
   <Routes>
     <Route path="/:id" element={<ProcessDetailContent />}/>
-    <Navigate to="/process-measurements/list" />
+    <Route path="/" element={<Navigate to="/list" />}/>
   </Routes>
 </PageContainer>;
 

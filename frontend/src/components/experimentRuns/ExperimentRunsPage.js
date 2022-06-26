@@ -12,7 +12,7 @@ const ExperimentRunsPage = () => <PageContainer>
     <Route path="/list" element={<ExperimentRunsListContent />}/>
     <Route path="/actions/:action" element={<ActionContent templateType="experimentRun" />}/>
     <Route path="/:id" element={<ExperimentRunsDetailContent />}/>
-    <Navigate to="/experiment-runs/list" />
+    <Route path="/" element={<Navigate to="/list" />}/>
   </Routes>
 </PageContainer>;
 
