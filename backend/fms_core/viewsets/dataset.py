@@ -3,12 +3,18 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
+from fms_core.models.dataset import Dataset
+from fms_core.serializers import DatasetSerializer
 
 import fms_core.services.dataset as service
 from datetime import date
 
-class DatasetViewSet(viewsets.ViewSet):
-    def create(self, request, *args, **kwargs):
+class DatasetViewSet(viewsets.ModelViewSet):
+    queryset = Dataset.objects.all()
+    serializer_class = DatasetSerializer
+
+    @action(detail=False, methods=["post"])
+    def create_from_run_processing(self, request, *args, **kwargs):
         data = request.data
         options = data["options"]
         rpm = data["run_processing_metrics"]
@@ -75,29 +81,5 @@ class DatasetViewSet(viewsets.ViewSet):
                     service.dataset_file_to_dict(dataset_file)
                     for dataset_file in dataset_files
                 ],
-                "warnings": warnings,
-            })
-    
-    def update(self, request, pk=None):
-        data = request.data
-        errors = []
-        warnings = []
-
-        try:
-            dataset_file_args = {}
-            if "completion_date" in data:
-                dataset_file_args["completion_date"] = data["completion_date"] and date.fromisoformat(data["completion_date"])
-            if "validation_date" in data:
-                dataset_file_args["validation_date"] = data["validation_date"] and date.fromisoformat(data["validation_date"])
-
-            dataset_file, errors, warnings = service.update_dataset_file(pk, **dataset_file_args)
-        except ValueError as e:
-            errors.append(f"Invalid date: {e}")
-
-        if errors:
-            return HttpResponseBadRequest(errors)
-        else:
-            return Response({
-                "dataset_file": service.dataset_file_to_dict(dataset_file),
                 "warnings": warnings,
             })

@@ -7,6 +7,8 @@ from .utils import convert_concentration_from_ngbyul_to_nm
 
 from .models import (
     Container,
+    Dataset,
+    DatasetFile,
     ExperimentRun,
     RunType,
     Index,
@@ -33,6 +35,8 @@ from .models import (
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "DatasetSerializer",
+    "DatasetFileSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "RunTypeSerializer",
@@ -614,3 +618,17 @@ class LibraryTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LibraryType
         fields = "__all__"
+
+class DatasetFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DatasetFile
+        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
+        read_only_fields = ["deleted"]
+
+class DatasetSerializer(serializers.ModelSerializer):
+    files = DatasetFileSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Dataset
+        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
+        read_only_fields = ["deleted"]
