@@ -84,7 +84,6 @@ class DatasetViewSet(viewsets.ViewSet):
         warnings = []
 
         try:
-            # TODO: allow updating many more fields?
             dataset_file_args = {}
             if "completion_date" in data:
                 dataset_file_args["completion_date"] = data["completion_date"] and date.fromisoformat(data["completion_date"])
