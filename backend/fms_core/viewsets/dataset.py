@@ -45,8 +45,8 @@ class DatasetViewSet(viewsets.ViewSet):
                                 dataset_file_args = {}
                                 dataset_file_args["dataset"] = dataset
                                 dataset_file_args["file_path"] = readset[key]
-                                dataset_file_args["completion_date"] = options["completion_date"] and date.fromisoformat(options["completion_date"])
-                                dataset_file_args["validation_date"] = options["validation_date"] and date.fromisoformat(options["validation_date"])
+                                dataset_file_args["completion_date"] = options.get("completion_date") and date.fromisoformat(options["completion_date"])
+                                dataset_file_args["validation_date"] = options.get("validation_date") and date.fromisoformat(options["validation_date"])
                                 dataset_file_args["sample_name"] = readset["sample_name"]
                 
                                 dataset_file, newerrors, newwarnings = service.create_dataset_file(**dataset_file_args)
