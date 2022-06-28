@@ -620,13 +620,24 @@ class LibraryTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetFileSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        exclude = kwargs.pop('exclude', [])
+
+        super().__init__(*args, **kwargs)
+
+        if exclude:
+            exclude = set(exclude)
+            existing = set(self.fields)
+            for field_name in existing & exclude:
+                self.fields.pop(field_name)
+
     class Meta:
         model = DatasetFile
         exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
         read_only_fields = ["deleted"]
 
 class DatasetSerializer(serializers.ModelSerializer):
-    files = DatasetFileSerializer(many=True, read_only=True)
+    files = DatasetFileSerializer(many=True, read_only=True, exclude=["dataset"])
 
     class Meta:
         model = Dataset
