@@ -1,6 +1,6 @@
-import { viewSetActions, listAndTableActions } from "../shared/actions"
+import { viewSetRedux, listAndTableRedux } from "../shared/redux"
 
-export default {
-    ...viewSetActions("datasets", "datasets", null),
-    ...listAndTableActions("datasets", "datasets", null, null),
+export * from {
+    ...viewSetRedux("datasets", "datasets", "datasets").actions,
+    ...listAndTableRedux("datasets", "datasets", "datasets", {}).actions,
 }
