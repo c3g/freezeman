@@ -1,6 +1,6 @@
 import { viewSetActions, listAndTableActions } from "../shared/actions"
 
 export default {
-    ...viewSetActions("datasets", null, null),
-    ...listAndTableActions("datasets", null, null, null),
+    ...viewSetActions("datasets", "datasets", null),
+    ...listAndTableActions("datasets", "datasets", null, null),
 }
