@@ -22,11 +22,14 @@ const DatasetsListContent = ({
         const project_name = dataset.project_name;
         const run_name = dataset.run_name;
         const lane = dataset.lane;
-        const files = dataset.files.map((file) => {
+
+        const fileObjects = Object.values(dataset.files);
+        
+        const file_paths = fileObjects.map((file) => {
             return <div>{file.file_path}</div>
         })
-        const completion_date = dataset.files[0]?.completion_date ?? "";
-        const validation_date = dataset.files[0]?.validation_date ?? "";
+        const completion_date = fileObjects.find((file) => file.completion_date)?.completion_date ?? "";
+        const validation_date = fileObjects.find((file) => file.validation_date)?.validation_date ?? "";
 
         const checkbox = <Checkbox
             onChange={(e) => {
@@ -40,7 +43,7 @@ const DatasetsListContent = ({
             project_name,
             run_name,
             lane,
-            files,
+            files: file_paths,
             completion_date,
             validation_date,
             checkbox,
@@ -99,7 +102,15 @@ const DatasetsListContent = ({
 
     useEffect(() => {
         withToken(token, api.datasets.list)().then(res => {
-            setData(res.data);
+            const { results } = res.data;
+            setData(
+                results.reduce((prev, dataset) => {
+                    return {
+                        ...prev,
+                        [dataset.id]: dataset,
+                    }
+                })
+            )
         })
     })
 
