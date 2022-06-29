@@ -5,11 +5,12 @@ from typing import NamedTuple, Union
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
+
 from fms_core.models import Library, Process, ProcessMeasurement, PropertyType, PropertyValue, Protocol, Sample, SampleKind
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED, DSDNA_MW, SSDNA_MW
 from fms_core.services.container import get_or_create_container
 from fms_core.services.container import get_or_create_container
-from fms_core.services.index import get_index
+from fms_core.services.index import get_index, create_index, get_or_create_index_set
 from fms_core.services.library import create_library, get_library_type
 from fms_core.services.platform import get_platform
 from fms_core.services.sample import create_full_sample, get_sample_from_container
@@ -21,6 +22,10 @@ from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 # Hardcoded strings from library QC importer (move these to a constants file?)
 LIBRARY_QC_PROTOCOL_NAME = 'Library Quality Control'
 LIBRARY_QC_PROCESS_COMMENT = 'Library Quality Control (imported from template)'
+
+TEST_INDEX_SET = 'IDT_10nt_UDI_TruSeq_Adapter'
+TEST_INDEX_STRUCTURE = 'TruSeqHT'
+TEST_INDEX_001 = 'IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001'
 
 # LibraryData holds the values we need to create libraries for the tests.
 class LibraryData(NamedTuple):
@@ -63,7 +68,7 @@ LIBRARY_DATA_1 = LibraryData(
     container_kind = 'Tube',
     container_barcode = 'LIBRARYQCTUBE1',
     coord = None,
-    index_name = 'IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001',
+    index_name = TEST_INDEX_001,
     library_type = 'PCR-free',
     platform = 'ILLUMINA',
     strandedness = DOUBLE_STRANDED,
@@ -95,7 +100,7 @@ LIBRARY_DATA_2 = LibraryData(
     container_kind='96-well plate',
     container_barcode='LIBRARYQCPLATE2',
     coord='A01',
-    index_name= 'IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001',
+    index_name= TEST_INDEX_001,
     library_type = 'PCR-free',
     platform = 'ILLUMINA',
     strandedness = DOUBLE_STRANDED,
@@ -127,7 +132,7 @@ LIBRARY_DATA_3 = LibraryData(
     container_kind='96-well plate',
     container_barcode='LIBRARYQCPLATE2',
     coord='A02',
-    index_name= 'IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001',
+    index_name= TEST_INDEX_001,
     library_type = 'PCR-free',
     platform = 'ILLUMINA',
     strandedness = SINGLE_STRANDED,
@@ -165,6 +170,11 @@ class LibraryQCTestCase(TestCase):
 
     def prefill_data(self):
         """ Create library objects on which we will run QC """
+
+        # Create index for test libraries
+        (index_set, _, _, _) = get_or_create_index_set(set_name=TEST_INDEX_SET)
+        create_index(index_set=index_set, index_structure=TEST_INDEX_STRUCTURE, index_name=TEST_INDEX_001)
+
         self.create_library(LIBRARY_DATA_1)
         self.create_library(LIBRARY_DATA_2)
         self.create_library(LIBRARY_DATA_3)
