@@ -17,6 +17,7 @@ const DatasetsListContent = ({
         return dataset.files[0].validation_date
     }).map((dataset) => dataset.id))
 
+    const dataSource = data?.results?.map((dataset, key) => {
         const id = dataset.id;
         const project_name = dataset.project_name;
         const run_name = dataset.run_name;
@@ -34,7 +35,7 @@ const DatasetsListContent = ({
             checked={checked.has(id)} />;
 
         return {
-            key: id,
+            key,
             id,
             project_name,
             run_name,
