@@ -5,3 +5,6 @@ node_modules/
 backend/fms.log
 launch.json
 fms.log
+.python-version
+.coverage
+
