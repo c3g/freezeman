@@ -13,7 +13,10 @@ const DatasetsListContent = ({
 }) => {
     const [data, setData] = useState(null);
 
-    const dataSource = data?.results?.map((dataset) => {
+    const checked = new Set(data?.results?.filter((dataset) => {
+        return dataset.files[0].validation_date
+    }).map((dataset) => dataset.id))
+
         const id = dataset.id;
         const project_name = dataset.project_name;
         const run_name = dataset.run_name;
@@ -24,9 +27,11 @@ const DatasetsListContent = ({
         const completion_date = dataset.files[0]?.completion_date ?? "";
         const validation_date = dataset.files[0]?.validation_date ?? "";
 
-        const checkbox = <Checkbox onChange={(e) => {
-            console.log(run_name)
-        }} />;
+        const checkbox = <Checkbox
+            onChange={(e) => {
+                console.log(id)
+            }}
+            checked={checked.has(id)} />;
 
         return {
             key: id,
