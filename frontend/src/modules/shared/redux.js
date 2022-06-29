@@ -1,3 +1,5 @@
+import {createNetworkActionTypes, networkAction} from "../../utils/actions"
+
 export const viewSetRedux = (actionNamePrefix, apiKey, stateKey) => {
     actionNamePrefix = actionNamePrefix.toUpperCase();
 
@@ -140,6 +142,15 @@ export const listAndTableRedux = (actionNamePrefix, apiKey, stateKey, FILTERS) =
             { meta: { ...options, ignoreError: 'AbortError' } }
         ));
     };
+
+    // Helper to call list() after another action
+    function thenList(fn) {
+        return (...args) => async dispatch => {
+            dispatch(fn(...args))
+            dispatch(listTable(undefined, true))
+        }
+    }
+
 
     const setSortBy = thenList((key, order) => {
         return {
