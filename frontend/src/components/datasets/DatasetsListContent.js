@@ -1,4 +1,4 @@
-import { Table } from "antd";
+import { Checkbox, Table } from "antd";
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import api, { withToken } from "../../utils/api";
@@ -24,6 +24,10 @@ const DatasetsListContent = ({
         const completion_date = dataset.files[0]?.completion_date ?? "";
         const validation_date = dataset.files[0]?.validation_date ?? "";
 
+        const checkbox = <Checkbox onChange={(e) => {
+            console.log(run_name)
+        }} />;
+
         return {
             key: id,
             id,
@@ -33,6 +37,7 @@ const DatasetsListContent = ({
             files,
             completion_date,
             validation_date,
+            checkbox,
         }
     }) ?? []
 
@@ -77,7 +82,13 @@ const DatasetsListContent = ({
             dataIndex: "validation_date",
             key: "validation_date",
             width: `${Math.max(...dataSource.map((dataset) => dataset.validation_date.length), "Validation Date".length)}em`,
-        }
+        },
+        {
+            title: "Release Data",
+            dataIndex: "checkbox",
+            key: "checkbox",
+            width: `${"Release Data".length}em`,
+        },
     ]
 
     useEffect(() => {
