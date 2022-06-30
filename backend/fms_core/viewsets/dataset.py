@@ -5,6 +5,10 @@ from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from fms_core.models.dataset import Dataset
 from fms_core.serializers import DatasetSerializer
+from fms_core.filters import DatasetFilter
+
+from ._utils import _list_keys
+from ._constants import _dataset_filterset_fields
 
 import fms_core.services.dataset as service
 from datetime import date
@@ -12,6 +16,12 @@ from datetime import date
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
+
+    filterset_fields = {
+        **_dataset_filterset_fields,
+    }
+
+    filter_class = DatasetFilter
 
     @action(detail=False, methods=["post"])
     def create_from_run_processing(self, request, *args, **kwargs):

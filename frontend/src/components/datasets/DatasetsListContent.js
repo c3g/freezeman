@@ -42,7 +42,6 @@ const getTableColumns = (datasetsById) => [
     {
         title: "Completion Date",
         dataIndex: "completion_date",
-        sorter: true,
         render: (_, dataset) => {
             return <>{dataset?.files?.find((f) => f?.completion_date)?.completion_date ?? "N/A"}</>
         }
@@ -50,7 +49,6 @@ const getTableColumns = (datasetsById) => [
     {
         title: "Validation Date",
         dataIndex: "validation_date",
-        sorter: true,
         render: (_, dataset) => {
             return <>{dataset?.files?.find((f) => f?.validation_date)?.validation_date ?? "N/A"}</>
         }

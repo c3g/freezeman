@@ -1,8 +1,9 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from .models import Container, Index, Individual, Sample, PropertyValue
 
 import django_filters
+from datetime import datetime
 
 from .viewsets._constants import (
     _container_filterset_fields,
@@ -99,3 +100,23 @@ class IndexFilter(GenericFilter):
     class Meta:
         model = Index
         fields = _index_filterset_fields
+
+class DatasetFilter(GenericFilter):
+    run_name = django_filters.CharFilter(field_name="run_name", method="batch_filter")
+    project_name = django_filters.CharFilter(field_name="project_name", method="batch_filter")
+    
+    completion_date__gte = django_filters.DateFilter(method="completion_date_filter")
+    completion_date__lte = django_filters.DateFilter(method="completion_date_filter")
+
+    validation_date__gte = django_filters.DateFilter(method="validation_date_filter")
+    validation_date__lte = django_filters.DateFilter(method="completion_date_filter")
+
+    def completion_date_filter(self, queryset, name, value):
+        query = { (f"files__{name}"): value }
+        return queryset.annotate(completion_count=Count('files', filter=Q(**query))) \
+                       .filter(completion_count__gt=0)
+    
+    def validation_date_filter(self, queryset, name, value):
+        query = { (f"files__{name}"): value }
+        return queryset.annotate(validation_count=Count('files', filter=Q(**query))) \
+                       .filter(validation_count__gt=0)
