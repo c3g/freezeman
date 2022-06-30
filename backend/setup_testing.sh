@@ -56,7 +56,7 @@ python "$__dirname/manage.py" createsuperuser --noinput
 # Make the test running optional so that we can launch the tests in a debugger.
 # Invoking this script without the 'test' argument just sets up the test db
 # without launching any tests.
-if [ ! -z $1 ]
+if [ $# -ne 0 ]
 then
     echo "Running server with database $PG_DATABASE"
     python "$__dirname/manage.py" $django_command
