@@ -1,121 +1,124 @@
-import { Checkbox, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import { Button } from "antd";
+import React from "react";
 import { connect } from "react-redux";
-import api, { withToken } from "../../utils/api";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
+import AppPageHeader from "../AppPageHeader";
+import { DATASET_FILTERS } from "../filters/descriptions";
+import FiltersWarning from "../filters/FiltersWarning";
+import getFilterProps from "../filters/getFilterProps";
+import getNFilters from "../filters/getNFilters";
+import PageContent from "../PageContent";
+import PaginatedTable from "../PaginatedTable";
+
+const getTableColumns = (datasetsById) => [
+    {
+        title: "ID",
+        dataIndex: "id",
+        sorter: true,
+    },
+    {
+        title: "Run",
+        dataIndex: "run_name",
+        sorter: true,
+    },
+    {
+        title: "Project",
+        dataIndex: "project_name",
+        sorter: true,
+    },
+    {
+        title: "Lane",
+        dataIndex: "lane",
+    },
+    {
+        title: "Files",
+        dataIndex: "files",
+        render: (files, _) => {
+            return <>{
+                files.map(file => <div>{file.file_path}</div>)
+            }</>
+        }
+    },
+    {
+        title: "Completion Date",
+        dataIndex: "completion_date",
+        sorter: true,
+    },
+    {
+        title: "Validation Date",
+        dataIndex: "validation_date",
+        sorter: true,
+    }
+]
 
 const mapStateToProps = state => ({
-    token: state.auth.tokens.access,
+    datasets: state.datasets.items,
+    datasetsById: state.datasets.itemsByID,
+    filters: state.datasets.filters,
+    isFetching: state.datasets.isFetching,
+    page: state.datasets.page,
+    sortBy: state.datasets.sortBy,
+    totalCount: state.datasets.totalCount,
 });
-const actionCreators = {};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const DatasetsListContent = ({
-    token,
+    clearFilters,
+    datasets,
+    datasetsById,
+    filters,
+    isFetching,
+    listTable,
+    page,
+    setFilter,
+    setFilterOption,
+    setSortBy,
+    sortBy,
+    totalCount,
 }) => {
-    const [data, setData] = useState(null);
+    const columns = getTableColumns(datasetsById)
+    .map(c => Object.assign(c, getFilterProps(
+        c,
+        DATASET_FILTERS,
+        filters,
+        setFilter,
+        setFilterOption
+    )))
 
-    const checked = new Set(data?.results?.filter((dataset) => {
-        return dataset.files[0].validation_date
-    }).map((dataset) => dataset.id))
+    const nFilters = getNFilters(filters)
 
-    const dataSource = data?.results?.map((dataset, key) => {
-        const id = dataset.id;
-        const project_name = dataset.project_name;
-        const run_name = dataset.run_name;
-        const lane = dataset.lane;
-
-        const fileObjects = Object.values(dataset.files);
-        
-        const file_paths = fileObjects.map((file) => {
-            return <div>{file.file_path}</div>
-        })
-        const completion_date = fileObjects.find((file) => file.completion_date)?.completion_date ?? "";
-        const validation_date = fileObjects.find((file) => file.validation_date)?.validation_date ?? "";
-
-        const checkbox = <Checkbox
-            onChange={(e) => {
-                console.log(id)
-            }}
-            checked={checked.has(id)} />;
-
-        return {
-            key,
-            id,
-            project_name,
-            run_name,
-            lane,
-            files: file_paths,
-            completion_date,
-            validation_date,
-            checkbox,
-        }
-    }) ?? []
-
-    const columns = [
-        {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.id.toString().length), "ID".length*2)}em`,
-        },
-        {
-            title: "Project Name",
-            dataIndex: "project_name",
-            key: "project_name",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.project_name.length), "Project Name".length)}em`,
-        },
-        {
-            title: "Run Name",
-            dataIndex: "run_name",
-            key: "run_name",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.run_name.length), "Run Name".length)}em`,
-        },
-        {
-            title: "Lane",
-            dataIndex: "lane",
-            key: "lane",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.lane.length), "Lane".length*2)}em`,
-        },
-        {
-            title: "Files",
-            dataIndex: "files",
-            key: "files",
-        },
-        {
-            title: "Completion Date",
-            dataIndex: "completion_date",
-            key: "completion_date",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.completion_date.length), "Completion Date".length)}em`,
-        },
-        {
-            title: "Validation Date",
-            dataIndex: "validation_date",
-            key: "validation_date",
-            width: `${Math.max(...dataSource.map((dataset) => dataset.validation_date.length), "Validation Date".length)}em`,
-        },
-        {
-            title: "Release Data",
-            dataIndex: "checkbox",
-            key: "checkbox",
-            width: `${"Release Data".length}em`,
-        },
-    ]
-
-    useEffect(() => {
-        withToken(token, api.datasets.list)().then(res => {
-            const { results } = res.data;
-            setData(
-                results.reduce((prev, dataset) => {
-                    return {
-                        ...prev,
-                        [dataset.id]: dataset,
-                    }
-                })
-            )
-        })
-    })
-
-    // temporary
-    return <Table columns={columns} dataSource={dataSource} scroll={{y: 500}} />;
-}
+    return <>
+        <AppPageHeader title="Datasets"/>
+        <PageContent>
+        <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+            <FiltersWarning
+            nFilters={nFilters}
+            filters={filters}
+            description={DATASET_FILTERS}
+            />
+            <Button
+            style={{ margin: 6 }}
+            disabled={nFilters === 0}
+            onClick={clearFilters}
+            >
+            Clear Filters
+            </Button>
+        </div>
+        <PaginatedTable
+            columns={columns}
+            items={datasets}
+            itemsByID={datasetsById}
+            rowKey="id"
+            loading={isFetching}
+            totalCount={totalCount}
+            page={page}
+            filters={filters}
+            sortBy={sortBy}
+            onLoad={listTable}
+            onChangeSort={setSortBy}
+        />
+        </PageContent>
+    </>;
+    }
 
 export default connect(mapStateToProps, actionCreators)(DatasetsListContent);
