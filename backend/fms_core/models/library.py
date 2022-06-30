@@ -31,7 +31,7 @@ class Library(TrackedModel):
 
     @property
     def molecular_weight_approx(self):
-        return Decimal(SSDNA_MW if self.strandedness is SINGLE_STRANDED else DSDNA_MW)
+        return Decimal(SSDNA_MW if self.strandedness == SINGLE_STRANDED else DSDNA_MW)
     
     def clean(self):
         super().clean()

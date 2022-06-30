@@ -7,6 +7,7 @@ from fms_core.tests.test_template_importers._utils import load_template, APP_DAT
 
 from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Container
 from fms_core.services.project import create_project
+from fms_core.services.index import get_or_create_index_set, create_index
 
 
 class SampleSubmissionTestCase(TestCase):
@@ -20,6 +21,11 @@ class SampleSubmissionTestCase(TestCase):
         self.invalid_template_tests = ["Sample_submission_v3_8_0_bad_location.xlsx",
                                        "Sample_submission_v3_8_0_dna_no_conc.xlsx",
                                        "Sample_submission_v3_8_0_library_without_index.xlsx",]
+
+        # Create indices
+        (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
+        (index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+                                                   index_name="SSXTHSV2703-SSXTHSV2503")
         self.prefill_data()
 
     def prefill_data(self):

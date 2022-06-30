@@ -10,6 +10,7 @@ from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
 from fms_core.services.container import create_container
 from fms_core.services.sample import create_full_sample, get_sample_from_container, update_qc_flags
+from fms_core.services.index import get_or_create_index_set, create_index
 
 
 class LibraryPreparationTestCase(TestCase):
@@ -27,9 +28,14 @@ class LibraryPreparationTestCase(TestCase):
         self.platform_batch_1 = Platform.objects.get(name="DNBSEQ")
         self.platform_batch_2 = Platform.objects.get(name="ILLUMINA")
 
-        self.index_1 = Index.objects.get(name="Index_1")
-        self.index_2 = Index.objects.get(name="Index_2")
-        self.index_3 = Index.objects.get(name="Index_3")
+        # Create indices
+        (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Illumina_TruSeq_DNA_RNA")
+        (self.index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqLT",
+                                                        index_name="Index_1")
+        (self.index_2, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqLT",
+                                                        index_name="Index_2")
+        (self.index_3, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqLT",
+                                                        index_name="Index_3")
 
         self.library_batch_1 = dict(
             ID='batch_1',
