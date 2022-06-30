@@ -35,7 +35,7 @@ const getTableColumns = (datasetsById) => [
         dataIndex: "files",
         render: (files, _) => {
             return <>{
-                files.map(file => <div>{file.file_path}</div>)
+                files?.map(file => <div>{file.file_path}</div>) || ""
             }</>
         }
     },
@@ -43,11 +43,17 @@ const getTableColumns = (datasetsById) => [
         title: "Completion Date",
         dataIndex: "completion_date",
         sorter: true,
+        render: (_, dataset) => {
+            return <>{dataset?.files?.find((f) => f?.completion_date)?.completion_date ?? "N/A"}</>
+        }
     },
     {
         title: "Validation Date",
         dataIndex: "validation_date",
         sorter: true,
+        render: (_, dataset) => {
+            return <>{dataset?.files?.find((f) => f?.validation_date)?.validation_date ?? "N/A"}</>
+        }
     }
 ]
 
