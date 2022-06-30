@@ -505,3 +505,5 @@ export const LIBRARY_FILTERS = {
     ],
   },
 }
+
+export const DATASET_FILTERS = {}
