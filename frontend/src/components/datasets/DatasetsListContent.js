@@ -10,50 +10,52 @@ import getNFilters from "../filters/getNFilters";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-const getTableColumns = (datasetsById) => [
-    {
-        title: "ID",
-        dataIndex: "id",
-        sorter: true,
-    },
-    {
-        title: "Run",
-        dataIndex: "run_name",
-        sorter: true,
-    },
-    {
-        title: "Project",
-        dataIndex: "project_name",
-        sorter: true,
-    },
-    {
-        title: "Lane",
-        dataIndex: "lane",
-    },
-    {
-        title: "Files",
-        dataIndex: "files",
-        render: (files, _) => {
-            return <>{
-                files?.map(file => <div>{file.file_path}</div>) || ""
-            }</>
+const getTableColumns = (datasetsById) => {
+    const findValidationDate = (dataset) => dataset?.files?.find((f) => f?.validation_date)?.validation_date
+    return [
+        {
+            title: "ID",
+            dataIndex: "id",
+            sorter: true,
+        },
+        {
+            title: "Run",
+            dataIndex: "run_name",
+            sorter: true,
+        },
+        {
+            title: "Project",
+            dataIndex: "project_name",
+            sorter: true,
+        },
+        {
+            title: "Lane",
+            dataIndex: "lane",
+        },
+        {
+            title: "Files",
+            dataIndex: "files",
+            render: (files, _) => {
+                // TODO: make this a link to the files
+                return <>{`${files?.length} files`}</>
+            }
+        },
+        {
+            title: "Completion Date",
+            dataIndex: "completion_date",
+            render: (_, dataset) => {
+                return <>{dataset?.files?.find((f) => f?.completion_date)?.completion_date ?? "N/A"}</>
+            }
+        },
+        {
+            title: "Validation Date",
+            dataIndex: "validation_date",
+            render: (_, dataset) => {
+                return <>{findValidationDate(dataset) ?? "N/A"}</>
+            }
         }
-    },
-    {
-        title: "Completion Date",
-        dataIndex: "completion_date",
-        render: (_, dataset) => {
-            return <>{dataset?.files?.find((f) => f?.completion_date)?.completion_date ?? "N/A"}</>
-        }
-    },
-    {
-        title: "Validation Date",
-        dataIndex: "validation_date",
-        render: (_, dataset) => {
-            return <>{dataset?.files?.find((f) => f?.validation_date)?.validation_date ?? "N/A"}</>
-        }
-    }
-]
+    ]
+}
 
 const mapStateToProps = state => ({
     datasets: state.datasets.items,
