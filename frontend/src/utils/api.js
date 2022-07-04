@@ -46,6 +46,13 @@ const api = {
     list: (options, abort) => get("/datasets/", options, { abort }),
   },
 
+  datasetFiles: {
+    get: id => get(`/dataset_files/${id}/`),
+    add: dataset => post("/dataset_files/", dataset),
+    update: dataset => patch(`/dataset_files/${dataset.id}/`, dataset),
+    list: (options, abort) => get("/dataset_files/", options, { abort }),
+  },
+
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),
