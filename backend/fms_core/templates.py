@@ -13,6 +13,7 @@ __all__ = [
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
+    "NORMALIZATION_TEMPLATE",
     "SAMPLE_METADATA_TEMPLATE",
     "SAMPLE_EXTRACTION_TEMPLATE",
     "SAMPLE_SUBMISSION_TEMPLATE",
@@ -165,6 +166,23 @@ LIBRARY_QC_TEMPLATE = {
     ("LibraryQC", "Library Container Coord", "coordinates"),
     ("LibraryQC", "Initial Volume (uL)", "volume"),
     ("LibraryQC", "Strandedness", "sample_strandedness"),
+    ],
+}
+
+NORMALIZATION_TEMPLATE = {
+  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_10_0.xlsx")},
+  "sheets info": [
+      {
+        'name': 'Normalization',
+        'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode', 'Destination Container Coord',
+                    'Destination Container Name', 'Destination Container Name', 'Destination Parent Container Barcode',
+                    'Destination Parent Container Coord', 'Source Depleted', 'Volume Used (uL)', 'Volume (uL)',
+                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment'],
+      },
+  ],
+  "prefill info": [
+    ("Normalization", "Source Container Barcode", "container__barcode"),
+    ("Normalization", "Source Container Coord", "coordinates"),
     ],
 }
 
