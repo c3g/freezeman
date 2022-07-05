@@ -63,7 +63,6 @@ module.exports = (env, argv) => ({
       template: path.resolve(__dirname, "./src/template.html"),
       hash: true,
     }),
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
