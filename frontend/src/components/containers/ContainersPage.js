@@ -9,12 +9,12 @@ import ActionContent from "../ActionContent";
 
 const ContainersPage = () => <PageContainer>
   <Routes>
-    <Route path="/list" element={<ContainersListContent />}/>
-    <Route path="/actions/:action" element={<ActionContent templateType="container" />}/>
-    <Route path="/add" element={<ContainerEditContent />}/>
-    <Route path="/:id/update" element={<ContainerEditContent />}/>
-    <Route path="/:id" element={<ContainersDetailContent />}/>
-    <Route path="/" element={<Navigate to="/containers/list" />}/>
+    <Route path="/list/*" element={<ContainersListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="container" />}/>
+    <Route path="/add/*" element={<ContainerEditContent />}/>
+    <Route path="/:id/update/*" element={<ContainerEditContent />}/>
+    <Route path="/:id/*" element={<ContainersDetailContent />}/>
+    <Route path="/*" element={<Navigate to="/containers/list" />}/>
   </Routes>
 </PageContainer>;
 

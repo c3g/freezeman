@@ -8,11 +8,11 @@ import PageContainer from "../PageContainer";
 
 const UsersPage = () => <PageContainer>
   <Routes>
-    <Route path="/list" element={<UsersListContent />}/>
-    <Route path="/add" element={<UserEditContent />}/>
-    <Route path="/:id/update" element={<UserEditContent />}/>
-    <Route path="/:id" element={<UsersDetailContent />}/>
-    <Route path="/" element={<Navigate to="/users/list" />}/>
+    <Route path="/list/*" element={<UsersListContent />}/>
+    <Route path="/add/*" element={<UserEditContent />}/>
+    <Route path="/:id/update/*" element={<UserEditContent />}/>
+    <Route path="/:id/*" element={<UsersDetailContent />}/>
+    <Route path="/*" element={<Navigate to="/users/list" />}/>
   </Routes>
 </PageContainer>;
 
