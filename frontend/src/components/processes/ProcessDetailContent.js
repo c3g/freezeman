@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
-import {Button, Descriptions, Typography, Tabs} from "antd";
+import {Button, Descriptions, Typography, Tabs, notification} from "antd";
 const {TabPane} = Tabs;
 const {Title} = Typography;
 
@@ -47,6 +47,9 @@ const ProcessDetailContent = ({
     const onClickHandler = fileID =>
       withToken(token, api.importedFiles.download)(fileID)
         .then(response => downloadFromFile(response.filename, response.data))
+        .catch((err) => {
+          notification.error({message:"Template Unavailable", description:"The template file could not be retrieved."})
+        })
 
     if (!isLoaded) {
       listProcesses({id__in: id});
@@ -80,7 +83,7 @@ const ProcessDetailContent = ({
                   }
                   <Descriptions.Item label="Template Submitted" span={4}>
                       {process?.imported_template &&
-                          <Link>
+                          <Link to="#">
                             <div onClick={() => onClickHandler(process?.imported_template)}>
                               {process.imported_template_filename}
                             </div>
