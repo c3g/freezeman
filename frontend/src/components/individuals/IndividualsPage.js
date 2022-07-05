@@ -12,7 +12,7 @@ const IndividualsPage = () => <PageContainer>
         <Route path="/add/*" element={<IndividualEditContent />}/>
         <Route path="/:id/update/*" element={<IndividualEditContent />}/>
         <Route path="/:id/*" element={<IndividualsDetailContent />}/>
-        <Route path="/*" element={<Navigate to="/individuals/list" />}/>
+        <Route path="*" element={<Navigate to="/individuals/list" replace />}/>
     </Routes>
 </PageContainer>;
 

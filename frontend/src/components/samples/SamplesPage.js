@@ -15,7 +15,7 @@ const SamplesPage = () => <PageContainer>
     <Route path="/add/*" element={<SampleEditContent />}/>
     <Route path="/:id/update/*" element={<SampleEditContent />}/>
     <Route path="/:id/*" element={<SamplesDetailContent />}/>
-    <Route path="/*" element={<Navigate to="/samples/list" />}/>
+    <Route path="*" element={<Navigate to="/samples/list" replace />}/>
   </Routes>
 </PageContainer>;
 

@@ -12,7 +12,7 @@ const UsersPage = () => <PageContainer>
     <Route path="/add/*" element={<UserEditContent />}/>
     <Route path="/:id/update/*" element={<UserEditContent />}/>
     <Route path="/:id/*" element={<UsersDetailContent />}/>
-    <Route path="/*" element={<Navigate to="/users/list" />}/>
+    <Route path="*" element={<Navigate to="/users/list" replace />}/>
   </Routes>
 </PageContainer>;
 

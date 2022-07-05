@@ -14,7 +14,7 @@ const ContainersPage = () => <PageContainer>
     <Route path="/add/*" element={<ContainerEditContent />}/>
     <Route path="/:id/update/*" element={<ContainerEditContent />}/>
     <Route path="/:id/*" element={<ContainersDetailContent />}/>
-    <Route path="/*" element={<Navigate to="/containers/list" />}/>
+    <Route path="*" element={<Navigate to="/containers/list" replace />}/>
   </Routes>
 </PageContainer>;
 

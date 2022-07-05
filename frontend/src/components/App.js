@@ -270,7 +270,7 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
                 <About />
               </PrivateNavigate>
             }/>
-            <Route path="/*" element={<Navigate to="/dashboard" />}/>
+            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
           </Routes>
         </Layout.Content>
       </Layout>
