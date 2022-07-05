@@ -24,6 +24,7 @@ from .platform import PlatformViewSet
 from .library_type import LibraryTypeViewSet
 from .taxon import TaxonViewSet
 from .sample_lineage import SampleLineageViewSet
+from .imported_file import ImportedFileViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -51,5 +52,6 @@ __all__ = [
     "PlatformViewSet",
     "LibraryTypeViewSet",
     "TaxonViewSet",
-    "SampleLineageViewSet"
+    "SampleLineageViewSet",
+    "ImportedFileViewSet"
 ]

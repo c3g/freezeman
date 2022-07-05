@@ -27,6 +27,7 @@ from .models import (
     SampleMetadata,
     Sequence,
     Taxon,
+    ImportedFile
 )
 
 
@@ -67,6 +68,7 @@ __all__ = [
     "ProjectExportSerializer",
     "SequenceSerializer",
     "TaxonSerializer",
+    "ImportedFileSerializer",
 ]
 
 
@@ -219,11 +221,12 @@ class ProtocolSerializer(serializers.ModelSerializer):
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
     children_processes = serializers.SerializerMethodField()
+    imported_template_filename = serializers.CharField(read_only=True, source="imported_template.filename")
 
     class Meta:
         model = Process
         fields = "__all__"
-        extra_fields = ('children_processes')
+        extra_fields = ('children_processes', 'imported_template_filename')
 
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
@@ -613,4 +616,9 @@ class PlatformSerializer(serializers.ModelSerializer):
 class LibraryTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LibraryType
+        fields = "__all__"
+
+class ImportedFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImportedFile
         fields = "__all__"

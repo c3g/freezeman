@@ -7,7 +7,7 @@ from fms_core.serializers import ProcessSerializer
 from ._constants import _process_filterset_fields
 
 class ProcessViewSet(viewsets.ModelViewSet):
-    queryset = Process.objects.all()
+    queryset = Process.objects.all().select_related("imported_template")
     serializer_class = ProcessSerializer
     pagination_class = None
     permission_classes = [IsAuthenticated]
