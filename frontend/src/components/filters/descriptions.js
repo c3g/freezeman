@@ -505,3 +505,36 @@ export const LIBRARY_FILTERS = {
     ],
   },
 }
+
+export const DATASET_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Dataset ID",
+  },
+  run_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "run_name",
+    label: "Run Name",
+  },
+  project_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "project_name",
+    label: "Project Name",
+  },
+  lane: {
+    type: FILTER_TYPE.INPUT,
+    key: "lane",
+    label: "Lane",
+  },
+  completion_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "completion_date",
+    label: "Completion Date",
+  },
+  validation_date: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "validation_date",
+    label: "Validation Date",
+  }
+}

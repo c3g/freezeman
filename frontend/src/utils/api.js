@@ -38,6 +38,14 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding, exact_match }),
   },
 
+  datasets: {
+    get: id => get(`/datasets/${id}/`),
+    add: dataset => post("/datasets/", dataset),
+    add_from_run_processing: data => post("/datasets/create_from_run_processing/", data),
+    update: dataset => patch(`/datasets/${dataset.id}/`, dataset),
+    list: (options, abort) => get("/datasets/", options, { abort }),
+  },
+
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),

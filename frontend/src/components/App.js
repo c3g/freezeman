@@ -14,6 +14,7 @@ import {
   ProjectOutlined,
   BarcodeOutlined,
   HddOutlined,
+  FileZipOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -41,6 +42,7 @@ import {hour} from "../utils/time";
 import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 import {get} from "../modules/users/actions";
+import DatasetsPage from "./datasets/DatasetsPage";
 
 const { Title } = Typography;
 
@@ -117,6 +119,11 @@ const MENU_ITEMS = [
     icon: <AuditOutlined />,
     text: "Users",
   },
+  {
+    url: "/datasets",
+    icon: <FileZipOutlined />,
+    text: "Datasets",
+  }
 ]
 
 const colorStyle = {
@@ -268,6 +275,11 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             <Route path="/about/*" element={
               <PrivateNavigate>
                 <About />
+              </PrivateNavigate>
+            }/>
+            <Route path="/datasets/*" element={
+              <PrivateNavigate>
+                <DatasetsPage/>
               </PrivateNavigate>
             }/>
             <Route path="*" element={<Navigate to="/dashboard" replace />}/>

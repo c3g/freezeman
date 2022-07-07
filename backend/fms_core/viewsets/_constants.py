@@ -196,3 +196,13 @@ _library_filterset_fields: FiltersetFields = {
     **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
     "derived_samples__library__library_size": SCALAR_FILTERS,
 }
+
+_dataset_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "run_name": CATEGORICAL_FILTERS_LOOSE,
+    "project_name": CATEGORICAL_FILTERS_LOOSE,
+    "lane": CATEGORICAL_FILTERS,
+
+    # "files__completion_date": DATE_FILTERS,
+    # "files__validation_date": DATE_FILTERS,
+}

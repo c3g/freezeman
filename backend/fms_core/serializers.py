@@ -8,6 +8,8 @@ from django.db.models import Exists, OuterRef
 
 from .models import (
     Container,
+    Dataset,
+    DatasetFile,
     ExperimentRun,
     RunType,
     Index,
@@ -35,6 +37,8 @@ from .models import (
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "DatasetSerializer",
+    "DatasetFileSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "RunTypeSerializer",
@@ -603,3 +607,28 @@ class ImportedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImportedFile
         fields = "__all__"
+
+class DatasetFileSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        exclude = kwargs.pop('exclude', [])
+
+        super().__init__(*args, **kwargs)
+
+        if exclude:
+            exclude = set(exclude)
+            existing = set(self.fields)
+            for field_name in existing & exclude:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = DatasetFile
+        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
+        read_only_fields = ["deleted"]
+
+class DatasetSerializer(serializers.ModelSerializer):
+    files = DatasetFileSerializer(many=True, exclude=["dataset"])
+
+    class Meta:
+        model = Dataset
+        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
+        read_only_fields = ["deleted"]

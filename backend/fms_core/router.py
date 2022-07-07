@@ -28,6 +28,7 @@ from .viewsets import (
     TaxonViewSet,
     SampleLineageViewSet,
     ImportedFileViewSet,
+    DatasetViewSet,
 )
 
 __all__ = ["router"]
@@ -60,3 +61,4 @@ router.register(r"users", UserViewSet)
 router.register(r"groups", GroupViewSet)
 router.register(r"sample-lineage", SampleLineageViewSet, basename="sample-lineage")
 router.register(r"imported-files", ImportedFileViewSet, basename="imported-files")
+router.register(r"datasets", DatasetViewSet, basename="datasets")
