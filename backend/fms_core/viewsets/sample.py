@@ -2,7 +2,7 @@ import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F
 from django.core.exceptions import ValidationError
 
 import time
@@ -273,8 +273,147 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer_data = [serialize_sample_export(sample) for sample in self.filter_queryset(self.get_queryset())]
-        return Response(serializer_data)
+        queryset = self.filter_queryset(self.get_queryset())
+
+        queryset = queryset.annotate(
+            first_derived_sample=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("derived_sample", flat=True)[:1]
+            )
+        )
+
+        sample_values = (
+            queryset
+            .values(
+                'id',
+                'name',
+                'container__id',
+                'container__kind',
+                'container__name',
+                'container__barcode',
+                'coordinates',
+                'container__location__barcode',
+                'container__location__coordinates',
+                'volume',
+                'concentration',
+                'creation_date',
+                'quality_flag',
+                'quantity_flag',
+                'projects__name',
+                'depleted',
+                'comment',
+            )
+            .annotate(
+                sample_id=F("id"),
+                sample_name=F("name"),
+                container=F("container__id"),
+                container_kind=F("container__kind"),
+                container_name=F("container__name"),
+                container_barcode=F("container__barcode"),
+                # coordinates=F("coordinates"),
+                location_barcode=F("container__location__barcode"),
+                location_coord=F("container__location__coordinates"),
+                current_volume=F("volume"),
+                # concentration=F("concentration"),
+                # creation_date=F("creation_date"),
+                # quality_flag=F("quality_flag"),
+                # quantity_flag=F("quantity_flag"),
+                projects=F("projects__name"),
+                # depleted=F("depleted"),
+                # comment=F("comment"),
+            )
+            .values(
+                'sample_id',
+                'sample_name',
+                'container',
+                'container_kind',
+                'container_name',
+                'container_barcode',
+                'coordinates',
+                'location_barcode',
+                'location_coord',
+                'current_volume',
+                'concentration',
+                'creation_date',
+                'quality_flag',
+                'quantity_flag',
+                'projects',
+                'depleted',
+                'comment',
+            )
+        )
+
+        derived_sample_ids = queryset.values_list("first_derived_sample", flat=True)
+        derived_sample_values = {
+            ds["pk"]: ds
+            for ds in (
+                DerivedSample
+                .objects
+                .filter(id__in=derived_sample_ids)
+                .values(
+                    "pk",
+                    "biosample__id",
+                    "biosample__alias",
+                    "sample_kind__name",
+                    "tissue_source__name",
+                    "biosample__collection_site",
+                    "experimental_group",
+                    "biosample__individual__name",
+                    "biosample__individual__alias",
+                    'biosample__individual__sex',
+                    'biosample__individual__taxon__name',
+                    'biosample__individual__cohort',
+                    'biosample__individual__father__name',
+                    'biosample__individual__mother__name',
+                    'biosample__individual__pedigree',
+                    "library",
+                )
+                .annotate(
+                    biosample_id=F("biosample__id"),
+                    alias=F("biosample__alias"),
+                    sample_kind=F("sample_kind__name"),
+                    tissue_source=F("tissue_source__name"),
+                    collection_site=F("biosample__collection_site"),
+                    # experimental_group=F("experimental_group"),
+                    individual_name=F("biosample__individual__name"),
+                    individual_alias=F("biosample__individual__alias"),
+                    sex=F("biosample__individual__sex"),
+                    taxon=F("biosample__individual__taxon__name"),
+                    cohort=F("biosample__individual__cohort"),
+                    father_name=F("biosample__individual__father__name"),
+                    mother_name=F("biosample__individual__mother__name"),
+                    pedigree=F("biosample__individual__pedigree"),
+                    # library=F("library"),
+                )
+                .values(
+                    "pk",
+                    "biosample_id",
+                    "alias",
+                    "sample_kind",
+                    "tissue_source",
+                    "collection_site",
+                    "experimental_group",
+                    "individual_name",
+                    "individual_alias",
+                    "sex",
+                    "taxon",
+                    "cohort",
+                    "father_name",
+                    "mother_name",
+                    "pedigree",
+                    "library"
+                )
+            )
+        }
+
+        serialized_data = []
+        for sample_value, derived_sample_id in zip(sample_values, derived_sample_ids):
+            derived_sample_value = derived_sample_values[derived_sample_id]
+            derived_sample_value.pop("pk")
+            serialized_data.append(dict(sample_value, **derived_sample_value))
+
+        return Response(serialized_data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
