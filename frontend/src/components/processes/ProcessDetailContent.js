@@ -8,12 +8,13 @@ const {Title} = Typography;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
+import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
+import {listProcesses, listPropertyValues, listProcessProperties} from "../../modules/experimentRuns/actions";
 import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
-
+import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
 
 const mapStateToProps = state => ({
     token: state.auth.tokens.access,
@@ -22,7 +23,7 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues, templateDownload};
+const actionCreators = {listProcesses, listPropertyValues, templateDownload, listProcessProperties};
 
 const ProcessDetailContent = ({
   processesByID,
@@ -30,19 +31,13 @@ const ProcessDetailContent = ({
   protocolsByID,
   listPropertyValues,
   listProcesses,
-  token
+  token,
+  listProcessProperties,
 }) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in processesByID;
     const process = processesByID[id] || {};
-    const childrenProcessesAreLoaded = process?.children_processes?.every(process => process in processesByID)
-    //Process' properties and process' children properties both should be loaded
-    const propertiesAreLoaded = process?.children_properties?.every(property => property in propertyValuesByID)
-    const childrenPropertiesAreLoaded = process?.children_processes?.
-                                          every(process => processesByID[process]?.children_properties?.
-                                            every(property => property in propertyValuesByID))
-    const allPropertiesAreLoaded = propertiesAreLoaded && childrenPropertiesAreLoaded
 
     const onClickHandler = fileID =>
       withToken(token, api.importedFiles.download)(fileID)
@@ -55,16 +50,8 @@ const ProcessDetailContent = ({
       listProcesses({id__in: id});
     }
 
-    if(isLoaded && !childrenProcessesAreLoaded){
-      // Need to be queried as a string, not as an array in order to work with DRF filters
-      const processIDSAsStr = [id].concat(process.children_processes).join()
-      listProcesses({id__in:processIDSAsStr});
-    }
-
-    if (isLoaded && childrenProcessesAreLoaded && !allPropertiesAreLoaded) {
-      // Need to be queried as a string, not as an array in order to work with DRF filters
-      const processIDSAsStr = [id].concat(process.children_processes).join()
-      listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" });
+    if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
+      listProcessProperties(id);
     }
 
     const isLoading = !isLoaded || process.isFetching;
@@ -116,6 +103,8 @@ const ProcessDetailContent = ({
                   )
                 })
               }
+              <Title level={3} style={{marginTop: '20px'}}>Applications</Title>
+              <ProcessAssociatedMeasurements id={id} />
               </TabPane>
             </Tabs>
         </PageContent>

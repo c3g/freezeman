@@ -119,7 +119,39 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.experimentRuns.template.actions()));
 };
 
+export const listProcessProperties = (id) => async (dispatch, getState) => {
+    if (getState().propertyValues.isFetching)
+        return;
 
+    const { itemsByID, propertyValuesByID } = getState().processes    
+    
+    return await (
+        Promise.resolve()
+    ).then(async () => {
+        const isLoaded = id in itemsByID;
+        if (!isLoaded) {
+            return await dispatch(listProcesses({ id__in: id }))
+        }
+    }).then(async () => {
+        const process = itemsByID[id];
+        const childrenProcessesAreLoaded = process?.children_processes?.every(process => process in itemsByID)
+        
+        if (!childrenProcessesAreLoaded) {
+            return await dispatch(listProcesses({ id__in: process.children_processes.join() }))
+        }
+    }).then(async () => {
+        const process = itemsByID[id];
+        const propertiesAreLoaded = process?.children_properties?.every(property => property in propertyValuesByID)
+        const childrenPropertiesAreLoaded = process?.children_processes?.every(process => itemsByID[process]?.children_properties?.every(property => property in propertyValuesByID))
+        const allPropertiesAreLoaded = propertiesAreLoaded && childrenPropertiesAreLoaded
+
+        if (!allPropertiesAreLoaded) {
+            const processIDSAsStr = [id].concat(process.children_processes).join()
+            return await dispatch(listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" }))
+        }
+    })
+}
+  
 
 export default {
     GET,

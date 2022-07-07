@@ -10,9 +10,10 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listPropertyValues} from "../../modules/experimentRuns/actions";
+import {listPropertyValues, listProcessProperties, listProcesses} from "../../modules/experimentRuns/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
+import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
 
 const mapStateToProps = state => ({
     processMeasurementsByID: state.processMeasurements.itemsByID,
@@ -20,9 +21,10 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
     samplesByID: state.samples.itemsByID,
     usersByID: state.users.itemsByID,
+    processesByID: state.processes.itemsByID,
 });
 
-const actionCreators = {get, listPropertyValues};
+const actionCreators = {get, listPropertyValues, listProcessProperties, listProcesses};
 
 const ProcessMeasurementsDetailContent = ({
   processMeasurementsByID,
@@ -31,7 +33,10 @@ const ProcessMeasurementsDetailContent = ({
   samplesByID,
   usersByID,
   get,
-  listPropertyValues
+  listPropertyValues,
+  processesByID,
+  listProcessProperties,
+  listProcesses,
 }) => {
     const history = useHistory();
     const {id} = useParams();
@@ -44,6 +49,15 @@ const ProcessMeasurementsDetailContent = ({
 
     if (isLoaded && !propertiesAreLoaded) {
       listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+    }
+
+    const processIsLoaded = processMeasurement?.process in processesByID;
+    const process = processesByID[processMeasurement?.process] || {};
+    if (!processIsLoaded) {
+      listProcesses({id__in: processMeasurement?.process});
+    }
+    if (processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
+      listProcessProperties(processMeasurement?.process);
     }
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
@@ -76,15 +90,37 @@ const ProcessMeasurementsDetailContent = ({
               <TrackingFieldsContent entity={processMeasurement}/>
             </TabPane>
             <TabPane tab="Properties" key="2" style={{marginTop:8} }>
-              { processMeasurement?.properties?.length > 0 &&
+              <Title level={3}>Process Properties</Title>
+              { process?.children_properties?.length > 0 &&
                   <>
                   <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
+                    <ProcessProperties
+                        propertyIDs={process.children_properties}
+                        protocolName={protocolsByID[process.protocol]?.name}
+                    />
+                  </>
+              }
+              {process?.children_processes?.map((id, i) => {
+                  const process = processesByID[id]
+                  return ( process &&
+                      <>
+                        <ProcessProperties
+                            propertyIDs={process.children_properties}
+                            protocolName={protocolsByID[process.protocol]?.name}
+                        />
+                      </>
+                  )
+                })
+              }
+              {processMeasurement?.properties?.length > 0 &&
+                  <>
+                  <Title level={3} style={{marginTop: '20px'}}>Application</Title>
                     <ProcessProperties
                         propertyIDs={processMeasurement.properties}
                         protocolName={protocolsByID[processMeasurement.protocol]?.name}
                     />
                   </>
-               }
+              }
             </TabPane>
           </Tabs>
         </PageContent>

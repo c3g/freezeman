@@ -7,6 +7,7 @@ import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET                   = createNetworkActionTypes("PROCESS_MEASUREMENTS.GET");
 export const LIST                  = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST");
+export const LIST_FILTER           = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST_FILTER");
 export const LIST_TABLE            = createNetworkActionTypes("PROCESS_MEASUREMENTS.LIST_TABLE");
 export const SET_SORT_BY           = "PROCESS_MEASUREMENTS.SET_SORT_BY";
 export const SET_FILTER            = "PROCESS_MEASUREMENTS.SET_FILTER";
@@ -28,6 +29,21 @@ export const list = (options) => async (dispatch, getState) => {
     return await dispatch(networkAction(LIST,
         api.processMeasurements.list(params),
         { meta: params }
+    ));
+};
+
+export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy }, abort) => async (dispatch, getState) => {
+    if (getState().processMeasurements.isFetching && !abort)
+        return
+
+    limit = getState().pagination.pageSize;
+    filters = serializeFilterParams(filters, PROCESS_MEASUREMENT_FILTERS)
+    const ordering = serializeSortByParams(sortBy)
+    const options = { limit, offset, ordering, ...filters}
+
+    return await dispatch(networkAction(LIST_FILTER,
+        api.processMeasurements.list(options, abort),
+        { meta: { ...options } }
     ));
 };
 
@@ -87,6 +103,7 @@ export default {
     SET_FILTER_OPTION,
     CLEAR_FILTERS,
     LIST,
+    LIST_FILTER,
     LIST_TABLE,
     SUMMARY,
     LIST_TEMPLATE_ACTIONS,
@@ -96,6 +113,7 @@ export default {
     setFilterOption,
     clearFilters,
     list,
+    listFilter,
     listTable,
     listTemplateActions,
     summary,
