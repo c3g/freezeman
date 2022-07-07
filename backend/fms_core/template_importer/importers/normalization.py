@@ -40,7 +40,8 @@ class NormalizationImporter(GenericImporter):
             destination_sample = {
                 'coordinates': str_cast_and_normalize(row_data['Destination Container Coord']),
                 'volume': volume_used,
-                'concentration':  float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
+                'concentration_nm': float_to_decimal_and_none(row_data['Concentration (nM)']),
+                'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
                 'creation_date': normalization_date,
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
