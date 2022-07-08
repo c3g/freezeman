@@ -6,7 +6,7 @@ import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
 const { Text } = Typography;
 
-import { Graph } from "react-d3-graph"
+import { Graph } from "freezeman-d3-graph"
 
 import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
