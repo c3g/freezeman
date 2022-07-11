@@ -5,7 +5,7 @@ from decimal import Decimal
 from fms_core.template_importer.importers import NormalizationImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage
+from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.sample import create_full_sample
@@ -23,9 +23,9 @@ class NormalizationTestCase(TestCase):
         sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
 
         samples_info = [
-            {'name': 'Sample1Normalization', 'volume': 400, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A01'},
-            {'name': 'Sample2Normalization', 'volume': 400, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A02'},
-            {'name': 'Sample3Normalization', 'volume': 400, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A03'},
+            {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A01'},
+            {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A02'},
+            {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A03'},
         ]
 
         for info in samples_info:
@@ -37,8 +37,6 @@ class NormalizationTestCase(TestCase):
                                                             concentration=10,
                                                             container=container, coordinates=info['coordinates'],
                                                             sample_kind=sample_kind_DNA)
-
-        (container_rack, _, errors, warnings) = get_or_create_container(barcode='RackTransfer', name='RackTransfer', kind='tube rack 8x12')
 
         destination_containers_info = [
             {'barcode': 'DESTINATION_CONTAINER', 'name': 'DESTINATION_CONTAINER', 'kind': '96-well plate'},
@@ -53,66 +51,38 @@ class NormalizationTestCase(TestCase):
 
         self.assertEqual(result['valid'], True)
 
-        # Custom tests for each template
-        ss1 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A01")
-        self.assertEqual(ss1.volume, 200)
+        # Source sample tests
+        ss1 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A01")
+        self.assertEqual(ss1.volume, 25)
         self.assertFalse(ss1.depleted)
-        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A01").exists())
+
+        # Destination sample test
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A01").exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss1).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss1).exists())
-        cs1 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A01")
+
+        cs1 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A01")
         sl1 = SampleLineage.objects.get(parent=ss1)
         pm1 = ProcessMeasurement.objects.get(source_sample=ss1)
-        process1 = pm1.process
+
         self.assertEqual(sl1.child, cs1)
         self.assertEqual(sl1.process_measurement, pm1)
         self.assertEqual(pm1.source_sample, ss1)
-        self.assertEqual(pm1.volume_used, 200)
-        self.assertEqual(pm1.protocol_name, "Transfer")
-        self.assertEqual(pm1.comment, "One Test")
-        self.assertEqual(cs1.volume, 200)
+        self.assertEqual(pm1.volume_used, 5)
+        self.assertEqual(pm1.protocol_name, "Normalization")
+        self.assertEqual(pm1.comment, "Comment1")
+        self.assertEqual(cs1.volume, 5)
         self.assertEqual(cs1.creation_date, pm1.execution_date)
-        self.assertEqual(cs1.creation_date, datetime.strptime("2021-10-10", "%Y-%m-%d").date())
+        self.assertEqual(cs1.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
-        ss2 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A02")
-        self.assertEqual(ss2.volume, 300)
-        self.assertFalse(ss2.depleted)
-        self.assertTrue(Container.objects.filter(barcode="Transfer_container_dest_2", name="NewContainer").exists())
-        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_2").exists())
-        self.assertTrue(SampleLineage.objects.filter(parent=ss2).exists())
-        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss2).exists())
-        cs2 = Sample.objects.get(container__barcode="Transfer_container_dest_2", container__coordinates="H08")
-        sl2 = SampleLineage.objects.get(parent=ss2)
-        pm2 = ProcessMeasurement.objects.get(source_sample=ss2)
-        process2 = pm2.process
-        self.assertEqual(sl2.child, cs2)
-        self.assertEqual(sl2.process_measurement, pm2)
-        self.assertEqual(pm2.source_sample, ss2)
-        self.assertEqual(pm2.volume_used, 100)
-        self.assertEqual(pm2.protocol_name, "Transfer")
-        self.assertEqual(pm2.comment, "Two Test")
-        self.assertEqual(cs2.volume, 100)
-        self.assertEqual(process2, process1)
-        self.assertEqual(cs2.creation_date, pm2.execution_date)
-        self.assertEqual(cs2.creation_date, datetime.strptime("2021-09-02", "%Y-%m-%d").date())
+        '''
+        # Property Values tests
+        pt_1 = PropertyType.objects.get(name='Volume', object_id=pm1.process.protocol.id)
+        p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm1.id)
 
-        ss3 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A03")
-        self.assertEqual(ss3.volume, 0)
-        self.assertTrue(ss3.depleted)
-        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A02").exists())
-        self.assertTrue(SampleLineage.objects.filter(parent=ss3).exists())
-        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss3).exists())
-        cs3 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A02", container__coordinates="A01")
-        sl3 = SampleLineage.objects.get(parent=ss3)
-        pm3 = ProcessMeasurement.objects.get(source_sample=ss3)
-        process3 = pm3.process
-        self.assertEqual(sl3.child, cs3)
-        self.assertEqual(sl3.process_measurement, pm3)
-        self.assertEqual(pm3.source_sample, ss3)
-        self.assertEqual(pm3.volume_used, 400)
-        self.assertEqual(pm3.protocol_name, "Transfer")
-        self.assertEqual(pm3.comment, "Three Test")
-        self.assertEqual(cs3.volume, 400)
-        self.assertEqual(process3, process2)
-        self.assertEqual(cs3.creation_date, pm3.execution_date)
-        self.assertEqual(cs3.creation_date, datetime.strptime("2021-09-22", "%Y-%m-%d").date())
+        pt_2 = PropertyType.objects.get(name='Concentration', object_id=pm1.process.protocol.id)
+        p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm1.id)
+
+        self.assertEqual(p_1.value, 5)
+        self.assertEqual(p_2.value, 20)
+        '''

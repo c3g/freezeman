@@ -40,8 +40,8 @@ class NormalizationImporter(GenericImporter):
             destination_sample = {
                 'coordinates': str_cast_and_normalize(row_data['Destination Container Coord']),
                 'volume': volume_used,
-                'concentration_nm': float_to_decimal_and_none(row_data['Concentration (nM)']),
-                'concentration_uL' : float_to_decimal_and_none(row_data['Concentration (ng/uL)']),
+                'concentration_nm': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
+                'concentration_uL' : float_to_decimal_and_none(row_data['Conc. (nM)']),
                 'creation_date': normalization_date,
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
@@ -61,7 +61,7 @@ class NormalizationImporter(GenericImporter):
 
             normalization_kwargs = dict(
                 source_sample=source_sample,
-                resulting_sample=destination_sample,
+                destination_sample=destination_sample,
                 process_measurement=process_measurement,
             )
 
