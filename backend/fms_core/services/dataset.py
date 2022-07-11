@@ -82,36 +82,47 @@ def create_from_run_processing(run_processing_metrics: Dict, completion_date: st
         errors = []
         warnings = []
 
-        for rv in rpm["run_validation"]:
-            if errors:
-                break
+        rpm_keys = [ "run_validation", "run", "lane", "readsets" ]
+        for key in rpm_keys:
+            if key not in rpm:
+                errors.append(f"Missing key '{key}' the run processing metric")
+        if errors:
+            return (datasets, dataset_files, errors, warnings)
 
-            dataset_args = {
-                "project_name": rv["project"],
-                "run_name": rpm["run"],
-                "lane": rpm["lane"],
-            }
-            dataset, errors, warnings = create_dataset(**dataset_args)
+        for rv in rpm["run_validation"]:
+            rv_keys = [ "project", "sample" ]
+            for key in rv_keys:
+                if key not in rv:
+                    errors.append(f"Missing key '{key}' in 'run_validation' for run processing metrics '{rpm['run']}'")
+            if errors:
+                return (datasets, dataset_files, errors, warnings)
+
+            dataset, errors, warnings = create_dataset(project_name=rv["project"], run_name=rpm["run"], lane=rpm["lane"], files=[])
             if errors:
                 return (datasets, dataset_files, errors, warnings)
             else:
                 datasets.append(dataset)
 
             for readset in rpm["readsets"].values():
+                readset_keys = [ "sample_name" ]
+                for key in readset_keys:
+                    if key not in readset:
+                        errors.append(f"Missing key '{key}' in 'readsets' for run processing metrics '{rpm['run']}'")
+                if errors:
+                    return (datasets, dataset_files, errors, warnings)
 
-                # TODO: actually find the closest matching sample_name
+                # TODO: actually find the closest matching sample_name?
                 if readset["sample_name"] in rv["sample"]:
                     for key in readset:
                         try:
                             if key not in ["sample_name", "barcodes"]:
-                                dataset_file_args = {
-                                    "dataset": dataset,
-                                    "file_path": readset[key],
-                                    "completion_date": completion_date and date.fromisoformat(completion_date),
-                                    "validation_date": validation_date and date.fromisoformat(validation_date),
-                                    "sample_name": readset["sample_name"],
-                                }
-                                dataset_file, newerrors, newwarnings = create_dataset_file(**dataset_file_args)
+                                dataset_file, newerrors, newwarnings = create_dataset_file(
+                                    dataset=dataset,
+                                    file_path=readset[key],
+                                    sample_name=readset["sample_name"],
+                                    completion_date=completion_date and date.fromisoformat(completion_date),
+                                    validation_date=validation_date and date.fromisoformat(validation_date),
+                                )
                                 errors.extend(newerrors)
                                 warnings.extend(newwarnings)
 
