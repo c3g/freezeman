@@ -25,12 +25,11 @@ def create_dataset(project_name: str, run_name: str, lane: str):
     warnings = []
 
     try:
-        dataset_data = dict(
+        dataset = Dataset.objects.create(
             project_name=project_name,
             run_name=run_name,
             lane=lane,
         )
-        dataset = Dataset.objects.create(**dataset_data)
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 
@@ -42,14 +41,13 @@ def create_dataset_file(dataset: Dataset, file_path: str, completion_date: Union
     warnings = []
 
     try:
-        dataset_file_data = dict(
+        dataset_file = DatasetFile.objects.create(
             dataset=dataset,
             file_path=file_path,
             completion_date=completion_date,
             validation_date=validation_date,
             sample_name=sample_name
         )
-        dataset_file = DatasetFile.objects.create(**dataset_file_data)
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 

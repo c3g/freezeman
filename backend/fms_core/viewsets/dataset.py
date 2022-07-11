@@ -34,12 +34,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
         dataset_files = []
 
-        kwargs = {
-            'project_name': data['project_name'],
-            'run_name': data['run_name'],
-            'lane': data['lane'],
-        }
-        dataset, errors, warnings = service.create_dataset(**kwargs)
+        dataset, errors, warnings = service.create_dataset(data['project_name'], data['run_name'], data['lane'])
         
         for file in data['files']:
             if errors:
