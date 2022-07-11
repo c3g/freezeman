@@ -45,27 +45,12 @@ class DatasetViewSet(viewsets.ModelViewSet):
         errors = []
         warnings = []
 
-        _, errors, warnings = service.update_dataset(pk, data['project_name'], data['run_name'], data['lane'])
-        
-        for file in data['files']:
-            if errors:
-                break
-
-            try:
-                file["completion_date"] = service.convertToDatetime(file["completion_date"])
-                file["validation_date"] = service.convertToDatetime(file["validation_date"])
-            except TypeError as e:
-                errors.append(str(e))
-                break
-
-            _, errors, warnings = service.update_dataset_file(file["id"], **file)
-            if errors:
-                break
+        dataset, errors, warnings = service.update_dataset(pk, **data)
         
         if errors:
             return HttpResponseBadRequest(errors)
         else:
-            return Response(self.get_serializer(service.dataset_query().filter(pk=pk).first()).data)
+            return Response(self.get_serializer(dataset).data)
         
 
     @action(detail=False, methods=["post"])

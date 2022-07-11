@@ -2,12 +2,12 @@ from jsonschema import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime, date
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 
-def convertToDatetime(value: Union[str, datetime, date]):
+def convertToModelDate(value: Union[datetime, date, str, None]):
     if isinstance(value, date):
         return datetime.combine(value, datetime.min.time())
     elif isinstance(value, datetime):
@@ -122,7 +122,7 @@ def create_from_run_processing(run_processing_metrics, completion_date, validati
         
     return (datasets, dataset_files, errors, warnings)
 
-def update_dataset(pk: int, **kwargs):
+def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Any] = []):
     errors = []
     warnings = []
 
@@ -130,6 +130,13 @@ def update_dataset(pk: int, **kwargs):
 
     try:
         query = Dataset.objects.filter(pk=pk)
+        kwargs = {}
+        if project_name:
+            kwargs["project_name"] = project_name
+        if run_name:
+            kwargs["run_name"] = run_name
+        if lane:
+            kwargs["lane"] = lane
         query.update(**kwargs)
         dataset = query.get()
     except ValidationError as e:
@@ -137,24 +144,34 @@ def update_dataset(pk: int, **kwargs):
     except ObjectDoesNotExist:
         errors.append(f"Dataset with id '{pk}' doesn't exist")
     
-    return  (dataset, errors, warnings)
-
-def update_dataset_file(pk: int, **kwargs):
-    errors = []
-    warnings = []
-
-    dataset_file = None
-
-    try:
-        query = DatasetFile.objects.filter(pk=pk)
-        query.update(**kwargs)
-        dataset_file = query.get()
-    except ValidationError as e:
-        errors.append(';'.join(e.messages))
-    except ObjectDoesNotExist:
-        errors.append(f"DatasetFile with id '{pk}' doesn't exist")
+    query = DatasetFile.objects.filter(id__in=[file["id"] for file in files])
+    files = { file["id"]: file for file in files }
     
-    return  (dataset_file, errors, warnings)
+    for file in query:
+        file.sample_name = files[file.id]["sample_name"]
+        file.file_path = files[file.id]["file_path"]
+        file.completion_date = convertToModelDate(files[file.id]["completion_date"])
+        file.validation_date = convertToModelDate(files[file.id]["validation_date"])
+        file.save()
+
+    return  (dataset and Dataset.objects.get(pk=pk), errors, warnings)
+
+# def update_dataset_file(pk: int, **kwargs):
+#     errors = []
+#     warnings = []
+
+#     dataset_file = None
+
+#     try:
+#         query = DatasetFile.objects.filter(pk=pk)
+#         query.update(**kwargs)
+#         dataset_file = query.get()
+#     except ValidationError as e:
+#         errors.append(';'.join(e.messages))
+#     except ObjectDoesNotExist:
+#         errors.append(f"DatasetFile with id '{pk}' doesn't exist")
+    
+#     return  (dataset_file, errors, warnings)
 
 def dataset_query():
     return Dataset.objects.all()
