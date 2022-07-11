@@ -614,6 +614,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
         super().__init__(*args, **kwargs)
 
+        # custom field exclusion right before serializing
         if exclude:
             exclude = set(exclude)
             existing = set(self.fields)
@@ -622,6 +623,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DatasetFile
+        # ignore TrackedModel fields
         exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
         read_only_fields = ["deleted"]
 
@@ -630,5 +632,6 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
+        # ignore TrackedModel fields
         exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
         read_only_fields = ["deleted"]
