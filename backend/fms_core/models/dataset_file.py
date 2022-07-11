@@ -19,4 +19,4 @@ class DatasetFile(TrackedModel):
     validation_date = models.DateTimeField(null=True, blank=True, help_text="Date the dataset was validated.")
 
     # derived_sample = models.ForeignKey(DerivedSample, null=True, blank=True, on_delete=models.PROTECT, help_text="The derived sample that correspond to the dataset")
-    sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="File produced for this sample")
+    sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The sample that corresponds with this file")
