@@ -2,7 +2,7 @@ from jsonschema import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime, date
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -55,7 +55,7 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Any]
 
     return (dataset and Dataset.objects.get(pk=dataset.id), errors, warnings)
 
-def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str):
+def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, completion_date: Optional[datetime] = None, validation_date: Optional[datetime] = None):
     dataset_file = None
     errors = []
     warnings = []
@@ -64,62 +64,71 @@ def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str):
         dataset_file = DatasetFile.objects.create(
             dataset=dataset,
             file_path=file_path,
-            sample_name=sample_name
+            sample_name=sample_name,
+            completion_date=completion_date,
+            validation_date=validation_date,
         )
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 
     return (dataset_file, errors, warnings)
 
-def create_from_run_processing(run_processing_metrics, completion_date, validation_date):
-    rpm = run_processing_metrics
+def create_from_run_processing(run_processing_metrics: Dict, completion_date: str, validation_date: str):
+    def main():
+        rpm = run_processing_metrics
 
-    datasets = []
-    dataset_files = []
-    errors = []
-    warnings = []
+        datasets = []
+        dataset_files = []
+        errors = []
+        warnings = []
 
-    for rv in rpm["run_validation"]:
-        if errors:
-            break
+        for rv in rpm["run_validation"]:
+            if errors:
+                break
 
-        dataset_args = {
-            "project_name": rv["project"],
-            "run_name": rpm["run"],
-            "lane": rpm["lane"],
-        }
-        dataset, errors, warnings = create_dataset(**dataset_args)
-        if errors:
-            return (datasets, dataset_files, errors, warnings)
-        else:
-            datasets.append(dataset)
+            dataset_args = {
+                "project_name": rv["project"],
+                "run_name": rpm["run"],
+                "lane": rpm["lane"],
+            }
+            dataset, errors, warnings = create_dataset(**dataset_args)
+            if errors:
+                return (datasets, dataset_files, errors, warnings)
+            else:
+                datasets.append(dataset)
 
-        for readset in rpm["readsets"].values():
+            for readset in rpm["readsets"].values():
 
-            # TODO: actually find the closest matching sample_name
-            if readset["sample_name"] in rv["sample"]:
-                for key in readset:
-                    try:
-                        if key not in ["sample_name", "barcodes"]:
-                            dataset_file_args = {
-                                "dataset": dataset,
-                                "file_path": readset[key],
-                                "completion_date": completion_date and date.fromisoformat(completion_date),
-                                "validation_date": validation_date and date.fromisoformat(validation_date),
-                                "sample_name": readset["sample_name"],
-                            }
-                            dataset_file, newerrors, newwarnings = create_dataset_file(**dataset_file_args)
-                            errors.extend(newerrors)
-                            warnings.extend(newwarnings)
+                # TODO: actually find the closest matching sample_name
+                if readset["sample_name"] in rv["sample"]:
+                    for key in readset:
+                        try:
+                            if key not in ["sample_name", "barcodes"]:
+                                dataset_file_args = {
+                                    "dataset": dataset,
+                                    "file_path": readset[key],
+                                    "completion_date": completion_date and date.fromisoformat(completion_date),
+                                    "validation_date": validation_date and date.fromisoformat(validation_date),
+                                    "sample_name": readset["sample_name"],
+                                }
+                                dataset_file, newerrors, newwarnings = create_dataset_file(**dataset_file_args)
+                                errors.extend(newerrors)
+                                warnings.extend(newwarnings)
 
-                            if errors:
-                                return (datasets, dataset_files, errors, warnings)
-                            else:
-                                dataset_files.append(dataset_file)
-                    except ValueError as e:
-                        errors.append(f"Invalid date: {e}")
-                        return (datasets, dataset_files, errors, warnings)
+                                if errors:
+                                    return (datasets, dataset_files, errors, warnings)
+                                else:
+                                    dataset_files.append(dataset_file)
+                        except ValueError as e:
+                            errors.append(f"Invalid date: {e}")
+                            return (datasets, dataset_files, errors, warnings)
         
+        return (datasets, dataset_files, errors, warnings)
+    datasets, dataset_files, errors, warnings = main()
+    if errors:
+        dataset_query().filter(id__in=[d.id for d in datasets]).delete()
+        dataset_file_query().filter(id__in=[d.id for d in dataset_files]).delete()
+    
     return (datasets, dataset_files, errors, warnings)
 
 def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Any] = []):

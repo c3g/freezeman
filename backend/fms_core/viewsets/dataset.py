@@ -57,11 +57,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     def create_from_run_processing(self, request, *args, **kwargs):
         data = request.data
 
-        datasets, dataset_files, errors, warnings = service.create_from_run_processing(data, None, None)
+        datasets, _, errors, _ = service.create_from_run_processing(data, None, None)
         if errors:
-            service.dataset_query().filter(id__in=[d.id for d in datasets]).delete()
-            service.dataset_file_query().filter(id__in=[d.id for d in dataset_files]).delete()
-
             return HttpResponseBadRequest(errors)
         else:
             return Response(self.get_serializer(datasets, many=True).data)
