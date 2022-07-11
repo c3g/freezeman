@@ -66,12 +66,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         errors = []
         warnings = []
 
-        kwargs = {
-            'project_name': data['project_name'],
-            'run_name': data['run_name'],
-            'lane': data['lane'],
-        }
-        _, errors, warnings = service.update_dataset(pk, **kwargs)
+        _, errors, warnings = service.update_dataset(pk, data['project_name'], data['run_name'], data['lane'])
         
         for file in data['files']:
             if errors:
