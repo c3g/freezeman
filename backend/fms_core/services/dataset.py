@@ -1,12 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from datetime import datetime, date
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 
-def convertToModelDate(value: Union[datetime, date, str, None]):
+def convertToModelDate(value: Union[datetime, date, str, None]) -> Union[datetime, None]:
     if isinstance(value, date):
         return datetime.combine(value, datetime.min.time())
     elif isinstance(value, datetime):
@@ -18,7 +18,7 @@ def convertToModelDate(value: Union[datetime, date, str, None]):
     else:
         raise ValueError(f"Invalid date: {value}")
 
-def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict[str, Any]] = []):
+def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict[str, Any]] = []) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     dataset = None
 
     errors = []
@@ -54,7 +54,7 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
 
     return (dataset and Dataset.objects.get(pk=dataset.id), errors, warnings)
 
-def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, completion_date: Optional[datetime] = None, validation_date: Optional[datetime] = None):
+def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, completion_date: Optional[datetime] = None, validation_date: Optional[datetime] = None) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     dataset_file = None
     errors = []
     warnings = []
@@ -72,7 +72,7 @@ def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, comp
 
     return (dataset_file, errors, warnings)
 
-def create_from_run_processing(run_processing_metrics: Dict[str, Any], completion_date: str, validation_date: str):
+def create_from_run_processing(run_processing_metrics: Dict[str, Any], completion_date: str, validation_date: str) -> Tuple[List[Dataset], List[DatasetFile], List[str], List[str]]:
     def main():
         rpm = run_processing_metrics
 
@@ -138,10 +138,12 @@ def create_from_run_processing(run_processing_metrics: Dict[str, Any], completio
     if errors:
         Dataset.objects.filter(id__in=[d.id for d in datasets]).delete()
         DatasetFile.objects.filter(id__in=[d.id for d in dataset_files]).delete()
+        datasets = []
+        dataset_files = []
     
     return (datasets, dataset_files, errors, warnings)
 
-def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Dict[str, Any]] = []):
+def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Dict[str, Any]] = []) -> Tuple[Tuple[Dataset, None], List[str], List[str]]:
     errors = []
     warnings = []
 
