@@ -97,11 +97,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def create_from_run_processing(self, request, *args, **kwargs):
         data = request.data
-        completion_date = data.get("options", {}).get("completion_date")
-        validation_date = data.get("options", {}).get("validation_date")
-        run_processing_metrics = data["run_processing_metrics"]
 
-        datasets, dataset_files, errors, warnings = service.create_from_run_processing(run_processing_metrics, completion_date, validation_date)
+        datasets, dataset_files, errors, warnings = service.create_from_run_processing(data, None, None)
         if errors:
             service.dataset_query().filter(id__in=[d.id for d in datasets]).delete()
             service.dataset_file_query().filter(id__in=[d.id for d in dataset_files]).delete()
