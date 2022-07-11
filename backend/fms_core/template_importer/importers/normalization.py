@@ -1,4 +1,4 @@
-from fms_core.models import Protocol, Process
+from fms_core.models import Protocol, Process, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.normalization import NormalizationRowHandler
 from fms_core.templates import NORMALIZATION_TEMPLATE
@@ -14,10 +14,18 @@ class NormalizationImporter(GenericImporter):
 
 
     def initialize_data_for_template(self):
-        self.preloaded_data = {'process': None}
+        # Get protocol for Normalization, which is used for samples and libraries
+        protocol = Protocol.objects.get(name='Normalization')
 
-        self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Normalization"),
+        self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
                                                                 comment="Normalization (imported from template)")
+
+        # Preload PropertyType objects for the sample qc in a dictionary for faster access
+        try:
+            self.preloaded_data['process_properties'] = {property.name: {'property_type_obj': property} for property in
+                                                         list(PropertyType.objects.filter(object_id=protocol.id))}
+        except Exception as e:
+            self.base_errors.append(f'Property Type could not be found. {e}')
 
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
@@ -28,6 +36,13 @@ class NormalizationImporter(GenericImporter):
             self.preloaded_data['process'].save()
 
         for row_id, row_data in enumerate(sheet.rows):
+            process_measurement_properties = self.preloaded_data['process_properties']
+            # Make sure every property has a value property, even if it is not used.
+            # Otherwise create_process_measurement_properties will raise an exception when
+            # it tries to get the value for a property.
+            for property in process_measurement_properties.values():
+                property['value'] = None
+
             volume_used = float_to_decimal_and_none(row_data['Volume Used (uL)'])
             normalization_date = input_to_date_and_none(row_data['Normalization Date (YYYY-MM-DD)'])
 
@@ -39,9 +54,9 @@ class NormalizationImporter(GenericImporter):
 
             destination_sample = {
                 'coordinates': str_cast_and_normalize(row_data['Destination Container Coord']),
-                'volume': volume_used,
-                'concentration_nm': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
-                'concentration_uL' : float_to_decimal_and_none(row_data['Conc. (nM)']),
+                'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
+                'concentration_uL': float_to_decimal_and_none(row_data['Conc. (ng/uL)']),
+                'concentration_nm' : float_to_decimal_and_none(row_data['Conc. (nM)']),
                 'creation_date': normalization_date,
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
@@ -63,6 +78,7 @@ class NormalizationImporter(GenericImporter):
                 source_sample=source_sample,
                 destination_sample=destination_sample,
                 process_measurement=process_measurement,
+                process_measurement_properties=process_measurement_properties,
             )
 
             (result, _) = self.handle_row(

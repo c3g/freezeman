@@ -1,14 +1,17 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
+from fms_core.models import ProcessMeasurement
+
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample
+from fms_core.services.property_value import create_process_measurement_properties
 
 from fms_core.utils import check_truth_like, convert_concentration_from_nm_to_ngbyul
 
 
 class NormalizationRowHandler(GenericRowHandler):
 
-    def process_row_inner(self, source_sample, destination_sample, process_measurement):
+    def process_row_inner(self, source_sample, destination_sample, process_measurement, process_measurement_properties):
         source_sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
@@ -55,17 +58,34 @@ class NormalizationRowHandler(GenericRowHandler):
                 concentration = destination_sample['concentration_nm']
                 if source_sample_obj.is_library:
                     library = source_sample_obj.derived_sample_not_pool.library
-                    concentration = convert_concentration_from_nm_to_ngbyul(concentration,
-                                                                            library.molecular_weight_approxm,
-                                                                            library.library_size)
+                    if library.library_size:
+                        concentration = convert_concentration_from_nm_to_ngbyul(concentration,
+                                                                                library.molecular_weight_approx,
+                                                                                library.library_size)
+                    else:
+                        self.errors['library'] = 'Library size has not been set for this library.'
 
                     if concentration is None:
                         self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
                 else:
                     self.errors['concentration'] = 'Concentration specified in nM should be only for libraries.'
 
-            _, self.errors['concentration'], self.warnings['concentration'] = \
+            _, self.errors['concentration_update'], self.warnings['concentration_update'] = \
                 update_sample(sample_to_update=resulting_sample, concentration=concentration)
+
+            # Set the process measurement properties
+            process_measurement_properties['Volume']['value'] = destination_sample['volume']
+            process_measurement_properties['Concentration']['value'] = concentration
+
+            # Create process measurement's properties
+            process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample_obj)
+            if process_measurement_obj:
+                properties_obj, self.errors['properties'], self.warnings[
+                    'properties'] = create_process_measurement_properties(
+                    process_measurement_properties,
+                    process_measurement_obj)
+            else:
+                self.errors['process_measurement'] = 'Could not create the process measurement.'
 
 
 
