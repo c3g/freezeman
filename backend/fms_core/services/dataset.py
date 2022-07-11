@@ -1,5 +1,4 @@
-from jsonschema import ValidationError
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from datetime import datetime, date
 from typing import Dict, List, Optional, Union
