@@ -2,7 +2,7 @@ from jsonschema import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime, date
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -19,7 +19,7 @@ def convertToModelDate(value: Union[datetime, date, str, None]):
     else:
         raise ValueError(f"Invalid date: {value}")
 
-def create_dataset(project_name: str, run_name: str, lane: str, files: List[Any] = []):
+def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict] = []):
     dataset = None
 
     errors = []
@@ -131,7 +131,7 @@ def create_from_run_processing(run_processing_metrics: Dict, completion_date: st
     
     return (datasets, dataset_files, errors, warnings)
 
-def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Any] = []):
+def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Dict] = []):
     errors = []
     warnings = []
 
