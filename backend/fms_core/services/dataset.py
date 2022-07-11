@@ -47,8 +47,8 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
                 dataset_files.append(dataset_file)
 
     if errors:
-        dataset_query().filter(id__in=dataset if dataset else []).delete()
-        dataset_file_query().filter(id__in=dataset_files).delete()
+        Dataset.objects.filter(id__in=dataset if dataset else []).delete()
+        DatasetFile.objects.filter(id__in=dataset_files).delete()
 
         dataset = None
         dataset_files = []
@@ -126,8 +126,8 @@ def create_from_run_processing(run_processing_metrics: Dict, completion_date: st
         return (datasets, dataset_files, errors, warnings)
     datasets, dataset_files, errors, warnings = main()
     if errors:
-        dataset_query().filter(id__in=[d.id for d in datasets]).delete()
-        dataset_file_query().filter(id__in=[d.id for d in dataset_files]).delete()
+        Dataset.objects.filter(id__in=[d.id for d in datasets]).delete()
+        DatasetFile.objects.filter(id__in=[d.id for d in dataset_files]).delete()
     
     return (datasets, dataset_files, errors, warnings)
 
@@ -181,9 +181,3 @@ def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional
 #         errors.append(f"DatasetFile with id '{pk}' doesn't exist")
     
 #     return  (dataset_file, errors, warnings)
-
-def dataset_query():
-    return Dataset.objects.all()
-
-def dataset_file_query():
-    return DatasetFile.objects.all()
