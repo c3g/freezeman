@@ -53,7 +53,7 @@ __all__ = [
     "PlatformViewSet",
     "LibraryTypeViewSet",
     "TaxonViewSet",
-    "ImportedFileViewSet"
-    "SampleLineageViewSet"
-    "DatasetViewSet"
+    "ImportedFileViewSet",
+    "SampleLineageViewSet",
+    "DatasetViewSet",
 ]
