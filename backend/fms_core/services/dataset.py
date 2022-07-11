@@ -2,7 +2,7 @@ from jsonschema import ValidationError
 from django.core.exceptions import ObjectDoesNotExist
 
 from datetime import datetime, date
-from typing import List, Union
+from typing import Any, List, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -19,8 +19,9 @@ def convertToDatetime(value: Union[str, datetime, date]):
     else:
         raise ValueError(f"Invalid date: {value}")
 
-def create_dataset(project_name: str, run_name: str, lane: str):
+def create_dataset(project_name: str, run_name: str, lane: str, files: List[Any] = []):
     dataset = None
+
     errors = []
     warnings = []
 
@@ -32,10 +33,29 @@ def create_dataset(project_name: str, run_name: str, lane: str):
         )
     except ValidationError as e:
         errors.append(';'.join(e.messages))
+    
+    
+    dataset_files = []
 
-    return (dataset, errors, warnings)
+    for file in files:
+        if not errors:
+            dataset_file, newerrors, newwarnings = create_dataset_file(dataset, file['file_path'], file['sample_name'])
+            errors.extend(newerrors)
+            warnings.extend(newwarnings)
 
-def create_dataset_file(dataset: Dataset, file_path: str, completion_date: Union[datetime, None], validation_date: Union[datetime, None], sample_name: str):
+            if dataset_file:
+                dataset_files.append(dataset_file)
+
+    if errors:
+        dataset_query().filter(id__in=dataset if dataset else []).delete()
+        dataset_file_query().filter(id__in=dataset_files).delete()
+
+        dataset = None
+        dataset_files = []
+
+    return (dataset and Dataset.objects.get(pk=dataset.id), errors, warnings)
+
+def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str):
     dataset_file = None
     errors = []
     warnings = []
@@ -44,8 +64,6 @@ def create_dataset_file(dataset: Dataset, file_path: str, completion_date: Union
         dataset_file = DatasetFile.objects.create(
             dataset=dataset,
             file_path=file_path,
-            completion_date=completion_date,
-            validation_date=validation_date,
             sample_name=sample_name
         )
     except ValidationError as e:

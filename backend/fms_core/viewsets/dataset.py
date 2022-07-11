@@ -31,32 +31,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
         data = request.data
         errors = []
         warnings = []
+        dataset = None
 
-        dataset_files = []
+        dataset, errors, warnings = service.create_dataset(**data)
 
-        dataset, errors, warnings = service.create_dataset(data['project_name'], data['run_name'], data['lane'])
-        
-        for file in data['files']:
-            if errors:
-                break
-
-            try:
-                file["completion_date"] = service.convertToDatetime(file["completion_date"])
-                file["validation_date"] = service.convertToDatetime(file["validation_date"])
-            except TypeError as e:
-                errors.append(str(e))
-                break
-
-            dataset_file, errors, warnings = service.create_dataset_file(dataset, **file)
-            if errors:
-                break
-            
-            dataset_files.append(dataset_file)
-        
         if errors:
-            service.dataset_query().filter(pk=dataset).delete()
-            service.dataset_file_query().filter(id__in=[d.id for d in dataset_files]).delete()
-
             return HttpResponseBadRequest(errors)
         else:
             return Response(self.get_serializer(dataset).data)
