@@ -1,15 +1,17 @@
 import json
+from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F, Count
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.aggregates import ArrayAgg
 
 import time
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer, serialize_sample_export
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
@@ -283,8 +285,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             )
         )
 
-        sample_values = (
+        samples_queryset = (
             queryset
+            .annotate(
+                library_count=Count("derived_samples", query=Q(derived_samples__library__isnull=False)),
+                is_library=Case(When(library_count__gt=0, then=True), default=False, output_field=BooleanField()),
+            )
             .values(
                 'id',
                 'name',
@@ -303,115 +309,91 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'projects__name',
                 'depleted',
                 'comment',
-            )
-            .annotate(
-                sample_id=F("id"),
-                sample_name=F("name"),
-                container=F("container__id"),
-                container_kind=F("container__kind"),
-                container_name=F("container__name"),
-                container_barcode=F("container__barcode"),
-                # coordinates=F("coordinates"),
-                location_barcode=F("container__location__barcode"),
-                location_coord=F("container__location__coordinates"),
-                current_volume=F("volume"),
-                # concentration=F("concentration"),
-                # creation_date=F("creation_date"),
-                # quality_flag=F("quality_flag"),
-                # quantity_flag=F("quantity_flag"),
-                projects=F("projects__name"),
-                # depleted=F("depleted"),
-                # comment=F("comment"),
-            )
-            .values(
-                'sample_id',
-                'sample_name',
-                'container',
-                'container_kind',
-                'container_name',
-                'container_barcode',
-                'coordinates',
-                'location_barcode',
-                'location_coord',
-                'current_volume',
-                'concentration',
-                'creation_date',
-                'quality_flag',
-                'quantity_flag',
+                'is_library',
+                'first_derived_sample',
                 'projects',
-                'depleted',
-                'comment',
             )
         )
+        samples = { s["id"]: s for s in samples_queryset }
 
-        derived_sample_ids = queryset.values_list("first_derived_sample", flat=True)
-        derived_sample_values = {
-            ds["pk"]: ds
-            for ds in (
-                DerivedSample
-                .objects
-                .filter(id__in=derived_sample_ids)
-                .values(
-                    "pk",
-                    "biosample__id",
-                    "biosample__alias",
-                    "sample_kind__name",
-                    "tissue_source__name",
-                    "biosample__collection_site",
-                    "experimental_group",
-                    "biosample__individual__name",
-                    "biosample__individual__alias",
-                    'biosample__individual__sex',
-                    'biosample__individual__taxon__name',
-                    'biosample__individual__cohort',
-                    'biosample__individual__father__name',
-                    'biosample__individual__mother__name',
-                    'biosample__individual__pedigree',
-                    "library",
-                )
-                .annotate(
-                    biosample_id=F("biosample__id"),
-                    alias=F("biosample__alias"),
-                    sample_kind=F("sample_kind__name"),
-                    tissue_source=F("tissue_source__name"),
-                    collection_site=F("biosample__collection_site"),
-                    # experimental_group=F("experimental_group"),
-                    individual_name=F("biosample__individual__name"),
-                    individual_alias=F("biosample__individual__alias"),
-                    sex=F("biosample__individual__sex"),
-                    taxon=F("biosample__individual__taxon__name"),
-                    cohort=F("biosample__individual__cohort"),
-                    father_name=F("biosample__individual__father__name"),
-                    mother_name=F("biosample__individual__mother__name"),
-                    pedigree=F("biosample__individual__pedigree"),
-                    # library=F("library"),
-                )
-                .values(
-                    "pk",
-                    "biosample_id",
-                    "alias",
-                    "sample_kind",
-                    "tissue_source",
-                    "collection_site",
-                    "experimental_group",
-                    "individual_name",
-                    "individual_alias",
-                    "sex",
-                    "taxon",
-                    "cohort",
-                    "father_name",
-                    "mother_name",
-                    "pedigree",
-                    "library"
-                )
+        def to_list(obj: Union[Any, List[Any]]) -> List[Any]:
+            try:
+                return list(obj)
+            except TypeError:
+                if obj is None:
+                    return []
+                else:
+                    return [obj]
+
+        project_ids = samples_queryset.values_list("projects__id", flat=True)
+        projects_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
+        projects = { p["id"]: p for p in projects_queryset }
+
+        derived_sample_ids = samples_queryset.values_list("first_derived_sample", flat=True)
+        derived_samples_queryset = (
+            DerivedSample
+            .objects
+            .filter(id__in=derived_sample_ids)
+            .values(
+                "id",
+                "biosample__id",
+                "biosample__alias",
+                "sample_kind__name",
+                "tissue_source__name",
+                "biosample__collection_site",
+                "experimental_group",
+                "biosample__individual__name",
+                "biosample__individual__alias",
+                'biosample__individual__sex',
+                'biosample__individual__taxon__name',
+                'biosample__individual__cohort',
+                'biosample__individual__father__name',
+                'biosample__individual__mother__name',
+                'biosample__individual__pedigree',
             )
-        }
+        )
+        derived_samples = { ds["id"]: ds for ds in derived_samples_queryset }
 
         serialized_data = []
-        for sample_value, derived_sample_id in zip(sample_values, derived_sample_ids):
-            derived_sample_value = derived_sample_values[derived_sample_id]
-            derived_sample_value.pop("pk")
-            serialized_data.append(dict(sample_value, **derived_sample_value))
+        for sample in samples.values():
+            derived_sample = derived_samples[sample["first_derived_sample"]]
+            project_names = [projects[p]["name"] for p in to_list(sample["projects"])]
+
+            data = {
+                'sample_id': sample["id"],
+                'sample_name': sample["name"],
+                'biosample_id': derived_sample["biosample__id"],
+                'alias': derived_sample["biosample__alias"],
+                'sample_kind': derived_sample["sample_kind__name"],
+                'tissue_source': derived_sample["tissue_source__name"] or "",
+                'container': sample["container__id"],
+                'container_kind': sample["container__kind"],
+                'container_name': sample["container__name"],
+                'container_barcode': sample["container__barcode"],
+                'coordinates': sample["coordinates"],
+                'location_barcode': sample["container__location__barcode"] or "",
+                'location_coord': sample["container__location__coordinates"],
+                'current_volume': sample["volume"],
+                'concentration': sample["concentration"],
+                'creation_date': sample["creation_date"],
+                'collection_site': derived_sample["biosample__collection_site"],
+                'experimental_group': derived_sample["experimental_group"],
+                'individual_name': derived_sample["biosample__individual__name"] or "",
+                'individual_alias': derived_sample["biosample__individual__alias"] or "",
+                'sex': derived_sample["biosample__individual__sex"] or "",
+                'taxon': derived_sample["biosample__individual__taxon__name"] or "",
+                'cohort': derived_sample["biosample__individual__cohort"],
+                'father_name': derived_sample["biosample__individual__father__name"] or "",
+                'mother_name': derived_sample["biosample__individual__mother__name"] or "",
+                'pedigree': derived_sample["biosample__individual__pedigree"] or "",
+                'quality_flag': None if sample["quality_flag"] is None else ("Passed" if sample["quality_flag"] else "Failed"),
+                'quantity_flag': None if sample["quantity_flag"] is None else ("Passed" if sample["quantity_flag"] else "Failed"),
+                'projects': project_names,
+                'depleted': "Yes" if sample["depleted"] else "No",
+                'is_library': "Yes" if sample["is_library"] else "No",
+                'comment': sample["comment"],
+            }
+            serialized_data.append(data)
 
         return Response(serialized_data)
 
