@@ -316,15 +316,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         )
         samples = { s["id"]: s for s in samples_queryset }
 
-        def to_list(obj: Union[Any, List[Any]]) -> List[Any]:
-            try:
-                return list(obj)
-            except TypeError:
-                if obj is None:
-                    return []
-                else:
-                    return [obj]
-
         project_ids = samples_queryset.values_list("projects__id", flat=True)
         projects_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
         projects = { p["id"]: p for p in projects_queryset }
@@ -356,43 +347,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         serialized_data = []
         for sample in samples.values():
-            derived_sample = derived_samples[sample["first_derived_sample"]]
-            project_names = [projects[p]["name"] for p in to_list(sample["projects"])]
-
-            data = {
-                'sample_id': sample["id"],
-                'sample_name': sample["name"],
-                'biosample_id': derived_sample["biosample__id"],
-                'alias': derived_sample["biosample__alias"],
-                'sample_kind': derived_sample["sample_kind__name"],
-                'tissue_source': derived_sample["tissue_source__name"] or "",
-                'container': sample["container__id"],
-                'container_kind': sample["container__kind"],
-                'container_name': sample["container__name"],
-                'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"],
-                'location_barcode': sample["container__location__barcode"] or "",
-                'location_coord': sample["container__location__coordinates"],
-                'current_volume': sample["volume"],
-                'concentration': sample["concentration"],
-                'creation_date': sample["creation_date"],
-                'collection_site': derived_sample["biosample__collection_site"],
-                'experimental_group': derived_sample["experimental_group"],
-                'individual_name': derived_sample["biosample__individual__name"] or "",
-                'individual_alias': derived_sample["biosample__individual__alias"] or "",
-                'sex': derived_sample["biosample__individual__sex"] or "",
-                'taxon': derived_sample["biosample__individual__taxon__name"] or "",
-                'cohort': derived_sample["biosample__individual__cohort"],
-                'father_name': derived_sample["biosample__individual__father__name"] or "",
-                'mother_name': derived_sample["biosample__individual__mother__name"] or "",
-                'pedigree': derived_sample["biosample__individual__pedigree"] or "",
-                'quality_flag': None if sample["quality_flag"] is None else ("Passed" if sample["quality_flag"] else "Failed"),
-                'quantity_flag': None if sample["quantity_flag"] is None else ("Passed" if sample["quantity_flag"] else "Failed"),
-                'projects': project_names,
-                'depleted': "Yes" if sample["depleted"] else "No",
-                'is_library': "Yes" if sample["is_library"] else "No",
-                'comment': sample["comment"],
-            }
+            data = serialize_sample_export(sample, derived_samples, projects)
             serialized_data.append(data)
 
         return Response(serialized_data)
