@@ -3,7 +3,7 @@ from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F, Count
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F, Count, Exists
 from django.core.exceptions import ValidationError
 from django.contrib.postgres.aggregates import ArrayAgg
 
@@ -288,8 +288,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         samples_queryset = (
             queryset
             .annotate(
-                library_count=Count("derived_samples", query=Q(derived_samples__library__isnull=False)),
-                is_library=Case(When(library_count__gt=0, then=True), default=False, output_field=BooleanField()),
+                is_library=Exists(DerivedSample.objects.filter(pk=OuterRef("first_derived_sample")).filter(library__isnull=False)),
             )
             .values(
                 'id',
