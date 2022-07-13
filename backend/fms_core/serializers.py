@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from typing import Dict, Any
+from typing import Dict, Any, Union, List
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
@@ -352,42 +352,52 @@ class SampleSerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
 
-def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
-    first_derived_sample = sample.derived_sample_not_pool
-    biosample = first_derived_sample.biosample
+def serialize_sample_export(sample: Dict[str, Dict], derived_samples: Dict[str, Dict], projects: Dict[str, Dict]) -> Dict[str, Any]:
+    def to_list(obj: Union[Any, List[Any]]) -> List[Any]:
+                try:
+                    return list(obj)
+                except TypeError:
+                    if obj is None:
+                        return []
+                    else:
+                        return [obj]
+
+    derived_sample = derived_samples[sample["first_derived_sample"]]
+    project_names = [projects[p]["name"] for p in to_list(sample["projects"])]
+    
     return {
-        'sample_id': sample.id,
-        'sample_name': sample.name,
-        'biosample_id': biosample.id,
-        'alias': biosample.alias,
-        'sample_kind': first_derived_sample.sample_kind.name,
-        'tissue_source': first_derived_sample.tissue_source.name if first_derived_sample.tissue_source else "",
-        'container': sample.container.id,
-        'container_kind': sample.container.kind,
-        'container_name': sample.container.name,
-        'container_barcode': sample.container.barcode,
-        'coordinates': sample.coordinates,
-        'location_barcode': '' if sample.container and sample.container.location is None else sample.container.location.barcode,
-        'location_coord': sample.container.coordinates,
-        'current_volume': sample.volume if sample.volume else None,
-        'concentration': sample.concentration,
-        'creation_date': sample.creation_date,
-        'collection_site': biosample.collection_site,
-        'experimental_group': first_derived_sample.experimental_group,
-        'individual_name': biosample.individual.name if biosample.individual else "",
-        'individual_alias': biosample.individual.alias if biosample.individual else "",
-        'sex': biosample.individual.sex if biosample.individual else "",
-        'taxon': biosample.individual.taxon.name if biosample.individual and biosample.individual.taxon else "",
-        'cohort': biosample.individual.cohort if biosample.individual else "",
-        'father_name': '' if not biosample.individual or biosample.individual.father is None else biosample.individual.father.name,
-        'mother_name': '' if not biosample.individual or biosample.individual.mother is None else biosample.individual.mother.name,
-        'pedigree': biosample.individual.pedigree if biosample.individual else "",
-        'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
-        'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
-        'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
-        'depleted': "Yes" if sample.depleted else "No",
-        'is_library': sample.is_library,
-        'comment': sample.comment,
+        'sample_id': sample["id"],
+        'sample_name': sample["name"],
+        'biosample_id': derived_sample["biosample__id"],
+        'alias': derived_sample["biosample__alias"],
+        'sample_kind': derived_sample["sample_kind__name"],
+        'tissue_source': derived_sample["tissue_source__name"] or "",
+        'container': sample["container__id"],
+        'container_kind': sample["container__kind"],
+        'container_name': sample["container__name"],
+        'container_barcode': sample["container__barcode"],
+        'coordinates': sample["coordinates"],
+        'location_barcode': sample["container__location__barcode"] or "",
+        'location_coord': sample["container__location__coordinates"],
+        'current_volume': sample["volume"],
+        'concentration': sample["concentration"],
+        'creation_date': sample["creation_date"],
+        'collection_site': derived_sample["biosample__collection_site"],
+        'experimental_group': derived_sample["experimental_group"],
+        'individual_name': derived_sample["biosample__individual__name"] or "",
+        'individual_alias': derived_sample["biosample__individual__alias"] or "",
+        'sex': derived_sample["biosample__individual__sex"] or "",
+        'taxon': derived_sample["biosample__individual__taxon__name"] or "",
+        'cohort': derived_sample["biosample__individual__cohort"],
+        'father_name': derived_sample["biosample__individual__father__name"] or "",
+        'mother_name': derived_sample["biosample__individual__mother__name"] or "",
+        'pedigree': derived_sample["biosample__individual__pedigree"] or "",
+        'quality_flag': None if sample["quality_flag"] is None else ("Passed" if sample["quality_flag"] else "Failed"),
+        'quantity_flag': None if sample["quantity_flag"] is None else ("Passed" if sample["quantity_flag"] else "Failed"),
+        'projects': project_names,
+        'depleted': "Yes" if sample["depleted"] else "No",
+        'is_library': "Yes" if sample["is_library"] else "No",
+        'comment': sample["comment"],
     }
 
 
