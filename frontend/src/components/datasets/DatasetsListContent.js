@@ -12,6 +12,8 @@ import PaginatedTable from "../PaginatedTable";
 
 const getTableColumns = (datasetsById, releaseAllFiles) => {
     const findValidationDate = (dataset) => dataset?.files?.find((f) => f?.validation_date)?.validation_date
+    const toDate = (date) => date && new Date(date).toISOString().substring(0, 10)
+
     return [
         {
             title: "ID",
@@ -45,14 +47,14 @@ const getTableColumns = (datasetsById, releaseAllFiles) => {
             title: "Completion Date",
             dataIndex: "completion_date",
             render: (_, dataset) => {
-                return <>{dataset?.files?.find((f) => f?.completion_date)?.completion_date ?? "Unknown"}</>
+                return <>{toDate(dataset?.files?.find((f) => f?.completion_date)?.completion_date) ?? "Unknown"}</>
             }
         },
         {
             title: "Validation Date",
             dataIndex: "validation_date",
             render: (_, dataset) => {
-                return <>{findValidationDate(dataset) ?? "N/A"}</>
+                return <>{toDate(findValidationDate(dataset)) ?? "N/A"}</>
             }
         },
         {
