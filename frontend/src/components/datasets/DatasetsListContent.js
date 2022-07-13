@@ -54,7 +54,7 @@ const getTableColumns = (datasetsById, releaseAllFiles) => {
             title: "Validation Date",
             dataIndex: "validation_date",
             render: (_, dataset) => {
-                return <>{toDate(findValidationDate(dataset)) ?? "N/A"}</>
+                return <>{toDate(findValidationDate(dataset)) ?? "Waiting for Validation"}</>
             }
         },
         {
