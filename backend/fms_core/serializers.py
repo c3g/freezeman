@@ -396,7 +396,7 @@ def serialize_sample_export(sample: Dict[str, Dict], derived_samples: Dict[str, 
         'quantity_flag': None if sample["quantity_flag"] is None else ("Passed" if sample["quantity_flag"] else "Failed"),
         'projects': project_names,
         'depleted': "Yes" if sample["depleted"] else "No",
-        'is_library': "Yes" if sample["is_library"] else "No",
+        'is_library': sample["is_library"],
         'comment': sample["comment"],
     }
 
