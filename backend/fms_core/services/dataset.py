@@ -143,7 +143,7 @@ def create_from_run_processing(run_processing_metrics: Dict[str, Any], completio
     
     return (datasets, dataset_files, errors, warnings)
 
-def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Dict[str, Any]] = []) -> Tuple[Tuple[Dataset, None], List[str], List[str]]:
+def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional[str] = None, lane: Optional[str] = None, files: List[Dict[str, Any]] = [], **kwargs) -> Tuple[Tuple[Dataset, None], List[str], List[str]]:
     errors = []
     warnings = []
 
