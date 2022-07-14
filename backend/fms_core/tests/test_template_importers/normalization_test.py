@@ -68,6 +68,7 @@ class NormalizationTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
+        print(result['base_errors'])
 
         self.assertEqual(result['valid'], True)
 
@@ -78,13 +79,13 @@ class NormalizationTestCase(TestCase):
 
         # Source sample 2 tests
         ss2 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A02")
-        self.assertEqual(ss1.volume, 25)
-        self.assertFalse(ss1.depleted)
+        self.assertEqual(ss2.volume, 25)
+        self.assertFalse(ss2.depleted)
 
         # Source sample 3 tests
         ss3 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A03")
-        self.assertEqual(ss1.volume, 25)
-        self.assertFalse(ss1.depleted)
+        self.assertEqual(ss3.volume, 25)
+        self.assertTrue(ss3.depleted)
 
         # Destination sample 1 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A01").exists())
@@ -106,10 +107,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs1.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Volume', object_id=pm1.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm1.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm1.id)
 
-        pt_2 = PropertyType.objects.get(name='Concentration', object_id=pm1.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm1.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm1.id)
 
         self.assertEqual(p_1.value, '4.000')
@@ -135,10 +136,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs2.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Volume', object_id=pm2.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm2.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm2.id)
 
-        pt_2 = PropertyType.objects.get(name='Concentration', object_id=pm2.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm2.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm2.id)
 
         self.assertEqual(p_1.value, '5.000')
@@ -164,10 +165,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs3.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Volume', object_id=pm3.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm3.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm3.id)
 
-        pt_2 = PropertyType.objects.get(name='Concentration', object_id=pm3.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm3.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm3.id)
 
         self.assertEqual(p_1.value, '5.000')

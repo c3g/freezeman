@@ -20,8 +20,8 @@ def add_property_types_for_normalization(apps, schema_editor):
 
         PROPERTY_TYPES_BY_PROTOCOL = {
             "Normalization": [
-                ("Volume", "str"),
-                ("Concentration",  "str"),
+                ("Final Volume", "str", False),
+                ("Final Concentration", "str", False),
             ]
         }
 
@@ -32,9 +32,8 @@ def add_property_types_for_normalization(apps, schema_editor):
                                                updated_by_id=admin_user_id)
             reversion.add_to_revision(protocol)
 
-            for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
+            for (property, value_type, is_optional) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
                 # All properties are required for normalization
-                is_optional = False
                 pt = PropertyType.objects.create(name=property,
                                                  object_id=protocol.id,
                                                  content_type=protocol_content_type,

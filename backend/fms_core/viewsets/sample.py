@@ -90,7 +90,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "importer": SampleMetadataImporter,
         },
         {
-            "name": "Normalize Samples",
+            "name": "Normalize Samples or Libraries",
             "description": "Upload the provided template with information to normalize samples or libraries.",
             "template": [NORMALIZATION_TEMPLATE["identity"]],
             "importer": NormalizationImporter,
