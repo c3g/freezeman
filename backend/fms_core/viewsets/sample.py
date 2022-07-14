@@ -314,7 +314,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         )
         samples = { s["id"]: s for s in samples_queryset }
 
-        project_ids = queryset.values_list("projects__id", flat=True)
+        project_ids = samples_queryset.values_list("projects", flat=True)
         projects_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
         projects = { p["id"]: p for p in projects_queryset }
 
