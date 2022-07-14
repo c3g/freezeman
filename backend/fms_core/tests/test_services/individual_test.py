@@ -6,15 +6,16 @@ class IndividualServicesTestCase(TestCase):
 
     def test_get_taxon(self):
         HOMO_SAPIENS_NAME = 'Homo sapiens'
+        HOMO_SAPIENS_NON_NORMALIZED_NAME = 'HOMO SAPIENS'
         HOMO_SAPIENS_NCBI_ID = 9606
 
         # Check with normalized name
-        taxon, _, _ = get_taxon(name='Homo sapiens')
+        taxon, _, _ = get_taxon(name=HOMO_SAPIENS_NAME)
         self.assertIsNotNone(taxon)
         self.assertEqual(taxon.ncbi_id, HOMO_SAPIENS_NCBI_ID)
 
         # Check with non-normalized name
-        taxon, _, _ = get_taxon(name='HOMO SAPIENS')
+        taxon, _, _ = get_taxon(name=HOMO_SAPIENS_NON_NORMALIZED_NAME)
         self.assertIsNotNone(taxon)
         self.assertEqual(taxon.ncbi_id, HOMO_SAPIENS_NCBI_ID)
 
