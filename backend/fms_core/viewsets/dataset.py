@@ -55,7 +55,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         
 
     @action(detail=False, methods=["post"])
-    def create_from_run_processing(self, request, *args, **kwargs):
+    def add_run_processing(self, request, *args, **kwargs):
         data = request.data
         completion_date = datetime.now()
         validation_date = None
