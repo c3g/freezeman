@@ -375,10 +375,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'father_name': derived_sample["biosample__individual__father__name"] or "",
                 'mother_name': derived_sample["biosample__individual__mother__name"] or "",
                 'pedigree': derived_sample["biosample__individual__pedigree"] or "",
-                'quality_flag': None if sample["quality_flag"] is None else ("Passed" if sample["quality_flag"] else "Failed"),
-                'quantity_flag': None if sample["quantity_flag"] is None else ("Passed" if sample["quantity_flag"] else "Failed"),
+                'quality_flag': sample["quality_flag"] and ["Failed", "Passed"][sample["quality_flag"]],
+                'quantity_flag': sample["quantity_flag"] and ["Failed", "Passed"][sample["quantity_flag"]],
                 'projects': ",".join(project_names),
-                'depleted': "Yes" if sample["depleted"] else "No",
+                'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': sample["is_library"],
                 'comment': sample["comment"],
             }
