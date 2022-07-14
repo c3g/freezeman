@@ -32,7 +32,7 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
             lane=lane,
         )
     except ValidationError as e:
-        errors.append(';'.join(e.messages))
+        errors.extend(e.messages)
     except ValueError as e:
         errors.append(f"Lane is '{lane}' which is not an integer")
     
@@ -71,7 +71,7 @@ def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, comp
             validation_date=validation_date,
         )
     except ValidationError as e:
-        errors.append(';'.join(e.messages))
+        errors.extend(e.messages)
 
     return (dataset_file, errors, warnings)
 
@@ -164,7 +164,7 @@ def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional
         query.update(**kwargs)
         dataset = query.get()
     except ValidationError as e:
-        errors.append(';'.join(e.messages))
+        errors.extend(e.messages)
     except ObjectDoesNotExist:
         errors.append(f"Dataset with id '{pk}' doesn't exist")
     
@@ -191,7 +191,7 @@ def update_dataset(pk, /, project_name: Optional[str] = None, run_name: Optional
 #         query.update(**kwargs)
 #         dataset_file = query.get()
 #     except ValidationError as e:
-#         errors.append(';'.join(e.messages))
+#         errors.extend(e.messages)
 #     except ObjectDoesNotExist:
 #         errors.append(f"DatasetFile with id '{pk}' doesn't exist")
     
