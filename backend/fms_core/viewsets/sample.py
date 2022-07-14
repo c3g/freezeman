@@ -275,9 +275,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        queryset = self.filter_queryset(self.get_queryset())
+        samples_queryset = self.filter_queryset(self.get_queryset())
 
-        queryset = queryset.annotate(
+        samples_queryset = samples_queryset.annotate(
             first_derived_sample=Subquery(
                 DerivedBySample.objects
                 .filter(sample=OuterRef("pk"))
@@ -285,8 +285,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             )
         )
 
-        samples_queryset = (
-            queryset
+        sample_values_queryset = (
+            samples_queryset
             .annotate(
                 is_library=Exists(DerivedSample.objects.filter(pk=OuterRef("first_derived_sample")).filter(library__isnull=False)),
             )
@@ -312,14 +312,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'projects',
             )
         )
-        samples = { s["id"]: s for s in samples_queryset }
+        samples = { s["id"]: s for s in sample_values_queryset }
 
-        project_ids = samples_queryset.values_list("projects", flat=True)
-        projects_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
-        projects = { p["id"]: p for p in projects_queryset }
+        project_ids = sample_values_queryset.values_list("projects", flat=True)
+        project_values_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
+        projects = { p["id"]: p for p in project_values_queryset }
 
-        derived_sample_ids = samples_queryset.values_list("first_derived_sample", flat=True)
-        derived_samples_queryset = (
+        derived_sample_ids = sample_values_queryset.values_list("first_derived_sample", flat=True)
+        derived_sample_values_queryset = (
             DerivedSample
             .objects
             .filter(id__in=derived_sample_ids)
@@ -341,7 +341,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'biosample__individual__pedigree',
             )
         )
-        derived_samples = { ds["id"]: ds for ds in derived_samples_queryset }
+        derived_samples = { ds["id"]: ds for ds in derived_sample_values_queryset }
 
         serialized_data = []
         for sample in samples.values():
