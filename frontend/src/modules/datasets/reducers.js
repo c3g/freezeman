@@ -31,14 +31,6 @@ export const datasets = (
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case DATASETS.ADD.REQUEST:
-            return { ...state, error: undefined, isFetching: true };
-        case DATASETS.ADD.RECEIVE:
-            return merge(resetTable({ ...state, isFetching: false, }), ['itemsByID', action.data.id],
-                preprocess(action.data));
-        case DATASETS.ADD.ERROR:
-            return { ...state, error: action.error, isFetching: false };
-
         case DATASETS.UPDATE.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
         case DATASETS.UPDATE.RECEIVE:

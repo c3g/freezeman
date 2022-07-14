@@ -6,7 +6,6 @@ import {DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
-export const ADD                   = createNetworkActionTypes("DATASETS.ADD");
 export const UPDATE                = createNetworkActionTypes("DATASETS.UPDATE");
 export const LIST                  = createNetworkActionTypes("DATASETS.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("DATASETS.LIST_TABLE");
@@ -22,14 +21,6 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     return await dispatch(networkAction(GET, api.datasets.get(id), { meta: { id } }));
-};
-
-export const add = dataset => async (dispatch, getState) => {
-    if (getState().datasets.isFetching)
-        return;
-
-    return await dispatch(networkAction(
-        ADD, api.datasets.add(dataset), { meta: { ignoreError: 'APIError' } }));
 };
 
 export const update = (id, dataset) => async (dispatch, getState) => {
@@ -108,7 +99,6 @@ export const clearFilters = thenList(() => {
 
 export default {
     GET,
-    ADD,
     UPDATE,
     SET_SORT_BY,
     SET_FILTER,
@@ -118,7 +108,6 @@ export default {
     LIST_FILTER,
     LIST_TABLE,
     get,
-    add,
     update,
     setSortBy,
     setFilter,

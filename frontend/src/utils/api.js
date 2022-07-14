@@ -40,8 +40,6 @@ const api = {
 
   datasets: {
     get: id => get(`/datasets/${id}/`),
-    add: dataset => post("/datasets/", dataset),
-    add_run_processing: data => post("/datasets/add_run_processing/", data),
     update: dataset => patch(`/datasets/${dataset.id}/`, dataset),
     list: (options, abort) => get("/datasets/", options, { abort }),
   },

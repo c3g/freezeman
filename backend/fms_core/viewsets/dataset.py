@@ -1,5 +1,5 @@
 from django.http import HttpResponseBadRequest
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
@@ -29,17 +29,9 @@ class DatasetViewSet(viewsets.ModelViewSet):
     filter_class = DatasetFilter
 
     def create(self, request):
-        data = request.data
-        errors = []
-        warnings = []
-        dataset = None
+        response = {'message': "Datasets can only be created at the path '/datasets/add_run_processing'."}
+        return Response(response, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        dataset, errors, warnings = service.create_dataset(**data)
-
-        if errors:
-            return HttpResponseBadRequest(errors)
-        else:
-            return Response(self.get_serializer(dataset).data)
     
     def update(self, request, pk, *args, **kwargs):
         data = request.data
