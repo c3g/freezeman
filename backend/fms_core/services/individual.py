@@ -14,7 +14,7 @@ def get_taxon(name=None, ncbi_id=None):
         errors.append(f"Taxon name or NCBI ID must be provided.")
     else:
         taxon_data = dict(
-            **(dict(name=normalize_scientific_name(taxon)) if name is not None else dict()),
+            **(dict(name=normalize_scientific_name(name)) if name is not None else dict()),
             **(dict(ncbi_id=ncbi_id) if ncbi_id is not None else dict()),
           )
         try:
