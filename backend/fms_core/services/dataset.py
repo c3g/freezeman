@@ -25,6 +25,7 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
     warnings = []
 
     try:
+        _ = int(lane)
         dataset = Dataset.objects.create(
             project_name=project_name,
             run_name=run_name,
@@ -32,6 +33,8 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
         )
     except ValidationError as e:
         errors.append(';'.join(e.messages))
+    except ValueError as e:
+        errors.append(f"Lane is '{lane}' which is not an integer")
     
     
     dataset_files = []
