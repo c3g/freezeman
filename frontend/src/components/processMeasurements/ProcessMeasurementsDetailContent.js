@@ -10,10 +10,11 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listPropertyValues, listProcessProperties, listProcesses} from "../../modules/experimentRuns/actions";
+import {listPropertyValues, listProcesses} from "../../modules/experimentRuns/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
 import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
+import { listProcessProperties } from "../../modules/processes/actions";
 
 const mapStateToProps = state => ({
     processMeasurementsByID: state.processMeasurements.itemsByID,

@@ -10,11 +10,12 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listProcesses, listPropertyValues, listProcessProperties} from "../../modules/experimentRuns/actions";
+import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
 import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
 import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
+import { listProcessProperties } from "../../modules/processes/actions";
 
 const mapStateToProps = state => ({
     token: state.auth.tokens.access,
