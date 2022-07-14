@@ -96,7 +96,7 @@ const ProcessAssociatedMeasurements = ({
                                                                    property_type,
                                                                  },
                                                                }
-                                                             }, []))
+                                                             }, {}))
 
   const columns = getTableColumns(samplesByID, properties, propertyValuesByID)
 
