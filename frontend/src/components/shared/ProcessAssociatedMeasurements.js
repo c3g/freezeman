@@ -73,12 +73,12 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
 
-  const withMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
+  const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
                                                    .map((id) => processMeasurementsByID[id])
                                                    .filter((p) => !hasEveryProperties(p, propertyValuesByID))
 
-  if (withMissingProperties.length > 0) {
-    listPropertyValues({ object_id__in: withMissingProperties, content_type__model: "processmeasurement" })
+  if (measurementsWithMissingProperties.length > 0) {
+    listPropertyValues({ object_id__in: measurementsWithMissingProperties, content_type__model: "processmeasurement" })
   }
 
   const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
