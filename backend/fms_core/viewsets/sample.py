@@ -9,7 +9,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 
 import time
 
-from ..utils import RE_SEPARATOR
+from ..utils import RE_SEPARATOR, ensure_iterable
 
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
@@ -350,19 +350,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         )
         derived_samples = { ds["id"]: ds for ds in derived_samples_queryset }
 
-        def to_list(obj: Union[Any, List[Any]]) -> List[Any]:
-                try:
-                    return list(obj)
-                except TypeError:
-                    if obj is None:
-                        return []
-                    else:
-                        return [obj]
-
         serialized_data = []
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
-            project_names = [projects[p]["name"] for p in to_list(sample["projects"])]
+            project_names = [projects[p]["name"] for p in ensure_iterable(sample["projects"])]
 
             data = {
                 'sample_id': sample["id"],

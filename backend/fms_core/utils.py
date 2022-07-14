@@ -5,7 +5,7 @@ import unicodedata
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Union
+from typing import Any, Iterable, List, Optional, Union
 
 
 __all__ = [
@@ -119,3 +119,13 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
     concentration = (Decimal(concentration_nm) * Decimal(molecule_count) * Decimal(molecular_weight)) / Decimal(1000000)
 
     return concentration
+
+def ensure_iterable(obj: Union[Any, None, Iterable[Any]]) -> Iterable[Any]:
+    if obj is None:
+        return
+    else:
+        try:
+            for x in obj:
+                yield x
+        except TypeError:
+            yield obj
