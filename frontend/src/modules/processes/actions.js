@@ -1,4 +1,18 @@
-import { listProcesses, listPropertyValues } from "../experimentRuns/actions";
+import { listPropertyValues } from "../experimentRuns/actions";
+import {createNetworkActionTypes, networkAction} from "../../utils/actions";
+import api from "../../utils/api";
+
+export const LIST = createNetworkActionTypes("PROCESSES.LIST");
+
+export const list = (options) => async (dispatch, getState) => {
+    if (getState().processes.isFetching)
+        return;
+
+    return await dispatch(networkAction(LIST,
+        api.processes.list(options),
+        { meta: { ...options} }
+    ));
+};
 
 export const listProcessProperties = (id) => async (dispatch, getState) => {
     if (getState().propertyValues.isFetching)
@@ -8,12 +22,12 @@ export const listProcessProperties = (id) => async (dispatch, getState) => {
     const { itemsByID: propertyValuesByID } = getState().propertyValues
 
     if (!(id in processesByID)) {
-        return await dispatch(listProcesses({ id__in: id }))
+        return await dispatch(list({ id__in: id }))
     }
     const process = processesByID[id];
 
     if (!process?.children_processes?.every(process => process in processesByID)) {
-        return await dispatch(listProcesses({ id__in: process.children_processes.join() }))
+        return await dispatch(list({ id__in: process.children_processes.join() }))
     }
 
     const propertiesAreLoaded = process?.children_properties?.every(property => property in propertyValuesByID)
@@ -26,5 +40,7 @@ export const listProcessProperties = (id) => async (dispatch, getState) => {
 }
 
 export default {
-    listProcessProperties
+    LIST,
+    list,
+    listProcessProperties,
 }

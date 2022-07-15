@@ -10,7 +10,8 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
+import {listPropertyValues} from "../../modules/experimentRuns/actions";
+import { list as listProcesses } from "../../modules/processes/actions";
 import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"

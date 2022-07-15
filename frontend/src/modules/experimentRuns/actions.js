@@ -16,7 +16,6 @@ export const SET_FILTER_OPTION     = "EXPERIMENT_RUNS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "EXPERIMENT_RUNS.CLEAR_FILTERS";
 export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TYPES");
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
-export const LIST_PROCESSES        = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROCESSES");
 export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
 
@@ -92,16 +91,6 @@ export const listInstruments = () => async (dispatch, getState) => {
     return await dispatch(networkAction(LIST_INSTRUMENTS, api.instruments.list()));
 };
 
-export const listProcesses = (options) => async (dispatch, getState) => {
-    if (getState().processes.isFetching)
-        return;
-
-    return await dispatch(networkAction(LIST_PROCESSES,
-        api.processes.list(options),
-        { meta: { ...options} }
-    ));
-};
-
 export const listPropertyValues = (params) => async (dispatch, getState) => {
     if (getState().propertyValues.isFetching)
         return;
@@ -129,7 +118,6 @@ export default {
     LIST_TABLE,
     LIST_TYPES,
     LIST_INSTRUMENTS,
-    LIST_PROCESSES,
     LIST_PROPERTY_VALUES,
     LIST_TEMPLATE_ACTIONS,
     get,
@@ -141,7 +129,6 @@ export default {
     listTable,
     listTypes,
     listInstruments,
-    listProcesses,
     listPropertyValues,
     listTemplateActions,
 };
