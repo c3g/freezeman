@@ -14,7 +14,7 @@ export const list = (options) => async (dispatch, getState) => {
     ));
 };
 
-export const listProcessProperties = (id) => async (dispatch, getState) => {
+export const listProperties = (id) => async (dispatch, getState) => {
     if (getState().propertyValues.isFetching)
         return;
 
@@ -42,5 +42,5 @@ export const listProcessProperties = (id) => async (dispatch, getState) => {
 export default {
     LIST,
     list,
-    listProcessProperties,
+    listProperties,
 }

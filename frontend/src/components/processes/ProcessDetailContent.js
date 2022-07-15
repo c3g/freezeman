@@ -16,7 +16,7 @@ import {download as templateDownload} from "../../modules/importedFiles/actions"
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
 import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
-import { listProcessProperties } from "../../modules/processes/actions";
+import { listProperties as listProcessProperties } from "../../modules/processes/actions";
 
 const mapStateToProps = state => ({
     token: state.auth.tokens.access,

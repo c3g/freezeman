@@ -15,7 +15,7 @@ import { list as listProcesses } from "../../modules/processes/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
 import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
-import { listProcessProperties } from "../../modules/processes/actions";
+import { listProperties as listProcessProperties } from "../../modules/processes/actions";
 
 const mapStateToProps = state => ({
     processMeasurementsByID: state.processMeasurements.itemsByID,
