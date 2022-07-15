@@ -24,3 +24,7 @@ export const listProcessProperties = (id) => async (dispatch, getState) => {
         return await dispatch(listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" }))
     }
 }
+
+export default {
+    listProcessProperties
+}
