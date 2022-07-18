@@ -373,7 +373,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'concentration': sample["concentration"],
                 'creation_date': sample["creation_date"],
                 'collection_site': derived_sample["biosample__collection_site"],
-                'experimental_group': derived_sample["experimental_group"],
+                'experimental_group': json.dumps(derived_sample["experimental_group"]),
                 'individual_name': derived_sample["biosample__individual__name"] or "",
                 'individual_alias': derived_sample["biosample__individual__alias"] or "",
                 'sex': derived_sample["biosample__individual__sex"] or "",
