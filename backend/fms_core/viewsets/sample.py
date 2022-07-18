@@ -107,6 +107,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": SAMPLE_METADATA_TEMPLATE},
+        {"template": NORMALIZATION_TEMPLATE},
     ]
 
     def get_queryset(self):
