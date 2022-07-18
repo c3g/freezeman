@@ -11,7 +11,7 @@ import ProcessProperties from "../shared/ProcessProperties";
 import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
-import { list as listProcesses } from "../../modules/processes/actions";
+import { get as getProcess } from "../../modules/processes/actions";
 import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
@@ -25,14 +25,14 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues, templateDownload, listProcessProperties};
+const actionCreators = {getProcess, listPropertyValues, templateDownload, listProcessProperties};
 
 const ProcessDetailContent = ({
   processesByID,
   propertyValuesByID,
   protocolsByID,
   listPropertyValues,
-  listProcesses,
+  getProcess,
   token,
   listProcessProperties,
 }) => {
@@ -50,7 +50,7 @@ const ProcessDetailContent = ({
 
     useEffect(() => {
         if (!isLoaded) {
-          listProcesses({id__in: id});
+          getProcess(id);
         }
     
         if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {

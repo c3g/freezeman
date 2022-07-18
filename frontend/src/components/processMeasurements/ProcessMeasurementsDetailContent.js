@@ -11,7 +11,7 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
-import { list as listProcesses } from "../../modules/processes/actions";
+import { get as getProcess } from "../../modules/processes/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
 import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
@@ -26,7 +26,7 @@ const mapStateToProps = state => ({
     processesByID: state.processes.itemsByID,
 });
 
-const actionCreators = {get, listPropertyValues, listProcessProperties, listProcesses};
+const actionCreators = {get, listPropertyValues, listProcessProperties, getProcess};
 
 const ProcessMeasurementsDetailContent = ({
   processMeasurementsByID,
@@ -38,7 +38,7 @@ const ProcessMeasurementsDetailContent = ({
   listPropertyValues,
   processesByID,
   listProcessProperties,
-  listProcesses,
+  getProcess,
 }) => {
     const history = useHistory();
     const {id} = useParams();
@@ -58,7 +58,7 @@ const ProcessMeasurementsDetailContent = ({
         }
 
         if (!processIsLoaded) {
-          listProcesses({id__in: processMeasurement?.process});
+          getProcess(processMeasurement?.process);
         }
         if (processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
           listProcessProperties(processMeasurement?.process);

@@ -31,7 +31,7 @@ export const listProperties = (id) => async (dispatch, getState) => {
     const { itemsByID: propertyValuesByID } = getState().propertyValues
 
     if (!(id in processesByID)) {
-        await dispatch(list({ id__in: id }))
+        await dispatch(get(id))
     }
     const process = processesByID[id];
 
