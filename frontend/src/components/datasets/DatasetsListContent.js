@@ -1,6 +1,7 @@
 import { Button, Checkbox } from "antd";
 import React from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, update} from "../../modules/datasets/actions";
 import AppPageHeader from "../AppPageHeader";
 import { DATASET_FILTERS } from "../filters/descriptions";
@@ -19,6 +20,11 @@ const getTableColumns = (datasetsById, releaseAllFiles) => {
             title: "ID",
             dataIndex: "id",
             sorter: true,
+            render: (id, _) => {
+                return <Link to={`/datasets/${id}`}>
+                <div>{id}</div>
+              </Link>
+            }
         },
         {
             title: "Run",
