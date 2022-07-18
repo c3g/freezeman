@@ -113,11 +113,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return (datasets, dataset_files, errors, warnings)
         datasets, dataset_files, errors, _ = func(data, completion_date, validation_date)
         if errors:
-            Dataset.objects.filter(id__in=[d.id for d in datasets]).delete()
-            DatasetFile.objects.filter(id__in=[f.id for f in dataset_files]).delete()
-            datasets = []
-            dataset_files = []
-        if errors:
             return HttpResponseBadRequest(errors)
         else:
             return Response(self.get_serializer(datasets, many=True).data)
