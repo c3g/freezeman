@@ -2,7 +2,16 @@ import { listPropertyValues } from "../experimentRuns/actions";
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 
+export const GET = createNetworkActionTypes("PROCESSES.GET");
 export const LIST = createNetworkActionTypes("PROCESSES.LIST");
+
+export const get = id => async (dispatch, getState) => {
+    const process = getState().processes.itemsByID[id];
+    if (process && process.isFetching)
+        return;
+
+    return await dispatch(networkAction(GET, api.processes.get(id), { meta: { id } }));
+};
 
 export const list = (options) => async (dispatch, getState) => {
     if (getState().processes.isFetching)
@@ -40,7 +49,9 @@ export const listProperties = (id) => async (dispatch, getState) => {
 }
 
 export default {
+    GET,
     LIST,
+    get,
     list,
     listProperties,
 }
