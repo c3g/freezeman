@@ -57,10 +57,11 @@ const ProcessMeasurementsDetailContent = ({
           listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
         }
 
-        if (!processIsLoaded) {
+        if (processMeasurement?.process && !processIsLoaded) {
           getProcess(processMeasurement?.process);
         }
-        if (processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
+
+        if (processMeasurement?.process && processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
           listProcessProperties(processMeasurement?.process);
         }
     })

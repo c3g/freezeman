@@ -36,14 +36,14 @@ export const listProperties = (id) => async (dispatch, getState) => {
     const process = processesByID[id];
 
     if (!process?.children_processes?.every(process => process in processesByID)) {
-        await dispatch(list({ id__in: process.children_processes.join() }))
+        await dispatch(list({ id__in: process.children_processes?.join() ?? "" }))
     }
 
     const propertiesAreLoaded = process?.children_properties?.every(property => property in propertyValuesByID)
     const childrenPropertiesAreLoaded = process?.children_processes?.every(process => processesByID[process]?.children_properties?.every(property => property in propertyValuesByID))
     
     if (!(propertiesAreLoaded && childrenPropertiesAreLoaded)) {
-        const processIDSAsStr = [id].concat(process.children_processes).join()
+        const processIDSAsStr = [id].concat(process.children_processes ?? []).join()
         await dispatch(listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" }))
     }
 }
