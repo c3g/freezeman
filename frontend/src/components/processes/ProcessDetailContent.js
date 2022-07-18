@@ -10,7 +10,6 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
-import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
 
@@ -22,7 +21,7 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues, templateDownload};
+const actionCreators = {listProcesses, listPropertyValues};
 
 const ProcessDetailContent = ({
   processesByID,
