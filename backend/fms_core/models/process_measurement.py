@@ -4,7 +4,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
 from django.utils import timezone
+from datetime import datetime
 from decimal import Decimal
+
 
 from .tracked_model import TrackedModel
 from .process import Process
@@ -42,11 +44,15 @@ class ProcessMeasurement(TrackedModel):
 
         if self.volume_used is None:
             if self.process and self.protocol_name not in PROTOCOLS_WITH_VOLUME_USED_OPTIONAL:
-                add_error("volume_used", f'volume_used by processes for protocol {self.protocol_name} must be specified')
+                add_error("volume_used", f'volume_used by processes for protocol {self.protocol_name} must be specified.')
 
         else:
             if self.protocol_name not in PROTOCOLS_WITH_NEGATIVE_VOLUME_USED_ALLOWED and self.volume_used <= Decimal("0"):
-                add_error("volume_used", f'volume_used {self.volume_used} must be positive for protocol {self.protocol_name}')
+                add_error("volume_used", f'volume_used {self.volume_used} must be positive for protocol {self.protocol_name}.')
+
+        # Make sure the execution date is not in the future 
+        if datetime.combine(self.execution_date, datetime.min.time()) > timezone.make_naive(timezone.now()):
+            add_error("execution_date", f'execution_date ({self.execution_date}) cannot be after the current date.')
 
         if errors:
             raise ValidationError(errors)
