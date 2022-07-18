@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link, useParams} from "react-router-dom";
 
@@ -76,10 +76,6 @@ const ProcessAssociatedMeasurements = ({
   const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
                                                                .filter((id) => !hasEveryProperties(processMeasurementsByID[id], propertyValuesByID))
 
-  if (measurementsWithMissingProperties.length > 0) {
-    listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
-  }
-
   const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
                                                         .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
                                                         .filter((processMeasurement) => hasEveryProperties(processMeasurement, propertyValuesByID))
@@ -98,6 +94,12 @@ const ProcessAssociatedMeasurements = ({
                                                              }, {}))
 
   const columns = getTableColumns(samplesByID, properties, propertyValuesByID)
+
+  useEffect(() => {
+      if (measurementsWithMissingProperties.length > 0) {
+        listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
+      }
+  })
 
   return <>
     <FilteredList

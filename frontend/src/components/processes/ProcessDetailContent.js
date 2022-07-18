@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
 import {Button, Descriptions, Typography, Tabs, notification} from "antd";
@@ -48,13 +48,15 @@ const ProcessDetailContent = ({
           notification.error({message:"Template Unavailable", description:"The template file could not be retrieved."})
         })
 
-    if (!isLoaded) {
-      listProcesses({id__in: id});
-    }
-
-    if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
-      listProcessProperties(id);
-    }
+    useEffect(() => {
+        if (!isLoaded) {
+          listProcesses({id__in: id});
+        }
+    
+        if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
+          listProcessProperties(id);
+        }
+    })
 
     const isLoading = !isLoaded || process.isFetching;
     const title =

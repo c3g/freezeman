@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
@@ -45,22 +45,25 @@ const ProcessMeasurementsDetailContent = ({
     const isLoaded = id in processMeasurementsByID;
     const processMeasurement = processMeasurementsByID[id] || {};
     const propertiesAreLoaded = processMeasurement?.properties?.every(property => property in propertyValuesByID)
-
-    if (!isLoaded)
-        get(id);
-
-    if (isLoaded && !propertiesAreLoaded) {
-      listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
-    }
-
+    
     const processIsLoaded = processMeasurement?.process in processesByID;
     const process = processesByID[processMeasurement?.process] || {};
-    if (!processIsLoaded) {
-      listProcesses({id__in: processMeasurement?.process});
-    }
-    if (processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
-      listProcessProperties(processMeasurement?.process);
-    }
+
+    useEffect(() => {
+        if (!isLoaded)
+            get(id);
+
+        if (isLoaded && !propertiesAreLoaded) {
+          listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+        }
+
+        if (!processIsLoaded) {
+          listProcesses({id__in: processMeasurement?.process});
+        }
+        if (processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
+          listProcessProperties(processMeasurement?.process);
+        }
+    })
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
