@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
 from django.utils import timezone
+from datetime import datetime
 from typing import Optional, List
 
 from ..containers import (
@@ -153,6 +154,10 @@ class Sample(TrackedModel):
         # Check volume value
         if self.volume is not None and self.volume < Decimal("0"):
             add_error("volume", "Current volume must be positive.")
+
+        # Make sure the creation date is not in the future 
+        if datetime.combine(self.creation_date, datetime.min.time()) > timezone.make_naive(timezone.now()):
+            add_error("creation_date", f'creation_date ({self.creation_date}) cannot be after the current date.')
 
         # Validate container consistency
         if self.container_id is not None:
