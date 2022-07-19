@@ -538,3 +538,47 @@ export const DATASET_FILTERS = {
     label: "Validation Date",
   }
 }
+
+export const DATASET_FILE_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Dataset File ID",
+  },
+  dataset: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "dataset",
+    label: "Dataset ID",
+  },
+  file_path: {
+    type: FILTER_TYPE.INPUT,
+    key: "file_path",
+    label: "File Path",
+  },
+  sample_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "sample_name",
+    label: "Sample Name",
+  },
+  released: {
+    type: FILTER_TYPE.SELECT,
+    key: "released",
+    label: "Released",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false"},
+    ],
+  },
+  qc_flag: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "validation_date",
+    label: "Validation Date",
+    placeholder: "All",
+    options: [
+      { label: "None", value: "3" },
+      { label: "Passed", value: "2" },
+      { label: "Failed",  value: "1" },
+    ],
+  }
+}
