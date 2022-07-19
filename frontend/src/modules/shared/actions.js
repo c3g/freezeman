@@ -13,6 +13,7 @@ import ExperimentRuns from "../experimentRuns/actions";
 import Taxons from "../taxons/actions";
 import {refreshAuthToken} from "../auth/actions";
 import Datasets from "../datasets/actions";
+import DatasetFiles from "../datasetFiles/actions"
 
 export const fetchInitialData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
@@ -47,6 +48,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Projects.listTable,
         ProcessMeasurements.listTable,
         Datasets.listTable,
+        DatasetFiles.listTable,
     ].map(a => dispatch(a())))
 
     // Lower priority
