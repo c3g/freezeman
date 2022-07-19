@@ -2,7 +2,7 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {DATASET_FILTERS} from "../../components/filters/descriptions";
+import {DATASET_FILE_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const GET                   = createNetworkActionTypes("DATASET_FILES.GET");
@@ -44,7 +44,7 @@ export const listFilter = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filte
       return
 
     limit = getState().pagination.pageSize;
-    filters = serializeFilterParams(filters, DATASET_FILTERS)
+    filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
     const ordering = serializeSortByParams(sortBy)
     const options = { limit, offset, ordering, ...filters}
 
@@ -60,7 +60,7 @@ export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {},
         return
 
     const limit = getState().pagination.pageSize;
-    const filters = serializeFilterParams(datasetFiles.filters, DATASET_FILTERS)
+    const filters = serializeFilterParams(datasetFiles.filters, DATASET_FILE_FILTERS)
     const ordering = serializeSortByParams(datasetFiles.sortBy)
     const options = { limit, offset, ordering, ...filters}
 
