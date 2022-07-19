@@ -202,7 +202,13 @@ _dataset_filterset_fields: FiltersetFields = {
     "run_name": CATEGORICAL_FILTERS_LOOSE,
     "project_name": CATEGORICAL_FILTERS_LOOSE,
     "lane": CATEGORICAL_FILTERS,
+}
 
-    # "files__completion_date": DATE_FILTERS,
-    # "files__validation_date": DATE_FILTERS,
+_dataset_file_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "dataset": FK_FILTERS,
+    "file_path": CATEGORICAL_FILTERS,
+    "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "released": SCALAR_FILTERS,
+    "qc_flag": SCALAR_FILTERS,
 }

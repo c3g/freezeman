@@ -26,6 +26,7 @@ from .taxon import TaxonViewSet
 from .sample_lineage import SampleLineageViewSet
 from .imported_file import ImportedFileViewSet
 from .dataset import DatasetViewSet
+from .dataset_file import DatasetFileViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -56,4 +57,5 @@ __all__ = [
     "ImportedFileViewSet",
     "SampleLineageViewSet",
     "DatasetViewSet",
+    "DatasetFileViewSet"
 ]
