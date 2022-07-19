@@ -87,7 +87,7 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     return str_cast_and_normalize(d.get(key) or default)
 
 
-def is_date_or_time_after_today(date: datetime) -> bool or None: 
+def is_date_or_time_after_today(date: datetime) -> Union[bool, None]: 
     if not isinstance(date, datetime.date):
         return None
     return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
