@@ -49,13 +49,15 @@ const ProcessDetailContent = ({
         })
 
     useEffect(() => {
+      (async () => {
         if (!isLoaded) {
-          getProcess(id);
+          await getProcess(id);
         }
-    
-        if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
-          listProcessProperties(id);
+
+        if (!isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
+          await listProcessProperties(id);
         }
+      })()
     }, [processesByID, propertyValuesByID, id])
 
     const isLoading = !isLoaded || process.isFetching;

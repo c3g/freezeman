@@ -50,20 +50,22 @@ const ProcessMeasurementsDetailContent = ({
     const process = processesByID[processMeasurement?.process] || {};
 
     useEffect(() => {
+      (async () => {
         if (!isLoaded)
-            get(id);
+            await get(id);
 
-        if (isLoaded && !propertiesAreLoaded) {
-          listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+        if (!propertiesAreLoaded) {
+          await listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
         }
 
         if (processMeasurement?.process && !processIsLoaded) {
-          getProcess(processMeasurement?.process);
+          await getProcess(processMeasurement?.process);
         }
 
-        if (processMeasurement?.process && processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
-          listProcessProperties(processMeasurement?.process);
+        if (!isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
+          await listProcessProperties(processMeasurement?.process);
         }
+      })()
     }, [processMeasurementsByID, processesByID, propertyValuesByID, id])
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
