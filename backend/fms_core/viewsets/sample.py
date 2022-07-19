@@ -378,7 +378,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'individual_alias': derived_sample["biosample__individual__alias"] or "",
                 'sex': derived_sample["biosample__individual__sex"] or "",
                 'taxon': derived_sample["biosample__individual__taxon__name"] or "",
-                'cohort': derived_sample["biosample__individual__cohort"],
+                'cohort': derived_sample["biosample__individual__cohort"] or "",
                 'father_name': derived_sample["biosample__individual__father__name"] or "",
                 'mother_name': derived_sample["biosample__individual__mother__name"] or "",
                 'pedigree': derived_sample["biosample__individual__pedigree"] or "",
