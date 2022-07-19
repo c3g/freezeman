@@ -12,7 +12,6 @@ from ._utils import _list_keys
 from ._constants import _dataset_filterset_fields
 
 import fms_core.services.dataset as service
-from datetime import date, datetime
 
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
@@ -31,10 +30,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):
         data = request.data
-        completion_date = datetime.now()
-        validation_date = None
 
-        def func(rpm, completion_date, validation_date):
+        def func(rpm):
             datasets = []
             dataset_files = []
             errors = []
@@ -72,28 +69,22 @@ class DatasetViewSet(viewsets.ModelViewSet):
                     # TODO: actually find the closest matching sample_name?
                     if readset["sample_name"] in rv["sample"]:
                         for key in readset:
-                            try:
-                                if key not in ["sample_name", "barcodes"]:
-                                    dataset_file, newerrors, newwarnings = service.create_dataset_file(
-                                        dataset=dataset,
-                                        file_path=readset[key],
-                                        sample_name=readset["sample_name"],
-                                        completion_date=service.convertToModelDate(completion_date),
-                                        validation_date=service.convertToModelDate(validation_date),
-                                    )
-                                    errors.extend(newerrors)
-                                    warnings.extend(newwarnings)
+                            if key not in ["sample_name", "barcodes"]:
+                                dataset_file, newerrors, newwarnings = service.create_dataset_file(
+                                    dataset=dataset,
+                                    file_path=readset[key],
+                                    sample_name=readset["sample_name"],
+                                )
+                                errors.extend(newerrors)
+                                warnings.extend(newwarnings)
 
-                                    if errors:
-                                        return (datasets, dataset_files, errors, warnings)
-                                    else:
-                                        dataset_files.append(dataset_file)
-                            except ValueError as e:
-                                errors.append(f"Invalid date: {e}")
-                                return (datasets, dataset_files, errors, warnings)
+                                if errors:
+                                    return (datasets, dataset_files, errors, warnings)
+                                else:
+                                    dataset_files.append(dataset_file)
             
             return (datasets, dataset_files, errors, warnings)
-        datasets, dataset_files, errors, _ = func(data, completion_date, validation_date)
+        datasets, dataset_files, errors, _ = func(data)
         if errors:
             return HttpResponseBadRequest(errors)
         else:
