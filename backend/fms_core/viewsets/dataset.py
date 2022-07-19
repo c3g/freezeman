@@ -28,24 +28,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
     filter_class = DatasetFilter
 
-    def create(self, request):
-        response = {'message': "Datasets can only be created at the path '/datasets/add_run_processing'."}
-        return Response(response, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    
-    def update(self, request, pk, *args, **kwargs):
-        data = request.data
-        errors = []
-        warnings = []
-
-        dataset, errors, warnings = service.update_dataset(pk, **data)
-        
-        if errors:
-            return HttpResponseBadRequest(errors)
-        else:
-            return Response(self.get_serializer(dataset).data)
-        
-
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):
         data = request.data
