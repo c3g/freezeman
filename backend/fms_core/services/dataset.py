@@ -48,10 +48,6 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
             if dataset_file:
                 dataset_files.append(dataset_file)
 
-    if errors:
-        Dataset.objects.filter(id__in=dataset if dataset else []).delete()
-        DatasetFile.objects.filter(id__in=dataset_files).delete()
-
         dataset = None
         dataset_files = []
 
