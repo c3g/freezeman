@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from fms_core.models import ProcessMeasurement
 
-from ..utils import is_date_after_today
+from ..utils import is_date_or_time_after_today
 
 
 def create_process_measurement(process, source_sample, execution_date, volume_used=None, comment=None):
@@ -18,7 +18,7 @@ def create_process_measurement(process, source_sample, execution_date, volume_us
         errors.append(f"Source sample is required for process measurement creation.")
     if not execution_date:
         errors.append(f"Execution date with format YYYY-MM-DD is required for process measurement creation.")
-    if is_date_after_today(execution_date):
+    if is_date_or_time_after_today(execution_date):
         errors.append(f"Execution date cannot be greater than the current date.")
 
     if not errors:

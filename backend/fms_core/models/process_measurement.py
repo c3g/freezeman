@@ -3,8 +3,6 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
-from django.utils import timezone
-from datetime import datetime
 from decimal import Decimal
 
 
@@ -12,6 +10,7 @@ from .tracked_model import TrackedModel
 from .process import Process
 from .sample import Sample
 
+from ..utils import is_date_or_time_after_today
 from ._utils import add_error as _add_error
 
 __all__ = ["ProcessMeasurement"]
@@ -51,7 +50,7 @@ class ProcessMeasurement(TrackedModel):
                 add_error("volume_used", f'volume_used {self.volume_used} must be positive for protocol {self.protocol_name}.')
 
         # Make sure the execution date is not in the future 
-        if datetime.combine(self.execution_date, datetime.min.time()) > timezone.make_naive(timezone.now()):
+        if is_date_or_time_after_today(self.execution_date):
             add_error("execution_date", f'execution_date ({self.execution_date}) cannot be after the current date.')
 
         if errors:

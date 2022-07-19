@@ -2,12 +2,10 @@ import decimal
 import re
 import unicodedata
 
-from django.utils import timezone
-
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 
 __all__ = [
@@ -89,10 +87,10 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     return str_cast_and_normalize(d.get(key) or default)
 
 
-def is_date_after_today(date):
+def is_date_or_time_after_today(date: datetime) -> bool or None: 
     if not isinstance(date, datetime.date):
-      return None
-    return datetime.datetime.combine(date, datetime.datetime.min.time()) > timezone.make_naive(timezone.now())
+        return None
+    return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
     
 
 def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
