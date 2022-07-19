@@ -526,16 +526,6 @@ export const DATASET_FILTERS = {
     type: FILTER_TYPE.INPUT,
     key: "lane",
     label: "Lane",
-  },
-  completion_date: {
-    type: FILTER_TYPE.DATE_RANGE,
-    key: "completion_date",
-    label: "Completion Date",
-  },
-  validation_date: {
-    type: FILTER_TYPE.DATE_RANGE,
-    key: "validation_date",
-    label: "Validation Date",
   }
 }
 
@@ -572,8 +562,8 @@ export const DATASET_FILE_FILTERS = {
   },
   qc_flag: {
     type: FILTER_TYPE.DATE_RANGE,
-    key: "validation_date",
-    label: "Validation Date",
+    key: "qc_flag",
+    label: "QC Flag",
     placeholder: "All",
     options: [
       { label: "None", value: "3" },
