@@ -525,7 +525,7 @@ def remove_sample_metadata(sample, metadata):
     return deleted, errors, warnings
 
 
-def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=1):
+def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.01):
     is_valid = None
     errors = []
     warnings = []
@@ -545,7 +545,7 @@ def validate_normalization(initial_volume, initial_concentration, final_volume, 
         solute_amount = initial_concentration * initial_volume
         computed_concentration = solute_amount / final_volume
 
-        delta_concentration = round(computed_concentration, 2) - round(desired_concentration, 2)
+        delta_concentration = computed_concentration - desired_concentration
         if abs(delta_concentration) <= tolerance:
             is_valid = True
         else:
