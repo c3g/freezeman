@@ -64,7 +64,7 @@ const ProcessMeasurementsDetailContent = ({
         if (processMeasurement?.process && processIsLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, processMeasurement?.process)) {
           listProcessProperties(processMeasurement?.process);
         }
-    })
+    }, [processMeasurementsByID, processesByID, propertyValuesByID, id])
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =

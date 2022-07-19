@@ -56,7 +56,7 @@ const ProcessDetailContent = ({
         if (isLoaded && !isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
           listProcessProperties(id);
         }
-    })
+    }, [processesByID, propertyValuesByID, id])
 
     const isLoading = !isLoaded || process.isFetching;
     const title =
