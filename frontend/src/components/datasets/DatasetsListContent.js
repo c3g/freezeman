@@ -11,10 +11,7 @@ import getNFilters from "../filters/getNFilters";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-const getTableColumns = (datasetsById, releaseAllFiles) => {
-    const findValidationDate = (dataset) => dataset?.files?.find((f) => f?.validation_date)?.validation_date
-    const toDate = (date) => date && new Date(date).toISOString().substring(0, 10)
-
+const getTableColumns = () => {
     return [
         {
             title: "ID",
@@ -41,37 +38,6 @@ const getTableColumns = (datasetsById, releaseAllFiles) => {
             dataIndex: "lane",
             sorter: true,
         },
-        {
-            title: "Files",
-            dataIndex: "files",
-            render: (files, _) => {
-                // TODO: make this a link to the files
-                return <>{`${files?.length} files`}</>
-            }
-        },
-        {
-            title: "Completion Date",
-            dataIndex: "completion_date",
-            render: (_, dataset) => {
-                return <>{toDate(dataset?.files?.find((f) => f?.completion_date)?.completion_date) ?? "Unknown"}</>
-            }
-        },
-        {
-            title: "Validation Date",
-            dataIndex: "validation_date",
-            render: (_, dataset) => {
-                return <>{toDate(findValidationDate(dataset)) ?? "Waiting for Validation"}</>
-            }
-        },
-        {
-            title: "Released",
-            render: (_, dataset) => {
-                const invalidationDate = findValidationDate(dataset)
-                return <Checkbox
-                checked={invalidationDate}
-                onChange={() => releaseAllFiles(dataset, !invalidationDate)} />
-            }
-        }
     ]
 }
 
@@ -84,7 +50,7 @@ const mapStateToProps = state => ({
     sortBy: state.datasets.sortBy,
     totalCount: state.datasets.totalCount,
 });
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, update};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
 const DatasetsListContent = ({
     clearFilters,
@@ -99,18 +65,8 @@ const DatasetsListContent = ({
     setSortBy,
     sortBy,
     totalCount,
-    update,
 }) => {
-    const columns = getTableColumns(datasetsById, (dataset, release) => {
-        return dataset?.id ? update(dataset?.id, {
-            ...dataset,
-            files : dataset?.files?.map((f) => ({
-                ...f,
-                validation_date: release ? (new Date()).toISOString() : null
-            }))
-        }) : null
-    })
-    .map(c => Object.assign(c, getFilterProps(
+    const columns = getTableColumns().map(c => Object.assign(c, getFilterProps(
         c,
         DATASET_FILTERS,
         filters,
