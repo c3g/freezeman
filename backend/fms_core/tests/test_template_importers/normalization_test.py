@@ -68,7 +68,6 @@ class NormalizationTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
 
         self.assertEqual(result['valid'], True)
 
@@ -114,7 +113,7 @@ class NormalizationTestCase(TestCase):
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm1.id)
 
         self.assertEqual(p_1.value, '4.000')
-        self.assertEqual(p_2.value, '20.000')
+        self.assertEqual(p_2.value, '12.000')
 
         # Destination sample 2 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A02").exists())
@@ -143,7 +142,7 @@ class NormalizationTestCase(TestCase):
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm2.id)
 
         self.assertEqual(p_1.value, '5.000')
-        self.assertEqual(p_2.value, '20.000')
+        self.assertEqual(p_2.value, '10.000')
 
         # Destination sample 3 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A03").exists())
@@ -172,4 +171,4 @@ class NormalizationTestCase(TestCase):
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm3.id)
 
         self.assertEqual(p_1.value, '5.000')
-        self.assertEqual(Decimal(p_2.value), convert_concentration_from_nm_to_ngbyul(Decimal(200), Decimal(DSDNA_MW), Decimal(150)))
+        self.assertEqual(Decimal(p_2.value), convert_concentration_from_nm_to_ngbyul(Decimal(100), Decimal(DSDNA_MW), Decimal(150)))

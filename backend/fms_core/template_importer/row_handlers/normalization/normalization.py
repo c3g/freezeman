@@ -3,7 +3,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.models import ProcessMeasurement
 
 from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample
+from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample, validate_normalization
 from fms_core.services.property_value import create_process_measurement_properties
 
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
@@ -33,24 +33,6 @@ class NormalizationRowHandler(GenericRowHandler):
             container_parent_obj = None
 
         if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
-            destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
-                barcode=destination_container_dict['barcode'],
-                kind=destination_container_dict['kind'],
-                name=destination_container_dict['name'],
-                coordinates=destination_container_dict['coordinates'],
-                container_parent=container_parent_obj)
-
-            resulting_sample, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(
-                process=process_measurement['process'],
-                sample_source=source_sample_obj,
-                container_destination=destination_container,
-                volume_used=process_measurement['volume_used'],
-                execution_date=process_measurement['execution_date'],
-                coordinates_destination=destination_sample['coordinates'],
-                volume_destination=destination_sample['volume'],
-                source_depleted=source_sample['depleted'],
-                comment=process_measurement['comment'])
-
             concentration = None
             # Case when ng/uL is given
             if destination_sample['concentration_ngul']:
@@ -70,23 +52,49 @@ class NormalizationRowHandler(GenericRowHandler):
                 else:
                     self.errors['concentration'] = 'Concentration specified in nM should be only for libraries.'
 
-            if concentration is not None:
+            is_concentration_valid, self.errors['concentration_validation'], self.warnings['concentration_validation'] \
+                = validate_normalization(initial_volume=process_measurement['volume_used'],
+                                         initial_concentration=source_sample_obj.concentration,
+                                         final_volume=destination_sample['volume'],
+                                         desired_concentration=concentration,
+                                         tolerance=1)
+
+            destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
+                barcode=destination_container_dict['barcode'],
+                kind=destination_container_dict['kind'],
+                name=destination_container_dict['name'],
+                coordinates=destination_container_dict['coordinates'],
+                container_parent=container_parent_obj)
+
+            resulting_sample, self.errors['transfered_sample'], self.warnings['transfered_sample'] = transfer_sample(
+                process=process_measurement['process'],
+                sample_source=source_sample_obj,
+                container_destination=destination_container,
+                volume_used=process_measurement['volume_used'],
+                execution_date=process_measurement['execution_date'],
+                coordinates_destination=destination_sample['coordinates'],
+                volume_destination=destination_sample['volume'],
+                source_depleted=source_sample['depleted'],
+                comment=process_measurement['comment'])
+
+            if resulting_sample and concentration is not None and is_concentration_valid:
                 _, self.errors['concentration_update'], self.warnings['concentration_update'] = \
                     update_sample(sample_to_update=resulting_sample, concentration=concentration)
 
-            # Set the process measurement properties
-            process_measurement_properties['Final Volume']['value'] = destination_sample['volume']
-            process_measurement_properties['Final Concentration']['value'] = concentration
+                # Set the process measurement properties
+                process_measurement_properties['Final Volume']['value'] = destination_sample['volume']
+                process_measurement_properties['Final Concentration']['value'] = concentration
 
-            # Create process measurement's properties
-            process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample_obj)
-            if process_measurement_obj:
-                properties_obj, self.errors['properties'], self.warnings[
-                    'properties'] = create_process_measurement_properties(
-                    process_measurement_properties,
-                    process_measurement_obj)
-            else:
-                self.errors['process_measurement'] = 'Could not create the process measurement.'
+                # Create process measurement's properties
+                process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample_obj,
+                                                                         process=process_measurement['process'])
+                if process_measurement_obj:
+                    properties_obj, self.errors['properties'], self.warnings[
+                        'properties'] = create_process_measurement_properties(
+                        process_measurement_properties,
+                        process_measurement_obj)
+                else:
+                    self.errors['process_measurement'] = 'Could not create the process measurement.'
 
 
 
