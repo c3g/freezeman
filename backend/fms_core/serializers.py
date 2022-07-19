@@ -608,30 +608,14 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         model = ImportedFile
         fields = "__all__"
 
-class DatasetFileSerializer(serializers.ModelSerializer):
-    def __init__(self, *args, **kwargs):
-        exclude = kwargs.pop('exclude', [])
-
-        super().__init__(*args, **kwargs)
-
-        # custom field exclusion right before serializing
-        if exclude:
-            exclude = set(exclude)
-            existing = set(self.fields)
-            for field_name in existing & exclude:
-                self.fields.pop(field_name)
-
-    class Meta:
-        model = DatasetFile
-        # ignore TrackedModel fields
-        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
-        read_only_fields = ["deleted"]
-
 class DatasetSerializer(serializers.ModelSerializer):
-    files = DatasetFileSerializer(many=True, exclude=["dataset"])
 
     class Meta:
         model = Dataset
-        # ignore TrackedModel fields
-        exclude = ["created_at", "updated_at", "created_by", "updated_by", "deleted"]
-        read_only_fields = ["deleted"]
+        fields = ("id", "project_name", "run_name", "lane")
+
+class DatasetFileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DatasetFile
+        fields = ("id", "dataset", "file_path", "sample_name", "released", "qc_flag")
