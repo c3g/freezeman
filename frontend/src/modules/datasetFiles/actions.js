@@ -4,6 +4,7 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
 import {DATASET_FILE_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
+import {get as getDataset} from "../datasets/actions"
 
 export const GET                   = createNetworkActionTypes("DATASET_FILES.GET");
 export const UPDATE                = createNetworkActionTypes("DATASET_FILES.UPDATE");
@@ -23,13 +24,17 @@ export const get = id => async (dispatch, getState) => {
     return await dispatch(networkAction(GET, api.datasetFiles.get(id), { meta: { id } }));
 };
 
-export const update = (id, datasetFile) => async (dispatch, getState) => {
-    const file = getState().datasetFiles.itemsByID[id];
-    if (file && file.isFetching)
+export const update = (id, partialDatasetFile) => async (dispatch, getState) => {
+    const oldDatasetFile = getState().datasetFiles.itemsByID[id];
+    if (oldDatasetFile && oldDatasetFile.isFetching)
         return;
 
-    return await dispatch(networkAction(
-        UPDATE, api.datasetFiles.update(datasetFile), { meta: { id, ignoreError: 'APIError' }}));
+    const result = await dispatch(networkAction(
+        UPDATE, api.datasetFiles.update(partialDatasetFile), { meta: { id, ignoreError: 'APIError' }}));
+    
+    await dispatch(getDataset(oldDatasetFile.dataset));
+
+    return result;
 };
 
 export const list = (options) => async (dispatch, getState) => {
