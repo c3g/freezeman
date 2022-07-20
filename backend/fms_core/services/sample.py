@@ -342,6 +342,7 @@ def prepare_library(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
+                concentration=None,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False,
                 # Reset QC flags

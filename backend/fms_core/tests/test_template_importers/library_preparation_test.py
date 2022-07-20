@@ -133,6 +133,7 @@ class LibraryPreparationTestCase(TestCase):
         library_1 = sample_library_1.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_1.volume, self.library_1['library_volume'])
+        self.assertEqual(sample_library_1.concentration, None)
         self.assertEqual(sample_library_1.quality_flag, None)
         self.assertEqual(sample_library_1.quantity_flag, None)
 
@@ -182,6 +183,7 @@ class LibraryPreparationTestCase(TestCase):
         library_2 = sample_library_2.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_2.volume, self.library_2['library_volume'])
+        self.assertEqual(sample_library_2.concentration, None)
         self.assertEqual(sample_library_2.quality_flag, None)
         self.assertEqual(sample_library_2.quantity_flag, None)
 
@@ -208,6 +210,7 @@ class LibraryPreparationTestCase(TestCase):
         library_3 = sample_library_3.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_3.volume, self.library_3['library_volume'])
+        self.assertEqual(sample_library_3.concentration, None)
         self.assertEqual(sample_library_3.quality_flag, None)
         self.assertEqual(sample_library_3.quantity_flag, None)
 
