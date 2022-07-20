@@ -182,6 +182,7 @@ NORMALIZATION_TEMPLATE = {
       },
   ],
   "prefill info": [
+      ("Normalization", "Sample Name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode"),
       ("Normalization", "Source Container Coord", "coordinates"),
   ],
