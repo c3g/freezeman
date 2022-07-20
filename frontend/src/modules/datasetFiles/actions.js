@@ -24,7 +24,8 @@ export const get = id => async (dispatch, getState) => {
 };
 
 export const update = (id, datasetFile) => async (dispatch, getState) => {
-    if (getState().datasetFiles.itemsByID[id].isFetching)
+    const file = getState().datasetFiles.itemsByID[id];
+    if (file && file.isFetching)
         return;
 
     return await dispatch(networkAction(

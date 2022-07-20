@@ -1,16 +1,17 @@
-import { Descriptions } from "antd";
+import { Descriptions, Select, Switch } from "antd";
+const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { useHistory, useParams } from "react-router-dom";
 import {get} from "../../modules/datasets/actions";
-import {listFilter} from "../../modules/datasetFiles/actions"
+import {listFilter, update} from "../../modules/datasetFiles/actions"
 import AppPageHeader from "../AppPageHeader";
 import FilteredList from "../FilteredList";
 import { DATASET_FILE_FILTERS } from "../filters/descriptions";
 import PageContent from "../PageContent";
 
-const getTableColumns = () => {
+const getTableColumns = (setReleased, setStatus) => {
     return [
         {
             title: "ID",
@@ -31,16 +32,27 @@ const getTableColumns = () => {
             title: "Released",
             dataIndex: "released",
             sorter: true,
-            render: (released, _) => {
-                return <>{["No", "Yes"][Number(released)]}</>
+            render: (released, file) => {
+                const { id } = file;
+                return <>
+                <Switch defaultChecked={released} onChange={setReleased(id)} />
+                </>
             }
         },
         {
-            title: "QC Flag",
+            title: "Status",
             dataIndex: "qc_flag",
             sorter: true,
-            render: (qc_flag, _) => {
-                return <>{["", "Passed", "Failed", "Unknown"][qc_flag]}</>
+            render: (qc_flag, file) => {
+                const { id } = file;
+                const options = ["", "Passed", "Failed", "Unknown"]
+                return <>
+                <Select defaultValue={options[qc_flag]} onChange={setStatus(id)}>
+                    {options.map((value, index) => {
+                        <Option value={index}>{value}</Option>
+                    }).slice(1)}
+                </Select>
+                </>
             }
         },
     ]
@@ -56,7 +68,7 @@ const mapStateToProps = state => ({
     sortBy: state.datasetFiles.sortBy,
     totalCount: state.datasetFiles.filteredItemsCount,
 });
-const actionCreators = {get, listFilter};
+const actionCreators = {get, listFilter, update};
 
 const DatasetDetailContent = ({
     get,
@@ -67,12 +79,29 @@ const DatasetDetailContent = ({
     listFilter,
     page,
     totalCount,
+    update,
 }) => {
     const history = useHistory();
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
 
-    const columns = getTableColumns()
+    const columns = getTableColumns(
+        (id) => (released) => {
+            console.log(released);
+            update(id, {
+                id,
+                released
+            }).then(console.log).catch(console.log)
+
+        },
+        (id) => (qc_flag) => {
+            console.log(qc_flag);
+            update(id, {
+                id,
+                qc_flag
+            }).then(console.log).catch(console.log)
+        }
+    )
     const filterKey = DATASET_FILE_FILTERS.dataset.key
 
     useEffect(() => {
