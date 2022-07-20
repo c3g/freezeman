@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional, TypeVar, Union
 
 
 __all__ = [
@@ -114,7 +114,24 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
 
     return concentration
 
-def ensure_iterable(obj: Union[Any, None, Iterable[Any]]) -> Iterable[Any]:
+T = TypeVar("T")
+def ensure_iterable(obj: Union[T, None, Iterable[T]]) -> Iterable[T]:
+    """Ensures that ManyToMany fields such as the `obj` passed are iterable.
+    None is turned into an empty iterable,
+    non-None objects are turned into an iterable with a single element,
+    and iterable objects remain the same.
+    It's meant to handle to the fact that a ManyToMany field is not a list if it has less than two elements.
+
+    Args:
+        obj: `T`
+
+    Returns:
+        `Iterable[T]`
+
+    Yields:
+        `T`
+    """
+
     if obj is None:
         return
     else:
