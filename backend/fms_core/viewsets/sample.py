@@ -17,7 +17,7 @@ from fms_core.template_importer.importers import SampleSelectionQPCRImporter, Li
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, EXPERIMENT_MGI_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
@@ -100,7 +100,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
-        {"template": EXPERIMENT_MGI_TEMPLATE},
         {"template": SAMPLE_METADATA_TEMPLATE},
     ]
 
