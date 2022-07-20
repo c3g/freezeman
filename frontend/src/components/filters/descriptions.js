@@ -561,14 +561,14 @@ export const DATASET_FILE_FILTERS = {
     ],
   },
   qc_flag: {
-    type: FILTER_TYPE.DATE_RANGE,
+    type: FILTER_TYPE.SELECT,
     key: "qc_flag",
     label: "QC Flag",
     placeholder: "All",
     options: [
-      { label: "None", value: "3" },
-      { label: "Passed", value: "2" },
-      { label: "Failed",  value: "1" },
+      { label: "Passed", value: "1" },
+      { label: "Failed",  value: "2" },
+      { label: "Unknown", value: "3" },
     ],
   }
 }

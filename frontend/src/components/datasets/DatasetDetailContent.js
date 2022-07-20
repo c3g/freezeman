@@ -31,11 +31,17 @@ const getTableColumns = () => {
             title: "Released",
             dataIndex: "released",
             sorter: true,
+            render: (released, _) => {
+                return <>{["No", "Yes"][Number(released)]}</>
+            }
         },
         {
             title: "QC Flag",
             dataIndex: "qc_flag",
             sorter: true,
+            render: (qc_flag, _) => {
+                return <>{["", "Passed", "Failed", "Unknown"][qc_flag]}</>
+            }
         },
     ]
 }

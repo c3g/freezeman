@@ -210,5 +210,5 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "file_path": CATEGORICAL_FILTERS,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "released": SCALAR_FILTERS,
-    "qc_flag": SCALAR_FILTERS,
+    "qc_flag": CATEGORICAL_FILTERS,
 }
