@@ -33,8 +33,13 @@ const getTableColumns = (setReleaseFlag) => {
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
+                const options = ["", "Released", "Block"]
                 return <>
-                <Switch defaultChecked={release_flag === 1} onChange={setReleaseFlag(id)}/>
+                    <Select defaultValue={options[release_flag]} onChange={setReleaseFlag(id)}>
+                        {options.map((value, index) => {
+                            return <Option value={index}>{value}</Option>
+                        }).slice(1)}
+                    </Select>
                 </>
             }
         },
@@ -69,10 +74,10 @@ const DatasetDetailContent = ({
     const dataset = datasetsById[datasetId];
 
     const columns = getTableColumns(
-        (id) => (checked) => {
+        (id) => (release_flag) => {
             update(id, {
                 id,
-                release_flag: checked ? 1 : 2
+                release_flag
             })
         })
     const filterKey = DATASET_FILE_FILTERS.dataset.key
