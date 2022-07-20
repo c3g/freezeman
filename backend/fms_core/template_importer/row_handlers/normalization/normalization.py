@@ -10,6 +10,12 @@ from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
 
 class NormalizationRowHandler(GenericRowHandler):
+    """
+         Extracts the information of each row in a template sheet and validates it.
+
+         Returns:
+             The errors and warnings of the row in question after validation.
+    """
 
     def process_row_inner(self, source_sample, destination_sample, process_measurement, process_measurement_properties):
         # Check case when both concentrations are given or none are given
@@ -56,8 +62,7 @@ class NormalizationRowHandler(GenericRowHandler):
                 = validate_normalization(initial_volume=process_measurement['volume_used'],
                                          initial_concentration=source_sample_obj.concentration,
                                          final_volume=destination_sample['volume'],
-                                         desired_concentration=concentration,
-                                         tolerance=1)
+                                         desired_concentration=concentration)
 
             destination_container, _, self.errors['container'], self.warnings['container'] = get_or_create_container(
                 barcode=destination_container_dict['barcode'],

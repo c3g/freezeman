@@ -7,6 +7,16 @@ from fms_core.utils import str_cast_and_normalize, check_truth_like
 
 
 class NormalizationImporter(GenericImporter):
+    """
+         Template importer for the Normalization Protocol.
+
+         Args:
+             `sheet`: The template to ingest.
+
+         Returns:
+             A detailed validation of the data trying to be ingested as a result.
+    """
+
     SHEETS_INFO = NORMALIZATION_TEMPLATE["sheets info"]
 
     def __init__(self):

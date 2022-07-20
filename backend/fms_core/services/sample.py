@@ -526,6 +526,20 @@ def remove_sample_metadata(sample, metadata):
 
 
 def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.01):
+    """
+         Defines whether a desired concentration is valid given the ratio (initial volume / final volume)
+
+         Args:
+             `initial_volume`: The initial volume of the sample (uL).
+             `initial_concentration`: The initial concentration of the sample (ng/uL).
+             `final_volume`: The final volume of the sample (uL).
+             `desired_concentration`: The final concentration of the sample (ng/uL).
+             `tolerance`: The tolerance threshold between desired and correct concentration.
+
+         Returns:
+             A boolean representing whether the desired concentration is valid or not.
+    """
+
     is_valid = None
     errors = []
     warnings = []
