@@ -2,12 +2,10 @@ import decimal
 import re
 import unicodedata
 
-from django.utils import timezone
-
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 
 __all__ = [
@@ -88,6 +86,13 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """
     return str_cast_and_normalize(d.get(key) or default)
 
+
+def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
+    if not isinstance(date, datetime.date):
+        return None
+    return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
+    
+
 def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
     """
     Gets a concentration in ng/uL and convert it to molar concentration in nM.
@@ -100,6 +105,7 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weig
     molar_concentration = (concentration / (molecule_count * molecular_weight)) * 1000000
 
     return molar_concentration
+
 
 #TODO Test this
 def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, molecule_count) -> Decimal:

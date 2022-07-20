@@ -6,7 +6,7 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
-from ..utils import RE_SEPARATOR, float_to_decimal
+from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind, library=None, individual=None,
@@ -29,6 +29,9 @@ def create_full_sample(name, volume, collection_site, creation_date,
         errors.append(f"Sample creation requires a creation date.")
     if not sample_kind:
         errors.append(f"Sample creation requires a sample kind.")
+
+    if is_date_or_time_after_today(creation_date):
+        errors.append(f"Reception date cannot be greater than the current date.")
 
     if not errors:
         biosample_data = dict(
