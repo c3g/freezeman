@@ -549,7 +549,8 @@ def validate_normalization(initial_volume, initial_concentration, final_volume, 
         if abs(delta_concentration) <= tolerance:
             is_valid = True
         else:
-            errors.append(f'Desired concentration [{desired_concentration}] is not valid.')
+            errors.append(f'Desired concentration [{desired_concentration}] '
+                          f'is not valid given the dilution ratio (source volume used / final volume).')
             is_valid = False
 
     return is_valid, errors, warnings
