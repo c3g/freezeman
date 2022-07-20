@@ -550,25 +550,14 @@ export const DATASET_FILE_FILTERS = {
     key: "sample_name",
     label: "Sample Name",
   },
-  released: {
+  release_flag: {
     type: FILTER_TYPE.SELECT,
-    key: "released",
-    label: "Released",
+    key: "release_flag",
+    label: "Release Flag",
     placeholder: "All",
     options: [
-      { label: "Yes", value: "true" },
-      { label: "No",  value: "false"},
-    ],
-  },
-  qc_flag: {
-    type: FILTER_TYPE.SELECT,
-    key: "qc_flag",
-    label: "QC Flag",
-    placeholder: "All",
-    options: [
-      { label: "Passed", value: "1" },
-      { label: "Failed",  value: "2" },
-      { label: "Unknown", value: "3" },
+      { label: "Release", value: "1" },
+      { label: "Block",  value: "2" },
     ],
   }
 }

@@ -618,4 +618,4 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DatasetFile
-        fields = ("id", "dataset", "file_path", "sample_name", "released", "qc_flag")
+        fields = ("id", "dataset", "file_path", "sample_name", "release_flag")

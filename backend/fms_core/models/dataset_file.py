@@ -18,5 +18,4 @@ class DatasetFile(TrackedModel):
     # derived_sample = models.ForeignKey(DerivedSample, null=True, blank=True, on_delete=models.PROTECT, help_text="The derived sample that correspond to the dataset")
     sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The sample that corresponds with this file")
 
-    released = models.BooleanField(default=True, help_text="Determines if the dataset file has been released or not.")
-    qc_flag = models.IntegerField(choices=[(1, "Passed"), (2, "Failed"), (3, "Unknown")], default=3, help_text="The QC status of the file.")
+    release_flag = models.IntegerField(choices=[(1, "Release"), (2, "Block")], default=2, help_text="The release flag of the file.")

@@ -11,7 +11,7 @@ import FilteredList from "../FilteredList";
 import { DATASET_FILE_FILTERS } from "../filters/descriptions";
 import PageContent from "../PageContent";
 
-const getTableColumns = (setReleased, setStatus) => {
+const getTableColumns = (setReleaseFlag) => {
     return [
         {
             title: "ID",
@@ -29,29 +29,17 @@ const getTableColumns = (setReleased, setStatus) => {
             sorter: true,
         },
         {
-            title: "Released",
-            dataIndex: "released",
-            sorter: true,
-            render: (released, file) => {
+            title: "Release Flag",
+            dataIndex: "release_flag",
+            render: (release_flag, file) => {
                 const { id } = file;
+                const options = ["", "Released", "Block"]
                 return <>
-                <Switch defaultChecked={released} onChange={setReleased(id)} />
-                </>
-            }
-        },
-        {
-            title: "Status",
-            dataIndex: "qc_flag",
-            sorter: true,
-            render: (qc_flag, file) => {
-                const { id } = file;
-                const options = ["", "Passed", "Failed", "Unknown"]
-                return <>
-                <Select defaultValue={options[qc_flag]} onChange={setStatus(id)}>
-                    {options.map((value, index) => {
-                        <Option value={index}>{value}</Option>
-                    }).slice(1)}
-                </Select>
+                    <Select defaultValue={options[release_flag]} onChange={setReleaseFlag(id)}>
+                        {options.map((value, index) => {
+                            return <Option value={index}>{value}</Option>
+                        }).slice(1)}
+                    </Select>
                 </>
             }
         },
@@ -86,22 +74,12 @@ const DatasetDetailContent = ({
     const dataset = datasetsById[datasetId];
 
     const columns = getTableColumns(
-        (id) => (released) => {
-            console.log(released);
+        (id) => (release_flag) => {
             update(id, {
                 id,
-                released
-            }).then(console.log).catch(console.log)
-
-        },
-        (id) => (qc_flag) => {
-            console.log(qc_flag);
-            update(id, {
-                id,
-                qc_flag
-            }).then(console.log).catch(console.log)
-        }
-    )
+                release_flag
+            })
+        })
     const filterKey = DATASET_FILE_FILTERS.dataset.key
 
     useEffect(() => {
