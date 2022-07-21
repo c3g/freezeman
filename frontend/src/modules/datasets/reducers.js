@@ -127,6 +127,13 @@ export const datasets = (
         }
         case DATASETS.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
+        
+        case DATASETS.SET_RELEASE_FLAGS.REQUEST:
+            return { ...state, isFetching: true, };
+        case DATASETS.SET_RELEASE_FLAGS.RECEIVE:
+            return { ...state, isFetching: false, };
+        case DATASETS.SET_RELEASE_FLAGS.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
 
         default:
             return state;

@@ -1,4 +1,4 @@
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -89,4 +89,12 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest(errors)
         else:
             return Response(self.get_serializer(datasets, many=True).data)
-
+    
+    @action(detail=True, methods=["patch"])
+    def set_release_flags(self, request, pk):
+        release_flag = request.data.get("release_flag")
+        files = DatasetFile.objects.filter(dataset=pk)
+        if release_flag is None:
+            release_flag = [2, 1][files.filter(release_flag=1).exists()]
+        files.update(release_flag=release_flag)
+        return Response('')

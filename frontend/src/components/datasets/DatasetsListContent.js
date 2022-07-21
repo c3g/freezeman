@@ -3,8 +3,8 @@ const { Option } = Select;
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
-import {update as updateFile, list as listFiles} from "../../modules/datasetFiles/actions";
+import {setReleaseFlags, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
+import {list as listFiles} from "../../modules/datasetFiles/actions";
 import AppPageHeader from "../AppPageHeader";
 import { DATASET_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -71,7 +71,7 @@ const mapStateToProps = state => ({
     totalCount: state.datasets.totalCount,
     filesById: state.datasetFiles.itemsByID,
 });
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, updateFile, listFiles};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setReleaseFlags, listFiles};
 
 const DatasetsListContent = ({
     clearFilters,
@@ -86,15 +86,13 @@ const DatasetsListContent = ({
     setSortBy,
     sortBy,
     totalCount,
-    updateFile,
+    setReleaseFlags,
     filesById,
     listFiles,
 }) => {
     const columns = getTableColumns(
         filesById,
-        (id) => (checked) => {
-            datasetsById[id]?.files?.forEach((id) => updateFile(id, { id, release_flag: checked ? 1 : 2 }))
-        }
+        (id) => (checked) => { setReleaseFlags(id, checked ? 1 : 2) }
     ).map(c => Object.assign(c, getFilterProps(
         c,
         DATASET_FILTERS,

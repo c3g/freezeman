@@ -4,6 +4,7 @@ import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
 import {DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
+import { list as listFiles } from "../datasetFiles/actions";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
 export const UPDATE                = createNetworkActionTypes("DATASETS.UPDATE");
@@ -14,6 +15,7 @@ export const SET_SORT_BY           = "DATASETS.SET_SORT_BY";
 export const SET_FILTER            = "DATASETS.SET_FILTER";
 export const SET_FILTER_OPTION     = "DATASETS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "DATASETS.CLEAR_FILTERS";
+export const SET_RELEASE_FLAGS     = createNetworkActionTypes("DATASETS.SET_RELEASE_FLAGS");
 
 export const get = id => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id];
@@ -97,6 +99,16 @@ export const clearFilters = thenList(() => {
     }
 });
 
+export const setReleaseFlags = (id, releaseFlag) => async (dispatch, getState) => {
+    const dataset = getState().datasets.itemsByID[id]
+    if (dataset?.isFetching)
+        return;
+
+    await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
+        { meta: { id, ignoreError: 'APIError' }}));
+    return await dispatch(listFiles({ id__in: dataset?.files?.join(",") ?? "" }))
+};
+
 export default {
     GET,
     UPDATE,
@@ -107,6 +119,7 @@ export default {
     LIST,
     LIST_FILTER,
     LIST_TABLE,
+    SET_RELEASE_FLAGS,
     get,
     update,
     setSortBy,
@@ -116,6 +129,7 @@ export default {
     list,
     listTable,
     listFilter,
+    setReleaseFlags,
 };
 
 // Helper to call list() after another action
