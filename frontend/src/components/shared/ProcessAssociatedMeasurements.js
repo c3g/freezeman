@@ -19,6 +19,7 @@ const getTableColumns = (samplesByID, properties, propertyValuesById) => {
       title: "Sample Process ID",
       dataIndex: "id",
       sorter: true,
+      width: 175,
       render: (_, processMeasurement) =>
           <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.id}</Link>
     },
