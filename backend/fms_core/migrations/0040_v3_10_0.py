@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db import migrations
+from django.db import migrations, models
 from datetime import date
 from django.contrib.auth.models import User
 import reversion
@@ -89,5 +89,11 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             fix_future_dates,
             reverse_code=migrations.RunPython.noop,
-        )
+        ),
+        migrations.CreateModel(
+            name='IdGenerator',
+            fields=[
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
+            ],
+        ),
     ]
