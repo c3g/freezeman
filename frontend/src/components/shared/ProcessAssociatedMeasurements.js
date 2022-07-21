@@ -16,6 +16,13 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
 const getTableColumns = (samplesByID, properties, propertyValuesById) => {
   return [
     {
+      title: "Sample Process ID",
+      dataIndex: "id",
+      sorter: true,
+      render: (_, processMeasurement) =>
+          <Link to={`/process-measurements/${processMeasurement.id}`}>{processMeasurement.id}</Link>
+    },
+    {
       title: "Sample",
       dataIndex: "source_sample__name",
       sorter: true,
