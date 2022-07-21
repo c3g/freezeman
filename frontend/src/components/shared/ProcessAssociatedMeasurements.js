@@ -99,7 +99,7 @@ const ProcessAssociatedMeasurements = ({
     if (measurementsWithMissingProperties.length > 0) {
       listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
     }
-  }, [processMeasurements])
+  }, [processMeasurements, propertyValuesByID])
 
   return <>
     <FilteredList
