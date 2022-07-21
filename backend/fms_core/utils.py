@@ -5,7 +5,7 @@ import unicodedata
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Generator, Iterable, List, Optional, TypeVar, Union
+from typing import Any, Generator, Iterable, List, Union
 
 
 __all__ = [
