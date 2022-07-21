@@ -10,6 +10,7 @@ import AppPageHeader from "../AppPageHeader";
 import FilteredList from "../FilteredList";
 import { DATASET_FILE_FILTERS } from "../filters/descriptions";
 import PageContent from "../PageContent";
+import moment from "moment";
 
 const getTableColumns = (setReleaseFlag) => {
     return [
@@ -43,6 +44,19 @@ const getTableColumns = (setReleaseFlag) => {
                 </>
             }
         },
+        {
+            title: "Release Time",
+            dataIndex: "release_flag_timestamp",
+            sorter: true,
+            render: (release_flag_timestamp, _) => {
+                if (release_flag_timestamp) {
+                    const date = moment(release_flag_timestamp)
+                    return date.format("YYYY-MM-DD LT")
+                } else {
+                    return <></>
+                }
+            }
+        }
     ]
 }
 

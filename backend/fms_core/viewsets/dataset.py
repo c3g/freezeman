@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.http import HttpResponse, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -94,7 +95,13 @@ class DatasetViewSet(viewsets.ModelViewSet):
     def set_release_flags(self, request, pk):
         release_flag = request.data.get("release_flag")
         files = DatasetFile.objects.filter(dataset=pk)
+
         if release_flag is None:
+            # pick opposite flag
             release_flag = [2, 1][files.filter(release_flag=1).exists()]
-        files.update(release_flag=release_flag)
+
+        files.update(
+            release_flag=release_flag,
+            release_flag_timestamp=datetime.now() if release_flag == 1 else None
+        )
         return Response('')

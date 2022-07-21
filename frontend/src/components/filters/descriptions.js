@@ -559,5 +559,10 @@ export const DATASET_FILE_FILTERS = {
       { label: "Release", value: "1" },
       { label: "Block",  value: "2" },
     ],
-  }
+  },
+  release_flag_timestamp: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "release_flag_timestamp",
+    label: "Release Time",
+  },
 }

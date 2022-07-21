@@ -1,3 +1,4 @@
+from datetime import datetime
 from rest_framework import viewsets
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.serializers import DatasetFileSerializer
@@ -16,3 +17,9 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_dataset_file_filterset_fields,
     }
+
+    def update(self, request, *args, **kwargs):
+        release_flag = request.data.get("release_flag")
+        if release_flag is not None:
+            request.data["release_flag_timestamp"] = datetime.now() if release_flag == 1 else None
+        return super().update(request, *args, **kwargs)

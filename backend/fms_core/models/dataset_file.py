@@ -19,3 +19,4 @@ class DatasetFile(TrackedModel):
     sample_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The sample that corresponds with this file")
 
     release_flag = models.IntegerField(choices=[(1, "Release"), (2, "Block")], default=2, help_text="The release flag of the file.")
+    release_flag_timestamp = models.DateTimeField(null=True, blank=True, help_text='The time release_flag was set to "Release".')

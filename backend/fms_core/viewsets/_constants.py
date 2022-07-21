@@ -210,4 +210,5 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "file_path": CATEGORICAL_FILTERS,
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "release_flag": CATEGORICAL_FILTERS,
+    "release_flag_timestamp": DATE_FILTERS,
 }
