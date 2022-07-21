@@ -1,4 +1,5 @@
-import { Button, Checkbox, Spin, Switch } from "antd";
+import { Button, Checkbox, Select, Spin, Switch } from "antd";
+const { Option } = Select;
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
@@ -46,8 +47,12 @@ const getTableColumns = (filesById, setReleaseFlag) => {
                 const isReady = files.every((id) => id in filesById)
                 if (isReady) {
                     const filesValue = files.map((id) => filesById[id])
-                    const defaultChecked = filesValue.some((file) => file.release_flag === 1)
-                    return <Switch defaultChecked={defaultChecked} onChange={setReleaseFlag(files)}/>
+                    const defaultValue = filesValue.map((file) => file.release_flag)
+                                                   .find((flag) => flag === 1) ?? 2
+                    return <Select defaultValue={defaultValue} onChange={setReleaseFlag(dataset.id)}>
+                        <Option value={1}>Released</Option>
+                        <Option value={2}>Block</Option>
+                    </Select>
                 } else {
                     return <Spin size={"small"} />
                 }
@@ -87,8 +92,8 @@ const DatasetsListContent = ({
 }) => {
     const columns = getTableColumns(
         filesById,
-        (files) => (checked) => {
-            files.forEach((id) => updateFile(id, { id, release_flag: checked ? 1 : 2 }))
+        (id) => (checked) => {
+            datasetsById[id]?.files?.forEach((id) => updateFile(id, { id, release_flag: checked ? 1 : 2 }))
         }
     ).map(c => Object.assign(c, getFilterProps(
         c,
