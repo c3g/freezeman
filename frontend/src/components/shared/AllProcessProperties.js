@@ -12,13 +12,13 @@ const mapStateToProps = state => ({
 const actionCreators = { listProcessProperties, getProcess };
 
 const AllProcessProperties = ({
-  id,
-  depth = 1,
   propertyValuesByID,
   protocolsByID,
   processesByID,
   listProcessProperties,
   getProcess,
+  id,
+  depth = 1,
 }) => {
   const process = processesByID[id] || {};
 
