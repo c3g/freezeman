@@ -92,7 +92,7 @@ const DatasetsListContent = ({
 }) => {
     const columns = getTableColumns(
         filesById,
-        (id) => (checked) => { setReleaseFlags(id, checked ? 1 : 2) }
+        (id) => (value) => { setReleaseFlags(id, value) }
     ).map(c => Object.assign(c, getFilterProps(
         c,
         DATASET_FILTERS,
