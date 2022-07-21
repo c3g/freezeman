@@ -9,7 +9,7 @@ import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
 
-const hasEveryProperties = (processMeasurement, propertyValuesByID) => {
+const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
@@ -39,7 +39,7 @@ const getTableColumns = (samplesByID, properties, propertyValuesById) => {
           })
 
           const propertyValue = propertyValueId ? propertyValuesById[propertyValueId] : {}
-          return <>{propertyValue?.value ?? (hasEveryProperties(processMeasurement, propertyValuesById) ? "N/A" : "Loading...")}</>
+          return <>{propertyValue?.value ?? (allPropertiesLoaded(processMeasurement, propertyValuesById) ? "N/A" : "Loading...")}</>
         }
       }
     })
@@ -75,7 +75,7 @@ const ProcessAssociatedMeasurements = ({
 
   const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
                                                         .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
-                                                        .filter((processMeasurement) => hasEveryProperties(processMeasurement, propertyValuesByID))
+                                                        .filter((processMeasurement) => allPropertiesLoaded(processMeasurement, propertyValuesByID))
 
   // potential memory overflow?
   const properties = Object.values(measurementsWithProperties.flatMap(({ properties }) => properties)
@@ -94,7 +94,7 @@ const ProcessAssociatedMeasurements = ({
 
   useEffect(() => {
     const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
-                                                                 .filter((id) => !hasEveryProperties(processMeasurementsByID[id], propertyValuesByID))
+                                                                 .filter((id) => !allPropertiesLoaded(processMeasurementsByID[id], propertyValuesByID))
 
     if (measurementsWithMissingProperties.length > 0) {
       listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
