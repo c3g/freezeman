@@ -610,17 +610,13 @@ class ImportedFileSerializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.SerializerMethodField()
-    files_released_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "project_name", "run_name", "lane", "files", "files_released_count")
+        fields = ("id", "project_name", "run_name", "lane", "files")
     
     def get_files(self, obj):
         return DatasetFile.objects.filter(dataset=obj.id).values_list('id', flat=True)
-
-    def get_files_released_count(self, obj):
-        return obj.files.all().filter(release_flag=1).count()
 
 class DatasetFileSerializer(serializers.ModelSerializer):
 

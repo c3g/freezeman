@@ -1,9 +1,9 @@
-import { Button, Checkbox, Switch } from "antd";
-import React from "react";
+import { Button, Checkbox, Spin, Switch } from "antd";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
-import {update as updateFile} from "../../modules/datasetFiles/actions";
+import {update as updateFile, list as listFiles} from "../../modules/datasetFiles/actions";
 import AppPageHeader from "../AppPageHeader";
 import { DATASET_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -12,7 +12,7 @@ import getNFilters from "../filters/getNFilters";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 
-const getTableColumns = (setReleaseFlag) => {
+const getTableColumns = (filesById, setReleaseFlag) => {
     return [
         {
             title: "ID",
@@ -42,10 +42,15 @@ const getTableColumns = (setReleaseFlag) => {
         {
             title: "Release Flag",
             render: (_, dataset) => {
-                const { files, files_released_count } = dataset
-                return <>
-                <Switch defaultChecked={files_released_count > 0} onChange={setReleaseFlag(files)}/>
-                </>
+                const { files } = dataset
+                const isReady = files.every((id) => id in filesById)
+                if (isReady) {
+                    const filesValue = files.map((id) => filesById[id])
+                    const defaultChecked = filesValue.some((file) => file.release_flag === 1)
+                    return <Switch defaultChecked={defaultChecked} onChange={setReleaseFlag(files)}/>
+                } else {
+                    return <Spin size={"small"} />
+                }
             }
         },
     ]
@@ -59,8 +64,9 @@ const mapStateToProps = state => ({
     page: state.datasets.page,
     sortBy: state.datasets.sortBy,
     totalCount: state.datasets.totalCount,
+    filesById: state.datasetFiles.itemsByID,
 });
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, updateFile};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, updateFile, listFiles};
 
 const DatasetsListContent = ({
     clearFilters,
@@ -76,8 +82,11 @@ const DatasetsListContent = ({
     sortBy,
     totalCount,
     updateFile,
+    filesById,
+    listFiles,
 }) => {
     const columns = getTableColumns(
+        filesById,
         (files) => (checked) => {
             files.forEach((id) => updateFile(id, { id, release_flag: checked ? 1 : 2 }))
         }
@@ -90,6 +99,15 @@ const DatasetsListContent = ({
     )))
 
     const nFilters = getNFilters(filters)
+
+    useEffect(() => {
+        const missingFiles = datasets.filter((datasetId) => datasetId in datasetsById)
+                                     .flatMap((datasetId) => datasetsById[datasetId].files)
+                                     .filter((fileId) => !(fileId in filesById))
+        if (missingFiles.length > 0) {
+            listFiles({id__in: missingFiles.join(",")})
+        }
+    })
 
     return <>
         <AppPageHeader title="Datasets"/>
