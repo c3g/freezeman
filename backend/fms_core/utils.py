@@ -5,7 +5,7 @@ import unicodedata
 import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Iterable, List, Optional, TypeVar, Union
+from typing import Any, Generator, Iterable, List, Optional, TypeVar, Union
 
 
 __all__ = [
@@ -120,8 +120,7 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
 
     return concentration
 
-T = TypeVar("T")
-def ensure_iterable(obj: Union[T, None, Iterable[T]]) -> Iterable[T]:
+def make_generator(obj: Union[Any, None, Iterable[Any]]) -> Generator[Any, None, None]:
     """
     Ensures that ManyToMany fields such as the `obj` passed are iterable.
     None is turned into an empty iterable,
@@ -130,13 +129,13 @@ def ensure_iterable(obj: Union[T, None, Iterable[T]]) -> Iterable[T]:
     It's meant to handle the fact that a ManyToMany field is not a list if it has less than two elements.
 
     Args:
-        obj: `T`
+        obj: Any
 
     Returns:
-        `Iterable[T]`
+        `Generator[Any, None, None]`
 
     Yields:
-        `T`
+        `Any`
     """
 
     if obj is None:
