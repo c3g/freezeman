@@ -529,6 +529,51 @@ def remove_sample_metadata(sample, metadata):
     return deleted, errors, warnings
 
 
+def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.01):
+    """
+         Defines whether a desired concentration is valid given the ratio (initial volume / final volume)
+
+         Args:
+             `initial_volume`: The initial volume of the sample (uL).
+             `initial_concentration`: The initial concentration of the sample (ng/uL).
+             `final_volume`: The final volume of the sample (uL).
+             `desired_concentration`: The final concentration of the sample (ng/uL).
+             `tolerance`: The tolerance threshold between desired and correct concentration.
+
+         Returns:
+             A boolean representing whether the desired concentration is valid or not.
+    """
+
+    is_valid = None
+    errors = []
+    warnings = []
+
+    # Validate parameters
+    if initial_volume is None:
+        errors.append(f"Initial volume is required to validate concentration.")
+    if initial_concentration is None:
+        errors.append(f"Initial concentration is invalid.")
+    if final_volume is None:
+        errors.append(f"Final volume is required for validation.")
+    if desired_concentration is None:
+        errors.append(f"Final concentration is required for validation.")
+
+    if not errors:
+        # Calculate the current amount to be able to calculate final concentration
+        solute_amount = initial_concentration * initial_volume
+        computed_concentration = solute_amount / final_volume
+
+        delta_concentration = computed_concentration - desired_concentration
+        if abs(delta_concentration) <= tolerance:
+            is_valid = True
+        else:
+            errors.append(f'Desired concentration [{desired_concentration}] '
+                          f'is not valid given the dilution ratio (source volume used / final volume).')
+            is_valid = False
+
+    return is_valid, errors, warnings
+
+
 
 
 
