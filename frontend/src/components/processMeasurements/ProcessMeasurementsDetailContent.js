@@ -46,7 +46,6 @@ const ProcessMeasurementsDetailContent = ({
     const processMeasurement = processMeasurementsByID[id] || {};
     const propertiesAreLoaded = processMeasurement?.properties?.every(property => property in propertyValuesByID)
     
-    const processIsLoaded = processMeasurement?.process in processesByID;
     const process = processesByID[processMeasurement?.process] || {};
 
     useEffect(() => {
@@ -58,6 +57,7 @@ const ProcessMeasurementsDetailContent = ({
           await listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
         }
 
+        const processIsLoaded = processMeasurement?.process in processesByID;
         if (processMeasurement?.process && !processIsLoaded) {
           await getProcess(processMeasurement?.process);
         }
