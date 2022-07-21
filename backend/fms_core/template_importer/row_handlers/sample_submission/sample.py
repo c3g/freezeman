@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fms_core.models import Individual
+from fms_core.models import Individual, Sample
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
@@ -129,6 +129,11 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
+
+        # Check if there's a sample with the same name
+        if Sample.objects.filter(name=sample['name']).exists():
+            self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists.'
+
         sample_obj = None
         if library_obj is not None or not is_library:
             sample_obj, self.errors['sample'], self.warnings['sample'] = \
