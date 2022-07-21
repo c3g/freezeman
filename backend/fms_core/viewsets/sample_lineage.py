@@ -9,7 +9,7 @@ from fms_core.serializers import SampleSerializer, ProcessMeasurementSerializer
 
 class SampleLineageViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["get"])
-    def graph(self, _request, pk) -> Response:
+    def graph(self, _request, pk: int) -> Response:
         """
         Generates a sample lineage that is acyclical where each node is a sample and each edge is a process.
         For more information, visit `fms_core.services.sample_lineage.create_sample_lineage_graph`.
