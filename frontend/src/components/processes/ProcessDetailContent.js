@@ -7,16 +7,14 @@ const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import ProcessProperties from "../shared/ProcessProperties";
-import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listPropertyValues} from "../../modules/experimentRuns/actions";
-import { get as getProcess } from "../../modules/processes/actions";
+import {list as listProcesses, get as getProcess} from "../../modules/processes/actions";
 import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
-import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
-import { listProperties as listProcessProperties } from "../../modules/processes/actions";
+import AllProcessProperties from "../shared/AllProcessProperties";
+import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
+
 
 const mapStateToProps = state => ({
     token: state.auth.tokens.access,
@@ -25,16 +23,14 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {getProcess, listPropertyValues, templateDownload, listProcessProperties};
+const actionCreators = {listProcesses, getProcess, templateDownload};
 
 const ProcessDetailContent = ({
   processesByID,
-  propertyValuesByID,
   protocolsByID,
-  listPropertyValues,
+  listProcesses,
   getProcess,
-  token,
-  listProcessProperties,
+  token
 }) => {
     const history = useHistory();
     const {id} = useParams();
@@ -53,12 +49,8 @@ const ProcessDetailContent = ({
         if (!isLoaded) {
           await getProcess(id);
         }
-
-        if (!isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
-          await listProcessProperties(id);
-        }
       })()
-    }, [processesByID, propertyValuesByID, id])
+    }, [processesByID, id])
 
     const isLoading = !isLoaded || process.isFetching;
     const title =
@@ -87,33 +79,14 @@ const ProcessDetailContent = ({
               </Descriptions>
               <TrackingFieldsContent entity={process}/>
             </TabPane>
-            <TabPane tab="Properties" key="2" style={{marginTop:8} }>
-              { process?.children_properties?.length > 0 &&
-                  <>
-                  <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
-                    <ProcessProperties
-                        propertyIDs={process.children_properties}
-                        protocolName={protocolsByID[process.protocol]?.name}
-                    />
-                  </>
-              }
-              {process?.children_processes?.map((id, i) => {
-                  const process = processesByID[id]
-                  return ( process &&
-                      <>
-                        <ProcessProperties
-                            propertyIDs={process.children_properties}
-                            protocolName={protocolsByID[process.protocol]?.name}
-                        />
-                      </>
-                  )
-                })
-              }
-              <Title level={3} style={{marginTop: '20px'}}>Applications</Title>
-              <ProcessAssociatedMeasurements id={id} />
-              </TabPane>
-            </Tabs>
-        </PageContent>
+          <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
+            <Title level={3} style={{ marginTop: '20px' }}>Process Properties</Title>
+            <AllProcessProperties id={id} />
+            <Title level={3} style={{ marginTop: '20px' }}>Process Applications</Title>
+            <ProcessAssociatedMeasurements id={id} />
+          </TabPane>
+        </Tabs>
+      </PageContent>
     </>;
 };
 
