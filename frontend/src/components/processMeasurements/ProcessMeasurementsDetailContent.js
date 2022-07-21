@@ -83,7 +83,7 @@ const ProcessMeasurementsDetailContent = ({
             <TabPane tab="Properties" key="2" style={{marginTop:8} }>
             <Title level={3} style={{ marginTop: '20px' }}>Process Properties</Title>
             {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
-            <Title level={3} style={{ marginTop: '20px' }}>Process Application</Title>
+            <Title level={3} style={{ marginTop: '20px' }}>Process By Sample</Title>
             {processMeasurement?.properties?.length > 0 &&
               <>
                 <ProcessProperties
