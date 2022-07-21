@@ -132,7 +132,13 @@ class SampleRowHandler(GenericRowHandler):
 
         # Check if there's a sample with the same name
         if Sample.objects.filter(name=sample['name']).exists():
-            self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists.'
+            self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists.' \
+                                    f'A new sample with the same name will be created'
+
+        # Check if there's a sample with the same name in different case
+        if Sample.objects.filter(name__iexact=sample['name']).exists():
+            self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different case already exists.' \
+                                    f'Please verify the name is correct.'
 
         sample_obj = None
         if library_obj is not None or not is_library:

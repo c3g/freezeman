@@ -1,5 +1,5 @@
 import React from "react";
-import {Popover, Table, Tabs} from "antd";
+import {Popover, Table, Tabs, Badge} from "antd";
 import {WarningOutlined} from "@ant-design/icons";
 import innerHTMLPurified from "../../utils/innerHTMLPurified";
 
@@ -82,7 +82,11 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
       render: content => {
         return (content &&
           <Popover content={content} title='Warnings on current row' placement='bottomLeft'>
-            <WarningOutlined style={{fontSize: '16px', color: '#FFBB00'}}/>
+            <div style={{width: '40px'}}>
+              <Badge count={content.props.children.length} color='gray' size='small'>
+                <WarningOutlined style={{fontSize: '22px', color: '#FFBB00'}}/>
+              </Badge>
+            </div>
           </Popover>)
       },
     })
@@ -110,9 +114,6 @@ const renderPreviewSheetTable = (previewSheetInfo) => {
         </div>
       )
     )
-
-    console.log(row)
-    console.log(row.diff)
 
     row.diff.forEach((diff, diff_index) => {
       row_data[`column-${diff_index}`] = innerHTMLPurified(diff)
