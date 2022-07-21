@@ -69,7 +69,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       },
       {
           'name': 'Samples',
-          'headers': ['Experiment Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
+          'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
                       'Experiment Container Coordinates', 'Comment'],
       },]
 
@@ -77,6 +77,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_9_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
+      ("Samples", "Source Sample Name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode"),
       ("Samples", "Source Container Coordinates", "coordinates"),],
 }
@@ -85,6 +86,7 @@ EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_9_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
+      ("Samples", "Source Sample Name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode"),
       ("Samples", "Source Container Coordinates", "coordinates"),],
 }
@@ -109,7 +111,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
       },
       {
           'name': 'Library',
-          'headers': ['Library Batch ID', 'Library Source Container Barcode', 'Library Source Container Coordinates',
+          'headers': ['Library Batch ID', 'Library Source Name', 'Library Source Container Barcode', 'Library Source Container Coordinates',
                       'Destination Library Container Barcode', 'Destination Library Container Coordinates',
                       'Destination Library Container Name', 'Destination Library Container Kind',
                       'Destination Library Parent Container Barcode', 'Destination Library Parent Container Coordinates',
@@ -118,6 +120,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
       },
   ],
   "prefill info": [
+      ("Library", "Library Source Name", "name"),
       ("Library", "Library Source Container Barcode", "container__barcode"),
       ("Library", "Library Source Container Coordinates", "coordinates"),
       ("Library", "Library Source Concentration (ng/uL)", "concentration"),
@@ -138,13 +141,14 @@ LIBRARY_PREPARATION_TEMPLATE = {
       },
       {
           'name': 'Library',
-          'headers': ['Library Batch ID', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
+          'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
                       'Index Set', 'Index', 'Strandedness', 'Comment'],
       },
   ],
   "prefill info": [
+      ("Library", "Sample Name", "name"),
       ("Library", "Sample Container Barcode", "container__barcode"),
       ("Library", "Sample Container Coordinates", "coordinates"),],
 }
@@ -222,10 +226,11 @@ SAMPLE_UPDATE_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleUpdate',
-          'headers': ['Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
+          'headers': ['Sample Name', 'Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
                       'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment']
       },],
   "prefill info": [
+      ("SampleUpdate", "Sample Name", "name"),
       ("SampleUpdate", "Container Barcode", "container__barcode"),
       ("SampleUpdate", "Coord (if plate)", "coordinates"),],
 }
@@ -235,12 +240,13 @@ SAMPLE_QC_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleQC',
-          'headers': ['Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
+          'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
                       'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
                       'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
                       'Quantity Flag', 'QC Date', 'Comment']
       },],
   "prefill info": [
+      ("SampleQC", "Sample Name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode"),
       ("SampleQC", "Sample Container Coord", "coordinates"),
       ("SampleQC", "Initial Volume (uL)", "volume"),],
@@ -251,12 +257,13 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   "sheets info": [
       {
           'name': 'ExtractionTemplate',
-          'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Container Barcode', 'Source Container Coord',
+          'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
                       'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
                       'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
       },],
   "prefill info": [
+      ("ExtractionTemplate", "Source Sample Name", "name"),
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode"),
       ("ExtractionTemplate", "Source Container Coord", "coordinates"),],
 }
@@ -266,12 +273,13 @@ SAMPLE_TRANSFER_TEMPLATE = {
   "sheets info": [
       {
           'name': 'SampleTransfer',
-          'headers': ['Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
+          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
                       'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                       'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Source Depleted',
                       'Volume Used (uL)', 'Transfer Date', 'Comment'],
       },],
   "prefill info": [
+      ("SampleTransfer", "Source Sample Name", "name"),
       ("SampleTransfer", "Source Container Barcode", "container__barcode"),
       ("SampleTransfer", "Source Container Coord", "coordinates"),],
 }
@@ -281,11 +289,12 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
   "sheets info": [
       {
           'name': 'Samples',
-          'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Barcode',
+          'headers': ['qPCR Type', 'Volume Used (uL)', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Verification Container Barcode',
                       'Verification Container Coord', 'CT Value (Experimental) 1', 'CT Value (Experimental) 2', 'CT Value (Control)', 'Status', 'Source Depleted',
                       'qPCR Date', 'Comment'],
       },],
   "prefill info": [
+      ("Samples", "Sample Name", "name"),
       ("Samples", "Sample Container Barcode", "container__barcode"),
       ("Samples", "Sample Container Coord", "coordinates"),],
 }
