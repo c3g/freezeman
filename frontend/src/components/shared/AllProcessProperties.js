@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { isProcessPropertiesLoaded } from "../../utils/actionsWait";
+import { isProcessPropertiesLoaded } from "../../utils/isLoaded";
 import { listProperties as listProcessProperties, get as getProcess } from "../../modules/processes/actions";
 import ProcessProperties from "./ProcessProperties";
 import { connect } from "react-redux";
