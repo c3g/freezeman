@@ -81,7 +81,7 @@ def str_cast_and_normalize(s) -> str:
 
 def str_cast_and_normalize_lower(s) -> Union[str, None]:
     """
-    Cases a value to a string, normalizes it and then converts to lower case.
+    Casts a value to a string, normalizes it and then converts to lower case.
     """
     result = str_cast_and_normalize(s)
     return result.lower() if result is not None else result
