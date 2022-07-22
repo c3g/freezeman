@@ -19,6 +19,7 @@ const getTableColumns = (filesById, setReleaseFlag) => {
             title: "ID",
             dataIndex: "id",
             sorter: true,
+            width: 90,
             render: (id, _) => {
                 return <Link to={`/datasets/${id}`}>
                 <div>{id}</div>
