@@ -12,8 +12,19 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
+import moment from "moment";
 
 const getTableColumns = (filesById, setReleaseFlag) => {
+    const onFilesReady = (dataset, func) => {
+        const { files } = dataset
+        const isReady = files.every((id) => id in filesById)
+        if (isReady) {
+            const filesValue = files.map((id) => filesById[id])
+            return func(filesValue)
+        } else {
+            return <Spin size={"small"} />
+        }
+    }
     return [
         {
             title: "ID",
@@ -44,19 +55,14 @@ const getTableColumns = (filesById, setReleaseFlag) => {
         {
             title: "Release Flag",
             render: (_, dataset) => {
-                const { files } = dataset
-                const isReady = files.every((id) => id in filesById)
-                if (isReady) {
-                    const filesValue = files.map((id) => filesById[id])
-                    const defaultValue = filesValue.map((file) => file.release_flag)
+                return onFilesReady(dataset, (files) => {
+                    const defaultValue = files.map((file) => file.release_flag)
                                                    .find((flag) => flag === 1) ?? 2
                     return <Select defaultValue={defaultValue} onChange={setReleaseFlag(dataset.id)}>
                         <Option value={1}>Released</Option>
                         <Option value={2}>Blocked</Option>
                     </Select>
-                } else {
-                    return <Spin size={"small"} />
-                }
+                })
             }
         },
     ]
