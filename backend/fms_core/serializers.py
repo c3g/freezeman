@@ -609,14 +609,10 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
-    files = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
         fields = ("id", "project_name", "run_name", "lane", "files")
-    
-    def get_files(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id).values_list('id', flat=True)
 
 class DatasetFileSerializer(serializers.ModelSerializer):
 
