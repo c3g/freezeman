@@ -19,3 +19,7 @@ class Dataset(TrackedModel):
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
 
     lane = models.CharField(max_length=10, blank=True, help_text="Coordinates of the lane in a container")
+
+    def save(self, *args, **kwargs):
+        int(self.lane)
+        return super().save(*args, **kwargs)
