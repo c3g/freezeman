@@ -34,7 +34,7 @@ const getTableColumns = (setReleaseFlag) => {
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
-                const options = ["", "Released", "Block"]
+                const options = ["", "Released", "Blocked"]
                 return <>
                     <Select defaultValue={options[release_flag]} onChange={setReleaseFlag(id)}>
                         {options.map((value, index) => {

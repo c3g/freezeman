@@ -52,7 +52,7 @@ const getTableColumns = (filesById, setReleaseFlag) => {
                                                    .find((flag) => flag === 1) ?? 2
                     return <Select defaultValue={defaultValue} onChange={setReleaseFlag(dataset.id)}>
                         <Option value={1}>Released</Option>
-                        <Option value={2}>Block</Option>
+                        <Option value={2}>Blocked</Option>
                     </Select>
                 } else {
                     return <Spin size={"small"} />
