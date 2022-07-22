@@ -1,9 +1,8 @@
-from django.db.models import Q, Count
+from django.db.models import Q
 
-from .models import Container, Index, Individual, Sample, PropertyValue, Dataset
+from .models import Container, Index, Individual, Sample, PropertyValue
 
 import django_filters
-from datetime import datetime
 
 from .viewsets._constants import (
     _container_filterset_fields,
@@ -12,7 +11,6 @@ from .viewsets._constants import (
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
     _library_filterset_fields,
-    _dataset_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -108,12 +106,3 @@ class IndexFilter(GenericFilter):
     class Meta:
         model = Index
         fields = _index_filterset_fields
-
-class DatasetFilter(GenericFilter):
-    run_name = django_filters.CharFilter(field_name="run_name", method="batch_filter")
-    project_name = django_filters.CharFilter(field_name="project_name", method="batch_filter")
-    lane = django_filters.CharFilter(field_name="lane", method="batch_filter")
-    
-    class Meta:
-        model = Dataset
-        fields = _dataset_filterset_fields
