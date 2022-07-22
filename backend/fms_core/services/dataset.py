@@ -53,17 +53,23 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
 
     return (dataset and Dataset.objects.get(pk=dataset.id), errors, warnings)
 
-def create_dataset_file(dataset: Dataset, file_path: str, sample_name: str, release_flag: int = 2) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
+def create_dataset_file(dataset: Dataset,
+                        file_path: str,
+                        sample_name: str,
+                        release_flag: int = DatasetFile.ReleaseFlag.BLOCK
+                        ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     dataset_file = None
     errors = []
     warnings = []
 
     try:
+        RELEASE = DatasetFile.ReleaseFlag.RELEASE
         dataset_file = DatasetFile.objects.create(
             dataset=dataset,
             file_path=file_path,
             sample_name=sample_name,
             release_flag=release_flag,
+            release_flag_timestamp=datetime.now() if release_flag == RELEASE else None
         )
     except ValidationError as e:
         errors.extend(e.messages)

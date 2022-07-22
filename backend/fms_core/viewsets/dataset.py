@@ -96,12 +96,15 @@ class DatasetViewSet(viewsets.ModelViewSet):
         release_flag = request.data.get("release_flag")
         files = DatasetFile.objects.filter(dataset=pk)
 
+        RELEASED = DatasetFile.ReleaseFlag.RELEASE
+        BLOCK = DatasetFile.ReleaseFlag.BLOCK
+
         if release_flag is None:
             # pick opposite flag
-            release_flag = [2, 1][files.filter(release_flag=1).exists()]
+            release_flag = [BLOCK, RELEASED][files.filter(release_flag=RELEASED).exists()]
 
         files.update(
             release_flag=release_flag,
-            release_flag_timestamp=datetime.now() if release_flag == 1 else None
+            release_flag_timestamp=datetime.now() if release_flag == RELEASED else None
         )
         return Response('')

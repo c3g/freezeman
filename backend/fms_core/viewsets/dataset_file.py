@@ -21,5 +21,6 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         release_flag = request.data.get("release_flag")
         if release_flag is not None:
-            request.data["release_flag_timestamp"] = datetime.now() if release_flag == 1 else None
+            RELEASED = DatasetFile.ReleaseFlag.RELEASE
+            request.data["release_flag_timestamp"] = datetime.now() if release_flag == RELEASED else None
         return super().update(request, *args, **kwargs)
