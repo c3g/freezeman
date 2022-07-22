@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 import reversion
 
 from .tracked_model import TrackedModel
@@ -21,5 +22,14 @@ class Dataset(TrackedModel):
     lane = models.CharField(max_length=10, blank=True, help_text="Coordinates of the lane in a container")
 
     def save(self, *args, **kwargs):
-        int(self.lane)
+        errors = {}
+
+        try:
+            int(self.lane)
+        except TypeError as e:
+            errors["TypeError"] = str(e)
+
+        if errors:
+            raise ValidationError(errors)
+
         return super().save(*args, **kwargs)
