@@ -6,18 +6,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 
-def convertToModelDate(value: Union[datetime, date, str, None]) -> Union[datetime, None]:
-    if isinstance(value, date):
-        return datetime.combine(value, datetime.min.time())
-    elif isinstance(value, datetime):
-        return value
-    elif isinstance(value, str):
-        return datetime.fromisoformat(value[:10])
-    elif value is None:
-        return value
-    else:
-        raise ValueError(f"Invalid date: {value}")
-
 def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict[str, Any]] = []) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     dataset = None
 
