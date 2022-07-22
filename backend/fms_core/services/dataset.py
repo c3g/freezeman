@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
+from fms_core.models._constants import ReleaseFlag
 
 def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict[str, Any]] = []) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     dataset = None
@@ -44,20 +45,19 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
 def create_dataset_file(dataset: Dataset,
                         file_path: str,
                         sample_name: str,
-                        release_flag: int = DatasetFile.ReleaseFlag.BLOCK
+                        release_flag: int = ReleaseFlag.BLOCK
                         ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     dataset_file = None
     errors = []
     warnings = []
 
     try:
-        RELEASE = DatasetFile.ReleaseFlag.RELEASE
         dataset_file = DatasetFile.objects.create(
             dataset=dataset,
             file_path=file_path,
             sample_name=sample_name,
             release_flag=release_flag,
-            release_flag_timestamp=datetime.now() if release_flag == RELEASE else None
+            release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
         )
     except ValidationError as e:
         errors.extend(e.messages)

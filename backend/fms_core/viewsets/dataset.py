@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from fms_core.models.dataset import Dataset
 from fms_core.models.dataset_file import DatasetFile
+from fms_core.models._constants import ReleaseFlag
 from fms_core.serializers import DatasetFileSerializer, DatasetSerializer
 
 from ._utils import _list_keys
@@ -93,15 +94,12 @@ class DatasetViewSet(viewsets.ModelViewSet):
         release_flag = request.data.get("release_flag")
         files = DatasetFile.objects.filter(dataset=pk)
 
-        RELEASED = DatasetFile.ReleaseFlag.RELEASE
-        BLOCK = DatasetFile.ReleaseFlag.BLOCK
-
         if release_flag is None:
             # pick opposite flag
-            release_flag = [BLOCK, RELEASED][files.filter(release_flag=RELEASED).exists()]
+            release_flag = [ReleaseFlag.BLOCK, ReleaseFlag.RELEASE][files.filter(release_flag=ReleaseFlag.RELEASE).exists()]
 
         files.update(
             release_flag=release_flag,
-            release_flag_timestamp=datetime.now() if release_flag == RELEASED else None
+            release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
         )
         return Response('')
