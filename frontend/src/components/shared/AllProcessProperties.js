@@ -3,6 +3,7 @@ import { isProcessPropertiesLoaded } from "../../utils/isLoaded";
 import { listProperties as listProcessProperties, get as getProcess } from "../../modules/processes/actions";
 import ProcessProperties from "./ProcessProperties";
 import { connect } from "react-redux";
+
 const mapStateToProps = state => ({
   propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
