@@ -19,7 +19,6 @@ const AllProcessProperties = ({
   listProcessProperties,
   getProcess,
   id,
-  depth = 1,
 }) => {
   const process = processesByID[id] || {};
 
@@ -42,16 +41,18 @@ const AllProcessProperties = ({
         propertyIDs={process.children_properties}
         protocolName={protocolsByID[process.protocol]?.name}
       />}
-    {depth && process?.children_processes?.map((id, i) => {
-      const child_process = processesByID[id]
-      return (child_process &&
-        // recursion ;)
-        <AllProcessProperties
-          depth={depth - 1}
-          id={id}
-        />
+    {process?.children_processes?.map((id, i) => {
+      const process = processesByID[id]
+      return (process &&
+        <>
+          <ProcessProperties
+            propertyIDs={process.children_properties}
+            protocolName={protocolsByID[process.protocol]?.name}
+          />
+        </>
       )
-    })}
+    })
+    }
   </>
 }
 
