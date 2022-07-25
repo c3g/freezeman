@@ -84,6 +84,11 @@ const ProcessMeasurementsDetailContent = ({
             <Title level={3} style={{ marginTop: '20px' }}>Process Properties</Title>
             {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
             <Title level={3} style={{ marginTop: '20px' }}>Process By Sample</Title>
+            {processMeasurement?.properties?.length == 0 && <>No properties associated with the process on {
+              <Link to={`/samples/${processMeasurement.source_sample}`}>
+                {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
+              </Link>
+            }</>}
             {processMeasurement?.properties?.length > 0 &&
               <>
                 <ProcessProperties
