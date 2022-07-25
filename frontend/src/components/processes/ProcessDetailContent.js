@@ -80,9 +80,9 @@ const ProcessDetailContent = ({
               <TrackingFieldsContent entity={process}/>
             </TabPane>
           <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
-            <Title level={3} style={{ marginTop: '20px' }}>Process Properties</Title>
+            <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
             <AllProcessProperties id={id} />
-            <Title level={3} style={{ marginTop: '20px' }}>Processes By Sample</Title>
+            <Title level={3} style={{ marginTop: '20px' }}>Sample Processes with Properties</Title>
             <ProcessAssociatedMeasurements id={id} />
           </TabPane>
         </Tabs>

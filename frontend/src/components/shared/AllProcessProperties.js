@@ -70,7 +70,7 @@ const AllProcessProperties = ({
       }
     </>
   } else {
-    return <>No properties associated with the process.</>
+    return <>No shared properties associated with the protocol.</>
   }
 }
 

@@ -81,10 +81,10 @@ const ProcessMeasurementsDetailContent = ({
               <TrackingFieldsContent entity={processMeasurement}/>
             </TabPane>
             <TabPane tab="Properties" key="2" style={{marginTop:8} }>
-            <Title level={3} style={{ marginTop: '20px' }}>Process Properties</Title>
+            <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
             {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
-            <Title level={3} style={{ marginTop: '20px' }}>Process By Sample</Title>
-            {processMeasurement?.properties?.length == 0 && <>No properties associated with the process on {
+            <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
+            {processMeasurement?.properties?.length == 0 && <>No properties associated with the protocol for {
               <Link to={`/samples/${processMeasurement.source_sample}`}>
                 {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
               </Link>
