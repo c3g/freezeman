@@ -68,6 +68,8 @@ const getTableColumns = (filesById, setReleaseFlag) => {
         },
         {
             title: "Last Release Time",
+            dataIndex: "last_release_timestamp",
+            sorter: true,
             render: (_, dataset) => {
                 return onFilesReady(dataset, (files) => {
                     const dates = files.filter((file) => file.release_flag_timestamp)

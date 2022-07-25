@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from django.db.models import Exists, OuterRef, Q, Case, When, IntegerField
+from django.db.models import Exists, OuterRef, Q, Case, When, IntegerField, Max
 from django.core.exceptions import ValidationError
 from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
@@ -20,13 +20,15 @@ class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     queryset = queryset.annotate(
         are_files_released=Exists(DatasetFile.objects.filter(dataset=OuterRef("pk"), release_flag=ReleaseFlag.RELEASE)),
-        release_flag=Case(When(Q(are_files_released=True), then=ReleaseFlag.RELEASE), default=ReleaseFlag.BLOCK, output_field=IntegerField())
+        release_flag=Case(When(Q(are_files_released=True), then=ReleaseFlag.RELEASE), default=ReleaseFlag.BLOCK, output_field=IntegerField()),
+        last_release_timestamp=Max("files__release_flag_timestamp")
     )
 
     serializer_class = DatasetSerializer
 
     ordering_fields = (
         *_list_keys(_dataset_filterset_fields),
+        "last_release_timestamp"
     )
 
     filterset_fields = {
