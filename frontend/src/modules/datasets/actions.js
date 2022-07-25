@@ -101,12 +101,11 @@ export const clearFilters = thenList(() => {
 
 export const setReleaseFlags = (id, releaseFlag) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
-    if (dataset?.isFetching)
-        return;
-
-    await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
-        { meta: { id, ignoreError: 'APIError' }}));
-    return await dispatch(listFiles({ id__in: dataset?.files?.join(",") ?? "" }))
+    if (dataset && !dataset.isFetching) {
+        await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
+            { meta: { id, ignoreError: 'APIError' }}));
+        return await dispatch(listFiles({ id__in: dataset.files.join(",") }))
+    }
 };
 
 export default {
