@@ -3,6 +3,7 @@ import { isProcessPropertiesLoaded } from "../../utils/isLoaded";
 import { listProperties as listProcessProperties, get as getProcess } from "../../modules/processes/actions";
 import ProcessProperties from "./ProcessProperties";
 import { connect } from "react-redux";
+import { Spin } from "antd";
 
 const mapStateToProps = state => ({
   propertyValuesByID: state.propertyValues.itemsByID,
@@ -21,6 +22,7 @@ const AllProcessProperties = ({
   id,
 }) => {
   const process = processesByID[id] || {};
+  const isLoaded = isProcessPropertiesLoaded(processesByID, propertyValuesByID, id);
   const arePropertiesAvailable =
     process?.children_properties?.length > 0 ||
     process?.children_processes?.some((id) => {
@@ -39,13 +41,15 @@ const AllProcessProperties = ({
         await getProcess(id);
       }
 
-      if (!isProcessPropertiesLoaded(processesByID, propertyValuesByID, id)) {
+      if (!isLoaded) {
         await listProcessProperties(id);
       }
     })()
   }, [processesByID, propertyValuesByID, id])
 
-  if (arePropertiesAvailable) {
+  if (!isLoaded) {
+    return <Spin size={"small"} />
+  } else if (arePropertiesAvailable) {
     return <>
       {process?.children_properties?.length > 0 &&
         <ProcessProperties
