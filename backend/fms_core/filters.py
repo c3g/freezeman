@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Index, Individual, Sample, PropertyValue
+from .models import Container, Index, Individual, Sample, PropertyValue, Dataset
 
 import django_filters
 
@@ -11,6 +11,7 @@ from .viewsets._constants import (
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
     _library_filterset_fields,
+    _dataset_filterset_fields
 )
 
 from .viewsets._utils import _prefix_keys
@@ -106,3 +107,13 @@ class IndexFilter(GenericFilter):
     class Meta:
         model = Index
         fields = _index_filterset_fields
+
+class DatasetFilter(GenericFilter):
+    release_flag = django_filters.NumberFilter(method="release_flag_filter")
+
+    def release_flag_filter(self, queryset, name, value):
+        return queryset.filter(release_flag=value)
+
+    class Meta:
+        model = Dataset
+        fields = _dataset_filterset_fields

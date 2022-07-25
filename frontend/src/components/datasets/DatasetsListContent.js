@@ -54,6 +54,7 @@ const getTableColumns = (filesById, setReleaseFlag) => {
         },
         {
             title: "Release Flag",
+            dataIndex: "release_flag",
             render: (_, dataset) => {
                 return onFilesReady(dataset, (files) => {
                     const defaultValue = files.map((file) => file.release_flag)

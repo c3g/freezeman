@@ -3,7 +3,9 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.db.models import Exists, OuterRef, Q, Case, When, IntegerField
 from django.core.exceptions import ValidationError
+from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models._constants import ReleaseFlag
@@ -16,6 +18,11 @@ import fms_core.services.dataset as service
 
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
+    queryset = queryset.annotate(
+        are_files_released=Exists(DatasetFile.objects.filter(dataset=OuterRef("pk"), release_flag=ReleaseFlag.RELEASE)),
+        release_flag=Case(When(Q(are_files_released=True), then=ReleaseFlag.RELEASE), default=ReleaseFlag.BLOCK, output_field=IntegerField())
+    )
+
     serializer_class = DatasetSerializer
 
     ordering_fields = (
@@ -25,6 +32,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_dataset_filterset_fields,
     }
+
+    filter_class = DatasetFilter
 
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):
