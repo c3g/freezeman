@@ -116,7 +116,7 @@ const api = {
 
   processes: {
     get: processId => get(`/processes/${processId}/`),
-    list: (options, abort) => get("/processes", options, { abort }),
+    list: (options, abort) => get("/processes/", options, { abort }),
   },
 
   processMeasurements: {
