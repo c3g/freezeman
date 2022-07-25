@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 # Import the functions of the various curations available.
 from ._update_field_value import update_field_value
 from ._delete_individual import delete_individual
+from ._create_entity import create_entity
 
 
 # Available actions
