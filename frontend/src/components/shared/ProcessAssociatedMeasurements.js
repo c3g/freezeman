@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link, useParams} from "react-router-dom";
 
-import FilteredList from "../FilteredList";
+import { FilteredList } from "../../utils/hooks";
+import PaginatedList from "./PaginatedList";
 
 import {withSample} from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
@@ -109,22 +110,25 @@ const ProcessAssociatedMeasurements = ({
     }
   }, [processMeasurements, propertyValuesByID])
 
-  return <>
-    <FilteredList
-      description={PROCESS_MEASUREMENT_FILTERS}
-      columns={columns}
-      listFilter={listFilter}
-      items={processMeasurements}
-      itemsByID={processMeasurementsByID}
-      totalCount={totalCount}
-      filterID={id}
-      filterKey={filterKey}
-      rowKey="id"
-      isFetching={isFetching}
-      page={page}
-      style={{ display: isFetching ? 'none ': null }}
-    />
-  </>
+  const props = FilteredList({
+    description: PROCESS_MEASUREMENT_FILTERS,
+    columns: columns,
+    listFilter: listFilter,
+    items: processMeasurements,
+    itemsByID: processMeasurementsByID,
+    totalCount: totalCount,
+    filterID: id,
+    filterKey: filterKey,
+    rowKey: "id",
+    isFetching: isFetching,
+    page: page,
+  })
+
+  if (isFetching || props.tableProps.loading || properties.length > 0) {
+    return <PaginatedList {...props}/>
+  } else {
+    return <>No sample specific properties associated with the protocol.</>
+  }
 }
 
 export default connect(mapStateToProps, actionCreators)(ProcessAssociatedMeasurements);
