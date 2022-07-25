@@ -18,7 +18,7 @@ from fms_core.services.index import get_or_create_index_set, create_index
 class LibraryConversionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = LibraryConversionImporter()
-        self.file = APP_DATA_ROOT / "Library_conversion_v3_9_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_conversion_v3_10_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.source_sample_name_1 = 'sample_source_1'
