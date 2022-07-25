@@ -27,8 +27,8 @@ export const listProperties = (id) => async (dispatch, getState) => {
     if (getState().propertyValues.isFetching)
         return;
 
-    const { itemsByID: processesByID } = getState().processes    
-    const { itemsByID: propertyValuesByID } = getState().propertyValues
+    const processesByID = getState().processes.itemsByID
+    const propertyValuesByID = getState().propertyValues.itemsByID
 
     if (!(id in processesByID)) {
         await dispatch(get(id))
