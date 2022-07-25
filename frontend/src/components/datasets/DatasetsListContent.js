@@ -56,9 +56,10 @@ const getTableColumns = (filesById, setReleaseFlag) => {
             title: "Release Flag",
             render: (_, dataset) => {
                 return onFilesReady(dataset, (files) => {
-                    const releaseCount = files.map((file) => file.release_flag).filter((flag) => flag === 1).length
-                    return <Select defaultValue={releaseCount > 0 ? 1 : 2} onChange={setReleaseFlag(dataset.id)}>
-                        <Option value={1}>{0 < releaseCount && releaseCount < files.length ? "Partially Released" : "Released"}</Option>
+                    const defaultValue = files.map((file) => file.release_flag)
+                                                   .find((flag) => flag === 1) ?? 2
+                    return <Select defaultValue={defaultValue} onChange={setReleaseFlag(dataset.id)}>
+                        <Option value={1}>Released</Option>
                         <Option value={2}>Blocked</Option>
                     </Select>
                 })
