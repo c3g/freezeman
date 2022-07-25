@@ -209,7 +209,7 @@ SAMPLE_METADATA_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_9_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
@@ -253,7 +253,7 @@ SAMPLE_QC_TEMPLATE = {
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
-  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v3_5_0.xlsx")},
+  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'ExtractionTemplate',
