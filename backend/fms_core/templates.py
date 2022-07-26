@@ -74,7 +74,7 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
-  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_9_0.xlsx")},
+  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_10_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -83,7 +83,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
-  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_9_0.xlsx")},
+  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_10_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -102,7 +102,7 @@ INDEX_CREATION_TEMPLATE = {
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
-  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v3_9_0.xlsx")},
+  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'Conversion Batch',
@@ -130,7 +130,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
-  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_9_0.xlsx")},
+  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'Library Batch',
@@ -222,7 +222,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
 }
 
 SAMPLE_UPDATE_TEMPLATE = {
-  "identity": {"description": "Template to update samples", "file": static("submission_templates/Sample_update_v3_5_0.xlsx")},
+  "identity": {"description": "Template to update samples", "file": static("submission_templates/Sample_update_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleUpdate',
@@ -236,7 +236,7 @@ SAMPLE_UPDATE_TEMPLATE = {
 }
 
 SAMPLE_QC_TEMPLATE = {
-  "identity": {"description": "Template to perform sample quality control", "file": static("submission_templates/Sample_QC_v3_7_0.xlsx")},
+  "identity": {"description": "Template to perform sample quality control", "file": static("submission_templates/Sample_QC_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleQC',
@@ -269,7 +269,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {
-  "identity": {"description": "Template to transfer samples", "file": static("submission_templates/Sample_transfer_v3_5_0.xlsx")},
+  "identity": {"description": "Template to transfer samples", "file": static("submission_templates/Sample_transfer_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleTransfer',
@@ -285,7 +285,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
-  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_9_0.xlsx")},
+  "identity": {"description": "Template to select samples using qPCR", "file": static("submission_templates/Sample_selection_qpcr_v3_10_0.xlsx")},
   "sheets info": [
       {
           'name': 'Samples',

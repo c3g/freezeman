@@ -15,7 +15,7 @@ from fms_core.services.sample import create_full_sample
 class SampleSelectionQPCRTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSelectionQPCRImporter()
-        self.file = APP_DATA_ROOT / "Sample_selection_qpcr_v3_6_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_selection_qpcr_v3_10_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.positive_sample = {"sample_name": "SampleTestQPCR1",
