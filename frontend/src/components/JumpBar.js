@@ -44,7 +44,8 @@ const JumpBar = (props) => {
   const history = useHistory();
   const selectRef = useRef();
 
-  const search = useMemo(() => debounce(150, query => {
+  const search = useMemo(() => debounce(500, query => {
+    console.log(query);
     setValue(null)
     setIsFetching(true)
     withToken(token, api.query.search)(query)
