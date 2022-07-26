@@ -84,11 +84,7 @@ const ProcessMeasurementsDetailContent = ({
             <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
             {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
             <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
-            {processMeasurement?.properties?.length === 0 && <>No properties associated with the protocol for {
-              <Link to={`/samples/${processMeasurement.source_sample}`}>
-                {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
-              </Link>
-            }</>}
+            {processMeasurement?.properties?.length === 0 && <>No sample specific properties associated with the protocol.</>}
             {processMeasurement?.properties?.length > 0 &&
               <>
                 <ProcessProperties
