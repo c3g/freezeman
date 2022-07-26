@@ -179,18 +179,32 @@ export const FilteredList = ({
         setFilter,
     )))
 
-    return PaginatedList({
-        columns: columns,
-        items: itemsFiltered,
-        itemsByID: itemsByID,
-        rowKey: "id",
-        loading: isFetching,
-        totalCount: totalCount,
-        page: page,
-        filters: filters,
-        sortBy: sortBy,
-        onLoad: listFilter,
-        filterKey: filterKey,
-        onChangeSort: setSorter,
-    })
+    return {
+            ...PaginatedList({
+            columns: columns,
+            items: itemsFiltered,
+            itemsByID: itemsByID,
+            rowKey: "id",
+            loading: isFetching,
+            totalCount: totalCount,
+            page: page,
+            filters: filters,
+            sortBy: sortBy,
+            onLoad: listFilter,
+            filterKey: filterKey,
+            onChangeSort: setSorter,
+        }),
+        filtersProps: {
+            filtersWarningProps: {
+                nFilters: nFiltersForWarning,
+                filters: filtersForWarning,
+                description: description,
+            },
+            clearFilterProps: {
+                style: { margin: 6 },
+                disabled: nFiltersForWarning === 0,
+                onClick: clearFilters,
+            }
+        }
+    }
 }
