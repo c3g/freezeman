@@ -8,7 +8,7 @@ export const PaginatedList = ({tableProps, paginationProps, filtersProps}) => {
     
     return <PageContent>
         { filtersProps &&
-            <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1rem', float: 'right' }}>
                 <FiltersWarning {...filtersWarningProps} />
                 <Button {...clearFilterProps} style={{ margin: 6 }}>
                     Clear Filters
