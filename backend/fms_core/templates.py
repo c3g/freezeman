@@ -192,6 +192,24 @@ NORMALIZATION_TEMPLATE = {
   ],
 }
 
+NORMALIZATION_PLANNING_TEMPLATE = {
+  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_11_0.xlsx")},
+  "sheets info": [
+      {
+        'name': 'Normalization',
+        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
+                    'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
+                    'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'NA Quantity (ng)',
+                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+      },
+  ],
+  "prefill info": [
+      ("Normalization", "Sample Name", "name"),
+      ("Normalization", "Source Container Barcode", "container__barcode"),
+      ("Normalization", "Source Container Coord", "coordinates"),
+  ],
+}
+
 
 SAMPLE_METADATA_TEMPLATE = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},

@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
 from django.db.models import Func
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse, FileResponse
 from django.conf import settings
 
 from rest_framework.decorators import action
@@ -136,14 +137,26 @@ class TemplateActionsMixin:
         importer_instance = action_def["importer"]()
 
         try:
-            importer_instance.import_template(file=file, dry_run=False, user=request.user)
+            result = importer_instance.import_template(file=file, dry_run=False, user=request.user)
             if not importer_instance.is_valid:
                 return HttpResponseBadRequest(json.dumps({"detail": "Template errors encountered in submission",
                                                           "base_errors": ", ".join(importer_instance.base_errors)}),
                                               content_type="application/json")
         except Exception as e:
             raise(e)
-        return Response(status=204)
+
+        if result['output_file']:
+            try:
+                response = FileResponse(open(result['output_file'].name, 'rb'))
+                response["Content-Type"] = "application/csv"
+                response["Content-Disposition"] = "attachment; filename=Freezeman_output_file_" + datetime.today().strftime('%Y-%m-%d') + ".csv"
+            except Exception as err:
+                return HttpResponseBadRequest(
+                    json.dumps({"detail": f"Failure to attach the output file to the response."}),
+                    content_type="application/json")
+        else:
+            response = Response(status=204)
+        return response
 
 class TemplatePrefillsMixin:
     # When this mixin is used, this list will be overridden to provide a list
