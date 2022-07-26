@@ -9,6 +9,7 @@ import {withSample} from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
+import { Spin } from "antd";
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
@@ -124,8 +125,10 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (isFetching || props.tableProps.loading || properties.length > 0) {
+  if (properties.length > 0) {
     return <PaginatedList {...props}/>
+  } else if (isFetching || props.tableProps.loading) {
+    return <Spin />
   } else {
     return <>No sample specific properties associated with the protocol.</>
   }
