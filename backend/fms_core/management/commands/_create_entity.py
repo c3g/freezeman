@@ -1,9 +1,5 @@
 from django.apps import apps
 from django.core.exceptions import FieldError, ValidationError
-import reversion
-import json
-import logging
-from reversion.models import Version
 from fms_core.models import *
 
 # Parameters required for this curation
@@ -13,6 +9,8 @@ COMMENT = "comment"                   # A comment to be stored in the logs. Opti
 ENTITY_MODEL = "entity_model"         # The name of the model for the entity.
 ENTITY_DICT = "entity_dictionary"     # An array of dictionary that contains the fields required to created the entity.
 USER_ID = "requester_user_id"         # The user id of the person requesting the curation. Optional. If left empty, uses biobankadmin id.
+
+# Action used to create entity of standalone models. Suggested use for Taxon, SampleKind, ...
 
 # Curation params template
 # { CURATION_INDEX: 1,
@@ -46,17 +44,21 @@ def create_entity(params, objects_to_delete, log):
         count_creations = 0
         for entity in entity_array:
             try:
-                entity = entity_model.objects.create(**entity, created_by_id=user_id, modified_by_id=user_id)
+                entity = entity_model.objects.create(**entity, created_by_id=user_id, updated_by_id=user_id)
                 if entity is not None:
                     log.info(f"New entity of model [{model}] was created using these data [{entity}].")
                     count_creations += 1
                 else:
                     log.error(f"Entity [{entity}] of model [{model}] cannot be created.")
-                    error_found = True    
+                    error_found = True
+            except TypeError as TypeErr:
+                log.error(f"Encountered an error while creating entity of model [{model}]. Field does not exist on the model.")
+                log.error(TypeErr)
+                error_found = True
             except FieldError as FieldErr:
-                log.error(f"Encountered an error while creating entity of model [{model}]. Unrecognized field name or value.")
+                log.error(f"Encountered an error while creating entity of model [{model}]. Unrecognized field value.")
                 log.error(FieldErr)
-                error_found = True  
+                error_found = True
             except ValidationError as ValErr:
                 log.error(f"Encountered an error while creating entity of model [{model}]. Failed the validation of a field value.")
                 log.error(ValErr)
