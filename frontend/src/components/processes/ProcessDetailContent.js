@@ -9,7 +9,6 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import {list as listProcesses, get as getProcess} from "../../modules/processes/actions";
-import {download as templateDownload} from "../../modules/importedFiles/actions";
 import {downloadFromFile} from "../../utils/download";
 import api, {withToken}  from "../../utils/api"
 import AllProcessProperties from "../shared/AllProcessProperties";
@@ -23,7 +22,7 @@ const mapStateToProps = state => ({
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, getProcess, templateDownload};
+const actionCreators = {listProcesses, getProcess};
 
 const ProcessDetailContent = ({
   processesByID,
