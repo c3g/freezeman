@@ -37,6 +37,7 @@ const mapStateToProps = state => ({
   processesByID: state.processes.itemsByID,
   propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
+  propertyValuesByID: state.propertyValues.itemsByID,
 });
 
 const actionCreators = {get, listProcesses, listPropertyValues};
@@ -51,6 +52,7 @@ const ExperimentRunsDetailContent = ({
   get,
   listProcesses,
   listPropertyValues,
+  propertyValuesByID,
 }) => {
   const history = useHistory();
   const {id} = useParams();
@@ -67,14 +69,22 @@ const ExperimentRunsDetailContent = ({
 
   const container = isContainerLoaded ? containersByID[experimentRun.container] : null
 
-  if (isLoaded && !processesByID[experimentRun.process]) {
+  const process = processesByID[experimentRun.process]
+
+  const isChildrenAndPropertiesLoaded = process
+    && process.children_properties.every((id) => propertyValuesByID[id])
+    && experimentRun.children_processes.every((id) => {
+      const process = processesByID[id]
+      return process && process.children_properties.every((id) => propertyValuesByID[id])
+    })
+
+  if (isLoaded && !isChildrenAndPropertiesLoaded) {
     // Need to be queried as a string, not as an array in order to work with DRF filters
     const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
     listProcesses({id__in: processIDSAsStr});
     listPropertyValues({object_id__in: processIDSAsStr, content_type__model: "process"})
   }
 
-  const process = processesByID[experimentRun.process]
 
   return (
     <>
