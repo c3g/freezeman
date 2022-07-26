@@ -15,6 +15,31 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
+/**
+ * 
+ * @param {any} processMeasurements 
+ * @param {any} processMeasurementsByID 
+ * @param {any} propertyValuesByID 
+ * @returns An array of property values where the property type is unique.
+ */
+const getPropertyValuesFromMeasurements = (processMeasurements, processMeasurementsByID, propertyValuesByID) => {
+  const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
+                                                        .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
+                                                        .filter((processMeasurement) => allPropertiesLoaded(processMeasurement, propertyValuesByID))
+
+  return Object.values(measurementsWithProperties.flatMap(({ properties }) => properties)
+  .map((propertyValueID) => propertyValuesByID[propertyValueID])
+  .reduce((prev, { property_name, property_type }) => {
+    return {
+      ...prev,
+      [property_type]: {
+        property_name,
+        property_type,
+      },
+    }
+  }, {}))
+}
+
 const getTableColumns = (samplesByID, properties, propertyValuesById) => {
   return [
     {
@@ -83,24 +108,9 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
 
-  const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
-                                                        .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
-                                                        .filter((processMeasurement) => allPropertiesLoaded(processMeasurement, propertyValuesByID))
+  const propertyValues = getPropertyValuesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
 
-  // potential memory overflow?
-  const properties = Object.values(measurementsWithProperties.flatMap(({ properties }) => properties)
-                                                             .map((propertyValueID) => propertyValuesByID[propertyValueID])
-                                                             .reduce((prev, { property_name, property_type }) => {
-                                                               return {
-                                                                 ...prev,
-                                                                 [property_type]: {
-                                                                   property_name,
-                                                                   property_type,
-                                                                 },
-                                                               }
-                                                             }, {}))
-
-  const columns = getTableColumns(samplesByID, properties, propertyValuesByID)
+  const columns = getTableColumns(samplesByID, propertyValues, propertyValuesByID)
 
   useEffect(() => {
     const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
@@ -125,7 +135,7 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (properties.length > 0) {
+  if (propertyValues.length > 0) {
     return <PaginatedList {...props}/>
   } else if (isFetching || props.tableProps.loading) {
     return <Spin />
