@@ -2,12 +2,10 @@ import decimal
 import re
 import unicodedata
 
-from django.utils import timezone
-
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Generator, Iterable, List, Union
 
 
 __all__ = [
@@ -81,12 +79,27 @@ def str_cast_and_normalize(s) -> str:
     return str_normalize(str(s) if s is not None else s)
 
 
+def str_cast_and_normalize_lower(s) -> Union[str, None]:
+    """
+    Casts a value to a string, normalizes it and then converts to lower case.
+    """
+    result = str_cast_and_normalize(s)
+    return result.lower() if result is not None else result
+
+
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """
     Gets a string-valued item from a dictionary using a provided key. If the
     value is false-y, returns a default string value instead.
     """
     return str_cast_and_normalize(d.get(key) or default)
+
+
+def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
+    if not isinstance(date, datetime.date):
+        return None
+    return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
+    
 
 def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
     """
@@ -101,6 +114,7 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weig
 
     return molar_concentration
 
+
 #TODO Test this
 def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, molecule_count) -> Decimal:
     """
@@ -113,3 +127,30 @@ def convert_concentration_from_nm_to_ngbyul(concentration_nm, molecular_weight, 
     concentration = (Decimal(concentration_nm) * Decimal(molecule_count) * Decimal(molecular_weight)) / Decimal(1000000)
 
     return concentration
+
+def make_generator(obj: Union[Any, None, Iterable[Any]]) -> Generator[Any, None, None]:
+    """
+    Ensures that ManyToMany fields such as the `obj` passed are iterable.
+    None is turned into an empty iterable,
+    non-None objects are turned into an iterable with a single element,
+    and iterable objects remain the same.
+    It's meant to handle the fact that a ManyToMany field is not a list if it has less than two elements.
+
+    Args:
+        obj: Any
+
+    Returns:
+        `Generator[Any, None, None]`
+
+    Yields:
+        `Any`
+    """
+
+    if obj is None:
+        return
+    else:
+        try:
+            for x in obj:
+                yield x
+        except TypeError:
+            yield obj

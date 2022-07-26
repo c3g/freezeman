@@ -30,6 +30,8 @@ from .library import Library
 from .library_type import LibraryType
 from .taxon import Taxon
 from .sample_metadata import SampleMetadata
+from .id_generator import IdGenerator
+
 
 __all__ = [
     "Biosample",
@@ -63,4 +65,5 @@ __all__ = [
     "Library",
     "LibraryType",
     "Taxon",
+    "IdGenerator",
 ]

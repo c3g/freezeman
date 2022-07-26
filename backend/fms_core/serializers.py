@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from typing import Dict, Any
+from typing import Dict, Any, Union, List
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
@@ -350,46 +350,6 @@ class SampleSerializer(serializers.ModelSerializer):
 
     def get_quantity_flag(self, obj):
         return obj.quantity_flag
-
-
-def serialize_sample_export(sample: Sample) -> Dict[str, Any]:
-    first_derived_sample = sample.derived_sample_not_pool
-    biosample = first_derived_sample.biosample
-    return {
-        'sample_id': sample.id,
-        'sample_name': sample.name,
-        'biosample_id': biosample.id,
-        'alias': biosample.alias,
-        'sample_kind': first_derived_sample.sample_kind.name,
-        'tissue_source': first_derived_sample.tissue_source.name if first_derived_sample.tissue_source else "",
-        'container': sample.container.id,
-        'container_kind': sample.container.kind,
-        'container_name': sample.container.name,
-        'container_barcode': sample.container.barcode,
-        'coordinates': sample.coordinates,
-        'location_barcode': '' if sample.container and sample.container.location is None else sample.container.location.barcode,
-        'location_coord': sample.container.coordinates,
-        'current_volume': sample.volume if sample.volume else None,
-        'concentration': sample.concentration,
-        'creation_date': sample.creation_date,
-        'collection_site': biosample.collection_site,
-        'experimental_group': first_derived_sample.experimental_group,
-        'individual_name': biosample.individual.name if biosample.individual else "",
-        'individual_alias': biosample.individual.alias if biosample.individual else "",
-        'sex': biosample.individual.sex if biosample.individual else "",
-        'taxon': biosample.individual.taxon.name if biosample.individual and biosample.individual.taxon else "",
-        'cohort': biosample.individual.cohort if biosample.individual else "",
-        'father_name': '' if not biosample.individual or biosample.individual.father is None else biosample.individual.father.name,
-        'mother_name': '' if not biosample.individual or biosample.individual.mother is None else biosample.individual.mother.name,
-        'pedigree': biosample.individual.pedigree if biosample.individual else "",
-        'quality_flag': None if sample.quality_flag is None else ("Passed" if sample.quality_flag else "Failed"),
-        'quantity_flag': None if sample.quantity_flag is None else ("Passed" if sample.quantity_flag else "Failed"),
-        'projects': ''.join([project.name for project in sample.projects.all()]) if sample.projects.all() else None,
-        'depleted': "Yes" if sample.depleted else "No",
-        'is_library': sample.is_library,
-        'comment': sample.comment,
-    }
-
 
 class SampleExportSerializer(serializers.ModelSerializer):
     class Meta:
