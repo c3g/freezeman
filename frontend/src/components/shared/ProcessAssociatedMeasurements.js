@@ -48,7 +48,7 @@ const getTableColumns = (samplesByID, properties, propertyValuesById) => {
           })
 
           const propertyValue = propertyValueId ? propertyValuesById[propertyValueId] : {}
-          return <>{propertyValue?.value ?? (allPropertiesLoaded(processMeasurement, propertyValuesById) ? "N/A" : "Loading...")}</>
+          return <>{propertyValue?.value ?? (allPropertiesLoaded(processMeasurement, propertyValuesById) ? "" : "Loading...")}</>
         }
       }
     })
