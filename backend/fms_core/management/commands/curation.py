@@ -19,7 +19,7 @@ from ._create_entity import create_entity
 # > python manage.py curation -p NameOfConfigFileWithoutExtension
 
 # The config file must be located in /home/USERNAME/curation/
-# log files are generated in /home/USERSNAME/curation/log/
+# log files are generated in /home/USERNAME/curation/log/
 
 # Available actions
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
