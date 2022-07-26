@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import {Select, Tag, Typography} from "antd";
 
-import useDebounce from "../utils/debounce";
+import debounce from "../utils/debounce";
 import api, {withToken} from "../utils/api";
 
 const {Text} = Typography;
@@ -44,8 +44,7 @@ const JumpBar = (props) => {
   const history = useHistory();
   const selectRef = useRef();
 
-  const search = useDebounce(500, query => {
-    console.log(query);
+  const search = useMemo(() => debounce(150, query => {
     setValue(null)
     setIsFetching(true)
     withToken(token, api.query.search)(query)
@@ -56,7 +55,7 @@ const JumpBar = (props) => {
         setError(err.message)
       })
       .then(() => setIsFetching(false))
-  })
+  }), [token])
 
   const clear = () => setItems([])
 

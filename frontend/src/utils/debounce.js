@@ -2,34 +2,16 @@
  * debounce.js
  */
 
-import { useEffect, useState } from "react"
-
-export default function useDebounce(delay, fn) {
-  const [timeoutValue, setTimeoutValue] = useState(undefined);
-  const [savedArgs, setSavedArgs] = useState(null);
-  
-  useEffect(() => {
-    if (savedArgs) {
-        setTimeoutValue((timeoutValue) => {
-          if (timeoutValue) {
-            clearTimeout(timeoutValue)
-          }
-          return setTimeout(() => {
-            fn(...savedArgs)
-            clearTimeout(timeoutValue)
-            setSavedArgs(null)
-          }, delay)
-        })
-    }
-
-    return () => {
-      clearTimeout(timeoutValue)
-      setTimeoutValue(undefined)  
-      setSavedArgs(null)
-    }
-  }, [savedArgs])
-
+export default function debounce(delay, fn) {
+  let timeout
+  let savedArgs
   return (...args) => {
-    setSavedArgs(args)
+    savedArgs = args
+    if (timeout)
+      clearTimeout(timeout)
+    timeout = setTimeout(() => {
+      fn(...savedArgs)
+      timeout = undefined
+    }, delay)
   }
 }
