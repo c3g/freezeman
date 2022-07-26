@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link, useParams} from "react-router-dom";
 
-import { FilteredList } from "../../utils/hooks";
+import { useFilteredList } from "../../hooks/useFilteredList";
 import PaginatedList from "./PaginatedList";
 
 import {withSample} from "../../utils/withItem";
@@ -111,7 +111,7 @@ const ProcessAssociatedMeasurements = ({
     }
   }, [processMeasurements, propertyValuesByID])
 
-  const props = FilteredList({
+  const props = useFilteredList({
     description: PROCESS_MEASUREMENT_FILTERS,
     columns: columns,
     listFilter: listFilter,
