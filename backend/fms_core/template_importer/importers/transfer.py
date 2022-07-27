@@ -4,7 +4,7 @@ from fms_core.template_importer.row_handlers.transfer import TransferRowHandler
 from fms_core.templates import SAMPLE_TRANSFER_TEMPLATE
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
-from fms_core.utils import str_cast_and_normalize
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_TRANSFER_TEMPLATE["sheets info"]
@@ -45,7 +45,7 @@ class TransferImporter(GenericImporter):
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
                     'name': str_cast_and_normalize(row_data['Destination Container Name']),
-                    'kind': str_cast_and_normalize(row_data['Destination Container Kind']),
+                    'kind': str_cast_and_normalize_lower(row_data['Destination Container Kind']),
                     'coordinates': str_cast_and_normalize(row_data['Destination Parent Container Coord']),
                     'parent_barcode': str_cast_and_normalize(row_data['Destination Parent Container Barcode']),
                 },
