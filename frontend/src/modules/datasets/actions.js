@@ -7,7 +7,6 @@ import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 import { list as listFiles } from "../datasetFiles/actions";
 
 export const GET                   = createNetworkActionTypes("DATASETS.GET");
-export const UPDATE                = createNetworkActionTypes("DATASETS.UPDATE");
 export const LIST                  = createNetworkActionTypes("DATASETS.LIST");
 export const LIST_TABLE            = createNetworkActionTypes("DATASETS.LIST_TABLE");
 export const LIST_FILTER           = createNetworkActionTypes("DATASETS.LIST_FILTER");
@@ -23,14 +22,6 @@ export const get = id => async (dispatch, getState) => {
         return;
 
     return await dispatch(networkAction(GET, api.datasets.get(id), { meta: { id } }));
-};
-
-export const update = (id, dataset) => async (dispatch, getState) => {
-    if (getState().datasets.itemsByID[id].isFetching)
-        return;
-
-    return await dispatch(networkAction(
-        UPDATE, api.datasets.update(dataset), { meta: { id, ignoreError: 'APIError' }}));
 };
 
 export const list = (options) => async (dispatch, getState) => {
@@ -110,7 +101,6 @@ export const setReleaseFlags = (id, releaseFlag) => async (dispatch, getState) =
 
 export default {
     GET,
-    UPDATE,
     SET_SORT_BY,
     SET_FILTER,
     SET_FILTER_OPTION,
@@ -120,7 +110,6 @@ export default {
     LIST_TABLE,
     SET_RELEASE_FLAGS,
     get,
-    update,
     setSortBy,
     setFilter,
     setFilterOption,

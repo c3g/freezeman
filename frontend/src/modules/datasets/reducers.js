@@ -31,14 +31,6 @@ export const datasets = (
             return merge(state, ['itemsByID', action.meta.id],
               { error: action.error, isFetching: false, didFail: true });
 
-        case DATASETS.UPDATE.REQUEST:
-            return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case DATASETS.UPDATE.RECEIVE:
-            return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false, versions: undefined });
-        case DATASETS.UPDATE.ERROR:
-            return merge(state, ['itemsByID', action.meta.id],
-                { error: action.error, isFetching: false });
-
         case DATASETS.SET_SORT_BY:
             return { ...state, sortBy: action.data, items: [] };
         case DATASETS.SET_FILTER:

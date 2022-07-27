@@ -40,7 +40,6 @@ const api = {
 
   datasets: {
     get: id => get(`/datasets/${id}/`),
-    update: dataset => patch(`/datasets/${dataset.id}/`, dataset),
     list: (options, abort) => get("/datasets/", options, { abort }),
     setReleaseFlags: (id, release_flag) => patch(`/datasets/${id}/set_release_flags/`, { release_flag })
   },
