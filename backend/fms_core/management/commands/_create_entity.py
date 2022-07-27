@@ -25,7 +25,7 @@ USER_ID = "requester_user_id"         # The user id of the person requesting the
 # add more field_value_actions to the curation.
 
 def create_entity(params, objects_to_delete, log):
-    log.info("Action [" + str(params[CURATION_INDEX]) + "] Update Field Value started.")
+    log.info("Action [" + str(params[CURATION_INDEX]) + "] Create Entity started.")
     log.info("Comment [" + str(params.get(COMMENT, "None")) + "].")
     log.info("Targeted model : " + str(params[ENTITY_MODEL]))
     log.info("Entities to create : " + str(params[ENTITY_DICT]))
