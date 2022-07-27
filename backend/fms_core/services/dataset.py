@@ -14,16 +14,14 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
     warnings = []
 
     try:
-        _ = int(lane)
         dataset = Dataset.objects.create(
             project_name=project_name,
             run_name=run_name,
             lane=lane,
         )
     except ValidationError as e:
+        # the validation error messages should be readible
         errors.extend(e.messages)
-    except ValueError as e:
-        errors.append(f"Lane is '{lane}' which is not an integer")
     
     
     dataset_files = []
@@ -50,6 +48,12 @@ def create_dataset_file(dataset: Dataset,
     dataset_file = None
     errors = []
     warnings = []
+
+    if release_flag not in [value for value, _ in ReleaseFlag.choices]:
+        errors.append("The release flag can only be 1 (Blocked) or 2 (Released)")
+
+    if errors:
+        return (dataset_file, errors, warnings)
 
     try:
         dataset_file = DatasetFile.objects.create(
