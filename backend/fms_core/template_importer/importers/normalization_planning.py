@@ -34,7 +34,7 @@ class NormalizationPlanningImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
-        mapping_rows_template = []
+        mapping_rows_template = {}
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
