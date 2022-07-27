@@ -198,6 +198,7 @@ TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 
 MEDIA_URL = '/media/'
 
+TEMP_ROOT = '/tmp/' # for temporary files created during request processing.
 
 # django_import_export
 
