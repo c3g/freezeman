@@ -137,7 +137,7 @@ class SampleRowHandler(GenericRowHandler):
                 self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
                                         f'A new sample with the same name will be created.'
             else:
-                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists.' \
+                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
                                         f'Please verify the name is correct.'
 
             
