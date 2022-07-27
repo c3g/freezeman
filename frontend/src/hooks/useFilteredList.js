@@ -89,17 +89,15 @@ export const useFilteredList = ({
             filterKey: filterKey,
             onChangeSort: setSorter,
         }),
-        filtersProps: {
-            filtersWarningProps: {
-                nFilters: nFiltersForWarning,
-                filters: filtersForWarning,
-                description: description,
-            },
-            clearFilterProps: {
-                style: { margin: 6 },
-                disabled: nFiltersForWarning === 0,
-                onClick: clearFilters,
-            }
+        filtersWarningProps: {
+            nFilters: nFiltersForWarning,
+            filters: filtersForWarning,
+            description: description,
+        },
+        clearFilterProps: {
+            style: { margin: 6 },
+            disabled: nFiltersForWarning === 0,
+            onClick: clearFilters,
         }
     }
 }

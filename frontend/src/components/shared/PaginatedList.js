@@ -3,16 +3,15 @@ import { Button, Pagination, Table } from "antd"
 import FiltersWarning from "../filters/FiltersWarning"
 import PageContent from "../PageContent"
 
-export const PaginatedList = ({tableProps, paginationProps, filtersProps}) => {
-    const { filtersWarningProps, clearFilterProps } = filtersProps
+export const PaginatedList = ({tableProps, paginationProps, filtersWarningProps, clearFilterProps}) => {
     
     return <PageContent>
-        { filtersProps &&
+        {(filtersWarningProps || clearFilterProps) &&
             <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1rem', float: 'right' }}>
-                <FiltersWarning {...filtersWarningProps} />
-                <Button {...clearFilterProps} style={{ margin: 6 }}>
+                {filtersWarningProps && <FiltersWarning {...filtersWarningProps} />}
+                {clearFilterProps && <Button {...clearFilterProps} style={{ margin: 6 }}>
                     Clear Filters
-                </Button>
+                </Button>}
             </div>
         }
         <Table
