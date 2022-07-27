@@ -22,7 +22,7 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
  * @param {any} propertyValuesByID 
  * @returns An array of property values where the property type is unique.
  */
-const getPropertyValuesFromMeasurements = (processMeasurements, processMeasurementsByID, propertyValuesByID) => {
+const getPropertyTypesFromMeasurements = (processMeasurements, processMeasurementsByID, propertyValuesByID) => {
   const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
                                                         .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
                                                         .filter((processMeasurement) => allPropertiesLoaded(processMeasurement, propertyValuesByID))
@@ -108,7 +108,7 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
 
-  const propertyValues = getPropertyValuesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
+  const propertyValues = getPropertyTypesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
 
   const columns = getTableColumns(samplesByID, propertyValues, propertyValuesByID)
 
