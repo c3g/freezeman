@@ -4,7 +4,7 @@ import {Navigate, Route} from "react-router-dom";
 
 const PrivateNavigate = ({isAuthenticated, children}) => (
     isAuthenticated
-        ? children
+        ? <>{children}</>
         : <Navigate to={"/login"}/>
 );
 
