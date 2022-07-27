@@ -135,10 +135,10 @@ class SampleRowHandler(GenericRowHandler):
             # Output different warnings depending on whether the name is an exact match or a case insensitive match
             if Sample.objects.filter(name__exact=sample['name']).exists():
                 self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists.' \
-                                    f'A new sample with the same name will be created'
+                                        f'A new sample with the same name will be created'
             else:
                 self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists.' \
-                                    f'Please verify the name is correct.'
+                                        f'Please verify the name is correct.'
 
             
         sample_obj = None
