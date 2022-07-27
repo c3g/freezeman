@@ -5,11 +5,13 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Exists, OuterRef, Q, Case, When, IntegerField, Max
 from django.core.exceptions import ValidationError
+from jsonschema.exceptions import ValidationError as JsonValidationError
 from fms_core.filters import DatasetFilter
 from fms_core.models.dataset import Dataset
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models._constants import ReleaseFlag
 from fms_core.serializers import DatasetFileSerializer, DatasetSerializer
+from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from ._utils import _list_keys
 from ._constants import _dataset_filterset_fields
@@ -47,10 +49,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
             errors = []
             warnings = []
 
-            rpm_keys = [ "run", "lane", "readsets" ]
-            for key in rpm_keys:
-                if key not in rpm:
-                    errors.append(f"Missing key '{key}' the run processing metric")
+            for error in RUN_PROCESSING_VALIDATOR.validator.iter_errors(rpm):
+                path = "".join(f'["{p}"]' for p in error.path)
+                msg = f"{path}: {error.message}" if error.path else error.message
+                errors.append(msg)
             if errors:
                 return (datasets, dataset_files, errors, warnings)
 
@@ -61,13 +63,6 @@ class DatasetViewSet(viewsets.ModelViewSet):
                     return (datasets, dataset_files, errors, warnings)
                 else:
                     datasets.append(dataset)
-
-                    readset_keys = [ "sample_name" ]
-                    for key in readset_keys:
-                        if key not in readset:
-                            errors.append(f"Missing key '{key}' in 'readsets' for run processing metrics '{rpm['run']}'")
-                    if errors:
-                        return (datasets, dataset_files, errors, warnings)
 
                     for key in readset:
                         if key not in ["sample_name", "barcodes"]:
@@ -87,7 +82,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
             return (datasets, dataset_files, errors, warnings)
         datasets, dataset_files, errors, _ = func(data)
         if errors:
-            return HttpResponseBadRequest(errors)
+            return HttpResponseBadRequest("\n".join(errors))
         else:
             return Response(self.get_serializer(datasets, many=True).data)
     
