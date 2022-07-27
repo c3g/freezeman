@@ -15,8 +15,10 @@ export const processMeasurements = (
     state = {
         itemsByID: {},
         items: [],
+        filteredItems: [],
         page: { limit: 0, offset: 0 },
         totalCount: 0,
+        filteredItemsCount: 0,
         isFetching: false,
         filters: {},
         sortBy: { key: undefined, order: undefined },
@@ -69,6 +71,30 @@ export const processMeasurements = (
             return { ...state, itemsByID, isFetching: false, error: undefined };
         }
         case PROCESS_MEASUREMENTS.LIST.ERROR:
+            return { ...state, isFetching: false, error: action.error, };
+
+        case PROCESS_MEASUREMENTS.LIST_FILTER.REQUEST:
+            return { ...state, isFetching: true, };
+        case PROCESS_MEASUREMENTS.LIST_FILTER.RECEIVE: {
+            const filteredItemsCount = action.data.count;
+            //If filter was changed we get a new list with a different count
+            const hasChanged = state.filteredItemsCount !== action.data.count;
+            const currentItems = hasChanged ? [] : state.filteredItems;
+            const results = action.data.results.map(preprocess)
+            //New filtered items
+            const newFilteredItems = action.data.results.map(r => r.id)
+            const filteredItems = mergeArray(currentItems, action.meta.offset, newFilteredItems)
+            const itemsByID = merge(state.itemsByID, [], indexByID(results));
+            return {
+              ...state,
+              itemsByID,
+              filteredItems,
+              filteredItemsCount,
+              isFetching: false,
+              error: undefined
+            };
+        }
+        case PROCESS_MEASUREMENTS.LIST_FILTER.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
         case PROCESS_MEASUREMENTS.LIST_TABLE.REQUEST:

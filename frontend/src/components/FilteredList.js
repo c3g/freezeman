@@ -92,7 +92,6 @@ const FilteredList = ({
           description={description}
         />
         <Button
-          style={{ margin: 6 }}
           disabled={nFiltersForWarning === 0}
           onClick={clearFilters}
         >

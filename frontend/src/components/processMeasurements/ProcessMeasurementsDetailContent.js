@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {bindActionCreators} from "redux";
 import {connect} from "react-redux";
 import {Link, useHistory, useParams} from "react-router-dom";
@@ -13,6 +13,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import {withSample} from "../../utils/withItem";
 import {get} from "../../modules/processMeasurements/actions";
+import AllProcessProperties from "../shared/AllProcessProperties";
 
 const mapStateToProps = state => ({
     processMeasurementsByID: state.processMeasurements.itemsByID,
@@ -38,13 +39,17 @@ const ProcessMeasurementsDetailContent = ({
     const isLoaded = id in processMeasurementsByID;
     const processMeasurement = processMeasurementsByID[id] || {};
     const propertiesAreLoaded = processMeasurement?.properties?.every(property => property in propertyValuesByID)
+    
+    useEffect(() => {
+      (async () => {
+        if (!isLoaded)
+          await get(id);
 
-    if (!isLoaded)
-        get(id);
-
-    if (isLoaded && !propertiesAreLoaded) {
-      listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
-    }
+        if (!propertiesAreLoaded) {
+          await listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+        }
+      })()
+    }, [processMeasurementsByID, propertyValuesByID, id])
 
     const isLoading = !isLoaded || processMeasurement.isFetching;
     const title =
@@ -76,16 +81,19 @@ const ProcessMeasurementsDetailContent = ({
               <TrackingFieldsContent entity={processMeasurement}/>
             </TabPane>
             <TabPane tab="Properties" key="2" style={{marginTop:8} }>
-              { processMeasurement?.properties?.length > 0 &&
-                  <>
-                  <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
-                    <ProcessProperties
-                        propertyIDs={processMeasurement.properties}
-                        protocolName={protocolsByID[processMeasurement.protocol]?.name}
-                    />
-                  </>
-               }
-            </TabPane>
+            <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
+            {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
+            <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
+            {processMeasurement?.properties?.length === 0 && <>No sample specific properties associated with the protocol.</>}
+            {processMeasurement?.properties?.length > 0 &&
+              <>
+                <ProcessProperties
+                  propertyIDs={processMeasurement.properties}
+                  protocolName={protocolsByID[processMeasurement.protocol]?.name}
+                />
+              </>
+            }
+          </TabPane>
           </Tabs>
         </PageContent>
       </>;
