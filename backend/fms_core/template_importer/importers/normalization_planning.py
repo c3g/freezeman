@@ -31,7 +31,7 @@ class NormalizationPlanningImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
-        mapping_rows_template = []
+        mapping_rows_template = {}
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
@@ -74,7 +74,10 @@ class NormalizationPlanningImporter(GenericImporter):
             mapping_rows_template.append(row_mapping)
 
         if not self.dry_run:
-            #Populate file
+            # Populate files
+            
+            # Create robot file and complete mapping_rows_template with the 
+
             try:
                 tmp_file = tempfile.NamedTemporaryFile(mode='r+', delete=True)
                 output_file = open(tmp_file.name, mode="r+")
