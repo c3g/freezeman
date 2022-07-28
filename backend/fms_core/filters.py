@@ -26,7 +26,7 @@ class GenericFilter(django_filters.FilterSet):
     def insensitive_batch_filter(self, queryset, name, value):
         query = Q()
         for v in value.split(" "):
-            query |= Q((f"{name}__icontains", v))
+            query |= Q((f"{name}__iexact", v))
         query_set = queryset.filter(query)
         return query_set
 
