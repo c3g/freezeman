@@ -1,24 +1,27 @@
-from datetime import datetime
-
+from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
+from fms_core.template_prefiller._utils import load_position_dict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.models import IdGenerator
+
+from fms_core.models import IdGenerator, Container
+from ...containers import CONTAINER_KIND_SPECS
 
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize
-from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 
-from fms_core.models import Container
-from ...containers import CONTAINER_KIND_SPECS
-import tempfile
-import csv
+from django.conf import settings
+
+from datetime import datetime
+import zipfile
+import io
+from openpyxl.reader.excel import load_workbook
+import os
 from typing import Union
 
 FIXED_FORMAT = "Fixed (plates)"
 MOBILE_FORMAT = "Mobile (tubes)"
 VALID_ROBOT_FORMATS = [FIXED_FORMAT, MOBILE_FORMAT]
-
 
 class NormalizationPlanningImporter(GenericImporter):
     """
