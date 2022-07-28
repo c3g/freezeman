@@ -1,11 +1,15 @@
+from datetime import datetime
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
-from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE
+from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 from .._utils import float_to_decimal_and_none
 from fms_core.utils import str_cast_and_normalize
-import tempfile
-import csv
-
+import zipfile
+import io
+from openpyxl.reader.excel import load_workbook
+from fms_core.template_prefiller._utils import load_position_dict
+from django.conf import settings
+import os
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -74,15 +78,45 @@ class NormalizationPlanningImporter(GenericImporter):
             mapping_rows_template.append(row_mapping)
 
         if not self.dry_run:
-            #Populate file
-            try:
-                tmp_file = tempfile.NamedTemporaryFile(mode='r+', delete=True)
-                output_file = open(tmp_file.name, mode="r+")
-                writer = csv.writer(output_file)
-                writer.writerow(mapping_rows_template[0].keys())
-                for row in mapping_rows_template:
-                    writer.writerow(row.values())
-                self.output_file = tmp_file
-            except Exception as e:
-                print("Failed writing result file : " + str(e))
 
+            # TODO: implement independent functions / services for this
+            # TODO: a lot
+            #Populate template
+            out_stream = io.BytesIO()
+
+            filename = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-2:])
+            template_path = os.path.join(settings.STATIC_ROOT, filename)
+            workbook = load_workbook(filename=template_path)
+            position_dict = load_position_dict(workbook, NORMALIZATION_TEMPLATE["sheets info"], NORMALIZATION_TEMPLATE["prefill info"])
+
+            try:
+                for sheet_name, sheet_dict in position_dict.items():
+                    current_sheet = workbook[sheet_name]
+                    for i, entry in enumerate(mapping_rows_template):
+                        for sheet in NORMALIZATION_TEMPLATE["sheets info"]:
+                            for header_index, template_column in enumerate(sheet['headers']):
+                                if sheet["name"] == sheet_name:
+                                    current_sheet.cell(row=sheet_dict["header_offset"] + i, column=header_index + 1).value = entry[template_column]
+                workbook.save(out_stream)
+            except Exception as e:
+                print("Failed to fill result template : " + str(e))
+
+            # TODO: Random name from id generator
+            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}"
+            normalization_template_filename = filename.split('/')[1]
+
+            # Zip files
+            try:
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                    # Add normalization prefilled template
+                    file = out_stream.getvalue()
+                    zip_file.writestr(output_zip_name + '/' + normalization_template_filename, file)
+                    # TODO: add robot csv file
+            except Exception as e:
+                print("Failed to zip the result file: " + str(e))
+
+            self.output_file = {
+                'name': output_zip_name + '.zip',
+                'content': zip_buffer.getvalue()
+            }

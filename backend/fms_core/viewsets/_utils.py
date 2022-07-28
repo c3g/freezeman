@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Any, Dict, Tuple, Union
 from tablib import Dataset
 from django.db.models import Func
-from django.http import HttpResponseBadRequest, HttpResponse, FileResponse
+from wsgiref.util import FileWrapper
+from django.http import HttpResponseBadRequest, HttpResponse, StreamingHttpResponse
 from django.conf import settings
 
 from rest_framework.decorators import action
@@ -147,9 +148,8 @@ class TemplateActionsMixin:
 
         if result['output_file']:
             try:
-                response = FileResponse(open(result['output_file'].name, 'rb'))
-                response["Content-Type"] = "application/csv"
-                response["Content-Disposition"] = "attachment; filename=Freezeman_output_file_" + datetime.today().strftime('%Y-%m-%d') + ".csv"
+                response = HttpResponse(result['output_file']['content'], content_type="application/zip")
+                response["Content-Disposition"] = f"attachment; filename={result['output_file']['name']}"
             except Exception as err:
                 return HttpResponseBadRequest(
                     json.dumps({"detail": f"Failure to attach the output file to the response."}),
