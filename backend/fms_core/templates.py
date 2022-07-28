@@ -197,7 +197,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
+        'headers': ['Robot Input format', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
                     'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],

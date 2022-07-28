@@ -334,9 +334,11 @@ function attachData(response) {
     response.filename = filename
 
   const isJSON = contentType.includes('/json')
-  response.isJSON = isJSON
   const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  return (isJSON ? response.json() : isExcel ? response.arrayBuffer() : response.text())
+  const isZip = contentType.includes('/zip')
+  
+  response.isJSON = isJSON
+  return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
   .then(data => {
     response.data = data;
     return response;
