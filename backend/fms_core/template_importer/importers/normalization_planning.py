@@ -10,6 +10,7 @@ from openpyxl.reader.excel import load_workbook
 from fms_core.template_prefiller._utils import load_position_dict
 from django.conf import settings
 import os
+from typing import Union
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -79,6 +80,11 @@ class NormalizationPlanningImporter(GenericImporter):
 
         if not self.dry_run:
 
+
+            # Populate files
+            
+            # Create robot file and complete mapping_rows_template with the 
+
             # TODO: implement independent functions / services for this
             # TODO: a lot
             #Populate template
@@ -106,10 +112,6 @@ class NormalizationPlanningImporter(GenericImporter):
             normalization_template_filename = filename.split('/')[1]
 
             # Zip files
-            # Populate files
-            
-            # Create robot file and complete mapping_rows_template with the 
-
             try:
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
@@ -124,3 +126,18 @@ class NormalizationPlanningImporter(GenericImporter):
                 'name': output_zip_name + '.zip',
                 'content': zip_buffer.getvalue()
             }
+
+    def prepare_robot_file(row_data) -> Union[str, None]:
+        """
+        This function takes the content of the Normalization planning template as input to create
+        a csv file that contains the required configuration for the robot execution of the
+        normalization in the lab.
+
+        Args:
+            row_data: A list of row_data extracted by the importer and already validated by the row_handler.
+                      The row_data content will be modified and the robot barcode and coordinates will
+                      be added for input and output.
+        Returns:
+            A string containing the path to the created robot file or None if an error occured.
+        """
+        
