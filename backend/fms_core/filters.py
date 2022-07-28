@@ -23,6 +23,13 @@ class GenericFilter(django_filters.FilterSet):
         query_set = queryset.filter(query)
         return query_set
 
+    def insensitive_batch_filter(self, queryset, name, value):
+        query = Q()
+        for v in value.split(" "):
+            query |= Q((f"{name}__icontains", v))
+        query_set = queryset.filter(query)
+        return query_set
+
 
 class ContainerFilter(GenericFilter):
     barcode = django_filters.CharFilter(field_name="barcode", method="batch_filter")
@@ -40,7 +47,7 @@ class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
-    projects__name = django_filters.CharFilter(method="batch_filter")
+    projects__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
