@@ -14,6 +14,8 @@ class DatasetFileTest(TestCase):
     def test_dataset_file(self):
         dataset = Dataset.objects.create(**create_dataset(project_name="project", run_name="run", lane="1"))
         dataset_file = DatasetFile.objects.create(**create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=ReleaseFlag.BLOCK, release_flag_timestamp=None))
+
+        self.assertEqual(DatasetFile.objects.count(), 1)
         self.assertEqual(dataset_file.dataset, dataset)
         self.assertEqual(dataset_file.file_path, "file_path")
         self.assertEqual(dataset_file.sample_name, "sample_name")
