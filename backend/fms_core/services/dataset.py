@@ -7,7 +7,7 @@ from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models._constants import ReleaseFlag
 
-def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict[str, Any]] = []) -> Tuple[Union[Dataset, None], List[str], List[str]]:
+def create_dataset(project_name: str, run_name: str, lane: str) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     dataset = None
 
     errors = []
@@ -22,23 +22,8 @@ def create_dataset(project_name: str, run_name: str, lane: str, files: List[Dict
     except ValidationError as e:
         # the validation error messages should be readible
         errors.extend(e.messages)
-    
-    
-    dataset_files = []
 
-    for file in files:
-        if not errors:
-            dataset_file, newerrors, newwarnings = create_dataset_file(dataset=dataset, **file)
-            errors.extend(newerrors)
-            warnings.extend(newwarnings)
-
-            if dataset_file:
-                dataset_files.append(dataset_file)
-
-        dataset = None
-        dataset_files = []
-
-    return (dataset and Dataset.objects.get(pk=dataset.id), errors, warnings)
+    return (dataset, errors, warnings)
 
 def create_dataset_file(dataset: Dataset,
                         file_path: str,
