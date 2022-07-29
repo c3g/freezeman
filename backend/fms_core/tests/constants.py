@@ -75,3 +75,10 @@ def create_individual(individual_name, mother=None, father=None, **kwargs):
         'cohort': 'covid-19',
         **kwargs
     }
+
+def create_dataset(project_name, run_name, lane):
+    return {
+        'project_name': project_name,
+        'run_name': run_name,
+        'lane': lane,
+    }
