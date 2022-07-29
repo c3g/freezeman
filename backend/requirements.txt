@@ -34,6 +34,7 @@ html5lib==1.0.1
 idna==2.10
 importlib-metadata==4.11.4
 inflection==0.5.0
+iniconfig==1.1.1
 ipaddr==2.2.0
 itypes==1.2.0
 jdcal==1.4.1
@@ -53,14 +54,18 @@ packaging==20.4
 pandas==1.4.2
 pdoc3==0.10.0
 pep517==0.8.2
+pluggy==1.0.0
 progress==1.5
 psycopg2==2.9.3
+py==1.11.0
 pycodestyle==2.6.0
 pycparser==2.20
 pyflakes==2.2.0
 PyJWT==1.7.1
 pyparsing==2.4.7
 pyrsistent==0.16.0
+pytest==7.1.2
+pytest-django==4.5.2
 python-dateutil==2.8.2
 pytoml==0.1.21
 pytz==2020.1
@@ -74,6 +79,7 @@ six==1.15.0
 sqlparse==0.3.1
 tablib==2.0.0
 toml==0.10.2
+tomli==2.0.1
 unicodecsv==0.14.1
 uritemplate==3.0.1
 urllib3==1.25.10
