@@ -82,3 +82,12 @@ def create_dataset(project_name, run_name, lane):
         'run_name': run_name,
         'lane': lane,
     }
+
+def create_dataset_file(dataset, file_path, sample_name, release_flag, release_flag_timestamp):
+    return {
+        'dataset': dataset,
+        'file_path': file_path,
+        'sample_name': sample_name,
+        'release_flag': release_flag,
+        'release_flag_timestamp': release_flag_timestamp,
+    }
