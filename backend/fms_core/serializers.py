@@ -609,6 +609,7 @@ class ImportedFileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class DatasetSerializer(serializers.ModelSerializer):
+    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Dataset
