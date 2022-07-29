@@ -13,14 +13,19 @@ const mapStateToProps = state => ({
 const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, protocolsByID,}) => {
     const columns = [
       {
-        title: '',
+        title: 'ID',
         dataIndex: 'id',
         key: 'id',
-        render: (id, processMeasurement) =>
-          <Link to={`/process-measurements/${id}`}>
-            Process {processMeasurement && `#${processMeasurement.process}`}
-          </Link>
+        render: (id, _) =>
+          <Link to={`/process-measurements/${id}`}>{id}</Link>
 
+      },
+      {
+        title: "Process ID",
+        dataIndex: "process",
+        width: 150,
+        render: (process, _) =>
+            <Link to={`/processes/${process}`}>{process}</Link>
       },
       {
         title: 'Date processed',
