@@ -204,9 +204,6 @@ MEDIA_URL = '/media/'
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
 
 
-# Tests
-
-TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 
 
 # Logging
