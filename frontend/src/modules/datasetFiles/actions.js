@@ -29,8 +29,12 @@ export const update = (id, partialDatasetFile) => async (dispatch, getState) => 
     if (oldDatasetFile && oldDatasetFile.isFetching)
         return;
 
-    return await dispatch(networkAction(
+    const datasetFile = await dispatch(networkAction(
         UPDATE, api.datasetFiles.update(partialDatasetFile), { meta: { id, ignoreError: 'APIError' }}));
+    
+    await dispatch(getDataset(oldDatasetFile.dataset))
+
+    return datasetFile
 };
 
 export const list = (options) => async (dispatch, getState) => {

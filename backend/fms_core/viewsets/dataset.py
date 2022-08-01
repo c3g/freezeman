@@ -105,4 +105,4 @@ class DatasetViewSet(viewsets.ModelViewSet):
             release_flag=release_flag,
             release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
         )
-        return Response('')
+        return Response(DatasetSerializer(Dataset.objects.get(pk=pk)).data)

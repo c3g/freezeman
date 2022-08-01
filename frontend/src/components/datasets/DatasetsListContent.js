@@ -4,7 +4,6 @@ import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import {setReleaseFlags, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
-import {list as listFiles} from "../../modules/datasetFiles/actions";
 import AppPageHeader from "../AppPageHeader";
 import { DATASET_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -14,17 +13,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import moment from "moment";
 
-const getTableColumns = (filesById, setReleaseFlag) => {
-    const onFilesReady = (dataset, func) => {
-        const { files } = dataset
-        const isReady = files.every((id) => id in filesById)
-        if (isReady) {
-            const filesValue = files.map((id) => filesById[id])
-            return func(filesValue)
-        } else {
-            return <Spin size={"small"} />
-        }
-    }
+const getTableColumns = (setReleaseFlag) => {
     return [
         {
             title: "ID",
@@ -55,30 +44,19 @@ const getTableColumns = (filesById, setReleaseFlag) => {
         {
             title: "Release Flag",
             dataIndex: "release_flag",
-            render: (_, dataset) => {
-                return onFilesReady(dataset, (files) => {
-                    const defaultValue = files.map((file) => file.release_flag)
-                                                   .find((flag) => flag === 1) ?? 2
-                    return <Select defaultValue={defaultValue} onChange={setReleaseFlag(dataset.id)}>
-                        <Option value={1}>Released</Option>
-                        <Option value={2}>Blocked</Option>
-                    </Select>
-                })
+            render: (release_flag, dataset) => {
+                return <Select defaultValue={release_flag} onChange={setReleaseFlag(dataset.id)}>
+                    <Option value={1}>Released</Option>
+                    <Option value={2}>Blocked</Option>
+                </Select>
             }
         },
         {
             title: "Last Release Time",
             dataIndex: "last_release_timestamp",
             sorter: true,
-            render: (_, dataset) => {
-                return onFilesReady(dataset, (files) => {
-                    const dates = files.filter((file) => file.release_flag_timestamp)
-                                       .map((file) => moment(file.release_flag_timestamp))
-
-                    return dates.length > 0
-                        ? moment.max(dates).format("YYYY-MM-DD LT")
-                        : ""
-                })
+            render: (last_release_timestamp, _) => {
+                return last_release_timestamp ? moment(last_release_timestamp).format("YYYY-MM-DD LT") : ""
             }
         },
     ]
@@ -92,9 +70,8 @@ const mapStateToProps = state => ({
     page: state.datasets.page,
     sortBy: state.datasets.sortBy,
     totalCount: state.datasets.totalCount,
-    filesById: state.datasetFiles.itemsByID,
 });
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setReleaseFlags, listFiles};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setReleaseFlags};
 
 const DatasetsListContent = ({
     clearFilters,
@@ -110,11 +87,8 @@ const DatasetsListContent = ({
     sortBy,
     totalCount,
     setReleaseFlags,
-    filesById,
-    listFiles,
 }) => {
     const columns = getTableColumns(
-        filesById,
         (id) => (value) => { setReleaseFlags(id, value) }
     ).map(c => Object.assign(c, getFilterProps(
         c,
@@ -125,15 +99,6 @@ const DatasetsListContent = ({
     )))
 
     const nFilters = getNFilters(filters)
-
-    useEffect(() => {
-        const missingFiles = datasets.filter((datasetId) => datasetId in datasetsById)
-                                     .flatMap((datasetId) => datasetsById[datasetId].files)
-                                     .filter((fileId) => !(fileId in filesById))
-        if (missingFiles.length > 0) {
-            listFiles({id__in: missingFiles.join(",")})
-        }
-    })
 
     return <>
         <AppPageHeader title="Datasets"/>

@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from .utils import convert_concentration_from_ngbyul_to_nm
-from django.db.models import Exists, OuterRef
+from django.db.models import Max
 
 from .models import (
     Container,
@@ -32,6 +32,8 @@ from .models import (
     Taxon,
     ImportedFile
 )
+
+from .models._constants import ReleaseFlag
 
 
 __all__ = [
@@ -610,10 +612,21 @@ class ImportedFileSerializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    release_flag = serializers.SerializerMethodField()
+    last_release_timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "project_name", "run_name", "lane", "files")
+        fields = ("id", "project_name", "run_name", "lane", "files", "release_flag", "last_release_timestamp")
+
+    def get_release_flag(self, obj):
+        if DatasetFile.objects.filter(dataset=obj.id, release_flag=ReleaseFlag.RELEASE).exists():
+            return ReleaseFlag.RELEASE
+        else:
+            return ReleaseFlag.BLOCK
+    
+    def get_last_release_timestamp(self, obj):
+        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_flag_timestamp"))["release_flag_timestamp__max"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
 
