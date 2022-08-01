@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fms_core.models import Individual
+from fms_core.models import Individual, Sample
 
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
@@ -129,6 +129,18 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
+
+        # Check if there's a sample with the same name
+        if Sample.objects.filter(name__iexact=sample['name']).exists():
+            # Output different warnings depending on whether the name is an exact match or a case insensitive match
+            if Sample.objects.filter(name__exact=sample['name']).exists():
+                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
+                                        f'A new sample with the same name will be created.'
+            else:
+                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
+                                        f'Please verify the name is correct.'
+
+            
         sample_obj = None
         if library_obj is not None or not is_library:
             sample_obj, self.errors['sample'], self.warnings['sample'] = \

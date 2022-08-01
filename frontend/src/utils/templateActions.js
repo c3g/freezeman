@@ -2,7 +2,8 @@ import React from "react";
 import {Link, useHistory} from "react-router-dom";
 
 import {Button, Menu, Dropdown} from "antd";
-import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined} from "@ant-design/icons";
+import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
+  CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined} from "@ant-design/icons";
 
 export const actionIcon = a => {
   const n = a.name || a
@@ -17,6 +18,7 @@ export const actionIcon = a => {
   if (n.includes("qPCR")) return <SelectOutlined />;
   if (n.includes("Prepare")) return <ExperimentOutlined />;
   if (n.includes("Convert")) return <EditOutlined />;
+  if (n.includes("Normalize")) return <DotChartOutlined />;
   return <DownloadOutlined />;
 };
 

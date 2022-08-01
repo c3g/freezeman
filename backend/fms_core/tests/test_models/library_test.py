@@ -1,14 +1,19 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import Library, LibraryType, Platform, Index
+from fms_core.models import Library, LibraryType, Platform, Index, IndexStructure, Sequence
+from fms_core.services.index import get_or_create_index_set, create_index
 
 
 class LibraryTest(TestCase):
     def setUp(self):
         self.library_type = LibraryType.objects.create(name="ThisIsValidLibraryTypeName")
         self.platform = Platform.objects.create(name="TestPlatform")
-        self.index = Index.objects.get(name="Index_1")
+
+        # Create indices
+        (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Illumina_TruSeq_DNA_RNA")
+        (self.index, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqLT", index_name="Index_1")
+
         self.strandedness = "Double stranded"
 
 

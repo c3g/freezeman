@@ -33,7 +33,7 @@ et-xmlfile==1.0.1
 flake8==3.8.3
 html5lib==1.0.1
 idna==2.10
-importlib-metadata==1.7.0
+importlib-metadata==4.11.4
 inflection==0.5.0
 ipaddr==2.2.0
 itypes==1.2.0
@@ -41,6 +41,8 @@ jdcal==1.4.1
 Jinja2==2.11.2
 jsonschema==3.2.0
 lockfile==0.12.2
+Mako==1.2.0
+Markdown==3.3.7
 MarkupPy==1.14
 MarkupSafe==1.1.1
 mccabe==0.6.1
@@ -51,6 +53,7 @@ odfpy==1.4.1
 openpyxl==3.0.9
 packaging==20.4
 pandas==1.4.2
+pdoc3==0.10.0
 pep517==0.8.2
 progress==1.5
 psycopg2==2.9.3
@@ -72,6 +75,7 @@ ruamel.yaml.clib==0.2.6
 six==1.15.0
 sqlparse==0.3.1
 tablib==2.0.0
+toml==0.10.2
 unicodecsv==0.14.1
 uritemplate==3.0.1
 urllib3==1.25.10

@@ -15,7 +15,7 @@ from fms_core.services.sample import create_full_sample
 class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v3_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v3_10_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "EQ00539851"
@@ -198,7 +198,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
 class ExperimentRunMGITestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v3_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v3_10_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERWITHSAMPLETESTMGI"

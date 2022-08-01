@@ -13,11 +13,18 @@ from django.contrib.auth.models import User
 # Import the functions of the various curations available.
 from ._update_field_value import update_field_value
 from ._delete_individual import delete_individual
+from ._create_entity import create_entity
 
+# This curation module can be called using manage.py :
+# > python manage.py curation -p NameOfConfigFileWithoutExtension
+
+# The config file must be located in /home/USERNAME/curation/
+# log files are generated in /home/USERNAME/curation/log/
 
 # Available actions
 ACTION_UPDATE_FIELD_VALUE = "update_field_value"
 ACTION_DELETE_INDIVIDUAL = "delete_individual"
+ACTION_CREATE_ENTITY = "create_entity"
 
 # Curation params template
 # [CURATION_ACTION_TEMPLATE_1,CURATION_ACTION_TEMPLATE_2,...]
@@ -37,6 +44,7 @@ class Command(BaseCommand):
     curation_switch = {
         ACTION_UPDATE_FIELD_VALUE: update_field_value,
         ACTION_DELETE_INDIVIDUAL: delete_individual,
+        ACTION_CREATE_ENTITY: create_entity,
     }
 
     def init_logging(self, log_name, timestamp):

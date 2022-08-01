@@ -53,6 +53,12 @@ const api = {
     list: () => get("/run-types/"),
   },
 
+  importedFiles: {
+    get: fileId => get(`/imported-files/${fileId}/`),
+    list: (options, abort) => get("/imported-files/", options, { abort }),
+    download: fileId => get(`/imported-files/${fileId}/download/`),
+  },
+
   indices: {
     get: indexId => get(`/indices/${indexId}/`),
     list: (options, abort) => get("/indices", options, { abort }),
@@ -109,7 +115,8 @@ const api = {
   },
 
   processes: {
-    list: (options, abort) => get("/processes", options, { abort }),
+    get: processId => get(`/processes/${processId}/`),
+    list: (options, abort) => get("/processes/", options, { abort }),
   },
 
   processMeasurements: {
@@ -329,7 +336,7 @@ function attachData(response) {
 
   const isJSON = contentType.includes('/json')
   response.isJSON = isJSON
-  const isExcel = contentType.includes('/ms-excel')
+  const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   return (isJSON ? response.json() : isExcel ? response.arrayBuffer() : response.text())
   .then(data => {
     response.data = data;

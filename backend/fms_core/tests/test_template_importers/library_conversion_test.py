@@ -12,13 +12,13 @@ from fms_core.services.container import create_container
 from fms_core.services.sample import create_full_sample, get_sample_from_container, update_qc_flags
 from fms_core.services.library import create_library, get_library_type
 from fms_core.services.platform import get_platform
-from fms_core.services.index import get_index
+from fms_core.services.index import get_or_create_index_set, create_index
 
 
 class LibraryConversionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = LibraryConversionImporter()
-        self.file = APP_DATA_ROOT / "Library_conversion_v3_9_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_conversion_v3_10_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.source_sample_name_1 = 'sample_source_1'
@@ -110,9 +110,12 @@ class LibraryConversionTestCase(TestCase):
                                                            kind='Tube',
                                                            name='Container4LibraryConversion2')
 
-        (index_1, errors, warnings) = get_index(name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001")
-
-        (index_2, errors, warnings) = get_index(name="IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002")
+        # Create indices
+        (index_set, _, errors, warnings) = get_or_create_index_set(set_name="IDT_10nt_UDI_TruSeq_Adapter")
+        (index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+                                                      index_name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001")
+        (index_2, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+                                                      index_name="IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002")
 
         (library_1, errors, warnings) = create_library(index=index_1,
                                                        library_type=self.library_type,

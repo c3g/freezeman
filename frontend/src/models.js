@@ -236,3 +236,15 @@ export const taxon = {
 //     name: "Homo sapiens",
 //     ncbi_id: 9606,
 // }
+
+export const importedFile = {
+  // id: Number,
+  filename: "",
+  location: "",
+}
+// Example:
+// {
+//     id: 1,
+//     filename: "sample_submission_v3_5_0.xlsx",
+//     location: "/home/bob/mysite/templates/sample_submission_v3_5_0.xlsx",
+// }

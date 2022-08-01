@@ -22,6 +22,9 @@ import {
   samples,
 } from "./modules/samples/reducers";
 import {
+  processes
+} from "./modules/processes/reducers"
+import {
   processMeasurementsSummary,
   processMeasurementTemplateActions,
   processMeasurements,
@@ -33,7 +36,6 @@ import {
   runTypes,
   experimentRuns,
   instruments,
-  processes,
   propertyValues,
   experimentRunTemplateActions,
 } from "./modules/experimentRuns/reducers";
@@ -62,6 +64,9 @@ import {
 import {
   platforms,
 } from "./modules/platforms/reducers";
+import {
+  importedFiles,
+} from "./modules/importedFiles/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
 import {reducer as groups} from "./modules/groups";

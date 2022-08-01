@@ -1,58 +1,55 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {Descriptions, Typography, Tabs} from "antd";
+import {Link, useHistory, useParams} from "react-router-dom";
+import {Button, Descriptions, Typography, Tabs, notification} from "antd";
 const {TabPane} = Tabs;
 const {Title} = Typography;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {listProcesses, listPropertyValues} from "../../modules/experimentRuns/actions";
+import {list as listProcesses, get as getProcess} from "../../modules/processes/actions";
+import {downloadFromFile} from "../../utils/download";
+import api, {withToken}  from "../../utils/api"
+import AllProcessProperties from "../shared/AllProcessProperties";
+import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
+
 
 const mapStateToProps = state => ({
+    token: state.auth.tokens.access,
     processesByID: state.processes.itemsByID,
     propertyValuesByID: state.propertyValues.itemsByID,
     protocolsByID: state.protocols.itemsByID,
 });
 
-const actionCreators = {listProcesses, listPropertyValues};
+const actionCreators = {listProcesses, getProcess};
 
 const ProcessDetailContent = ({
   processesByID,
-  propertyValuesByID,
   protocolsByID,
-  listPropertyValues,
-  listProcesses
+  listProcesses,
+  getProcess,
+  token
 }) => {
     const history = useHistory();
     const {id} = useParams();
     const isLoaded = id in processesByID;
     const process = processesByID[id] || {};
-    const childrenProcessesAreLoaded = process?.children_processes?.every(process => process in processesByID)
-    //Process' properties and process' children properties both should be loaded
-    const propertiesAreLoaded = process?.children_properties?.every(property => property in propertyValuesByID)
-    const childrenPropertiesAreLoaded = process?.children_processes?.
-                                          every(process => processesByID[process]?.children_properties?.
-                                            every(property => property in propertyValuesByID))
-    const allPropertiesAreLoaded = propertiesAreLoaded && childrenPropertiesAreLoaded
 
-    if (!isLoaded) {
-      listProcesses({id__in: id});
-    }
+    const onClickHandler = fileID =>
+      withToken(token, api.importedFiles.download)(fileID)
+        .then(response => downloadFromFile(response.filename, response.data))
+        .catch((err) => {
+          notification.error({message:"Template Unavailable", description:"The template file could not be retrieved."})
+        })
 
-    if(isLoaded && !childrenProcessesAreLoaded){
-      // Need to be queried as a string, not as an array in order to work with DRF filters
-      const processIDSAsStr = [id].concat(process.children_processes).join()
-      listProcesses({id__in:processIDSAsStr});
-    }
-
-    if (isLoaded && childrenProcessesAreLoaded && !allPropertiesAreLoaded) {
-      // Need to be queried as a string, not as an array in order to work with DRF filters
-      const processIDSAsStr = [id].concat(process.children_processes).join()
-      listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" });
-    }
+    useEffect(() => {
+      (async () => {
+        if (!isLoaded) {
+          await getProcess(id);
+        }
+      })()
+    }, [processesByID, id])
 
     const isLoading = !isLoaded || process.isFetching;
     const title =
@@ -68,35 +65,27 @@ const ProcessDetailContent = ({
                   {process.parent_process &&
                     <Descriptions.Item label="Parent Process" span={4}>{process.parent_process}</Descriptions.Item>
                   }
+                  <Descriptions.Item label="Template Submitted" span={4}>
+                      {process?.imported_template &&
+                          <Link to="#">
+                            <div onClick={() => onClickHandler(process?.imported_template)}>
+                              {process.imported_template_filename}
+                            </div>
+                          </Link>
+                      }
+                  </Descriptions.Item>
                   <Descriptions.Item label="Comment" span={4}>{process.comment}</Descriptions.Item>
               </Descriptions>
               <TrackingFieldsContent entity={process}/>
             </TabPane>
-            <TabPane tab="Properties" key="2" style={{marginTop:8} }>
-              { process?.children_properties?.length > 0 &&
-                  <>
-                  <Title level={3} style={{marginTop: '20px'}}>Properties</Title>
-                    <ProcessProperties
-                        propertyIDs={process.children_properties}
-                        protocolName={protocolsByID[process.protocol]?.name}
-                    />
-                  </>
-              }
-              {process?.children_processes?.map((id, i) => {
-                  const process = processesByID[id]
-                  return ( process &&
-                      <>
-                        <ProcessProperties
-                            propertyIDs={process.children_properties}
-                            protocolName={protocolsByID[process.protocol]?.name}
-                        />
-                      </>
-                  )
-                })
-              }
-              </TabPane>
-            </Tabs>
-        </PageContent>
+          <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
+            <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
+            <AllProcessProperties id={id} />
+            <Title level={3} style={{ marginTop: '20px' }}>Sample Processes with Properties</Title>
+            <ProcessAssociatedMeasurements id={id} />
+          </TabPane>
+        </Tabs>
+      </PageContent>
     </>;
 };
 

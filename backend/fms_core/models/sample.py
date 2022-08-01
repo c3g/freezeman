@@ -4,7 +4,6 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
-from django.utils import timezone
 from typing import Optional, List
 
 from ..containers import (
@@ -12,7 +11,7 @@ from ..containers import (
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..utils import str_cast_and_normalize, float_to_decimal
+from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_after_today
 
 from .tracked_model import TrackedModel
 from .container import Container
@@ -153,6 +152,10 @@ class Sample(TrackedModel):
         # Check volume value
         if self.volume is not None and self.volume < Decimal("0"):
             add_error("volume", "Current volume must be positive.")
+
+        # Make sure the creation date is not in the future 
+        if is_date_or_time_after_today(self.creation_date):
+            add_error("creation_date", f'creation_date ({self.creation_date}) cannot be after the current date.')
 
         # Validate container consistency
         if self.container_id is not None:

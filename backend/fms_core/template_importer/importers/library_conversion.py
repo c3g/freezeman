@@ -6,7 +6,7 @@ from fms_core.template_importer.row_handlers.library_conversion import LibraryRo
 from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
-from fms_core.utils import str_cast_and_normalize
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 PROPERTIES_STARTING_INDEX = 4
 
@@ -87,7 +87,7 @@ class LibraryConversionImporter(GenericImporter):
                     {'barcode': str_cast_and_normalize(row_data['Destination Library Container Barcode']),
                      'coordinates': str_cast_and_normalize(row_data['Destination Library Container Coordinates']),
                      'name': str_cast_and_normalize(row_data['Destination Library Container Name']),
-                     'kind': str_cast_and_normalize(row_data['Destination Library Container Kind']),
+                     'kind': str_cast_and_normalize_lower(row_data['Destination Library Container Kind']),
                      'parent_barcode': str_cast_and_normalize(row_data['Destination Library Parent Container Barcode']),
                      'parent_coordinates': str_cast_and_normalize(row_data['Destination Library Parent Container Coordinates'])
                      },

@@ -170,6 +170,11 @@ _platform_filterset_fields: FiltersetFields = {
     "name": CATEGORICAL_FILTERS_LOOSE,
 }
 
+_imported_file_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "filename": FREE_TEXT_FILTERS,
+}
+
 # library uses a sample queryset. basic fields are sample fields.
 _library_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,

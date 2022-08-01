@@ -3,7 +3,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
-from fms_core.utils import str_cast_and_normalize
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 class SampleSubmissionImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_SUBMISSION_TEMPLATE["sheets info"]
@@ -20,7 +20,7 @@ class SampleSubmissionImporter(GenericImporter):
 
         for row_id, row_data in enumerate(samples_sheet.rows):
             container = {
-                'kind': str_cast_and_normalize(row_data['Container Kind']),
+                'kind': str_cast_and_normalize_lower(row_data['Container Kind']),   # container kinds must be lower case to match model
                 'name': str_cast_and_normalize(row_data['Container Name']),
                 'barcode': str_cast_and_normalize(row_data['Container Barcode']),
                 'coordinates': str_cast_and_normalize(row_data['Container Coord']),

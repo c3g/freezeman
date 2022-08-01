@@ -6,7 +6,7 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
-from ..utils import RE_SEPARATOR, float_to_decimal
+from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind, library=None, individual=None,
@@ -29,6 +29,9 @@ def create_full_sample(name, volume, collection_site, creation_date,
         errors.append(f"Sample creation requires a creation date.")
     if not sample_kind:
         errors.append(f"Sample creation requires a sample kind.")
+
+    if is_date_or_time_after_today(creation_date):
+        errors.append(f"Reception date cannot be greater than the current date.")
 
     if not errors:
         biosample_data = dict(
@@ -342,6 +345,7 @@ def prepare_library(process: Process,
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",
                 creation_date=execution_date,
+                concentration=None,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False,
                 # Reset QC flags
@@ -523,6 +527,51 @@ def remove_sample_metadata(sample, metadata):
         errors.append('Sample and metadata are required')
 
     return deleted, errors, warnings
+
+
+def validate_normalization(initial_volume, initial_concentration, final_volume, desired_concentration, tolerance=0.01):
+    """
+         Defines whether a desired concentration is valid given the ratio (initial volume / final volume)
+
+         Args:
+             `initial_volume`: The initial volume of the sample (uL).
+             `initial_concentration`: The initial concentration of the sample (ng/uL).
+             `final_volume`: The final volume of the sample (uL).
+             `desired_concentration`: The final concentration of the sample (ng/uL).
+             `tolerance`: The tolerance threshold between desired and correct concentration.
+
+         Returns:
+             A boolean representing whether the desired concentration is valid or not.
+    """
+
+    is_valid = None
+    errors = []
+    warnings = []
+
+    # Validate parameters
+    if initial_volume is None:
+        errors.append(f"Initial volume is required to validate concentration.")
+    if initial_concentration is None:
+        errors.append(f"Initial concentration is invalid.")
+    if final_volume is None:
+        errors.append(f"Final volume is required for validation.")
+    if desired_concentration is None:
+        errors.append(f"Final concentration is required for validation.")
+
+    if not errors:
+        # Calculate the current amount to be able to calculate final concentration
+        solute_amount = initial_concentration * initial_volume
+        computed_concentration = solute_amount / final_volume
+
+        delta_concentration = computed_concentration - desired_concentration
+        if abs(delta_concentration) <= tolerance:
+            is_valid = True
+        else:
+            errors.append(f'Desired concentration [{desired_concentration}] '
+                          f'is not valid given the dilution ratio (source volume used / final volume).')
+            is_valid = False
+
+    return is_valid, errors, warnings
 
 
 
