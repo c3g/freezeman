@@ -1,4 +1,3 @@
-
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
 from fms_core.template_prefiller._utils import load_position_dict
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
@@ -85,8 +84,6 @@ class NormalizationPlanningImporter(GenericImporter):
             mapping_rows_template.append(row_mapping)
 
         if not self.dry_run:
-
-
             # Populate files
             
             # Create robot file and complete mapping_rows_template with the 
