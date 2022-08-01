@@ -2,6 +2,8 @@ from pandas import pandas as pd
 from typing import Any
 from fms_core.utils import float_to_decimal
 import datetime
+import io
+import zipfile
 
 
 def float_to_decimal_and_none(val, decimals: int = 3):
@@ -46,3 +48,20 @@ def blank_and_nan_to_none(s: Any):
 
 def input_string_to_snake_case(s):
     return s.lower().replace(' ', '_') if s else None
+
+
+def zip_files(output_zip_name, file_list):
+    if not file_list:
+        return None
+
+    # Zip files
+    try:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Add normalization prefilled template
+            for file in file_list:
+                zip_file.writestr(output_zip_name + '/' + file['name'], file['content'].getvalue())
+    except Exception as e:
+        print("Failed to zip the file: " + str(e))
+
+    return zip_buffer

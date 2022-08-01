@@ -1,15 +1,19 @@
 from datetime import datetime
-from ._generic import GenericImporter
+
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
-from .._utils import float_to_decimal_and_none
+from fms_core.models import IdGenerator
+
+from ._generic import GenericImporter
+from .._utils import float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize
-import zipfile
-import io
-from openpyxl.reader.excel import load_workbook
 from fms_core.template_prefiller._utils import load_position_dict
-from django.conf import settings
+
+import io
 import os
+from openpyxl.reader.excel import load_workbook
+from django.conf import settings
+
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -80,7 +84,9 @@ class NormalizationPlanningImporter(GenericImporter):
         if not self.dry_run:
 
             # TODO: implement independent functions / services for this
-            # TODO: a lot
+            # TODO: get robot csv file and robot updated columns
+            # mapping_rows_template, file = dummy_function_csv_robot(mapping_rows_template)
+
             #Populate template
             out_stream = io.BytesIO()
 
@@ -101,20 +107,21 @@ class NormalizationPlanningImporter(GenericImporter):
             except Exception as e:
                 print("Failed to fill result template : " + str(e))
 
-            # TODO: Random name from id generator
-            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}"
-            normalization_template_filename = filename.split('/')[1]
+            files_to_zip = [
+                {
+                    'name': filename.split('/')[1],
+                    'content': out_stream,
+                },
+                {
+                    'name': 'dummy.csv',
+                    'content': out_stream
+                }
+            ]
+
+            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{ IdGenerator.objects.create().id}"
 
             # Zip files
-            try:
-                zip_buffer = io.BytesIO()
-                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                    # Add normalization prefilled template
-                    file = out_stream.getvalue()
-                    zip_file.writestr(output_zip_name + '/' + normalization_template_filename, file)
-                    # TODO: add robot csv file
-            except Exception as e:
-                print("Failed to zip the result file: " + str(e))
+            zip_buffer = zip_files(output_zip_name, files_to_zip)
 
             self.output_file = {
                 'name': output_zip_name + '.zip',
