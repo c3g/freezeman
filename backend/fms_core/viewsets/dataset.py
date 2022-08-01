@@ -44,7 +44,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         data = request.data
 
         def func(rpm):
-            datasets = []
+            datasets = {}
             dataset_files = []
             errors = []
             warnings = []
@@ -58,33 +58,39 @@ class DatasetViewSet(viewsets.ModelViewSet):
 
             for readset in rpm["readsets"].values():
                 project_name = readset["barcodes"][0]["PROJECT"]
-                dataset, errors, warnings = service.create_dataset(project_name=project_name, run_name=rpm["run"], lane=rpm["lane"], files=[])
-                if errors:
-                    return (datasets, dataset_files, errors, warnings)
-                else:
-                    datasets.append(dataset)
+                run_name = rpm["run"]
+                lane = rpm["lane"]
+                dataset_key = (project_name, run_name, lane)
+                if dataset_key not in datasets:
+                    dataset, errors, warnings = service.create_dataset(project_name=project_name, run_name=run_name, lane=lane)
+                    if errors:
+                        return (datasets, dataset_files, errors, warnings)
+                    else:
+                        datasets[dataset_key] = dataset
 
-                    for key in readset:
-                        if key not in ["sample_name", "barcodes"]:
-                            dataset_file, newerrors, newwarnings = service.create_dataset_file(
-                                dataset=dataset,
-                                file_path=readset[key],
-                                sample_name=readset["sample_name"],
-                            )
-                            errors.extend(newerrors)
-                            warnings.extend(newwarnings)
+                dataset = datasets[dataset_key]
 
-                            if errors:
-                                return (datasets, dataset_files, errors, warnings)
-                            else:
-                                dataset_files.append(dataset_file)
+                for key in readset:
+                    if key not in ["sample_name", "barcodes"] and readset[key]:
+                        dataset_file, newerrors, newwarnings = service.create_dataset_file(
+                            dataset=dataset,
+                            file_path=readset[key],
+                            sample_name=readset["sample_name"],
+                        )
+                        errors.extend(newerrors)
+                        warnings.extend(newwarnings)
+
+                        if errors:
+                            return (datasets, dataset_files, errors, warnings)
+                        else:
+                            dataset_files.append(dataset_file)
             
             return (datasets, dataset_files, errors, warnings)
         datasets, dataset_files, errors, _ = func(data)
         if errors:
             return HttpResponseBadRequest("\n".join(errors))
         else:
-            return Response(self.get_serializer(datasets, many=True).data)
+            return Response(self.get_serializer(datasets.values(), many=True).data)
     
     @action(detail=True, methods=["patch"])
     def set_release_flags(self, request, pk):
