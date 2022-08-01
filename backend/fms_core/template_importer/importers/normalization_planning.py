@@ -152,7 +152,12 @@ class NormalizationPlanningImporter(GenericImporter):
         TUBE = "tube"
         ROBOT_TUBE_RACK = "tube rack 4x6"
 
-        def get_robot_destination_container(row_data) -> str:
+        def get_destination_container_barcode(row_data):
+            return row_data["Destination Container Barcode"]
+        def get_destination_contairer_coord(row_data):
+            return row_data["Destination Container Barcode"]
+        
+        def get_robot_destination_container(row_data):
             return row_data["Robot Destination Container"]
         def get_robot_destination_coord(row_data) -> str:
             return row_data["Robot Destination Coord"]
@@ -166,6 +171,7 @@ class NormalizationPlanningImporter(GenericImporter):
             first_axis_len = len(coord_spec[FIRST_COORD_AXIS])
             second_axis_coord = int(fms_coord[1:])
             return (ord(fms_coord[:1]) - 96) + (first_axis_len * (second_axis_coord - 1))
+
 
         mapping_dest_containers = {}
         mapping_src_containers = {}
@@ -197,6 +203,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
                                                                                        row_data["Destination Container Coord"])
         
+            # Sort incomming list using the destination plates barcodes and coords
             sorted_by_robot_container_and_coord = sorted(rows_data,
                                                          key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
                                                          reverse=False)
@@ -258,9 +265,6 @@ class NormalizationPlanningImporter(GenericImporter):
                                key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
                                reverse=False)
 
-            count_coordinates_dest = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
-
-
             if all(src_coords): # condition src Fixed (plates)
                 # Map source container barcode to robot source barcodes
                 for i, barcode in enumerate(src_containers):
@@ -274,3 +278,57 @@ class NormalizationPlanningImporter(GenericImporter):
                 for row_data in sorted_by_robot_container_and_coord:
                     row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
                                                                                       row_data["Source Container Coord"])
+        else: # condition dest Mobile (tubes)
+            # The robot container in Mobile format are "tube racks 4x6"
+            default_spec = CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
+            count_coordinates_dest = len(default_spec[FIRST_COORD_AXIS]) * len(default_spec[SECOND_COORD_AXIS])
+            # Map destination container barcode to robot destination barcodes
+            for i, barcode in enumerate(dest_containers):
+                mapping_dest_containers[barcode] = "dest" + str(i / count_coordinates_dest)
+
+            # Add robot barcode to the rows_data
+            for row_data in rows_data:
+                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
+            
+            # Add robot dest coord to the rows_data
+            for i, row_data in enumerate(rows_data):
+                row_data["Robot Destination Coord"] = str(i % count_coordinates_dest)
+
+            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
+            src_coords = list(row_data["Source Container Coord"] for row_data in rows_data)
+
+            # Map container spec to source container barcode
+            for barcode in src_containers:
+                container = Container.objects.get(barcode=barcode)
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec if container.kind != TUBE \
+                                                 else CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
+
+            if all(src_coords): # condition src Fixed (plates)
+                # Map source container barcode to robot source barcodes
+                for i, barcode in enumerate(src_containers):
+                    mapping_src_containers[barcode] = "src" + str(i)
+
+                # Add robot barcode to the rows_data
+                for row_data in rows_data:
+                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
+
+                # Add robot src coord to the sorted rows_data
+                for row_data in rows_data:
+                    row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
+                                                                                      row_data["Source Container Coord"])
+            else: # condition src Mobile (tubes)
+                # The robot container in Mobile format are "tube racks 4x6"
+                default_spec = CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
+                count_coordinates_src = len(default_spec[FIRST_COORD_AXIS]) * len(default_spec[SECOND_COORD_AXIS])
+                
+                # Map destination container barcode to robot destination barcodes
+                for i, barcode in enumerate(src_containers):
+                    mapping_src_containers[barcode] = "src" + str(i / count_coordinates_src)
+
+                # Add robot barcode to the rows_data
+                for row_data in rows_data:
+                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
+                
+                # Add robot src coord to the sorted rows_data
+                for i, row_data in enumerate(rows_data):
+                    row_data["Robot Source Coord"] = str(i % count_coordinates_dest)
