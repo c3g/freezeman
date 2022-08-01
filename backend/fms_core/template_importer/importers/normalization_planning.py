@@ -6,7 +6,7 @@ from fms_core.models import Container
 from fms_core.utils import str_cast_and_normalize
 
 from openpyxl.reader.excel import load_workbook
-from django.conf import setting
+from django.conf import settings
 
 from ...containers import CONTAINER_KIND_SPECS
 from .._utils import float_to_decimal_and_none
@@ -135,7 +135,7 @@ class NormalizationPlanningImporter(GenericImporter):
                     'content': zip_buffer.getvalue()
                 }
 
-    def prepare_robot_file(row_data) -> Union[str, None]:
+    def prepare_robot_file(rows_data) -> Union[str, None]:
         """
         This function takes the content of the Normalization planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
