@@ -80,7 +80,8 @@ const ProcessAssociatedMeasurements = ({
   listPropertyValues,
   process,
 }) => {
-  const { id, sample_property_types } = process;
+  const { id } = process;
+  const sample_property_types = process.sample_property_types ?? [];
 
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
   
