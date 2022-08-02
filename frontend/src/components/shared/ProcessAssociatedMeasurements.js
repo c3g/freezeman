@@ -9,38 +9,12 @@ import {withSample} from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
-import { Spin } from "antd";
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
-/**
- * 
- * @param {any} processMeasurements 
- * @param {any} processMeasurementsByID 
- * @param {any} propertyValuesByID 
- * @returns An array of property values where the property type is unique.
- */
-const getPropertyTypesFromMeasurements = (processMeasurements, processMeasurementsByID, propertyValuesByID) => {
-  const measurementsWithProperties = processMeasurements.filter((processMeasurementID) => processMeasurementID in processMeasurementsByID)
-                                                        .map((processMeasurementID) => processMeasurementsByID[processMeasurementID])
-                                                        .filter((processMeasurement) => allPropertiesLoaded(processMeasurement, propertyValuesByID))
-
-  return Object.values(measurementsWithProperties.flatMap(({ properties }) => properties)
-  .map((propertyValueID) => propertyValuesByID[propertyValueID])
-  .reduce((prev, { property_name, property_type }) => {
-    return {
-      ...prev,
-      [property_type]: {
-        property_name,
-        property_type,
-      },
-    }
-  }, {}))
-}
-
-const getTableColumns = (samplesByID, properties, propertyValuesById) => {
+const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
   return [
     {
       title: "Sample Process ID",
@@ -62,15 +36,15 @@ const getTableColumns = (samplesByID, properties, propertyValuesById) => {
           </Link>)
       }
     },
-    ...properties.map((property) => {
+    ...property_types.map((property_type) => {
       return {
-        title: property.property_name,
-        dataIndex: property.property_type,
+        title: property_type.name,
+        dataIndex: property_type.id,
         render: (_, processMeasurement) => {
 
           const propertyValueId = processMeasurement?.properties?.find((id) => {
             const prop = propertyValuesById[id] || {}
-            return prop.property_type === property.property_type
+            return prop.property_type === property_type.id
           })
 
           const propertyValue = propertyValueId ? propertyValuesById[propertyValueId] : {}
@@ -104,13 +78,13 @@ const ProcessAssociatedMeasurements = ({
   totalCount,
   propertyValuesByID,
   listPropertyValues,
-  id,
+  process,
 }) => {
+  const { id, sample_property_types } = process;
+
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
-
-  const propertyTypes = getPropertyTypesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
-
-  const columns = getTableColumns(samplesByID, propertyTypes, propertyValuesByID)
+  
+  const columns = getTableColumns(samplesByID, sample_property_types, propertyValuesByID)
 
   useEffect(() => {
     const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
@@ -135,10 +109,8 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (propertyTypes.length > 0  || Object.keys(props.filters).length > 0) {
+  if (sample_property_types.length > 0) {
     return <PaginatedList {...props}/>
-  } else if (isFetching || props.tableProps.loading) {
-    return <Spin />
   } else {
     return <>No sample specific properties associated with the protocol.</>
   }

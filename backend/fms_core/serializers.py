@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from .utils import convert_concentration_from_ngbyul_to_nm
+from django.db.models import Exists, OuterRef
 
 from .models import (
     Container,
@@ -221,6 +222,7 @@ class ProtocolSerializer(serializers.ModelSerializer):
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
     children_processes = serializers.SerializerMethodField()
+    sample_property_types = serializers.SerializerMethodField()
     imported_template_filename = serializers.CharField(read_only=True, source="imported_template.filename")
 
     class Meta:
@@ -231,6 +233,17 @@ class ProcessSerializer(serializers.ModelSerializer):
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
         return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
+    
+    def get_sample_property_types(self, obj):
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        property_types = PropertyType.objects.filter(object_id=obj.protocol.id, content_type=protocol_content_type)
+        
+        process_measurement_type = ContentType.objects.get_for_model(ProcessMeasurement)
+        property_values = PropertyValue.objects.filter(property_type__in=property_types, content_type=process_measurement_type)
+
+        property_types = property_types.filter(Exists(property_values.filter(property_type=OuterRef("pk"))))
+
+        return property_types.values('id', 'name')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.id).values_list('id', flat=True)
