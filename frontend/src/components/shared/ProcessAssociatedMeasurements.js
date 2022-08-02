@@ -84,7 +84,7 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const { id } = process;
 
-  const [samplePropertyTypes, setSamplePropertyTypes] = useToken([], api.protocols.get, [process?.protocol, true])
+  const [samplePropertyTypes, setSamplePropertyTypes] = useToken([], api.protocols.get)
 
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
   
@@ -101,7 +101,7 @@ const ProcessAssociatedMeasurements = ({
 
   useEffect(() => {
     if (process?.protocol) {
-      setSamplePropertyTypes((response) => {
+      setSamplePropertyTypes([process?.protocol, true], (response) => {
         const property_types = response.data.property_types
         return property_types.filter((property_type) => {
           return property_type.model === "processmeasurement"
