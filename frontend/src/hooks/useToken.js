@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 import { withToken } from "../utils/api";
 
-export const useToken = (initialState, apiFn, args, responseFn, deps = []) => {
+export const useToken = (initialState, apiFn, args) => {
     const [state, setState] = useState(initialState)
     const token = useSelector((state) => state.auth.tokens.access)
 
-    useEffect(() => {
-        withToken(token, apiFn)(...args).then((response) => {
-            setState(responseFn(response))
-        })
-    }, deps)
-
-    return state
+    return [
+        state,
+        (responseFn) => {
+            withToken(token, apiFn)(...args).then((response) => {
+                setState(responseFn(response))
+            })
+        }
+    ]
 }
 
 export default useToken
