@@ -1,13 +1,20 @@
-from backend.fms_core.containers import ContainerSpec
-from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
-from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE
-from .._utils import float_to_decimal_and_none
-from fms_core.utils import str_cast_and_normalize
+from fms_core.template_prefiller._utils import load_position_dict
+from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 from fms_core.models import Container
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+
+from openpyxl.reader.excel import load_workbook
+from django.conf import settings
+
 from ...containers import CONTAINER_KIND_SPECS
-import tempfile
-import csv
+from .._utils import float_to_decimal_and_none
+from ._generic import GenericImporter
+
+import zipfile
+import io
+import os
+from datetime import datetime
 from typing import Union
 
 FIXED_FORMAT = "Fixed (plates)"
@@ -55,7 +62,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
                     'name': str_cast_and_normalize(row_data['Destination Container Name']),
-                    'kind': str_cast_and_normalize(row_data['Destination Container Kind']),
+                    'kind': str_cast_and_normalize_lower(row_data['Destination Container Kind']),
                     'coordinates': str_cast_and_normalize(row_data['Destination Parent Container Coord']),
                     'parent_barcode': str_cast_and_normalize(row_data['Destination Parent Container Barcode']),
                 },
@@ -100,21 +107,51 @@ class NormalizationPlanningImporter(GenericImporter):
             if len(set(dst_format)) != 1:
                 self.base_errors.append(f"All Robot output formats need to be identical.")
 
-
             # Create robot file and complete mapping_rows_template with the 
             robot_filename = self.prepare_robot_file(mapping_rows_template, src_format[0], dst_format[0])
 
             if robot_filename is not None:
+                # TODO: implement independent functions / services for this
+                # TODO: a lot
+                #Populate template
+                out_stream = io.BytesIO()
+
+                filename = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-2:])
+                template_path = os.path.join(settings.STATIC_ROOT, filename)
+                workbook = load_workbook(filename=template_path)
+                position_dict = load_position_dict(workbook, NORMALIZATION_TEMPLATE["sheets info"], NORMALIZATION_TEMPLATE["prefill info"])
+
                 try:
-                    tmp_file = tempfile.NamedTemporaryFile(mode='r+', delete=True)
-                    output_file = open(tmp_file.name, mode="r+")
-                    writer = csv.writer(output_file)
-                    writer.writerow(mapping_rows_template[0].keys())
-                    for row in mapping_rows_template:
-                        writer.writerow(row.values())
-                    self.output_file = tmp_file
+                    for sheet_name, sheet_dict in position_dict.items():
+                        current_sheet = workbook[sheet_name]
+                        for i, entry in enumerate(mapping_rows_template):
+                            for sheet in NORMALIZATION_TEMPLATE["sheets info"]:
+                                for header_index, template_column in enumerate(sheet['headers']):
+                                    if sheet["name"] == sheet_name:
+                                        current_sheet.cell(row=sheet_dict["header_offset"] + i, column=header_index + 1).value = entry[template_column]
+                    workbook.save(out_stream)
                 except Exception as e:
-                    print("Failed writing result file : " + str(e))
+                    print("Failed to fill result template : " + str(e))
+
+                # TODO: Random name from id generator
+                output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}"
+                normalization_template_filename = filename.split('/')[1]
+
+                # Zip files
+                try:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        # Add normalization prefilled template
+                        file = out_stream.getvalue()
+                        zip_file.writestr(output_zip_name + '/' + normalization_template_filename, file)
+                        # TODO: add robot csv file
+                except Exception as e:
+                    print("Failed to zip the result file: " + str(e))
+
+                self.output_file = {
+                    'name': output_zip_name + '.zip',
+                    'content': zip_buffer.getvalue()
+                }
 
     def prepare_robot_file(self, rows_data, src_format, dst_format) -> Union[str, None]:
         """
@@ -129,69 +166,106 @@ class NormalizationPlanningImporter(GenericImporter):
         Returns:
             A string containing the path to the created robot file or None if an error occured.
         """
-        def get_destination_container_barcode(row_data):
-            return row_data["Destination Container Barcode"]
-        def get_destination_contairer_coord(row_data):
-            return row_data["Destination Container Barcode"]
-        
+        FIRST_COORD_AXIS = 0
+        SECOND_COORD_AXIS = 1
+        TUBE = "tube"
+        ROBOT_MOBILE_TUBE_RACK = "tube rack 4x6"
+        ROBOT_FIXED_TUBE_RACK = "tube rack 8x12"
+
+
         def get_robot_destination_container(row_data):
             return row_data["Robot Destination Container"]
         def get_robot_destination_coord(row_data):
             return row_data["Robot Destination Coord"]
 
         def convert_to_numerical_robot_coord(coord_spec, fms_coord) -> int:
-            FIRST_COORD_AXIS = 0
             first_axis_len = len(coord_spec[FIRST_COORD_AXIS])
             second_axis_coord = int(fms_coord[1:])
             return (ord(fms_coord[:1]) - 96) + (first_axis_len * (second_axis_coord - 1))
+
 
         mapping_dest_containers = {}
         mapping_src_containers = {}
         coord_spec_by_barcode = {}
 
-        dest_containers = set(row_data["Destination Container Barcode"] for row_data in rows_data)
-        dest_coords = list(row_data["Destination Container Coord"] for row_data in rows_data)
+        # The robot container in Mobile format are "tube racks 4x6"
+        default_mobile_spec = CONTAINER_KIND_SPECS[ROBOT_MOBILE_TUBE_RACK].coordinate_spec
+        coord_spec_by_barcode = {}
 
-        # Map container spec to destination container barcode
-        for barcode in dest_containers:
-            container = Container.objects.get(barcode=barcode)
-            coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
+        ############################################# Destination section ###################################################
 
-        # Map destination container barcode to robot destination barcodes
-        for i, barcode in enumerate(dest_containers):
-            mapping_dest_containers[barcode] = "dest" + str(i)
+        dest_containers = set((row_data["Destination Container Barcode"], row_data["Destination Container Kind"]) for row_data in rows_data)
 
-        # Add robot barcode to the rows_data
-        for row_data in rows_data:
-            row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
-
-        # Check if robot destinations are plates or tube. Plates have set positions while tubes can be set to maximize 
-        # the efficiency of the robot by moving around the input.
-        if all(dest_coords):
-            # condition plates
+        if dst_format == FIXED_FORMAT: ##################### condition dst Fixed (plates) #####################
+            # Map container spec to destination container barcode
+            for barcode, kind in dest_containers:
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec if kind != TUBE \
+                                                 else CONTAINER_KIND_SPECS[ROBOT_FIXED_TUBE_RACK].coordinate_spec
+            # Map destination container barcode to robot destination barcodes
+            for i, (barcode, _) in enumerate(dest_containers):
+                mapping_dest_containers[barcode] = "dest" + str(i)
+            # Add robot barcode to the rows_data
+            for row_data in rows_data:
+                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
             # Add robot dest coord to the rows_data
             for row_data in rows_data:
                 row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
                                                                                        row_data["Destination Container Coord"])
         
-            sorted_by_robot_container_and_coord = sorted(rows_data,
-                                                         key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
-                                                         reverse=False)
+            # Sort incomming list using the destination plates barcodes and coords
+            rows_data = sorted(rows_data,
+                               key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
+                               reverse=False)
 
-            src_containers = set(row_data["Source Container Barcode"] for row_data in sorted_by_robot_container_and_coord)
-            src_coords = list(row_data["Source Container Coord"] for row_data in sorted_by_robot_container_and_coord)
+        elif dst_format == MOBILE_FORMAT: ##################### condition dst Mobile (tubes) #####################
+            count_coordinates_dest = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
 
+            # use src container if src Fixed to order the line
+
+            # Map destination container barcode to robot destination barcodes
+            for i, (barcode, _) in enumerate(dest_containers):
+                mapping_dest_containers[barcode] = "dest" + str((i / count_coordinates_dest) + 1)
+            # Add robot barcode to the rows_data
+            for row_data in rows_data:
+                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
+            
+            # Add robot dest coord to the rows_data
+            for i, row_data in enumerate(rows_data):
+                row_data["Robot Destination Coord"] = str(i % count_coordinates_dest)
+
+        ############################################# Source section ###################################################
+
+        src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
+
+        if src_format == FIXED_FORMAT: ##################### condition src Fixed (plates) #####################
             # Map container spec to source container barcode
             for barcode in src_containers:
                 container = Container.objects.get(barcode=barcode)
                 coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
 
-            if all(src_coords):
-                # Map destination container barcode to robot destination barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str(i)
+            # Map source container barcode to robot source barcodes
+            for i, barcode in enumerate(src_containers):
+                mapping_src_containers[barcode] = "src" + str(i)
 
-                # Add robot src coord to the sorted rows_data
-                for row_data in sorted_by_robot_container_and_coord:
-                    row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
-                                                                                      row_data["Source Container Coord"])
+            # Add robot barcode to the rows_data
+            for row_data in rows_data:
+                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
+
+            # Add robot src coord to the sorted rows_data
+            for row_data in rows_data:
+                row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
+                                                                                  row_data["Source Container Coord"])
+        elif src_format == MOBILE_FORMAT: ##################### condition src Mobile (tubes) #####################
+            count_coordinates_src = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
+            
+            # Map destination container barcode to robot destination barcodes
+            for i, barcode in enumerate(src_containers):
+                mapping_src_containers[barcode] = "src" + str((i / count_coordinates_src) + 1)
+
+            # Add robot barcode to the rows_data
+            for row_data in rows_data:
+                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
+            
+            # Add robot src coord to the sorted rows_data
+            for i, row_data in enumerate(rows_data):
+                row_data["Robot Source Coord"] = str(i % count_coordinates_dest)
