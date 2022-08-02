@@ -7,12 +7,7 @@ from fms_core.models import IdGenerator
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize
-from fms_core.template_prefiller._utils import load_position_dict
-
-import io
-import os
-from openpyxl.reader.excel import load_workbook
-from django.conf import settings
+from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 
 
 class NormalizationPlanningImporter(GenericImporter):
@@ -82,43 +77,25 @@ class NormalizationPlanningImporter(GenericImporter):
             mapping_rows_template.append(row_mapping)
 
         if not self.dry_run:
-
-            # TODO: implement independent functions / services for this
             # TODO: get robot csv file and robot updated columns
             # mapping_rows_template, file = dummy_function_csv_robot(mapping_rows_template)
 
-            #Populate template
-            out_stream = io.BytesIO()
+            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, mapping_rows_template)
 
-            filename = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-2:])
-            template_path = os.path.join(settings.STATIC_ROOT, filename)
-            workbook = load_workbook(filename=template_path)
-            position_dict = load_position_dict(workbook, NORMALIZATION_TEMPLATE["sheets info"], NORMALIZATION_TEMPLATE["prefill info"])
-
-            try:
-                for sheet_name, sheet_dict in position_dict.items():
-                    current_sheet = workbook[sheet_name]
-                    for i, entry in enumerate(mapping_rows_template):
-                        for sheet in NORMALIZATION_TEMPLATE["sheets info"]:
-                            for header_index, template_column in enumerate(sheet['headers']):
-                                if sheet["name"] == sheet_name:
-                                    current_sheet.cell(row=sheet_dict["header_offset"] + i, column=header_index + 1).value = entry[template_column]
-                workbook.save(out_stream)
-            except Exception as e:
-                print("Failed to fill result template : " + str(e))
+            output_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
 
             files_to_zip = [
                 {
-                    'name': filename.split('/')[1],
-                    'content': out_stream,
+                    'name': output_prefilled_template_name,
+                    'content': output_prefilled_template,
                 },
                 {
-                    'name': 'dummy.csv',
-                    'content': out_stream
+                    'name': 'Normalization_for_robot.csv',
+                    'content': output_prefilled_template
                 }
             ]
 
-            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{ IdGenerator.objects.create().id}"
+            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{IdGenerator.objects.create().id}"
 
             # Zip files
             zip_buffer = zip_files(output_zip_name, files_to_zip)

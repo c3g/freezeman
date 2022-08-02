@@ -1,6 +1,9 @@
+import os
 from io import BytesIO
 from openpyxl.reader.excel import load_workbook
 from ._utils import load_position_dict
+from django.conf import settings
+
 
 def PrefillTemplate(template_path, template_info, queryset):
     """
@@ -26,3 +29,39 @@ def PrefillTemplate(template_path, template_info, queryset):
             
     workbook.save(out_stream)
     return out_stream.getvalue()
+
+
+def PrefillTemplateFromDict(template, rows_dict):
+    """
+    Function that return a prefilled template byte stream.
+    It fetch a designated empty template using template_path.
+    It loads data from a dictionary with format { column : value } for each row
+    It used the template_info sheet info to locate and position the information in the excel workbook.
+
+    position_dict has the following structure :
+    {SHEET_NAME: {header_offset: HEADER_OFFSET, dictionary_column_list: [COLUMN_NAME, ...], column_offsets: {COLUMN_NAME: COLUMN_OFFSET, ...}}, ...}
+    """
+
+    # Get the template information
+    filename = "/".join(template["identity"]["file"].split("/")[-2:])
+    template_path = os.path.join(settings.STATIC_ROOT, filename)
+
+    out_stream = BytesIO()
+
+    workbook = load_workbook(filename=template_path)
+    position_dict = load_position_dict(workbook, template["sheets info"], template["prefill info"])
+
+    # Populate template
+    try:
+        for sheet_name, sheet_dict in position_dict.items():
+            current_sheet = workbook[sheet_name]
+            for i, entry in enumerate(rows_dict):
+                for sheet in template["sheets info"]:
+                    for header_index, template_column in enumerate(sheet['headers']):
+                        if sheet["name"] == sheet_name:
+                            current_sheet.cell(row=sheet_dict["header_offset"] + i, column=header_index + 1).value = \
+                            entry[template_column]
+        workbook.save(out_stream)
+        return out_stream.getvalue()
+    except Exception as e:
+        print("Failed to fill result template : " + str(e))
