@@ -95,14 +95,5 @@ class DatasetViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"])
     def set_release_flags(self, request, pk):
         release_flag = request.data.get("release_flag")
-        files = DatasetFile.objects.filter(dataset=pk)
-
-        if release_flag is None:
-            # pick opposite flag
-            release_flag = [ReleaseFlag.BLOCK, ReleaseFlag.RELEASE][files.filter(release_flag=ReleaseFlag.RELEASE).exists()]
-
-        files.update(
-            release_flag=release_flag,
-            release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
-        )
+        service.set_release_flag(pk, release_flag)
         return Response(DatasetSerializer(Dataset.objects.get(pk=pk)).data)
