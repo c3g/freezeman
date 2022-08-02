@@ -4,7 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from .utils import convert_concentration_from_ngbyul_to_nm
-from django.db.models import Exists, OuterRef
 
 from .models import (
     Container,
