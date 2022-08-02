@@ -1,4 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
+from fms_core.template_importer.importers.normalization_planning import VALID_ROBOT_FORMATS
 
 from fms_core.models import ProcessMeasurement
 
@@ -17,9 +18,15 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, source_sample, destination_sample, measurements):
+    def process_row_inner(self, source_sample, destination_sample, measurements, robot):
         concentration_nguL = None
         concentration_nM = None
+
+        # Check if robot formats are valid
+        if robot["input_format"] not in VALID_ROBOT_FORMATS:
+            self.errors['robot_input_format'] = f"Robot input format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
+        if robot["output_format"] not in VALID_ROBOT_FORMATS:
+            self.errors['robot_output_format'] = f"Robot output format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
 
         # Check case when none of the options were provided
         if all([measurements['concentration_nm'] is None, measurements['concentration_ngul'] is None,

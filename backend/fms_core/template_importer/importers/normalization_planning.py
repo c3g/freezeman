@@ -10,6 +10,11 @@ import tempfile
 import csv
 from typing import Union
 
+FIXED_FORMAT = "Fixed (plates)"
+MOBILE_FORMAT = "Mobile (tubes)"
+VALID_ROBOT_FORMATS = [FIXED_FORMAT, MOBILE_FORMAT]
+
+
 class NormalizationPlanningImporter(GenericImporter):
     """
          Template importer for the Normalization Protocol.
@@ -35,6 +40,8 @@ class NormalizationPlanningImporter(GenericImporter):
         sheet = self.sheets['Normalization']
 
         mapping_rows_template = []
+        src_format = []
+        dst_format = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
@@ -61,10 +68,16 @@ class NormalizationPlanningImporter(GenericImporter):
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
             }
 
+            robot = {
+                'input_format': str_cast_and_normalize(row_data['Robot input format']),
+                'output_format': str_cast_and_normalize(row_data['Robot output format']),
+            }
+
             normalization_kwargs = dict(
                 source_sample=source_sample,
                 destination_sample=destination_sample,
-                measurements=measurements
+                measurements=measurements,
+                robot=robot
             )
 
             (result, row_mapping) = self.handle_row(
@@ -75,12 +88,21 @@ class NormalizationPlanningImporter(GenericImporter):
             )
 
             mapping_rows_template.append(row_mapping)
+            src_format.append(robot["input_format"])
+            dst_format.append(robot["output_format"])
 
         if not self.dry_run:
             # Populate files
             
+            # Temporary test. Make sure all the format for input and output are the same
+            if len(set(src_format)) != 1:
+                self.base_errors.append(f"All Robot input formats need to be identical.")
+            if len(set(dst_format)) != 1:
+                self.base_errors.append(f"All Robot output formats need to be identical.")
+
+
             # Create robot file and complete mapping_rows_template with the 
-            robot_filename = self.prepare_robot_file(mapping_rows_template)
+            robot_filename = self.prepare_robot_file(mapping_rows_template, src_format[0], dst_format[0])
 
             if robot_filename is not None:
                 try:
@@ -94,7 +116,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 except Exception as e:
                     print("Failed writing result file : " + str(e))
 
-    def prepare_robot_file(self, rows_data) -> Union[str, None]:
+    def prepare_robot_file(self, rows_data, src_format, dst_format) -> Union[str, None]:
         """
         This function takes the content of the Normalization planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
