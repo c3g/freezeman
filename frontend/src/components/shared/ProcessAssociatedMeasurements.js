@@ -135,7 +135,7 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (propertyTypes.length > 0) {
+  if (propertyTypes.length > 0  || Object.keys(props.filters).length > 0) {
     return <PaginatedList {...props}/>
   } else if (isFetching || props.tableProps.loading) {
     return <Spin />
