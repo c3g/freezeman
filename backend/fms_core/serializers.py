@@ -56,6 +56,7 @@ __all__ = [
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
     "ProcessMeasurementWithPropertiesExportSerializer",
+    "NestedProtocolSerializer",
     "ProtocolSerializer",
     "SampleMetadataSerializer",
     "SampleSerializer",
@@ -213,8 +214,12 @@ class SampleKindSerializer(serializers.ModelSerializer):
         model = SampleKind
         fields = "__all__"
 
-
 class ProtocolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Protocol
+        fields = "__all__"
+
+class NestedProtocolSerializer(serializers.ModelSerializer):
     property_types = serializers.SerializerMethodField()
 
     class Meta:
