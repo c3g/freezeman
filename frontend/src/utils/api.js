@@ -151,6 +151,7 @@ const api = {
   },
 
   protocols: {
+    get: (protocolId, nested = false) => get(`/protocols/${protocolId}/`, { nested }),
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 

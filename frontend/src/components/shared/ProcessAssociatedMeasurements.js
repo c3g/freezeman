@@ -5,10 +5,12 @@ import {Link, useParams} from "react-router-dom";
 import { useFilteredList } from "../../hooks/useFilteredList";
 import PaginatedList from "./PaginatedList";
 
+import useToken from "../../hooks/useToken"
 import {withSample} from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
+import api from "../../utils/api";
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
@@ -64,7 +66,6 @@ const mapStateToProps = state => ({
   sortBy: state.processMeasurements.sortBy,
   totalCount: state.processMeasurements.filteredItemsCount,
   propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
 });
 
 const actionCreators = {listFilter, listPropertyValues};
@@ -80,17 +81,14 @@ const ProcessAssociatedMeasurements = ({
   propertyValuesByID,
   listPropertyValues,
   process,
-  protocolsByID,
 }) => {
   const { id } = process;
 
-  const sample_property_types = process ? protocolsByID[process.protocol].property_types.filter((property_type) => {
-    return property_type.model === "processmeasurement"
-  }) : [];
+  const [samplePropertyTypes, setSamplePropertyTypes] = useToken([], api.protocols.get, [process?.protocol, true])
 
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
   
-  const columns = getTableColumns(samplesByID, sample_property_types, propertyValuesByID)
+  const columns = getTableColumns(samplesByID, samplePropertyTypes, propertyValuesByID)
 
   useEffect(() => {
     const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
@@ -100,6 +98,17 @@ const ProcessAssociatedMeasurements = ({
       listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
     }
   }, [processMeasurements, propertyValuesByID])
+
+  useEffect(() => {
+    if (process?.protocol) {
+      setSamplePropertyTypes((response) => {
+        const property_types = response.data.property_types
+        return property_types.filter((property_type) => {
+          return property_type.model === "processmeasurement"
+        })
+      })
+    }
+  }, [process])
 
   const props = useFilteredList({
     description: PROCESS_MEASUREMENT_FILTERS,
@@ -115,7 +124,7 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (sample_property_types.length > 0) {
+  if (samplePropertyTypes.length > 0) {
     return <PaginatedList {...props}/>
   } else {
     return <>No sample specific properties associated with the protocol.</>
