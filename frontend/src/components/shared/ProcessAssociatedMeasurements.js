@@ -16,10 +16,10 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
 }
 
 /**
- * 
- * @param {any} processMeasurements 
- * @param {any} processMeasurementsByID 
- * @param {any} propertyValuesByID 
+ *
+ * @param {any} processMeasurements
+ * @param {any} processMeasurementsByID
+ * @param {any} propertyValuesByID
  * @returns An array of property values where the property type is unique.
  */
 const getPropertyTypesFromMeasurements = (processMeasurements, processMeasurementsByID, propertyValuesByID) => {
@@ -106,6 +106,9 @@ const ProcessAssociatedMeasurements = ({
   listPropertyValues,
   id,
 }) => {
+
+  const protocolHasProperties = processMeasurements.every(processMeasurement => processMeasurementsByID[processMeasurement]?.properties.length !== 0)
+
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
 
   const propertyValues = getPropertyTypesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
@@ -135,7 +138,7 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (propertyValues.length > 0) {
+  if (protocolHasProperties) {
     return <PaginatedList {...props}/>
   } else if (isFetching || props.tableProps.loading) {
     return <Spin />
