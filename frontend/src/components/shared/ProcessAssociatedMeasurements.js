@@ -108,9 +108,9 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
 
-  const propertyValues = getPropertyTypesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
+  const propertyTypes = getPropertyTypesFromMeasurements(processMeasurements, processMeasurementsByID, propertyValuesByID)
 
-  const columns = getTableColumns(samplesByID, propertyValues, propertyValuesByID)
+  const columns = getTableColumns(samplesByID, propertyTypes, propertyValuesByID)
 
   useEffect(() => {
     const measurementsWithMissingProperties = processMeasurements.filter((id) => id in processMeasurementsByID)
@@ -135,7 +135,7 @@ const ProcessAssociatedMeasurements = ({
     page: page,
   })
 
-  if (propertyValues.length > 0) {
+  if (propertyTypes.length > 0) {
     return <PaginatedList {...props}/>
   } else if (isFetching || props.tableProps.loading) {
     return <Spin />
