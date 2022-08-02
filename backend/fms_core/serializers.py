@@ -50,6 +50,7 @@ __all__ = [
     "LibraryTypeSerializer",
     "PlatformSerializer",
     "SampleKindSerializer",
+    "PropertyTypeSerializer",
     "PropertyValueSerializer",
     "ProcessSerializer",
     "ProcessMeasurementSerializer",
@@ -214,15 +215,23 @@ class SampleKindSerializer(serializers.ModelSerializer):
 
 
 class ProtocolSerializer(serializers.ModelSerializer):
+    property_types = serializers.SerializerMethodField()
+
     class Meta:
         model = Protocol
         fields = "__all__"
+        extra_fields = ('property_types')
+    
+    def get_property_types(self, obj):
+        protocol_content_type = ContentType.objects.get_for_model(Protocol)
+        return PropertyTypeSerializer(
+            PropertyType.objects.filter(object_id=obj.id, content_type=protocol_content_type), many=True
+        ).data
 
 
 class ProcessSerializer(serializers.ModelSerializer):
     children_properties = serializers.SerializerMethodField()
     children_processes = serializers.SerializerMethodField()
-    sample_property_types = serializers.SerializerMethodField()
     imported_template_filename = serializers.CharField(read_only=True, source="imported_template.filename")
 
     class Meta:
@@ -233,17 +242,6 @@ class ProcessSerializer(serializers.ModelSerializer):
     def get_children_properties(self, obj):
         process_content_type = ContentType.objects.get_for_model(Process)
         return PropertyValue.objects.filter(object_id=obj.id, content_type=process_content_type).values_list('id', flat=True)
-    
-    def get_sample_property_types(self, obj):
-        protocol_content_type = ContentType.objects.get_for_model(Protocol)
-        property_types = PropertyType.objects.filter(object_id=obj.protocol.id, content_type=protocol_content_type)
-        
-        process_measurement_type = ContentType.objects.get_for_model(ProcessMeasurement)
-        property_values = PropertyValue.objects.filter(property_type__in=property_types, content_type=process_measurement_type)
-
-        property_types = property_types.filter(Exists(property_values.filter(property_type=OuterRef("pk"))))
-
-        return property_types.values('id', 'name')
 
     def get_children_processes(self, obj):
         return Process.objects.filter(parent_process=obj.id).values_list('id', flat=True)
@@ -318,6 +316,16 @@ class ProcessMeasurementWithPropertiesExportSerializer(serializers.ModelSerializ
             data[property_type.name] = property_value.value if property_value else None # manually insert the property values in the column
         return data
 
+
+class PropertyTypeSerializer(serializers.ModelSerializer):
+    model = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PropertyType
+        fields = ('id', 'name', 'model')
+    
+    def get_model(self, obj):
+        return PropertyValue.objects.filter(property_type=obj).values_list('content_type__model', flat=True).first()
 
 class PropertyValueSerializer(serializers.ModelSerializer):
     property_name = serializers.CharField(read_only=True, source="property_type.name")

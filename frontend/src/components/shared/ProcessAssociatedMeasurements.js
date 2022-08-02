@@ -64,6 +64,7 @@ const mapStateToProps = state => ({
   sortBy: state.processMeasurements.sortBy,
   totalCount: state.processMeasurements.filteredItemsCount,
   propertyValuesByID: state.propertyValues.itemsByID,
+  protocolsByID: state.protocols.itemsByID,
 });
 
 const actionCreators = {listFilter, listPropertyValues};
@@ -79,9 +80,13 @@ const ProcessAssociatedMeasurements = ({
   propertyValuesByID,
   listPropertyValues,
   process,
+  protocolsByID,
 }) => {
   const { id } = process;
-  const sample_property_types = process.sample_property_types ?? [];
+
+  const sample_property_types = process ? protocolsByID[process.protocol].property_types.filter((property_type) => {
+    return property_type.model === "processmeasurement"
+  }) : [];
 
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
   
