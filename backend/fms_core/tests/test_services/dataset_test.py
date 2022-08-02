@@ -47,5 +47,6 @@ class DatasetServicesTestCase(TestCase):
         self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset_file)
+        self.assertEqual(dataset_file.release_flag, ReleaseFlag.RELEASE)
         self.assertIsNotNone(dataset_file.release_flag_timestamp)
         
