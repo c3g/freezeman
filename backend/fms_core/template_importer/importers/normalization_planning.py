@@ -204,63 +204,6 @@ class NormalizationPlanningImporter(GenericImporter):
                                                                                        row_data["Destination Container Coord"])
         
             # Sort incomming list using the destination plates barcodes and coords
-            sorted_by_robot_container_and_coord = sorted(rows_data,
-                                                         key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
-                                                         reverse=False)
-
-            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-
-            if src_format == FIXED_FORMAT: ############## condition src Fixed (plates) ##############
-                # Map container spec to source container barcode
-                for barcode in src_containers:
-                    container = Container.objects.get(barcode=barcode)
-                    coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
-
-                # Map source container barcode to robot source barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str(i)
-
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-
-                # Add robot src coord to the sorted rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
-                                                                                      row_data["Source Container Coord"])
-            elif src_format == MOBILE_FORMAT: ############## condition src Mobile (tubes) ##############                
-                # Map destination container barcode to robot destination barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str((i / count_default_coords) + 1)
-
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-                
-                # Add robot src coord to the sorted rows_data
-                for i, row_data in enumerate(rows_data):
-                    row_data["Robot Source Coord"] = str(i % count_default_coords)
-
-        elif dst_format == MOBILE_FORMAT and src_format == FIXED_FORMAT: ############## condition dst Mobile (tubes) + condition src Fixed (plates) ##############
-            # Use src containers coords to order the lines
-            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-            # Map container spec to destination container barcode
-            for barcode in src_containers:
-                container = Container.objects.get(barcode=barcode)
-                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec if container.kind != TUBE \
-                                                 else CONTAINER_KIND_SPECS[ROBOT_FIXED_TUBE_RACK].coordinate_spec
-            # Map source container barcode to robot source barcodes
-            for i, barcode in enumerate(src_containers):
-                mapping_src_containers[barcode] = "src" + str(i) # !!!!!!!! Need to think about tubes also ...
-            # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-            # Add robot dest coord to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
-                                                                                       row_data["Destination Container Coord"])
-        
-            # Sort incomming list using the destination plates barcodes and coords
             rows_data = sorted(rows_data,
                                key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
                                reverse=False)
