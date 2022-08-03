@@ -103,11 +103,12 @@ const mapStateToProps = state => ({
 const actionCreators = {get, listChildren};
 
 const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
+  
+  const [explodedKeys, setExplodedKeys] = useState({});
+  useEffect(() => { setExplodedKeys({}) }, [container?.id]);
+
   if (!container || !container.parents)
     return <LoadingOutlined />;
-
-  const [explodedKeys, setExplodedKeys] = useState({});
-  useEffect(() => { setExplodedKeys({}) }, [container.id]);
 
   const context = {
     containersByID,
