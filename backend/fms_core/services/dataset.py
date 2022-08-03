@@ -53,12 +53,12 @@ def create_dataset_file(dataset: Dataset,
 
     return (dataset_file, errors, warnings)
 
-def set_release_flag(dataset: int, release_flag: Optional[int]) -> None:
+def set_release_flag(dataset: int, release_flag: int) -> None:
     files = DatasetFile.objects.filter(dataset=dataset)
 
-    if release_flag is None:
-        # pick opposite flag
-        release_flag = [ReleaseFlag.BLOCK, ReleaseFlag.RELEASE][files.filter(release_flag=ReleaseFlag.RELEASE).exists()]
+    # if release_flag is None:
+    #     # pick opposite flag
+    #     release_flag = [ReleaseFlag.RELEASE, ReleaseFlag.BLOCK][files.filter(release_flag=ReleaseFlag.RELEASE).exists()]
 
     files.update(
         release_flag=release_flag,
