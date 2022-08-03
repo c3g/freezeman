@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from .utils import convert_concentration_from_ngbyul_to_nm
+from django.db.models import Exists, OuterRef
 
 from .models import (
     Container,
@@ -55,7 +56,6 @@ __all__ = [
     "ProcessMeasurementSerializer",
     "ProcessMeasurementExportSerializer",
     "ProcessMeasurementWithPropertiesExportSerializer",
-    "NestedProtocolSerializer",
     "ProtocolSerializer",
     "SampleMetadataSerializer",
     "SampleSerializer",
@@ -213,12 +213,8 @@ class SampleKindSerializer(serializers.ModelSerializer):
         model = SampleKind
         fields = "__all__"
 
-class ProtocolSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Protocol
-        fields = "__all__"
 
-class NestedProtocolSerializer(serializers.ModelSerializer):
+class ProtocolSerializer(serializers.ModelSerializer):
     property_types = serializers.SerializerMethodField()
 
     class Meta:
