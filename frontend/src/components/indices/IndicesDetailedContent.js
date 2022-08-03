@@ -38,7 +38,7 @@ const IndicesDetailedContent = ({indicesByID, sequencesByID, isFetching, get}) =
         `Index ${index.name}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/indices/list")}/>
+        <AppPageHeader title={title}/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small" column={4}>

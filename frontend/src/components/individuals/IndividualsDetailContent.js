@@ -34,7 +34,7 @@ const IndividualsDetailContent = ({individualsByID, taxonsByID, get}) => {
         `Individual ${[id, individual ? individual.name : undefined].filter(Boolean).join(' - ')}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/individuals/list")} extra={
+        <AppPageHeader title={title} extra={
             <EditButton url={`/individuals/${id}/update`} />
         }/>
         <PageContent loading={isLoading}>

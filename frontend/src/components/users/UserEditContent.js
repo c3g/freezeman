@@ -95,7 +95,6 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/users/${id || 'list'}`)}
       />
       <PageContent>
         <Form

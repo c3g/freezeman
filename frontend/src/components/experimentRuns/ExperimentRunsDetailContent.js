@@ -90,7 +90,6 @@ const ExperimentRunsDetailContent = ({
     <>
       <AppPageHeader
         title={`Experiment ${experimentRun.id || id}`}
-        onBack={() => history.push("/experiment-runs/list")}
       />
 
       <PageContent loading={!isLoaded && isFetching} style={pageStyle} tabs={true}>

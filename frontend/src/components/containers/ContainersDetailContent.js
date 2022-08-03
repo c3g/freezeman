@@ -67,7 +67,6 @@ const ContainersDetailContent = ({
     <>
       <AppPageHeader
         title={`Container ${container.name || id}`}
-        onBack={() => history.push("/containers/list")}
         extra={
         !isLoaded ? null :
           <Space>

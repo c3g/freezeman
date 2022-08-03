@@ -161,7 +161,6 @@ const SampleDetailsContent = ({
   return <>
     <AppPageHeader
       title={`Sample ${sample.name || id}`}
-      onBack={() => history.push("/samples/list")}
       extra={isLoaded ?
         <Space>
           <div key="kind" style={{display: "inline-block", verticalAlign: "top", marginTop: "4px"}}>

@@ -56,7 +56,7 @@ const ProcessDetailContent = ({
         `Process ${[id, process && protocolsByID[process.protocol]?.name ].filter(Boolean).join(' - ')}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/process-measurements/list")}/>
+        <AppPageHeader title={title}/>
         <PageContent loading={isLoading}>
           <Tabs defaultActiveKey="1" size="large" type="card">
             <TabPane tab="Overview" key="1" style={{marginTop:8} }>
