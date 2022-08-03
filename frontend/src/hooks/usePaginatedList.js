@@ -101,8 +101,7 @@ export const usePaginatedList = ({
             total: totalCount,
             onChange: onChangePage,
             onShowSizeChange: (current, newPageSize) => onChangeSizeChange(newPageSize),
-        },
-        filters,
+        }
     }
 }
 
