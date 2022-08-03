@@ -151,15 +151,15 @@ class NormalizationPlanningImporter(GenericImporter):
         TUBE = "tube"
         ROBOT_TUBE_RACK = "tube rack 4x6"
 
-        def get_destination_container_barcode(row_data):
-            return row_data["Destination Container Barcode"]
-        def get_destination_contairer_coord(row_data):
-            return row_data["Destination Container Barcode"]
-        
-        def get_robot_destination_container(row_data):
+        def get_robot_destination_container(row_data) -> str:
             return row_data["Robot Destination Container"]
-        def get_robot_destination_coord(row_data):
+        def get_robot_destination_coord(row_data) -> str:
             return row_data["Robot Destination Coord"]
+
+        def get_placement_container_barcode(row_data) -> str:
+            return row_data["Destination Container Barcode"] if row_data["Destination Container Kind"] != TUBE else row_data["Destination Parent Container Barcode"]
+        def get_placement_container_coord(row_data) -> str:
+            return row_data["Destination Container Coord"] if row_data["Destination Container Kind"] != TUBE else row_data["Destination Parent Container Coord"]
 
         def convert_to_numerical_robot_coord(coord_spec, fms_coord) -> int:
             first_axis_len = len(coord_spec[FIRST_COORD_AXIS])
@@ -178,11 +178,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
         ############################################# Destination section ###################################################
 
-        # Map container spec to destination container barcode
-        for barcode in dest_containers:
-            container = Container.objects.get(barcode=barcode)
-            coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec if container.kind != TUBE \
-                                             else CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
+        dest_containers = set((get_placement_container_barcode(row_data), row_data["Destination Container Kind"]) for row_data in rows_data)
 
         if dst_format == FIXED_FORMAT: ############## condition dst Fixed (plates) + any src ##############
             # Map container spec to destination container barcode
@@ -195,8 +191,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             # Add robot barcode to the rows_data
             for row_data in rows_data:
-                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
-
+                row_data["Robot Destination Container"] = mapping_dest_containers[get_placement_container_barcode(row_data)]
             # Add robot dest coord to the rows_data
             for row_data in rows_data:
                 row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
