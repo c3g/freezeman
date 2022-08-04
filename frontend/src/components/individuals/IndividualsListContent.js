@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button} from "antd";
@@ -17,6 +17,8 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { withTaxon } from "../../utils/withItem";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 
 const TABLE_COLUMNS = (taxons) => [
@@ -43,7 +45,7 @@ const TABLE_COLUMNS = (taxons) => [
     dataIndex: "taxon__name",
     sorter: true,
     options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-    render: (_, individual) => <em>{(individual.taxon && withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
+    render: (_, individual) => <em>{(individual.taxon && taxons.itemsByID[individual.taxon]?.name) ?? "Loading..."}</em>,
   },
   {
     title: "Sex",
@@ -62,7 +64,7 @@ const TABLE_COLUMNS = (taxons) => [
   }
 
   // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
-];
+].map((column) => ({ ...column, key: column.title }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -109,6 +111,28 @@ const IndividualsListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: individuals,
+    itemsByID: individualsByID,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((individual) => {
+      if (individual) {
+        if (individual.taxon) withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading...");
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Individuals" extra={[
         <AddButton key='add' url="/individuals/add" />,
@@ -130,19 +154,7 @@ const IndividualsListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={individuals}
-        itemsByID={individualsByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps} />
     </PageContent>
   </>;
 };
