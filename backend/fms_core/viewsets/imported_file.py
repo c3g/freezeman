@@ -26,6 +26,11 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
         **_imported_file_filterset_fields,
     }
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        # Make sure that mimetypes is initialized so that a mapping for .xlsx files exists.
+        mimetypes.init()
+
     @action(detail=True, methods=["get"])
     def download(self, _request, pk) -> Response:
         """
