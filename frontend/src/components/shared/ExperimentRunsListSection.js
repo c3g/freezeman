@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 
 import {List} from "antd";
@@ -25,8 +25,10 @@ const ExperimentRunsListSection = ({
   const experimentRunsReady = experimentRunsIDs && (!hasExperimentRuns|| experimentRunsLoaded)
   let experimentRuns = []
 
-  if (hasExperimentRuns && !experimentRunsLoaded)
-    listExperimentRuns({id__in: experimentRunsIDs.join()})
+  useEffect(() => {
+    if (hasExperimentRuns && !experimentRunsLoaded)
+      listExperimentRuns({id__in: experimentRunsIDs.join()})
+  }, [hasExperimentRuns, experimentRunsLoaded, experimentRunsIDs])
 
   if (experimentRunsLoaded)
     experimentRuns = experimentRunsIDs?.map(erID => experimentRunsByID[erID])
