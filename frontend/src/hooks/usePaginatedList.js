@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPageSize } from "../modules/pagination";
 
@@ -40,25 +40,45 @@ export const usePaginatedList = ({
     const shouldLoadNextChunk =
         !loading && (isCurrentPageUnloaded || doesNextPageContainUnloaded);
 
-    if (shouldLoadNextChunk) {
-        let offset
+    useEffect(() => {
+        let timeout = null;
 
-        if (isCurrentPageUnloaded)
-            offset = Math.floor(startIndex / page.limit) * page.limit;
-        else if (doesNextPageContainUnloaded)
-            offset = items.length;
+        if (shouldLoadNextChunk) {
+            let offset = undefined;
 
-        setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
-    }
+            if (isCurrentPageUnloaded)
+                offset = Math.floor(startIndex / page.limit) * page.limit;
+            else if (doesNextPageContainUnloaded)
+                offset = items.length;
 
-    if (sortByRef.current !== sortBy) {
-        setCurrentPage(1)
-        sortByRef.current = sortBy
-    }
-    if (filtersRef.current !== filters) {
-        setCurrentPage(1)
-        filtersRef.current = filters
-    }
+            timeout = setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
+        }
+
+        return () => {
+            if (timeout !== null) clearTimeout(timeout);
+        }
+    }, [
+        doesNextPageContainUnloaded,
+        filterKey,
+        filters,
+        isCurrentPageUnloaded,
+        items.length,
+        page.limit,
+        shouldLoadNextChunk,
+        sortBy,
+        startIndex,
+    ])
+    
+    useEffect(() => {
+        if (sortByRef.current !== sortBy) {
+            setCurrentPage(1)
+            sortByRef.current = sortBy
+        }
+        if (filtersRef.current !== filters) {
+            setCurrentPage(1)
+            filtersRef.current = filters
+        }
+    }, [filters, sortBy])
 
     const onChangePage = (page, pageSize) => {
         setCurrentPage(page);
