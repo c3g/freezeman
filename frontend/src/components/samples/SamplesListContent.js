@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -23,6 +23,8 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
     {
@@ -64,7 +66,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
+            {individualsByID[individual]?.name ?? "loading..."}
           </Link>)
       }
     },
@@ -73,8 +75,9 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       dataIndex: "container__name",
       sorter: true,
       render: (_, sample) =>
-        (sample.container &&
-          withContainer(containersByID, sample.container, container => container.name, "loading...")),
+        <>
+          {(sample?.container && containersByID[sample.container]?.name) ?? "loading..."}
+        </>,
     },
     {
       title: "Container Barcode",
@@ -82,7 +85,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       sorter: true,
       render: (_, sample) => (sample.container &&
         <Link to={`/containers/${sample.container}`}>
-          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+          {containersByID[sample.container]?.barcode ?? "loading..."}
         </Link>),
     },
     {
@@ -141,7 +144,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -205,6 +208,29 @@ const SamplesListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: samples,
+    itemsByID: samplesByID,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((sample) => {
+      if (sample) {
+        if (sample.individual) withIndividual(individualsByID, sample.individual, individual => individual.name, "loading...");
+        if (sample.container) withContainer(containersByID, sample.container, container => container.name, "loading...");
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Samples" extra={[
       <AddButton key='add' url="/samples/add" />,
@@ -228,19 +254,7 @@ const SamplesListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={samples}
-        itemsByID={samplesByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps}/>
     </PageContent>
   </>;
 }
