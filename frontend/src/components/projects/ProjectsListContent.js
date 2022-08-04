@@ -20,6 +20,8 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 const getTableColumns = () => [
     {
@@ -71,7 +73,7 @@ const getTableColumns = () => [
       sorter: true,
       width: 115,
     }
-  ];
+  ].map((column, i) => ({ ...column, key: i.toString() }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -120,6 +122,20 @@ const ProjectsListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: projects,
+    itemsByID: projectsById,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
   return <>
     <AppPageHeader title="Projects" extra={[
       <AddButton key='add' url="/projects/add" />,
@@ -142,19 +158,7 @@ const ProjectsListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={projects}
-        itemsByID={projectsById}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps}/>
     </PageContent>
   </>;
 }
