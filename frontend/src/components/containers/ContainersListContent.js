@@ -88,7 +88,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       dataIndex: "coordinates",
       sorter: true,
     },
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 
 
 const mapStateToProps = state => ({
