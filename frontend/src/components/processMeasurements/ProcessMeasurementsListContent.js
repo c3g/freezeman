@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -18,6 +18,8 @@ import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 const getTableColumns = (samplesByID, protocols) => [
     {
@@ -53,7 +55,7 @@ const getTableColumns = (samplesByID, protocols) => [
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            {samplesByID[sample]?.name ?? "loading..."}
           </Link>)
       }
     },
@@ -65,7 +67,7 @@ const getTableColumns = (samplesByID, protocols) => [
         const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            {samplesByID[sample]?.name ?? "loading..."}
           </Link>)
       }
     },
@@ -82,7 +84,7 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 180,
     },
-  ];
+  ].map((column, i) => ({ ...column, key: i.toString() }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -138,6 +140,29 @@ const ProcessMeasurementsListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: processMeasurements,
+    itemsByID: processMeasurementsByID,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((processMeasurement) => {
+      if (processMeasurement) {
+        const sample = processMeasurement.source_sample
+        if (sample) withSample(samplesByID, sample, sample => sample.name, "loading...");
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Protocols" extra={[
       actionDropdown("/process-measurements", actions),
@@ -158,19 +183,7 @@ const ProcessMeasurementsListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={processMeasurements}
-        itemsByID={processMeasurementsByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps}/>
     </PageContent>
   </>;
 }
