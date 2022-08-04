@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -21,6 +21,8 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
@@ -66,7 +68,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       sorter: true,
       render: (_, library) => (library.container &&
         <Link to={`/containers/${library.container}`}>
-          {withContainer(containersByID, library.container, container => container.barcode, "loading...")}
+          {containersByID[library.container]?.barcode ?? "loading..."}
         </Link>),
     },
     {
@@ -90,7 +92,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       sorter: true,
       render: (_, library) => (library.index &&
         <Link to={`/indices/${library.index}`}>
-          {withIndex(indicesByID, library.index, index => index.name, "loading...")}
+          {indicesByID[library.index]?.name ?? "loading..."}
         </Link>),
     },
     {
@@ -161,7 +163,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -223,6 +225,29 @@ const LibrariesListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: libraries,
+    itemsByID: librariesByID,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((library) => {
+      if (library) {
+        if (library.container) withContainer(containersByID, library.container, container => container.barcode, "loading...");
+        if (library.index) withIndex(indicesByID, library.index, index => index.name, "loading...");
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Libraries" extra={[
       actionDropdown("/libraries", actions),
@@ -244,19 +269,7 @@ const LibrariesListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={libraries}
-        itemsByID={librariesByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps}/>
     </PageContent>
   </>;
 }
