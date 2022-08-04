@@ -141,8 +141,8 @@ const DashboardPage = ({
                 <Statistic title="Total Protocols" value={processMeasurementsSummary.total_count || "—"} />
               </Col>
               <Col {...STATS_COL_PROPS}>
-                {((processMeasurementsSummary.protocol_counts && Object.keys(processMeasurementsSummary.protocol_counts)) || []).map((protocol) =>
-                  <Statistic title={protocolsByID[protocol]?.name} value={processMeasurementsSummary.protocol_counts[protocol] || "—"} />
+                {((processMeasurementsSummary.protocol_counts && Object.keys(processMeasurementsSummary.protocol_counts)) || []).map((protocol, i) =>
+                  <Statistic key={i} title={protocolsByID[protocol]?.name} value={processMeasurementsSummary.protocol_counts[protocol] || "—"} />
                 )}
               </Col>
             </Row>
