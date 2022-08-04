@@ -45,7 +45,7 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
         try:
             with open(file_path, "rb") as file:
                 response = HttpResponse(content=file)
-                response["Content-Type"] = mime_type_guess[0]
+                response["Content-Type"] = mime_type_guess[0] if mime_type_guess[0] != None else 'application/octet-stream'
                 response["Content-Disposition"] = "attachment; filename=" + filename
         except Exception as err:
             print(err)
