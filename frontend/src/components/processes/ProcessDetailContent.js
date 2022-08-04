@@ -82,7 +82,7 @@ const ProcessDetailContent = ({
             <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
             <AllProcessProperties id={id} />
             <Title level={3} style={{ marginTop: '20px' }}>Sample Processes with Properties</Title>
-            <ProcessAssociatedMeasurements id={id} />
+            <ProcessAssociatedMeasurements process={process} />
           </TabPane>
         </Tabs>
       </PageContent>
