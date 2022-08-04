@@ -1,6 +1,5 @@
 import os
 import json
-import mimetypes
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -40,12 +39,12 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(id=pk)
         filename = queryset.first().filename
         file_path = os.path.join(settings.TEMPLATE_UPLOAD_PATH, filename)
-        mime_type_guess = mimetypes.guess_type(file_path)
         
         try:
             with open(file_path, "rb") as file:
                 response = HttpResponse(content=file)
-                response["Content-Type"] = mime_type_guess[0]
+                response["Content-Encoding"] = 'identity'
+                response["Content-Type"] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 response["Content-Disposition"] = "attachment; filename=" + filename
         except Exception as err:
             print(err)
