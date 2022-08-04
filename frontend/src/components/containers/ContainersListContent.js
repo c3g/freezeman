@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
-import PaginatedTable from "../PaginatedTable";
+import PaginatedList from "../shared/PaginatedList"
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
 
@@ -20,6 +20,7 @@ import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
+import usePaginatedList from "../../hooks/usePaginatedList";
 
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
@@ -51,7 +52,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
             {samples.map((id, i) =>
               <React.Fragment key={id}>
                 <Link to={`/samples/${id}`}>
-                  {withSample(samplesByID, id, sample => sample.name, <span>Loading…</span>)}
+                  {samplesByID[id]?.name ?? "Loading..."}
                 </Link>
                 {i !== samples.length - 1 ? ', ' : ''}
               </React.Fragment>
@@ -74,7 +75,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       sorter: true,
       render: location => (location &&
         <Link to={`/containers/${location}`}>
-          {withContainer(containersByID, location, container => container.name, "Loading...")}
+          {containersByID[location]?.name ?? "Loading..."}
         </Link>),
     },
     {
@@ -149,6 +150,30 @@ const ContainersListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: containers,
+    itemsByID: containersByID,
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((container) => {
+      if (container) {
+        container.samples.forEach((id, i) => {
+          withSample(samplesByID, id, sample => sample, null)
+        })
+        withContainer(containersByID, container.location, container => container, null)
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Containers" extra={[
       <AddButton key='add' url="/containers/add" />,
@@ -171,18 +196,7 @@ const ContainersListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={containers}
-        itemsByID={containersByID}
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps} />
     </PageContent>
   </>;
 }
