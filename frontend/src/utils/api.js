@@ -334,6 +334,18 @@ function attachData(response) {
   if (filename)
     response.filename = filename
 
+  /*
+    TODO: This code was causing downloaded excel templates to become corrupted because
+    the backend was sending "None" as a Content-Type, due to a problem with mime types.
+    We tried to fix that by hard-coding the content-type as 'application/octet-stream' but
+    the files were still corrupt.
+
+    The problem was traced to this code. By default, the response is converted to text unless
+    the content-type correctly identifies the file as an excel sheet.
+
+    This was a difficult problem to figure out. This code needs to be improved to avoid
+    the same problem in the future if we transer other binary data types.
+  */
   const isJSON = contentType.includes('/json')
   response.isJSON = isJSON
   const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
