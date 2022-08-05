@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
 import {Button, Tag} from "antd";
@@ -17,6 +17,8 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
+import usePaginatedList from "../../hooks/usePaginatedList";
+import PaginatedList from "../shared/PaginatedList";
 
 
 const getTableColumns = (containersByID, runTypes, instruments) => [
@@ -63,7 +65,7 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
     sorter: true,
     render: (_, experimentRun) =>
       (experimentRun.container &&
-        withContainer(containersByID, experimentRun.container, container => container.name, "loading...")),
+        containersByID[experimentRun.container]?.name) || "loading...",
   },
   {
     title: "Container Barcode",
@@ -71,7 +73,7 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
     sorter: true,
     render: (_, experimentRun) => (experimentRun.container &&
       <Link to={`/containers/${experimentRun.container}`}>
-        {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+        {containersByID[experimentRun.container]?.barcode ?? "loading..."}
       </Link>),
   },
   {
@@ -136,6 +138,28 @@ const ExperimentRunsListContent = ({
 
   const nFilters = getNFilters(filters)
 
+  const PaginatedListProps = usePaginatedList({
+    columns: columns,
+    items: experimentRuns,
+    itemsByID: experimentRunsByID,
+    rowKey: "id",
+    loading: isFetching,
+    totalCount: totalCount,
+    page: page,
+    filters: filters,
+    sortBy: sortBy,
+    onLoad: listTable,
+    onChangeSort: setSortBy,
+  })
+
+  useEffect(() => {
+    PaginatedListProps.tableProps.dataSource.forEach((experimentRun) => {
+      if (experimentRun) {
+        if (experimentRun.container) withContainer(containersByID, experimentRun.container, container => container.name, "loading...");
+      }
+    })
+  }, [PaginatedListProps.tableProps.dataSource])
+
   return <>
     <AppPageHeader title="Experiments" extra={[
         actionDropdown("/experiment-runs", actions),
@@ -157,19 +181,7 @@ const ExperimentRunsListContent = ({
           Clear Filters
         </Button>
       </div>
-      <PaginatedTable
-        columns={columns}
-        items={experimentRuns}
-        itemsByID={experimentRunsByID}
-        rowKey="id"
-        loading={isFetching}
-        totalCount={totalCount}
-        page={page}
-        filters={filters}
-        sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
-      />
+      <PaginatedList {...PaginatedListProps} />
     </PageContent>
   </>;
 };
