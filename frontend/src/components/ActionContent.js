@@ -64,7 +64,6 @@ const ActionContent = ({token, templateType, templateActions}) => {
   return <>
     <AppPageHeader
       title={action.name}
-      onBack={goBack}
       extra={
         actions.items[actionIndex] && action.template.length > 1 ?
           <Dropdown overlay={templateChoiceMenu} placement="bottomRight">

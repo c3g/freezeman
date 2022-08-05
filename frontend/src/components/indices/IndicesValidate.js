@@ -170,7 +170,6 @@ const IndicesValidate = ({token, indicesTotalCount, isFetching, list, validate})
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push('/indices/list')}
       />
       <PageContent>
       { validationResult

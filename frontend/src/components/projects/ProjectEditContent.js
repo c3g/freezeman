@@ -86,7 +86,6 @@ const ProjectEditContent = ({token, projectsByID, add, update, listTable, summar
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/projects/${id || 'list'}`)}
       />
       <PageContent>
         <Form

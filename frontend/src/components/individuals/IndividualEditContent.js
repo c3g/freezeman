@@ -113,7 +113,6 @@ const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update,
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/individuals/${id || 'list'}`)}
       />
       <PageContent>
         <Form

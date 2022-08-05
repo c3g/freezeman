@@ -99,7 +99,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/containers/${id || 'list'}`)}
       />
       <PageContent>
         <Form

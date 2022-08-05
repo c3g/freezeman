@@ -93,7 +93,6 @@ const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
     <>
       <AppPageHeader
         title='Profile'
-        onBack={() => history.goBack()}
       />
       <PageContent>
         <div>

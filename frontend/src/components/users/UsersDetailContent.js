@@ -80,7 +80,6 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
     <>
       <AppPageHeader
         title="User"
-        onBack={history.goBack}
         breadcrumb={{ routes: routes.concat(route), itemRender }}
         extra={canWrite ?
           <EditButton url={`/users/${id}/update`} /> : undefined

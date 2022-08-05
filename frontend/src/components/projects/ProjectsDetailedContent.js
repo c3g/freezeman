@@ -36,7 +36,7 @@ const ProjectsDetailedContent = ({projectsByID, samplesByID, isFetching, get}) =
         `Project ${project.name}`;
 
     return <>
-        <AppPageHeader title={title} onBack={() => history.push("/projects/list")} extra={ <EditButton url={`/projects/${id}/update`}/> }/>
+        <AppPageHeader title={title} extra={ <EditButton url={`/projects/${id}/update`}/> }/>
         <PageContent loading={isLoading}>
             <Title level={2}>Overview</Title>
             <Descriptions bordered={true} size="small" column={4}>
