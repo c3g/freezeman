@@ -150,10 +150,12 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];
-
-  if (!user && isLoggedIn)
-    get(userID);
-
+  
+  useEffect(() => {
+    if (!user && isLoggedIn)
+      get(userID);
+  }, [user, isLoggedIn])
+  
   const menuItems = getMenuItems(user, logOut);
 
   useEffect(onDidMount, []);

@@ -11,19 +11,19 @@ import { useEffect } from 'react';
  * @example
  */
 export default function useUserInputExpiration(expirationFunction, expirationDelay) {
-    let timer;
-
-    const startTimer = () => {
-        timer = setTimeout(expirationFunction, expirationDelay);
-    }
-
-    const resetTimer = () => {
-        if (timer)
-            clearTimeout(timer);
-        startTimer()
-    };
-
     useEffect(() => {
+        let timer;
+    
+        const startTimer = () => {
+            timer = setTimeout(expirationFunction, expirationDelay);
+        }
+    
+        const resetTimer = () => {
+            if (timer)
+                clearTimeout(timer);
+            startTimer()
+        };
+
         const events = [
             'click',
             'pageshow',
@@ -43,6 +43,6 @@ export default function useUserInputExpiration(expirationFunction, expirationDel
                 window.removeEventListener(events[i], resetTimer);
             }
         }
-    }, []);
+    }, [expirationFunction, expirationDelay]);
 
 }
