@@ -12,10 +12,10 @@ import {SAMPLE_FILTERS} from "../filters/descriptions";
 import WITH_ITEM from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
-import { withItemWrapper } from "../shared/WithItemComponent"
+import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (sampleKinds, individualsByID) => {
-  const withIndividual = withItemWrapper(WITH_ITEM.withIndividual)
+  const withIndividual = WithItemComponent(WITH_ITEM.withIndividual)
   
   return [
     {

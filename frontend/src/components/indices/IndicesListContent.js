@@ -22,10 +22,10 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withItemWrapper } from "../shared/WithItemComponent";
+import { WithItemComponent } from "../shared/WithItemComponent";
 
 const getTableColumns = (sequencesByID) => {
-  const withSequence = withItemWrapper(WITH_ITEM.withSequence)
+  const withSequence = WithItemComponent(WITH_ITEM.withSequence)
 
   return [
     {

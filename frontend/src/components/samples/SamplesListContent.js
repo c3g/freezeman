@@ -23,11 +23,11 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withItemWrapper } from "../shared/WithItemComponent"
+import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => {
-  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
-  const withIndividual = withItemWrapper(WITH_ITEM.withIndividual)
+  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
+  const withIndividual = WithItemComponent(WITH_ITEM.withIndividual)
 
   return [
     {

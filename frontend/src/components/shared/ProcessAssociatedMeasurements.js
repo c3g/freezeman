@@ -9,14 +9,14 @@ import WITH_ITEM from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
-import { withItemWrapper } from "../shared/WithItemComponent"
+import { WithItemComponent } from "../shared/WithItemComponent"
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
 const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
-  const withSample = withItemWrapper(WITH_ITEM.withSample)
+  const withSample = WithItemComponent(WITH_ITEM.withSample)
 
   return [
     {

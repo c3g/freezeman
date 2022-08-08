@@ -15,7 +15,7 @@ import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import WITH_ITEM from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withItemWrapper } from "../shared/WithItemComponent";
+import { WithItemComponent } from "../shared/WithItemComponent";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -26,8 +26,8 @@ import FiltersWarning from "../filters/FiltersWarning";
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
 const getTableColumns = (samplesByID, containersByID, containerKinds) => {
-  const withSample = withItemWrapper(WITH_ITEM.withSample)
-  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
+  const withSample = WithItemComponent(WITH_ITEM.withSample)
+  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
 
   return [
     {

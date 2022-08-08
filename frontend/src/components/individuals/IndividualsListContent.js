@@ -17,11 +17,11 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import WITH_ITEM from "../../utils/withItem";
-import { withItemWrapper } from "../shared/WithItemComponent"
+import { WithItemComponent } from "../shared/WithItemComponent"
 
 
 const TABLE_COLUMNS = (taxons) => {
-  const withTaxon = withItemWrapper(WITH_ITEM.withTaxon)
+  const withTaxon = WithItemComponent(WITH_ITEM.withTaxon)
 
   return [
     {

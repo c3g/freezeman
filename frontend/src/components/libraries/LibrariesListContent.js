@@ -21,11 +21,11 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withItemWrapper } from "../shared/WithItemComponent"
+import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, indicesByID, projectsByID) => {
-  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
-  const withIndex = withItemWrapper(WITH_ITEM.withIndex)
+  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
+  const withIndex = WithItemComponent(WITH_ITEM.withIndex)
 
   return [
     {
