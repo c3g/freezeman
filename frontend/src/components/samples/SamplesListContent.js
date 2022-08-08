@@ -16,15 +16,20 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndividual} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { withItemWrapper } from "../shared/WithItemComponent"
 
-const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => {
+  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
+  const withIndividual = withItemWrapper(WITH_ITEM.withIndividual)
+
+  return [
     {
       title: "ID",
       dataIndex: "id",
@@ -141,7 +146,8 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
-  ];
+  ]
+};
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
