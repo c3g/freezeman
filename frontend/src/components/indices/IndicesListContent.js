@@ -13,7 +13,7 @@ import FixedLengthText from "../FixedLengthText";
 import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
-import {withSequence} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
 import {actionDropdown} from "../../utils/templateActions";
@@ -22,8 +22,12 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { withItemWrapper } from "../shared/WithItemComponent";
 
-const getTableColumns = (sequencesByID) => [
+const getTableColumns = (sequencesByID) => {
+  const withSequence = withItemWrapper(WITH_ITEM.withSequence)
+
+  return [
     {
       title: "ID",
       dataIndex: "id",
@@ -78,7 +82,8 @@ const getTableColumns = (sequencesByID) => [
         />
       }
     },
-  ];
+  ]
+};
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
