@@ -5,16 +5,19 @@ import {Link, useParams} from "react-router-dom";
 import { useFilteredList } from "../../hooks/useFilteredList";
 import PaginatedList from "./PaginatedList";
 
-import {withSample} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
+import { withItemWrapper } from "../shared/WithItemComponent"
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
 const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
+  const withSample = withItemWrapper(WITH_ITEM.withSample)
+
   return [
     {
       title: "Sample Process ID",
