@@ -1,5 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer.importers.normalization_planning import VALID_ROBOT_FORMATS
+from fms_core.template_importer.importers.normalization_planning import VALID_NORM_CHOICES, VALID_ROBOT_FORMATS
 
 from fms_core.models import ProcessMeasurement
 
@@ -22,9 +22,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         concentration_nguL = None
         concentration_nM = None
 
-        # Check if robot formats are valid
-        if robot["input_format"] not in VALID_ROBOT_FORMATS:
-            self.errors['robot_input_format'] = f"Robot input format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
+        # Check if robot options are valid
+        if robot["norm_choice"] not in VALID_NORM_CHOICES:
+            self.errors['robot_norm_choice'] = f"Robot norm choice must be chosen among the following choices : {VALID_NORM_CHOICES}."
         if robot["output_format"] not in VALID_ROBOT_FORMATS:
             self.errors['robot_output_format'] = f"Robot output format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
 

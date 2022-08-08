@@ -1,6 +1,9 @@
 from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
+from fms_core.template_prefiller._utils import load_position_dict
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
+
+from fms_core.services.sample import get_sample_from_container
 
 from fms_core.models import IdGenerator, Container
 from ...containers import CONTAINER_KIND_SPECS
@@ -13,11 +16,15 @@ from django.conf import settings
 
 from io import BytesIO
 from datetime import datetime
-from typing import Union
+from typing import Dict, List, Union
 
 FIXED_FORMAT = "Fixed (plates)"
 MOBILE_FORMAT = "Mobile (tubes)"
 VALID_ROBOT_FORMATS = [FIXED_FORMAT, MOBILE_FORMAT]
+SAMPLE_CHOICE = "Sample"
+LIBRARY_CHOICE = "Library"
+VALID_NORM_CHOICES = [SAMPLE_CHOICE, LIBRARY_CHOICE]
+
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -37,14 +44,13 @@ class NormalizationPlanningImporter(GenericImporter):
         self.initialize_data_for_template()
 
     def initialize_data_for_template(self):
-        # Maybe useful ?
         pass
 
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
         mapping_rows_template = []
-        src_format = []
+        norm_choice = []
         dst_format = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
@@ -73,7 +79,7 @@ class NormalizationPlanningImporter(GenericImporter):
             }
 
             robot = {
-                'input_format': str_cast_and_normalize(row_data['Robot input format']),
+                'norm_choice': str_cast_and_normalize(row_data['Robot norm choice']),
                 'output_format': str_cast_and_normalize(row_data['Robot output format']),
             }
 
@@ -92,23 +98,23 @@ class NormalizationPlanningImporter(GenericImporter):
             )
 
             mapping_rows_template.append(row_mapping)
-            src_format.append(robot["input_format"])
+            norm_choice.append(robot["norm_choice"])
             dst_format.append(robot["output_format"])
 
         if not self.dry_run:
             # Populate files
             
-            # Temporary test. Make sure all the format for input and output are the same
-            if len(set(src_format)) != 1:
-                self.base_errors.append(f"All Robot input formats need to be identical.")
+            # Make sure all the normalization choice and formats for outputs are the same
+            if len(set(norm_choice)) != 1:
+                self.base_errors.append(f"All Robot norm choice need to be identical.")
+
             if len(set(dst_format)) != 1:
                 self.base_errors.append(f"All Robot output formats need to be identical.")
 
-
             # Create robot file and complete mapping_rows_template with the 
-            robot_filename = self.prepare_robot_file(mapping_rows_template, src_format[0], dst_format[0])
+            robot_files, updated_mapping_rows = self.prepare_robot_file(mapping_rows_template, norm_choice[0], dst_format[0])
 
-            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, mapping_rows_template)
+            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_mapping_rows)
 
             output_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
 
@@ -133,7 +139,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'content': zip_buffer.getvalue()
             }
             
-    def prepare_robot_file(self, rows_data, src_format, dst_format) -> Union[BytesIO, None]:
+    def prepare_robot_file(self, rows_data, src_format, dst_format) -> Union[(List[BytesIO], Dict), None]:
         """
         This function takes the content of the Normalization planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
@@ -149,7 +155,8 @@ class NormalizationPlanningImporter(GenericImporter):
         FIRST_COORD_AXIS = 0
         SECOND_COORD_AXIS = 1
         TUBE = "tube"
-        ROBOT_TUBE_RACK = "tube rack 4x6"
+        ROBOT_MOBILE_TUBE_RACK = "tube rack 4x6"
+        ROBOT_FIXED_TUBE_RACK = "tube rack 8x12"
 
         def get_robot_destination_container(row_data) -> str:
             return row_data["Robot Destination Container"]
@@ -275,20 +282,20 @@ class NormalizationPlanningImporter(GenericImporter):
                 for row_data in sorted_by_robot_container_and_coord:
                     row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
                                                                                       row_data["Source Container Coord"])
-        else: # condition dest Mobile (tubes)
-            # The robot container in Mobile format are "tube racks 4x6"
-            default_spec = CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
-            count_coordinates_dest = len(default_spec[FIRST_COORD_AXIS]) * len(default_spec[SECOND_COORD_AXIS])
-            # Map destination container barcode to robot destination barcodes
-            for i, (barcode, _) in enumerate(dest_containers):
-                mapping_dest_containers[barcode] = "dest" + str((i / count_default_coords) + 1)
-            # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
-            
-            # Add robot dest coord to the rows_data
-            for i, row_data in enumerate(rows_data):
-                row_data["Robot Destination Coord"] = str(i % count_default_coords)
+            else: # condition dest Mobile (tubes)
+                # The robot container in Mobile format are "tube racks 4x6"
+                default_spec = CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
+                count_coordinates_dest = len(default_spec[FIRST_COORD_AXIS]) * len(default_spec[SECOND_COORD_AXIS])
+                # Map destination container barcode to robot destination barcodes
+                for i, (barcode, _) in enumerate(dest_containers):
+                    mapping_dest_containers[barcode] = "dest" + str((i / count_default_coords) + 1)
+                # Add robot barcode to the rows_data
+                for row_data in rows_data:
+                    row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
+                
+                # Add robot dest coord to the rows_data
+                for i, row_data in enumerate(rows_data):
+                    row_data["Robot Destination Coord"] = str(i % count_default_coords)
 
         elif dst_format == MOBILE_FORMAT and src_format == MOBILE_FORMAT: ############## condition dst Mobile (tubes) + condition src Mobile (tubes) ##############
             count_coordinates_dest = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
@@ -321,46 +328,3 @@ class NormalizationPlanningImporter(GenericImporter):
             pass # This should never happen
 
 
-
-
-
-
-
-
-
-        ############################################# Source section ###################################################
-
-        src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-
-        if src_format == FIXED_FORMAT: ############## condition src Fixed (plates) ##############
-            # Map container spec to source container barcode
-            for barcode in src_containers:
-                container = Container.objects.get(barcode=barcode)
-                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
-
-            # Map source container barcode to robot source barcodes
-            for i, barcode in enumerate(src_containers):
-                mapping_src_containers[barcode] = "src" + str(i)
-
-            # Add robot barcode to the rows_data
-            for row_data in rows_data: 
-                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-
-            # Add robot src coord to the sorted rows_data
-            for row_data in rows_data:
-                row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
-                                                                                  row_data["Source Container Coord"])
-        elif src_format == MOBILE_FORMAT: ############## condition src Mobile (tubes) ##############
-            count_coordinates_src = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
-            
-            # Map destination container barcode to robot destination barcodes
-            for i, barcode in enumerate(src_containers):
-                mapping_src_containers[barcode] = "src" + str((i / count_coordinates_src) + 1)
-
-            # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-            
-            # Add robot src coord to the sorted rows_data
-            for i, row_data in enumerate(rows_data):
-                row_data["Robot Source Coord"] = str(i % count_coordinates_dest)
