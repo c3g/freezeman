@@ -12,14 +12,20 @@ import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {actionDropdown} from "../../utils/templateActions";
-import {withSample} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 
-const getTableColumns = (samplesByID, protocols) => [
+import { withItemWrapper } from "../shared/WithItemComponent"
+
+
+const getTableColumns = (samplesByID, protocols) => {
+  const withSample = withItemWrapper(WITH_ITEM.withSample)
+
+  return [
     {
       title: "ID",
       dataIndex: "id",
@@ -82,7 +88,8 @@ const getTableColumns = (samplesByID, protocols) => [
       sorter: true,
       width: 180,
     },
-  ];
+  ]
+};
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
