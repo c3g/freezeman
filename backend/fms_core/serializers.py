@@ -377,7 +377,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
         model = Sample
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
-                  'location_barcode', 'location_coord',
+                  'location_barcode', 'location_coord', 'full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')

@@ -3,11 +3,8 @@ from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F, Count, Exists
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, Exists
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.aggregates import ArrayAgg
-
-import time
 
 from ..utils import RE_SEPARATOR, make_generator
 
@@ -292,6 +289,25 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             )
         )
 
+        # full location
+        sample_ids = tuple(samples_queryset.values_list('id', flat=True))
+        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, full_location) AS (                                                   
+                                                                SELECT container.id, container.location_id, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+                                                                FROM fms_core_container AS container 
+                                                                WHERE container.location_id IS NULL
+
+                                                                UNION ALL
+
+                                                                SELECT container.id, container.location_id, container.barcode::varchar || ' (' || container.kind::varchar || ') < ' || container_hierarchy.full_location::varchar
+                                                                FROM container_hierarchy
+                                                                JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
+                                                                ) 
+
+                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
+                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
+
+        location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
+
         sample_values_queryset = (
             samples_queryset
             .annotate(
@@ -369,6 +385,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'coordinates': sample["coordinates"],
                 'location_barcode': sample["container__location__barcode"] or "",
                 'location_coord': sample["container__coordinates"] or "",
+                'full_location': location_by_sample[sample["id"]] or "",
                 'current_volume': sample["volume"],
                 'concentration': sample["concentration"],
                 'creation_date': sample["creation_date"],
