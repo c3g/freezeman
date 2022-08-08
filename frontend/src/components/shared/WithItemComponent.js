@@ -2,7 +2,7 @@ import React from "react"
 import { useItem } from "../../hooks/useItem"
 
 export const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null, render = (item) => <>{item}</>) => {
-    const item = useItem(withItem)(itemsByID, id, fn, null)
+    const item = useItem(withItem, itemsByID, id, fn, null)
     return render(item ?? defaultValue)
 }
 
