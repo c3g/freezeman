@@ -9,11 +9,15 @@ import api, {withToken}  from "../../utils/api"
 
 import {listFilter, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
-import {withIndividual} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
+import { withItemWrapper } from "../shared/WithItemComponent"
 
-const getTableColumns = (sampleKinds, individualsByID) => [
+const getTableColumns = (sampleKinds, individualsByID) => {
+  const withIndividual = withItemWrapper(WITH_ITEM.withIndividual)
+  
+  return [
     {
       title: "Sample Kind",
       dataIndex: "derived_samples__sample_kind__name",
@@ -71,6 +75,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       width: 50,
     }
   ];
+}
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
