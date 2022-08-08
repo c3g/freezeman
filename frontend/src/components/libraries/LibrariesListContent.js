@@ -15,14 +15,19 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndex} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { withItemWrapper } from "../shared/WithItemComponent"
 
-const getTableColumns = (containersByID, indicesByID, projectsByID) => [
+const getTableColumns = (containersByID, indicesByID, projectsByID) => {
+  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
+  const withIndex = withItemWrapper(WITH_ITEM.withIndex)
+
+  return [
     {
       title: "ID",
       dataIndex: "id",
@@ -162,6 +167,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
       width: 85,
     }
   ];
+}
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
