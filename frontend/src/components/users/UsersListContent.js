@@ -63,7 +63,7 @@ const getTableColumns = (groupsByID) => [
       sorter: true,
       render: value => value ? 'Yes' : 'No',
     },
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 
 
 const mapStateToProps = state => ({

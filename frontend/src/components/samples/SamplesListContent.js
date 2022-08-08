@@ -146,7 +146,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
-  ]
+  ].map((column) => ({ ...column, key: column.title }))
 };
 
 const mapStateToProps = state => ({

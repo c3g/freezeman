@@ -71,7 +71,7 @@ const getTableColumns = () => [
       sorter: true,
       width: 115,
     }
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,

@@ -166,7 +166,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => {
       render: depleted => <Depletion depleted={depleted} />,
       width: 85,
     }
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 }
 
 const mapStateToProps = state => ({

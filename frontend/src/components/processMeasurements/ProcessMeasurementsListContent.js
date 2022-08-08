@@ -88,7 +88,7 @@ const getTableColumns = (samplesByID, protocols) => {
       sorter: true,
       width: 180,
     },
-  ]
+  ].map((column) => ({ ...column, key: column.title }))
 };
 
 const mapStateToProps = state => ({

@@ -40,7 +40,7 @@ const ExperimentRunsListSection = ({
           dataSource={experimentRuns}
           loading={!experimentRunsReady}
           renderItem={experimentRun => (
-            <List.Item>
+            <List.Item key={experimentRun?.id?.toString()}>
               {`${experimentRun.start_date}  -  `}
               <Link to={`/experiment-runs/${experimentRun.id}`}>
                  {`[Experiment #${experimentRun.id}]  `}

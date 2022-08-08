@@ -74,7 +74,7 @@ const getTableColumns = (sampleKinds, individualsByID) => {
       render: depleted => <Depletion depleted={depleted} />,
       width: 50,
     }
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 }
 
 const mapStateToProps = state => ({

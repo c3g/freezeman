@@ -55,7 +55,7 @@ const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
         }
       }
     })
-  ]
+  ].map((column) => ({ ...column, key: column.title }))
 }
 
 const mapStateToProps = state => ({

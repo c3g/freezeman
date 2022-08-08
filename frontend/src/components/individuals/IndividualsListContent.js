@@ -66,7 +66,7 @@ const TABLE_COLUMNS = (taxons) => {
     }
 
     // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
-  ];
+  ].map((column) => ({ ...column, key: column.title }));
 }
 
 const mapStateToProps = state => ({
