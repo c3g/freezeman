@@ -16,53 +16,58 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withTaxon } from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
+import { withItemWrapper } from "../shared/WithItemComponent"
 
 
-const TABLE_COLUMNS = (taxons) => [
-  {
-    title: "ID",
-    dataIndex: "id",
-    sorter: true,
-    render: (id, individual) => <Link to={`/individuals/${individual.id}`}>{id}</Link>,
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    sorter: true,
-    render: (name, individual) =>
-      <Link to={`/individuals/${individual.id}`}>
-        <div>{name}</div>
-        {individual.alias &&
-          <div><small>alias: {individual.alias}</small></div>
-        }
-      </Link>,
-  },
-  {
-    title: "Taxon",
-    dataIndex: "taxon__name",
-    sorter: true,
-    options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-    render: (_, individual) => <em>{(individual.taxon && withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
-  },
-  {
-    title: "Sex",
-    dataIndex: "sex",
-    sorter: true,
-  },
-  {
-    title: "Pedigree",
-    dataIndex: "pedigree",  // TODO: Link to modal with optional pedigree ID, mother, father
-    sorter: true,
-  },
-  {
-    title: "Cohort",
-    dataIndex: "cohort",
-    sorter: true,
-  }
+const TABLE_COLUMNS = (taxons) => {
+  const withTaxon = withItemWrapper(WITH_ITEM.withTaxon)
 
-  // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
-];
+  return [
+    {
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      render: (id, individual) => <Link to={`/individuals/${individual.id}`}>{id}</Link>,
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      sorter: true,
+      render: (name, individual) =>
+        <Link to={`/individuals/${individual.id}`}>
+          <div>{name}</div>
+          {individual.alias &&
+            <div><small>alias: {individual.alias}</small></div>
+          }
+        </Link>,
+    },
+    {
+      title: "Taxon",
+      dataIndex: "taxon__name",
+      sorter: true,
+      options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+      render: (_, individual) => <em>{(individual.taxon && withTaxon(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
+    },
+    {
+      title: "Sex",
+      dataIndex: "sex",
+      sorter: true,
+    },
+    {
+      title: "Pedigree",
+      dataIndex: "pedigree",  // TODO: Link to modal with optional pedigree ID, mother, father
+      sorter: true,
+    },
+    {
+      title: "Cohort",
+      dataIndex: "cohort",
+      sorter: true,
+    }
+
+    // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
+  ];
+}
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
