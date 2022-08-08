@@ -13,8 +13,9 @@ import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "..
 import api, {withToken}  from "../../utils/api"
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withSample} from "../../utils/withItem";
+import WITH_ITEM from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { withItemWrapper } from "../shared/WithItemComponent";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -24,7 +25,11 @@ import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const getTableColumns = (samplesByID, containersByID, containerKinds) => [
+const getTableColumns = (samplesByID, containersByID, containerKinds) => {
+  const withSample = withItemWrapper(WITH_ITEM.withSample)
+  const withContainer = withItemWrapper(WITH_ITEM.withContainer)
+
+  return [
     {
       title: "ID",
       dataIndex: "id",
@@ -88,7 +93,8 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
       dataIndex: "coordinates",
       sorter: true,
     },
-  ];
+  ]
+};
 
 
 const mapStateToProps = state => ({
