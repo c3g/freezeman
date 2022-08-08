@@ -13,10 +13,12 @@ from .._utils import float_to_decimal_and_none, zip_files
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 from django.conf import settings
+from django.utils import timezone
 
 from io import BytesIO
 from datetime import datetime
 from typing import Dict, List, Union
+import decimal
 
 FIXED_FORMAT = "Fixed (plates)"
 MOBILE_FORMAT = "Mobile (tubes)"
@@ -139,7 +141,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'content': zip_buffer.getvalue()
             }
             
-    def prepare_robot_file(self, rows_data, src_format, dst_format) -> Union[(List[BytesIO], Dict), None]:
+    def prepare_robot_file(self, rows_data, norm_choice, dst_format) -> Union[(List[BytesIO], Dict), None]:
         """
         This function takes the content of the Normalization planning template as input to create
         a csv file that contains the required configuration for the robot execution of the
@@ -147,16 +149,24 @@ class NormalizationPlanningImporter(GenericImporter):
 
         Args:
             row_data: A list of row_data extracted by the importer and already validated by the row_handler.
-                      The row_data content will be modified and the robot barcode and coordinates will
-                      be added for input and output.
+            norm_choice: The choice between sample or library robot output files.
+            dst_format: Fixed (plate) or Mobile (tube) format
+            
         Returns:
-            A string containing the path to the created robot file or None if an error occured.
+            A tuple containing : a list of dict that contains robot csv files and an updated version of the row_data (sorted and completed).
         """
         FIRST_COORD_AXIS = 0
         SECOND_COORD_AXIS = 1
         TUBE = "tube"
         ROBOT_MOBILE_TUBE_RACK = "tube rack 4x6"
         ROBOT_FIXED_TUBE_RACK = "tube rack 8x12"
+
+        if norm_choice == LIBRARY_CHOICE:
+            ROBOT_SRC_PREFIX = "Source"
+            ROBOT_DST_PREFIX = "Dil"
+        elif norm_choice == SAMPLE_CHOICE:
+            ROBOT_SRC_PREFIX = "Src"
+            ROBOT_DST_PREFIX = "Dst"
 
         def get_robot_destination_container(row_data) -> str:
             return row_data["Robot Destination Container"]
@@ -173,158 +183,121 @@ class NormalizationPlanningImporter(GenericImporter):
             second_axis_coord = int(fms_coord[1:])
             return (ord(fms_coord[:1]) - 96) + (first_axis_len * (second_axis_coord - 1))
 
-
         mapping_dest_containers = {}
         mapping_src_containers = {}
         coord_spec_by_barcode = {}
+        output_rows_data = rows_data[:]
+        robot_files = []
 
         # The robot container in Mobile format are "tube racks 4x6"
         default_mobile_spec = CONTAINER_KIND_SPECS[ROBOT_MOBILE_TUBE_RACK].coordinate_spec
         count_default_coords = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
         coord_spec_by_barcode = {}
 
-        ############################################# Destination section ###################################################
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        dest_containers = set((get_placement_container_barcode(row_data), row_data["Destination Container Kind"]) for row_data in rows_data)
+        ################################################################################################
+
+        dest_containers = set((row_data["Destination Container Barcode"], row_data["Destination Container Kind"]) for row_data in rows_data)
 
         if dst_format == FIXED_FORMAT: ############## condition dst Fixed (plates) + any src ##############
             # Map container spec to destination container barcode
             for barcode, kind in dest_containers:
-                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec if kind != TUBE \
-                                                 else CONTAINER_KIND_SPECS[ROBOT_FIXED_TUBE_RACK].coordinate_spec
-            # Map destination container barcode to robot destination barcodes
-            for i, barcode in enumerate(dest_containers):
-                mapping_dest_containers[barcode] = "dest" + str(i)
-
-            # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Container"] = mapping_dest_containers[get_placement_container_barcode(row_data)]
-            # Add robot dest coord to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
-                                                                                       row_data["Destination Container Coord"])
-        
-            # Sort incomming list using the destination plates barcodes and coords
-            sorted_by_robot_container_and_coord = sorted(rows_data,
-                                                         key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
-                                                         reverse=False)
-
-            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-
-            if src_format == FIXED_FORMAT: ############## condition src Fixed (plates) ##############
-                # Map container spec to source container barcode
-                for barcode in src_containers:
-                    container = Container.objects.get(barcode=barcode)
-                    coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
-
-                # Map source container barcode to robot source barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str(i)
-
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-
-                # Add robot src coord to the sorted rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
-                                                                                      row_data["Source Container Coord"])
-            elif src_format == MOBILE_FORMAT: ############## condition src Mobile (tubes) ##############                
-                # Map destination container barcode to robot destination barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str((i / count_default_coords) + 1)
-
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-                
-                # Add robot src coord to the sorted rows_data
-                for i, row_data in enumerate(rows_data):
-                    row_data["Robot Source Coord"] = str(i % count_default_coords)
-
-        elif dst_format == MOBILE_FORMAT and src_format == FIXED_FORMAT: ############## condition dst Mobile (tubes) + condition src Fixed (plates) ##############
-            # Use src containers coords to order the lines
-            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-            # Map container spec to destination container barcode
-            for barcode in src_containers:
-                container = Container.objects.get(barcode=barcode)
-                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec if container.kind != TUBE \
-                                                 else CONTAINER_KIND_SPECS[ROBOT_FIXED_TUBE_RACK].coordinate_spec
-            # Map source container barcode to robot source barcodes
-            for i, barcode in enumerate(src_containers):
-                mapping_src_containers[barcode] = "src" + str(i) # !!!!!!!! Need to think about tubes also ...
-            # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-            # Add robot dest coord to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Destination Container Barcode"]),
-                                                                                       row_data["Destination Container Coord"])
-        
-            # Sort incomming list using the destination plates barcodes and coords
-            rows_data = sorted(rows_data,
-                               key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)),
-                               reverse=False)
-
-            count_coordinates_dest = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
-
-
-            if all(src_coords): # condition src Fixed (plates)
-                # Map source container barcode to robot source barcodes
-                for i, barcode in enumerate(src_containers):
-                    mapping_src_containers[barcode] = "src" + str(i)
-
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-
-                # Add robot src coord to the sorted rows_data
-                for row_data in sorted_by_robot_container_and_coord:
-                    row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(row_data["Source Container Barcode"]),
-                                                                                      row_data["Source Container Coord"])
-            else: # condition dest Mobile (tubes)
-                # The robot container in Mobile format are "tube racks 4x6"
-                default_spec = CONTAINER_KIND_SPECS[ROBOT_TUBE_RACK].coordinate_spec
-                count_coordinates_dest = len(default_spec[FIRST_COORD_AXIS]) * len(default_spec[SECOND_COORD_AXIS])
-                # Map destination container barcode to robot destination barcodes
-                for i, (barcode, _) in enumerate(dest_containers):
-                    mapping_dest_containers[barcode] = "dest" + str((i / count_default_coords) + 1)
-                # Add robot barcode to the rows_data
-                for row_data in rows_data:
-                    row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
-                
-                # Add robot dest coord to the rows_data
-                for i, row_data in enumerate(rows_data):
-                    row_data["Robot Destination Coord"] = str(i % count_default_coords)
-
-        elif dst_format == MOBILE_FORMAT and src_format == MOBILE_FORMAT: ############## condition dst Mobile (tubes) + condition src Mobile (tubes) ##############
-            count_coordinates_dest = len(default_mobile_spec[FIRST_COORD_AXIS]) * len(default_mobile_spec[SECOND_COORD_AXIS])
+                if kind == TUBE:
+                    return robot_files, output_rows_data # Tube output unexpected return no robot files.
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec # kind should not be tube
 
             # Map destination container barcode to robot destination barcodes
             for i, (barcode, _) in enumerate(dest_containers):
-                mapping_dest_containers[barcode] = "dest" + str((i / count_default_coords) + 1)
+                mapping_dest_containers[barcode] = ROBOT_DST_PREFIX + str(i)
+
             # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Destination Container"] = mapping_dest_containers[row_data["Destination Container Barcode"]]
-            
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Destination Container"] = mapping_dest_containers[output_row_data["Destination Container Barcode"]]
+
             # Add robot dest coord to the rows_data
-            for i, row_data in enumerate(rows_data):
-                row_data["Robot Destination Coord"] = str(i % count_default_coords)
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(output_row_data["Destination Container Barcode"]),
+                                                                                              output_row_data["Destination Container Coord"])
+        
+            # Sort incomming list using the destination plates barcodes and coords
+            output_rows_data.sort(key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)), reverse=False)
 
-            src_containers = set(row_data["Source Container Barcode"] for row_data in rows_data)
-            
-            # Map destination container barcode to robot destination barcodes
+            src_containers = set(output_row_data["Source Container Barcode"] for output_row_data in output_rows_data)
+
+              # Map container spec to source container barcode
+            for barcode in src_containers:
+                container = Container.objects.get(barcode=barcode)
+                if container.kind == TUBE:
+                    return robot_files, output_rows_data # Tube input unexpected return no robot files.
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[container.kind].coordinate_spec
+
+            # Map source container barcode to robot source barcodes
             for i, barcode in enumerate(src_containers):
-                mapping_src_containers[barcode] = "src" + str((i / count_default_coords) + 1)
+                mapping_src_containers[barcode] = ROBOT_SRC_PREFIX + str(i)
 
             # Add robot barcode to the rows_data
-            for row_data in rows_data:
-                row_data["Robot Source Container"] = mapping_src_containers[row_data["Source Container Barcode"]]
-            
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Source Container"] = mapping_src_containers[output_row_data["Source Container Barcode"]]
+
             # Add robot src coord to the sorted rows_data
-            for i, row_data in enumerate(rows_data):
-                row_data["Robot Source Coord"] = str(i % count_default_coords)
-        else:
-            pass # This should never happen
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode(output_row_data["Source Container Barcode"]),
+                                                                                          output_row_data["Source Container Coord"])
+
+        if norm_choice == LIBRARY_CHOICE:
+            # Creating the 2 robot files
+            add_diluent_io = BytesIO()
+            add_library_io = BytesIO()
+            add_diluent_lines = []
+            add_library_lines = []
+            add_diluent_lines.append(",".join(["DstNameForDiluent", "DstWellForDiluent", "DiluentVol"]) + "\n")
+            add_library_lines.append(",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n")
+
+            for output_row_data in output_rows_data:
+                container_src_barcode = output_row_data["Container Source Barcode"]
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = output_row_data["Robot Source Coord"]
+                robot_dst_coord = output_row_data["Robot Destination Coord"]
+                volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_library
+
+                add_diluent_lines.append(",".join([robot_dst_barcode, robot_dst_coord, str(volume_diluent)]) + "\n")
+                add_library_lines.append(",".join([container_src_barcode, robot_src_barcode, robot_src_coord, robot_dst_barcode, robot_dst_coord, str(volume_library)]) + "\n")
+
+            add_diluent_io.writelines(add_diluent_lines)
+            add_library_io.writelines(add_library_lines)
+            robot_files = [
+                {"name": f"Normalization_diluent_{timestamp}.csv",
+                  "content": add_diluent_io,},
+                {"name": f"Normalization_main_dilution_{timestamp}.csv",
+                  "content": add_library_io,},
+            ]
+
+        elif norm_choice == SAMPLE_CHOICE:
+            # Create the single robot file
+            normalization_io = BytesIO()
+            normalization_lines = []
+            normalization_lines.append(",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n")
+
+            for output_row_data in output_rows_data:
+                container_src_barcode = output_row_data["Container Source Barcode"]
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = output_row_data["Robot Source Coord"]
+                robot_dst_coord = output_row_data["Robot Destination Coord"]
+                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
+
+                normalization_lines.append(",".join([robot_src_barcode, robot_src_coord, robot_dst_barcode, robot_dst_coord, str(volume_diluent), str(volume_sample)]) + "\n")
+
+            normalization_io.writelines(normalization_lines)
+            robot_files = [
+                {"name": f"Normalization_{timestamp}.csv",
+                  "content": normalization_io,},
+            ]
+
+        return robot_files, output_rows_data
 
 
