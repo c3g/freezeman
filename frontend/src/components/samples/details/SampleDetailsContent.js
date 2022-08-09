@@ -174,7 +174,7 @@ const SampleDetailsContent = ({
     })
   }, [sample?.biosample_id, token])
 
-  const ExtractionDetails = ({ extracted_from }) => {
+  const ExtractedFrom = ({ extracted_from }) => {
     return <>
       <Link to={`/samples/${extracted_from}`}>
         {withSampleComponent(samplesByID, extracted_from, sample => sample.name, "Loading...")}
@@ -264,7 +264,7 @@ const SampleDetailsContent = ({
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>
               <Descriptions.Item label="Extracted From">
-                <ExtractionDetails extracted_from={sample.extracted_from} />
+                <ExtractedFrom extracted_from={sample.extracted_from} />
               </Descriptions.Item>
             </Descriptions>
           ) : null}
