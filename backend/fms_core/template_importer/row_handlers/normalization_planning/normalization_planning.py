@@ -1,5 +1,5 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer.importers.normalization_planning import VALID_ROBOT_FORMATS
+from fms_core.template_importer._constants import VALID_NORM_CHOICES, VALID_ROBOT_FORMATS
 
 from fms_core.models import ProcessMeasurement
 
@@ -21,7 +21,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
 
     def process_row_inner(self, source_sample, destination_sample, measurements, robot):
         concentration_nguL = None
-        concentration_nM = None
+        concentration_nm = None
 
         # Check if robot formats are valid
         if robot["input_format"] not in VALID_ROBOT_FORMATS:
@@ -43,17 +43,17 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
-        if measurements['concentration_ngul']:
+        if measurements['concentration_ngul'] is not None:
             concentration_nguL = measurements['concentration_ngul']
-            na_qty = decimal.Decimal(measurements['Final Volume']) * decimal.Decimal(concentration_nguL)
-        elif measurements['concentration_nM']:
-            concentration_nM = measurements['concentration_nM']
-            na_qty = decimal.Decimal(measurements['Final Volume']) * decimal.Decimal(convert_concentration_from_nm_to_ngbyul(measurements['concentration_nM'],
-                                                                                                                             source_sample_obj.library.molecular_weight_approx,
-                                                                                                                             source_sample_obj.library.library_size))
-        elif measurements['na_quantity']:
+            na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(concentration_nguL)
+        elif measurements['concentration_nm'] is not None:
+            concentration_nm = measurements['concentration_nm']
+            na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                                                                       source_sample_obj.library.molecular_weight_approx,
+                                                                                                                       source_sample_obj.library.library_size))
+        elif measurements['na_quantity'] is not None:
             #compute concentration in ngul
-            concentration_nguL = measurements['na_quantity'] / measurements['Final Volume']
+            concentration_nguL = decimal.Decimal(measurements['na_quantity']) / decimal.Decimal(measurements['volume'])
             na_qty = decimal.Decimal(measurements['na_quantity'])
 
         destination_container_dict = destination_sample['container']
@@ -80,13 +80,13 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 'Robot Destination Coord': '',
                 'Destination Container Name': destination_container_dict['name'],
                 'Destination Container Kind': destination_container_dict['kind'],
-                'Destination Parent Container Barcode': destination_container_dict['barcode'],
+                'Destination Parent Container Barcode': destination_container_dict['parent_barcode'],
                 'Destination Parent Container Coord': destination_container_dict['coordinates'],
                 'Source Depleted': '',
                 'Volume Used (uL)': str(volume_used),
                 'Volume (uL)': measurements['volume'],
-                'Conc. (ng/uL)': measurements['concentration_ngul'] if concentration_nguL else '',
-                'Conc. (nM)': measurements['concentration_nM'] if concentration_nM else '',
+                'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
+                'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
                 'Normalization Date (YYYY-MM-DD)': '',
                 'Comment': '',
             }
