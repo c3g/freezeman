@@ -5,7 +5,7 @@ import {Link, useParams} from "react-router-dom";
 import { useFilteredList } from "../../hooks/useFilteredList";
 import PaginatedList from "./PaginatedList";
 
-import WITH_ITEM from "../../utils/withItem";
+import { withSample } from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
@@ -16,7 +16,7 @@ const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
 }
 
 const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
-  const withSample = WithItemComponent(WITH_ITEM.withSample)
+  const withSampleComponent = WithItemComponent(withSample)
 
   return [
     {
@@ -35,7 +35,7 @@ const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },

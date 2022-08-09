@@ -16,7 +16,7 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import WITH_ITEM from "../../utils/withItem";
+import { withContainer, withIndividual } from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -26,8 +26,8 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => {
-  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
-  const withIndividual = WithItemComponent(WITH_ITEM.withIndividual)
+  const withContainerComponent = WithItemComponent(withContainer)
+  const withIndividualComponent = WithItemComponent(withIndividual)
 
   return [
     {
@@ -69,7 +69,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.name, "loading...")}
+            {withIndividualComponent(individualsByID, individual, individual => individual.name, "loading...")}
           </Link>)
       }
     },
@@ -79,7 +79,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       sorter: true,
       render: (_, sample) =>
         (sample.container &&
-          withContainer(containersByID, sample.container, container => container.name, "loading...")),
+          withContainerComponent(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
@@ -87,7 +87,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       sorter: true,
       render: (_, sample) => (sample.container &&
         <Link to={`/containers/${sample.container}`}>
-          {withContainer(containersByID, sample.container, container => container.barcode, "loading...")}
+          {withContainerComponent(containersByID, sample.container, container => container.barcode, "loading...")}
         </Link>),
     },
     {

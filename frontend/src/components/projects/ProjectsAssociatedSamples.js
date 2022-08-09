@@ -9,13 +9,13 @@ import api, {withToken}  from "../../utils/api"
 
 import {listFilter, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
-import WITH_ITEM from "../../utils/withItem";
+import { withIndividual } from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
 import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (sampleKinds, individualsByID) => {
-  const withIndividual = WithItemComponent(WITH_ITEM.withIndividual)
+  const withIndividualComponent = WithItemComponent(withIndividual)
   
   return [
     {
@@ -49,7 +49,7 @@ const getTableColumns = (sampleKinds, individualsByID) => {
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.cohort, "loading...")}
+            {withIndividualComponent(individualsByID, individual, individual => individual.cohort, "loading...")}
           </Link>)
       }
     },

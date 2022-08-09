@@ -13,7 +13,7 @@ import FixedLengthText from "../FixedLengthText";
 import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
-import WITH_ITEM from "../../utils/withItem";
+import { withSequence } from "../../utils/withItem";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
 import {actionDropdown} from "../../utils/templateActions";
@@ -25,7 +25,7 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithItemComponent } from "../shared/WithItemComponent";
 
 const getTableColumns = (sequencesByID) => {
-  const withSequence = WithItemComponent(WITH_ITEM.withSequence)
+  const withSequenceComponent = WithItemComponent(withSequence)
 
   return [
     {
@@ -68,7 +68,7 @@ const getTableColumns = (sequencesByID) => {
       width: 80,
       render: (_, index) => { return index && index.sequences_3prime &&
         <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
-          sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+          sequence && withSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
     },
@@ -78,7 +78,7 @@ const getTableColumns = (sequencesByID) => {
       width: 80,
       render: (_, index) => { return index && index.sequences_5prime &&
         <DropdownListItems listItems={index.sequences_5prime.map(sequence =>
-          sequence && withSequence(sequencesByID, sequence, sequence => sequence.value,))}
+          sequence && withSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
     },

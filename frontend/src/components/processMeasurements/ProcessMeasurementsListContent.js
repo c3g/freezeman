@@ -12,7 +12,7 @@ import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {actionDropdown} from "../../utils/templateActions";
-import WITH_ITEM from "../../utils/withItem";
+import { withSample } from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -23,7 +23,7 @@ import { WithItemComponent } from "../shared/WithItemComponent"
 
 
 const getTableColumns = (samplesByID, protocols) => {
-  const withSample = WithItemComponent(WITH_ITEM.withSample)
+  const withSampleComponent = WithItemComponent(withSample)
 
   return [
     {
@@ -59,7 +59,7 @@ const getTableColumns = (samplesByID, protocols) => {
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },
@@ -71,7 +71,7 @@ const getTableColumns = (samplesByID, protocols) => {
         const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSample(samplesByID, sample, sample => sample.name, "loading...")}
+            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },

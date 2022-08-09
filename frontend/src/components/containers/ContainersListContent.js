@@ -13,7 +13,7 @@ import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "..
 import api, {withToken}  from "../../utils/api"
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import WITH_ITEM from "../../utils/withItem";
+import { withSample, withContainer } from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithItemComponent } from "../shared/WithItemComponent";
 
@@ -26,8 +26,8 @@ import FiltersWarning from "../filters/FiltersWarning";
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
 const getTableColumns = (samplesByID, containersByID, containerKinds) => {
-  const withSample = WithItemComponent(WITH_ITEM.withSample)
-  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
+  const withSampleComponent = WithItemComponent(withSample)
+  const withContainerComponent = WithItemComponent(withContainer)
 
   return [
     {
@@ -56,7 +56,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => {
             {samples.map((id, i) =>
               <React.Fragment key={id}>
                 <Link to={`/samples/${id}`}>
-                  {withSample(samplesByID, id, sample => sample.name, <span>Loading…</span>)}
+                  {withSampleComponent(samplesByID, id, sample => sample.name, <span>Loading…</span>)}
                 </Link>
                 {i !== samples.length - 1 ? ', ' : ''}
               </React.Fragment>
@@ -79,7 +79,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => {
       sorter: true,
       render: location => (location &&
         <Link to={`/containers/${location}`}>
-          {withContainer(containersByID, location, container => container.name, "Loading...")}
+          {withContainerComponent(containersByID, location, container => container.name, "Loading...")}
         </Link>),
     },
     {

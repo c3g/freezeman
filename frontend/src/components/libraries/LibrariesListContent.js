@@ -15,7 +15,7 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import WITH_ITEM from "../../utils/withItem";
+import { withContainer, withIndex } from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -24,8 +24,8 @@ import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithItemComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, indicesByID, projectsByID) => {
-  const withContainer = WithItemComponent(WITH_ITEM.withContainer)
-  const withIndex = WithItemComponent(WITH_ITEM.withIndex)
+  const withContainerComponent = WithItemComponent(withContainer)
+  const withIndexComponent = WithItemComponent(withIndex)
 
   return [
     {
@@ -71,7 +71,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => {
       sorter: true,
       render: (_, library) => (library.container &&
         <Link to={`/containers/${library.container}`}>
-          {withContainer(containersByID, library.container, container => container.barcode, "loading...")}
+          {withContainerComponent(containersByID, library.container, container => container.barcode, "loading...")}
         </Link>),
     },
     {
@@ -95,7 +95,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => {
       sorter: true,
       render: (_, library) => (library.index &&
         <Link to={`/indices/${library.index}`}>
-          {withIndex(indicesByID, library.index, index => index.name, "loading...")}
+          {withIndexComponent(indicesByID, library.index, index => index.name, "loading...")}
         </Link>),
     },
     {
