@@ -42,6 +42,8 @@ import {
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
+import { withContainerComponent, withIndexComponent, withIndividualComponent, withSampleComponent } from "../../shared/WithItemComponent";
+import { useContainer, useSample } from "../../../hooks/useItem";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -123,40 +125,69 @@ const SampleDetailsContent = ({
   const isProcessesEmpty = sample.process_measurements && sample.process_measurements.length === 0;
   const isProjectsEmpty = sample.projects && sample.projects.length === 0;
   const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag };
-  let processMeasurements = []
-  let experimentRunsIDs = []
+  const [processMeasurements, setProcessMeasurements] = useState([])
+  const [experimentRunsIDs, setExperimentRunsIDs] = useState([])
   const library = librariesByID[id]
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
 
   // TODO: This spams API requests
-  if (!samplesByID[id])
-    getSample(id);
+  useEffect(() => {
+    if (!samplesByID[id])
+      getSample(id);
+  }, [samplesByID, id])
 
-  if (isLoaded && !sample.versions && !sample.isFetching)
-    listVersions(sample.id);
+  useEffect(() => {
+    if (isLoaded && !sample.versions && !sample.isFetching)
+      listVersions(sample.id);
+  }, [isLoaded, sample.versions, sample.isFetching, sample.id])
 
-  if (isLoaded && !isProcessesEmpty) {
-    sample.process_measurements.forEach((id, i) => {
-      withProcessMeasurement(processMeasurementsByID, id, process => process.id);
-      processMeasurements.push(processMeasurementsByID[id]);
-    })
-  }
+  useEffect(() => {
+    if (isLoaded && !isProcessesEmpty) {
+      sample.process_measurements.forEach((id, i) => {
+        withProcessMeasurement(processMeasurementsByID, id, process => process.id);
+        setProcessMeasurements((processMeasurements) => {
+          return [...processMeasurements, processMeasurementsByID[id]]
+        })
+      })
+    }
+  }, [isLoaded, isProcessesEmpty, sample.process_measurements])
 
-  if (isLoaded && container?.experiment_run) {
-    experimentRunsIDs.push(container.experiment_run)
-  }
+  useEffect(() => {
+    if (isLoaded && container?.experiment_run) {
+      setExperimentRunsIDs((experimentRunsIDs) => {
+        return [...experimentRunsIDs, container.experiment_run]
+      })
+    }
+  }, [isLoaded, container?.experiment_run])
 
-  if (!librariesByID[id])
-    getLibrary(id)
+  useEffect(() => {
+    if (!librariesByID[id])
+      getLibrary(id)
+  }, [librariesByID, id])
 
   useEffect(() => {
     const biosampleId = sample?.biosample_id
     listSampleMetadata(token, { "biosample__id": biosampleId }).then(metadata => {
       setSampleMetadata(metadata)
     })
-  }, [sample])
+  }, [sample?.biosample_id, token])
+
+  const ExtractionDetails = ({ extracted_from }) => {
+    return <>
+      <Link to={`/samples/${extracted_from}`}>
+        {withSampleComponent(samplesByID, extracted_from, sample => sample.name, "Loading...")}
+      </Link>
+      {" "}(
+      {useContainer(containersByID,
+        useSample(samplesByID, extracted_from, sample => sample.container),
+        container => container.barcode,
+        "... ")}
+      {useSample(samplesByID, extracted_from, sample => `at ${sample.coordinates}`)}
+      )
+    </>
+  }
 
   return <>
     <AppPageHeader
@@ -195,55 +226,45 @@ const SampleDetailsContent = ({
           </Descriptions>
           <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
             <Descriptions.Item label="Individual Name">
-              {sample.individual &&
-                <Link to={`/individuals/${sample.individual}`}>
-                  {
-                    withIndividual(
-                      individualsByID,
-                      sample.individual,
-                      individual => individual.name,
-                      "Loading..."
-                    )
-                  }
-                </Link>
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
-            <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
-            <Descriptions.Item label="Experimental Groups" span={2}>
-              {experimentalGroups.map((g, i) =>
-                <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-            <Descriptions.Item label="Container">
-              {sample.container &&
-                <Link to={`/containers/${sample.container}`}>
-                  {withContainer(containersByID, sample.container, container => container.barcode, "Loading...")}
-                </Link>
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
-            <Descriptions.Item label="QC Flag">
-              {flags.quantity !== null && flags.quality !== null
-                ? <QCFlag flags={flags} />
-                : null}
-            </Descriptions.Item>
-            <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
+                {sample.individual &&
+                  <Link to={`/individuals/${sample.individual}`}>
+                    {
+                      withIndividualComponent(
+                        individualsByID,
+                        sample.individual,
+                        individual => individual.name,
+                        "Loading..."
+                      )
+                    }
+                  </Link>
+                }
+              </Descriptions.Item>
+              <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
+              <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
+              <Descriptions.Item label="Experimental Groups" span={2}>
+                  {experimentalGroups.map((g, i) =>
+                      <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
+              <Descriptions.Item label="Container">
+                {sample.container &&
+                  <Link to={`/containers/${sample.container}`}>
+                    {withContainerComponent(containersByID, sample.container, container => container.barcode, "Loading...")}
+                  </Link>
+                }
+              </Descriptions.Item>
+              <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
+              <Descriptions.Item label="QC Flag">
+                {flags.quantity !== null && flags.quality !== null
+                  ? <QCFlag flags={flags}/>
+                  : null}
+              </Descriptions.Item>
+              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>
               <Descriptions.Item label="Extracted From">
-                <Link to={`/samples/${sample.extracted_from}`}>
-                  {withSample(samplesByID, sample.extracted_from, sample => sample.name, "Loading...")}
-                </Link>
-                {" "}(
-                {withContainer(containersByID,
-                  withSample(samplesByID, sample.extracted_from, sample => sample.container),
-                  container => container.barcode,
-                  "... ")}
-                {withSample(samplesByID, sample.extracted_from, sample => sample.coordinates) &&
-                  ` at ${withSample(samplesByID, sample.extracted_from, sample => sample.coordinates)}`}
-                )
+                <ExtractionDetails extracted_from={sample.extracted_from} />
               </Descriptions.Item>
             </Descriptions>
           ) : null}
@@ -256,7 +277,7 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
                 <Descriptions.Item label="Index">
                   <Link to={`/samples/${sample.extracted_from}`}>
-                    {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
+                    {withIndexComponent(indicesByID, library?.index, index => index.name, "Loading...")}
                   </Link>
                 </Descriptions.Item>
                 <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>

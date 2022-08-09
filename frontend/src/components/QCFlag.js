@@ -6,8 +6,8 @@ import {CheckOutlined, CloseOutlined} from "@ant-design/icons";
 const getFlagContent = (flags) => {
   return  (
     <div>
-      {Object.entries(flags).map(([name, value]) => {
-        return <p> {name} : {value ? "passed" : "failed"} </p>
+      {Object.entries(flags).map(([name, value], i) => {
+        return <p key={i.toString()}> {name} : {value ? "passed" : "failed"} </p>
       })}
     </div>
   )
