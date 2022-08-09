@@ -23,7 +23,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withContainerComponent, withIndividualComponent } from "../shared/WithItemComponent"
+import { WithContainerComponent, WithIndividualComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => {
   return [
@@ -66,7 +66,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividualComponent(individualsByID, individual, individual => individual.name, "loading...")}
+            {WithIndividualComponent(individualsByID, individual, individual => individual.name, "loading...")}
           </Link>)
       }
     },
@@ -76,7 +76,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       sorter: true,
       render: (_, sample) =>
         (sample.container &&
-          withContainerComponent(containersByID, sample.container, container => container.name, "loading...")),
+          WithContainerComponent(containersByID, sample.container, container => container.name, "loading...")),
     },
     {
       title: "Container Barcode",
@@ -84,7 +84,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       sorter: true,
       render: (_, sample) => (sample.container &&
         <Link to={`/containers/${sample.container}`}>
-          {withContainerComponent(containersByID, sample.container, container => container.barcode, "loading...")}
+          {WithContainerComponent(containersByID, sample.container, container => container.barcode, "loading...")}
         </Link>),
     },
     {

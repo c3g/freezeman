@@ -12,7 +12,7 @@ import {SAMPLE_FILTERS} from "../filters/descriptions";
 import { withIndividual } from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
-import { withIndividualComponent } from "../shared/WithItemComponent"
+import { WithIndividualComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (sampleKinds, individualsByID) => {
   return [
@@ -47,7 +47,7 @@ const getTableColumns = (sampleKinds, individualsByID) => {
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividualComponent(individualsByID, individual, individual => individual.cohort, "loading...")}
+            {WithIndividualComponent(individualsByID, individual, individual => individual.cohort, "loading...")}
           </Link>)
       }
     },

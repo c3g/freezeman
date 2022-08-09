@@ -2,7 +2,7 @@ import React from "react";
 import {Descriptions} from "antd";
 import {withUser} from "../utils/withItem";
 import {connect} from "react-redux";
-import { withUserComponent } from "./shared/WithItemComponent";
+import { WithUserComponent } from "./shared/WithItemComponent";
 
 const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
@@ -16,10 +16,10 @@ const TrackingFieldsContent = ({usersByID, entity}) => {
     return <>
         <Descriptions bordered={true} size="small" title="Tracking Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Item created by">
-              {withUserComponent(usersByID, entity.created_by, user => displayUser(user), "Loading...")}
+              {WithUserComponent(usersByID, entity.created_by, user => displayUser(user), "Loading...")}
           </Descriptions.Item>
           <Descriptions.Item label="Last modification by">
-              {withUserComponent(usersByID, entity.updated_by, user => displayUser(user), "Loading...")}
+              {WithUserComponent(usersByID, entity.updated_by, user => displayUser(user), "Loading...")}
           </Descriptions.Item>
         </Descriptions>
     </>;

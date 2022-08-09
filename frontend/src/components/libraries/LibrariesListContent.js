@@ -21,7 +21,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withContainerComponent, withIndexComponent } from "../shared/WithItemComponent"
+import { WithContainerComponent, WithIndexComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, indicesByID, projectsByID) => {
   return [
@@ -68,7 +68,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => {
       sorter: true,
       render: (_, library) => (library.container &&
         <Link to={`/containers/${library.container}`}>
-          {withContainerComponent(containersByID, library.container, container => container.barcode, "loading...")}
+          {WithContainerComponent(containersByID, library.container, container => container.barcode, "loading...")}
         </Link>),
     },
     {
@@ -92,7 +92,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => {
       sorter: true,
       render: (_, library) => (library.index &&
         <Link to={`/indices/${library.index}`}>
-          {withIndexComponent(indicesByID, library.index, index => index.name, "loading...")}
+          {WithIndexComponent(indicesByID, library.index, index => index.name, "loading...")}
         </Link>),
     },
     {

@@ -9,7 +9,7 @@ import { withSample } from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
-import { withSampleComponent } from "../shared/WithItemComponent"
+import { WithSampleComponent } from "../shared/WithItemComponent"
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
@@ -33,7 +33,7 @@ const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
+            {WithSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },

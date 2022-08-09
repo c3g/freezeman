@@ -17,7 +17,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
-import { withContainerComponent } from "../shared/WithItemComponent";
+import { WithContainerComponent } from "../shared/WithItemComponent";
 
 
 const getTableColumns = (containersByID, runTypes, instruments) => [
@@ -64,7 +64,7 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
     sorter: true,
     render: (_, experimentRun) =>
       (experimentRun.container &&
-        withContainerComponent(containersByID, experimentRun.container, container => container.name, "loading...")),
+        WithContainerComponent(containersByID, experimentRun.container, container => container.name, "loading...")),
   },
   {
     title: "Container Barcode",
@@ -72,7 +72,7 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
     sorter: true,
     render: (_, experimentRun) => (experimentRun.container &&
       <Link to={`/containers/${experimentRun.container}`}>
-        {withContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+        {WithContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
       </Link>),
   },
   {

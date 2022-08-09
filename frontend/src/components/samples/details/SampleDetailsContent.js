@@ -42,7 +42,7 @@ import {
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
-import { withContainerComponent, withIndexComponent, withIndividualComponent, withSampleComponent } from "../../shared/WithItemComponent";
+import { WithContainerComponent, WithIndexComponent, WithIndividualComponent, WithSampleComponent } from "../../shared/WithItemComponent";
 import { useContainer, useSample } from "../../../hooks/useItem";
 
 const { Title, Text } = Typography;
@@ -177,7 +177,7 @@ const SampleDetailsContent = ({
   const ExtractedFrom = ({ extracted_from }) => {
     return <>
       <Link to={`/samples/${extracted_from}`}>
-        {withSampleComponent(samplesByID, extracted_from, sample => sample.name, "Loading...")}
+        {WithSampleComponent(samplesByID, extracted_from, sample => sample.name, "Loading...")}
       </Link>
       {" "}(
       {useContainer(containersByID,
@@ -229,7 +229,7 @@ const SampleDetailsContent = ({
                 {sample.individual &&
                   <Link to={`/individuals/${sample.individual}`}>
                     {
-                      withIndividualComponent(
+                      WithIndividualComponent(
                         individualsByID,
                         sample.individual,
                         individual => individual.name,
@@ -249,7 +249,7 @@ const SampleDetailsContent = ({
               <Descriptions.Item label="Container">
                 {sample.container &&
                   <Link to={`/containers/${sample.container}`}>
-                    {withContainerComponent(containersByID, sample.container, container => container.barcode, "Loading...")}
+                    {WithContainerComponent(containersByID, sample.container, container => container.barcode, "Loading...")}
                   </Link>
                 }
               </Descriptions.Item>
@@ -277,7 +277,7 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
                 <Descriptions.Item label="Index">
                   <Link to={`/samples/${sample.extracted_from}`}>
-                    {withIndexComponent(indicesByID, library?.index, index => index.name, "Loading...")}
+                    {WithIndexComponent(indicesByID, library?.index, index => index.name, "Loading...")}
                   </Link>
                 </Descriptions.Item>
                 <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>

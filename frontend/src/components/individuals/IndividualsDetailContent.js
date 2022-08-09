@@ -11,7 +11,7 @@ import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { withIndividual, withTaxon } from "../../utils/withItem";
 import { get } from "../../modules/individuals/actions";
-import { withIndividualComponent, withTaxonComponent } from "../shared/WithItemComponent";
+import { WithIndividualComponent, WithTaxonComponent } from "../shared/WithItemComponent";
 
 const mapStateToProps = state => ({
     individualsByID: state.individuals.itemsByID,
@@ -46,7 +46,7 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
                 <Descriptions.Item label="ID">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
                 <Descriptions.Item label="Alias">{individual.alias}</Descriptions.Item>
-                <Descriptions.Item label="Taxon"><em>{individual.taxon && withTaxonComponent(taxonsByID, individual.taxon, taxon => taxon.name, "Loading...")}</em></Descriptions.Item>
+                <Descriptions.Item label="Taxon"><em>{individual.taxon && WithTaxonComponent(taxonsByID, individual.taxon, taxon => taxon.name, "Loading...")}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Cohort">{individual.cohort}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>
@@ -54,7 +54,7 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
                     {individual.mother ?
                         (
                         <Link to={`/individuals/${individual.mother}`}>
-                            {withIndividualComponent(individualsByID, individual.mother, individual => individual.name, "Loading...")}
+                            {WithIndividualComponent(individualsByID, individual.mother, individual => individual.name, "Loading...")}
                         </Link>
                         ) :
                         "—"}
@@ -63,7 +63,7 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
                     {individual.father ?
                         (
                         <Link to={`/individuals/${individual.father}`}>
-                            {withIndividualComponent(individualsByID, individual.father, individual => individual.name, "Loading...")}
+                            {WithIndividualComponent(individualsByID, individual.father, individual => individual.name, "Loading...")}
                         </Link>
                         ) :
                         "—"}

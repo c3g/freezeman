@@ -19,7 +19,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 
-import { withSampleComponent } from "../shared/WithItemComponent"
+import { WithSampleComponent } from "../shared/WithItemComponent"
 
 
 const getTableColumns = (samplesByID, protocols) => {
@@ -57,7 +57,7 @@ const getTableColumns = (samplesByID, protocols) => {
         const sample = processMeasurement.source_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
+            {WithSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },
@@ -69,7 +69,7 @@ const getTableColumns = (samplesByID, protocols) => {
         const sample = processMeasurement.child_sample
         return (sample &&
           <Link to={`/samples/${sample}`}>
-            {withSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
+            {WithSampleComponent(samplesByID, sample, sample => sample.name, "loading...")}
           </Link>)
       }
     },

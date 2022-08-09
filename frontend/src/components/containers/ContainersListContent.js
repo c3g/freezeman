@@ -15,7 +15,7 @@ import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import { withSample, withContainer } from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withSampleComponent, withContainerComponent } from "../shared/WithItemComponent";
+import { WithSampleComponent, WithContainerComponent } from "../shared/WithItemComponent";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
@@ -53,7 +53,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => {
             {samples.map((id, i) =>
               <React.Fragment key={id}>
                 <Link to={`/samples/${id}`}>
-                  {withSampleComponent(samplesByID, id, sample => sample.name, "Loading…")}
+                  {WithSampleComponent(samplesByID, id, sample => sample.name, "Loading…")}
                 </Link>
                 {i !== samples.length - 1 ? ', ' : ''}
               </React.Fragment>
@@ -76,7 +76,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => {
       sorter: true,
       render: location => (location &&
         <Link to={`/containers/${location}`}>
-          {withContainerComponent(containersByID, location, container => container.name, "Loading...")}
+          {WithContainerComponent(containersByID, location, container => container.name, "Loading...")}
         </Link>),
     },
     {

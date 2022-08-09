@@ -17,7 +17,7 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { withTaxon } from "../../utils/withItem";
-import { withTaxonComponent } from "../shared/WithItemComponent"
+import { WithTaxonComponent } from "../shared/WithItemComponent"
 
 
 const TABLE_COLUMNS = (taxons) => [
@@ -44,7 +44,7 @@ const TABLE_COLUMNS = (taxons) => [
     dataIndex: "taxon__name",
     sorter: true,
     options: Object.values(taxons.itemsByID).map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-    render: (_, individual) => <em>{(individual.taxon && withTaxonComponent(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
+    render: (_, individual) => <em>{(individual.taxon && WithTaxonComponent(taxons.itemsByID, individual.taxon, taxon => taxon.name, "Loading..."))}</em>,
   },
   {
     title: "Sex",

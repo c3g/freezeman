@@ -22,7 +22,7 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withSequenceComponent } from "../shared/WithItemComponent";
+import { WithSequenceComponent } from "../shared/WithItemComponent";
 
 const getTableColumns = (sequencesByID) => {
   return [
@@ -66,7 +66,7 @@ const getTableColumns = (sequencesByID) => {
       width: 80,
       render: (_, index) => { return index && index.sequences_3prime &&
         <DropdownListItems listItems={index.sequences_3prime.map(sequence =>
-          sequence && withSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
+          sequence && WithSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
     },
@@ -76,7 +76,7 @@ const getTableColumns = (sequencesByID) => {
       width: 80,
       render: (_, index) => { return index && index.sequences_5prime &&
         <DropdownListItems listItems={index.sequences_5prime.map(sequence =>
-          sequence && withSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
+          sequence && WithSequenceComponent(sequencesByID, sequence, sequence => sequence.value,))}
         />
       }
     },

@@ -13,7 +13,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
 import { withContainer } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
-import { withContainerComponent } from "../shared/WithItemComponent"
+import { WithContainerComponent } from "../shared/WithItemComponent"
 
 
 const pageStyle = {
@@ -88,7 +88,7 @@ const ContainersDetailContent = ({
                 <Descriptions.Item label="Location" span={2}>
                   {container.location ?
                     <Link to={`/containers/${container.location}`}>
-                      {withContainerComponent(containersByID, container.location, container => container.barcode, "Loading...")}
+                      {WithContainerComponent(containersByID, container.location, container => container.barcode, "Loading...")}
                     </Link>
                     : "—"}
                   {container.coordinates && ` at ${container.coordinates}`}

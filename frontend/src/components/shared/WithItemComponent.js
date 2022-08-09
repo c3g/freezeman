@@ -30,26 +30,26 @@ const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null,
     return <Container />
 }
 
-export const withContainerComponent = WithItemComponent(withContainer)
-export const withSampleComponent = WithItemComponent(withSample)
-export const withIndividualComponent = WithItemComponent(withIndividual)
-export const withUserComponent = WithItemComponent(withUser)
-export const withProcessMeasurementComponent = WithItemComponent(withProcessMeasurement)
-export const withProjectComponent = WithItemComponent(withProject)
-export const withSequenceComponent = WithItemComponent(withSequence)
-export const withIndexComponent = WithItemComponent(withIndex)
-export const withLibraryComponent = WithItemComponent(withLibrary)
-export const withTaxonComponent = WithItemComponent(withTaxon)
+export const WithContainerComponent = WithItemComponent(withContainer)
+export const WithSampleComponent = WithItemComponent(withSample)
+export const WithIndividualComponent = WithItemComponent(withIndividual)
+export const WithUserComponent = WithItemComponent(withUser)
+export const WithProcessMeasurementComponent = WithItemComponent(withProcessMeasurement)
+export const WithProjectComponent = WithItemComponent(withProject)
+export const WithSequenceComponent = WithItemComponent(withSequence)
+export const WithIndexComponent = WithItemComponent(withIndex)
+export const WithLibraryComponent = WithItemComponent(withLibrary)
+export const WithTaxonComponent = WithItemComponent(withTaxon)
 
 export default {
-    withContainerComponent,
-    withSampleComponent,
-    withIndividualComponent,
-    withUserComponent,
+    WithContainerComponent,
+    WithSampleComponent,
+    WithIndividualComponent,
+    WithUserComponent,
     withProcessMeasurement,
-    withProjectComponent,
-    withSequenceComponent,
-    withIndexComponent,
-    withLibraryComponent,
-    withTaxonComponent,
+    WithProjectComponent,
+    WithSequenceComponent,
+    WithIndexComponent,
+    WithLibraryComponent,
+    WithTaxonComponent,
 }
