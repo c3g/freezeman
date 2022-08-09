@@ -17,12 +17,10 @@ import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { withTaxon } from "../../utils/withItem";
-import { WithItemComponent } from "../shared/WithItemComponent"
+import { withTaxonComponent } from "../shared/WithItemComponent"
 
 
 const TABLE_COLUMNS = (taxons) => {
-  const withTaxonComponent = WithItemComponent(withTaxon)
-
   return [
     {
       title: "ID",

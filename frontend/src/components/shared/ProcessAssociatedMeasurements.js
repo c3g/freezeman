@@ -9,15 +9,13 @@ import { withSample } from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";
-import { WithItemComponent } from "../shared/WithItemComponent"
+import { withSampleComponent } from "../shared/WithItemComponent"
 
 const allPropertiesLoaded = (processMeasurement, propertyValuesByID) => {
   return processMeasurement?.properties?.every(property => property in propertyValuesByID)
 }
 
 const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
-  const withSampleComponent = WithItemComponent(withSample)
-
   return [
     {
       title: "Sample Process ID",

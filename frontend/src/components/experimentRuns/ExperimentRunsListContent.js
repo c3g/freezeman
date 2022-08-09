@@ -17,12 +17,10 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
-import WithItemComponent from "../shared/WithItemComponent";
+import { withContainerComponent } from "../shared/WithItemComponent";
 
 
 const getTableColumns = (containersByID, runTypes, instruments) => {
-  const withContainerComponent = WithItemComponent(withContainer)
-
   return [
     {
       title: "ID",

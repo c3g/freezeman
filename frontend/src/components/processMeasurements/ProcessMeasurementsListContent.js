@@ -19,12 +19,10 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 
-import { WithItemComponent } from "../shared/WithItemComponent"
+import { withSampleComponent } from "../shared/WithItemComponent"
 
 
 const getTableColumns = (samplesByID, protocols) => {
-  const withSampleComponent = WithItemComponent(withSample)
-
   return [
     {
       title: "ID",

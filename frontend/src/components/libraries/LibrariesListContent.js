@@ -21,12 +21,9 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { WithItemComponent } from "../shared/WithItemComponent"
+import { withContainerComponent, withIndexComponent } from "../shared/WithItemComponent"
 
 const getTableColumns = (containersByID, indicesByID, projectsByID) => {
-  const withContainerComponent = WithItemComponent(withContainer)
-  const withIndexComponent = WithItemComponent(withIndex)
-
   return [
     {
       title: "ID",
