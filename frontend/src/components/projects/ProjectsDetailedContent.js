@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -28,8 +28,10 @@ const ProjectsDetailedContent = ({ projectsByID, samplesByID, isFetching, get })
     const isLoaded = id in projectsByID;
     const project = projectsByID[id] || {};
 
-    if (!isLoaded)
-        get(id);
+    useEffect(() => {
+        if (!isLoaded)
+            get(id);
+    }, [isLoaded, id])
 
     const isLoading = !isLoaded;
     const title =
