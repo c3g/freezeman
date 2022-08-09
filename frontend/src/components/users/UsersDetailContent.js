@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { set } from "object-path-immutable";
@@ -63,14 +63,27 @@ const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, group
 
   const user = usersByID[id];
 
-  if (!isFetching && !user) {
-    get(id)
-  }
+  useEffect(() => {
+    if (!isFetching && !user) {
+      get(id)
+    }
+  }, [isFetching, user, id])
 
-  if (user && !user.isFetching && !isLoadRevisions) {
-    setIsLoadRevisions(true)
-    setTimeout(() => listRevisions(user.id), 0);
-  }
+  useEffect(() => {
+    let timeout = null;
+
+    if (user && !user.isFetching && !isLoadRevisions) {
+      setIsLoadRevisions(true)
+      timeout = setTimeout(() => listRevisions(user.id), 0);
+    }
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout)
+      }
+    }
+  }, [user?.isFetching, isLoadRevisions, user?.id])
+
 
   const onLoadMore = () => {
     listRevisions(user.id)
