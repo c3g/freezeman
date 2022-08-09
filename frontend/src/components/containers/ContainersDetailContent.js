@@ -61,7 +61,7 @@ const ContainersDetailContent = ({
   useEffect(() => {
     if (isLoaded && !container.parents)
       listParents(id);
-  }, [isLoaded, container.parents])
+  }, [isLoaded, container?.parents, id])
 
   if (isLoaded)
     if (container.experiment_run)
