@@ -22,7 +22,7 @@ import {
  */
 const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null) => {
     const Container = ({}) => {
-        const item = useItem(withItem, itemsByID, id, fn, defaultValue)
+        const item = useItem(withItem)(itemsByID, id, fn, defaultValue)
         return <>{item}</>
     }
 
