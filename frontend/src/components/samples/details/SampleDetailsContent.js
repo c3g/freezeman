@@ -129,6 +129,12 @@ const SampleDetailsContent = ({
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
+  const [tab, setTab] = useState(history.location.hash.slice(1) || "1")
+  console.log(tab);
+
+  useEffect(() => {
+    setTab(history.location.hash.slice(1) || "1")
+  }, [history.location.hash])
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -178,7 +184,9 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
+      <Tabs activeKey={tab} size="large" type="card" style={tabsStyle} onChange={(activeKey) => {
+        history.push(`#${activeKey}`)
+      }}>
         <TabPane tab="Overview" key="1" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
