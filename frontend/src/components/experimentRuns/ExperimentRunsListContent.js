@@ -17,71 +17,76 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
+import WithItemComponent from "../shared/WithItemComponent";
 
 
-const getTableColumns = (containersByID, runTypes, instruments) => [
-  {
-    title: "ID",
-    dataIndex: "id",
-    sorter: true,
-    render: (_, experimentRun) => (experimentRun.id &&
-      <Link to={`/experiment-runs/${experimentRun.id}`}>
-        {experimentRun.id}
-      </Link>),
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    sorter: true,
-  },
-  {
-    title: "Run Type",
-    dataIndex: "run_type",
-    sorter: true,
-    options: runTypes.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-    render: (_, experimentRun) =>
-      <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>,
-  },
-  {
-    title: "Instrument",
-    dataIndex: "instrument",
-    sorter: true,
-    options: instruments.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
-    render: (_, experimentRun) =>
-      <div>{instruments.itemsByID[experimentRun.instrument]?.name}</div>,
-  },
-  {
-    title: "Instrument Type",
-    dataIndex: "instrument_type",
-    sorter: true,
-    render: (_, experimentRun) =>
-      <div>{experimentRun.instrument_type}</div>,
-  },
-  {
-    title: "Container Name",
-    dataIndex: "container__name",
-    sorter: true,
-    render: (_, experimentRun) =>
-      (experimentRun.container &&
-        withContainer(containersByID, experimentRun.container, container => container.name, "loading...")),
-  },
-  {
-    title: "Container Barcode",
-    dataIndex: "container__barcode",
-    sorter: true,
-    render: (_, experimentRun) => (experimentRun.container &&
-      <Link to={`/containers/${experimentRun.container}`}>
-        {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
-      </Link>),
-  },
-  {
-    title: "Start Date",
-    dataIndex: "start_date",
-    sorter: true,
-    width: 180,
-  },
+const getTableColumns = (containersByID, runTypes, instruments) => {
+  const withContainerComponent = WithItemComponent(withContainer)
 
-];
+  return [
+    {
+      title: "ID",
+      dataIndex: "id",
+      sorter: true,
+      render: (_, experimentRun) => (experimentRun.id &&
+        <Link to={`/experiment-runs/${experimentRun.id}`}>
+          {experimentRun.id}
+        </Link>),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      sorter: true,
+    },
+    {
+      title: "Run Type",
+      dataIndex: "run_type",
+      sorter: true,
+      options: runTypes.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+      render: (_, experimentRun) =>
+        <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>,
+    },
+    {
+      title: "Instrument",
+      dataIndex: "instrument",
+      sorter: true,
+      options: instruments.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+      render: (_, experimentRun) =>
+        <div>{instruments.itemsByID[experimentRun.instrument]?.name}</div>,
+    },
+    {
+      title: "Instrument Type",
+      dataIndex: "instrument_type",
+      sorter: true,
+      render: (_, experimentRun) =>
+        <div>{experimentRun.instrument_type}</div>,
+    },
+    {
+      title: "Container Name",
+      dataIndex: "container__name",
+      sorter: true,
+      render: (_, experimentRun) =>
+        (experimentRun.container &&
+          withContainerComponent(containersByID, experimentRun.container, container => container.name, "loading...")),
+    },
+    {
+      title: "Container Barcode",
+      dataIndex: "container__barcode",
+      sorter: true,
+      render: (_, experimentRun) => (experimentRun.container &&
+        <Link to={`/containers/${experimentRun.container}`}>
+          {withContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+        </Link>),
+    },
+    {
+      title: "Start Date",
+      dataIndex: "start_date",
+      sorter: true,
+      width: 180,
+    },
+
+  ]
+};
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
