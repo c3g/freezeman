@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import {get, listChildren} from "../../modules/containers/actions";
 import platform, * as PLATFORM from "../../utils/platform";
-import {withSample} from "../../utils/withItem";
+import { WithSampleComponent } from "../shared/WithItemComponent";
 
 const {Text} = Typography;
 
@@ -117,6 +117,9 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     explodedKeys,
   }
 
+  if (!container || !container.parents)
+    return <LoadingOutlined />;
+  
   const renderContainer = container => {
     return (
         <span style={entryStyle}>
@@ -142,11 +145,11 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
 
           <ul>
             { container.samples?.map(sampleId => {
-              const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
-              const sample = context.samplesByID[id]
-              const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
-              return <li>
-                {sample ?
+              return WithSampleComponent(context.samplesByID, sampleId, sample => sample.id, 'Loading...', (id) => {
+                const sample = context.samplesByID[id]
+                const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
+                return <li>
+                  {sample ?
                     renderSample(sample, sampleKind) :
                     <span style={entryStyle}>
                       <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}
@@ -154,8 +157,9 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
                         loading...
                       </Text>
                     </span>
-                }
-              </li>
+                  }
+                </li>
+              })
             })}
           </ul>
       </span>
