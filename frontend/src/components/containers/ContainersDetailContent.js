@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { Space, Descriptions, Typography, List, Tabs } from "antd";
@@ -13,6 +13,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
 import { withContainer } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
+import { withContainerComponent } from "../shared/WithItemComponent"
 
 
 const pageStyle = {
@@ -52,11 +53,15 @@ const ContainersDetailContent = ({
   const isLoaded = containersByID[id] && container.isLoaded;
   let experimentRunsIDs = []
 
-  if (!isLoaded)
-    get(id);
+  useEffect(() => {
+    if (!isLoaded)
+      get(id);
+  }, [isLoaded, id])
 
-  if (isLoaded && !container.parents)
-    listParents(id);
+  useEffect(() => {
+    if (isLoaded && !container.parents)
+      listParents(id);
+  }, [isLoaded, container.parents])
 
   if (isLoaded)
     if (container.experiment_run)
@@ -76,21 +81,21 @@ const ContainersDetailContent = ({
       <PageContent loading={!isLoaded && isFetching} style={pageStyle}>
         <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
           <TabPane tab="Overview" key="1" style={tabStyle}>
-            <Descriptions bordered={true} size="small">
-              <Descriptions.Item label="ID" span={2}>{container.id}</Descriptions.Item>
-              <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
-              <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
-              <Descriptions.Item label="Location" span={2}>
-                {container.location ?
-                  <Link to={`/containers/${container.location}`}>
-                    {withContainer(containersByID, container.location, container => container.barcode, "Loading...")}
-                  </Link>
-                  : "—"}
-                {container.coordinates && ` at ${container.coordinates}`}
-              </Descriptions.Item>
-              <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
-              <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
-            </Descriptions>
+              <Descriptions bordered={true} size="small">
+                <Descriptions.Item label="ID" span={2}>{container.id}</Descriptions.Item>
+                <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
+                <Descriptions.Item label="Barcode">{container.barcode}</Descriptions.Item>
+                <Descriptions.Item label="Location" span={2}>
+                  {container.location ?
+                    <Link to={`/containers/${container.location}`}>
+                      {withContainerComponent(containersByID, container.location, container => container.barcode, "Loading...")}
+                    </Link>
+                    : "—"}
+                  {container.coordinates && ` at ${container.coordinates}`}
+                </Descriptions.Item>
+                <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
+                <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>
+              </Descriptions>
 
             <TrackingFieldsContent entity={container} />
 
