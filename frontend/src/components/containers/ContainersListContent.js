@@ -56,7 +56,7 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => {
             {samples.map((id, i) =>
               <React.Fragment key={id}>
                 <Link to={`/samples/${id}`}>
-                  {withSampleComponent(samplesByID, id, sample => sample.name, <span>Loading…</span>)}
+                  {withSampleComponent(samplesByID, id, sample => sample.name, "Loading…")}
                 </Link>
                 {i !== samples.length - 1 ? ', ' : ''}
               </React.Fragment>
