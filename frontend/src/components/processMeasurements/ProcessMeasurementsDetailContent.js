@@ -14,6 +14,7 @@ import { listPropertyValues } from "../../modules/experimentRuns/actions";
 import { withSample } from "../../utils/withItem";
 import { get } from "../../modules/processMeasurements/actions";
 import AllProcessProperties from "../shared/AllProcessProperties";
+import { WithSampleComponent } from "../shared/WithItemComponent";
 
 const mapStateToProps = state => ({
   processMeasurementsByID: state.processMeasurements.itemsByID,
@@ -55,48 +56,48 @@ const ProcessMeasurementsDetailContent = ({
   const title =
     `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name].filter(Boolean).join(' - ')}`;
 
-  return <>
-    <AppPageHeader title={title} />
-    <PageContent loading={isLoading}>
-      <Tabs defaultActiveKey="1" size="large" type="card">
-        <TabPane tab="Overview" key="1" style={{ marginTop: 8 }}>
-          <Descriptions bordered={true} size="small" column={4}>
-            <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
-            <Descriptions.Item label="Applied To Sample" span={2}>
-              <Link to={`/samples/${processMeasurement.source_sample}`}>
-                {withSample(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
-              </Link>
-            </Descriptions.Item>
-            <Descriptions.Item label="Sample Created (If Applicable)" span={2}>
-              {processMeasurement.child_sample &&
-                <Link to={`/samples/${processMeasurement.child_sample}`}>
-                  {withSample(samplesByID, processMeasurement.child_sample, sample => sample.name, "Loading...")}
-                </Link>
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Volume Used (µL)" span={2}>{processMeasurement.volume_used}</Descriptions.Item>
-            <Descriptions.Item label="Date Executed" span={2}>{processMeasurement.execution_date}</Descriptions.Item>
-            <Descriptions.Item label="Comment" span={4}>{processMeasurement.comment}</Descriptions.Item>
-          </Descriptions>
-          <TrackingFieldsContent entity={processMeasurement} />
-        </TabPane>
-        <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
-          <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
-          {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
-          <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
-          {processMeasurement?.properties?.length === 0 && <>No sample specific properties associated with the protocol.</>}
-          {processMeasurement?.properties?.length > 0 &&
-            <>
-              <ProcessProperties
-                propertyIDs={processMeasurement.properties}
-                protocolName={protocolsByID[processMeasurement.protocol]?.name}
-              />
-            </>
-          }
-        </TabPane>
-      </Tabs>
-    </PageContent>
-  </>;
+    return <>
+        <AppPageHeader title={title}/>
+        <PageContent loading={isLoading}>
+          <Tabs defaultActiveKey="1" size="large" type="card">
+            <TabPane tab="Overview" key="1" style={{marginTop:8} }>
+              <Descriptions bordered={true} size="small" column={4}>
+                <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
+                <Descriptions.Item label="Applied To Sample" span={2}>
+                  <Link to={`/samples/${processMeasurement.source_sample}`}>
+                    {WithSampleComponent(samplesByID, processMeasurement.source_sample, sample => sample.name, "Loading...")}
+                  </Link>
+                </Descriptions.Item>
+                <Descriptions.Item label="Sample Created (If Applicable)" span={2}>
+                  {processMeasurement.child_sample &&
+                    <Link to={`/samples/${processMeasurement.child_sample}`}>
+                      {WithSampleComponent(samplesByID, processMeasurement.child_sample, sample => sample.name, "Loading...")}
+                    </Link>
+                  }
+                </Descriptions.Item>
+                <Descriptions.Item label="Volume Used (µL)" span={2}>{processMeasurement.volume_used}</Descriptions.Item>
+                <Descriptions.Item label="Date Executed" span={2}>{processMeasurement.execution_date}</Descriptions.Item>
+                <Descriptions.Item label="Comment" span={4}>{processMeasurement.comment}</Descriptions.Item>
+              </Descriptions>
+              <TrackingFieldsContent entity={processMeasurement}/>
+            </TabPane>
+            <TabPane tab="Properties" key="2" style={{marginTop:8} }>
+            <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
+            {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
+            <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
+            {processMeasurement?.properties?.length === 0 && <>No sample specific properties associated with the protocol.</>}
+            {processMeasurement?.properties?.length > 0 &&
+              <>
+                <ProcessProperties
+                  propertyIDs={processMeasurement.properties}
+                  protocolName={protocolsByID[processMeasurement.protocol]?.name}
+                />
+              </>
+            }
+          </TabPane>
+          </Tabs>
+        </PageContent>
+      </>;
 };
 
 export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsDetailContent);
