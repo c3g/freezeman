@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {connect} from "react-redux";
 
 import {Typography, List} from "antd";
-import {withSample} from "../../utils/withItem";
 import {Link} from "react-router-dom";
 import {CheckCircleTwoTone, CloseCircleTwoTone} from "@ant-design/icons";
 const {Text, Title} = Typography;
 
 import {list as listProcessMeasurements} from "../../modules/processMeasurements/actions";
+import { WithSampleComponent } from "../shared/WithItemComponent";
 
 
 const renderSample = (sample, sampleKind) => {
@@ -64,8 +64,10 @@ const ExperimentRunsSamples = ({
 
   const isProcessMeasurementsLoaded = experimentRun && Object.values(processMeasurementsByID).some(pm => pm.process == experimentRun.process)
 
-  if (experimentRun && !isProcessMeasurementsLoaded)
-    listProcessMeasurements({process: experimentRun.process})
+  useEffect(() => {
+    if (experimentRun && !isProcessMeasurementsLoaded)
+      listProcessMeasurements({process: experimentRun.process})
+  }, [experimentRun, isProcessMeasurementsLoaded])
 
   const processMeasurements =
     isProcessMeasurementsLoaded ? Object.values(processMeasurementsByID).filter(pm => pm.process == experimentRun.process) : undefined
@@ -85,7 +87,7 @@ const ExperimentRunsSamples = ({
           header={renderListHeader(container)}
           dataSource={samplesData}
           renderItem={sampleId => {
-            const id = withSample(samplesByID, sampleId, sample => sample.id, 'Loading...')
+            const id = WithSampleComponent(samplesByID, sampleId, sample => sample.id, 'Loading...')
             const sample = samplesByID[id]
             return (
               <List.Item>

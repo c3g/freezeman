@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Descriptions, Tag, Tabs } from "antd";
@@ -7,11 +7,11 @@ const { TabPane } = Tabs;
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import { get, listPropertyValues } from "../../modules/experimentRuns/actions";
-import { list as listProcesses } from "../../modules/processes/actions";
-import { withContainer } from "../../utils/withItem";
+import {get, listPropertyValues} from "../../modules/experimentRuns/actions";
+import { list as listProcesses } from  "../../modules/processes/actions";
 import ProcessProperties from "../shared/ProcessProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
+import { WithContainerComponent } from "../shared/WithItemComponent";
 
 
 const pageStyle = {
@@ -61,9 +61,11 @@ const ExperimentRunsDetailContent = ({
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
   const isLoaded = experimentRunsByID[id];
 
-  if (!isLoaded) {
-    get(id);
-  }
+  useEffect(() => {
+    if (!isLoaded) {
+      get(id);
+    }
+  }, [isLoaded, id])
 
   const isContainerLoaded = isLoaded && containersByID[experimentRun.container]?.isLoaded
 
@@ -78,12 +80,14 @@ const ExperimentRunsDetailContent = ({
       return process && process.children_properties.every((id) => propertyValuesByID[id])
     })
 
-  if (isLoaded && !isChildrenAndPropertiesLoaded) {
-    // Need to be queried as a string, not as an array in order to work with DRF filters
-    const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
-    listProcesses({ id__in: processIDSAsStr });
-    listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" })
-  }
+  useEffect(() => {
+    if (isLoaded && !isChildrenAndPropertiesLoaded) {
+      // Need to be queried as a string, not as an array in order to work with DRF filters
+      const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
+      listProcesses({id__in: processIDSAsStr});
+      listPropertyValues({object_id__in: processIDSAsStr, content_type__model: "process"})
+    }
+  }, [isLoaded, isChildrenAndPropertiesLoaded])
 
 
   return (
@@ -118,10 +122,10 @@ const ExperimentRunsDetailContent = ({
                 {experimentRun.start_date}
               </Descriptions.Item>
               <Descriptions.Item label="Container Barcode">
-                {experimentRun.container &&
-                  <Link to={`/containers/${experimentRun.container}`}>
-                    {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
-                  </Link>}
+                  {experimentRun.container &&
+                      <Link to={`/containers/${experimentRun.container}`}>
+                          {WithContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+                      </Link>}
               </Descriptions.Item>
               {process?.comment &&
                 <Descriptions.Item label="Comment">
