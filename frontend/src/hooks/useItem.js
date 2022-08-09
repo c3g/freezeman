@@ -23,7 +23,7 @@ export const useItem = (withItem) => (itemsByID, id, fn, defaultValue = null) =>
 
     useEffect(() => {
         setValue(withItem(itemsByID, id, fn, defaultValue))
-    }, [itemsByID, id])
+    }, [itemsByID[id], id])
 
     return value
 }
