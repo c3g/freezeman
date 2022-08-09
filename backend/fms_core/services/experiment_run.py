@@ -21,7 +21,7 @@ def create_experiment_run(experiment_run_name,
     warnings = []
 
     if not protocols_dict:
-        protocols_dict = run_type_obj.get_protocols_dict()
+        protocols_dict = run_type_obj.get_protocols_dict
     
     main_protocol = next(iter(protocols_dict))
 
