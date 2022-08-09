@@ -18,12 +18,13 @@ import {
  * @param {(any, any, any, any) => any} withItem a function created by `createWithItem`
  * @returns
  * A function that looks like a function created by `createWithItem` but it returns a React component
- * containing the value returned by `withItem`.
+ * containing the value returned by `withItem` plus an optional `render` argument to change the
+ * component output.
  */
-const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null) => {
+const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null, render = (item) => <>{item}</>) => {
     const Container = ({}) => {
         const item = useItem(withItem)(itemsByID, id, fn, defaultValue)
-        return <>{item}</>
+        return render(item)
     }
 
     return <Container />
