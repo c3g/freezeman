@@ -21,7 +21,7 @@ import {
  * containing the value returned by `withItem` plus an optional `render` argument to change the
  * component output.
  */
-const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null, render = (item) => <>{item}</>) => {
+export const WithItemComponent = (withItem) => (itemsByID, id, fn, defaultValue = null, render = (item) => <>{item}</>) => {
     const Container = ({}) => {
         const item = useItem(withItem)(itemsByID, id, fn, defaultValue)
         return render(item)
