@@ -291,14 +291,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         # full location
         sample_ids = tuple(samples_queryset.values_list('id', flat=True))
-        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, full_location) AS (                                                   
-                                                                SELECT container.id, container.location_id, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
                                                                 FROM fms_core_container AS container 
                                                                 WHERE container.location_id IS NULL
 
                                                                 UNION ALL
 
-                                                                SELECT container.id, container.location_id, container.barcode::varchar || ' (' || container.kind::varchar || ') < ' || container_hierarchy.full_location::varchar
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') at [' || container.coordinates::varchar || '] in ' ||container_hierarchy.full_location::varchar
                                                                 FROM container_hierarchy
                                                                 JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
                                                                 ) 
