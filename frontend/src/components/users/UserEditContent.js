@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Alert, Button, Checkbox, Form, Input, Select, Tag } from "antd";
@@ -10,6 +10,7 @@ import * as Options from "../../utils/options"
 import { add, update, listTable } from "../../modules/users/actions";
 import { user as EMPTY_USER } from "../../models";
 import { requiredRules } from "../../constants";
+import { useUser } from "../../hooks/useItem";
 
 const hiddenField = {
   position: "absolute",
@@ -32,13 +33,15 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
-  const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)
+  const isAdmin = useUser(usersByID, requestorID, user => user.is_staff, false)
 
   const user = usersByID[id];
 
-  if (!isFetching && !isAdding && !user) {
-    withUser(usersByID, id, () => null, null)
-  }
+  useEffect(() => {
+    if (!isFetching && !isAdding && !user) {
+      withUser(usersByID, id, () => null, null)
+    }
+  }, [isFetching, isAdding, user])
 
   /*
    * Form Data submission
@@ -48,10 +51,12 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
   const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_USER : user))
   const [formErrors, setFormErrors] = useState({})
 
-  if (!isAdding && formData === undefined && user !== undefined && !user.isFetching) {
-    setFormData(deserialize(user))
-    setKey(key + 1)
-  }
+  useEffect(() => {
+    if (!isAdding && formData === undefined && user !== undefined && !user.isFetching) {
+      setFormData(deserialize(user))
+      setKey(key + 1)
+    }
+  }, [isAdding, formData, user, user?.isFetching])
 
   const onValuesChange = (values) => {
     setFormData(deserialize({ ...formData, ...values }))
