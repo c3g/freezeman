@@ -128,7 +128,7 @@ const SampleDetailsContent = ({
   useEffect(() => {
     if (!samplesByID[id])
       getSample(id);
-  }, [samplesByID, id])
+  }, [samplesByID[id], id])
 
   useEffect(() => {
     if (isLoaded && !sample.versions && !sample.isFetching)
@@ -157,7 +157,7 @@ const SampleDetailsContent = ({
   useEffect(() => {
     if (!librariesByID[id])
       getLibrary(id)
-  }, [librariesByID, id])
+  }, [librariesByID[id], id])
 
   useEffect(() => {
     const biosampleId = sample?.biosample_id
