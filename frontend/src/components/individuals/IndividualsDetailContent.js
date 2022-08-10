@@ -9,8 +9,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import { withIndividual, withTaxon } from "../../utils/withItem";
-import { get } from "../../modules/individuals/actions";
+import {get} from "../../modules/individuals/actions";
 import { WithIndividualComponent, WithTaxonComponent } from "../shared/WithItemComponent";
 
 const mapStateToProps = state => ({

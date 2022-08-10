@@ -1,6 +1,5 @@
 import React from "react";
 import {Descriptions} from "antd";
-import {withUser} from "../utils/withItem";
 import {connect} from "react-redux";
 import { WithUserComponent } from "./shared/WithItemComponent";
 

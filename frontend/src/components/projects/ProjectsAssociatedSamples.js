@@ -9,7 +9,6 @@ import api, {withToken}  from "../../utils/api"
 
 import {listFilter, setFilterOption} from "../../modules/samples/actions";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
-import { withIndividual } from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
 import { WithIndividualComponent } from "../shared/WithItemComponent"

@@ -14,7 +14,6 @@ import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
 import {actionDropdown} from "../../utils/templateActions";
-import {withContainer, withIndividual} from "../../utils/withItem";
 import {PROJECT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";

@@ -10,8 +10,7 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import ProjectsAssociatedSamples from "./ProjectsAssociatedSamples";
-import { withSample } from "../../utils/withItem";
-import { get } from "../../modules/projects/actions";
+import {get} from "../../modules/projects/actions";
 
 const mapStateToProps = state => ({
     isFetching: state.projects.isFetching,

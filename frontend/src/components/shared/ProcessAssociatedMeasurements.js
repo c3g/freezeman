@@ -5,7 +5,6 @@ import {Link, useParams} from "react-router-dom";
 import { useFilteredList } from "../../hooks/useFilteredList";
 import PaginatedList from "./PaginatedList";
 
-import { withSample } from "../../utils/withItem";
 import { listFilter } from "../../modules/processMeasurements/actions";
 import {listPropertyValues} from "../../modules/experimentRuns/actions";
 import { PROCESS_MEASUREMENT_FILTERS } from "../filters/descriptions";

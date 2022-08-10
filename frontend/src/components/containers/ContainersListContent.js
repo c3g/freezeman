@@ -13,7 +13,6 @@ import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "..
 import api, {withToken}  from "../../utils/api"
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import { withSample, withContainer } from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import { WithSampleComponent, WithContainerComponent } from "../shared/WithItemComponent";
 

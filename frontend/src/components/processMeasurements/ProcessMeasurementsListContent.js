@@ -12,7 +12,6 @@ import api, {withToken}  from "../../utils/api"
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/processMeasurements/actions";
 import {actionDropdown} from "../../utils/templateActions";
-import { withSample } from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {PROCESS_MEASUREMENT_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";

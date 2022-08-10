@@ -15,7 +15,6 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import { withContainer, withIndex } from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";

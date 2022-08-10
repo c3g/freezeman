@@ -32,15 +32,7 @@ import SampleDetailsLineage from "./SampleDetailsLineage";
 import { get as getSample, listVersions } from "../../../modules/samples/actions";
 import { get as getLibrary } from "../../../modules/libraries/actions";
 import api, { withToken } from "../../../utils/api";
-import {
-  withContainer,
-  withSample,
-  withIndividual,
-  withProcessMeasurement,
-  withProject,
-  withLibrary,
-  withIndex
-} from "../../../utils/withItem";
+import { withProcessMeasurement } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
 import { WithContainerComponent, WithIndexComponent, WithIndividualComponent, WithSampleComponent } from "../../shared/WithItemComponent";
 import { useContainer, useSample } from "../../../hooks/useItem";

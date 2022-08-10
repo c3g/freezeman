@@ -13,7 +13,6 @@ import FixedLengthText from "../FixedLengthText";
 import DropdownListItems from "../DropdownListItems";
 
 import api, {withToken}  from "../../utils/api"
-import { withSequence } from "../../utils/withItem";
 
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/indices/actions";
 import {actionDropdown} from "../../utils/templateActions";

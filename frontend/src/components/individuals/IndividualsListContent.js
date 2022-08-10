@@ -16,7 +16,6 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
-import { withTaxon } from "../../utils/withItem";
 import { WithTaxonComponent } from "../shared/WithItemComponent"
 
 
