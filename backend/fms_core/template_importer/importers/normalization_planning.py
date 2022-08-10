@@ -42,7 +42,6 @@ class NormalizationPlanningImporter(GenericImporter):
 
         mapping_rows_template = []
         norm_choice = []
-
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
