@@ -1,7 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.template_importer._constants import VALID_NORM_CHOICES
 
-from fms_core.services.container import get_container
+from fms_core.services.container import get_container, is_container_valid
 from fms_core.services.sample import get_sample_from_container
 
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
@@ -38,29 +38,63 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
+        if source_sample_obj.concentration is None:
+            self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
+
+        # ensure that if the sample source is in a tube, the tube has a parent container in FMS.
+        container_obj, self.errors['src_container'], self.warnings['src_container'] = get_container(barcode=source_sample['container']['barcode'])
+        if not source_sample_obj.coordinates and container_obj.location is None: # sample without coordinate => tube
+            self.errors['robot_input_coordinates'] = 'Source samples in tubes must be in a rack for coordinates to be generated for robot.'
+
         if measurements['concentration_ngul'] is not None:
             concentration_nguL = measurements['concentration_ngul']
             na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(concentration_nguL)
+            combined_concentration_nguL = concentration_nguL
         elif measurements['concentration_nm'] is not None:
+            if not source_sample_obj.is_library:
+                self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries.'
             concentration_nm = measurements['concentration_nm']
-            na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
-                                                                                                                       source_sample_obj.library.molecular_weight_approx,
-                                                                                                                       source_sample_obj.library.library_size))
+            combined_concentration_nguL = decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                                                  source_sample_obj.library.molecular_weight_approx,
+                                                                                                  source_sample_obj.library.library_size))
+            na_qty = decimal.Decimal(measurements['volume']) * combined_concentration_nguL
         elif measurements['na_quantity'] is not None:
             #compute concentration in ngul
             concentration_nguL = decimal.Decimal(measurements['na_quantity']) / decimal.Decimal(measurements['volume'])
             na_qty = decimal.Decimal(measurements['na_quantity'])
+            combined_concentration_nguL = concentration_nguL
 
+
+        # Ensure the destination container exist or has enough information to be created.
         destination_container_dict = destination_sample['container']
-
         parent_barcode = destination_container_dict['parent_barcode']
+
         if parent_barcode:
             container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(
                 barcode=parent_barcode)
         else:
             container_parent_obj = None
 
-        volume_used = na_qty / source_sample_obj.concentration
+        _, self.errors['dest_container'], self.warnings['dest_container'] = is_container_valid(destination_container_dict['barcode'],
+                                                                                               destination_container_dict['kind'],
+                                                                                               destination_container_dict['name'],
+                                                                                               destination_container_dict['coordinates'],
+                                                                                               container_parent_obj)
+
+        volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
+
+        if combined_concentration_nguL > source_sample_obj.concentration:
+            self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution.'
+
+        if volume_used > source_sample_obj.volume:
+            adjusted_volume = source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL
+            volume_used = source_sample_obj.volume
+            self.warnings['volume'] = f'Insufficient source sample volume to comply. ' \
+                                      f'Requested volume ({measurements["volume"]} uL) ' \
+                                      f'will be adjusted to {adjusted_volume} uL to ' \
+                                      f'maintain requested concentration while using all source sample volume.'
+        else:
+            adjusted_volume = measurements['volume']
 
         if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
             self.row_object = {
@@ -79,7 +113,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 'Destination Parent Container Coord': destination_container_dict['coordinates'],
                 'Source Depleted': '',
                 'Volume Used (uL)': str(volume_used),
-                'Volume (uL)': measurements['volume'],
+                'Volume (uL)': str(adjusted_volume),
                 'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
                 'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
                 'Normalization Date (YYYY-MM-DD)': '',

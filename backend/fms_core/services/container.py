@@ -19,6 +19,60 @@ def get_container(barcode):
 
     return (container, errors, warnings)
 
+def is_container_valid(barcode, kind=None, name=None, coordinates=None, container_parent=None):
+    """
+    is_container_valid is a service function that validate the information provided to create a container but that do not actually create a container.
+    It can be used to validate template submission during planning step when no database creation is expected (no dry run).
+
+    Args:
+        barcode: Container unique identifier.
+        kind: Kind of container. Defaults to None.
+        name: User defined name. Will usually be set to the same as barcode. Defaults to None.
+        coordinates: Alphanumeric position of the container in it's parent. Defaults to None.
+        container_parent: Container in which the container is placed. Defaults to None.
+
+    Returns:
+        returns a tuple containing a validity flag (container exists or can be created.) and a list of errors and warnings.
+    """
+    container = None
+    is_valid = True
+    errors = []
+    warnings = []
+
+    if barcode:
+
+        try:
+            container = Container.objects.get(barcode=barcode)
+
+            # Validate that the retrieved container is the right one
+            if kind and kind != container.kind:
+                errors.append(f"Provided container kind {kind} does not match the container kind {container.kind} of the container retrieved using the barcode {barcode}.")
+            if name and name != container.name:
+                errors.append(f"Provided container name {name} does not match the container name {container.name} of the container retrieved using the barcode {barcode}.")
+            if container_parent and container_parent.id != container.location.id:
+                errors.append(f"Provided parent container {container_parent.barcode} does not match the parent container {container.location.barcode} of the container retrieved using the barcode {barcode}.")
+            if coordinates and coordinates != container.coordinates:
+                errors.append(f"Provided container coordinates {coordinates} do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
+
+        except Container.DoesNotExist:
+            if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
+                errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
+            elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates:
+                try:
+                    CONTAINER_KIND_SPECS[container_parent.kind].container_specs.validate_and_normalize_coordinates(coordinates)
+                except:
+                    errors.append(f"Container coordinates into parent container are not valid.")
+            else:
+                if kind is None:
+                    errors.append(f"Kind is required to create a new container.")
+                  
+    else:
+        errors.append(f"Barcode is required for any container.")
+
+    if errors:
+        is_valid = False
+
+    return (is_valid, errors, warnings)
 
 def get_or_create_container(barcode,
                             kind=None, name=None, coordinates=None,
