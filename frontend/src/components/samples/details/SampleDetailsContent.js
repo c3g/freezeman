@@ -133,7 +133,7 @@ const SampleDetailsContent = ({
   useEffect(() => {
     if (isLoaded && !sample.versions && !sample.isFetching)
       listVersions(sample.id);
-  }, [isLoaded, sample.versions, sample.isFetching, sample.id])
+  }, [isLoaded, sample?.versions, sample?.isFetching, sample?.id])
 
   useEffect(() => {
     if (isLoaded && !isProcessesEmpty) {
@@ -144,7 +144,7 @@ const SampleDetailsContent = ({
         })
       })
     }
-  }, [isLoaded, isProcessesEmpty, sample.process_measurements])
+  }, [isLoaded, isProcessesEmpty, sample?.process_measurements])
 
   useEffect(() => {
     if (isLoaded && container?.experiment_run) {
