@@ -1,0 +1,4 @@
+# Normalization planning
+SAMPLE_CHOICE = "Sample"
+LIBRARY_CHOICE = "Library"
+VALID_NORM_CHOICES = [SAMPLE_CHOICE, LIBRARY_CHOICE]

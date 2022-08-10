@@ -197,8 +197,8 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Robot Input format', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Destination Container Barcode',
-                    'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
+        'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+                    'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
       },
@@ -209,7 +209,6 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       ("Normalization", "Source Container Coord", "coordinates"),
   ],
 }
-
 
 SAMPLE_METADATA_TEMPLATE = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},

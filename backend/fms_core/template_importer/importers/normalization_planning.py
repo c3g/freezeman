@@ -1,14 +1,21 @@
-from datetime import datetime
-
+from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
+from fms_core.template_importer._constants import SAMPLE_CHOICE, LIBRARY_CHOICE, FIXED_FORMAT, MOBILE_FORMAT
+from fms_core.template_prefiller._utils import load_position_dict
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.models import IdGenerator
+
+from fms_core.models import IdGenerator, Container
+from ...containers import CONTAINER_KIND_SPECS
 
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
-from fms_core.utils import str_cast_and_normalize
-from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
+from django.conf import settings
+
+from io import BytesIO
+from datetime import datetime
+import decimal
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -28,13 +35,13 @@ class NormalizationPlanningImporter(GenericImporter):
         self.initialize_data_for_template()
 
     def initialize_data_for_template(self):
-        # Maybe useful ?
         pass
 
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
         mapping_rows_template = []
+        norm_choice = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
@@ -48,7 +55,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
                     'name': str_cast_and_normalize(row_data['Destination Container Name']),
-                    'kind': str_cast_and_normalize(row_data['Destination Container Kind']),
+                    'kind': str_cast_and_normalize_lower(row_data['Destination Container Kind']),
                     'coordinates': str_cast_and_normalize(row_data['Destination Parent Container Coord']),
                     'parent_barcode': str_cast_and_normalize(row_data['Destination Parent Container Barcode']),
                 },
@@ -61,10 +68,15 @@ class NormalizationPlanningImporter(GenericImporter):
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
             }
 
+            robot = {
+                'norm_choice': str_cast_and_normalize(row_data['Robot Norm Choice']),
+            }
+
             normalization_kwargs = dict(
                 source_sample=source_sample,
                 destination_sample=destination_sample,
-                measurements=measurements
+                measurements=measurements,
+                robot=robot
             )
 
             (result, row_mapping) = self.handle_row(
@@ -75,25 +87,28 @@ class NormalizationPlanningImporter(GenericImporter):
             )
 
             mapping_rows_template.append(row_mapping)
+            norm_choice.append(robot["norm_choice"])
 
         if not self.dry_run:
-            # TODO: get robot csv file and robot updated columns
-            # mapping_rows_template, file = dummy_function_csv_robot(mapping_rows_template)
+            # Populate files
+            
+            # Make sure all the normalization choice and formats for outputs are the same
+            if len(set(norm_choice)) != 1:
+                self.base_errors.append(f"All Robot norm choice need to be identical.")
 
-            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, mapping_rows_template)
+            # Create robot file and complete mapping_rows_template with the 
+            robot_files, updated_mapping_rows = self.prepare_robot_file(mapping_rows_template, norm_choice[0])
+
+            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_mapping_rows)
 
             output_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
 
-            files_to_zip = [
+            files_to_zip = robot_files.extend([
                 {
                     'name': output_prefilled_template_name,
                     'content': output_prefilled_template,
                 },
-                {
-                    'name': 'Normalization_for_robot.csv',
-                    'content': output_prefilled_template
-                }
-            ]
+            ])
 
             output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{IdGenerator.objects.create().id}"
 
@@ -104,3 +119,175 @@ class NormalizationPlanningImporter(GenericImporter):
                 'name': output_zip_name + '.zip',
                 'content': zip_buffer.getvalue()
             }
+            
+    def prepare_robot_file(self, rows_data, norm_choice, dst_format):
+        """
+        This function takes the content of the Normalization planning template as input to create
+        a csv file that contains the required configuration for the robot execution of the
+        normalization in the lab.
+
+        Args:
+            row_data: A list of row_data extracted by the importer and already validated by the row_handler.
+            norm_choice: The choice between sample or library robot output files.
+            
+        Returns:
+            A tuple containing : a list of dict that contains robot csv files and an updated version of the row_data (sorted and completed).
+        """
+        FIRST_COORD_AXIS = 0
+        TUBE = "tube"
+
+        if norm_choice == LIBRARY_CHOICE:
+            ROBOT_SRC_PREFIX = "Source"
+            ROBOT_DST_PREFIX = "Dil"
+        elif norm_choice == SAMPLE_CHOICE:
+            ROBOT_SRC_PREFIX = "Src"
+            ROBOT_DST_PREFIX = "Dst"
+
+        def build_source_container_dict(rows_data):
+            container_dict = {}
+            for row_data in rows_data:
+                container = Container.objects.get(barcode=row_data["Source Container Barcode"])
+                container_dict[container.barcode] = (container,
+                                                     container.location.barcode,
+                                                     container.location.kind)
+            return container_dict
+
+        def get_robot_destination_container(row_data) -> str:
+            return row_data["Robot Destination Container"]
+        def get_robot_destination_coord(row_data) -> str:
+            return row_data["Robot Destination Coord"]
+
+        def get_source_container_barcode(row_data, container_dict) -> str:
+            container, parent_barcode, _ = container_dict[row_data["Source Container Barcode"]]
+            if container.kind == TUBE:
+                return parent_barcode
+            else:
+                return container.barcode
+
+        def get_source_container_coord(row_data, container_dict) -> str:
+            container, _, _ = container_dict[row_data["Source Container Barcode"]]
+            if container.kind == TUBE:
+                return container.coordinates
+            else:
+                return row_data["Source Container Coord"]
+
+        def get_source_container_spec(row_data, container_dict) -> str:
+            container, _, parent_kind = container_dict[row_data["Source Container Barcode"]]
+            if container.kind == TUBE:
+                return CONTAINER_KIND_SPECS[parent_kind].coordinate_spec
+            else:
+                return CONTAINER_KIND_SPECS[container.kind].coordinate_spec
+
+        def convert_to_numerical_robot_coord(coord_spec, fms_coord) -> int:
+            first_axis_len = len(coord_spec[FIRST_COORD_AXIS])
+            second_axis_coord = int(fms_coord[1:])
+            return (ord(fms_coord[:1]) - 64) + (first_axis_len * (second_axis_coord - 1)) # ord A is 65 we need to shift -64 to recenter it
+
+        mapping_dest_containers = {}
+        mapping_src_containers = {}
+        coord_spec_by_barcode = {}
+        output_rows_data = rows_data[:]
+        robot_files = []
+
+        # The robot container in Mobile format are "tube racks 4x6"
+        coord_spec_by_barcode = {}
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        ################################################################################################
+
+        dest_containers = set((row_data["Destination Container Barcode"], row_data["Destination Container Kind"]) for row_data in rows_data)
+
+        if dst_format == FIXED_FORMAT: ############## condition dst Fixed (plates) + any src ##############
+            # Map container spec to destination container barcode
+            for barcode, kind in dest_containers:
+                if kind == TUBE:
+                    return robot_files, output_rows_data # Tube output unexpected return no robot files.
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec # kind should not be tube
+
+            # Map destination container barcode to robot destination barcodes
+            for i, (barcode, _) in enumerate(dest_containers, start=1):
+                mapping_dest_containers[barcode] = ROBOT_DST_PREFIX + str(i)
+
+            # Add robot barcode to the rows_data
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Destination Container"] = mapping_dest_containers[output_row_data["Destination Container Barcode"]]
+
+            # Add robot dest coord to the rows_data
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode[output_row_data["Destination Container Barcode"]],
+                                                                                              output_row_data["Destination Container Coord"])
+
+            # Sort incomming list using the destination plates barcodes and coords
+            output_rows_data.sort(key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)), reverse=False)
+
+            container_dict = build_source_container_dict(output_rows_data)
+            
+            src_containers = set(get_source_container_barcode(output_row_data, container_dict) for output_row_data in output_rows_data)
+
+            # Map source container barcode to robot source barcodes
+            for i, barcode in enumerate(src_containers, start=1):
+                mapping_src_containers[barcode] = ROBOT_SRC_PREFIX + str(i)
+
+            # Add robot barcode to the rows_data
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Source Container"] = mapping_src_containers[get_source_container_barcode(output_row_data, container_dict)]
+
+            # Add robot src coord to the sorted rows_data
+            for output_row_data in output_rows_data:
+                output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(get_source_container_spec(output_row_data, container_dict),
+                                                                                         get_source_container_coord(output_row_data, container_dict))
+
+        if norm_choice == LIBRARY_CHOICE:
+            # Creating the 2 robot files
+            add_diluent_io = BytesIO()
+            add_library_io = BytesIO()
+            add_diluent_lines = []
+            add_library_lines = []
+            add_diluent_lines.append(",".join(["DstNameForDiluent", "DstWellForDiluent", "DiluentVol"]) + "\n")
+            add_library_lines.append(",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n")
+
+            for output_row_data in output_rows_data:
+                container_src_barcode = output_row_data["Container Source Barcode"]
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = output_row_data["Robot Source Coord"]
+                robot_dst_coord = output_row_data["Robot Destination Coord"]
+                volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_library
+
+                add_diluent_lines.append(",".join([robot_dst_barcode, robot_dst_coord, str(volume_diluent)]) + "\n")
+                add_library_lines.append(",".join([container_src_barcode, robot_src_barcode, robot_src_coord, robot_dst_barcode, robot_dst_coord, str(volume_library)]) + "\n")
+
+            add_diluent_io.writelines(add_diluent_lines)
+            add_library_io.writelines(add_library_lines)
+            robot_files = [
+                {"name": f"Normalization_diluent_{timestamp}.csv",
+                  "content": add_diluent_io,},
+                {"name": f"Normalization_main_dilution_{timestamp}.csv",
+                 "content": add_library_io,},
+            ]
+
+        elif norm_choice == SAMPLE_CHOICE:
+            # Create the single robot file
+            normalization_io = BytesIO()
+            normalization_lines = []
+            normalization_lines.append(",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n")
+
+            for output_row_data in output_rows_data:
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = output_row_data["Robot Source Coord"]
+                robot_dst_coord = output_row_data["Robot Destination Coord"]
+                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
+
+                normalization_lines.append(",".join([robot_src_barcode, str(robot_src_coord), robot_dst_barcode, str(robot_dst_coord), str(volume_diluent), str(volume_sample)]) + "\n")
+
+            normalization_io.writelines(normalization_lines)
+            robot_files = [
+                {"name": f"Normalization_{timestamp}.csv",
+                 "content": normalization_io.getvalue(),},
+            ]
+
+        return robot_files, output_rows_data
