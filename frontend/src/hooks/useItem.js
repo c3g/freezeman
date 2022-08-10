@@ -19,7 +19,8 @@ import {
  * @returns A hook that looks and behaves like a function created by `createWithItem`
  */
 export const useItem = (withItem) => (itemsByID, id, fn, defaultValue = null) => {
-    const [value, setValue] = useState(defaultValue)
+    const item = itemsByID[id]
+    const [value, setValue] = useState(item ? fn(item) : defaultValue)
 
     useEffect(() => {
         setValue(withItem(itemsByID, id, fn, defaultValue))
