@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {connect, useDispatch } from "react-redux";
 import prop from "prop-types";
 import {Pagination, Table} from "antd";
@@ -67,14 +67,20 @@ function PaginatedTable ({
     setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
   }
 
-  if (sortByRef.current !== sortBy) {
-    setCurrentPage(1)
-    sortByRef.current = sortBy
-  }
-  if (filtersRef.current !== filters) {
-    setCurrentPage(1)
-    filtersRef.current = filters
-  }
+  useEffect(() => {
+    if (sortByRef.current !== sortBy) {
+      setCurrentPage(1)
+      sortByRef.current = sortBy
+    }
+  }, [sortBy])
+
+  useEffect(() => {
+    if (filtersRef.current !== filters) {
+      setCurrentPage(1)
+      filtersRef.current = filters
+    }
+  }, [filters])
+
 
   const onChangePage = (page, pageSize) => {
     setCurrentPage(page);
