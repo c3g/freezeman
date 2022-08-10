@@ -1,11 +1,8 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
-from fms_core.template_importer._constants import VALID_NORM_CHOICES, VALID_ROBOT_FORMATS
+from fms_core.template_importer._constants import VALID_NORM_CHOICES
 
-from fms_core.models import ProcessMeasurement
-
-from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample, validate_normalization
-from fms_core.services.property_value import create_process_measurement_properties
+from fms_core.services.container import get_container
+from fms_core.services.sample import get_sample_from_container
 
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
@@ -23,11 +20,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         concentration_nguL = None
         concentration_nm = None
 
-        # Check if robot formats are valid
-        if robot["input_format"] not in VALID_ROBOT_FORMATS:
-            self.errors['robot_input_format'] = f"Robot input format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
-        if robot["output_format"] not in VALID_ROBOT_FORMATS:
-            self.errors['robot_output_format'] = f"Robot output format must be chosen among the following choices : {VALID_ROBOT_FORMATS}."
+        # Check if robot output choice is valid
+        if robot["norm_choice"] not in VALID_NORM_CHOICES:
+            self.errors['robot_norm_choice'] = f"Robot normalization choice must be chosen among the following choices : {VALID_NORM_CHOICES}."
 
         # Check case when none of the options were provided
         if all([measurements['concentration_nm'] is None, measurements['concentration_ngul'] is None,
