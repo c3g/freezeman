@@ -3,8 +3,9 @@ from fms_core.template_importer.row_handlers.normalization_planning import Norma
 from fms_core.template_importer._constants import SAMPLE_CHOICE, LIBRARY_CHOICE
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 
-from fms_core.models import IdGenerator, Container
+from fms_core.models import Container
 from ...containers import CONTAINER_KIND_SPECS
+from fms_core.services.id_generator import get_unique_id
 
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
@@ -100,14 +101,11 @@ class NormalizationPlanningImporter(GenericImporter):
 
             output_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
 
-            files_to_zip = robot_files.extend([
-                {
-                    'name': output_prefilled_template_name,
-                    'content': output_prefilled_template,
-                },
-            ])
+            files_to_zip = [{'name': output_prefilled_template_name,
+                             'content': output_prefilled_template,}]
+            files_to_zip.extend(robot_files)
 
-            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{IdGenerator.objects.create().id}"
+            output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{str(get_unique_id())}"
 
             # Zip files
             zip_buffer = zip_files(output_zip_name, files_to_zip)
@@ -211,7 +209,6 @@ class NormalizationPlanningImporter(GenericImporter):
             output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode[output_row_data["Destination Container Barcode"]],
                                                                                           output_row_data["Destination Container Coord"])
 
-        print(output_rows_data)
         # Sort incomming list using the destination plates barcodes and coords
         output_rows_data.sort(key=lambda x: (get_robot_destination_container(x), get_robot_destination_coord(x)), reverse=False)
 
@@ -238,8 +235,8 @@ class NormalizationPlanningImporter(GenericImporter):
             add_library_io = BytesIO()
             add_diluent_lines = []
             add_library_lines = []
-            add_diluent_lines.append(",".join(["DstNameForDiluent", "DstWellForDiluent", "DiluentVol"]) + "\n")
-            add_library_lines.append(",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n")
+            add_diluent_lines.append((",".join(["DstNameForDiluent", "DstWellForDiluent", "DiluentVol"]) + "\n").encode())
+            add_library_lines.append((",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n").encode())
 
             for output_row_data in output_rows_data:
                 container_src_barcode = output_row_data["Container Source Barcode"]
@@ -250,8 +247,15 @@ class NormalizationPlanningImporter(GenericImporter):
                 volume_library = decimal.Decimal(output_row_data["Volume Used (uL)"])
                 volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_library
 
-                add_diluent_lines.append(",".join([robot_dst_barcode, robot_dst_coord, str(volume_diluent)]) + "\n")
-                add_library_lines.append(",".join([container_src_barcode, robot_src_barcode, robot_src_coord, robot_dst_barcode, robot_dst_coord, str(volume_library)]) + "\n")
+                add_diluent_lines.append((",".join([robot_dst_barcode,
+                                                    robot_dst_coord,
+                                                    str(volume_diluent)]) + "\n").encode())
+                add_library_lines.append((",".join([container_src_barcode,
+                                                    robot_src_barcode,
+                                                    robot_src_coord,
+                                                    robot_dst_barcode,
+                                                    robot_dst_coord,
+                                                    str(volume_library)]) + "\n").encode())
 
             add_diluent_io.writelines(add_diluent_lines)
             add_library_io.writelines(add_library_lines)
@@ -266,7 +270,7 @@ class NormalizationPlanningImporter(GenericImporter):
             # Create the single robot file
             normalization_io = BytesIO()
             normalization_lines = []
-            normalization_lines.append(",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n")
+            normalization_lines.append((",".join(["Src ID", "Src Coord", "Dst ID", "Dst Coord", "Diluent Vol", "Sample Vol"]) + "\n").encode())
 
             for output_row_data in output_rows_data:
                 robot_src_barcode = output_row_data["Robot Source Container"]
@@ -276,7 +280,12 @@ class NormalizationPlanningImporter(GenericImporter):
                 volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
                 volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
 
-                normalization_lines.append(",".join([robot_src_barcode, str(robot_src_coord), robot_dst_barcode, str(robot_dst_coord), str(volume_diluent), str(volume_sample)]) + "\n")
+                normalization_lines.append((",".join([robot_src_barcode,
+                                                      str(robot_src_coord),
+                                                      robot_dst_barcode,
+                                                      str(robot_dst_coord),
+                                                      str(volume_diluent),
+                                                      str(volume_sample)]) + "\n").encode()) # Encode to store a bytes-like object
 
             normalization_io.writelines(normalization_lines)
             robot_files = [

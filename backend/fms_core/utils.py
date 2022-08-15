@@ -56,6 +56,10 @@ def float_to_decimal(n: Union[float, str], decimals: int = 3) -> Decimal:
     tpl = f"{{:.{decimals}f}}"
     return Decimal(tpl.format(float(n)))
 
+def decimal_rounded_to_precision(val: Decimal, decimals: int = 3) -> Decimal:
+    precision = Decimal(10) ** -decimals
+    return val.quantize(precision)
+
 
 def normalize_scientific_name(name: str) -> str:
     """

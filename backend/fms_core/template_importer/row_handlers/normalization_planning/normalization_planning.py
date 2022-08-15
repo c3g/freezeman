@@ -4,7 +4,7 @@ from fms_core.template_importer._constants import VALID_NORM_CHOICES
 from fms_core.services.container import get_container, is_container_valid
 from fms_core.services.sample import get_sample_from_container
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_rounded_to_precision
 
 import decimal
 
@@ -95,6 +95,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                       f'maintain requested concentration while using all source sample volume.'
         else:
             adjusted_volume = measurements['volume']
+
+        volume_used = decimal_rounded_to_precision(volume_used)
+        adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
 
         if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
             self.row_object = {

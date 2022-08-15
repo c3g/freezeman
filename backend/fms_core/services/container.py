@@ -55,6 +55,8 @@ def is_container_valid(barcode, kind=None, name=None, coordinates=None, containe
                 errors.append(f"Provided container coordinates {coordinates} do not match the container coordinates {container.coordinates} of the container retrieved using the barcode {barcode}.")
 
         except Container.DoesNotExist:
+            if kind is None:
+                errors.append(f"Kind is required to create a new container.")
             if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
                 errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
             elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates:
@@ -62,9 +64,8 @@ def is_container_valid(barcode, kind=None, name=None, coordinates=None, containe
                     CONTAINER_KIND_SPECS[container_parent.kind].container_specs.validate_and_normalize_coordinates(coordinates)
                 except:
                     errors.append(f"Container coordinates into parent container are not valid.")
-            else:
-                if kind is None:
-                    errors.append(f"Kind is required to create a new container.")
+            if container_parent and not CONTAINER_KIND_SPECS[container_parent.kind].can_hold_kind(kind):
+                errors.append(f"Parent container kind {container_parent.kind} cannot hold child container of kind {kind}.")        
                   
     else:
         errors.append(f"Barcode is required for any container.")
