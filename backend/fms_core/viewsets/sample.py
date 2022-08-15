@@ -385,7 +385,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'coordinates': sample["coordinates"],
                 'location_barcode': sample["container__location__barcode"] or "",
                 'location_coord': sample["container__coordinates"] or "",
-                'full_location': location_by_sample[sample["id"]] or "",
+                'container_full_location': location_by_sample[sample["id"]] or "",
                 'current_volume': sample["volume"],
                 'concentration': sample["concentration"],
                 'creation_date': sample["creation_date"],
