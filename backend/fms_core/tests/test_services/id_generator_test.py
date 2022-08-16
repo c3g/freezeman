@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from fms_core.services.id_generator import get_unique_id
 
-class IndividualServicesTestCase(TestCase):
+class IdGeneratorServicesTestCase(TestCase):
 
     def test_get_unique_id(self):
         """
