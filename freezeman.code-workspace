@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../freezeman"
+		},
+		{
+			"path": "../triton"
+		},
+		{
+			"path": "../freezeman-monitor"
+		},
+		{
+			"path": "../monitor"
+		}
+	]
+}
