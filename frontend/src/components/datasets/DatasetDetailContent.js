@@ -101,17 +101,21 @@ const DatasetDetailContent = ({
         }
     }, [datasetsById])
 
+    const loading = (value) => {
+        return value ?? "Loading..."
+    }
+
     return <>
     <AppPageHeader
-        title={`Dataset ${dataset?.run_name}`}
+        title={`Dataset ${loading(dataset?.project_name)} - ${loading(dataset?.run_name)} - ${loading(dataset?.lane)}`}
     />
 
     <PageContent>
         <Descriptions bordered={true} size={"small"} column={4}>
-            <Descriptions.Item label={"ID"}>{dataset?.id}</Descriptions.Item>
-            <Descriptions.Item label={"Run Name"}>{dataset?.run_name}</Descriptions.Item>
-            <Descriptions.Item label={"Project"}>{dataset?.project_name}</Descriptions.Item>
-            <Descriptions.Item label={"Lane"}>{dataset?.lane}</Descriptions.Item>
+            <Descriptions.Item label={"ID"}>{loading(dataset?.id)}</Descriptions.Item>
+            <Descriptions.Item label={"Project"}>{loading(dataset?.project_name)}</Descriptions.Item>
+            <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
+            <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
         <FilteredList
