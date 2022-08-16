@@ -9,6 +9,10 @@ from .container import Container
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
 
+import re
+
+positive_integer = re.compile(r"^[0-9]*[1-9][0-9]*$")
+
 @reversion.register()
 class Dataset(TrackedModel):
     """ Class to store information about the datasets of data deliveries. """
@@ -25,9 +29,11 @@ class Dataset(TrackedModel):
         errors = {}
 
         try:
-            int(self.lane)
+            # is it a positive integer?
+            if not positive_integer.match(self.lane):
+                raise ValueError(f"The lane must be a positive integer")
         except ValueError as e:
-            errors["ValueError"] = "The lane must be a positive integer"
+            errors["ValueError"] = str(e)
         
         if Dataset.objects.filter(project_name=self.project_name, run_name=self.run_name, lane=self.lane).exists():
             errors["ExistingError"] = f"There's already a dataset with identical project name '{self.project_name}', run name '{self.run_name}' and lane '{self.lane}'"
