@@ -1,12 +1,12 @@
 import React from "react";
-import {useHistory} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {Button} from "antd";
 import {LinkOutlined} from "@ant-design/icons";
 
 const LinkButton = ({url, ...rest}) => {
-  const history = useHistory();
+  const history = useNavigate();
   return (
-    <Button onClick={() => history.push(url)} {...rest}>
+    <Button onClick={() => history(url)} {...rest}>
       <LinkOutlined /> Link Samples
     </Button>
   )

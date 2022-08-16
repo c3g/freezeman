@@ -1,16 +1,16 @@
-import React, {useState, useEffect} from "react";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {Alert, Button, Form, Input, Radio, Select} from "antd";
+import React, { useState, useEffect } from "react";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Button, Form, Input, Radio, Select } from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update, listTable} from "../../modules/individuals/actions";
-import {individual as EMPTY_INDIVIDUAL} from "../../models";
-import {SEX} from "../../constants";
-import api, {withToken} from "../../utils/api";
-import {requiredRules} from "../../constants";
+import { add, update, listTable } from "../../modules/individuals/actions";
+import { individual as EMPTY_INDIVIDUAL } from "../../models";
+import { SEX } from "../../constants";
+import api, { withToken } from "../../utils/api";
+import { requiredRules } from "../../constants";
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
@@ -19,7 +19,7 @@ const searchTaxons = (token, input) =>
   withToken(token, api.taxons.search)(input).then(res => res.data.results)
 
 const toOptions = values =>
-    values.map(v => ({label: v, value: v}))
+  values.map(v => ({ label: v, value: v }))
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -27,11 +27,11 @@ const mapStateToProps = state => ({
   taxonsByID: state.taxons.itemsByID,
 });
 
-const actionCreators = {add, update, listTable};
+const actionCreators = { add, update, listTable };
 
-const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update, listTable}) => {
-  const history = useHistory();
-  const {id} = useParams();
+const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update, listTable }) => {
+  const history = useNavigate();
+  const { id } = useParams();
   const isAdding = id === undefined
 
   const individual = individualsByID[id];
@@ -61,12 +61,12 @@ const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update,
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(individual => { history.push(`/individuals/${individual.id}`) }) :
-        update(id, data).then(() => { history.push(`/individuals/${id}`) })
+        add(data).then(individual => { history(`/individuals/${individual.id}`) }) :
+        update(id, data).then(() => { history(`/individuals/${id}`) })
     action
-    .then(() => { setFormErrors({}) })
-    .catch(err => { setFormErrors(err.data || {}) })
-    .then(listTable)
+      .then(() => { setFormErrors({}) })
+      .catch(err => { setFormErrors(err.data || {}) })
+      .then(listTable)
   }
 
   /*
@@ -201,27 +201,27 @@ const IndividualEditContent = ({token, individualsByID, taxonsByID, add, update,
 };
 
 function deserialize(values) {
-    if (!values)
-        return undefined
-    const newValues = { ...values }
-    if (newValues.sex === null)
-        newValues.sex = ''
+  if (!values)
+    return undefined
+  const newValues = { ...values }
+  if (newValues.sex === null)
+    newValues.sex = ''
 
-    if (newValues.taxon)
-        newValues.taxon = Number(newValues.taxon)
+  if (newValues.taxon)
+    newValues.taxon = Number(newValues.taxon)
 
-    return newValues
+  return newValues
 }
 
 function serialize(values) {
-    const newValues = { ...values }
-    if (newValues.sex === '')
-        newValues.sex = null
+  const newValues = { ...values }
+  if (newValues.sex === '')
+    newValues.sex = null
 
-    if (newValues.taxon)
-        newValues.taxon = Number(newValues.taxon)
+  if (newValues.taxon)
+    newValues.taxon = Number(newValues.taxon)
 
-    return newValues
+  return newValues
 }
 
 export default connect(mapStateToProps, actionCreators)(IndividualEditContent);

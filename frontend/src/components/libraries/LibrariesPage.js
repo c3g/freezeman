@@ -1,17 +1,17 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import LibrariesListContent from "./LibrariesListContent";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const LibrariesPage = () => <PageContainer>
-  <Switch>
-    <Route path="/libraries/list"><LibrariesListContent /></Route>
-    <Route path="/libraries/actions/:action"><ActionContent templateType="library" /></Route>
-    <Redirect to="/libraries/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<LibrariesListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="library" />}/>
+    <Route path="//*" element={<Navigate to="/libraries/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default LibrariesPage;

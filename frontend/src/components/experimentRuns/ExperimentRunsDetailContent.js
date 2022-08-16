@@ -1,15 +1,15 @@
 import React from "react";
-import {connect} from "react-redux";
-import {Link, useHistory, useParams} from "react-router-dom";
-import {Descriptions, Tag, Tabs} from "antd";
+import { connect } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Descriptions, Tag, Tabs } from "antd";
 const { TabPane } = Tabs;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import {get, listPropertyValues} from "../../modules/experimentRuns/actions";
-import { list as listProcesses } from  "../../modules/processes/actions";
-import {withContainer} from "../../utils/withItem";
+import { get, listPropertyValues } from "../../modules/experimentRuns/actions";
+import { list as listProcesses } from "../../modules/processes/actions";
+import { withContainer } from "../../utils/withItem";
 import ProcessProperties from "../shared/ProcessProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
 
@@ -40,7 +40,7 @@ const mapStateToProps = state => ({
   propertyValuesByID: state.propertyValues.itemsByID,
 });
 
-const actionCreators = {get, listProcesses, listPropertyValues};
+const actionCreators = { get, listProcesses, listPropertyValues };
 
 const ExperimentRunsDetailContent = ({
   containersByID,
@@ -54,8 +54,8 @@ const ExperimentRunsDetailContent = ({
   listPropertyValues,
   propertyValuesByID,
 }) => {
-  const history = useHistory();
-  const {id} = useParams();
+  const history = useNavigate();
+  const { id } = useParams();
 
   const experimentRun = experimentRunsByID[id] || {};
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
@@ -81,8 +81,8 @@ const ExperimentRunsDetailContent = ({
   if (isLoaded && !isChildrenAndPropertiesLoaded) {
     // Need to be queried as a string, not as an array in order to work with DRF filters
     const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
-    listProcesses({id__in: processIDSAsStr});
-    listPropertyValues({object_id__in: processIDSAsStr, content_type__model: "process"})
+    listProcesses({ id__in: processIDSAsStr });
+    listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" })
   }
 
 
@@ -97,40 +97,40 @@ const ExperimentRunsDetailContent = ({
           <TabPane tab="Overview" key="1" style={tabStyle}>
             <Descriptions bordered={true} size="small">
               <Descriptions.Item label="ID" span={3}>
-                  {experimentRun.id}
+                {experimentRun.id}
               </Descriptions.Item>
               <Descriptions.Item label="Name" span={3}>
-                  {experimentRun.name}
+                {experimentRun.name}
               </Descriptions.Item>
               <Descriptions.Item label="Run Type" span={3}>
                 <Tag>{runTypes.itemsByID[experimentRun.run_type]?.name}</Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Instrument" span={3}>
-                  {instruments.itemsByID[experimentRun.instrument]?.name}
+                {instruments.itemsByID[experimentRun.instrument]?.name}
               </Descriptions.Item>
               <Descriptions.Item label="Instrument Type" span={3}>
-                  {experimentRun.instrument_type}
+                {experimentRun.instrument_type}
               </Descriptions.Item>
               <Descriptions.Item label="Platform" span={3}>
-                  {experimentRun.platform}
+                {experimentRun.platform}
               </Descriptions.Item>
               <Descriptions.Item label="Experiment Start Date" span={3}>
-                  {experimentRun.start_date}
+                {experimentRun.start_date}
               </Descriptions.Item>
               <Descriptions.Item label="Container Barcode">
-                  {experimentRun.container &&
-                      <Link to={`/containers/${experimentRun.container}`}>
-                          {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
-                      </Link>}
+                {experimentRun.container &&
+                  <Link to={`/containers/${experimentRun.container}`}>
+                    {withContainer(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+                  </Link>}
               </Descriptions.Item>
               {process?.comment &&
                 <Descriptions.Item label="Comment">
-                    {process.comment}
+                  {process.comment}
                 </Descriptions.Item>
-               }
+              }
             </Descriptions>
 
-          <TrackingFieldsContent entity={experimentRun}/>
+            <TrackingFieldsContent entity={experimentRun} />
           </TabPane>
 
           <TabPane tab="Steps" key="2" style={tabStyle}>
@@ -139,21 +139,21 @@ const ExperimentRunsDetailContent = ({
               protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
             />
             {experimentRun.children_processes?.map((id, i) => {
-                const process = processesByID[id]
-                return ( process &&
-                    <>
-                      <ProcessProperties
-                          propertyIDs={process.children_properties}
-                          protocolName={protocolsByID[process.protocol]?.name}
-                      />
-                    </>
-                )
-              })
+              const process = processesByID[id]
+              return (process &&
+                <>
+                  <ProcessProperties
+                    propertyIDs={process.children_properties}
+                    protocolName={protocolsByID[process.protocol]?.name}
+                  />
+                </>
+              )
+            })
             }
           </TabPane>
 
-          <TabPane tab={`Samples (${container ? container.samples.length : '' })`} key="3" style={tabStyle}>
-            <ExperimentRunsSamples container={container} experimentRun={experimentRun}/>
+          <TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="3" style={tabStyle}>
+            <ExperimentRunsSamples container={container} experimentRun={experimentRun} />
           </TabPane>
 
         </Tabs>

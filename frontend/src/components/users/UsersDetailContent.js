@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {set} from "object-path-immutable";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { set } from "object-path-immutable";
 import {
   Button,
   Card,
@@ -27,7 +27,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import ErrorMessage from "../ErrorMessage";
 import EditButton from "../EditButton";
-import {listRevisions, listVersions, get} from "../../modules/users/actions";
+import { listRevisions, listVersions, get } from "../../modules/users/actions";
 import routes from "./routes";
 import canWrite from "./canWrite";
 import useTimeline from "../../utils/useTimeline";
@@ -53,11 +53,11 @@ const mapStateToProps = state => ({
   groupsByID: state.groups.itemsByID,
 });
 
-const mapDispatchToProps = {get, listRevisions, listVersions};
+const mapDispatchToProps = { get, listRevisions, listVersions };
 
-const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions}) => {
-  const history = useHistory();
-  const {id} = useParams();
+const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions }) => {
+  const history = useNavigate();
+  const { id } = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isLoadRevisions, setIsLoadRevisions] = useState(false);
 
@@ -113,7 +113,7 @@ const ReportsUserContent = ({canWrite, isFetching, usersError, usersByID, groups
 
 };
 
-function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore, listVersions}) {
+function UserReport({ user, groupsByID, expandedGroups, setExpandedGroups, onLoadMore, listVersions }) {
 
   const error = user.error;
   const isFetching = user.isFetching;
@@ -153,37 +153,37 @@ function UserReport({user, groupsByID, expandedGroups, setExpandedGroups, onLoad
           <div ref={timelineRef}>
             <Card>
               {
-                  <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
-                    {revisions === undefined && isFetching &&
-                      <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
-                    }
-                    {revisions && groups.map((revision, i) => {
-                      return (
-                        <Timeline.Item
-                          key={i}
-                          label={renderTimelineLabel(revision)}
-                        >
-                          <TimelineEntry
-                            revision={revision}
-                            expandedGroups={expandedGroups}
-                            setExpandedGroups={setExpandedGroups}
-                            listVersions={listVersions}
-                          />
-                        </Timeline.Item>
-                      )
-                    })}
-                    {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
-                      <Button
-                        block
-                        type="link"
-                        loading={isFetching || isFetchingRevisions}
-                        onClick={onLoadMore}
-                        style={{marginLeft: "20%"}}
+                <Timeline mode="left" style={{ marginLeft: timelineMarginLeft }}>
+                  {revisions === undefined && isFetching &&
+                    <Timeline.Item dot={<LoadingOutlined />} label=" ">Loading...</Timeline.Item>
+                  }
+                  {revisions && groups.map((revision, i) => {
+                    return (
+                      <Timeline.Item
+                        key={i}
+                        label={renderTimelineLabel(revision)}
                       >
-                        Load more
-                      </Button>
-                    }
-                  </Timeline>
+                        <TimelineEntry
+                          revision={revision}
+                          expandedGroups={expandedGroups}
+                          setExpandedGroups={setExpandedGroups}
+                          listVersions={listVersions}
+                        />
+                      </Timeline.Item>
+                    )
+                  })}
+                  {((hasRevisions && revisions.next) || (!hasRevisions && isFetchingRevisions)) &&
+                    <Button
+                      block
+                      type="link"
+                      loading={isFetching || isFetchingRevisions}
+                      onClick={onLoadMore}
+                      style={{ marginLeft: "20%" }}
+                    >
+                      Load more
+                    </Button>
+                  }
+                </Timeline>
               }
             </Card>
           </div>
@@ -220,10 +220,10 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
     setIsLoading(true)
     setExpandedGroups(set(expandedGroups, revision.id, !isExpanded))
     listVersions(revision.user, revision.id)
-        .then(response => {
-          setGroup(response.results)
-          setIsLoading(false)
-        })
+      .then(response => {
+        setGroup(response.results)
+        setIsLoading(false)
+      })
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -263,7 +263,7 @@ function TimelineEntry({ revision, expandedGroups, setExpandedGroups, listVersio
 
 function renderTimelineLabel(revision) {
   return (
-      <Text type="secondary">{dateToString(revision.date_created)}</Text>
+    <Text type="secondary">{dateToString(revision.date_created)}</Text>
   )
 }
 

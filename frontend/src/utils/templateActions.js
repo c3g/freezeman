@@ -1,5 +1,5 @@
 import React from "react";
-import {Link, useHistory} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 import {Button, Menu, Dropdown} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
@@ -30,14 +30,14 @@ export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
   );
 
 export const actionDropdown = (urlBase, actions, fullWidth=false) => {
-  const history = useHistory();
+  const history = useNavigate();
   const actionMenu = (
     <Menu>
       { actions.items ? actions.items.map((a, i) =>
           <Menu.Item key={i.toString()}>
             <Button
               icon={actionIcon(a)}
-              onClick={() => history.push(`${urlBase}/actions/${i}/`)}
+              onClick={() => history(`${urlBase}/actions/${i}/`)}
               {...(fullWidth ? {style:{width:"100%", border:0}} : {style:{border:0}})}
             >
               {a.name}

@@ -1,5 +1,5 @@
 import React from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import ContainerEditContent from "./ContainerEditContent";
 import ContainersDetailContent from "./ContainersDetailContent";
@@ -8,14 +8,14 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const ContainersPage = () => <PageContainer>
-  <Switch>
-    <Route path="/containers/list"><ContainersListContent /></Route>
-    <Route path="/containers/actions/:action"><ActionContent templateType="container" /></Route>
-    <Route path="/containers/add"><ContainerEditContent /></Route>
-    <Route path="/containers/:id/update"><ContainerEditContent /></Route>
-    <Route path="/containers/:id"><ContainersDetailContent /></Route>
-    <Redirect to="/containers/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<ContainersListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="container" />}/>
+    <Route path="/add/*" element={<ContainerEditContent />}/>
+    <Route path="/:id/update/*" element={<ContainerEditContent />}/>
+    <Route path="/:id/*" element={<ContainersDetailContent />}/>
+    <Route path="*" element={<Navigate to="/containers/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default ContainersPage;

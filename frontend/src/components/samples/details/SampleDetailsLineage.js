@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
 const { Text } = Typography;
 
-import { Graph } from "react-d3-graph"
+import { Graph } from "freezeman-d3-graph"
 
 import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
@@ -23,7 +23,7 @@ const SampleDetailsLineage = ({
   token,
   sample,
 }) => {
-  const history = useHistory()
+  const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
@@ -202,10 +202,10 @@ const SampleDetailsLineage = ({
                     id="graph-id"
                     data={adjustedGraphData}
                     config={graphConfig}
-                    onClickNode={(id, _) => history.push(`/samples/${id}`)}
+                    onClickNode={(id, _) => history(`/samples/${id}`)}
                     onClickLink={(source, target) => {
                       const linkId = nodesToEdges[`${source}:${target}`].id
-                      history.push(`/process-measurements/${linkId}`)
+                      history(`/process-measurements/${linkId}`)
                     }}
                   />
                 : <Spin size={"large"} />

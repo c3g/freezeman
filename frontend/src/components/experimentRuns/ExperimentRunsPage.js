@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import ExperimentRunsListContent from "./ExperimentRunsListContent";
 import ExperimentRunsDetailContent from "./ExperimentRunsDetailContent";
@@ -8,12 +8,12 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const ExperimentRunsPage = () => <PageContainer>
-  <Switch>
-    <Route path="/experiment-runs/list"><ExperimentRunsListContent /></Route>
-    <Route path="/experiment-runs/actions/:action"><ActionContent templateType="experimentRun" /></Route>
-    <Route path="/experiment-runs/:id"><ExperimentRunsDetailContent /></Route>
-    <Redirect to="/experiment-runs/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<ExperimentRunsListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="experimentRun" />}/>
+    <Route path="/:id/*" element={<ExperimentRunsDetailContent />}/>
+    <Route path="*" element={<Navigate to="/experiment-runs/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default ExperimentRunsPage;

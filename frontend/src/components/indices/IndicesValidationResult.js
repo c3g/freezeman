@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
-import {useHistory, useParams, useLocation} from "react-router-dom";
+import {useNavigate, useParams, useLocation} from "react-router-dom";
 import {
   Descriptions,
   List,
@@ -41,7 +41,7 @@ const IndicesValidationResult = ({
   list
 }) => {
 
-  const history = useHistory();
+  const history = useNavigate();
   const { state } = useLocation();
 
   const {results, validation_errors, warnings} = validationResult
