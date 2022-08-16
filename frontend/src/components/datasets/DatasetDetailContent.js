@@ -57,7 +57,7 @@ const getTableColumns = (setReleaseFlag) => {
                 }
             }
         }
-    ]
+    ].map((column) => ({ ...column, key: column.title }))
 }
 
 const mapStateToProps = state => ({
