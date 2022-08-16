@@ -106,7 +106,7 @@ RUN_PROCESSING_SCHEMA = {
     "type": "object",
     "properties": {
         "run": {"type": "string"},
-        "lane": {"type": "string"},
+        "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
         "readsets": {
             "type": "object",
             "patternProperties": {

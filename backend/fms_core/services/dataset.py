@@ -7,11 +7,15 @@ from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models._constants import ReleaseFlag
 
-def create_dataset(project_name: str, run_name: str, lane: str) -> Tuple[Union[Dataset, None], List[str], List[str]]:
+def create_dataset(project_name: str, run_name: str, lane: int) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     dataset = None
 
     errors = []
     warnings = []
+
+    if not (lane >= 0 and lane == int(lane)):
+        errors.append("Lane must be a positive integer field")
+        return (dataset, errors, warnings)
 
     try:
         dataset = Dataset.objects.create(

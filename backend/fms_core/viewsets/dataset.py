@@ -50,16 +50,19 @@ class DatasetViewSet(viewsets.ModelViewSet):
             warnings = []
 
             for error in RUN_PROCESSING_VALIDATOR.validator.iter_errors(rpm):
-                path = "".join(f'["{p}"]' for p in error.path)
-                msg = f"{path}: {error.message}" if error.path else error.message
-                errors.append(msg)
+                if error.path[0] == "lane":
+                    errors.append(f'Lane must be a positive integer (e.g. "0", "1", ..., .etc). It was given "{rpm["lane"]}".')
+                else:
+                    path = "".join(f'["{p}"]' for p in error.path)
+                    msg = f"{path}: {error.message}" if error.path else error.message
+                    errors.append(msg)
             if errors:
                 return (datasets, dataset_files, errors, warnings)
 
             for readset in rpm["readsets"].values():
                 project_name = readset["barcodes"][0]["PROJECT"]
                 run_name = rpm["run"]
-                lane = rpm["lane"]
+                lane = int(rpm["lane"])
                 dataset_key = (project_name, run_name, lane)
                 if dataset_key not in datasets:
                     dataset, errors, warnings = service.create_dataset(project_name=project_name, run_name=run_name, lane=lane)
