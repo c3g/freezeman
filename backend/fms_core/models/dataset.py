@@ -19,7 +19,9 @@ class Dataset(TrackedModel):
 
     lane = models.CharField(max_length=10, blank=True, help_text="Coordinates of the lane in a container")
 
-    def save(self, *args, **kwargs):
+    def clean(self):
+        super().clean()
+        
         errors = {}
 
         try:
@@ -33,4 +35,7 @@ class Dataset(TrackedModel):
         if errors:
             raise ValidationError(errors)
 
+
+    def save(self, *args, **kwargs):
+        self.clean()
         return super().save(*args, **kwargs)
