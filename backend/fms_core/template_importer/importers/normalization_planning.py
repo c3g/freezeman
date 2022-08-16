@@ -143,8 +143,8 @@ class NormalizationPlanningImporter(GenericImporter):
             for row_data in rows_data:
                 container = Container.objects.get(barcode=row_data["Source Container Barcode"])
                 container_dict[container.barcode] = (container,
-                                                     container.location.barcode,
-                                                     container.location.kind)
+                                                     container.location.barcode if container.location else None,
+                                                     container.location.kind if container.location else None)
             return container_dict
 
         def get_robot_destination_container(row_data) -> str:
