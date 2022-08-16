@@ -11,7 +11,7 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH
 
 import re
 
-positive_integer = re.compile(r"^[1-9][0-9]*$")
+positive_integer = re.compile(r"^([1-9][0-9]*|0)$")
 
 @reversion.register()
 class Dataset(TrackedModel):
