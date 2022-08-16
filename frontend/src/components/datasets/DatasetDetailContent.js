@@ -3,7 +3,7 @@ const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
-import { useHistory, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {get} from "../../modules/datasets/actions";
 import {listFilter, update} from "../../modules/datasetFiles/actions"
 import AppPageHeader from "../AppPageHeader";
@@ -83,7 +83,6 @@ const DatasetDetailContent = ({
     totalCount,
     update,
 }) => {
-    const history = useHistory();
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
 
@@ -105,7 +104,6 @@ const DatasetDetailContent = ({
     return <>
     <AppPageHeader
         title={`Dataset ${dataset?.run_name}`}
-        onBack={() => history.push("/datasets/list")}
     />
 
     <PageContent>

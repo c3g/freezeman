@@ -1,15 +1,15 @@
 import React from "react";
-import { Redirect, Route, Switch } from "react-router-dom"
+import { Route, Routes, Navigate } from "react-router-dom"
 import PageContainer from "../PageContainer"
 import DatasetDetailContent from "./DatasetDetailContent";
 import DatasetsListContent from "./DatasetsListContent";
 
 const DatasetsPage = () => <PageContainer>
-    <Switch>
-        <Route path="/datasets/list"><DatasetsListContent /></Route>
-        <Route path="/datasets/:id"><DatasetDetailContent /></Route>
-        <Redirect to="/datasets/list" />
-    </Switch>
+    <Routes>
+        <Route path="/list/*" element={<DatasetsListContent />}/>
+        <Route path="/:id/*" element={<DatasetDetailContent />} />
+        <Route path="*" element={<Navigate to="/datasets/list" replace />} />
+    </Routes>
 </PageContainer>;
 
 export default DatasetsPage;
