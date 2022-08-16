@@ -41,9 +41,15 @@ class DatasetTest(TestCase):
     def test_duplicate_dataset(self):
         Dataset.objects.create(**create_dataset(project_name="project", run_name="run", lane="1"))
 
-        try:
-            Dataset.objects.create(**create_dataset(project_name="project", run_name="run", lane="1"))
-        except ValidationError as e:
-            self.assertIn("There's already a dataset with identical project name 'project', run name 'run' and lane '1'", e.messages)
-        except Exception as e:
-            self.fail(f"Expected ValidationError exception but got '{repr(e)}'")
+        valid_datasets = [
+            dict(project_name="project", run_name="run", lane="1"),
+            dict(project_name="PROJECT", run_name="RUN", lane="1"),
+        ]
+        for vd in valid_datasets:
+            with self.subTest(msg=f"test_duplicate_dataset: {vd}"):
+                try:
+                    Dataset.objects.create(**create_dataset(**vd))
+                except ValidationError as e:
+                    self.assertIn(f"There's already a dataset with identical project name '{vd['project_name']}', run name '{vd['run_name']}' and lane '{vd['lane']}'", e.messages)
+                except Exception as e:
+                    self.fail(f"Expected ValidationError exception but got '{repr(e)}'")

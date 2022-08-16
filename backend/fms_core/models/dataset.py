@@ -35,7 +35,7 @@ class Dataset(TrackedModel):
         except ValueError as e:
             errors["ValueError"] = str(e)
         
-        if Dataset.objects.filter(project_name=self.project_name, run_name=self.run_name, lane=self.lane).exists():
+        if Dataset.objects.filter(project_name__iexact=self.project_name, run_name__iexact=self.run_name, lane=self.lane).exists():
             errors["ExistingError"] = f"There's already a dataset with identical project name '{self.project_name}', run name '{self.run_name}' and lane '{self.lane}'"
 
         if errors:
