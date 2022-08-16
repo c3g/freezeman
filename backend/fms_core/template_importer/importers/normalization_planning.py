@@ -239,7 +239,8 @@ class NormalizationPlanningImporter(GenericImporter):
             add_library_lines.append((",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n").encode())
 
             for output_row_data in output_rows_data:
-                container_src_barcode = output_row_data["Container Source Barcode"]
+                print(output_row_data)
+                container_src_barcode = output_row_data["Source Container Barcode"]
                 robot_src_barcode = output_row_data["Robot Source Container"]
                 robot_dst_barcode = output_row_data["Robot Destination Container"]
                 robot_src_coord = output_row_data["Robot Source Coord"]
@@ -248,22 +249,22 @@ class NormalizationPlanningImporter(GenericImporter):
                 volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_library
 
                 add_diluent_lines.append((",".join([robot_dst_barcode,
-                                                    robot_dst_coord,
+                                                    str(robot_dst_coord),
                                                     str(volume_diluent)]) + "\n").encode())
                 add_library_lines.append((",".join([container_src_barcode,
                                                     robot_src_barcode,
-                                                    robot_src_coord,
+                                                    str(robot_src_coord),
                                                     robot_dst_barcode,
-                                                    robot_dst_coord,
+                                                    str(robot_dst_coord),
                                                     str(volume_library)]) + "\n").encode())
 
             add_diluent_io.writelines(add_diluent_lines)
             add_library_io.writelines(add_library_lines)
             robot_files = [
-                {"name": f"Normalization_diluent_{timestamp}.csv",
-                  "content": add_diluent_io,},
-                {"name": f"Normalization_main_dilution_{timestamp}.csv",
-                 "content": add_library_io,},
+                {"name": f"Normalization_libraries_diluent_{timestamp}.csv",
+                  "content": add_diluent_io.getvalue(),},
+                {"name": f"Normalization_libraries_main_dilution_{timestamp}.csv",
+                 "content": add_library_io.getvalue(),},
             ]
 
         elif norm_choice == SAMPLE_CHOICE:
@@ -289,7 +290,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
-                {"name": f"Normalization_{timestamp}.csv",
+                {"name": f"Normalization_samples_{timestamp}.csv",
                  "content": normalization_io.getvalue(),},
             ]
 

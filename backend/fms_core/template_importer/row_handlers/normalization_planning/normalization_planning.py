@@ -53,10 +53,11 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         elif measurements['concentration_nm'] is not None:
             if not source_sample_obj.is_library:
                 self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries.'
-            concentration_nm = measurements['concentration_nm']
-            combined_concentration_nguL = decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
-                                                                                                  source_sample_obj.library.molecular_weight_approx,
-                                                                                                  source_sample_obj.library.library_size))
+            else:
+                concentration_nm = measurements['concentration_nm']
+                combined_concentration_nguL = decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                                                      source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx,
+                                                                                                      source_sample_obj.derived_sample_not_pool.library.library_size))
             na_qty = decimal.Decimal(measurements['volume']) * combined_concentration_nguL
         elif measurements['na_quantity'] is not None:
             #compute concentration in ngul
@@ -87,10 +88,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             self.errors['concentration'] = 'Requested concentration is higher than the source sample concentration. This cannot be achieved by dilution.'
 
         if volume_used > source_sample_obj.volume:
-            adjusted_volume = source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL
+            adjusted_volume = decimal_rounded_to_precision(source_sample_obj.volume * source_sample_obj.concentration / combined_concentration_nguL)
             volume_used = source_sample_obj.volume
             self.warnings['volume'] = f'Insufficient source sample volume to comply. ' \
-                                      f'Requested volume ({measurements["volume"]} uL) ' \
+                                      f'Requested Final volume ({measurements["volume"]} uL) ' \
                                       f'will be adjusted to {adjusted_volume} uL to ' \
                                       f'maintain requested concentration while using all source sample volume.'
         else:
