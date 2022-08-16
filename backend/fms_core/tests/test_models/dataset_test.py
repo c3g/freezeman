@@ -18,7 +18,7 @@ class DatasetTest(TestCase):
         self.assertEqual(dataset.lane, "1")
 
     def test_valid_lane(self):
-        valid_lanes = ["10", "01"]
+        valid_lanes = ["1", "10"]
         for valid_lane in valid_lanes:
             with self.subTest(msg=f"test_valid_lane: {valid_lane}"):
                 try:
@@ -27,7 +27,7 @@ class DatasetTest(TestCase):
                     self.fail(f"Expected to create Dataset successfully with lane '{valid_lane}'")
 
     def test_invalid_lane(self):
-        invalid_lanes = ["a", "-1", "0", "00"]
+        invalid_lanes = ["a", "-1", "0", "00", "01"]
         for invalid_lane in invalid_lanes:
             with self.subTest(msg=f"test_invalid_lane: {invalid_lane}"):
                 try:
