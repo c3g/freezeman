@@ -107,7 +107,7 @@ const DatasetDetailContent = ({
     />
 
     <PageContent>
-        <Descriptions bordered={true} size="small">
+        <Descriptions bordered={true} size={"small"} column={4}>
             <Descriptions.Item label={"ID"}>{dataset?.id}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"}>{dataset?.run_name}</Descriptions.Item>
             <Descriptions.Item label={"Project"}>{dataset?.project_name}</Descriptions.Item>
