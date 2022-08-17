@@ -188,7 +188,12 @@ class NormalizationPlanningImporter(GenericImporter):
 
         ################################################################################################
 
-        dest_containers = set((row_data["Destination Container Barcode"], row_data["Destination Container Kind"]) for row_data in rows_data)
+        # Ensure the Destination Container Kind is in the template even in the case where the user reuse an existing container
+        for output_row_data in output_rows_data:
+            if output_row_data["Destination Container Kind"] is None:
+                output_row_data["Destination Container Kind"] = Container.objects.get(barcode=output_row_data["Source Container Barcode"]).kind
+
+        dest_containers = set((output_row_data["Destination Container Barcode"], output_row_data["Destination Container Kind"]) for output_row_data in output_rows_data)
 
         # Map container spec to destination container barcode
         for barcode, kind in dest_containers:
