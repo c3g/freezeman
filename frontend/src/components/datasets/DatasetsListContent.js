@@ -49,7 +49,7 @@ const getTableColumns = () => {
                 return last_release_timestamp ? moment(last_release_timestamp).format("YYYY-MM-DD LT") : ""
             }
         },
-    ]
+    ].map((column) => ({ ...column, key: column.title }))
 }
 
 const mapStateToProps = state => ({
