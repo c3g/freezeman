@@ -19,6 +19,11 @@ class Dataset(TrackedModel):
 
     lane = models.PositiveIntegerField(help_text="Coordinates of the lane in a container")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["project_name", "run_name", "lane"], name="unique_dataset")
+        ]
+
     def clean(self):
         super().clean()
         

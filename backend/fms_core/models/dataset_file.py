@@ -19,3 +19,8 @@ class DatasetFile(TrackedModel):
 
     release_flag = models.IntegerField(choices=ReleaseFlag.choices, default=ReleaseFlag.BLOCK, help_text="The release flag of the file.")
     release_flag_timestamp = models.DateTimeField(null=True, blank=True, help_text='The time release_flag was set to "Release".')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["file_path"], name="unique_dataset_file")
+        ]
