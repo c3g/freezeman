@@ -298,7 +298,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
                                                                 UNION ALL
 
-                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') at [' || container.coordinates::varchar || '] in ' ||container_hierarchy.full_location::varchar
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
+                                                                CASE 
+                                                                WHEN (container.coordinates = '') THEN ''
+                                                                ELSE 'at ' || container.coordinates::varchar || ' '
+                                                                END
+
+                                                                || 'in ' ||container_hierarchy.full_location::varchar
                                                                 FROM container_hierarchy
                                                                 JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
                                                                 ) 
