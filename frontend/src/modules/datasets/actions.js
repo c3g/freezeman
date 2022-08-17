@@ -92,9 +92,17 @@ export const clearFilters = thenList(() => {
 
 export const setReleaseFlags = (id, releaseFlag) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
+    const datasetFiles = getState().datasetFiles.itemsByID
+
     if (dataset && !dataset.isFetching) {
-        return await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
+        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
             { meta: { id, ignoreError: 'APIError' }}));
+        
+        if (datasetFiles && !datasetFiles.isFetching) {
+            await dispatch(listFiles({ id__in: Object.values(datasetFiles).filter((file) => file.dataset === id).map((file) => file.id).join(",") }))
+        }
+
+        return result
     }
 };
 

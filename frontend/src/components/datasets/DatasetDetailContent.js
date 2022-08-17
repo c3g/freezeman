@@ -1,16 +1,18 @@
-import { Checkbox, Descriptions, Select, Switch } from "antd";
+import { Button, Checkbox, Descriptions, Select, Switch } from "antd";
 const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { useParams } from "react-router-dom";
-import {get} from "../../modules/datasets/actions";
+import {get, setReleaseFlags} from "../../modules/datasets/actions";
 import {listFilter, update} from "../../modules/datasetFiles/actions"
 import AppPageHeader from "../AppPageHeader";
 import FilteredList from "../FilteredList";
 import { DATASET_FILE_FILTERS } from "../filters/descriptions";
 import PageContent from "../PageContent";
 import moment from "moment";
+import useFilteredList from "../../hooks/useFilteredList";
+import PaginatedList from "../shared/PaginatedList";
 
 const getTableColumns = (setReleaseFlag) => {
     return [
@@ -34,7 +36,6 @@ const getTableColumns = (setReleaseFlag) => {
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
-                const options = ["", "Released", "Blocked"]
                 return <>
                     <Checkbox checked={release_flag == 1} onChange={(ev) => setReleaseFlag(id)(ev.target.checked ? 1 : 2)} />
                 </>
@@ -66,7 +67,7 @@ const mapStateToProps = state => ({
     sortBy: state.datasetFiles.sortBy,
     totalCount: state.datasetFiles.filteredItemsCount,
 });
-const actionCreators = {get, listFilter, update};
+const actionCreators = {get, listFilter, update, setReleaseFlags};
 
 const DatasetDetailContent = ({
     get,
@@ -78,6 +79,7 @@ const DatasetDetailContent = ({
     page,
     totalCount,
     update,
+    setReleaseFlags,
 }) => {
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
@@ -91,6 +93,9 @@ const DatasetDetailContent = ({
         })
     const filterKey = DATASET_FILE_FILTERS.dataset.key
 
+    const releaseFlagToggleOptions = ["", "Block", "Release"]
+    const releaseFlagToggleValue = [-1, 2, 1]
+    
     useEffect(() => {
         if (!dataset) {
             get(datasetId)
@@ -100,6 +105,26 @@ const DatasetDetailContent = ({
     const loading = (value) => {
         return value ?? "Loading..."
     }
+
+    const paginatedListProps = useFilteredList({
+        description: DATASET_FILE_FILTERS,
+        columns: columns,
+        listFilter: listFilter,
+        items: files,
+        itemsByID: filesById,
+        totalCount: totalCount,
+        filterID: datasetId,
+        filterKey: filterKey,
+        rowKey: "id",
+        isFetching: isFetching,
+        page: page,
+    })
+
+    const allFilesToggleButton = <Button
+        style={{ margin: 6 }}
+        onClick={(ev) => setReleaseFlags(dataset?.id, releaseFlagToggleValue[dataset?.release_flag])}>
+        {dataset?.release_flag ? releaseFlagToggleOptions[dataset?.release_flag] : "Loading..."} All Files
+    </Button>
 
     return <>
     <AppPageHeader
@@ -114,19 +139,7 @@ const DatasetDetailContent = ({
             <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
-        <FilteredList
-            description = {DATASET_FILE_FILTERS}
-            columns={columns}
-            listFilter={listFilter}
-            items={files}
-            itemsByID={filesById}
-            totalCount={totalCount}
-            filterID={datasetId}
-            filterKey={filterKey}
-            rowKey="id"
-            isFetching={isFetching}
-            page={page}
-        />
+        <PaginatedList {...paginatedListProps} other={allFilesToggleButton} />
     </PageContent>
     </>
 }
