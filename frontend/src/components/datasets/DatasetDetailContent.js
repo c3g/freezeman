@@ -1,4 +1,4 @@
-import { Descriptions, Select, Switch } from "antd";
+import { Checkbox, Descriptions, Select, Switch } from "antd";
 const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
 import React, { useEffect } from "react";
@@ -36,11 +36,7 @@ const getTableColumns = (setReleaseFlag) => {
                 const { id } = file;
                 const options = ["", "Released", "Blocked"]
                 return <>
-                    <Select defaultValue={options[release_flag]} onChange={setReleaseFlag(id)}>
-                        {options.map((value, index) => {
-                            return <Option value={index}>{value}</Option>
-                        }).slice(1)}
-                    </Select>
+                    <Checkbox checked={release_flag == 1} onChange={(ev) => setReleaseFlag(id)(ev.target.checked ? 1 : 2)} />
                 </>
             }
         },
