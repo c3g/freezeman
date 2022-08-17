@@ -612,11 +612,18 @@ class ImportedFileSerializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    release_flag = serializers.SerializerMethodField()
     last_release_timestamp = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "project_name", "run_name", "lane", "files", "last_release_timestamp")
+        fields = ("id", "project_name", "run_name", "lane", "files", "release_flag", "last_release_timestamp")
+
+    def get_release_flag(self, obj):
+        if DatasetFile.objects.filter(dataset=obj.id, release_flag=ReleaseFlag.RELEASE).exists():
+            return ReleaseFlag.RELEASE
+        else:
+            return ReleaseFlag.BLOCK
     
     def get_last_release_timestamp(self, obj):
         return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_flag_timestamp"))["release_flag_timestamp__max"]

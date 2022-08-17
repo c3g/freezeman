@@ -13,7 +13,7 @@ import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
 import moment from "moment";
 
-const getTableColumns = () => {
+const getTableColumns = (setReleaseFlag) => {
     return [
         {
             title: "ID",
@@ -40,6 +40,16 @@ const getTableColumns = () => {
             title: "Lane",
             dataIndex: "lane",
             sorter: true,
+        },
+        {
+            title: "Release Flag",
+            dataIndex: "release_flag",
+            render: (release_flag, dataset) => {
+                return <Select defaultValue={release_flag} onChange={setReleaseFlag(dataset.id)}>
+                    <Option value={1}>Released</Option>
+                    <Option value={2}>Blocked</Option>
+                </Select>
+            }
         },
         {
             title: "Last Release Time",
@@ -78,7 +88,9 @@ const DatasetsListContent = ({
     totalCount,
     setReleaseFlags,
 }) => {
-    const columns = getTableColumns().map(c => Object.assign(c, getFilterProps(
+    const columns = getTableColumns(
+        (id) => (value) => { setReleaseFlags(id, value) }
+    ).map(c => Object.assign(c, getFilterProps(
         c,
         DATASET_FILTERS,
         filters,
