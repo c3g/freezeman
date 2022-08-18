@@ -37,7 +37,7 @@ const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
             sorter: true,
         },
         {
-            title: "Release Flag",
+            title: "Release",
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
@@ -89,7 +89,6 @@ const DatasetDetailContent = ({
 }) => {
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
-    const [globalReleaseFlag, setGlobalReleaseFlag] = useState(dataset && dataset.release_flag_count === dataset.files?.length ? BLOCK : RELEASE)
 
     const releaseFlagOptionReducer = (state, action) => {
         switch(action.type) {
@@ -98,7 +97,7 @@ const DatasetDetailContent = ({
             case "toggle": {
                 const { all } = state
                 const { id, releaseFlag, filesById } = action
-                const newState = { ...state, toggled: [...state.toggled] }
+                const newState = { ...state, toggled: {...state.toggled} }
                 
                 if (all) {
                     if (all !== releaseFlag) {
@@ -163,19 +162,26 @@ const DatasetDetailContent = ({
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                setGlobalReleaseFlag(OPPOSITE_FLAGS[globalReleaseFlag])
-                if (releaseFlagOption.all) {
-                    dispatchReleaseFlagOption({ type: "all", release_flag: OPPOSITE_FLAGS[globalReleaseFlag] })
-                }
-            }}>
-            Flag: {globalReleaseFlag ? RELEASE_FLAG_STRING[globalReleaseFlag] : "Loading..."}
+                dispatchReleaseFlagOption({ type: "all", release_flag: RELEASE })
+            }}
+            disabled={releaseFlagOption.all === RELEASE && Object.keys(releaseFlagOption.toggled).length == 0}>
+            Release All
         </Button>
         <Button
             style={{ margin: 6 }}
-            onClick={(ev) => releaseFlagOption.all
-                ? dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
-                : dispatchReleaseFlagOption({ type: "all", release_flag: globalReleaseFlag })}>
-            {releaseFlagOption.all ? "Reset Toggles" : `${RELEASE_FLAG_STRING[globalReleaseFlag]} All Files`}
+            onClick={(ev) => {
+                dispatchReleaseFlagOption({ type: "all", release_flag: BLOCK })
+            }}
+            disabled={releaseFlagOption.all === BLOCK && Object.keys(releaseFlagOption.toggled).length == 0}>
+            Block All
+        </Button>
+        <Button
+            style={{ margin: 6 }}
+            onClick={(ev) => {
+                dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
+            }}
+            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.toggled).length == 0}>
+            Undo Changes
         </Button>
         <Button
             style={{ margin: 6 }}
@@ -192,8 +198,10 @@ const DatasetDetailContent = ({
                     })
                 }
                 dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
-            }}>
-            Apply Changes
+            }}
+            type={"primary"}
+            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.toggled).length == 0}>
+            Save Changes
         </Button>
     </>
 
