@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPageSize } from "../modules/pagination";
 
@@ -51,14 +51,19 @@ export const usePaginatedList = ({
         setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
     }
 
-    if (sortByRef.current !== sortBy) {
-        setCurrentPage(1)
-        sortByRef.current = sortBy
-    }
-    if (filtersRef.current !== filters) {
-        setCurrentPage(1)
-        filtersRef.current = filters
-    }
+    useEffect(() => {
+        if (sortByRef.current !== sortBy) {
+            setCurrentPage(1)
+            sortByRef.current = sortBy
+        }
+    }, [sortBy])
+
+    useEffect(() => {
+        if (filtersRef.current !== filters) {
+            setCurrentPage(1)
+            filtersRef.current = filters
+        }
+    }, [filters])
 
     const onChangePage = (page, pageSize) => {
         setCurrentPage(page);
