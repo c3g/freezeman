@@ -21,8 +21,6 @@ import fms_core.services.dataset as service
 class DatasetViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     queryset = queryset.annotate(
-        are_files_released=Exists(DatasetFile.objects.filter(dataset=OuterRef("pk"), release_flag=ReleaseFlag.RELEASE)),
-        release_flag=Case(When(Q(are_files_released=True), then=ReleaseFlag.RELEASE), default=ReleaseFlag.BLOCK, output_field=IntegerField()),
         last_release_timestamp=Max("files__release_flag_timestamp")
     )
 

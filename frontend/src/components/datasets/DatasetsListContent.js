@@ -42,6 +42,14 @@ const getTableColumns = () => {
             sorter: true,
         },
         {
+            title: "Files Released",
+            dataIndex: "release_flag_count",
+            sorter: true,
+            render: (release_flag_count, dataset) => {
+                return `${release_flag_count}/${dataset?.files?.length}`
+            }
+        },
+        {
             title: "Last Release Time",
             dataIndex: "last_release_timestamp",
             sorter: true,

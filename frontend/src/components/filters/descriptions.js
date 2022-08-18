@@ -527,16 +527,6 @@ export const DATASET_FILTERS = {
     key: "lane",
     label: "Lane",
   },
-  release_flag: {
-    type: FILTER_TYPE.SELECT,
-    key: "release_flag",
-    label: "Release Flag",
-    placeholder: "All",
-    options: [
-      { label: "Release", value: "1" },
-      { label: "Block",  value: "2" },
-    ],
-  },
 }
 
 export const DATASET_FILE_FILTERS = {
