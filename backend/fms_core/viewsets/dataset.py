@@ -95,7 +95,8 @@ class DatasetViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=["patch"])
     def set_release_flags(self, request, pk):
-        release_flag = request.data.get("release_flag")
-        exceptions = request.data.get("exceptions")
+        data = request.data
+        release_flag = data.get("release_flag")
+        exceptions = data.get("exceptions")
         service.set_release_flag(pk, release_flag, exceptions)
         return Response(DatasetSerializer(Dataset.objects.get(pk=pk)).data)

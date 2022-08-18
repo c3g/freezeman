@@ -95,7 +95,7 @@ export const setReleaseFlags = (id, releaseFlag, exceptions = []) => async (disp
     const datasetFiles = getState().datasetFiles.itemsByID
 
     if (dataset && !dataset.isFetching) {
-        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag),
+        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag, exceptions),
             { meta: { id, ignoreError: 'APIError' }}));
         
         if (datasetFiles && !datasetFiles.isFetching) {
