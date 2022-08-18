@@ -1,7 +1,7 @@
 import { Button, Checkbox, Descriptions, Select, Switch } from "antd";
 const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
-import React, { useEffect } from "react";
+import React, { useEffect, useReducer, useRef, useState } from "react";
 import { connect } from "react-redux";
 import { useParams } from "react-router-dom";
 import {get, setReleaseFlags} from "../../modules/datasets/actions";
@@ -19,7 +19,7 @@ const BLOCK = 2
 const RELEASE_FLAG_STRING = [null, "Release", "Block"]
 const OPPOSITE_FLAGS = [null, 2, 1]
 
-const getTableColumns = (setReleaseFlag) => {
+const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
     return [
         {
             title: "ID",
@@ -41,8 +41,9 @@ const getTableColumns = (setReleaseFlag) => {
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
+                const releaseFlag = releaseFlagOption.toggled[id] ?? releaseFlagOption.all ?? release_flag
                 return <>
-                    <Checkbox checked={release_flag == RELEASE} onChange={(ev) => setReleaseFlag(id)(ev.target.checked ? RELEASE : BLOCK)} />
+                    <Checkbox checked={releaseFlag == RELEASE} onChange={(ev) => setReleaseFlag(id, ev.target.checked ? RELEASE : BLOCK)} />
                 </>
             }
         },
@@ -88,14 +89,50 @@ const DatasetDetailContent = ({
 }) => {
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
+    const [globalReleaseFlag, setGlobalReleaseFlag] = useState(dataset && dataset.release_flag_count === dataset.files?.length ? BLOCK : RELEASE)
+
+    const releaseFlagOptionReducer = (state, action) => {
+        switch(action.type) {
+            case "all":
+                return { all: action.release_flag, toggled: {} }
+            case "toggle": {
+                const { all } = state
+                const { id, releaseFlag, filesById } = action
+                const newState = { ...state }
+                
+                if (all) {
+                    if (all !== releaseFlag) {
+                        newState.toggled[id] = releaseFlag
+                    } else {
+                        delete newState.toggled[id]
+                    }
+                } else {
+                    if (filesById[id]?.release_flag !== releaseFlag) {
+                        newState.toggled[id] = releaseFlag
+                    } else {
+                        delete newState.toggled[id]
+                    }
+                }
+
+                return newState
+            }
+        }
+    }
+    const [releaseFlagOption, dispatchReleaseFlagOption] = useReducer(
+        releaseFlagOptionReducer,
+        {
+            all: undefined,
+            toggled: {},
+        }
+    )
+    console.log(releaseFlagOption);
 
     const columns = getTableColumns(
-        (id) => (release_flag) => {
-            update(id, {
-                id,
-                release_flag
-            })
-        })
+        (id, releaseFlag) => {
+            dispatchReleaseFlagOption({ type: "toggle", id, releaseFlag, filesById  })
+        },
+        releaseFlagOption
+    )
     const filterKey = DATASET_FILE_FILTERS.dataset.key
     
     useEffect(() => {
@@ -122,12 +159,43 @@ const DatasetDetailContent = ({
         page: page,
     })
 
-    const globalReleaseFlag = dataset && dataset.release_flag_count === dataset.files?.length ? RELEASE : BLOCK
-    const allFilesToggleButton = <Button
-        style={{ margin: 6 }}
-        onClick={(ev) => setReleaseFlags(dataset?.id, OPPOSITE_FLAGS[globalReleaseFlag])}>
-        {globalReleaseFlag ? RELEASE_FLAG_STRING[OPPOSITE_FLAGS[globalReleaseFlag]] : "Loading..."} All Files
-    </Button>
+    const extraButtons = <>
+        <Button
+            style={{ margin: 6 }}
+            onClick={(ev) => {
+                setGlobalReleaseFlag(OPPOSITE_FLAGS[globalReleaseFlag])
+                if (releaseFlagOption.all) {
+                    dispatchReleaseFlagOption({ type: "all", release_flag: OPPOSITE_FLAGS[globalReleaseFlag] })
+                }
+            }}>
+            Flag: {globalReleaseFlag ? RELEASE_FLAG_STRING[globalReleaseFlag] : "Loading..."}
+        </Button>
+        <Button
+            style={{ margin: 6 }}
+            onClick={(ev) => releaseFlagOption.all
+                ? dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
+                : dispatchReleaseFlagOption({ type: "all", release_flag: globalReleaseFlag })}>
+            {releaseFlagOption.all ? "Reset Toggles" : `${RELEASE_FLAG_STRING[globalReleaseFlag]} All Files`}
+        </Button>
+        <Button
+            style={{ margin: 6 }}
+            onClick={(ev) => {
+                const { all, toggled } = releaseFlagOption
+                if (all) {
+                    setReleaseFlags(datasetId, all, Object.keys(toggled))
+                } else {
+                    Object.entries(toggled).forEach(([id, release_flag]) => {
+                        update(id, {
+                            id,
+                            release_flag
+                        })
+                    })
+                }
+                dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
+            }}>
+            Apply Changes
+        </Button>
+    </>
 
     return <>
     <AppPageHeader
@@ -142,7 +210,7 @@ const DatasetDetailContent = ({
             <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
-        <PaginatedList {...paginatedListProps} other={allFilesToggleButton} />
+        <PaginatedList {...paginatedListProps} other={extraButtons} />
     </PageContent>
     </>
 }
