@@ -98,7 +98,7 @@ const DatasetDetailContent = ({
             case "toggle": {
                 const { all } = state
                 const { id, releaseFlag, filesById } = action
-                const newState = { ...state }
+                const newState = { ...state, toggled: [...state.toggled] }
                 
                 if (all) {
                     if (all !== releaseFlag) {
