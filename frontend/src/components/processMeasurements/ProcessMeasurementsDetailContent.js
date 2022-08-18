@@ -11,7 +11,6 @@ import PageContent from "../PageContent";
 import ProcessProperties from "../shared/ProcessProperties";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { listPropertyValues } from "../../modules/experimentRuns/actions";
-import { withSample } from "../../utils/withItem";
 import { get } from "../../modules/processMeasurements/actions";
 import AllProcessProperties from "../shared/AllProcessProperties";
 import { WithSampleComponent } from "../shared/WithItemComponent";

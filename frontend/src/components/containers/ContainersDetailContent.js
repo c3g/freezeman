@@ -11,7 +11,6 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
-import { withContainer } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
 import { WithContainerComponent } from "../shared/WithItemComponent"
 
