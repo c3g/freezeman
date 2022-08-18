@@ -90,7 +90,7 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseFlags = (id, releaseFlag) => async (dispatch, getState) => {
+export const setReleaseFlags = (id, releaseFlag, exceptions = []) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
     const datasetFiles = getState().datasetFiles.itemsByID
 
