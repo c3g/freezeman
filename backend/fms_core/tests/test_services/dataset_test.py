@@ -60,18 +60,32 @@ class DatasetServicesTestCase(TestCase):
     
     def test_set_release_flag(self):
         dataset, *_ = self.create_dataset()
-        self.create_dataset_file(dataset)
-        self.create_dataset_file(dataset)
+        [a, _, _] = self.create_dataset_file(dataset)
+        [b, _, _] = self.create_dataset_file(dataset)
 
         dataset_files = DatasetFile.objects.filter(dataset=dataset)
 
         # release all flags
         service.set_release_flag(dataset.id, ReleaseFlag.RELEASE)
-        self.assertEqual(len(dataset_files.filter(release_flag=ReleaseFlag.RELEASE)), 2)
+        self.assertEqual(dataset_files.filter(release_flag=ReleaseFlag.RELEASE).count(), 2)
 
         # block all flags
         service.set_release_flag(dataset.id, ReleaseFlag.BLOCK)
-        self.assertEqual(len(dataset_files.filter(release_flag=ReleaseFlag.BLOCK)), 2)
+        self.assertEqual(dataset_files.filter(release_flag=ReleaseFlag.BLOCK).count(), 2)
+
+        # release all flags except b
+        service.set_release_flag(dataset.id, ReleaseFlag.RELEASE, [b.id])
+        a.refresh_from_db()
+        b.refresh_from_db()
+        self.assertEqual(a.release_flag, ReleaseFlag.RELEASE)
+        self.assertEqual(b.release_flag, ReleaseFlag.BLOCK)
+
+        # block all flags except b
+        service.set_release_flag(dataset.id, ReleaseFlag.BLOCK, [b.id])
+        a.refresh_from_db()
+        b.refresh_from_db()
+        self.assertEqual(a.release_flag, ReleaseFlag.BLOCK)
+        self.assertEqual(b.release_flag, ReleaseFlag.RELEASE)
 
         # # by default: if all blocked then release all flags
         # service.set_release_flag(dataset.id)
