@@ -14,6 +14,11 @@ import moment from "moment";
 import useFilteredList from "../../hooks/useFilteredList";
 import PaginatedList from "../shared/PaginatedList";
 
+const RELEASE = 1
+const BLOCK = 2
+const RELEASE_FLAG_STRING = [null, "Release", "Block"]
+const OPPOSITE_FLAGS = [null, 2, 1]
+
 const getTableColumns = (setReleaseFlag) => {
     return [
         {
@@ -37,7 +42,7 @@ const getTableColumns = (setReleaseFlag) => {
             render: (release_flag, file) => {
                 const { id } = file;
                 return <>
-                    <Checkbox checked={release_flag == 1} onChange={(ev) => setReleaseFlag(id)(ev.target.checked ? 1 : 2)} />
+                    <Checkbox checked={release_flag == RELEASE} onChange={(ev) => setReleaseFlag(id)(ev.target.checked ? RELEASE : BLOCK)} />
                 </>
             }
         },
@@ -92,9 +97,6 @@ const DatasetDetailContent = ({
             })
         })
     const filterKey = DATASET_FILE_FILTERS.dataset.key
-
-    const releaseFlagToggleOptions = ["", "Block", "Release"]
-    const releaseFlagToggleValue = [-1, 2, 1]
     
     useEffect(() => {
         if (!dataset) {
@@ -120,10 +122,11 @@ const DatasetDetailContent = ({
         page: page,
     })
 
+    const globalReleaseFlag = dataset && dataset.release_flag_count === dataset.files?.length ? RELEASE : BLOCK
     const allFilesToggleButton = <Button
         style={{ margin: 6 }}
-        onClick={(ev) => setReleaseFlags(dataset?.id, releaseFlagToggleValue[dataset?.release_flag])}>
-        {dataset?.release_flag ? releaseFlagToggleOptions[dataset?.release_flag] : "Loading..."} All Files
+        onClick={(ev) => setReleaseFlags(dataset?.id, OPPOSITE_FLAGS[globalReleaseFlag])}>
+        {globalReleaseFlag ? RELEASE_FLAG_STRING[OPPOSITE_FLAGS[globalReleaseFlag]] : "Loading..."} All Files
     </Button>
 
     return <>
