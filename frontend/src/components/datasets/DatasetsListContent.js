@@ -1,7 +1,7 @@
 import { Button, Checkbox, Select, Spin, Switch } from "antd";
 const { Option } = Select;
-import React, { useEffect } from "react";
-import { connect } from "react-redux";
+import React, { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {setReleaseFlags, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
 import AppPageHeader from "../AppPageHeader";
@@ -60,38 +60,28 @@ const getTableColumns = () => {
     ].map((column) => ({ ...column, key: column.title }))
 }
 
-const mapStateToProps = state => ({
-    datasets: state.datasets.items,
-    datasetsById: state.datasets.itemsByID,
-    filters: state.datasets.filters,
-    isFetching: state.datasets.isFetching,
-    page: state.datasets.page,
-    sortBy: state.datasets.sortBy,
-    totalCount: state.datasets.totalCount,
-});
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setReleaseFlags};
+const DatasetsListContent = () => {
+    const datasets = useSelector((state) => state.datasets.items)
+    const datasetsById = useSelector((state) => state.datasets.itemsByID)
+    const filters = useSelector((state) => state.datasets.filters)
+    const isFetching = useSelector((state) => state.datasets.isFetching)
+    const page = useSelector((state) => state.datasets.page)
+    const sortBy = useSelector((state) => state.datasets.sortBy)
+    const totalCount = useSelector((state) => state.datasets.totalCount)
+    
+    const dispatch = useDispatch()
+    const dispatchSetFilter = useCallback((...args) => dispatch(setFilter(...args)), [dispatch])
+    const dispatchSetFilterOption = useCallback((...args) => dispatch(setFilterOption(...args)), [dispatch])
+    const dispatchClearFilters = useCallback((...args) => dispatch(clearFilters(...args)), [dispatch])
+    const dispatchListTable = useCallback((...args) => dispatch(listTable(...args)), [dispatch])
+    const dispatchSetSortBy = useCallback((...args) => dispatch(setSortBy(...args)), [dispatch])
 
-const DatasetsListContent = ({
-    clearFilters,
-    datasets,
-    datasetsById,
-    filters,
-    isFetching,
-    listTable,
-    page,
-    setFilter,
-    setFilterOption,
-    setSortBy,
-    sortBy,
-    totalCount,
-    setReleaseFlags,
-}) => {
     const columns = getTableColumns().map(c => Object.assign(c, getFilterProps(
         c,
         DATASET_FILTERS,
         filters,
-        setFilter,
-        setFilterOption
+        dispatchSetFilter,
+        dispatchSetFilterOption
     )))
 
     const nFilters = getNFilters(filters)
@@ -108,7 +98,7 @@ const DatasetsListContent = ({
             <Button
             style={{ margin: 6 }}
             disabled={nFilters === 0}
-            onClick={clearFilters}
+            onClick={dispatchClearFilters}
             >
             Clear Filters
             </Button>
@@ -123,11 +113,11 @@ const DatasetsListContent = ({
             page={page}
             filters={filters}
             sortBy={sortBy}
-            onLoad={listTable}
-            onChangeSort={setSortBy}
+            onLoad={dispatchListTable}
+            onChangeSort={dispatchSetSortBy}
         />
         </PageContent>
     </>;
     }
 
-export default connect(mapStateToProps, actionCreators)(DatasetsListContent);
+export default DatasetsListContent;

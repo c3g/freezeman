@@ -1,8 +1,8 @@
 import { Button, Checkbox, Descriptions, Select, Switch, Typography } from "antd";
 const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
-import React, { useEffect, useReducer, useRef, useState } from "react";
-import { connect } from "react-redux";
+import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import {get, setReleaseFlags} from "../../modules/datasets/actions";
 import {listFilter, update} from "../../modules/datasetFiles/actions"
@@ -63,30 +63,17 @@ const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
     ].map((column) => ({ ...column, key: column.title }))
 }
 
-const mapStateToProps = state => ({
-    datasetsById: state.datasets.itemsByID,
-    filesById: state.datasetFiles.itemsByID,
-    files: state.datasetFiles.filteredItems,
-    filters: state.datasetFiles.filters,
-    isFetching: state.datasetFiles.isFetching,
-    page: state.datasetFiles.page,
-    sortBy: state.datasetFiles.sortBy,
-    totalCount: state.datasetFiles.filteredItemsCount,
-});
-const actionCreators = {get, listFilter, update, setReleaseFlags};
+const DatasetDetailContent = () => {
+    const datasetsById = useSelector((state) => state.datasets.itemsByID)
+    const filesById = useSelector((state) => state.datasetFiles.itemsByID)
+    const files = useSelector((state) => state.datasetFiles.filteredItems)
+    const isFetching = useSelector((state) => state.datasetFiles.isFetching)
+    const page = useSelector((state) => state.datasetFiles.page)
+    const totalCount = useSelector((state) => state.datasetFiles.filteredItemsCount)
 
-const DatasetDetailContent = ({
-    get,
-    datasetsById,
-    files,
-    filesById,
-    isFetching,
-    listFilter,
-    page,
-    totalCount,
-    update,
-    setReleaseFlags,
-}) => {
+    const dispatch = useDispatch()
+    const dispatchListFilter = useCallback((...args) => dispatch(listFilter(...args)), [dispatch])
+
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
     const allFilesReleased = dataset?.release_flag_count === dataset?.files?.length
@@ -141,7 +128,7 @@ const DatasetDetailContent = ({
     
     useEffect(() => {
         if (!dataset) {
-            get(datasetId)
+            dispatch(get(datasetId))
         }
     }, [datasetsById])
 
@@ -152,7 +139,7 @@ const DatasetDetailContent = ({
     const paginatedListProps = useFilteredList({
         description: DATASET_FILE_FILTERS,
         columns: columns,
-        listFilter: listFilter,
+        listFilter: dispatchListFilter,
         items: files,
         itemsByID: filesById,
         totalCount: totalCount,
@@ -199,13 +186,13 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 const { all, specific } = releaseFlagOption
                 if (all) {
-                    setReleaseFlags(datasetId, all, Object.keys(specific), filters)
+                    dispatch(setReleaseFlags(datasetId, all, Object.keys(specific), filters))
                 } else {
                     Object.entries(specific).forEach(([id, release_flag]) => {
-                        update(id, {
+                        dispatch(update(id, {
                             id,
                             release_flag
-                        })
+                        }))
                     })
                 }
                 dispatchReleaseFlagOptionTypeAll(undefined)
@@ -236,4 +223,4 @@ const DatasetDetailContent = ({
     </>
 }
 
-export default connect(mapStateToProps, actionCreators)(DatasetDetailContent);
+export default DatasetDetailContent;
