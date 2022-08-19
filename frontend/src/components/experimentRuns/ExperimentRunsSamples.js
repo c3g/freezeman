@@ -87,12 +87,12 @@ const ExperimentRunsSamples = ({
           header={renderListHeader(container)}
           dataSource={samplesData}
           renderItem={sampleId => {
-            const id = WithSampleComponent(samplesByID, sampleId, sample => sample.id, 'Loading...')
-            const sample = samplesByID[id]
-            return (
-              <List.Item>
-                <div>
-                  {sample ?
+            return WithSampleComponent(samplesByID, sampleId, sample => sample.id, 'Loading...', (id) => {
+              const sample = samplesByID[id]
+              return (
+                <List.Item>
+                  <div>
+                    {sample ?
                       renderSample(sample, sampleKindsByID[sample.sample_kind]?.name) :
                       <>
                         <Link to={`/samples/${sampleId}`}> Sample </Link> {' '}
@@ -100,14 +100,14 @@ const ExperimentRunsSamples = ({
                           loading...
                         </Text>
                       </>
-                  }
-                </div>
-                <div>
+                    }
+                  </div>
+                  <div>
                     {renderPMsForSampleID(sampleId)}
-                </div>
-
-              </List.Item>
-            )
+                  </div>
+                </List.Item>
+              )
+            })
           }}
         />
       </>
