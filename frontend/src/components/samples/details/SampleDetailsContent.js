@@ -218,40 +218,40 @@ const SampleDetailsContent = ({
           </Descriptions>
           <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
             <Descriptions.Item label="Individual Name">
-                {sample.individual &&
-                  <Link to={`/individuals/${sample.individual}`}>
-                    {
-                      WithIndividualComponent(
-                        individualsByID,
-                        sample.individual,
-                        individual => individual.name,
-                        "Loading..."
-                      )
-                    }
-                  </Link>
-                }
-              </Descriptions.Item>
-              <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
-              <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
-              <Descriptions.Item label="Experimental Groups" span={2}>
-                  {experimentalGroups.map((g, i) =>
-                      <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
-              <Descriptions.Item label="Container">
-                {sample.container &&
-                  <Link to={`/containers/${sample.container}`}>
-                    {WithContainerComponent(containersByID, sample.container, container => container.barcode, "Loading...")}
-                  </Link>
-                }
-              </Descriptions.Item>
-              <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
-              <Descriptions.Item label="QC Flag">
-                {flags.quantity !== null && flags.quality !== null
-                  ? <QCFlag flags={flags}/>
-                  : null}
-              </Descriptions.Item>
-              <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
+              {sample.individual &&
+                <Link to={`/individuals/${sample.individual}`}>
+                  {
+                    WithIndividualComponent(
+                      individualsByID,
+                      sample.individual,
+                      individual => individual.name,
+                      "Loading..."
+                    )
+                  }
+                </Link>
+              }
+            </Descriptions.Item>
+            <Descriptions.Item label="Collection Site">{sample.collection_site}</Descriptions.Item>
+            <Descriptions.Item label="Tissue Source">{tissueSource}</Descriptions.Item>
+            <Descriptions.Item label="Experimental Groups" span={2}>
+              {experimentalGroups.map((g, i) =>
+                <span key={g}>{g}{i === experimentalGroups.length - 1 ? "" : ", "}</span>)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Reception/Creation Date">{sample.creation_date}</Descriptions.Item>
+            <Descriptions.Item label="Container">
+              {sample.container &&
+                <Link to={`/containers/${sample.container}`}>
+                  {WithContainerComponent(containersByID, sample.container, container => container.barcode, "Loading...")}
+                </Link>
+              }
+            </Descriptions.Item>
+            <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
+            <Descriptions.Item label="QC Flag">
+              {flags.quantity !== null && flags.quality !== null
+                ? <QCFlag flags={flags}/>
+                : null}
+            </Descriptions.Item>
+            <Descriptions.Item label="Comment" span={3}>{sample.comment}</Descriptions.Item>
           </Descriptions>
           {sample.extracted_from ? (
             <Descriptions bordered={true} size="small" title="Extraction Details" style={{ marginTop: "24px" }}>

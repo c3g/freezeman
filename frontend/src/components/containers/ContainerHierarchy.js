@@ -117,9 +117,6 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     explodedKeys,
   }
 
-  if (!container || !container.parents)
-    return <LoadingOutlined />;
-  
   const renderContainer = container => {
     return (
         <span style={entryStyle}>
@@ -146,10 +143,10 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
           <ul>
             { container.samples?.map(sampleId => {
               return WithSampleComponent(context.samplesByID, sampleId, sample => sample.id, 'Loading...', (id) => {
-                const sample = context.samplesByID[id]
-                const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
-                return <li>
-                  {sample ?
+              const sample = context.samplesByID[id]
+              const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
+              return <li>
+                {sample ?
                     renderSample(sample, sampleKind) :
                     <span style={entryStyle}>
                       <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}

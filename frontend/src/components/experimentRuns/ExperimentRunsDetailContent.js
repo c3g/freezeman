@@ -122,10 +122,10 @@ const ExperimentRunsDetailContent = ({
                 {experimentRun.start_date}
               </Descriptions.Item>
               <Descriptions.Item label="Container Barcode">
-                  {experimentRun.container &&
-                      <Link to={`/containers/${experimentRun.container}`}>
-                          {WithContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
-                      </Link>}
+                {experimentRun.container &&
+                  <Link to={`/containers/${experimentRun.container}`}>
+                    {WithContainerComponent(containersByID, experimentRun.container, container => container.barcode, "loading...")}
+                  </Link>}
               </Descriptions.Item>
               {process?.comment &&
                 <Descriptions.Item label="Comment">
