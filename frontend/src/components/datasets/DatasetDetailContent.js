@@ -41,7 +41,7 @@ const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
             dataIndex: "release_flag",
             render: (release_flag, file) => {
                 const { id } = file;
-                const releaseFlag = releaseFlagOption.toggled[id] ?? releaseFlagOption.all ?? release_flag
+                const releaseFlag = releaseFlagOption.specific[id] ?? releaseFlagOption.all ?? release_flag
                 return <>
                     <Checkbox checked={releaseFlag == RELEASE} onChange={(ev) => setReleaseFlag(id, ev.target.checked ? RELEASE : BLOCK)} />
                 </>
@@ -93,23 +93,23 @@ const DatasetDetailContent = ({
     const releaseFlagOptionReducer = (state, action) => {
         switch(action.type) {
             case "all":
-                return { all: action.release_flag, toggled: {} }
+                return { all: action.release_flag, specific: {} }
             case "toggle": {
                 const { all } = state
                 const { id, releaseFlag, filesById } = action
-                const newState = { ...state, toggled: {...state.toggled} }
+                const newState = { ...state, specific: {...state.specific} }
                 
                 if (all) {
                     if (all !== releaseFlag) {
-                        newState.toggled[id] = releaseFlag
+                        newState.specific[id] = releaseFlag
                     } else {
-                        delete newState.toggled[id]
+                        delete newState.specific[id]
                     }
                 } else {
                     if (filesById[id]?.release_flag !== releaseFlag) {
-                        newState.toggled[id] = releaseFlag
+                        newState.specific[id] = releaseFlag
                     } else {
-                        delete newState.toggled[id]
+                        delete newState.specific[id]
                     }
                 }
 
@@ -121,7 +121,7 @@ const DatasetDetailContent = ({
         releaseFlagOptionReducer,
         {
             all: undefined,
-            toggled: {},
+            specific: {},
         }
     )
     console.log(releaseFlagOption);
@@ -164,7 +164,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOption({ type: "all", release_flag: RELEASE })
             }}
-            disabled={releaseFlagOption.all === RELEASE && Object.keys(releaseFlagOption.toggled).length == 0}>
+            disabled={releaseFlagOption.all === RELEASE && Object.keys(releaseFlagOption.specific).length == 0}>
             Release All
         </Button>
         <Button
@@ -172,7 +172,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOption({ type: "all", release_flag: BLOCK })
             }}
-            disabled={releaseFlagOption.all === BLOCK && Object.keys(releaseFlagOption.toggled).length == 0}>
+            disabled={releaseFlagOption.all === BLOCK && Object.keys(releaseFlagOption.specific).length == 0}>
             Block All
         </Button>
         <Button
@@ -180,17 +180,17 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
             }}
-            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.toggled).length == 0}>
+            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.specific).length == 0}>
             Undo Changes
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                const { all, toggled } = releaseFlagOption
+                const { all, specific } = releaseFlagOption
                 if (all) {
-                    setReleaseFlags(datasetId, all, Object.keys(toggled))
+                    setReleaseFlags(datasetId, all, Object.keys(specific))
                 } else {
-                    Object.entries(toggled).forEach(([id, release_flag]) => {
+                    Object.entries(specific).forEach(([id, release_flag]) => {
                         update(id, {
                             id,
                             release_flag
@@ -200,7 +200,7 @@ const DatasetDetailContent = ({
                 dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
             }}
             type={"primary"}
-            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.toggled).length == 0}>
+            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.specific).length == 0}>
             Save Changes
         </Button>
     </>
