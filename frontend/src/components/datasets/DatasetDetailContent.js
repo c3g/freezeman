@@ -124,6 +124,9 @@ const DatasetDetailContent = ({
             specific: {},
         }
     )
+    const dispatchReleaseFlagOptionTypeAll = (release_flag) => {
+        dispatchReleaseFlagOption({ type: "all", release_flag })
+    }
     console.log(releaseFlagOption);
 
     const columns = getTableColumns(
@@ -162,7 +165,7 @@ const DatasetDetailContent = ({
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOption({ type: "all", release_flag: RELEASE })
+                dispatchReleaseFlagOptionTypeAll(RELEASE)
             }}
             disabled={releaseFlagOption.all === RELEASE && Object.keys(releaseFlagOption.specific).length == 0}>
             Release All
@@ -170,7 +173,7 @@ const DatasetDetailContent = ({
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOption({ type: "all", release_flag: BLOCK })
+                dispatchReleaseFlagOptionTypeAll(BLOCK)
             }}
             disabled={releaseFlagOption.all === BLOCK && Object.keys(releaseFlagOption.specific).length == 0}>
             Block All
@@ -178,7 +181,7 @@ const DatasetDetailContent = ({
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
+                dispatchReleaseFlagOptionTypeAll(undefined)
             }}
             disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.specific).length == 0}>
             Undo Changes
