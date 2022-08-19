@@ -58,18 +58,3 @@ def create_dataset_file(dataset: Dataset,
 
     return (dataset_file, errors, warnings)
 
-def set_release_flag(dataset: int, release_flag: int, exceptions: List[int] = []) -> None:
-    # set release flag of all files except exceptions
-    files = DatasetFile.objects.filter(dataset=dataset).filter(~Q(id__in=exceptions))
-    files.update(
-        release_flag=release_flag,
-        release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
-    )
-    
-    # set release flag of exceptions to the opposite flag
-    files = DatasetFile.objects.filter(id__in=exceptions)
-    opposite_flag = [None, ReleaseFlag.BLOCK, ReleaseFlag.RELEASE][release_flag]
-    files.update(
-        release_flag=opposite_flag,
-        release_flag_timestamp=datetime.now() if opposite_flag == ReleaseFlag.RELEASE else None
-    )

@@ -98,5 +98,25 @@ class DatasetViewSet(viewsets.ModelViewSet):
         data = request.data
         release_flag = data.get("release_flag")
         exceptions = data.get("exceptions")
-        service.set_release_flag(pk, release_flag, exceptions)
-        return Response(DatasetSerializer(Dataset.objects.get(pk=pk)).data)
+        filters = data.get("filters")
+
+        filtered_files = DatasetFile.objects.filter(dataset=pk)
+        if filters:
+            filtered_files = filtered_files.filter(**filters)
+
+        # set release flag of all files except exceptions
+        included_files = filtered_files.filter(~Q(id__in=exceptions))
+        included_files.update(
+            release_flag=release_flag,
+            release_flag_timestamp=datetime.now() if release_flag == ReleaseFlag.RELEASE else None
+        )
+
+        # set release flag of exceptions to the opposite flag
+        excluded_files = DatasetFile.objects.filter(id__in=exceptions)
+        opposite_flag = [None, ReleaseFlag.BLOCK, ReleaseFlag.RELEASE][release_flag]
+        excluded_files.update(
+            release_flag=opposite_flag,
+            release_flag_timestamp=datetime.now() if opposite_flag == ReleaseFlag.RELEASE else None
+        )
+
+        return Response(self.get_serializer(Dataset.objects.get(pk=pk)).data)

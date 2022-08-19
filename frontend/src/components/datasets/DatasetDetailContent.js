@@ -1,4 +1,4 @@
-import { Button, Checkbox, Descriptions, Select, Switch } from "antd";
+import { Button, Checkbox, Descriptions, Select, Switch, Typography } from "antd";
 const { Option } = Select;
 import Title from "antd/lib/skeleton/Title";
 import React, { useEffect, useReducer, useRef, useState } from "react";
@@ -130,7 +130,6 @@ const DatasetDetailContent = ({
     const dispatchReleaseFlagOptionTypeAll = (release_flag) => {
         dispatchReleaseFlagOption({ type: "all", release_flag })
     }
-    console.log(releaseFlagOption);
 
     const columns = getTableColumns(
         (id, releaseFlag) => {
@@ -163,6 +162,8 @@ const DatasetDetailContent = ({
         isFetching: isFetching,
         page: page,
     })
+
+    const { filters } = paginatedListProps
 
     const extraButtons = <>
         <Button
@@ -198,7 +199,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 const { all, specific } = releaseFlagOption
                 if (all) {
-                    setReleaseFlags(datasetId, all, Object.keys(specific))
+                    setReleaseFlags(datasetId, all, Object.keys(specific), filters)
                 } else {
                     Object.entries(specific).forEach(([id, release_flag]) => {
                         update(id, {
@@ -226,6 +227,8 @@ const DatasetDetailContent = ({
             <Descriptions.Item label={"Project"}>{loading(dataset?.project_name)}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
             <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
+            <Descriptions.Item label={"Total Files"}>{loading(dataset?.files?.length)}</Descriptions.Item>
+            <Descriptions.Item label={"Released"}>{loading(dataset?.release_flag_count)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
         <PaginatedList {...paginatedListProps} other={extraButtons} />

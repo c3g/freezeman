@@ -2,7 +2,7 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api";
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {DATASET_FILTERS} from "../../components/filters/descriptions";
+import {DATASET_FILE_FILTERS, DATASET_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 import { list as listFiles } from "../datasetFiles/actions";
 
@@ -90,12 +90,14 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseFlags = (id, releaseFlag, exceptions = []) => async (dispatch, getState) => {
+export const setReleaseFlags = (id, releaseFlag, exceptions = [], filters = {}) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
     const datasetFiles = getState().datasetFiles.itemsByID
+    filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
+    console.log(filters);
 
     if (dataset && !dataset.isFetching) {
-        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag, exceptions),
+        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag, exceptions, filters),
             { meta: { id, ignoreError: 'APIError' }}));
         
         if (datasetFiles && !datasetFiles.isFetching) {
