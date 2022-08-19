@@ -89,6 +89,8 @@ const DatasetDetailContent = ({
 }) => {
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
+    const allFilesReleased = dataset?.release_flag_count === dataset?.files?.length
+    const allFilesBlocked = dataset?.release_flag_count === 0
 
     const releaseFlagOptionReducer = (state, action) => {
         switch(action.type) {
@@ -168,7 +170,9 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOptionTypeAll(RELEASE)
             }}
-            disabled={releaseFlagOption.all === RELEASE && !specificFlagToggled}>
+            disabled={
+                (releaseFlagOption.all === RELEASE  || (!releaseFlagOption.all && allFilesReleased)) && !specificFlagToggled
+            }>
             Release All
         </Button>
         <Button
@@ -176,7 +180,9 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOptionTypeAll(BLOCK)
             }}
-            disabled={releaseFlagOption.all === BLOCK && !specificFlagToggled}>
+            disabled={
+                (releaseFlagOption.all === BLOCK  || (!releaseFlagOption.all && allFilesBlocked)) && !specificFlagToggled
+            }>
             Block All
         </Button>
         <Button
