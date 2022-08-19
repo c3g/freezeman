@@ -19,8 +19,6 @@ export const usePaginatedList = ({
     const dispatch = useDispatch();
     const pageSize = useSelector((state) => state.pagination.pageSize)
 
-    const filtersRef = useRef(filters);
-    const sortByRef = useRef(sortBy);
     const [currentPage, setCurrentPage] = useState(1);
     const nextPage = currentPage + 1;
     const nextPageEndIndex = nextPage * pageSize;
@@ -40,29 +38,39 @@ export const usePaginatedList = ({
     const shouldLoadNextChunk =
         !loading && (isCurrentPageUnloaded || doesNextPageContainUnloaded);
 
-    if (shouldLoadNextChunk) {
-        let offset
+    useEffect(() => {
+        if (shouldLoadNextChunk) {
+            let offset
+    
+            if (isCurrentPageUnloaded)
+                offset = Math.floor(startIndex / page.limit) * page.limit;
+            else if (doesNextPageContainUnloaded)
+                offset = items.length;
+    
+            const timeout = setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
 
-        if (isCurrentPageUnloaded)
-            offset = Math.floor(startIndex / page.limit) * page.limit;
-        else if (doesNextPageContainUnloaded)
-            offset = items.length;
-
-        setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
-    }
+            return () => {
+                clearTimeout(timeout)
+            }
+        }
+    }, [
+        shouldLoadNextChunk,
+        isCurrentPageUnloaded,
+        startIndex,
+        page?.limit,
+        doesNextPageContainUnloaded,
+        items?.length,
+        filters,
+        sortBy,
+        filterKey
+    ])
 
     useEffect(() => {
-        if (sortByRef.current !== sortBy) {
-            setCurrentPage(1)
-            sortByRef.current = sortBy
-        }
+        setCurrentPage(1)
     }, [sortBy])
 
     useEffect(() => {
-        if (filtersRef.current !== filters) {
-            setCurrentPage(1)
-            filtersRef.current = filters
-        }
+        setCurrentPage(1)
     }, [filters])
 
     const onChangePage = (page, pageSize) => {
