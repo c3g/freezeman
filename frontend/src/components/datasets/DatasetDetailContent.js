@@ -124,6 +124,7 @@ const DatasetDetailContent = ({
             specific: {},
         }
     )
+    const specificFlagToggled = Object.keys(releaseFlagOption.specific).length > 0
     const dispatchReleaseFlagOptionTypeAll = (release_flag) => {
         dispatchReleaseFlagOption({ type: "all", release_flag })
     }
@@ -167,7 +168,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOptionTypeAll(RELEASE)
             }}
-            disabled={releaseFlagOption.all === RELEASE && Object.keys(releaseFlagOption.specific).length == 0}>
+            disabled={releaseFlagOption.all === RELEASE && !specificFlagToggled}>
             Release All
         </Button>
         <Button
@@ -175,7 +176,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOptionTypeAll(BLOCK)
             }}
-            disabled={releaseFlagOption.all === BLOCK && Object.keys(releaseFlagOption.specific).length == 0}>
+            disabled={releaseFlagOption.all === BLOCK && !specificFlagToggled}>
             Block All
         </Button>
         <Button
@@ -183,7 +184,7 @@ const DatasetDetailContent = ({
             onClick={(ev) => {
                 dispatchReleaseFlagOptionTypeAll(undefined)
             }}
-            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.specific).length == 0}>
+            disabled={!releaseFlagOption.all && !specificFlagToggled}>
             Undo Changes
         </Button>
         <Button
@@ -203,7 +204,7 @@ const DatasetDetailContent = ({
                 dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
             }}
             type={"primary"}
-            disabled={!releaseFlagOption.all && Object.keys(releaseFlagOption.specific).length == 0}>
+            disabled={!releaseFlagOption.all && !specificFlagToggled}>
             Save Changes
         </Button>
     </>
