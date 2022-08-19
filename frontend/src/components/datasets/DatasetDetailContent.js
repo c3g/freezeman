@@ -201,7 +201,7 @@ const DatasetDetailContent = ({
                         })
                     })
                 }
-                dispatchReleaseFlagOption({ type: "all", release_flag: undefined })
+                dispatchReleaseFlagOptionTypeAll(undefined)
             }}
             type={"primary"}
             disabled={!releaseFlagOption.all && !specificFlagToggled}>
