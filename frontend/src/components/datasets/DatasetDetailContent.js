@@ -42,8 +42,9 @@ const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
             render: (release_flag, file) => {
                 const { id } = file;
                 const releaseFlag = releaseFlagOption.specific[id] ?? releaseFlagOption.all ?? release_flag
+                const changed = (releaseFlagOption.all && releaseFlagOption.all !== release_flag && !releaseFlagOption.specific[id]) || (!releaseFlagOption.all && releaseFlagOption.specific[id])
                 return <>
-                    <Checkbox checked={releaseFlag == RELEASE} onChange={(ev) => setReleaseFlag(id, ev.target.checked ? RELEASE : BLOCK)} />
+                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => setReleaseFlag(id, OPPOSITE_FLAGS[releaseFlag])}>{RELEASE_FLAG_STRING[releaseFlag]}</Button>
                 </>
             }
         },
