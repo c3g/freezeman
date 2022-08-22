@@ -142,6 +142,8 @@ _project_filterset_fields: FiltersetFields = {
     "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
+    "external_id": CATEGORICAL_FILTERS,
+    "external_name": CATEGORICAL_FILTERS,
     **_prefix_keys("samples__", _sample_minimal_filterset_fields),
 }
 
