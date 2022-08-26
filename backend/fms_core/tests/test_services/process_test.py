@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from fms_core.models import ProcessMeasurement, Protocol, Process
+from fms_core.models import Protocol
 
 from fms_core.services.process import create_process
 

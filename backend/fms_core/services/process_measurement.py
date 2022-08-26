@@ -31,6 +31,7 @@ def create_process_measurement(process, source_sample, execution_date, volume_us
                                                                     **(dict(volume_used=volume_used) if volume_used is not None else dict()),
             )
         except ValidationError as e:
+            print(e)
             errors.append(f"Could not create ProcessMeasurement with Process ID {process.id} and Source sample {source_sample}.")
 
     return (process_measurement, errors, warnings)
