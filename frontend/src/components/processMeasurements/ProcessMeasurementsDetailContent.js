@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect } from "react";
 import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
@@ -15,25 +16,20 @@ import { withSample } from "../../utils/withItem";
 import { get } from "../../modules/processMeasurements/actions";
 import AllProcessProperties from "../shared/AllProcessProperties";
 
-const mapStateToProps = state => ({
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-  samplesByID: state.samples.itemsByID,
-  usersByID: state.users.itemsByID,
-});
 
-const actionCreators = { get, listPropertyValues };
 
-const ProcessMeasurementsDetailContent = ({
-  processMeasurementsByID,
-  propertyValuesByID,
-  protocolsByID,
-  samplesByID,
-  usersByID,
-  get,
-  listPropertyValues
-}) => {
+
+
+const ProcessMeasurementsDetailContent = ({  }) => {
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const usersByID = useSelector((state) => state.users.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchGet = useCallback((...args) => get(...args), [dispatch])
+  const dispatchListPropertyValues = useCallback((...args) => listPropertyValues(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isLoaded = id in processMeasurementsByID;
@@ -43,10 +39,10 @@ const ProcessMeasurementsDetailContent = ({
   useEffect(() => {
     (async () => {
       if (!isLoaded)
-        await get(id);
+        await dispatchGet(id);
 
       if (!propertiesAreLoaded) {
-        await listPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
+        await dispatchListPropertyValues({ object_id__in: processMeasurement.id, content_type__model: "processmeasurement" });
       }
     })()
   }, [processMeasurementsByID, propertyValuesByID, id])
@@ -99,4 +95,4 @@ const ProcessMeasurementsDetailContent = ({
   </>;
 };
 
-export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsDetailContent);
+export default ProcessMeasurementsDetailContent;

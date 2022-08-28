@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -32,15 +33,18 @@ const listInstrumentTypes = (token, options) =>
   withToken(token, api.instruments.listTypes)(options).then(res => res.data)
 
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesTotalCount: state.indices.totalCount,
-  isFetching: state.indices.isFetching,
-});
 
-const actionCreators = { list, validate };
 
-const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate }) => {
+
+
+const IndicesValidate = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const indicesTotalCount = useSelector((state) => state.indices.totalCount)
+  const isFetching = useSelector((state) => state.indices.isFetching)
+  const dispatch = useDispatch()
+  const dispatchList = useCallback((...args) => list(...args), [dispatch])
+  const dispatchValidate = useCallback((...args) => validate(...args), [dispatch])
+
   const history = useNavigate();
 
   /*
@@ -57,7 +61,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
 
   useEffect(() => {
     //List instrument
-    listInstrumentTypes(token).then(instrumentTypes => {
+    dispatchListInstrumentTypes(token).then(instrumentTypes => {
       setInstrumentTypes(instrumentTypes.map(Options.renderInstrumentType))
     })
     //List sets and initialize the cascader options
@@ -119,7 +123,7 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   const onSubmit = () => {
     setValidationLoading(true)
     const data = serialize(formData)
-    validate(data)
+    dispatchValidate(data)
       .then((response) => {
         setValidationLoading(false)
         setFormErrors({})
@@ -298,4 +302,4 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
   );
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesValidate);
+export default IndicesValidate;

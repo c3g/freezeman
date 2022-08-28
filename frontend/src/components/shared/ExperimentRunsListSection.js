@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 
@@ -6,20 +7,16 @@ import {Link} from "react-router-dom";
 import {list as listExperimentRuns} from "../../modules/experimentRuns/actions";
 
 
-const mapStateToProps = state => ({
-  experimentRunsByID: state.experimentRuns.itemsByID,
-  runTypesByID: state.runTypes.itemsByID,
-  instrumentsByID: state.instruments.itemsByID,
-});
 
-const actionCreators = {};
 
-const ExperimentRunsListSection = ({
-  experimentRunsIDs,
-  experimentRunsByID,
-  runTypesByID,
-  instrumentsByID,
-}) => {
+
+
+const ExperimentRunsListSection = ({ experimentRunsIDs }) => {
+  const experimentRunsByID = useSelector((state) => state.experimentRuns.itemsByID)
+  const runTypesByID = useSelector((state) => state.runTypes.itemsByID)
+  const instrumentsByID = useSelector((state) => state.instruments.itemsByID)
+  const dispatch = useDispatch()
+
   const hasExperimentRuns = experimentRunsIDs.length
   const experimentRunsLoaded = hasExperimentRuns && experimentRunsByID[experimentRunsIDs[0]]
   const experimentRunsReady = experimentRunsIDs && (!hasExperimentRuns|| experimentRunsLoaded)
@@ -52,4 +49,4 @@ const ExperimentRunsListSection = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ExperimentRunsListSection);
+export default ExperimentRunsListSection;

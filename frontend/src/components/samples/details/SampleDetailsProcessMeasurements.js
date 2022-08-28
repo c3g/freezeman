@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -5,12 +6,13 @@ import {Link} from "react-router-dom";
 import {Table, Tag, Empty} from "antd";
 
 
-const mapStateToProps = state => ({
-  usersByID: state.users.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-});
 
-const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, protocolsByID,}) => {
+
+const SampleDetailsProcessMeasurements = ({ processMeasurements }) => {
+    const usersByID = useSelector((state) => state.users.itemsByID)
+    const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+    const dispatch = useDispatch()
+
     const columns = [
       {
         title: 'Sample Process ID',
@@ -82,4 +84,4 @@ const SampleDetailsProcessMeasurements = ({processMeasurements, usersByID, proto
 }
 
 
-export default connect(mapStateToProps, undefined)(SampleDetailsProcessMeasurements);
+export default SampleDetailsProcessMeasurements;

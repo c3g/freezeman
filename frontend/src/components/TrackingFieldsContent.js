@@ -1,17 +1,19 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {Descriptions} from "antd";
 import {withUser} from "../utils/withItem";
 import {connect} from "react-redux";
 
-const mapStateToProps = state => ({
-  usersByID: state.users.itemsByID,
-});
 
-const actionCreators = {};
+
+
 
 const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`
 
-const TrackingFieldsContent = ({usersByID, entity}) => {
+const TrackingFieldsContent = ({ entity }) => {
+    const usersByID = useSelector((state) => state.users.itemsByID)
+    const dispatch = useDispatch()
+
     return <>
         <Descriptions bordered={true} size="small" title="Tracking Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Item created by">
@@ -24,4 +26,4 @@ const TrackingFieldsContent = ({usersByID, entity}) => {
     </>;
 };
 
-export default connect(mapStateToProps, actionCreators)(TrackingFieldsContent);
+export default TrackingFieldsContent;

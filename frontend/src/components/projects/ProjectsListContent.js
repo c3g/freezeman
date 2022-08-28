@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -73,36 +74,27 @@ const getTableColumns = () => [
     }
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  projectsById: state.projects.itemsByID,
-  projects: state.projects.items,
-  actions: state.projectTemplateActions,
-  page: state.projects.page,
-  totalCount: state.projects.totalCount,
-  isFetching: state.projects.isFetching,
-  filters: state.projects.filters,
-  sortBy: state.projects.sortBy,
-});
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ProjectsListContent = ({
-  token,
-  projects,
-  projectsById,
-  actions,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const ProjectsListContent = ({  }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const projectsById = useSelector((state) => state.projects.itemsByID)
+  const projects = useSelector((state) => state.projects.items)
+  const actions = useSelector((state) => state.projectTemplateActions)
+  const page = useSelector((state) => state.projects.page)
+  const totalCount = useSelector((state) => state.projects.totalCount)
+  const isFetching = useSelector((state) => state.projects.isFetching)
+  const filters = useSelector((state) => state.projects.filters)
+  const sortBy = useSelector((state) => state.projects.sortBy)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
 
   const listExport = () =>
     withToken(token, api.projects.listExport)
@@ -114,8 +106,8 @@ const ProjectsListContent = ({
     c,
     PROJECT_FILTERS,
     filters,
-    setFilter,
-    setFilterOption
+    dispatchSetFilter,
+    dispatchSetFilterOption
   )))
 
   const nFilters = getNFilters(filters)
@@ -137,7 +129,7 @@ const ProjectsListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -152,11 +144,11 @@ const ProjectsListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectsListContent);
+export default ProjectsListContent;

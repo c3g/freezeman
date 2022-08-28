@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams, Link } from "react-router-dom";
@@ -30,19 +31,17 @@ const tabStyle = {
   height: "100%",
 }
 
-const mapStateToProps = state => ({
-  containersByID: state.containers.itemsByID,
-  containerKindsByID: state.containerKinds.itemsByID,
-});
 
-const actionCreators = { get, listParents };
 
-const ContainersDetailContent = ({
-  containersByID,
-  containerKindsByID,
-  get,
-  listParents
-}) => {
+
+
+const ContainersDetailContent = ({  }) => {
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const containerKindsByID = useSelector((state) => state.containerKinds.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchGet = useCallback((...args) => get(...args), [dispatch])
+  const dispatchListParents = useCallback((...args) => listParents(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
 
@@ -53,10 +52,10 @@ const ContainersDetailContent = ({
   let experimentRunsIDs = []
 
   if (!isLoaded)
-    get(id);
+    dispatchGet(id);
 
   if (isLoaded && !container.parents)
-    listParents(id);
+    dispatchListParents(id);
 
   if (isLoaded)
     if (container.experiment_run)
@@ -118,4 +117,4 @@ const ContainersDetailContent = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ContainersDetailContent);
+export default ContainersDetailContent;

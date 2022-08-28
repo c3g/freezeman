@@ -1,20 +1,18 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 
 import {Table, Typography} from "antd";
 const {Title} = Typography;
 
-const mapStateToProps = state => ({
-  propertyValuesByID: state.propertyValues.itemsByID,
-});
 
-const actionCreators = {};
 
-const ProcessProperties = ({
-  propertyValuesByID,
-  propertyIDs,
-  protocolName,
-}) => {
+
+
+const ProcessProperties = ({ propertyIDs, protocolName }) => {
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const dispatch = useDispatch()
+
   let properties = []
   let columns = []
   let data = []
@@ -56,4 +54,4 @@ const ProcessProperties = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ProcessProperties);
+export default ProcessProperties;

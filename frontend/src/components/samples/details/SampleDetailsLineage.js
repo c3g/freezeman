@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -12,17 +13,15 @@ import dagre from "dagre"
 import api, { withToken } from "../../../utils/api";
 import { useResizeObserver } from "../../../utils/ref"
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-});
 
-const SampleDetailsLineage = ({
-  token,
-  sample,
-}) => {
+
+const SampleDetailsLineage = ({ sample }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const dispatch = useDispatch()
+
   const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
@@ -270,4 +269,4 @@ function Legend() {
   </>
 }
 
-export default connect(mapStateToProps, undefined)(SampleDetailsLineage);
+export default SampleDetailsLineage;

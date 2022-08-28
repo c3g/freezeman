@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -55,27 +56,20 @@ const getTableColumns = () => [
     }
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  page: state.projects.page,
-  projects: state.projects.filteredItems,
-  projectsByID: state.projects.itemsByID,
-  totalCount: state.projects.filteredItemsCount,
-  isFetching: state.projects.isFetching,
-});
 
-const actionCreators = {listFilter};
 
-const SamplesAssociatedProjects = ({
-  token,
-  sampleID,
-  projects,
-  projectsByID,
-  totalCount,
-  isFetching,
-  page,
-  listFilter,
-}) => {
+
+
+const SamplesAssociatedProjects = ({ sampleID }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const page = useSelector((state) => state.projects.page)
+  const projects = useSelector((state) => state.projects.filteredItems)
+  const projectsByID = useSelector((state) => state.projects.itemsByID)
+  const totalCount = useSelector((state) => state.projects.filteredItemsCount)
+  const isFetching = useSelector((state) => state.projects.isFetching)
+  const dispatch = useDispatch()
+  const dispatchListFilter = useCallback((...args) => listFilter(...args), [dispatch])
 
   const filterKey = PROJECT_FILTERS.samples__id.key
 
@@ -85,7 +79,7 @@ const SamplesAssociatedProjects = ({
     <FilteredList
       description = {PROJECT_FILTERS}
       columns={columns}
-      listFilter={listFilter}
+      dispatchListFilter={listFilter}
       items={projects}
       itemsByID={projectsByID}
       totalCount={totalCount}
@@ -98,4 +92,4 @@ const SamplesAssociatedProjects = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(SamplesAssociatedProjects);
+export default SamplesAssociatedProjects;

@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import FilterSelect from "./FilterSelect";
@@ -7,18 +8,14 @@ import {FILTER_TYPE} from "../../constants";
 
 const style = {}
 
-const mapStateToProps = state => ({
-  containersKinds: state.containerKinds.items,
-});
 
-const actionCreators = {};
 
-const FilterGroup = ({
-  descriptions,
-  values,
-  onChangeFilter,
-  containersKinds,
-}) => {
+
+
+const FilterGroup = ({ descriptions, values, onChangeFilter }) => {
+  const containersKinds = useSelector((state) => state.containerKinds.items)
+  const dispatch = useDispatch()
+
   const optionsForSelect = (item) => {
     switch(item.key){
       case "kind__in":
@@ -76,4 +73,4 @@ const FilterGroup = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(FilterGroup);
+export default FilterGroup;

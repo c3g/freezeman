@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, {useRef} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -84,40 +85,29 @@ const getTableColumns = (samplesByID, protocols) => [
     },
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  processMeasurements: state.processMeasurements.items,
-  protocols: state.protocols,
-  actions: state.processMeasurementTemplateActions,
-  page: state.processMeasurements.page,
-  totalCount: state.processMeasurements.totalCount,
-  isFetching: state.processMeasurements.isFetching,
-  filters: state.processMeasurements.filters,
-  samplesByID: state.samples.itemsByID,
-  sortBy: state.processMeasurements.sortBy,
-});
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ProcessMeasurementsListContent = ({
-  token,
-  processMeasurements,
-  processMeasurementsByID,
-  protocols,
-  actions,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  samplesByID,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const ProcessMeasurementsListContent = ({  }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const processMeasurements = useSelector((state) => state.processMeasurements.items)
+  const protocols = useSelector((state) => state.protocols)
+  const actions = useSelector((state) => state.processMeasurementTemplateActions)
+  const page = useSelector((state) => state.processMeasurements.page)
+  const totalCount = useSelector((state) => state.processMeasurements.totalCount)
+  const isFetching = useSelector((state) => state.processMeasurements.isFetching)
+  const filters = useSelector((state) => state.processMeasurements.filters)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sortBy = useSelector((state) => state.processMeasurements.sortBy)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
 
   const listExport = () =>
     withToken(token, api.processMeasurements.listExport)
@@ -132,8 +122,8 @@ const ProcessMeasurementsListContent = ({
     c,
     PROCESS_MEASUREMENT_FILTERS,
     filters,
-    setFilter,
-    setFilterOption
+    dispatchSetFilter,
+    dispatchSetFilterOption
   )))
 
   const nFilters = getNFilters(filters)
@@ -153,7 +143,7 @@ const ProcessMeasurementsListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -168,11 +158,11 @@ const ProcessMeasurementsListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProcessMeasurementsListContent);
+export default ProcessMeasurementsListContent;

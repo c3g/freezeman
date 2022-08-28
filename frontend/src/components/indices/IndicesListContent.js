@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import {Link, useNavigate} from "react-router-dom";
@@ -80,38 +81,28 @@ const getTableColumns = (sequencesByID) => [
     },
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesByID: state.indices.itemsByID,
-  indices: state.indices.items,
-  sequencesByID: state.sequences.itemsByID,
-  actions: state.indicesTemplateActions,
-  page: state.indices.page,
-  totalCount: state.indices.totalCount,
-  isFetching: state.indices.isFetching,
-  filters: state.indices.filters,
-  sortBy: state.indices.sortBy,
-});
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const IndicesListContent = ({
-  token,
-  indices,
-  indicesByID,
-  sequencesByID,
-  actions,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const IndicesListContent = ({  }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const indicesByID = useSelector((state) => state.indices.itemsByID)
+  const indices = useSelector((state) => state.indices.items)
+  const sequencesByID = useSelector((state) => state.sequences.itemsByID)
+  const actions = useSelector((state) => state.indicesTemplateActions)
+  const page = useSelector((state) => state.indices.page)
+  const totalCount = useSelector((state) => state.indices.totalCount)
+  const isFetching = useSelector((state) => state.indices.isFetching)
+  const filters = useSelector((state) => state.indices.filters)
+  const sortBy = useSelector((state) => state.indices.sortBy)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
 
   const listExport = () =>
     withToken(token, api.indices.listExport)
@@ -123,8 +114,8 @@ const IndicesListContent = ({
     c,
     INDEX_FILTERS,
     filters,
-    setFilter,
-    setFilterOption
+    dispatchSetFilter,
+    dispatchSetFilterOption
   )))
 
   const nFilters = getNFilters(filters)
@@ -150,7 +141,7 @@ const IndicesListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -165,11 +156,11 @@ const IndicesListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesListContent);
+export default IndicesListContent;

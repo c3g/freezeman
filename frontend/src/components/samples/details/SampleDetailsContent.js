@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -75,35 +76,25 @@ const tabStyle = {
 const listSampleMetadata = (token, options) =>
   withToken(token, api.sampleMetadata.get)(options).then(res => res.data)
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  sampleKindsByID: state.sampleKinds.itemsByID,
-  containersByID: state.containers.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  individualsByID: state.individuals.itemsByID,
-  librariesByID: state.libraries.itemsByID,
-  indicesByID: state.indices.itemsByID,
-  usersByID: state.users.itemsByID,
-  projectsByID: state.projects.itemsByID,
-});
 
-const actionCreators = { getSample, listVersions };
 
-const SampleDetailsContent = ({
-  token,
-  samplesByID,
-  sampleKindsByID,
-  containersByID,
-  processMeasurementsByID,
-  individualsByID,
-  librariesByID,
-  indicesByID,
-  usersByID,
-  projectsByID,
-  getSample,
-  listVersions
-}) => {
+
+
+const SampleDetailsContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sampleKindsByID = useSelector((state) => state.sampleKinds.itemsByID)
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const individualsByID = useSelector((state) => state.individuals.itemsByID)
+  const librariesByID = useSelector((state) => state.libraries.itemsByID)
+  const indicesByID = useSelector((state) => state.indices.itemsByID)
+  const usersByID = useSelector((state) => state.users.itemsByID)
+  const projectsByID = useSelector((state) => state.projects.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchGetSample = useCallback((...args) => getSample(...args), [dispatch])
+  const dispatchListVersions = useCallback((...args) => listVersions(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
 
@@ -132,10 +123,10 @@ const SampleDetailsContent = ({
 
   // TODO: This spams API requests
   if (!samplesByID[id])
-    getSample(id);
+    dispatchGetSample(id);
 
   if (isLoaded && !sample.versions && !sample.isFetching)
-    listVersions(sample.id);
+    dispatchListVersions(sample.id);
 
   if (isLoaded && !isProcessesEmpty) {
     sample.process_measurements.forEach((id, i) => {
@@ -346,4 +337,4 @@ function renderTimelineLabel(version, usersByID) {
   )
 }
 
-export default connect(mapStateToProps, actionCreators)(SampleDetailsContent);
+export default SampleDetailsContent;

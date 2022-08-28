@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useState, useRef } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -17,18 +18,22 @@ const hiddenField = {
   left: -10000,
 }
 
-const mapStateToProps = state => ({
-  requestorID: state.auth.currentUserID,
-  isFetching: state.users.isFetching,
-  usersByID: state.users.itemsByID,
-  groupsByID: state.groups.itemsByID,
-  error: state.users.error,
-  groups: Object.values(state.groups.itemsByID),
-});
 
-const actionCreators = { add, update, listTable };
 
-const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable }) => {
+
+
+const UserEditContent = ({  }) => {
+  const requestorID = useSelector((state) => state.auth.currentUserID)
+  const isFetching = useSelector((state) => state.users.isFetching)
+  const usersByID = useSelector((state) => state.users.itemsByID)
+  const groupsByID = useSelector((state) => state.groups.itemsByID)
+  const error = useSelector((state) => state.users.error)
+  const groups = useSelector((state) => Object.values(state.groups.itemsByID))
+  const dispatch = useDispatch()
+  const dispatchAdd = useCallback((...args) => add(...args), [dispatch])
+  const dispatchUpdate = useCallback((...args) => update(...args), [dispatch])
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -61,12 +66,12 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
     const data = serialize(formData, user)
     const action =
       isAdding ?
-        add(data).then(user => { history(`/users/${user.id}`) }) :
-        update(id, data).then(() => { history(`/users/${id}`) })
+        dispatchAdd(data).then(user => { history(`/users/${user.id}`) }) :
+        dispatchUpdate(id, data).then(() => { history(`/users/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(listTable)
+      .then(dispatchListTable)
   }
 
   /*
@@ -237,4 +242,4 @@ function serialize(values, original) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(UserEditContent);
+export default UserEditContent;

@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useState, useRef } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,16 +20,18 @@ const hiddenField = {
 
 const requiredRules = [{ required: true, message: 'Missing field' }]
 
-const mapStateToProps = state => ({
-  isFetching: state.users.isFetching,
-  user: state.users.itemsByID[state.auth.currentUserID],
-  error: state.users.error,
-  groupsByID: state.groups.itemsByID,
-});
 
-const actionCreators = { updateSelf };
 
-const ProfileContent = ({ isFetching, groupsByID, user, error, updateSelf }) => {
+
+
+const ProfileContent = ({  }) => {
+  const isFetching = useSelector((state) => state.users.isFetching)
+  const user = useSelector((state) => state.users.itemsByID[state.auth.currentUserID])
+  const error = useSelector((state) => state.users.error)
+  const groupsByID = useSelector((state) => state.groups.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchUpdateSelf = useCallback((...args) => updateSelf(...args), [dispatch])
+
   const history = useNavigate();
   const [state, setState] = useState({ message: undefined, success: undefined });
 
@@ -59,7 +62,7 @@ const ProfileContent = ({ isFetching, groupsByID, user, error, updateSelf }) => 
       return
     }
     setState({ message: undefined, success: undefined })
-    updateSelf(data)
+    dispatchUpdateSelf(data)
       .then(() => {
         setFormErrors({})
         setState({ message: 'Profile updated', success: true })
@@ -237,4 +240,4 @@ function serialize(values, original) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(ProfileContent);
+export default ProfileContent;

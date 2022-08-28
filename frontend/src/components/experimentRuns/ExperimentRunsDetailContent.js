@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -29,31 +30,23 @@ const tabStyle = {
   height: "100%",
 }
 
-const mapStateToProps = state => ({
-  containersByID: state.containers.itemsByID,
-  experimentRunsByID: state.experimentRuns.itemsByID,
-  runTypes: state.runTypes,
-  instruments: state.instruments,
-  processesByID: state.processes.itemsByID,
-  propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-  propertyValuesByID: state.propertyValues.itemsByID,
-});
 
-const actionCreators = { get, listProcesses, listPropertyValues };
 
-const ExperimentRunsDetailContent = ({
-  containersByID,
-  experimentRunsByID,
-  runTypes,
-  instruments,
-  processesByID,
-  protocolsByID,
-  get,
-  listProcesses,
-  listPropertyValues,
-  propertyValuesByID,
-}) => {
+
+
+const ExperimentRunsDetailContent = ({  }) => {
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const experimentRunsByID = useSelector((state) => state.experimentRuns.itemsByID)
+  const runTypes = useSelector((state) => state.runTypes)
+  const instruments = useSelector((state) => state.instruments)
+  const processesByID = useSelector((state) => state.processes.itemsByID)
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchGet = useCallback((...args) => get(...args), [dispatch])
+  const dispatchListProcesses = useCallback((...args) => listProcesses(...args), [dispatch])
+  const dispatchListPropertyValues = useCallback((...args) => listPropertyValues(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
 
@@ -62,7 +55,7 @@ const ExperimentRunsDetailContent = ({
   const isLoaded = experimentRunsByID[id];
 
   if (!isLoaded) {
-    get(id);
+    dispatchGet(id);
   }
 
   const isContainerLoaded = isLoaded && containersByID[experimentRun.container]?.isLoaded
@@ -81,8 +74,8 @@ const ExperimentRunsDetailContent = ({
   if (isLoaded && !isChildrenAndPropertiesLoaded) {
     // Need to be queried as a string, not as an array in order to work with DRF filters
     const processIDSAsStr = [experimentRun.process].concat(experimentRun.children_processes).join()
-    listProcesses({ id__in: processIDSAsStr });
-    listPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" })
+    dispatchListProcesses({ id__in: processIDSAsStr });
+    dispatchListPropertyValues({ object_id__in: processIDSAsStr, content_type__model: "process" })
   }
 
 
@@ -163,4 +156,4 @@ const ExperimentRunsDetailContent = ({
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ExperimentRunsDetailContent);
+export default ExperimentRunsDetailContent;

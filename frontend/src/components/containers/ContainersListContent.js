@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -91,42 +92,30 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
   ];
 
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  containersByID: state.containers.itemsByID,
-  containers: state.containers.items,
-  containerKinds: state.containerKinds.items,
-  sortBy: state.containers.sortBy,
-  filters: state.containers.filters,
-  actions: state.containerTemplateActions,
-  prefills: state.containerPrefillTemplates,
-  page: state.containers.page,
-  totalCount: state.containers.totalCount,
-  isFetching: state.containers.isFetching,
-  samplesByID: state.samples.itemsByID,
-});
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ContainersListContent = ({
-  token,
-  containers,
-  containersByID,
-  containerKinds,
-  samplesByID,
-  sortBy,
-  filters,
-  actions,
-  prefills,
-  isFetching,
-  page,
-  totalCount,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const ContainersListContent = ({  }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const containers = useSelector((state) => state.containers.items)
+  const containerKinds = useSelector((state) => state.containerKinds.items)
+  const sortBy = useSelector((state) => state.containers.sortBy)
+  const filters = useSelector((state) => state.containers.filters)
+  const actions = useSelector((state) => state.containerTemplateActions)
+  const prefills = useSelector((state) => state.containerPrefillTemplates)
+  const page = useSelector((state) => state.containers.page)
+  const totalCount = useSelector((state) => state.containers.totalCount)
+  const isFetching = useSelector((state) => state.containers.isFetching)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
 
   const listExport = () =>
     withToken(token, api.containers.listExport)
@@ -143,8 +132,8 @@ const ContainersListContent = ({
       c,
       CONTAINER_FILTERS,
       filters,
-      setFilter,
-      setFilterOption
+      dispatchSetFilter,
+      dispatchSetFilterOption
     )))
 
   const nFilters = getNFilters(filters)
@@ -166,7 +155,7 @@ const ContainersListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -180,11 +169,11 @@ const ContainersListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ContainersListContent);
+export default ContainersListContent;

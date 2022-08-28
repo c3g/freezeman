@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect } from "react";
 import {connect} from "react-redux";
 import {Link, useParams} from "react-router-dom";
@@ -55,33 +56,24 @@ const getTableColumns = (samplesByID, property_types, propertyValuesById) => {
   ]
 }
 
-const mapStateToProps = state => ({
-  isFetching: [state.processMeasurements.isFetching, state.propertyValues.isFetching].some((f) => f),
-  page: state.processMeasurements.page,
-  processMeasurements: state.processMeasurements.filteredItems,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  samplesByID: state.samples.itemsByID,
-  sortBy: state.processMeasurements.sortBy,
-  totalCount: state.processMeasurements.filteredItemsCount,
-  propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-});
 
-const actionCreators = {listFilter, listPropertyValues};
 
-const ProcessAssociatedMeasurements = ({
-  isFetching,
-  listFilter,
-  page,
-  processMeasurements,
-  processMeasurementsByID,
-  samplesByID,
-  totalCount,
-  propertyValuesByID,
-  listPropertyValues,
-  process,
-  protocolsByID,
-}) => {
+
+
+const ProcessAssociatedMeasurements = ({ process }) => {
+  const isFetching = useSelector((state) => [state.processMeasurements.isFetching, state.propertyValues.isFetching].some((f) => f))
+  const page = useSelector((state) => state.processMeasurements.page)
+  const processMeasurements = useSelector((state) => state.processMeasurements.filteredItems)
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sortBy = useSelector((state) => state.processMeasurements.sortBy)
+  const totalCount = useSelector((state) => state.processMeasurements.filteredItemsCount)
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchListFilter = useCallback((...args) => listFilter(...args), [dispatch])
+  const dispatchListPropertyValues = useCallback((...args) => listPropertyValues(...args), [dispatch])
+
   const { id } = process;
 
   const sample_property_types = process ? protocolsByID[process.protocol].property_types.filter((property_type) => {
@@ -97,14 +89,14 @@ const ProcessAssociatedMeasurements = ({
                                                                  .filter((id) => !allPropertiesLoaded(processMeasurementsByID[id], propertyValuesByID))
 
     if (measurementsWithMissingProperties.length > 0) {
-      listPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
+      dispatchListPropertyValues({ object_id__in: processMeasurements.join(","), content_type__model: "processmeasurement" })
     }
   }, [processMeasurements, propertyValuesByID])
 
   const props = useFilteredList({
     description: PROCESS_MEASUREMENT_FILTERS,
     columns: columns,
-    listFilter: listFilter,
+    dispatchListFilter: listFilter,
     items: processMeasurements,
     itemsByID: processMeasurementsByID,
     totalCount: totalCount,
@@ -122,4 +114,4 @@ const ProcessAssociatedMeasurements = ({
   }
 }
 
-export default connect(mapStateToProps, actionCreators)(ProcessAssociatedMeasurements);
+export default ProcessAssociatedMeasurements;

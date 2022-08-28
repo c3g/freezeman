@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -83,42 +84,30 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
 
 ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  containersByID: state.containers.itemsByID,
-  experimentRunsByID: state.experimentRuns.itemsByID,
-  experimentRuns: state.experimentRuns.items,
-  runTypes: state.runTypes,
-  instruments: state.instruments,
-  page: state.experimentRuns.page,
-  totalCount: state.experimentRuns.totalCount,
-  isFetching: state.experimentRuns.isFetching,
-  filters: state.experimentRuns.filters,
-  sortBy: state.experimentRuns.sortBy,
-  actions: state.experimentRunTemplateActions,
-});
 
-const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const ExperimentRunsListContent = ({
-  token,
-  containersByID,
-  experimentRuns,
-  experimentRunsByID,
-  runTypes,
-  instruments,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  sortBy,
-  actions,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const ExperimentRunsListContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const experimentRunsByID = useSelector((state) => state.experimentRuns.itemsByID)
+  const experimentRuns = useSelector((state) => state.experimentRuns.items)
+  const runTypes = useSelector((state) => state.runTypes)
+  const instruments = useSelector((state) => state.instruments)
+  const page = useSelector((state) => state.experimentRuns.page)
+  const totalCount = useSelector((state) => state.experimentRuns.totalCount)
+  const isFetching = useSelector((state) => state.experimentRuns.isFetching)
+  const filters = useSelector((state) => state.experimentRuns.filters)
+  const sortBy = useSelector((state) => state.experimentRuns.sortBy)
+  const actions = useSelector((state) => state.experimentRunTemplateActions)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
+
   const listExport = () =>
     withToken(token, api.experimentRuns.listExport)
     (mergedListQueryParams(EXPERIMENT_RUN_FILTERS, filters, sortBy))
@@ -130,8 +119,8 @@ const ExperimentRunsListContent = ({
     c,
     EXPERIMENT_RUN_FILTERS,
     filters,
-    setFilter,
-    setFilterOption
+    dispatchSetFilter,
+    dispatchSetFilterOption
   )))
 
   const nFilters = getNFilters(filters)
@@ -152,7 +141,7 @@ const ExperimentRunsListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -167,11 +156,11 @@ const ExperimentRunsListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(ExperimentRunsListContent);
+export default ExperimentRunsListContent;

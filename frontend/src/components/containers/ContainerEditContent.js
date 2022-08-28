@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,15 +19,20 @@ const searchContainers = (token, input, options) =>
   withToken(token, api.containers.search)(input, options)
     .then(res => res.data.results)
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  containerKinds: state.containerKinds.items,
-  containersByID: state.containers.itemsByID,
-});
 
-const actionCreators = { add, update, listTable, summary };
 
-const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, listTable, summary }) => {
+
+
+const ContainerEditContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const containerKinds = useSelector((state) => state.containerKinds.items)
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchAdd = useCallback((...args) => add(...args), [dispatch])
+  const dispatchUpdate = useCallback((...args) => update(...args), [dispatch])
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSummary = useCallback((...args) => summary(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -71,12 +77,12 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(container => { history(`/containers/${container.id}`) }) :
-        update(id, data).then(() => { history(`/containers/${id}`) })
+        dispatchAdd(data).then(container => { history(`/containers/${container.id}`) }) :
+        dispatchUpdate(id, data).then(() => { history(`/containers/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
+      .then(() => Promise.all([dispatchListTable(), dispatchSummary()]))
   }
 
   /*
@@ -194,4 +200,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(ContainerEditContent);
+export default ContainerEditContent;

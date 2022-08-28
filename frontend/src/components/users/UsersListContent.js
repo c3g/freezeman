@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import moment from "moment";
@@ -66,45 +67,36 @@ const getTableColumns = (groupsByID) => [
   ];
 
 
-const mapStateToProps = state => ({
-  canWrite: canWrite(state),
-  users: state.users.items,
-  usersByID: state.users.itemsByID,
-  groupsByID: state.groups.itemsByID,
-  sortBy: state.users.sortBy,
-  filters: state.users.filters,
-  actions: state.userTemplateActions,
-  page: state.users.page,
-  totalCount: state.users.totalCount,
-  isFetching: state.users.isFetching,
-});
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const UsersListContent = ({
-  canWrite,
-  users,
-  usersByID,
-  groupsByID,
-  sortBy,
-  filters,
-  isFetching,
-  page,
-  totalCount,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const UsersListContent = ({  }) => {
+
+  const canWrite = useSelector((state) => canWrite(state))
+  const users = useSelector((state) => state.users.items)
+  const usersByID = useSelector((state) => state.users.itemsByID)
+  const groupsByID = useSelector((state) => state.groups.itemsByID)
+  const sortBy = useSelector((state) => state.users.sortBy)
+  const filters = useSelector((state) => state.users.filters)
+  const actions = useSelector((state) => state.userTemplateActions)
+  const page = useSelector((state) => state.users.page)
+  const totalCount = useSelector((state) => state.users.totalCount)
+  const isFetching = useSelector((state) => state.users.isFetching)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
 
   const columns = getTableColumns(groupsByID)
     .map(c => Object.assign(c, getFilterProps(
       c,
       USER_FILTERS,
       filters,
-      setFilter,
-      setFilterOption
+      dispatchSetFilter,
+      dispatchSetFilterOption
     )))
 
   const nFilters = Object.entries(filters).filter(e => e[1]).length
@@ -122,7 +114,7 @@ const UsersListContent = ({
         />
         <Button
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -136,11 +128,11 @@ const UsersListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(UsersListContent);
+export default UsersListContent;

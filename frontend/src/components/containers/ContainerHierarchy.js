@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useState, useEffect } from "react";
 import {Link} from "react-router-dom";
 import {connect} from "react-redux";
@@ -94,16 +95,19 @@ const renderSample = (sample, sampleKind) => {
   )
 }
 
-const mapStateToProps = state => ({
-  containersByID: state.containers.itemsByID,
-  samplesByID: state.samples.itemsByID,
-  sampleKinds: state.sampleKinds,
-});
 
-const actionCreators = {get, listChildren};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
+
+
+const ContainerHierarchy = ({ container }) => {
   
+  const containersByID = useSelector((state) => state.containers.itemsByID)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sampleKinds = useSelector((state) => state.sampleKinds)
+  const dispatch = useDispatch()
+  const dispatchGet = useCallback((...args) => get(...args), [dispatch])
+  const dispatchListChildren = useCallback((...args) => listChildren(...args), [dispatch])
+
   const [explodedKeys, setExplodedKeys] = useState({});
   useEffect(() => { setExplodedKeys({}) }, [container?.id]);
 
@@ -177,7 +181,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
 
     const url = `/containers/${container.id}`
     const title = renderContainer(container);
-    const icon = getIcon(container);
+    const icon = dispatchGetIcon(container);
     const children = buildContainerTreeFromPath(context, path.slice(1));
 
     const otherChildren = container.children.filter(id => id !== parseInt(path[1], 10));
@@ -219,7 +223,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
     const id = node.key.replace(/\$(children|samples)/, '');
     const hasChildren = node.key.endsWith('$children');
     if (hasChildren)
-      await listChildren(id, path);
+      await dispatchListChildren(id, path);
 
     setExplodedKeys(set(explodedKeys, [id], true));
   }
@@ -258,7 +262,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   );
 };
 
-export default connect(mapStateToProps, actionCreators)(ContainerHierarchy);
+export default ContainerHierarchy;
 
 // Helpers
 

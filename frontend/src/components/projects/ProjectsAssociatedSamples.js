@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -72,31 +73,22 @@ const getTableColumns = (sampleKinds, individualsByID) => [
     }
   ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  sampleKinds: state.sampleKinds,
-  page: state.samples.page,
-  samplesByID: state.samples.itemsByID,
-  samples: state.samples.filteredItems,
-  totalCount: state.samples.filteredItemsCount,
-  individualsByID: state.individuals.itemsByID,
-  isFetching: state.samples.isFetching,
-});
 
-const actionCreators = {listFilter};
 
-const ProjectsAssociatedSamples = ({
-  token,
-  projectID,
-  samplesByID,
-  samples,
-  totalCount,
-  individualsByID,
-  sampleKinds,
-  isFetching,
-  page,
-  listFilter,
-}) => {
+
+
+const ProjectsAssociatedSamples = ({ projectID }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const sampleKinds = useSelector((state) => state.sampleKinds)
+  const page = useSelector((state) => state.samples.page)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const samples = useSelector((state) => state.samples.filteredItems)
+  const totalCount = useSelector((state) => state.samples.filteredItemsCount)
+  const individualsByID = useSelector((state) => state.individuals.itemsByID)
+  const isFetching = useSelector((state) => state.samples.isFetching)
+  const dispatch = useDispatch()
+  const dispatchListFilter = useCallback((...args) => listFilter(...args), [dispatch])
 
   const filterKey = SAMPLE_FILTERS.projects__id.key
 
@@ -106,7 +98,7 @@ const ProjectsAssociatedSamples = ({
     <FilteredList
       description={SAMPLE_FILTERS}
       columns={columns}
-      listFilter={listFilter}
+      dispatchListFilter={listFilter}
       items={samples}
       itemsByID={samplesByID}
       totalCount={totalCount}
@@ -119,4 +111,4 @@ const ProjectsAssociatedSamples = ({
   </>;
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectsAssociatedSamples);
+export default ProjectsAssociatedSamples;

@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -45,17 +46,21 @@ const columns = [
   { title: 'Name', dataIndex: 'object_repr', key: 'name' },
 ];
 
-const mapStateToProps = state => ({
-  canWrite: canWrite(state),
-  isFetching: state.users.isFetching,
-  usersError: state.users.error,
-  usersByID: state.users.itemsByID,
-  groupsByID: state.groups.itemsByID,
-});
 
-const mapDispatchToProps = { get, listRevisions, listVersions };
 
-const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, groupsByID, get, listRevisions, listVersions }) => {
+
+
+const ReportsUserContent = ({  }) => {
+  const canWrite = useSelector((state) => canWrite(state))
+  const isFetching = useSelector((state) => state.users.isFetching)
+  const usersError = useSelector((state) => state.users.error)
+  const usersByID = useSelector((state) => state.users.itemsByID)
+  const groupsByID = useSelector((state) => state.groups.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchGet = useCallback((...args) => get(...args), [dispatch])
+  const dispatchListRevisions = useCallback((...args) => listRevisions(...args), [dispatch])
+  const dispatchListVersions = useCallback((...args) => listVersions(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const [expandedGroups, setExpandedGroups] = useState({});
@@ -64,12 +69,12 @@ const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, group
   const user = usersByID[id];
 
   if (!isFetching && !user) {
-    get(id)
+    dispatchGet(id)
   }
 
   if (user && !user.isFetching && !isLoadRevisions) {
     setIsLoadRevisions(true)
-    setTimeout(() => listRevisions(user.id), 0);
+    setTimeout(() => dispatchListRevisions(user.id), 0);
   }
 
   const onLoadMore = () => {
@@ -104,7 +109,7 @@ const ReportsUserContent = ({ canWrite, isFetching, usersError, usersByID, group
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
             onLoadMore={onLoadMore}
-            listVersions={listVersions}
+            dispatchListVersions={listVersions}
           />
         }
       </PageContent>
@@ -267,4 +272,4 @@ function renderTimelineLabel(revision) {
   )
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ReportsUserContent);
+export default ReportsUserContent;

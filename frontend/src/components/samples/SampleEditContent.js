@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -48,15 +49,20 @@ const listCollectionSites = (token) => {
   return collectionSites
 }
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  sampleKinds: state.sampleKinds,
-});
 
-const actionCreators = { add, update, listTable, summary };
 
-const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listTable, summary }) => {
+
+
+const SampleEditContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sampleKinds = useSelector((state) => state.sampleKinds)
+  const dispatch = useDispatch()
+  const dispatchAdd = useCallback((...args) => add(...args), [dispatch])
+  const dispatchUpdate = useCallback((...args) => update(...args), [dispatch])
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSummary = useCallback((...args) => summary(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -163,12 +169,12 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(sample => { history(`/samples/${sample.id}`) }) :
-        update(id, data).then(() => { history(`/samples/${id}`) })
+        dispatchAdd(data).then(sample => { history(`/samples/${sample.id}`) }) :
+        dispatchUpdate(id, data).then(() => { history(`/samples/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
+      .then(() => Promise.all([dispatchListTable(), dispatchSummary()]))
   }
 
 
@@ -363,4 +369,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(SampleEditContent);
+export default SampleEditContent;

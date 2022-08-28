@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
@@ -20,14 +21,19 @@ import { add, update, listTable, summary } from "../../modules/projects/actions"
 import { project as EMPTY_PROJECT } from "../../models";
 import { requiredRules, emailRules } from "../../constants";
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  projectsByID: state.projects.itemsByID,
-});
 
-const actionCreators = { add, update, listTable, summary };
 
-const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summary }) => {
+
+
+const ProjectEditContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const projectsByID = useSelector((state) => state.projects.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchAdd = useCallback((...args) => add(...args), [dispatch])
+  const dispatchUpdate = useCallback((...args) => update(...args), [dispatch])
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSummary = useCallback((...args) => summary(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -58,12 +64,12 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(project => { history(`/projects/${project.id}`) }) :
-        update(id, data).then(() => { history(`/projects/${id}`) })
+        dispatchAdd(data).then(project => { history(`/projects/${project.id}`) }) :
+        dispatchUpdate(id, data).then(() => { history(`/projects/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(() => Promise.all([listTable(), summary()]))
+      .then(() => Promise.all([dispatchListTable(), dispatchSummary()]))
   }
 
   /*
@@ -183,4 +189,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(ProjectEditContent);
+export default ProjectEditContent;

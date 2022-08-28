@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,15 +22,19 @@ const searchTaxons = (token, input) =>
 const toOptions = values =>
   values.map(v => ({ label: v, value: v }))
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  individualsByID: state.individuals.itemsByID,
-  taxonsByID: state.taxons.itemsByID,
-});
 
-const actionCreators = { add, update, listTable };
 
-const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update, listTable }) => {
+
+
+const IndividualEditContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const individualsByID = useSelector((state) => state.individuals.itemsByID)
+  const taxonsByID = useSelector((state) => state.taxons.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchAdd = useCallback((...args) => add(...args), [dispatch])
+  const dispatchUpdate = useCallback((...args) => update(...args), [dispatch])
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -61,12 +66,12 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(individual => { history(`/individuals/${individual.id}`) }) :
-        update(id, data).then(() => { history(`/individuals/${id}`) })
+        dispatchAdd(data).then(individual => { history(`/individuals/${individual.id}`) }) :
+        dispatchUpdate(id, data).then(() => { history(`/individuals/${id}`) })
     action
       .then(() => { setFormErrors({}) })
       .catch(err => { setFormErrors(err.data || {}) })
-      .then(listTable)
+      .then(dispatchListTable)
   }
 
   /*
@@ -224,4 +229,4 @@ function serialize(values) {
   return newValues
 }
 
-export default connect(mapStateToProps, actionCreators)(IndividualEditContent);
+export default IndividualEditContent;

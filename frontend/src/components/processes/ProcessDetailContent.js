@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -15,22 +16,19 @@ import AllProcessProperties from "../shared/AllProcessProperties";
 import ProcessAssociatedMeasurements from "../shared/ProcessAssociatedMeasurements"
 
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  processesByID: state.processes.itemsByID,
-  propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-});
 
-const actionCreators = { listProcesses, getProcess };
 
-const ProcessDetailContent = ({
-  processesByID,
-  protocolsByID,
-  listProcesses,
-  getProcess,
-  token
-}) => {
+
+
+const ProcessDetailContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const processesByID = useSelector((state) => state.processes.itemsByID)
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchListProcesses = useCallback((...args) => listProcesses(...args), [dispatch])
+  const dispatchGetProcess = useCallback((...args) => getProcess(...args), [dispatch])
+
   const history = useNavigate();
   const { id } = useParams();
   const isLoaded = id in processesByID;
@@ -46,7 +44,7 @@ const ProcessDetailContent = ({
   useEffect(() => {
     (async () => {
       if (!isLoaded) {
-        await getProcess(id);
+        await dispatchGetProcess(id);
       }
     })()
   }, [processesByID, id])
@@ -89,4 +87,4 @@ const ProcessDetailContent = ({
   </>;
 };
 
-export default connect(mapStateToProps, actionCreators)(ProcessDetailContent);
+export default ProcessDetailContent;

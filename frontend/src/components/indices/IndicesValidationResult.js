@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, {useEffect, useState} from "react";
 import moment from "moment";
 import {connect} from "react-redux";
@@ -22,24 +23,19 @@ import api, {withToken} from "../../utils/api";
 import {list} from "../../modules/indices/actions";
 
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  indicesTotalCount: state.indices.totalCount,
-  indicesByID: state.indices.itemsByID,
-  indices: state.indices.items,
-  isFetching: state.indices.isFetching,
-});
 
-const actionCreators = {list};
 
-const IndicesValidationResult = ({
-  token, indicesTotalCount,
-  indicesByID,
-  indices,
-  isFetching,
-  validationResult,
-  list
-}) => {
+
+
+const IndicesValidationResult = ({ validationResult }) => {
+
+  const token = useSelector((state) => state.auth.tokens.access)
+  const indicesTotalCount = useSelector((state) => state.indices.totalCount)
+  const indicesByID = useSelector((state) => state.indices.itemsByID)
+  const indices = useSelector((state) => state.indices.items)
+  const isFetching = useSelector((state) => state.indices.isFetching)
+  const dispatch = useDispatch()
+  const dispatchList = useCallback((...args) => list(...args), [dispatch])
 
   const history = useNavigate();
   const { state } = useLocation();
@@ -51,7 +47,7 @@ const IndicesValidationResult = ({
 
   //TODO: get it from Redux Store
   if (!allIndicesLoaded)
-    list({"id__in":indicesValidated?.join()})
+    dispatchList({"id__in":indicesValidated?.join()})
 
   const columns = [
     {
@@ -193,4 +189,4 @@ const IndicesValidationResult = ({
   );
 }
 
-export default connect(mapStateToProps, actionCreators)(IndicesValidationResult);
+export default IndicesValidationResult;

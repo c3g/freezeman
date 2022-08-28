@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 
@@ -44,28 +45,23 @@ const renderListHeader = (container) => {
   )
 }
 
-const mapStateToProps = state => ({
-  samplesByID: state.samples.itemsByID,
-  sampleKindsByID: state.sampleKinds.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-});
 
-const actionCreators = {listProcessMeasurements};
 
-const ExperimentRunsSamples = ({
-  container,
-  experimentRun,
-  samplesByID,
-  sampleKindsByID,
-  processMeasurementsByID,
-  listProcessMeasurements,
-}) => {
+
+
+const ExperimentRunsSamples = ({ container, experimentRun }) => {
+  const samplesByID = useSelector((state) => state.samples.itemsByID)
+  const sampleKindsByID = useSelector((state) => state.sampleKinds.itemsByID)
+  const processMeasurementsByID = useSelector((state) => state.processMeasurements.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchListProcessMeasurements = useCallback((...args) => listProcessMeasurements(...args), [dispatch])
+
   const samplesData = container ? container.samples : undefined
 
   const isProcessMeasurementsLoaded = experimentRun && Object.values(processMeasurementsByID).some(pm => pm.process == experimentRun.process)
 
   if (experimentRun && !isProcessMeasurementsLoaded)
-    listProcessMeasurements({process: experimentRun.process})
+    dispatchListProcessMeasurements({process: experimentRun.process})
 
   const processMeasurements =
     isProcessMeasurementsLoaded ? Object.values(processMeasurementsByID).filter(pm => pm.process == experimentRun.process) : undefined
@@ -113,4 +109,4 @@ const ExperimentRunsSamples = ({
 
 };
 
-export default connect(mapStateToProps, actionCreators)(ExperimentRunsSamples);
+export default ExperimentRunsSamples;

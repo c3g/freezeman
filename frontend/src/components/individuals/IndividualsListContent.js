@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
@@ -64,36 +65,27 @@ const TABLE_COLUMNS = (taxons) => [
   // TODO: Detail action with optional pedigree ID, mother, father, all available samples, cohort size, etc.
 ];
 
-const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
-  individualsByID: state.individuals.itemsByID,
-  individuals: state.individuals.items,
-  taxons: state.taxons,
-  page: state.individuals.page,
-  totalCount: state.individuals.totalCount,
-  isFetching: state.individuals.isFetching,
-  filters: state.individuals.filters,
-  sortBy: state.individuals.sortBy,
-});
 
-const mapDispatchToProps = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
 
-const IndividualsListContent = ({
-  token,
-  individuals,
-  individualsByID,
-  taxons,
-  isFetching,
-  page,
-  totalCount,
-  filters,
-  sortBy,
-  listTable,
-  setFilter,
-  setFilterOption,
-  clearFilters,
-  setSortBy,
-}) => {
+
+
+const IndividualsListContent = ({  }) => {
+  const token = useSelector((state) => state.auth.tokens.access)
+  const individualsByID = useSelector((state) => state.individuals.itemsByID)
+  const individuals = useSelector((state) => state.individuals.items)
+  const taxons = useSelector((state) => state.taxons)
+  const page = useSelector((state) => state.individuals.page)
+  const totalCount = useSelector((state) => state.individuals.totalCount)
+  const isFetching = useSelector((state) => state.individuals.isFetching)
+  const filters = useSelector((state) => state.individuals.filters)
+  const sortBy = useSelector((state) => state.individuals.sortBy)
+  const dispatch = useDispatch()
+  const dispatchListTable = useCallback((...args) => listTable(...args), [dispatch])
+  const dispatchSetFilter = useCallback((...args) => setFilter(...args), [dispatch])
+  const dispatchSetFilterOption = useCallback((...args) => setFilterOption(...args), [dispatch])
+  const dispatchClearFilters = useCallback((...args) => clearFilters(...args), [dispatch])
+  const dispatchSetSortBy = useCallback((...args) => setSortBy(...args), [dispatch])
+
   const listExport = () =>
     withToken(token, api.individuals.listExport)
     (mergedListQueryParams(INDIVIDUAL_FILTERS, filters, sortBy))
@@ -103,8 +95,8 @@ const IndividualsListContent = ({
     c,
     INDIVIDUAL_FILTERS,
     filters,
-    setFilter,
-    setFilterOption
+    dispatchSetFilter,
+    dispatchSetFilterOption
   )))
 
   const nFilters = getNFilters(filters)
@@ -125,7 +117,7 @@ const IndividualsListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={dispatchClearFilters}
         >
           Clear Filters
         </Button>
@@ -140,11 +132,11 @@ const IndividualsListContent = ({
         page={page}
         filters={filters}
         sortBy={sortBy}
-        onLoad={listTable}
-        onChangeSort={setSortBy}
+        onLoad={dispatchListTable}
+        onChangeSort={dispatchSetSortBy}
       />
     </PageContent>
   </>;
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(IndividualsListContent);
+export default IndividualsListContent;

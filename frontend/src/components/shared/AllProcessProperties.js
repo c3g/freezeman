@@ -1,3 +1,4 @@
+import { useDispatch, useSelector } from "react-redux"
 import React, { useEffect } from "react";
 import { isProcessPropertiesLoaded } from "../../utils/isLoaded";
 import { listProperties as listProcessProperties, get as getProcess } from "../../modules/processes/actions";
@@ -5,22 +6,18 @@ import ProcessProperties from "./ProcessProperties";
 import { connect } from "react-redux";
 import { Spin } from "antd";
 
-const mapStateToProps = state => ({
-  propertyValuesByID: state.propertyValues.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
-  processesByID: state.processes.itemsByID,
-});
 
-const actionCreators = { listProcessProperties, getProcess };
 
-const AllProcessProperties = ({
-  propertyValuesByID,
-  protocolsByID,
-  processesByID,
-  listProcessProperties,
-  getProcess,
-  id,
-}) => {
+
+
+const AllProcessProperties = ({ id }) => {
+  const propertyValuesByID = useSelector((state) => state.propertyValues.itemsByID)
+  const protocolsByID = useSelector((state) => state.protocols.itemsByID)
+  const processesByID = useSelector((state) => state.processes.itemsByID)
+  const dispatch = useDispatch()
+  const dispatchListProcessProperties = useCallback((...args) => listProcessProperties(...args), [dispatch])
+  const dispatchGetProcess = useCallback((...args) => getProcess(...args), [dispatch])
+
   const process = processesByID[id] || {};
   const isLoaded = isProcessPropertiesLoaded(processesByID, propertyValuesByID, id);
   const arePropertiesAvailable =
@@ -38,11 +35,11 @@ const AllProcessProperties = ({
   useEffect(() => {
     (async () => {
       if (!(id in processesByID)) {
-        await getProcess(id);
+        await dispatchGetProcess(id);
       }
 
       if (!isLoaded) {
-        await listProcessProperties(id);
+        await dispatchListProcessProperties(id);
       }
     })()
   }, [processesByID, propertyValuesByID, id])
@@ -74,4 +71,4 @@ const AllProcessProperties = ({
   }
 }
 
-export default connect(mapStateToProps, actionCreators)(AllProcessProperties);
+export default AllProcessProperties;
