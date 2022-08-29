@@ -63,11 +63,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
                 lane = int(rpm["lane"])
                 dataset_key = (project_name, run_name, lane)
                 if dataset_key not in datasets:
-                    dataset, errors, warnings = service.create_dataset(project_name=project_name, run_name=run_name, lane=lane)
-                    if errors:
-                        return (datasets, dataset_files, errors, warnings)
-                    else:
-                        datasets[dataset_key] = dataset
+                    dataset, errors, warnings = service.create_dataset(project_name=project_name, run_name=run_name, lane=lane, replace=True)
+                if errors:
+                    return (datasets, dataset_files, errors, warnings)
+                else:
+                    datasets[dataset_key] = dataset
 
                 dataset = datasets[dataset_key]
 
