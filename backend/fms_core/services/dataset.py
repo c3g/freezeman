@@ -40,7 +40,7 @@ def create_dataset_file(dataset: Dataset,
     warnings = []
 
     if release_flag not in [value for value, _ in ReleaseFlag.choices]:
-        errors.append("The release flag can only be 1 (Blocked) or 2 (Released)")
+        errors.append(f"The release flag can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseFlag.choices])}.")
 
     if errors:
         return (dataset_file, errors, warnings)

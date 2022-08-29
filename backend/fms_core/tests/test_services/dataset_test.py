@@ -57,3 +57,10 @@ class DatasetServicesTestCase(TestCase):
         self.assertIsNotNone(dataset_file)
         self.assertEqual(dataset_file.release_flag, ReleaseFlag.RELEASE)
         self.assertIsNotNone(dataset_file.release_flag_timestamp)
+
+    def test_create_dataset_file_with_invalid_flag(self):
+        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
+        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=3, release_flag_timestamp=None)
+        dataset_file_dict.pop("release_flag_timestamp")
+        dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
+        self.assertEqual(errors[0], "The release flag can only be 1 (Release) or 2 (Block).")
