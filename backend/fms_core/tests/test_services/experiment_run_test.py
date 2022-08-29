@@ -6,7 +6,8 @@ from fms_core.models import (
     Instrument,
     PropertyType,
     InstrumentType,
-    SampleKind
+    SampleKind,
+    ProcessMeasurement
 )
 
 from fms_core.tests.constants import create_container
@@ -88,12 +89,56 @@ class ExperimentRunServicesTestCase(TestCase):
                                                                                    start_date=self.start_date
                                                                                    )
 
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
         self.assertEqual(my_experiment_run.name, self.experiment_name)
         self.assertEqual(my_experiment_run.run_type.name, self.run_type_name)
         self.assertEqual(my_experiment_run.container.barcode, "FlowcellIllumina")
         self.assertEqual(my_experiment_run.instrument.name, self.instrument_name)
         self.assertEqual(my_experiment_run.start_date, self.start_date)
 
+        #Test that process measurements for associated samples were created
+        for sample in self.samples_info:
+            source_sample = sample['sample_obj']
+            ProcessMeasurement.objects.filter(process=my_experiment_run.process, source_sample=source_sample).exists()
+
     def test_missing_run_type(self):
-        pass
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=None,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date
+                                                                                   )
+        self.assertEqual(my_experiment_run, None)
+        self.assertTrue('Run type is required to create an experiment run.' in errors)
+        self.assertEqual(warnings, [])
+
+    def test_missing_process_properties(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=None,
+                                                                                   start_date=self.start_date
+                                                                                   )
+        self.assertEqual(my_experiment_run, None)
+        self.assertTrue('Process properties are required to create an experiment run.' in errors)
+        self.assertEqual(warnings, [])
+
+    def test_missing_parameters(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=None,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=None,
+                                                                                   instrument_obj=None,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date
+                                                                                   )
+
+        self.assertEqual(my_experiment_run, None)
+        self.assertTrue('This field cannot be null.' in errors[0])
+        self.assertEqual(warnings, [])
 

@@ -20,6 +20,14 @@ def create_experiment_run(experiment_run_name,
     errors = []
     warnings = []
 
+    if run_type_obj is None:
+        errors.append('Run type is required to create an experiment run.')
+    if process_properties is None:
+        errors.append('Process properties are required to create an experiment run.')
+
+    if errors:
+        return None, errors, warnings
+
     if not protocols_dict:
         protocols_dict = run_type_obj.get_protocols_dict
     
