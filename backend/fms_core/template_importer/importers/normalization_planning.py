@@ -1,6 +1,6 @@
 from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
 from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
-from fms_core.template_importer._constants import SAMPLE_CHOICE, LIBRARY_CHOICE
+from fms_core.template_importer._constants import SAMPLE_BIOMEK_CHOICE, SAMPLE_JANUS_CHOICE, LIBRARY_CHOICE
 from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
 
 from fms_core.models import Container
@@ -130,11 +130,13 @@ class NormalizationPlanningImporter(GenericImporter):
         """
         FIRST_COORD_AXIS = 0
         TUBE = "tube"
+        DILUENT = "Water"   # This is an hardcoded value for Biomek config file
+        DILUENT_WELL = "4"  # This is an hardcoded value for Biomek config file
 
         if norm_choice == LIBRARY_CHOICE:
             ROBOT_SRC_PREFIX = "Source"
             ROBOT_DST_PREFIX = "Dil"
-        elif norm_choice == SAMPLE_CHOICE:
+        elif norm_choice == SAMPLE_JANUS_CHOICE or norm_choice == SAMPLE_BIOMEK_CHOICE:
             ROBOT_SRC_PREFIX = "Src"
             ROBOT_DST_PREFIX = "Dst"
 
@@ -270,8 +272,36 @@ class NormalizationPlanningImporter(GenericImporter):
                 {"name": f"Normalization_libraries_main_dilution_{timestamp}.csv",
                  "content": add_library_io.getvalue(),},
             ]
+        elif  norm_choice == SAMPLE_BIOMEK_CHOICE:
+            # Create the single robot file
+            normalization_io = BytesIO()
+            normalization_lines = []
+            normalization_lines.append((",".join(["Source_plate", "Source_well", "Dest_plate", "Dest_well", "Volume_Sample", "Diluant_Bath", "Diluant_Well", "Volume_Diluant"]) + "\n").encode())
 
-        elif norm_choice == SAMPLE_CHOICE:
+            for output_row_data in output_rows_data:
+                robot_src_barcode = output_row_data["Robot Source Container"]
+                robot_dst_barcode = output_row_data["Robot Destination Container"]
+                robot_src_coord = get_source_container_coord(output_row_data, container_dict)
+                robot_dst_coord = output_row_data["Destination Container Coord"]
+                volume_sample = decimal.Decimal(output_row_data["Volume Used (uL)"])
+                volume_diluent = decimal.Decimal(output_row_data["Volume (uL)"]) - volume_sample
+
+                normalization_lines.append((",".join([robot_src_barcode,
+                                                      robot_src_coord,
+                                                      robot_dst_barcode,
+                                                      robot_dst_coord,
+                                                      str(volume_sample),
+                                                      DILUENT,
+                                                      DILUENT_WELL,
+                                                      str(volume_diluent)]) + "\n").encode()) # Encode to store a bytes-like object
+
+            normalization_io.writelines(normalization_lines)
+            robot_files = [
+                {"name": f"Normalization_samples_Biomek_{timestamp}.csv",
+                 "content": normalization_io.getvalue(),},
+            ]
+
+        elif norm_choice == SAMPLE_JANUS_CHOICE:
             # Create the single robot file
             normalization_io = BytesIO()
             normalization_lines = []
@@ -294,7 +324,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             normalization_io.writelines(normalization_lines)
             robot_files = [
-                {"name": f"Normalization_samples_{timestamp}.csv",
+                {"name": f"Normalization_samples_Janus_{timestamp}.csv",
                  "content": normalization_io.getvalue(),},
             ]
 

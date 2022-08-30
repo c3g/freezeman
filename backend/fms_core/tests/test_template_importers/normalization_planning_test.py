@@ -152,7 +152,7 @@ class NormalizationTestCase(TestCase):
                             self.assertEqual(csv_content[3][4], "3")
                             self.assertEqual(csv_content[3][5], "28.964")
 
-                        elif filename.find("Normalization_samples_") != -1:
+                        elif filename.find("Normalization_samples_Janus") != -1:
                             # 0: robot_src_barcode
                             # 1: robot_src_coord
                             # 2: robot_dst_barcode
@@ -160,69 +160,83 @@ class NormalizationTestCase(TestCase):
                             # 4: volume_diluent
                             # 5: volume_sample
 
-                            if str(file).find("_Sample_Tube") != -1: # Condition source Tubes in a Rack
-                                # First sample
-                                self.assertEqual(csv_content[1][0], "Src1")
-                                self.assertEqual(csv_content[1][1], "5")
-                                self.assertEqual(csv_content[1][2], "Dst1")
-                                self.assertEqual(csv_content[1][3], "17")
-                                self.assertEqual(csv_content[1][4], "99.800")
-                                self.assertEqual(csv_content[1][5], "0.200")
-                                # Second sample
-                                self.assertEqual(csv_content[2][0], "Src1")
-                                self.assertEqual(csv_content[2][1], "6")
-                                self.assertEqual(csv_content[2][2], "Dst1")
-                                self.assertEqual(csv_content[2][3], "18")
-                                self.assertEqual(csv_content[2][4], "99.200")
-                                self.assertEqual(csv_content[2][5], "0.800")
-                                # Third sample
-                                self.assertEqual(csv_content[3][0], "Src1")
-                                self.assertEqual(csv_content[3][1], "7")
-                                self.assertEqual(csv_content[3][2], "Dst1")
-                                self.assertEqual(csv_content[3][3], "19")
-                                self.assertEqual(csv_content[3][4], "99.000")
-                                self.assertEqual(csv_content[3][5], "1.000")
-                                
-                            else: # Condition source Plate
-                                # First sample
-                                self.assertEqual(csv_content[1][0], "Src1")
-                                self.assertEqual(csv_content[1][1], "2")
-                                self.assertEqual(csv_content[1][2], "Dst1")
-                                self.assertEqual(csv_content[1][3], "9")
-                                self.assertEqual(csv_content[1][4], "26.000")
-                                self.assertEqual(csv_content[1][5], "4.000")
-                                # Second sample
-                                self.assertEqual(csv_content[2][0], "Src1")
-                                self.assertEqual(csv_content[2][1], "10")
-                                self.assertEqual(csv_content[2][2], "Dst1")
-                                self.assertEqual(csv_content[2][3], "10")
-                                self.assertEqual(csv_content[2][4], "20.000")
-                                self.assertEqual(csv_content[2][5], "30.000")
-                                # Third sample
-                                self.assertEqual(csv_content[3][0], "Src1")
-                                self.assertEqual(csv_content[3][1], "3")
-                                self.assertEqual(csv_content[3][2], "Dst1")
-                                self.assertEqual(csv_content[3][3], "11")
-                                self.assertEqual(csv_content[3][4], "0.000")
-                                self.assertEqual(csv_content[3][5], "20.000")
-                                # Fourth sample
-                                self.assertEqual(csv_content[4][0], "Src1")
-                                self.assertEqual(csv_content[4][1], "4")
-                                self.assertEqual(csv_content[4][2], "Dst2")
-                                self.assertEqual(csv_content[4][3], "9")
-                                self.assertEqual(csv_content[4][4], "26.000")
-                                self.assertEqual(csv_content[4][5], "4.000")
-                                # Fifth sample
-                                self.assertEqual(csv_content[5][0], "Src1")
-                                self.assertEqual(csv_content[5][1], "12")
-                                self.assertEqual(csv_content[5][2], "Dst2")
-                                self.assertEqual(csv_content[5][3], "10")
-                                self.assertEqual(csv_content[5][4], "20.000")
-                                self.assertEqual(csv_content[5][5], "30.000")
-                                # Sixth sample
-                                self.assertEqual(csv_content[6][0], "Src1")
-                                self.assertEqual(csv_content[6][1], "20")
-                                self.assertEqual(csv_content[6][2], "Dst2")
-                                self.assertEqual(csv_content[6][3], "11")
-                                self.assertEqual(csv_content[6][4], "0.000")
-                                self.assertEqual(csv_content[6][5], "20.000")
+                            # First sample
+                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][1], "2")
+                            self.assertEqual(csv_content[1][2], "Dst1")
+                            self.assertEqual(csv_content[1][3], "9")
+                            self.assertEqual(csv_content[1][4], "26.000")
+                            self.assertEqual(csv_content[1][5], "4.000")
+                            # Second sample
+                            self.assertEqual(csv_content[2][0], "Src1")
+                            self.assertEqual(csv_content[2][1], "10")
+                            self.assertEqual(csv_content[2][2], "Dst1")
+                            self.assertEqual(csv_content[2][3], "10")
+                            self.assertEqual(csv_content[2][4], "20.000")
+                            self.assertEqual(csv_content[2][5], "30.000")
+                            # Third sample
+                            self.assertEqual(csv_content[3][0], "Src1")
+                            self.assertEqual(csv_content[3][1], "3")
+                            self.assertEqual(csv_content[3][2], "Dst1")
+                            self.assertEqual(csv_content[3][3], "11")
+                            self.assertEqual(csv_content[3][4], "0.000")
+                            self.assertEqual(csv_content[3][5], "20.000")
+                            # Fourth sample
+                            self.assertEqual(csv_content[4][0], "Src1")
+                            self.assertEqual(csv_content[4][1], "4")
+                            self.assertEqual(csv_content[4][2], "Dst2")
+                            self.assertEqual(csv_content[4][3], "9")
+                            self.assertEqual(csv_content[4][4], "26.000")
+                            self.assertEqual(csv_content[4][5], "4.000")
+                            # Fifth sample
+                            self.assertEqual(csv_content[5][0], "Src1")
+                            self.assertEqual(csv_content[5][1], "12")
+                            self.assertEqual(csv_content[5][2], "Dst2")
+                            self.assertEqual(csv_content[5][3], "10")
+                            self.assertEqual(csv_content[5][4], "20.000")
+                            self.assertEqual(csv_content[5][5], "30.000")
+                            # Sixth sample
+                            self.assertEqual(csv_content[6][0], "Src1")
+                            self.assertEqual(csv_content[6][1], "20")
+                            self.assertEqual(csv_content[6][2], "Dst2")
+                            self.assertEqual(csv_content[6][3], "11")
+                            self.assertEqual(csv_content[6][4], "0.000")
+                            self.assertEqual(csv_content[6][5], "20.000")
+
+                        elif filename.find("Normalization_samples_Janus") != -1:
+                            # 0: robot_src_barcode
+                            # 1: src_coord
+                            # 2: robot_dst_barcode
+                            # 3: dst_coord
+                            # 4: Volume_Sample
+                            # 5: Diluant_Bath = "Water"
+                            # 6: Diluant_Well = "4"
+                            # 7: Volume_Diluant
+
+                            # First sample
+                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][1], "E01")
+                            self.assertEqual(csv_content[1][2], "Dst1")
+                            self.assertEqual(csv_content[1][3], "C01")
+                            self.assertEqual(csv_content[1][4], "0.200")
+                            self.assertEqual(csv_content[1][5], "Water")
+                            self.assertEqual(csv_content[1][6], "4")
+                            self.assertEqual(csv_content[1][7], "99.800")
+                            # Second sample
+                            self.assertEqual(csv_content[2][0], "Src1")
+                            self.assertEqual(csv_content[2][1], "F01")
+                            self.assertEqual(csv_content[2][2], "Dst1")
+                            self.assertEqual(csv_content[2][3], "C02")
+                            self.assertEqual(csv_content[2][4], "0.800")
+                            self.assertEqual(csv_content[2][5], "Water")
+                            self.assertEqual(csv_content[2][6], "4")
+                            self.assertEqual(csv_content[2][7], "99.200")
+                            # Third sample
+                            self.assertEqual(csv_content[3][0], "Src1")
+                            self.assertEqual(csv_content[3][1], "G01")
+                            self.assertEqual(csv_content[3][2], "Dst1")
+                            self.assertEqual(csv_content[3][3], "C03")
+                            self.assertEqual(csv_content[3][4], "1.000")
+                            self.assertEqual(csv_content[3][5], "Water")
+                            self.assertEqual(csv_content[3][6], "4")                            
+                            self.assertEqual(csv_content[3][7], "99.000")
