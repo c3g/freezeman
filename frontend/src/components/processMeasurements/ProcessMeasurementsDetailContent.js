@@ -56,10 +56,10 @@ const ProcessMeasurementsDetailContent = ({
     `Sample Process ${[id, processMeasurement && protocolsByID[processMeasurement.protocol]?.name].filter(Boolean).join(' - ')}`;
 
   return <>
-    <AppPageHeader title={title}/>
+    <AppPageHeader title={title} />
     <PageContent loading={isLoading}>
       <Tabs defaultActiveKey="1" size="large" type="card">
-        <TabPane tab="Overview" key="1" style={{marginTop:8} }>
+        <TabPane tab="Overview" key="1" style={{ marginTop: 8 }}>
           <Descriptions bordered={true} size="small" column={4}>
             <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
             <Descriptions.Item label="Applied To Sample" span={2}>
@@ -78,9 +78,9 @@ const ProcessMeasurementsDetailContent = ({
             <Descriptions.Item label="Date Executed" span={2}>{processMeasurement.execution_date}</Descriptions.Item>
             <Descriptions.Item label="Comment" span={4}>{processMeasurement.comment}</Descriptions.Item>
           </Descriptions>
-          <TrackingFieldsContent entity={processMeasurement}/>
+          <TrackingFieldsContent entity={processMeasurement} />
         </TabPane>
-        <TabPane tab="Properties" key="2" style={{marginTop:8} }>
+        <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
           <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
           {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
           <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>
@@ -93,7 +93,7 @@ const ProcessMeasurementsDetailContent = ({
               />
             </>
           }
-      </TabPane>
+        </TabPane>
       </Tabs>
     </PageContent>
   </>;
