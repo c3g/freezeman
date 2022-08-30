@@ -59,8 +59,6 @@ class SampleSubmissionTestCase(TestCase):
 
     def test_invalid_sample_submission(self):
         for f in self.invalid_template_tests:
-            print(f"Testing invalid sample submission template {f}", flush=True)
-
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)

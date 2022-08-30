@@ -9,7 +9,7 @@ from fms_core.services.id_generator import get_unique_id
 
 from ._generic import GenericImporter
 from .._utils import float_to_decimal_and_none, zip_files
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, unique
 
 from io import BytesIO
 from datetime import datetime
@@ -188,12 +188,16 @@ class NormalizationPlanningImporter(GenericImporter):
 
         ################################################################################################
 
-        # Ensure the Destination Container Kind is in the template even in the case where the user reuse an existing container
+        
         for output_row_data in output_rows_data:
             if output_row_data["Destination Container Kind"] is None:
-                output_row_data["Destination Container Kind"] = Container.objects.get(barcode=output_row_data["Source Container Barcode"]).kind
+                # Ensure the Destination Container Kind is in the template even in the case where the user reuse an existing container
+                output_row_data["Destination Container Kind"] = Container.objects.get(barcode=output_row_data["Destination Container Barcode"]).kind
 
-        dest_containers = set((output_row_data["Destination Container Barcode"], output_row_data["Destination Container Kind"]) for output_row_data in output_rows_data)
+        dup_containers = zip([output_row_data["Destination Container Barcode"] for output_row_data in output_rows_data],
+                             [output_row_data["Destination Container Kind"] for output_row_data in output_rows_data])
+
+        dest_containers = unique(dup_containers)
 
         # Map container spec to destination container barcode
         for barcode, kind in dest_containers:
@@ -205,12 +209,10 @@ class NormalizationPlanningImporter(GenericImporter):
         for i, (barcode, _) in enumerate(dest_containers, start=1):
             mapping_dest_containers[barcode] = ROBOT_DST_PREFIX + str(i)
 
-        # Add robot barcode to the rows_data
         for output_row_data in output_rows_data:
+            # Add robot barcode to the rows_data
             output_row_data["Robot Destination Container"] = mapping_dest_containers[output_row_data["Destination Container Barcode"]]
-
-        # Add robot dest coord to the rows_data
-        for output_row_data in output_rows_data:
+            # Add robot dest coord to the rows_data
             output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(coord_spec_by_barcode[output_row_data["Destination Container Barcode"]],
                                                                                           output_row_data["Destination Container Coord"])
 
@@ -219,20 +221,18 @@ class NormalizationPlanningImporter(GenericImporter):
 
         container_dict = build_source_container_dict(output_rows_data)
         
-        src_containers = set(get_source_container_barcode(output_row_data, container_dict) for output_row_data in output_rows_data)
+        src_containers = unique(get_source_container_barcode(output_row_data, container_dict) for output_row_data in output_rows_data)
 
         # Map source container barcode to robot source barcodes
         for i, barcode in enumerate(src_containers, start=1):
             mapping_src_containers[barcode] = ROBOT_SRC_PREFIX + str(i)
 
-        # Add robot barcode to the rows_data
         for output_row_data in output_rows_data:
+            # Add robot barcode to the rows_data
             output_row_data["Robot Source Container"] = mapping_src_containers[get_source_container_barcode(output_row_data, container_dict)]
-
-        # Add robot src coord to the sorted rows_data
-        for output_row_data in output_rows_data:
+            # Add robot src coord to the sorted rows_data
             output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(get_source_container_spec(output_row_data, container_dict),
-                                                                                      get_source_container_coord(output_row_data, container_dict))
+                                                                                     get_source_container_coord(output_row_data, container_dict))
 
         if norm_choice == LIBRARY_CHOICE:
             # Creating the 2 robot files
@@ -244,7 +244,6 @@ class NormalizationPlanningImporter(GenericImporter):
             add_library_lines.append((",".join(["SrcBarcode", "SrcName", "SrcWell", "DstName", "DstWell", "DNAVol"]) + "\n").encode())
 
             for output_row_data in output_rows_data:
-                print(output_row_data)
                 container_src_barcode = output_row_data["Source Container Barcode"]
                 robot_src_barcode = output_row_data["Robot Source Container"]
                 robot_dst_barcode = output_row_data["Robot Destination Container"]

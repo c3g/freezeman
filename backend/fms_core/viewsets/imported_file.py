@@ -48,7 +48,6 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
                 response["Content-Type"] = mime_type_guess[0]
                 response["Content-Disposition"] = "attachment; filename=" + filename
         except Exception as err:
-            print(err)
             return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the template file to the response."}), content_type="application/json")
         
         return response

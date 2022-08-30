@@ -2,6 +2,7 @@ from django.test import TestCase
 from datetime import datetime
 from decimal import Decimal
 import zipfile
+from io import BytesIO
 
 from fms_core.template_importer.importers import NormalizationPlanningImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
@@ -31,18 +32,20 @@ class NormalizationTestCase(TestCase):
     def prefill_data(self):
         sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
 
-        platform_illumina, errors, warnings = get_platform(name="ILLUMINA")
-        library_type, errors, warnings = get_library_type(name="PCR-free")
+        platform_illumina, _, _ = get_platform(name="ILLUMINA")
+        library_type, _, _ = get_library_type(name="PCR-free")
 
         # Create indices
-        (index_set, _, errors, warnings) = get_or_create_index_set(set_name="IDT_10nt_UDI_TruSeq_Adapter")
-        (index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+        (index_set, _, _, _) = get_or_create_index_set(set_name="IDT_10nt_UDI_TruSeq_Adapter")
+        (index_1, _, _) = create_index(index_set=index_set, index_structure="TruSeqHT",
                                                       index_name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001")
-        (library_1, errors, warnings) = create_library(index=index_1,
-                                                       library_type=library_type,
-                                                       platform=platform_illumina,
-                                                       strandedness=DOUBLE_STRANDED,
-                                                       library_size=150)
+        libraries = [None] * 3
+        for i, _ in enumerate(libraries):
+            libraries[i], _, _ = create_library(index=index_1,
+                                                library_type=library_type,
+                                                platform=platform_illumina,
+                                                strandedness=DOUBLE_STRANDED,
+                                                library_size=150)
 
         containers_info = [
             {'barcode': 'PARENT_RACK_NORM', 'name': 'PARENT_RACK_NORM', 'kind': 'tube rack 8x12', 'location': None, 'coordinates': '',},
@@ -58,9 +61,9 @@ class NormalizationTestCase(TestCase):
             {'name': 'Sample1NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B01', 'library': None},
             {'name': 'Sample2NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'B02', 'library': None},
             {'name': 'Sample3NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'C01', 'library': None},
-            {'name': 'Sample4NormPlanning', 'volume': 100, 'conc.': 20, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A01', 'library': library_1},
-            {'name': 'Sample5NormPlanning', 'volume': 100, 'conc.': 40, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A02', 'library': library_1},
-            {'name': 'Sample6NormPlanning', 'volume': 100, 'conc.': 80, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A03', 'library': library_1},
+            {'name': 'Sample4NormPlanning', 'volume': 100, 'conc.': 60, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A01', 'library': libraries[0]},
+            {'name': 'Sample5NormPlanning', 'volume': 100, 'conc.': 40, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A02', 'library': libraries[1]},
+            {'name': 'Sample6NormPlanning', 'volume': 100, 'conc.': 80, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A03', 'library': libraries[2]},
             {'name': 'Sample7NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_1', 'coordinates': '', 'library': None},
             {'name': 'Sample8NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_2', 'coordinates': '', 'library': None},
             {'name': 'Sample9NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_3', 'coordinates': '', 'library': None},
@@ -76,7 +79,7 @@ class NormalizationTestCase(TestCase):
         for info in samples_info:
             container, _, _ = get_container(barcode=info['container_barcode'])
 
-            create_full_sample(name=info['name'],
+            sample, _, _ = create_full_sample(name=info['name'],
                                volume=info['volume'],
                                concentration=info['conc.'],
                                collection_site='site1',
@@ -86,23 +89,22 @@ class NormalizationTestCase(TestCase):
                                sample_kind=sample_kind_DNA,
                                library=info['library'])
 
-
     def test_import(self):
         for file in self.files:
             # Basic test for all templates - checks that template is valid
             result = load_template(importer=self.importer, file=file)
-            print(result['base_errors'])
             self.assertEqual(result['valid'], True)
 
             if result['valid']:
-                content_zipped = zipfile.ZipFile(result['output_file']['content'])
+                content_zipped = zipfile.ZipFile(BytesIO(result['output_file']['content']))
                 for filename in content_zipped.namelist():
                     if filename[-5:] != ".xlsx":  # At the moment we only test the csv output files.
                         csv_content = {}
-                        with content_zipped.open(filename) as file:   
-                            for i, line in enumerate(file):
-                                csv_content[i] = line.decode().split(",") # Extract file into dictionary
-                        if filename.startswith("Normalization_libraries_diluent_"):
+                        with content_zipped.open(filename) as zfile:   
+                            for i, line in enumerate(zfile):
+                                csv_content[i] = line.decode().strip().split(",") # Extract file into dictionary
+
+                        if filename.find("Normalization_libraries_diluent_") != -1:
                             # 0: robot_dst_barcode
                             # 1: robot_dst_coord
                             # 2: volume_diluent
@@ -110,17 +112,17 @@ class NormalizationTestCase(TestCase):
                             # First library
                             self.assertEqual(csv_content[1][0], "Dil1")
                             self.assertEqual(csv_content[1][1], "1")
-                            self.assertEqual(csv_content[1][2], "1")
+                            self.assertEqual(csv_content[1][2], "11.381")
                             # Second library
                             self.assertEqual(csv_content[2][0], "Dil1")
                             self.assertEqual(csv_content[2][1], "2")
-                            self.assertEqual(csv_content[2][2], "1")
+                            self.assertEqual(csv_content[2][2], "42.072")
                             # Third library
                             self.assertEqual(csv_content[3][0], "Dil1")
                             self.assertEqual(csv_content[3][1], "3")
-                            self.assertEqual(csv_content[3][2], "1")
+                            self.assertEqual(csv_content[3][2], "21.036")
                                 
-                        elif filename.startswith("Normalization_libraries_main_dilution_"):
+                        elif filename.find("Normalization_libraries_main_dilution_") != -1:
                             # 0: container_src_barcode
                             # 1: robot_src_barcode
                             # 2: robot_src_coord
@@ -129,28 +131,28 @@ class NormalizationTestCase(TestCase):
                             # 5: volume_library
 
                             # First library
-                            self.assertEqual(csv_content[1][0], "Src1")
+                            self.assertEqual(csv_content[1][0], "SRC_PLATE_NORM")
                             self.assertEqual(csv_content[1][1], "Source1")
                             self.assertEqual(csv_content[1][2], "1")
                             self.assertEqual(csv_content[1][3], "Dil1")
                             self.assertEqual(csv_content[1][4], "1")
-                            self.assertEqual(csv_content[1][5], "1")
+                            self.assertEqual(csv_content[1][5], "38.619")
                             # Second library
-                            self.assertEqual(csv_content[2][0], "Src1")
+                            self.assertEqual(csv_content[2][0], "SRC_PLATE_NORM")
                             self.assertEqual(csv_content[2][1], "Source1")
                             self.assertEqual(csv_content[2][2], "9")
                             self.assertEqual(csv_content[2][3], "Dil1")
                             self.assertEqual(csv_content[2][4], "2")
-                            self.assertEqual(csv_content[2][5], "1")
+                            self.assertEqual(csv_content[2][5], "57.928")
                             # Third library
-                            self.assertEqual(csv_content[3][0], "Src1")
+                            self.assertEqual(csv_content[3][0], "SRC_PLATE_NORM")
                             self.assertEqual(csv_content[3][1], "Source1")
                             self.assertEqual(csv_content[3][2], "17")
                             self.assertEqual(csv_content[3][3], "Dil1")
                             self.assertEqual(csv_content[3][4], "3")
-                            self.assertEqual(csv_content[3][5], "1")
+                            self.assertEqual(csv_content[3][5], "28.964")
 
-                        elif filename.startswith("Normalization_samples_"):
+                        elif filename.find("Normalization_samples_") != -1:
                             # 0: robot_src_barcode
                             # 1: robot_src_coord
                             # 2: robot_dst_barcode
@@ -158,28 +160,28 @@ class NormalizationTestCase(TestCase):
                             # 4: volume_diluent
                             # 5: volume_sample
 
-                            if csv_content[1][1] == "33": # Condition source Tubes in a Rack (from the src position in the rack)
+                            if str(file).find("_Sample_Tube") != -1: # Condition source Tubes in a Rack
                                 # First sample
                                 self.assertEqual(csv_content[1][0], "Src1")
-                                self.assertEqual(csv_content[1][1], "33")
+                                self.assertEqual(csv_content[1][1], "5")
                                 self.assertEqual(csv_content[1][2], "Dst1")
-                                self.assertEqual(csv_content[1][3], "19")
-                                self.assertEqual(csv_content[1][4], "1")
-                                self.assertEqual(csv_content[1][5], "1")
+                                self.assertEqual(csv_content[1][3], "17")
+                                self.assertEqual(csv_content[1][4], "99.800")
+                                self.assertEqual(csv_content[1][5], "0.200")
                                 # Second sample
                                 self.assertEqual(csv_content[2][0], "Src1")
-                                self.assertEqual(csv_content[2][1], "34")
+                                self.assertEqual(csv_content[2][1], "6")
                                 self.assertEqual(csv_content[2][2], "Dst1")
-                                self.assertEqual(csv_content[2][3], "20")
-                                self.assertEqual(csv_content[2][4], "1")
-                                self.assertEqual(csv_content[2][5], "1")
+                                self.assertEqual(csv_content[2][3], "18")
+                                self.assertEqual(csv_content[2][4], "99.200")
+                                self.assertEqual(csv_content[2][5], "0.800")
                                 # Third sample
                                 self.assertEqual(csv_content[3][0], "Src1")
-                                self.assertEqual(csv_content[3][1], "35")
+                                self.assertEqual(csv_content[3][1], "7")
                                 self.assertEqual(csv_content[3][2], "Dst1")
-                                self.assertEqual(csv_content[3][3], "21")
-                                self.assertEqual(csv_content[3][4], "1")
-                                self.assertEqual(csv_content[3][5], "1")
+                                self.assertEqual(csv_content[3][3], "19")
+                                self.assertEqual(csv_content[3][4], "99.000")
+                                self.assertEqual(csv_content[3][5], "1.000")
                                 
                             else: # Condition source Plate
                                 # First sample
@@ -187,40 +189,40 @@ class NormalizationTestCase(TestCase):
                                 self.assertEqual(csv_content[1][1], "2")
                                 self.assertEqual(csv_content[1][2], "Dst1")
                                 self.assertEqual(csv_content[1][3], "9")
-                                self.assertEqual(csv_content[1][4], "1")
-                                self.assertEqual(csv_content[1][5], "1")
+                                self.assertEqual(csv_content[1][4], "26.000")
+                                self.assertEqual(csv_content[1][5], "4.000")
                                 # Second sample
                                 self.assertEqual(csv_content[2][0], "Src1")
-                                self.assertEqual(csv_content[2][1], "9")
+                                self.assertEqual(csv_content[2][1], "10")
                                 self.assertEqual(csv_content[2][2], "Dst1")
                                 self.assertEqual(csv_content[2][3], "10")
-                                self.assertEqual(csv_content[2][4], "1")
-                                self.assertEqual(csv_content[2][5], "1")
+                                self.assertEqual(csv_content[2][4], "20.000")
+                                self.assertEqual(csv_content[2][5], "30.000")
                                 # Third sample
                                 self.assertEqual(csv_content[3][0], "Src1")
                                 self.assertEqual(csv_content[3][1], "3")
                                 self.assertEqual(csv_content[3][2], "Dst1")
                                 self.assertEqual(csv_content[3][3], "11")
-                                self.assertEqual(csv_content[3][4], "1")
-                                self.assertEqual(csv_content[3][5], "1")
+                                self.assertEqual(csv_content[3][4], "0.000")
+                                self.assertEqual(csv_content[3][5], "20.000")
                                 # Fourth sample
-                                self.assertEqual(csv_content[1][0], "Src1")
-                                self.assertEqual(csv_content[1][1], "4")
-                                self.assertEqual(csv_content[1][2], "Dst2")
-                                self.assertEqual(csv_content[1][3], "9")
-                                self.assertEqual(csv_content[1][4], "1")
-                                self.assertEqual(csv_content[1][5], "1")
+                                self.assertEqual(csv_content[4][0], "Src1")
+                                self.assertEqual(csv_content[4][1], "4")
+                                self.assertEqual(csv_content[4][2], "Dst2")
+                                self.assertEqual(csv_content[4][3], "9")
+                                self.assertEqual(csv_content[4][4], "26.000")
+                                self.assertEqual(csv_content[4][5], "4.000")
                                 # Fifth sample
-                                self.assertEqual(csv_content[2][0], "Src1")
-                                self.assertEqual(csv_content[2][1], "12")
-                                self.assertEqual(csv_content[2][2], "Dst2")
-                                self.assertEqual(csv_content[2][3], "10")
-                                self.assertEqual(csv_content[2][4], "1")
-                                self.assertEqual(csv_content[2][5], "1")
+                                self.assertEqual(csv_content[5][0], "Src1")
+                                self.assertEqual(csv_content[5][1], "12")
+                                self.assertEqual(csv_content[5][2], "Dst2")
+                                self.assertEqual(csv_content[5][3], "10")
+                                self.assertEqual(csv_content[5][4], "20.000")
+                                self.assertEqual(csv_content[5][5], "30.000")
                                 # Sixth sample
-                                self.assertEqual(csv_content[3][0], "Src1")
-                                self.assertEqual(csv_content[3][1], "20")
-                                self.assertEqual(csv_content[3][2], "Dst2")
-                                self.assertEqual(csv_content[3][3], "11")
-                                self.assertEqual(csv_content[3][4], "1")
-                                self.assertEqual(csv_content[3][5], "1")
+                                self.assertEqual(csv_content[6][0], "Src1")
+                                self.assertEqual(csv_content[6][1], "20")
+                                self.assertEqual(csv_content[6][2], "Dst2")
+                                self.assertEqual(csv_content[6][3], "11")
+                                self.assertEqual(csv_content[6][4], "0.000")
+                                self.assertEqual(csv_content[6][5], "20.000")

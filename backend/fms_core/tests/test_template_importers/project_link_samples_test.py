@@ -84,8 +84,6 @@ class ProjectLinkSamplesTestCase(TestCase):
 
     def test_invalid_project_link_samples(self):
         for f in self.invalid_template_tests:
-            print(f"Testing invalid project link samples {f}", flush=True)
-
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)

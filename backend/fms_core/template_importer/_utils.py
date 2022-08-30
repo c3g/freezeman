@@ -62,6 +62,6 @@ def zip_files(output_zip_name, file_list):
             for file in file_list:
                 zip_file.writestr(output_zip_name + '/' + file['name'], file['content'])
     except Exception as e:
-        print("Failed to zip the file: " + str(e))
+        raise e
 
     return zip_buffer

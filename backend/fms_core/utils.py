@@ -20,7 +20,8 @@ __all__ = [
     "str_normalize",
     "str_cast_and_normalize",
     "get_normalized_str",
-    "comma_separated_string_to_array"
+    "comma_separated_string_to_array",
+    "unique"
 ]
 
 
@@ -29,6 +30,10 @@ RE_WHITESPACE = re.compile(r"\s+")
 
 
 TRUTH_VALUES = frozenset({"TRUE", "T", "YES", "Y"})
+
+def unique(sequence):
+    seen = set()
+    return [x for x in sequence if not (x in seen or seen.add(x))]
 
 def comma_separated_string_to_array(s):
     """

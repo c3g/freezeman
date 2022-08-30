@@ -19,20 +19,23 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
     def process_row_inner(self, source_sample, destination_sample, measurements, robot):
         concentration_nguL = None
         concentration_nm = None
+        combined_concentration_nguL = None
 
         # Check if robot output choice is valid
         if robot["norm_choice"] not in VALID_NORM_CHOICES:
             self.errors['robot_norm_choice'] = f"Robot normalization choice must be chosen among the following choices : {VALID_NORM_CHOICES}."
 
         # Check case when none of the options were provided
-        if all([measurements['concentration_nm'] is None, measurements['concentration_ngul'] is None,
+        if all([measurements['concentration_nm'] is None,
+                measurements['concentration_ngul'] is None,
                 measurements['na_quantity'] is None]):
             self.errors['concentration'] = 'One option (A, B or C) should be specified.'
 
         # Check that there's only one option provided
-        if sum([measurements['concentration_nm'] is not None, measurements['concentration_ngul'] is not None,
+        if sum([measurements['concentration_nm'] is not None,
+                measurements['concentration_ngul'] is not None,
                 measurements['na_quantity'] is not None]) != 1:
-            self.errors['concentration'] = 'Only one option must be specified out  of the following: NA quantity, conc. ng/uL or conc. nM'
+            self.errors['concentration'] = 'Only one option must be specified out  of the following: NA quantity, conc. ng/uL or conc. nM.'
 
         source_sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=source_sample['container']['barcode'],

@@ -64,4 +64,4 @@ def PrefillTemplateFromDict(template, rows_dict):
         workbook.save(out_stream)
         return out_stream.getvalue()
     except Exception as e:
-        print("Failed to fill result template : " + str(e))
+        raise e
