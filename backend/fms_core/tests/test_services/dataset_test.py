@@ -27,8 +27,23 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset.run_name, "run")
         self.assertEqual(dataset.lane, 1)
 
+    def test_create_dataset_without_replace(self):
+        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
         _, errors, _ = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
         self.assertTrue(errors)
+    
+    def test_create_dataset_with_replace(self):
+        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
+
+        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=3, release_flag_timestamp=None)
+        dataset_file_dict.pop("release_flag_timestamp")
+        dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
+
+        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1), replace=True)
+        self.assertIsNotNone(dataset)
+        self.assertCountEqual(errors, [])
+        if dataset:
+            self.assertCountEqual(DatasetFile.objects.filter(dataset=dataset.id), [])
 
     def test_create_dataset_file(self):
         dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
@@ -37,8 +52,8 @@ class DatasetServicesTestCase(TestCase):
         dataset_file_dict.pop("release_flag_timestamp")
         dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
 
-        self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
-        self.assertFalse(warnings, "warnings is expected to be empty")
+        self.assertCountEqual(errors, [])
+        self.assertCountEqual(warnings, [])
         self.assertIsNotNone(dataset_file)
 
         self.assertEqual(DatasetFile.objects.count(), 1)
@@ -67,16 +82,3 @@ class DatasetServicesTestCase(TestCase):
         dataset_file_dict.pop("release_flag_timestamp")
         dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
         self.assertEqual(errors[0], "The release flag can only be 1 (Release) or 2 (Block).")
-
-    def test_create_dataset_with_replace(self):
-        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1))
-
-        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=3, release_flag_timestamp=None)
-        dataset_file_dict.pop("release_flag_timestamp")
-        dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
-
-        dataset, errors, warnings = service.create_dataset(**create_dataset(project_name="project", run_name="run", lane=1), replace=True)
-        self.assertIsNotNone(dataset)
-        self.assertCountEqual(errors, [])
-        if dataset:
-            self.assertCountEqual(DatasetFile.objects.filter(dataset=dataset.id), [])
