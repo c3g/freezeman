@@ -215,8 +215,8 @@ const DatasetDetailContent = () => {
             <Descriptions.Item label={"Project"}>{loading(dataset?.project_name)}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
             <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
-            <Descriptions.Item label={"Total Files"}>{loading(dataset?.files?.length)}</Descriptions.Item>
-            <Descriptions.Item label={"Released"}>{loading(dataset?.release_flag_count)}</Descriptions.Item>
+            <Descriptions.Item label={"Total Files"} span={2}>{loading(dataset?.files?.length)}</Descriptions.Item>
+            <Descriptions.Item label={"Files Released"} span={2}>{loading(dataset?.release_flag_count)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
         <PaginatedList {...paginatedListProps} other={extraButtons} />
