@@ -115,15 +115,15 @@ const MENU_ITEMS = [
     text: "Indices",
   },
   {
+    url: "/datasets",
+    icon: <FileZipOutlined />,
+    text: "Datasets",
+  },
+  {
     url: "/users",
     icon: <AuditOutlined />,
     text: "Users",
   },
-  {
-    url: "/datasets",
-    icon: <FileZipOutlined />,
-    text: "Datasets",
-  }
 ]
 
 const colorStyle = {
