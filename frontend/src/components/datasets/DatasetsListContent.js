@@ -49,14 +49,14 @@ const getTableColumns = () => {
                 return `${release_flag_count}/${dataset?.files?.length}`
             }
         },
-        {
-            title: "Last Release Time",
-            dataIndex: "last_release_timestamp",
-            sorter: true,
-            render: (last_release_timestamp, _) => {
-                return last_release_timestamp ? moment(last_release_timestamp).format("YYYY-MM-DD LT") : ""
-            }
-        },
+        // {
+        //     title: "Last Release Time",
+        //     dataIndex: "last_release_timestamp",
+        //     sorter: true,
+        //     render: (last_release_timestamp, _) => {
+        //         return last_release_timestamp ? moment(last_release_timestamp).format("YYYY-MM-DD LT") : ""
+        //     }
+        // },
     ].map((column) => ({ ...column, key: column.title }))
 }
 
