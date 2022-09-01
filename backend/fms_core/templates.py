@@ -209,14 +209,14 @@ SAMPLE_METADATA_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_11_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'NCBI Taxon ID #', 'Sample Coord',
-                      'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
-                      'Individual ID', 'Individual Alias', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception Date', 'Comment']
+          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
+                      'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
+                      'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception (YYYY-MM-DD)', 'Comment']
       },],
   "prefill info": [],
 }
