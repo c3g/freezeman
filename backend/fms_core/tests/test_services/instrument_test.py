@@ -13,7 +13,7 @@ class InstrumentServicesTestCase(TestCase):
 
         self.instrument_name = "T7_Example"
         self.invalid_instrument_name = "T7_Not_Created"
-        Instrument.objects.create(name=self.instrument_name, type=self.instrument_type)
+        Instrument.objects.get_or_create(name=self.instrument_name, type=self.instrument_type)
 
     def test_get_instrument(self):
         """

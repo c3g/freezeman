@@ -26,15 +26,33 @@ class ProjectServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
-    def test_create_invalid_project(self):
-        project, errors, warnings = create_project(name=self.valid_project_name,
+    def test_create_project_invalid_name(self):
+        project, errors, warnings = create_project(name=None,
                                                    principal_investigator=self.principal_investigator,
                                                    status=self.invalid_status,
                                                    targeted_end_date=self.invalid_target_end_date)
 
         self.assertEqual(project, None)
-        self.assertTrue("targeted_end_date" in errors[0])
+        self.assertTrue("name" in errors[0])
+        print(errors)
+
+    def test_create_project_invalid_status(self):
+        project, errors, warnings = create_project(name=self.valid_project_name,
+                                                   principal_investigator=self.principal_investigator,
+                                                   status=self.invalid_status,
+                                                   targeted_end_date=self.valid_target_end_date)
+
+        self.assertEqual(project, None)
         self.assertTrue("status" in errors[0])
+
+    def test_create_project_invalid_target_date(self):
+        project, errors, warnings = create_project(name=self.valid_project_name,
+                                                   principal_investigator=self.principal_investigator,
+                                                   status=self.valid_status,
+                                                   targeted_end_date=self.invalid_target_end_date)
+
+        self.assertEqual(project, None)
+        self.assertTrue("targeted_end_date" in errors[0])
 
     def test_get_valid_project(self):
         project, errors, warnings = create_project(name=self.valid_project_name,

@@ -24,7 +24,7 @@ class ExperimentRunServicesTestCase(TestCase):
         self.run_type, _ = RunType.objects.get_or_create(name=self.run_type_name)
 
         self.container, _ = Container.objects.get_or_create(
-            **create_container(name="FlowcellIllumina", barcode="FlowcellIllumina",
+            **create_container(name="FlowcellMGI", barcode="FlowcellMGI",
                                kind="dnbseq-g400 flowcell"))
         self.container_invalid_kind, _ = Container.objects.get_or_create(
             **create_container(name="NotaFlowcell", barcode="NotAFlowcell", kind="96-well plate"))
@@ -93,7 +93,7 @@ class ExperimentRunServicesTestCase(TestCase):
         self.assertEqual(warnings, [])
         self.assertEqual(my_experiment_run.name, self.experiment_name)
         self.assertEqual(my_experiment_run.run_type.name, self.run_type_name)
-        self.assertEqual(my_experiment_run.container.barcode, "FlowcellIllumina")
+        self.assertEqual(my_experiment_run.container.barcode, "FlowcellMGI")
         self.assertEqual(my_experiment_run.instrument.name, self.instrument_name)
         self.assertEqual(my_experiment_run.start_date, self.start_date)
 
@@ -139,6 +139,7 @@ class ExperimentRunServicesTestCase(TestCase):
                                                                                    )
 
         self.assertEqual(my_experiment_run, None)
-        self.assertTrue('This field cannot be null.' in errors[0])
+        self.assertTrue('container: This field cannot be null.' in errors)
+        self.assertTrue('instrument: This field cannot be null.' in errors)
         self.assertEqual(warnings, [])
 

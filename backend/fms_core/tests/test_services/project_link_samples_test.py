@@ -65,11 +65,32 @@ class ProjectLinkSamplesServicesTestCase(TestCase):
         self.assertEqual(errors, [f"Sample [{self.valid_sample_name}] is not currently associated to project [{self.valid_project_name}]."])
         self.assertEqual(warnings, [])
 
-    def test_invalid_calls(self):
-        link, errors, warnings = create_link(None, None)
+    def test_missing_project(self):
+        link, errors, warnings = create_link(self.full_sample, None)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
 
-        num_deleted, errors, warnings = remove_link(None, None)
+        num_deleted, errors, warnings = remove_link(self.full_sample, None)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
+
+    def test_missing_sample(self):
+        link, errors, warnings = create_link(None, self.project)
+        self.assertEqual(errors, [f"Unable to process sample or project information."])
+
+        num_deleted, errors, warnings = remove_link(None, self.project)
+        self.assertEqual(errors, [f"Unable to process sample or project information."])
+
+    def test_invalid_sample(self):
+        link, errors, warnings = create_link(self.project, self.project)
+        self.assertEqual(errors, [f"Invalid sample or project objects."])
+
+        num_deleted, errors, warnings = remove_link(self.project, self.project)
+        self.assertEqual(errors, [f"Invalid sample or project objects."])
+
+    def test_invalid_project(self):
+        link, errors, warnings = create_link(self.full_sample, self.full_sample)
+        self.assertEqual(errors, [f"Invalid sample or project objects."])
+
+        num_deleted, errors, warnings = remove_link(self.project, self.project)
+        self.assertEqual(errors, [f"Invalid sample or project objects."])
 
 

@@ -29,7 +29,8 @@ def create_experiment_run(experiment_run_name,
         return None, errors, warnings
 
     if not protocols_dict:
-        protocols_dict = run_type_obj.get_protocols_dict
+        protocols_dict = run_type_obj.get_protocols_dict()
+        print(protocols_dict)
     
     main_protocol = next(iter(protocols_dict))
 
@@ -54,8 +55,9 @@ def create_experiment_run(experiment_run_name,
                                                           container=container_obj,
                                                           process=processes_by_protocol_id[main_protocol.id],
                                                           start_date=start_date)
-        except ValidationError as e:
-            errors.append(';'.join(e.messages))
+        except ValidationError as error:
+            for field, message in error.message_dict.items():
+                errors.append(f'{field}: {message[0]}')
 
     if experiment_run:
         for sample_info in samples_info:

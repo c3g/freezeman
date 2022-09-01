@@ -9,7 +9,7 @@ class PlatformServicesTestCase(TestCase):
         self.valid_platform_name = "DNBSEQ"
         self.invalid_platform_name = "MADE_UP_ILLUMINA"
 
-    def test_get_instrument(self):
+    def test_get_platform(self):
         """
           Test assumes there's a platform [DNBSEQ] already created
         """
@@ -19,7 +19,7 @@ class PlatformServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
-    def test_get_invalid_instrument(self):
+    def test_get_invalid_platform(self):
         """
           Test assumes there's not an instrument named [MADE_UP_ILLUMINA]
         """

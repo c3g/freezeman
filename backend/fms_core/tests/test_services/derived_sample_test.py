@@ -46,8 +46,8 @@ class DerivedSampleServicesTestCase(TestCase):
         new_derived_sample, error, warning = \
         derived_sample.inherit_derived_sample(self.original_derived_sample, new_derived_sample_data)
 
-        self.assertEqual(error, ['library instance with id 156 does not exist.;'
-                                 'Tissue source can only be specified for extracted samples.'])
+        self.assertCountEqual(error, ['library instance with id 156 does not exist.;'
+                                      'Tissue source can only be specified for extracted samples.'])
         self.assertEqual(warning, [])
 
 
