@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleByProject
+from fms_core.models import SampleByProject, Sample, Project
 
 def create_link(sample=None, project=None):
     project_sample_link = None
@@ -8,6 +8,10 @@ def create_link(sample=None, project=None):
 
     if not all([sample, project]):
         errors.append(f"Unable to process sample or project information.")
+        return (project_sample_link, errors, warnings)
+
+    if not isinstance(sample, Sample) or not  isinstance(project, Project):
+        errors.append(f"Invalid sample or project objects.")
         return (project_sample_link, errors, warnings)
 
     if SampleByProject.objects.filter(sample=sample, project=project).exists():
@@ -28,6 +32,10 @@ def remove_link(sample=None, project=None):
 
     if not all([sample, project]):
         errors.append(f"Unable to process sample or project information.")
+        return (num_objects_deleted, errors, warnings)
+
+    if not isinstance(sample, Sample) or not isinstance(project, Project):
+        errors.append(f"Invalid sample or project objects.")
         return (num_objects_deleted, errors, warnings)
 
     if not SampleByProject.objects.filter(sample=sample, project=project).exists():

@@ -26,7 +26,7 @@ class ExperimentRunImporter(GenericImporter):
             self.preloaded_data['run_type'] = RunType.objects.get(name=runtype)
 
             # Preload Protocols objects for this run type in a dictionary for faster access
-            self.preloaded_data['protocols_dict'] = self.preloaded_data['run_type'].get_protocols_dict
+            self.preloaded_data['protocols_dict'] = self.preloaded_data['run_type'].get_protocols_dict()
 
         except Exception as e:
             self.base_errors.append(f"No type type with name {runtype} could be found.")

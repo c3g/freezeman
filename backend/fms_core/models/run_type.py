@@ -38,6 +38,5 @@ class RunType(TrackedModel):
         self.full_clean()
         super().save(*args, **kwargs)  # Save the object
 
-    @property
     def get_protocols_dict(self):
         return {self.protocol: list(self.protocol.parent_of.all())}
