@@ -59,6 +59,7 @@ export const projects = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case PROJECTS.SET_FILTER_OPTION:
@@ -70,6 +71,7 @@ export const projects = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case PROJECTS.CLEAR_FILTERS:
@@ -77,6 +79,7 @@ export const projects = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 
