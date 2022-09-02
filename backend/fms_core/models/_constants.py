@@ -15,6 +15,7 @@ INDEX_READ_DIRECTIONS_CHOICES = ((INDEX_READ_FORWARD, INDEX_READ_FORWARD), (INDE
 
 from django.db import models
 
-class ReleaseFlag(models.IntegerChoices):
-    RELEASE = 1
-    BLOCK = 2
+class ReleaseStatus(models.IntegerChoices):
+    AVAILABLE = 0
+    RELEASED = 1
+    BLOCKED = 2

@@ -76,18 +76,18 @@ def create_individual(individual_name, mother=None, father=None, **kwargs):
         **kwargs
     }
 
-def create_dataset(project_name, run_name, lane):
+def create_dataset(external_project_id, run_name, lane):
     return {
-        'project_name': project_name,
+        'external_project_id': external_project_id,
         'run_name': run_name,
         'lane': lane,
     }
 
-def create_dataset_file(dataset, file_path, sample_name, release_flag, release_flag_timestamp):
+def create_dataset_file(dataset, file_path, sample_name, release_status, release_status_timestamp=None):
     return {
         'dataset': dataset,
         'file_path': file_path,
         'sample_name': sample_name,
-        'release_flag': release_flag,
-        'release_flag_timestamp': release_flag_timestamp,
+        'release_status': release_status,
+        'release_status_timestamp': release_status_timestamp,
     }

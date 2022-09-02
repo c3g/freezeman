@@ -41,7 +41,7 @@ const api = {
   datasets: {
     get: id => get(`/datasets/${id}/`),
     list: (options, abort) => get("/datasets/", options, { abort }),
-    setReleaseFlags: (id, release_flag, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_flags/`, { release_flag, exceptions, filters })
+    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters })
   },
 
   datasetFiles: {

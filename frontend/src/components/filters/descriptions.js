@@ -517,13 +517,13 @@ export const DATASET_FILTERS = {
     key: "run_name",
     label: "Run Name",
   },
-  project_name: {
+  external_project_id: {
     type: FILTER_TYPE.INPUT,
-    key: "project_name",
+    key: "external_project_id",
     label: "Project Name",
   },
   lane: {
-    type: FILTER_TYPE.INPUT,
+    type: FILTER_TYPE.INPUT_NUMBER,
     key: "lane",
     label: "Lane",
   },
@@ -550,14 +550,15 @@ export const DATASET_FILE_FILTERS = {
     key: "sample_name",
     label: "Sample Name",
   },
-  release_flag: {
+  release_status: {
     type: FILTER_TYPE.SELECT,
-    key: "release_flag",
-    label: "Release Flag",
+    key: "release_status",
+    label: "Release Status",
     placeholder: "All",
     options: [
-      { label: "Release", value: "1" },
-      { label: "Block",  value: "2" },
+      { label: "Available", value: "0" },
+      { label: "Released", value: "1" },
+      { label: "Blocked",  value: "2" },
     ],
   },
   release_flag_timestamp: {

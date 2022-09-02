@@ -120,11 +120,11 @@ export const datasets = (
         case DATASETS.LIST_TABLE.ERROR:
             return { ...state, isFetching: false, error: action.error, };
 
-        case DATASETS.SET_RELEASE_FLAGS.REQUEST:
+        case DATASETS.SET_RELEASE_STATUS.REQUEST:
             return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true });
-        case DATASETS.SET_RELEASE_FLAGS.RECEIVE:
+        case DATASETS.SET_RELEASE_STATUS.RECEIVE:
             return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false });
-        case DATASETS.SET_RELEASE_FLAGS.ERROR:
+        case DATASETS.SET_RELEASE_STATUS.ERROR:
             return merge(state, ['itemsByID', action.meta.id],
                 { error: action.error, isFetching: false, didFail: true });
 

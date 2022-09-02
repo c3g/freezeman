@@ -1,7 +1,7 @@
-from datetime import datetime
+from django.utils import timezone
 from rest_framework import viewsets
 from fms_core.models.dataset_file import DatasetFile
-from fms_core.models._constants import ReleaseFlag
+from fms_core.models._constants import ReleaseStatus
 from fms_core.serializers import DatasetFileSerializer
 
 from ._utils import _list_keys
@@ -20,7 +20,7 @@ class DatasetFileViewSet(viewsets.ModelViewSet):
     }
 
     def update(self, request, *args, **kwargs):
-        release_flag = request.data.get("release_flag")
-        if release_flag is not None:
-            request.data["release_flag_timestamp"] = datetime.now() if release_flag == ReleaseFlag.RELEASE else None
+        release_status = request.data.get("release_status")
+        if release_status is not None:
+            request.data["release_status_timestamp"] = timezone.now()
         return super().update(request, *args, **kwargs)

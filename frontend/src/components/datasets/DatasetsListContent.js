@@ -3,7 +3,7 @@ const { Option } = Select;
 import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import {setReleaseFlags, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
+import {setReleaseStatus, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/datasets/actions";
 import AppPageHeader from "../AppPageHeader";
 import { DATASET_FILTERS } from "../filters/descriptions";
 import FiltersWarning from "../filters/FiltersWarning";
@@ -33,7 +33,7 @@ const getTableColumns = () => {
         },
         {
             title: "Project",
-            dataIndex: "project_name",
+            dataIndex: "external_project_id",
             sorter: true,
         },
         {
@@ -43,20 +43,20 @@ const getTableColumns = () => {
         },
         {
             title: "Files Released",
-            dataIndex: "release_flag_count",
+            dataIndex: "released_status_count",
             sorter: true,
-            render: (release_flag_count, dataset) => {
-                return `${release_flag_count}/${dataset?.files?.length}`
+            render: (released_status_count, dataset) => {
+                return `${released_status_count}/${dataset?.files?.length}`
             }
         },
-        // {
-        //     title: "Last Release Time",
-        //     dataIndex: "last_release_timestamp",
-        //     sorter: true,
-        //     render: (last_release_timestamp, _) => {
-        //         return last_release_timestamp ? moment(last_release_timestamp).format("YYYY-MM-DD LT") : ""
-        //     }
-        // },
+        {
+            title: "Latest Release Status Update",
+            dataIndex: "latest_release_update",
+            sorter: true,
+            render: (latest_release_update, _) => {
+                return latest_release_update ? moment(latest_release_update).format("YYYY-MM-DD LT") : ""
+            }
+        },
     ].map((column) => ({ ...column, key: column.title }))
 }
 

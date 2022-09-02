@@ -4,7 +4,7 @@ import Title from "antd/lib/skeleton/Title";
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import {get, setReleaseFlags} from "../../modules/datasets/actions";
+import {get, setReleaseStatus} from "../../modules/datasets/actions";
 import {listFilter, update} from "../../modules/datasetFiles/actions"
 import AppPageHeader from "../AppPageHeader";
 import FilteredList from "../FilteredList";
@@ -14,12 +14,13 @@ import moment from "moment";
 import useFilteredList from "../../hooks/useFilteredList";
 import PaginatedList from "../shared/PaginatedList";
 
-const RELEASE = 1
-const BLOCK = 2
-const RELEASE_FLAG_STRING = [null, "Release", "Block"]
-const OPPOSITE_FLAGS = [null, 2, 1]
+const AVAILABLE = 0
+const RELEASED = 1
+const BLOCKED = 2
+const RELEASE_STATUS_STRING = ["Available", "Released", "Blocked"]
+const OPPOSITE_STATUS = [0, 2, 1]
 
-const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
+const getTableColumns = (setReleaseStatus, releaseStatusOption) => {
     return [
         {
             title: "ID",
@@ -37,24 +38,24 @@ const getTableColumns = (setReleaseFlag, releaseFlagOption) => {
             sorter: true,
         },
         {
-            title: "Release",
-            dataIndex: "release_flag",
-            render: (release_flag, file) => {
+            title: "Release Status",
+            dataIndex: "release_status",
+            render: (release_status, file) => {
                 const { id } = file;
-                const releaseFlag = releaseFlagOption.specific[id] ?? releaseFlagOption.all ?? release_flag
-                const changed = (releaseFlagOption.all && releaseFlagOption.all !== release_flag && !releaseFlagOption.specific[id]) || (!releaseFlagOption.all && releaseFlagOption.specific[id])
+                const releaseStatus = releaseStatusOption.specific[id] ?? releaseStatusOption.all ?? release_status
+                const changed = (releaseStatusOption.all && releaseStatusOption.all !== release_status && !releaseStatusOption.specific[id]) || (!releaseStatusOption.all && releaseStatusOption.specific[id])
                 return <>
-                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => setReleaseFlag(id, OPPOSITE_FLAGS[releaseFlag])}>{RELEASE_FLAG_STRING[releaseFlag]}</Button>
+                    <Button style={{ color: changed ? "red" : "grey", width: "6em" }} onClick={() => setReleaseStatus(id, OPPOSITE_STATUS[releaseStatus])}>{RELEASE_STATUS_STRING[releaseStatus]}</Button>
                 </>
             }
         },
         {
-            title: "Release Time",
-            dataIndex: "release_flag_timestamp",
+            title: "Latest Release Update",
+            dataIndex: "release_status_timestamp",
             sorter: true,
-            render: (release_flag_timestamp, _) => {
-                if (release_flag_timestamp) {
-                    const date = moment(release_flag_timestamp)
+            render: (release_status_timestamp, _) => {
+                if (release_status_timestamp) {
+                    const date = moment(release_status_timestamp)
                     return date.format("YYYY-MM-DD LT")
                 } else {
                     return <></>
@@ -77,27 +78,27 @@ const DatasetDetailContent = () => {
 
     const {id: datasetId} = useParams();
     const dataset = datasetsById[datasetId];
-    const allFilesReleased = dataset?.release_flag_count === dataset?.files?.length
-    const allFilesBlocked = dataset?.release_flag_count === 0
+    const allFilesReleased = dataset?.released_status_count === dataset?.files?.length
+    const allFilesBlocked = dataset?.released_status_count === 0
 
-    const releaseFlagOptionReducer = (state, action) => {
+    const releaseStatusOptionReducer = (state, action) => {
         switch(action.type) {
             case "all":
-                return { all: action.release_flag, specific: {} }
+                return { all: action.release_status, specific: {} }
             case "toggle": {
                 const { all } = state
-                const { id, releaseFlag, filesById } = action
+                const { id, releaseStatus, filesById } = action
                 const newState = { ...state, specific: {...state.specific} }
                 
                 if (all) {
-                    if (all !== releaseFlag) {
-                        newState.specific[id] = releaseFlag
+                    if (all !== releaseStatus) {
+                        newState.specific[id] = releaseStatus
                     } else {
                         delete newState.specific[id]
                     }
                 } else {
-                    if (filesById[id]?.release_flag !== releaseFlag) {
-                        newState.specific[id] = releaseFlag
+                    if (filesById[id]?.release_status !== releaseStatus) {
+                        newState.specific[id] = releaseStatus
                     } else {
                         delete newState.specific[id]
                     }
@@ -107,23 +108,23 @@ const DatasetDetailContent = () => {
             }
         }
     }
-    const [releaseFlagOption, dispatchReleaseFlagOption] = useReducer(
-        releaseFlagOptionReducer,
+    const [releaseStatusOption, dispatchReleaseStatusOption] = useReducer(
+        releaseStatusOptionReducer,
         {
             all: undefined,
             specific: {},
         }
     )
-    const specificFlagToggled = Object.keys(releaseFlagOption.specific).length > 0
-    const dispatchReleaseFlagOptionTypeAll = (release_flag) => {
-        dispatchReleaseFlagOption({ type: "all", release_flag })
+    const specificStatusToggled = Object.keys(releaseStatusOption.specific).length > 0
+    const dispatchReleaseStatusOptionTypeAll = (release_status) => {
+        dispatchReleaseStatusOption({ type: "all", release_status })
     }
 
     const columns = getTableColumns(
-        (id, releaseFlag) => {
-            dispatchReleaseFlagOption({ type: "toggle", id, releaseFlag, filesById  })
+        (id, releaseStatus) => {
+            dispatchReleaseStatusOption({ type: "toggle", id, releaseStatus, filesById  })
         },
-        releaseFlagOption
+        releaseStatusOption
     )
     const filterKey = DATASET_FILE_FILTERS.dataset.key
     
@@ -157,66 +158,66 @@ const DatasetDetailContent = () => {
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOptionTypeAll(RELEASE)
+                dispatchReleaseStatusOptionTypeAll(RELEASED)
             }}
             disabled={
-                (releaseFlagOption.all === RELEASE  || (!releaseFlagOption.all && allFilesReleased)) && !specificFlagToggled
+                (releaseStatusOption.all === RELEASED  || (!releaseStatusOption.all && allFilesReleased)) && !specificStatusToggled
             }>
             Release All
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOptionTypeAll(BLOCK)
+                dispatchReleaseStatusOptionTypeAll(BLOCKED)
             }}
             disabled={
-                (releaseFlagOption.all === BLOCK  || (!releaseFlagOption.all && allFilesBlocked)) && !specificFlagToggled
+                (releaseStatusOption.all === BLOCKED  || (!releaseStatusOption.all && allFilesBlocked)) && !specificStatusToggled
             }>
             Block All
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                dispatchReleaseFlagOptionTypeAll(undefined)
+                dispatchReleaseStatusOptionTypeAll(undefined)
             }}
-            disabled={!releaseFlagOption.all && !specificFlagToggled}>
+            disabled={!releaseStatusOption.all && !specificStatusToggled}>
             Undo Changes
         </Button>
         <Button
             style={{ margin: 6 }}
             onClick={(ev) => {
-                const { all, specific } = releaseFlagOption
+                const { all, specific } = releaseStatusOption
                 if (all) {
-                    dispatch(setReleaseFlags(datasetId, all, Object.keys(specific), filters))
+                    dispatch(setReleaseStatus(datasetId, all, Object.keys(specific), filters))
                 } else {
-                    Object.entries(specific).forEach(([id, release_flag]) => {
+                    Object.entries(specific).forEach(([id, release_status]) => {
                         dispatch(update(id, {
                             id,
-                            release_flag
+                            release_status
                         }))
                     })
                 }
-                dispatchReleaseFlagOptionTypeAll(undefined)
+                dispatchReleaseStatusOptionTypeAll(undefined)
             }}
             type={"primary"}
-            disabled={!releaseFlagOption.all && !specificFlagToggled}>
+            disabled={!releaseStatusOption.all && !specificStatusToggled}>
             Save Changes
         </Button>
     </>
 
     return <>
     <AppPageHeader
-        title={`Dataset ${loading(dataset?.project_name)} - ${loading(dataset?.run_name)} - ${loading(dataset?.lane)}`}
+        title={`Dataset ${loading(dataset?.external_project_id)} - ${loading(dataset?.run_name)} - ${loading(dataset?.lane)}`}
     />
 
     <PageContent>
         <Descriptions bordered={true} size={"small"} column={4}>
             <Descriptions.Item label={"ID"}>{loading(dataset?.id)}</Descriptions.Item>
-            <Descriptions.Item label={"Project"}>{loading(dataset?.project_name)}</Descriptions.Item>
+            <Descriptions.Item label={"Project"}>{loading(dataset?.external_project_id)}</Descriptions.Item>
             <Descriptions.Item label={"Run Name"}>{loading(dataset?.run_name)}</Descriptions.Item>
             <Descriptions.Item label={"Lane"}>{loading(dataset?.lane)}</Descriptions.Item>
             <Descriptions.Item label={"Total Files"} span={2}>{loading(dataset?.files?.length)}</Descriptions.Item>
-            <Descriptions.Item label={"Files Released"} span={2}>{loading(dataset?.release_flag_count)}</Descriptions.Item>
+            <Descriptions.Item label={"Files Released"} span={2}>{loading(dataset?.released_status_count)}</Descriptions.Item>
         </Descriptions>
         <Title level={1} style={{ marginTop: '1rem'}}>Files</Title>
         <PaginatedList {...paginatedListProps} other={extraButtons} />

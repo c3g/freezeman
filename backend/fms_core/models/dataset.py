@@ -13,7 +13,7 @@ from ._constants import STANDARD_NAME_FIELD_LENGTH
 class Dataset(TrackedModel):
     """ Class to store information about the datasets of data deliveries. """
 
-    project_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Project name.")
+    external_project_id = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="External project id.")
 
     run_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Run name.")
 
@@ -21,7 +21,7 @@ class Dataset(TrackedModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["project_name", "run_name", "lane"], name="unique_dataset")
+            models.UniqueConstraint(fields=["external_project_id", "run_name", "lane"], name="dataset_externalprojectid_runname_lane_key")
         ]
 
     def clean(self):
@@ -35,8 +35,8 @@ class Dataset(TrackedModel):
         except Exception:
             errors["LaneError"] = f"Lane must be a positive integer, and yet it was given {self.lane}."
       
-        if Dataset.objects.filter(project_name__iexact=self.project_name, run_name__iexact=self.run_name, lane=self.lane).exists():
-            errors["ExistingError"] = f"There's already a dataset with identical project name '{self.project_name}', run name '{self.run_name}' and lane '{self.lane}'"
+        if Dataset.objects.filter(external_project_id__iexact=self.external_project_id, run_name__iexact=self.run_name, lane=self.lane).exists():
+            errors["ExistingError"] = f"There's already a dataset with identical external project id '{self.external_project_id}', run name '{self.run_name}' and lane '{self.lane}'"
 
         if errors:
             raise ValidationError(errors)

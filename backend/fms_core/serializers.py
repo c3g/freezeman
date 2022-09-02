@@ -33,7 +33,7 @@ from .models import (
     ImportedFile
 )
 
-from .models._constants import ReleaseFlag
+from .models._constants import ReleaseStatus
 
 
 __all__ = [
@@ -612,21 +612,21 @@ class ImportedFileSerializer(serializers.ModelSerializer):
 
 class DatasetSerializer(serializers.ModelSerializer):
     files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    release_flag_count = serializers.SerializerMethodField()
-    last_release_timestamp = serializers.SerializerMethodField()
+    released_status_count = serializers.SerializerMethodField()
+    latest_release_update = serializers.SerializerMethodField()
 
     class Meta:
         model = Dataset
-        fields = ("id", "project_name", "run_name", "lane", "files", "release_flag_count", "last_release_timestamp")
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
 
-    def get_release_flag_count(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id, release_flag=ReleaseFlag.RELEASE).count()
+    def get_released_status_count(self, obj):
+        return DatasetFile.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
     
-    def get_last_release_timestamp(self, obj):
-        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_flag_timestamp"))["release_flag_timestamp__max"]
+    def get_latest_release_update(self, obj):
+        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
 
 class DatasetFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DatasetFile
-        fields = ("id", "dataset", "file_path", "sample_name", "release_flag", "release_flag_timestamp")
+        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")

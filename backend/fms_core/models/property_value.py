@@ -18,10 +18,8 @@ __all__ = ["PropertyValue"]
 
 @reversion.register()
 class PropertyValue(TrackedModel):
-    value = models.JSONField("Property value", blank=True, validators=[PROPERTY_VALUE_VALIDATOR],
-                             help_text="Property value")
-    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_values",
-                                      help_text="Property type")
+    value = models.JSONField("Property value", blank=True, validators=[PROPERTY_VALUE_VALIDATOR], help_text="Property value.")
+    property_type = models.ForeignKey(PropertyType, on_delete=models.PROTECT, related_name="property_values", help_text="Property type.")
     content_type_choices = models.Q(app_label='fms_core', model='process') | models.Q(app_label='fms_core', model='processmeasurement')
     content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT, limit_choices_to=content_type_choices)
     object_id = models.PositiveIntegerField()

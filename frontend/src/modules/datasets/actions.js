@@ -14,7 +14,7 @@ export const SET_SORT_BY           = "DATASETS.SET_SORT_BY";
 export const SET_FILTER            = "DATASETS.SET_FILTER";
 export const SET_FILTER_OPTION     = "DATASETS.SET_FILTER_OPTION"
 export const CLEAR_FILTERS         = "DATASETS.CLEAR_FILTERS";
-export const SET_RELEASE_FLAGS     = createNetworkActionTypes("DATASETS.SET_RELEASE_FLAGS");
+export const SET_RELEASE_STATUS     = createNetworkActionTypes("DATASETS.SET_RELEASE_STATUS");
 
 export const get = id => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id];
@@ -90,14 +90,14 @@ export const clearFilters = thenList(() => {
     }
 });
 
-export const setReleaseFlags = (id, releaseFlag, exceptions = [], filters = {}) => async (dispatch, getState) => {
+export const setReleaseStatus = (id, releaseStatus, exceptions = [], filters = {}) => async (dispatch, getState) => {
     const dataset = getState().datasets.itemsByID[id]
     const datasetFiles = getState().datasetFiles.itemsByID
     filters = serializeFilterParams(filters, DATASET_FILE_FILTERS)
     console.log(filters);
 
     if (dataset && !dataset.isFetching) {
-        const result = await dispatch(networkAction(SET_RELEASE_FLAGS, api.datasets.setReleaseFlags(id, releaseFlag, exceptions, filters),
+        const result = await dispatch(networkAction(SET_RELEASE_STATUS, api.datasets.setReleaseStatus(id, releaseStatus, exceptions, filters),
             { meta: { id, ignoreError: 'APIError' }}));
         
         if (datasetFiles && !datasetFiles.isFetching) {
@@ -117,7 +117,7 @@ export default {
     LIST,
     LIST_FILTER,
     LIST_TABLE,
-    SET_RELEASE_FLAGS,
+    SET_RELEASE_STATUS,
     get,
     setSortBy,
     setFilter,
@@ -126,7 +126,7 @@ export default {
     list,
     listTable,
     listFilter,
-    setReleaseFlags,
+    setReleaseStatus,
 };
 
 // Helper to call list() after another action
