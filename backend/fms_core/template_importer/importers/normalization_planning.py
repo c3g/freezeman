@@ -87,14 +87,12 @@ class NormalizationPlanningImporter(GenericImporter):
             mapping_rows_template.append(row_mapping)
             norm_choice.append(robot["norm_choice"])
 
-        if not self.dry_run:
-            # Populate files
-            
-            # Make sure all the normalization choice and formats for outputs are the same
-            if len(set(norm_choice)) != 1:
-                self.base_errors.append(f"All Robot norm choice need to be identical.")
+        # Make sure all the normalization choices and formats for outputs are the same
+        if len(set(norm_choice)) != 1:
+            self.base_errors.append(f"All Robot norm choices need to be identical.")
 
-            # Create robot file and complete mapping_rows_template with the 
+        if not self.dry_run:
+            # Create robot file and complete mapping_rows_template with the
             robot_files, updated_mapping_rows = self.prepare_robot_file(mapping_rows_template, norm_choice[0])
 
             output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_mapping_rows)
