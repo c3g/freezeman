@@ -123,6 +123,63 @@ class ContainerServicesTestCase(TestCase):
         self.assertEqual(error, [f"Parent container kind {location.kind} requires that you provide coordinates."])
         self.assertEqual(warning, [])
 
+    def test_is_container_valid(self):
+        # Test existing container
+        test_barcode = "BARCODECONTAINER1"
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode)
+        self.assertEqual(is_valid, True)
+
+        # Test existing container with wrong kind
+        test_barcode = "BARCODECONTAINER1"
+        kind = "tube"
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode, kind=kind)
+        self.assertEqual(is_valid, False)
+
+        # Test not existing container without kind
+        test_barcode = "BARCODECONTAINER9"
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode)
+        self.assertEqual(is_valid, False)
+
+        # Test not existing container with kind
+        test_barcode = "BARCODECONTAINER9"
+        kind = "tube"
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode, kind=kind)
+        self.assertEqual(is_valid, True)
+
+        # Test not existing container with invalid parent (wrong kind)
+        test_barcode = "BARCODECONTAINER9"
+        kind = "tube"
+        parent_barcode = "BARCODECONTAINER1"
+        coordinates="A01"
+        parent_container = Container.objects.get(barcode=parent_barcode)
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
+                                                                kind=kind,
+                                                                coordinates=coordinates,
+                                                                container_parent=parent_container)
+        self.assertEqual(is_valid, False)
+
+        # Test not existing container with valid parent but missing coordinates
+        test_barcode = "BARCODECONTAINER9"
+        kind = "tube"
+        parent_barcode = "BARCODECONTAINER2"
+        parent_container = Container.objects.get(barcode=parent_barcode)
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
+                                                                kind=kind,
+                                                                container_parent=parent_container)
+        self.assertEqual(is_valid, False)
+
+        # Test not existing container with valid parent but bad coordinates
+        test_barcode = "BARCODECONTAINER9"
+        kind = "tube"
+        parent_barcode = "BARCODECONTAINER2"
+        coordinates="Z01"
+        parent_container = Container.objects.get(barcode=parent_barcode)
+        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
+                                                                kind=kind,
+                                                                coordinates=coordinates,
+                                                                container_parent=parent_container)
+        self.assertEqual(is_valid, False)
+
     def test_rename_container(self):
         # Test rename container (barcode)
         test_old_barcode = "BARCODECONTAINER3"

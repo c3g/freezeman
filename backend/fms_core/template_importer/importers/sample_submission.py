@@ -59,7 +59,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
                 'collection_site': str_cast_and_normalize(row_data['Collection Site']),
                 'tissue_source': str_cast_and_normalize(row_data['Tissue Source']).upper() if row_data['Tissue Source'] else None,
-                'creation_date': input_to_date_and_none(row_data['Reception Date']),
+                'creation_date': input_to_date_and_none(row_data['Reception (YYYY-MM-DD)']),
                 'comment': str_cast_and_normalize(row_data['Comment']),
                 'coordinates': str_cast_and_normalize(row_data['Sample Coord']),
                 'sample_kind': str_cast_and_normalize(row_data['Sample Kind']),

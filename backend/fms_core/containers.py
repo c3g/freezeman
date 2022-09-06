@@ -311,6 +311,14 @@ CONTAINER_SPEC_TUBE_BOX_21X10 = ContainerSpec(
     is_run_container=False,
 )
 
+CONTAINER_SPEC_TUBE_RACK_4X6 = ContainerSpec(
+    container_kind_id="tube rack 4x6",
+    coordinate_spec=(alphas(4), ints(6, pad_to=2)),
+    coordinate_overlap_allowed=False,
+    children=(CONTAINER_SPEC_TUBE,),
+    is_run_container=False,
+)
+
 CONTAINER_SPEC_TUBE_RACK_8X12 = ContainerSpec(
     container_kind_id="tube rack 8x12",
     coordinate_spec=(alphas(8), ints(12, pad_to=2)),
@@ -329,6 +337,7 @@ COMMON_CHILDREN = (
     CONTAINER_SPEC_TUBE_BOX_9X9,
     CONTAINER_SPEC_TUBE_BOX_10X10,
     CONTAINER_SPEC_TUBE_BOX_21X10,
+    CONTAINER_SPEC_TUBE_RACK_4X6,
     CONTAINER_SPEC_TUBE_RACK_8X12,
 )
 

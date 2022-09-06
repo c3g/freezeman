@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import {connect} from "react-redux"
 import PropTypes from "prop-types";
 import {Button, Steps, Row, Col} from "antd";
+import {downloadFromFile} from "../../utils/download";
 
 import {
   ArrowRightOutlined,
@@ -81,6 +82,8 @@ const TemplateFlow = ({fetchListedData, ...props}) => {
     setIsSubmitting(true)
     submitRequest(actionIndex, file)
     .then(response => {
+      if(response.filename)
+        downloadFromFile(response.filename, response.data)
       setSubmitResult({ valid: true });
     })
     .catch(error => {
