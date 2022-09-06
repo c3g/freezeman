@@ -331,6 +331,11 @@ export const USER_FILTERS = {
 }
 
 export const PROJECT_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Project ID"
+  },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
