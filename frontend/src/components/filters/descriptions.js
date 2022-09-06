@@ -2,7 +2,7 @@ import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "..
 
 export const SAMPLE_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "Sample ID",
   },
@@ -140,7 +140,7 @@ export const SAMPLE_FILTERS = {
 
 export const CONTAINER_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "id",
   },
@@ -183,7 +183,7 @@ export const CONTAINER_FILTERS = {
 
 export const INDIVIDUAL_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -222,12 +222,12 @@ export const INDIVIDUAL_FILTERS = {
 
 export const PROCESS_MEASUREMENT_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
   process: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "process",
     label: "Process ID",
   },
@@ -264,7 +264,7 @@ export const PROCESS_MEASUREMENT_FILTERS = {
 
 export const EXPERIMENT_RUN_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -314,7 +314,7 @@ export const EXPERIMENT_RUN_FILTERS = {
 
 export const USER_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "User ID"
   },
@@ -332,7 +332,7 @@ export const USER_FILTERS = {
 
 export const PROJECT_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "Project ID"
   },
@@ -379,7 +379,7 @@ export const PROJECT_FILTERS = {
 
 export const INDEX_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -414,7 +414,7 @@ export const INDEX_FILTERS = {
 
 export const LIBRARY_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "Library ID",
   },

@@ -65,7 +65,8 @@ export default function serializeFilterParams(filters, descriptions) {
        break;
      }
 
-      case FILTER_TYPE.INPUT_NUMBER: {
+      case FILTER_TYPE.INPUT_NUMBER:
+      case FILTER_TYPE.INPUT_OBJECT_ID:   {
         if(value) {
           key += "__in"
           params[key] = value

@@ -7,7 +7,8 @@ export const FILTER_TYPE = {
   DATE_RANGE: "DATE_RANGE",
   SELECT: "SELECT",
   INPUT: "INPUT",
-  INPUT_NUMBER: "INPUT_NUMBER"
+  INPUT_NUMBER: "INPUT_NUMBER",
+  INPUT_OBJECT_ID: "INPUT_OBJECT_ID"  // A freezeman object ID - a positive integer value
 }
 
 export const SEX = [
