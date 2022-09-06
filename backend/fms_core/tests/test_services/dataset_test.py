@@ -48,8 +48,8 @@ class DatasetServicesTestCase(TestCase):
     def test_create_dataset_file(self):
         dataset, errors, warnings = service.create_dataset(**create_dataset(external_project_id="project", run_name="run", lane=1))
 
-        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=ReleaseStatus.BLOCKED, release_flag_timestamp=None)
-        dataset_file_dict.pop("release_flag_timestamp")
+        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_status=ReleaseStatus.BLOCKED, release_status_timestamp=None)
+        dataset_file_dict.pop("release_status_timestamp")
         dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
 
         self.assertCountEqual(errors, [])
@@ -60,25 +60,25 @@ class DatasetServicesTestCase(TestCase):
         self.assertEqual(dataset_file.dataset, dataset)
         self.assertEqual(dataset_file.file_path, "file_path")
         self.assertEqual(dataset_file.sample_name, "sample_name")
-        self.assertEqual(dataset_file.release_flag, ReleaseStatus.BLOCKED)
-        self.assertIsNone(dataset_file.release_flag_timestamp)
+        self.assertEqual(dataset_file.release_status, ReleaseStatus.BLOCKED)
+        self.assertIsNone(dataset_file.release_status_timestamp)
 
     def test_create_dataset_file_with_status_released(self):
         dataset, errors, warnings = service.create_dataset(**create_dataset(external_project_id="project", run_name="run", lane=1))
 
-        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_flag=ReleaseStatus.RELEASED, release_flag_timestamp=None)
-        dataset_file_dict.pop("release_flag_timestamp")
+        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_status=ReleaseStatus.RELEASED, release_status_timestamp=None)
+        dataset_file_dict.pop("release_status_timestamp")
         dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
 
         self.assertFalse(errors, "errors occured while creating a valid dataset file with create_dataset_file")
         self.assertFalse(warnings, "warnings is expected to be empty")
         self.assertIsNotNone(dataset_file)
-        self.assertEqual(dataset_file.release_flag, ReleaseStatus.RELEASED)
-        self.assertIsNone(dataset_file.release_flag_timestamp)
+        self.assertEqual(dataset_file.release_status, ReleaseStatus.RELEASED)
+        self.assertIsNone(dataset_file.release_status_timestamp)
 
     def test_create_dataset_file_with_invalid_status(self):
         dataset, errors, warnings = service.create_dataset(**create_dataset(external_project_id="project", run_name="run", lane=1))
-        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_status=3, release_flag_timestamp=None)
-        dataset_file_dict.pop("release_flag_timestamp")
+        dataset_file_dict = create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name", release_status=3, release_status_timestamp=None)
+        dataset_file_dict.pop("release_status_timestamp")
         dataset_file, errors, warnings = service.create_dataset_file(**dataset_file_dict)
-        self.assertEqual(errors[0], "The release flag can only be 1 (Release) or 2 (Block).")
+        self.assertEqual(errors[0], "The release status can only be 0 (Available) or 1 (Released) or 2 (Blocked).")

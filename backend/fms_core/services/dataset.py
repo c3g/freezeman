@@ -40,11 +40,15 @@ def create_dataset(external_project_id: str, run_name: str, lane: int, replace: 
         )
 
         dataset_list = Dataset.objects.filter(**kwargs)
-        if not dataset_list:
+        if not dataset_list:  # There is no dataset with this signature
             dataset = Dataset.objects.create(**kwargs)
-        if replace:
-            for dataset_file in DatasetFile.objects.filter(dataset=dataset_list.first()):
+        elif replace:  # There is already a dataset with this signature but we replace it's content.
+            dataset = dataset_list.first()
+            for dataset_file in DatasetFile.objects.filter(dataset=dataset):
                 dataset_file.delete()
+        else:  # There is already a dataset with this signature and it is not expected
+            errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
+                          f"run_name {kwargs['run_name']} and lane {kwargs['lane']}.")
     except ValidationError as e:
         # the validation error messages should be readable
         errors.extend(e.messages)

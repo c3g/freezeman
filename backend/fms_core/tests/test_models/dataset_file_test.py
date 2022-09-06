@@ -19,6 +19,6 @@ class DatasetFileTest(TestCase):
         self.assertEqual(dataset_file.dataset, dataset)
         self.assertEqual(dataset_file.file_path, "file_path")
         self.assertEqual(dataset_file.sample_name, "sample_name")
-        self.assertEqual(dataset_file.release_flag, ReleaseStatus.AVAILABLE)
-        self.assertEqual(dataset_file.release_flag_timestamp, None)
+        self.assertEqual(dataset_file.release_status, ReleaseStatus.AVAILABLE)
+        self.assertEqual(dataset_file.release_status_timestamp, None)
 

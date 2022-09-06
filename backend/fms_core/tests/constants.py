@@ -83,7 +83,7 @@ def create_dataset(external_project_id, run_name, lane):
         'lane': lane,
     }
 
-def create_dataset_file(dataset, file_path, sample_name, release_status, release_status_timestamp=None):
+def create_dataset_file(dataset, file_path, sample_name, release_status=0, release_status_timestamp=None):
     return {
         'dataset': dataset,
         'file_path': file_path,
