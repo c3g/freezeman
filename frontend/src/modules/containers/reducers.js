@@ -91,6 +91,7 @@ export const containers = (
         ...state,
         filters: set(state.filters, [action.data.name, 'value'], action.data.value),
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
     case CONTAINERS.SET_FILTER_OPTION:
@@ -102,6 +103,7 @@ export const containers = (
           action.data.value
         ),
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
     case CONTAINERS.CLEAR_FILTERS:
@@ -109,6 +111,7 @@ export const containers = (
         ...state,
         filters: {},
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
 

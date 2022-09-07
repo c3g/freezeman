@@ -42,6 +42,7 @@ _individual_filterset_fields: FiltersetFields = {
 }
 
 _user_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
 }

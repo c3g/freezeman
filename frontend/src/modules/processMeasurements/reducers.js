@@ -42,6 +42,7 @@ export const processMeasurements = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case PROCESS_MEASUREMENTS.SET_FILTER_OPTION:
@@ -53,6 +54,7 @@ export const processMeasurements = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case PROCESS_MEASUREMENTS.CLEAR_FILTERS:
@@ -60,6 +62,7 @@ export const processMeasurements = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 

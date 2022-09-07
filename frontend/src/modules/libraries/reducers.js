@@ -45,6 +45,7 @@ export const libraries = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case LIBRARIES.SET_FILTER_OPTION:
@@ -56,6 +57,7 @@ export const libraries = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case LIBRARIES.CLEAR_FILTERS:
@@ -63,6 +65,7 @@ export const libraries = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 
