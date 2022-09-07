@@ -31,6 +31,9 @@ class PytestTestRunner():
             argv.append('--exitfirst')
         if self.keepdb:
             argv.append('--reuse-db')
+        
+        # uncomment this to silence log capturing
+        # argv.append('--show-capture=no')
 
         argv.extend(test_labels)
         return pytest.main(argv)

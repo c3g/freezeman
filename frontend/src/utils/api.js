@@ -38,6 +38,18 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding, exact_match }),
   },
 
+  datasets: {
+    get: id => get(`/datasets/${id}/`),
+    list: (options, abort) => get("/datasets/", options, { abort }),
+    setReleaseStatus: (id, release_status, exceptions = [], filters = {}) => patch(`/datasets/${id}/set_release_status/`, { release_status, exceptions, filters })
+  },
+
+  datasetFiles: {
+    get: id => get(`/dataset-files/${id}/`),
+    update: dataset => patch(`/dataset-files/${dataset.id}/`, dataset),
+    list: (options, abort) => get("/dataset-files/", options, { abort }),
+  },
+
   experimentRuns: {
     get: experimentRunId => get(`/experiment-runs/${experimentRunId}`),
     list: (options, abort) => get("/experiment-runs/", options, {abort}),

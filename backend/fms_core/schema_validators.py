@@ -10,6 +10,7 @@ __all__ = [
     "EXPERIMENTAL_GROUP_SCHEMA",
     "PROPERTY_VALUE_SCHEMA",
     "PROPERTY_VALUE_VALIDATOR",
+    "RUN_PROCESSING_VALIDATOR"
 ]
 
 
@@ -95,4 +96,42 @@ PROPERTY_VALUE_SCHEMA = {
     "type": ["number", "string", "boolean"],
 }
 
-PROPERTY_VALUE_VALIDATOR = JsonSchemaValidator(PROPERTY_VALUE_SCHEMA, formats=["date-time"])
+PROPERTY_VALUE_VALIDATOR = JsonSchemaValidator(PROPERTY_VALUE_SCHEMA)
+
+RUN_PROCESSING_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "fms:run_processing",
+    "title": "Run processing schema",
+    "description": "Schema used to define the values in run processing files.",
+    "type": "object",
+    "properties": {
+        "run": {"type": "string"},
+        "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
+        "readsets": {
+            "type": "object",
+            "patternProperties": {
+                "^.*$": {
+                    "type": "object",
+                    "properties": {
+                        "sample_name": {"type": "string"},
+                        "barcodes": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "PROJECT": {"type": "string"},
+                                },
+                                "required": ["PROJECT"]
+                            },
+                            "minItems": 1,
+                        },
+                    },
+                    "required": ["sample_name", "barcodes"]
+                },
+            },
+        },
+    },
+    "required": ["run", "lane", "readsets"],
+}
+
+RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])

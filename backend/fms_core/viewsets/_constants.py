@@ -142,6 +142,8 @@ _project_filterset_fields: FiltersetFields = {
     "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
+    "external_id": CATEGORICAL_FILTERS,
+    "external_name": CATEGORICAL_FILTERS,
     **_prefix_keys("samples__", _sample_minimal_filterset_fields),
 }
 
@@ -195,4 +197,20 @@ _library_filterset_fields: FiltersetFields = {
     **_prefix_keys("derived_samples__library__platform__", _platform_filterset_fields),
     **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
     "derived_samples__library__library_size": SCALAR_FILTERS,
+}
+
+_dataset_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "run_name": CATEGORICAL_FILTERS_LOOSE,
+    "external_project_id": CATEGORICAL_FILTERS_LOOSE,
+    "lane": CATEGORICAL_FILTERS,
+}
+
+_dataset_file_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "dataset": FK_FILTERS,
+    "file_path": CATEGORICAL_FILTERS_LOOSE,
+    "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "release_status": CATEGORICAL_FILTERS,
+    "release_status_timestamp": DATE_FILTERS,
 }
