@@ -1,8 +1,6 @@
-import copy
-
-from fms_core.models import PropertyType, Protocol, Process
+from fms_core.models import Protocol
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
+from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPoolRowHandler, PoolsRowHandler
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
@@ -19,7 +17,7 @@ class LibraryPreparationImporter(GenericImporter):
         self.preloaded_data = {'protocol': Protocol.objects.get(name='Sample Pooling')}
 
     def import_template_inner(self):
-        pools_dict = {}
+        pools_dict = defaultdict(list)
         """
             SamplesToPool SHEET
         """
@@ -43,36 +41,39 @@ class LibraryPreparationImporter(GenericImporter):
             )
             pools_dict[str_cast_and_normalize(row_data['Pool Name'])].append(row_object)
 
-        """
-            POOLS SHEET
-        """
-        pools_sheet = self.sheets['Pools']
+        if not result['validation_error'].messages: # prevent the repetition of error messages for volume_used at the level of pools.
+            """
+                POOLS SHEET
+            """
+            pools_sheet = self.sheets['Pools']
 
-        # Iterate through libraries rows
-        pools_rows_data = defaultdict(list)
-        for row_id, row_data in enumerate(pools_sheet.rows):
-            pools_kwargs = {
-                'coordinates': str_cast_and_normalize(row_data['Destination Container Coord']),
-                'pooling date': input_to_date_and_none(row_data['Pooling Date (YYYY-MM-DD)']),
-                'comment': str_cast_and_normalize(row_data['Comment']),
-                'container': {
-                    'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
-                    'name': str_cast_and_normalize(row_data['Destination Container Name']),
-                    'kind': str_cast_and_normalize_lower(row_data['Destination Container Kind']),
-                    'coordinates': str_cast_and_normalize(row_data['Destination Parent Container Coord']),
-                    'parent_barcode': str_cast_and_normalize(row_data['Destination Parent Container Barcode']),
-                },
-            }
+            # Iterate through libraries rows
+            for row_id, row_data in enumerate(pools_sheet.rows):
+                pool_kwargs = {
+                    "pool": {
+                        "name": str_cast_and_normalize(row_data["Pool Name"]),
+                        "coordinates": str_cast_and_normalize(row_data["Destination Container Coord"]),
+                        "container": {
+                            "barcode": str_cast_and_normalize(row_data["Destination Container Barcode"]),
+                            "name": str_cast_and_normalize(row_data["Destination Container Name"]),
+                            "kind": str_cast_and_normalize_lower(row_data["Destination Container Kind"]),
+                            "coordinates": str_cast_and_normalize(row_data["Destination Parent Container Coord"]),
+                            "parent_barcode": str_cast_and_normalize(row_data["Destination Parent Container Barcode"]),
+                        },
+                    },
+                    "pooling date": input_to_date_and_none(row_data["Pooling Date (YYYY-MM-DD)"]),
+                    "comment": str_cast_and_normalize(row_data["Comment"]),
+                }
 
-            (result, _) = self.handle_row(
-                row_handler_class=PoolsRowHandler,
-                sheet=pools_sheet,
-                row_i=row_id,
-                protocol=self.preloaded_data['protocol'],
-                imported_template=self.imported_file,
-                samples_info=pools_dict[str_cast_and_normalize(row_data['Pool Name'])],
-                **pools_kwargs
-            )
+                (result, _) = self.handle_row(
+                    row_handler_class=PoolsRowHandler,
+                    sheet=pools_sheet,
+                    row_i=row_id,
+                    protocol=self.preloaded_data['protocol'],
+                    imported_template=self.imported_file,
+                    samples_info=pools_dict[str_cast_and_normalize(row_data['Pool Name'])],
+                    **pool_kwargs
+                )
 
         
 
