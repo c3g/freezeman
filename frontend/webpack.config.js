@@ -32,7 +32,7 @@ module.exports = (env, argv) => ({
         resolve: {
             fullySpecified: false
         }
-    },
+      },
     ]
   },
   resolve: {
@@ -57,7 +57,6 @@ module.exports = (env, argv) => ({
       template: path.resolve(__dirname, "./src/template.html"),
       hash: true,
     }),
-    new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       GIT_COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       GIT_BRANCH: JSON.stringify(gitRevisionPlugin.branch()),
@@ -69,8 +68,7 @@ module.exports = (env, argv) => ({
 
   devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
   devServer: {
-    hot: true,
-    contentBase: path.join(__dirname, "dist"),
+    static: path.join(__dirname, "dist"),
     compress: true,
     port: 9000,
     historyApiFallback: true,

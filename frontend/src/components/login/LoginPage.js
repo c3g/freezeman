@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {useHistory, useLocation, Route, Switch} from "react-router-dom";
+import {useNavigate, useLocation, Route, Routes} from "react-router-dom";
 import {Card} from "antd";
 
 import {performAuth} from "../../modules/auth/actions";
@@ -36,25 +36,21 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const LoginPage = ({isFetching, isAuthenticated, login}) => {
-  const history = useHistory();
+  const history = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      history.push("/dashboard");
+      history("/dashboard");
     }
   });
 
   return (
     <div style={containerStyle}>
       <Card style={cardStyle}>
-        <Switch>
-          <Route exact path="/login">
-            <LoginForm login={login} isFetching={isFetching} />
-          </Route>
-          <Route exact path="/login/forgot-password">
-            <ResetPasswordForm />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route exact path="/" element={<LoginForm login={login} isFetching={isFetching} />}/>
+          <Route exact path="/forgot-password" element={<ResetPasswordForm />}/>
+        </Routes>
       </Card>
     </div>
   );

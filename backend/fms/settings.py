@@ -198,16 +198,15 @@ TEMPLATE_UPLOAD_PATH = os.path.join(MEDIA_ROOT, 'uploads/templates/')
 
 MEDIA_URL = '/media/'
 
+TEMP_ROOT = os.path.join(BASE_DIR, 'tmp/') # for temporary files created during request processing.
 
 # django_import_export
 
 IMPORT_EXPORT_USE_TRANSACTIONS = True  # should it be True with reversion ?
 
-
 # Tests
 
-TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
-
+TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
 
 # Logging
 handler = {}

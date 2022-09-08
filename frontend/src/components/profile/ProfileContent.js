@@ -1,15 +1,15 @@
-import React, {useState, useRef} from "react";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {Alert, Button, Form, Input, Tag, Typography} from "antd";
+import React, { useState, useRef } from "react";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Button, Form, Input, Tag, Typography } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options"
-import {updateSelf} from "../../modules/users/actions";
+import { updateSelf } from "../../modules/users/actions";
 
-const {Title} = Typography
+const { Title } = Typography
 
 const hiddenField = {
   position: "absolute",
@@ -26,10 +26,10 @@ const mapStateToProps = state => ({
   groupsByID: state.groups.itemsByID,
 });
 
-const actionCreators = {updateSelf};
+const actionCreators = { updateSelf };
 
-const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
-  const history = useHistory();
+const ProfileContent = ({ isFetching, groupsByID, user, error, updateSelf }) => {
+  const history = useNavigate();
   const [state, setState] = useState({ message: undefined, success: undefined });
 
 
@@ -54,7 +54,7 @@ const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
     let data
     try {
       data = serialize(formData, user)
-    } catch(err) {
+    } catch (err) {
       setState({ message: err.message, success: false })
       return
     }
@@ -93,7 +93,6 @@ const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
     <>
       <AppPageHeader
         title='Profile'
-        onBack={() => history.goBack()}
       />
       <PageContent>
         <div>
@@ -153,10 +152,10 @@ const ProfileContent = ({isFetching, groupsByID, user, error, updateSelf}) => {
               {user?.groups.length === 0 && 'None'}
             </Form.Item>
             <Form.Item label="Is Staff">
-              {user?.is_staff ? 'Yes': 'No'}
+              {user?.is_staff ? 'Yes' : 'No'}
             </Form.Item>
             <Form.Item label="Is Superuser">
-              {user?.is_superuser ? 'Yes': 'No'}
+              {user?.is_superuser ? 'Yes' : 'No'}
             </Form.Item>
             {errors.length > 0 &&
               <Alert

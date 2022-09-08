@@ -7,8 +7,8 @@ from django.db.models import Q, When, Count, Case, BooleanField, F
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
-from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter,  NormalizationImporter
+from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
+from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter, NormalizationPlanningImporter, NormalizationImporter
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
@@ -58,6 +58,12 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             "importer": LibraryQCImporter,
         },
         {
+            "name": "Perform Normalization Planning",
+            "description": "Upload the provided template with normalization information to populate normalization template and the robot file.",
+            "template": [NORMALIZATION_PLANNING_TEMPLATE["identity"]],
+            "importer": NormalizationPlanningImporter,
+        },
+        {
             "name": "Normalize Libraries",
             "description": "Upload the provided template with information to normalize libraries.",
             "template": [NORMALIZATION_TEMPLATE["identity"]],
@@ -69,6 +75,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         {"template": EXPERIMENT_MGI_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
+        {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE}
     ]
 

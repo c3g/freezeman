@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
   AutoComplete,
@@ -13,16 +13,16 @@ import {
   Select,
   Switch,
 } from "antd";
-const {Option} = Select
-const {TextArea} = Input
+const { Option } = Select
+const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update, listTable, summary} from "../../modules/samples/actions";
-import {sample as EMPTY_SAMPLE} from "../../models";
-import api, {withToken} from "../../utils/api";
-import {requiredRules, nameRules} from "../../constants";
+import { add, update, listTable, summary } from "../../modules/samples/actions";
+import { sample as EMPTY_SAMPLE } from "../../models";
+import api, { withToken } from "../../utils/api";
+import { requiredRules, nameRules } from "../../constants";
 
 // API functions
 
@@ -30,7 +30,7 @@ const searchSamples = (token, input) =>
   withToken(token, api.samples.search)(input).then(res => res.data.results)
 
 const searchContainers = (token, input, options) =>
-  withToken(token, api.containers.search)(input, {sample_holding: true, ...options}).then(res => res.data.results)
+  withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(res => res.data.results)
 
 const searchIndividuals = (token, input, options) =>
   withToken(token, api.individuals.search)(input, options).then(res => res.data.results)
@@ -39,7 +39,7 @@ let collectionSites = undefined
 const listCollectionSites = (token) => {
   if (collectionSites)
     return Promise.resolve(collectionSites)
-  collectionSites =  withToken(token, api.samples.listCollectionSites)()
+  collectionSites = withToken(token, api.samples.listCollectionSites)()
     .then(res => res.data)
     .then(sites => {
       collectionSites = sites
@@ -54,11 +54,11 @@ const mapStateToProps = state => ({
   sampleKinds: state.sampleKinds,
 });
 
-const actionCreators = {add, update, listTable, summary};
+const actionCreators = { add, update, listTable, summary };
 
-const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTable, summary}) => {
-  const history = useHistory();
-  const {id} = useParams();
+const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listTable, summary }) => {
+  const history = useNavigate();
+  const { id } = useParams();
   const isAdding = id === undefined
 
   const sample = samplesByID[id];
@@ -91,12 +91,12 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   /*
    * Sample Kind autocomplete
    */
-  const sampleKindsSorted = sampleKinds.items.sort((a,b) => ('' + a.name).localeCompare(b.name))
+  const sampleKindsSorted = sampleKinds.items.sort((a, b) => ('' + a.name).localeCompare(b.name))
   const [sampleKindOptions, setSampleKindOptions] = useState(sampleKindsSorted.map(Options.renderSampleKind))
   const onFocusSampleKind = ev => { onSearchSampleKind(ev.target.value) }
   const onSearchSampleKind = input => {
-      const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
-      setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
+    const sampleKindOptions = input ? [sampleKinds.itemsByID[input]] : [...sampleKinds.items]
+    setSampleKindOptions(sampleKindOptions.map(Options.renderSampleKind))
   }
 
   /*
@@ -106,8 +106,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   const [tissueSourceOptions, setTissueSourceOptions] = useState(tissueSourceSorted.map(Options.renderSampleKind))
   const onFocusTissueSource = ev => { onSearchTissueSource(ev.target.value) }
   const onSearchTissueSource = input => {
-      const tissueSourceOptions = input ? [sampleKinds.itemsByID[input]] : [...tissueSourceSorted]
-      setTissueSourceOptions(tissueSourceOptions.map(Options.renderSampleKind))
+    const tissueSourceOptions = input ? [sampleKinds.itemsByID[input]] : [...tissueSourceSorted]
+    setTissueSourceOptions(tissueSourceOptions.map(Options.renderSampleKind))
   }
 
   /*
@@ -150,8 +150,8 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
   useEffect(() => {
     const newData = deserialize(sampleValue)
     onSearchSite(newData.collection_site)
-    onSearchIndividual(newData.individual, {exact_match:true})
-    onSearchContainer(newData.container, {exact_match:true})
+    onSearchIndividual(newData.individual, { exact_match: true })
+    onSearchContainer(newData.container, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
@@ -163,12 +163,12 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(sample => { history.push(`/samples/${sample.id}`) }) :
-        update(id, data).then(() => { history.push(`/samples/${id}`) })
+        add(data).then(sample => { history(`/samples/${sample.id}`) }) :
+        update(id, data).then(() => { history(`/samples/${id}`) })
     action
-    .then(() => { setFormErrors({}) })
-    .catch(err => { setFormErrors(err.data || {}) })
-    .then(() => Promise.all([listTable(), summary()]))
+      .then(() => { setFormErrors({}) })
+      .catch(err => { setFormErrors(err.data || {}) })
+      .then(() => Promise.all([listTable(), summary()]))
   }
 
 
@@ -196,7 +196,6 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/samples/${id || 'list'}`)}
       />
       <PageContent>
         <Form
@@ -221,7 +220,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
               onFocus={onFocusSampleKind}
             />
           </Form.Item>
-          <Form.Item label="Tissue Source" {...props("tissue_source")}s>
+          <Form.Item label="Tissue Source" {...props("tissue_source")} s>
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -273,7 +272,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
             <InputNumber step={0.001} />
           </Form.Item>
           <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
-            <Select mode="tags" disabled={!isAdding}/>
+            <Select mode="tags" disabled={!isAdding} />
           </Form.Item>
           <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete
@@ -319,7 +318,7 @@ const SampleEditContent = ({token, samplesByID, sampleKinds, add, update, listTa
 function deserialize(values) {
   if (!values)
     return undefined
-  const newValues = {...values}
+  const newValues = { ...values }
 
   if (!newValues.tissue_source)
     newValues.tissue_source = null
@@ -341,7 +340,7 @@ function deserialize(values) {
 }
 
 function serialize(values) {
-  const newValues = {...values}
+  const newValues = { ...values }
 
   if (newValues.creation_date)
     newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')

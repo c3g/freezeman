@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import ProjectsListContent from "./ProjectsListContent";
 import ProjectEditContent from "./ProjectEditContent";
@@ -9,14 +9,14 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const ProjectsPage = () => <PageContainer>
-  <Switch>
-    <Route path="/projects/list"><ProjectsListContent /></Route>
-    <Route path="/projects/actions/:action"><ActionContent templateType="project" /></Route>
-    <Route path="/projects/add"><ProjectEditContent /></Route>
-    <Route path="/projects/:id/update"><ProjectEditContent /></Route>
-    <Route path="/projects/:id"><ProjectsDetailedContent/></Route>
-    <Redirect to="/projects/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<ProjectsListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="project" />}/>
+    <Route path="/add/*" element={<ProjectEditContent />}/>
+    <Route path="/:id/update/*" element={<ProjectEditContent />}/>
+    <Route path="/:id/*" element={<ProjectsDetailedContent/>}/>
+    <Route path="*" element={<Navigate to="/projects/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default ProjectsPage;

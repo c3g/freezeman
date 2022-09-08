@@ -28,6 +28,7 @@ export const users = (
         ...state,
         filters: set(state.filters, [action.data.name, 'value'], action.data.value),
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
     case USERS.SET_FILTER_OPTION:
@@ -35,6 +36,7 @@ export const users = (
         ...state,
         filters: set(state.filters, [action.data.name, 'options'], action.data.options),
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
     case USERS.CLEAR_FILTERS:
@@ -42,6 +44,7 @@ export const users = (
         ...state,
         filters: {},
         items: [],
+        totalCount: 0,
         page: set(state.page, ['offset'], 0),
       };
 

@@ -3,11 +3,8 @@ from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, F, Count, Exists
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, Exists
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.aggregates import ArrayAgg
-
-import time
 
 from ..utils import RE_SEPARATOR, make_generator
 
@@ -15,11 +12,11 @@ from fms_core.models import Sample, Container, Biosample, DerivedSample, Derived
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
-from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter
+from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
 
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
@@ -92,6 +89,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "importer": SampleMetadataImporter,
         },
         {
+            "name": "Perform Normalization Planning",
+            "description": "Upload the provided template with normalization information to populate normalization template and the robot file.",
+            "template": [NORMALIZATION_PLANNING_TEMPLATE["identity"]],
+            "importer": NormalizationPlanningImporter,
+        },
+        {
             "name": "Normalize Samples or Libraries",
             "description": "Upload the provided template with information to normalize samples or libraries.",
             "template": [NORMALIZATION_TEMPLATE["identity"]],
@@ -109,6 +112,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": SAMPLE_METADATA_TEMPLATE},
+        {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
     ]
 
@@ -292,6 +296,31 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             )
         )
 
+        # full location
+        sample_ids = tuple(samples_queryset.values_list('id', flat=True))
+        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+                                                                FROM fms_core_container AS container 
+                                                                WHERE container.location_id IS NULL
+
+                                                                UNION ALL
+
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
+                                                                CASE 
+                                                                WHEN (container.coordinates = '') THEN ''
+                                                                ELSE 'at ' || container.coordinates::varchar || ' '
+                                                                END
+
+                                                                || 'in ' ||container_hierarchy.full_location::varchar
+                                                                FROM container_hierarchy
+                                                                JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
+                                                                ) 
+
+                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
+                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
+
+        location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
+
         sample_values_queryset = (
             samples_queryset
             .annotate(
@@ -369,6 +398,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'coordinates': sample["coordinates"],
                 'location_barcode': sample["container__location__barcode"] or "",
                 'location_coord': sample["container__coordinates"] or "",
+                'container_full_location': location_by_sample[sample["id"]] or "",
                 'current_volume': sample["volume"],
                 'concentration': sample["concentration"],
                 'creation_date': sample["creation_date"],

@@ -1,5 +1,5 @@
 import React from "react";
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import IndividualEditContent from "./IndividualEditContent";
 import IndividualsListContent from "./IndividualsListContent";
@@ -7,13 +7,13 @@ import IndividualsDetailContent from "./IndividualsDetailContent";
 import PageContainer from "../PageContainer";
 
 const IndividualsPage = () => <PageContainer>
-    <Switch>
-        <Route path="/individuals/list"><IndividualsListContent /></Route>
-        <Route path="/individuals/add"><IndividualEditContent /></Route>
-        <Route path="/individuals/:id/update"><IndividualEditContent /></Route>
-        <Route path="/individuals/:id"><IndividualsDetailContent /></Route>
-        <Redirect to="/individuals/list" />
-    </Switch>
+    <Routes>
+        <Route path="/list/*" element={<IndividualsListContent />}/>
+        <Route path="/add/*" element={<IndividualEditContent />}/>
+        <Route path="/:id/update/*" element={<IndividualEditContent />}/>
+        <Route path="/:id/*" element={<IndividualsDetailContent />}/>
+        <Route path="*" element={<Navigate to="/individuals/list" replace />}/>
+    </Routes>
 </PageContainer>;
 
 export default IndividualsPage;

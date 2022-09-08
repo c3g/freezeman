@@ -44,10 +44,12 @@ class ImportedFileViewSet(viewsets.ModelViewSet):
             with open(file_path, "rb") as file:
                 response = HttpResponse(content=file)
                 response["Content-Encoding"] = 'identity'
+                # NOTE: Currently, the frontend mangles template files by converting them to unicode text
+                # if the Content-Type is not set to the following value. 
+                # TODO: Remove this note once the frontend has been fixed.
                 response["Content-Type"] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 response["Content-Disposition"] = "attachment; filename=" + filename
         except Exception as err:
-            print(err)
             return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the template file to the response."}), content_type="application/json")
         
         return response

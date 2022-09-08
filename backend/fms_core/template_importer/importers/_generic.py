@@ -26,9 +26,12 @@ class GenericImporter():
         self.imported_file = None
         self.sheets = {}
         self.previews_info = []
+        self.dry_run = None
+        self.output_file = None
 
     def import_template(self, file, dry_run, user = None):
         self.file = file
+        self.dry_run = dry_run
         file_name, file_format = os.path.splitext(file.name)
         self.format = file_format
         file_path = None
@@ -95,6 +98,7 @@ class GenericImporter():
                              "error": str(e),
                              } for e in self.base_errors],
                          'result_previews': self.previews_info,
+                         'output_file': self.output_file
                          }
         return import_result
 

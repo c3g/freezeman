@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import ProcessMeasurementsDetailContent from "./ProcessMeasurementsDetailContent";
 import ProcessMeasurementsListContent from "./ProcessMeasurementsListContent";
@@ -8,12 +8,12 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const ProcessMeasurementsPage = () => <PageContainer>
-  <Switch>
-    <Route path="/process-measurements/list"><ProcessMeasurementsListContent /></Route>
-    <Route path="/process-measurements/actions/:action"><ActionContent templateType="processMeasurement" /></Route>
-    <Route path="/process-measurements/:id"><ProcessMeasurementsDetailContent /></Route>
-    <Redirect to="/process-measurements/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<ProcessMeasurementsListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="processMeasurement" />}/>
+    <Route path="/:id/*" element={<ProcessMeasurementsDetailContent />}/>
+    <Route path="*" element={<Navigate to="/process-measurements/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default ProcessMeasurementsPage;

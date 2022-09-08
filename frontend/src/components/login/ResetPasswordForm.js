@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {useLocation, useHistory, Link} from "react-router-dom";
+import {useLocation, useNavigate, Link} from "react-router-dom";
 import {Button, Form, Input, Typography} from "antd";
 import {
   LockOutlined,
@@ -78,13 +78,13 @@ function SendPasswordResetForm() {
 }
 
 function ChangePasswordForm({token}) {
-  const history = useHistory();
+  const history = useNavigate();
   const [message, setMessage] = useState(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const onFinish = values => {
     setIsFetching(true)
     changePassword(token, values.password)
-    .then(() => history.push("/login"))
+    .then(() => history("/login"))
     .catch(err => setMessage(err))
     .finally(() => setIsFetching(false))
   }

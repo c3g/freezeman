@@ -1,6 +1,6 @@
 import React from "react";
 
-import {Redirect, Route, Switch} from "react-router-dom";
+import {Navigate, Route, Routes} from "react-router-dom";
 
 import SampleEditContent from "./SampleEditContent";
 import SamplesDetailContent from "./details/SampleDetailsContent";
@@ -9,14 +9,14 @@ import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 
 const SamplesPage = () => <PageContainer>
-  <Switch>
-    <Route path="/samples/list"><SamplesListContent /></Route>
-    <Route path="/samples/actions/:action"><ActionContent templateType="sample" /></Route>
-    <Route path="/samples/add"><SampleEditContent /></Route>
-    <Route path="/samples/:id/update"><SampleEditContent /></Route>
-    <Route path="/samples/:id"><SamplesDetailContent /></Route>
-    <Redirect to="/samples/list" />
-  </Switch>
+  <Routes>
+    <Route path="/list/*" element={<SamplesListContent />}/>
+    <Route path="/actions/:action/*" element={<ActionContent templateType="sample" />}/>
+    <Route path="/add/*" element={<SampleEditContent />}/>
+    <Route path="/:id/update/*" element={<SampleEditContent />}/>
+    <Route path="/:id/*" element={<SamplesDetailContent />}/>
+    <Route path="*" element={<Navigate to="/samples/list" replace />}/>
+  </Routes>
 </PageContainer>;
 
 export default SamplesPage;

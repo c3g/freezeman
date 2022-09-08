@@ -2,7 +2,7 @@ import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "..
 
 export const SAMPLE_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "Sample ID",
   },
@@ -140,7 +140,7 @@ export const SAMPLE_FILTERS = {
 
 export const CONTAINER_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "id",
   },
@@ -183,7 +183,7 @@ export const CONTAINER_FILTERS = {
 
 export const INDIVIDUAL_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -222,12 +222,12 @@ export const INDIVIDUAL_FILTERS = {
 
 export const PROCESS_MEASUREMENT_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
   process: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "process",
     label: "Process ID",
   },
@@ -264,7 +264,7 @@ export const PROCESS_MEASUREMENT_FILTERS = {
 
 export const EXPERIMENT_RUN_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -314,7 +314,7 @@ export const EXPERIMENT_RUN_FILTERS = {
 
 export const USER_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "User ID"
   },
@@ -331,6 +331,11 @@ export const USER_FILTERS = {
 }
 
 export const PROJECT_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
+    key: "id",
+    label: "Project ID"
+  },
   name: {
     type: FILTER_TYPE.INPUT,
     key: "name",
@@ -374,7 +379,7 @@ export const PROJECT_FILTERS = {
 
 export const INDEX_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "ID",
   },
@@ -409,7 +414,7 @@ export const INDEX_FILTERS = {
 
 export const LIBRARY_FILTERS = {
   id: {
-    type: FILTER_TYPE.INPUT_NUMBER,
+    type: FILTER_TYPE.INPUT_OBJECT_ID,
     key: "id",
     label: "Library ID",
   },
@@ -503,5 +508,67 @@ export const LIBRARY_FILTERS = {
       { label: "Passed", value: "true" },
       { label: "Failed",  value: "false" },
     ],
+  },
+}
+
+export const DATASET_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Dataset ID",
+  },
+  run_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "run_name",
+    label: "Run Name",
+  },
+  external_project_id: {
+    type: FILTER_TYPE.INPUT,
+    key: "external_project_id",
+    label: "Project Name",
+  },
+  lane: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "lane",
+    label: "Lane",
+  },
+}
+
+export const DATASET_FILE_FILTERS = {
+  id: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "id",
+    label: "Dataset File ID",
+  },
+  dataset: {
+    type: FILTER_TYPE.INPUT_NUMBER,
+    key: "dataset",
+    label: "Dataset ID",
+  },
+  file_path: {
+    type: FILTER_TYPE.INPUT,
+    key: "file_path",
+    label: "File Path",
+  },
+  sample_name: {
+    type: FILTER_TYPE.INPUT,
+    key: "sample_name",
+    label: "Sample Name",
+  },
+  release_status: {
+    type: FILTER_TYPE.SELECT,
+    key: "release_status",
+    label: "Release Status",
+    placeholder: "All",
+    options: [
+      { label: "Available", value: "0" },
+      { label: "Released", value: "1" },
+      { label: "Blocked",  value: "2" },
+    ],
+  },
+  release_flag_timestamp: {
+    type: FILTER_TYPE.DATE_RANGE,
+    key: "release_flag_timestamp",
+    label: "Release Time",
   },
 }

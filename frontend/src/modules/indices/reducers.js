@@ -43,6 +43,7 @@ export const indices = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case INDICES.SET_FILTER_OPTION:
@@ -54,6 +55,7 @@ export const indices = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case INDICES.CLEAR_FILTERS:
@@ -61,6 +63,7 @@ export const indices = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 

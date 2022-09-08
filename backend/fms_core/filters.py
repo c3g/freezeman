@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Index, Individual, Sample, PropertyValue
+from .models import Container, Index, Individual, Sample, PropertyValue, Dataset
 
 import django_filters
 
@@ -11,6 +11,7 @@ from .viewsets._constants import (
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
     _library_filterset_fields,
+    _dataset_filterset_fields
 )
 
 from .viewsets._utils import _prefix_keys
@@ -20,6 +21,13 @@ class GenericFilter(django_filters.FilterSet):
         query = Q()
         for v in value.split(" "):
             query |= Q(('%s' % name, v))
+        query_set = queryset.filter(query)
+        return query_set
+
+    def insensitive_batch_filter(self, queryset, name, value):
+        query = Q()
+        for v in value.split(" "):
+            query |= Q((f"{name}__iexact", v))
         query_set = queryset.filter(query)
         return query_set
 
@@ -40,7 +48,7 @@ class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
-    projects__name = django_filters.CharFilter(method="batch_filter")
+    projects__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
@@ -99,3 +107,13 @@ class IndexFilter(GenericFilter):
     class Meta:
         model = Index
         fields = _index_filterset_fields
+
+class DatasetFilter(GenericFilter):
+    release_flag = django_filters.NumberFilter(method="release_flag_filter")
+
+    def release_flag_filter(self, queryset, name, value):
+        return queryset.filter(release_flag=value)
+
+    class Meta:
+        model = Dataset
+        fields = _dataset_filterset_fields

@@ -4,10 +4,12 @@ from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
 from .utils import convert_concentration_from_ngbyul_to_nm
-from django.db.models import Exists, OuterRef
+from django.db.models import Max
 
 from .models import (
     Container,
+    Dataset,
+    DatasetFile,
     ExperimentRun,
     RunType,
     Index,
@@ -31,10 +33,14 @@ from .models import (
     ImportedFile
 )
 
+from .models._constants import ReleaseStatus
+
 
 __all__ = [
     "ContainerSerializer",
     "ContainerExportSerializer",
+    "DatasetSerializer",
+    "DatasetFileSerializer",
     "ExperimentRunSerializer",
     "ExperimentRunExportSerializer",
     "RunTypeSerializer",
@@ -377,7 +383,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
         model = Sample
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
-                  'location_barcode', 'location_coord',
+                  'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
@@ -603,3 +609,24 @@ class ImportedFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImportedFile
         fields = "__all__"
+
+class DatasetSerializer(serializers.ModelSerializer):
+    files = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    released_status_count = serializers.SerializerMethodField()
+    latest_release_update = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Dataset
+        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
+
+    def get_released_status_count(self, obj):
+        return DatasetFile.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
+    
+    def get_latest_release_update(self, obj):
+        return DatasetFile.objects.filter(dataset=obj.id).aggregate(Max("release_status_timestamp"))["release_status_timestamp__max"]
+
+class DatasetFileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DatasetFile
+        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")

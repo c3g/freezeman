@@ -1,3 +1,4 @@
+import {set} from "object-path-immutable";
 import { useState, useEffect } from "react";
 import getNFilters from "../components/filters/getNFilters";
 import getFilterProps from "../components/filters/getFilterProps";
@@ -45,7 +46,11 @@ export const useFilteredList = ({
     }, [filters, sortBy])
 
     const setFilter = (name, value) => {
-        setFilters({ ...filters, [name]: { "value": value } })
+        setFilters(set(filters, [name, "value"], value))
+    }
+
+    const setFilterOption = (name, option, value) => {
+        setFilters(set(filters, [name, "options", option], value))
     }
 
     const clearFilters = () => {
@@ -72,6 +77,7 @@ export const useFilteredList = ({
         description,
         filters,
         setFilter,
+        setFilterOption,
     )))
 
     return {

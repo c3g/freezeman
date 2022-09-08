@@ -1,7 +1,6 @@
 import React, {useEffect} from "react";
-import {hot} from "react-hot-loader/root";
 import {connect} from "react-redux";
-import {Redirect, Route, Switch, withRouter} from "react-router-dom";
+import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import {Layout, Menu, Typography} from "antd";
 import {
   AuditOutlined,
@@ -15,6 +14,7 @@ import {
   ProjectOutlined,
   BarcodeOutlined,
   HddOutlined,
+  FileZipOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -33,7 +33,7 @@ import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
 import About from "./About";
 
-import PrivateRoute from "./PrivateRoute";
+import PrivateNavigate from "./PrivateNavigate";
 
 import useUserInputExpiration from "../utils/useUserInputExpiration";
 import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
@@ -42,6 +42,7 @@ import {hour} from "../utils/time";
 import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 import {get} from "../modules/users/actions";
+import DatasetsPage from "./datasets/DatasetsPage";
 
 const { Title } = Typography;
 
@@ -112,6 +113,11 @@ const MENU_ITEMS = [
     url: "/indices",
     icon: <BarcodeOutlined />,
     text: "Indices",
+  },
+  {
+    url: "/datasets",
+    icon: <FileZipOutlined />,
+    text: "Datasets",
   },
   {
     url: "/users",
@@ -204,58 +210,87 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
           </Layout.Sider>
         }
         <Layout.Content style={{position: "relative"}}>
-          <Switch>
-            <Route path="/login">
-              <LoginPage/>
-            </Route>
-            <PrivateRoute path="/dashboard">
-              <DashboardPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/containers">
-              <ContainersPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/samples">
-              <SamplesPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/libraries">
-              <LibrariesPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/individuals">
-              <IndividualsPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/process-measurements">
-              <ProcessMeasurementsPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/processes">
-              <ProcessesPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/experiment-runs">
-              <ExperimentRunsPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/projects">
-              <ProjectsPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/indices">
-              <IndicesPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/users">
-              <UsersPage/>
-            </PrivateRoute>
-            <PrivateRoute path="/profile">
-              <ProfilePage/>
-            </PrivateRoute>
-            <PrivateRoute path="/about">
-              <About/>
-            </PrivateRoute>
-            <Redirect from="/" to="/dashboard" />
-          </Switch>
+          <Routes>
+            <Route path="/login/*" element={<LoginPage/>}/>
+            <Route path="/dashboard/*" element={
+              <PrivateNavigate>
+                <DashboardPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/containers/*" element={
+              <PrivateNavigate>
+                <ContainersPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/samples/*" element={
+              <PrivateNavigate>
+                <SamplesPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/libraries/*" element={
+              <PrivateNavigate>
+                <LibrariesPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/individuals/*" element={
+              <PrivateNavigate>
+                <IndividualsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/process-measurements/*" element={
+              <PrivateNavigate>
+                <ProcessMeasurementsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/processes/*" element={
+              <PrivateNavigate>
+                <ProcessesPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/experiment-runs/*" element={
+              <PrivateNavigate>
+                <ExperimentRunsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/projects/*" element={
+              <PrivateNavigate>
+                <ProjectsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/indices/*" element={
+              <PrivateNavigate>
+                <IndicesPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/users/*" element={
+              <PrivateNavigate>
+                <UsersPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/profile/*" element={
+              <PrivateNavigate>
+                <ProfilePage />
+              </PrivateNavigate>
+            } />
+            <Route path="/about/*" element={
+              <PrivateNavigate>
+                <About />
+              </PrivateNavigate>
+            }/>
+            <Route path="/datasets/*" element={
+              <PrivateNavigate>
+                <DatasetsPage/>
+              </PrivateNavigate>
+            }/>
+            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+          </Routes>
         </Layout.Content>
       </Layout>
     </Layout>
   );
 };
 
-export default hot(withRouter(connect(mapStateToProps, actionCreators)(App)));
+export default withRouter(connect(mapStateToProps, actionCreators)(App));
 
 // Helpers
 
@@ -264,5 +299,13 @@ function onDidMount() {
   if (title) {
     const span = title.querySelectorAll('span')[0]
     span.style.width = span.getBoundingClientRect().width + 'px'
+  }
+}
+
+function withRouter(Child) {
+  return (props) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    return <Child {...props} navigate={navigate} location={location} />;
   }
 }

@@ -1,15 +1,15 @@
-import React, {useState, useRef} from "react";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {Alert, Button, Checkbox, Form, Input, Select, Tag} from "antd";
+import React, { useState, useRef } from "react";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Button, Checkbox, Form, Input, Select, Tag } from "antd";
 
-import {withUser} from "../../utils/withItem"
+import { withUser } from "../../utils/withItem"
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options"
-import {add, update, listTable} from "../../modules/users/actions";
-import {user as EMPTY_USER} from "../../models";
-import {requiredRules} from "../../constants";
+import { add, update, listTable } from "../../modules/users/actions";
+import { user as EMPTY_USER } from "../../models";
+import { requiredRules } from "../../constants";
 
 const hiddenField = {
   position: "absolute",
@@ -26,11 +26,11 @@ const mapStateToProps = state => ({
   groups: Object.values(state.groups.itemsByID),
 });
 
-const actionCreators = {add, update, listTable};
+const actionCreators = { add, update, listTable };
 
-const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable}) => {
-  const history = useHistory();
-  const {id} = useParams();
+const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByID, error, add, update, listTable }) => {
+  const history = useNavigate();
+  const { id } = useParams();
   const isAdding = id === undefined
   const isAdmin = withUser(usersByID, requestorID, user => user.is_staff, false)
 
@@ -61,12 +61,12 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
     const data = serialize(formData, user)
     const action =
       isAdding ?
-        add(data).then(user => { history.push(`/users/${user.id}`) }) :
-        update(id, data).then(() => { history.push(`/users/${id}`) })
+        add(data).then(user => { history(`/users/${user.id}`) }) :
+        update(id, data).then(() => { history(`/users/${id}`) })
     action
-    .then(() => { setFormErrors({}) })
-    .catch(err => { setFormErrors(err.data || {}) })
-    .then(listTable)
+      .then(() => { setFormErrors({}) })
+      .catch(err => { setFormErrors(err.data || {}) })
+      .then(listTable)
   }
 
   /*
@@ -95,7 +95,6 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/users/${id || 'list'}`)}
       />
       <PageContent>
         <Form
@@ -131,7 +130,7 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
             <Input disabled={!isAdmin} autoComplete="not-a-username" />
           </Form.Item>
           <Form.Item label="Email" {...props("email")} rules={requiredRules}>
-            <Input disabled={!isAdmin}/>
+            <Input disabled={!isAdmin} />
           </Form.Item>
           <Form.Item
             label="Password"
@@ -145,10 +144,10 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
             />
           </Form.Item>
           <Form.Item label="First Name" {...props("first_name")} rules={requiredRules}>
-            <Input disabled={!isAdmin}/>
+            <Input disabled={!isAdmin} />
           </Form.Item>
           <Form.Item label="Last Name" {...props("last_name")} rules={requiredRules}>
-            <Input disabled={!isAdmin}/>
+            <Input disabled={!isAdmin} />
           </Form.Item>
           <Form.Item label="Groups" {...props("groups")}>
             {isAdmin ?
@@ -157,7 +156,7 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
                 allowClear
                 options={groups.map(Options.renderGroup)}
               /> :
-              user?.groups?.length > 0 ? 
+              user?.groups?.length > 0 ?
                 user?.groups.map(groupId => groupsByID[groupId]).map(Options.renderGroup).map(o => <Tag key={o.value}>{o.label}</Tag>) :
                 null
             }
@@ -193,7 +192,7 @@ const UserEditContent = ({requestorID, isFetching, groups, usersByID, groupsByID
               type="primary"
               htmlType="submit"
               loading={isFetching}
-              disabled={!isAdmin} 
+              disabled={!isAdmin}
             >
               Submit
             </Button>

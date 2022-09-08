@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import {connect} from "react-redux";
-import {useHistory, useRouteMatch} from "react-router-dom";
+import {useNavigate, useMatch, useParams} from "react-router-dom";
 import PropTypes from "prop-types";
 import {Menu, Dropdown, Button} from "antd";
 import {DownloadOutlined} from "@ant-design/icons";
@@ -38,15 +38,15 @@ const submitRequests = {
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {
-  const history = useHistory();
-  const match = useRouteMatch();
+  const history = useNavigate();
+  const { action: actionId } = useParams()
 
-  const actionIndex = parseInt(match.params.action, 10) || 0;
+  const actionIndex = parseInt(actionId, 10) || 0;
   const actions = templateActions[templateType];
   const checkRequest = withToken(token, checkRequests[templateType]);
   const submitRequest = withToken(token, submitRequests[templateType]);
   const goBack = () => {
-    history.goBack()
+    history(-1)
   }
 
   const action = actions.items[actionIndex] || LOADING_ACTION;
@@ -64,7 +64,6 @@ const ActionContent = ({token, templateType, templateActions}) => {
   return <>
     <AppPageHeader
       title={action.name}
-      onBack={goBack}
       extra={
         actions.items[actionIndex] && action.template.length > 1 ?
           <Dropdown overlay={templateChoiceMenu} placement="bottomRight">

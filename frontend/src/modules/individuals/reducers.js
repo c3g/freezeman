@@ -82,6 +82,7 @@ export const individuals = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.SET_FILTER_OPTION:
@@ -93,6 +94,7 @@ export const individuals = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case INDIVIDUALS.CLEAR_FILTERS:
@@ -100,6 +102,7 @@ export const individuals = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 

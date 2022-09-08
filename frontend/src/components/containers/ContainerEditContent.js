@@ -1,22 +1,22 @@
-import React, {useEffect, useState} from "react";
-import {connect} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-import {Alert, Button, Form, Input, Select} from "antd";
-const {Option} = Select;
-const {Item} = Form;
-const {TextArea} = Input;
+import React, { useEffect, useState } from "react";
+import { connect } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Alert, Button, Form, Input, Select } from "antd";
+const { Option } = Select;
+const { Item } = Form;
+const { TextArea } = Input;
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
-import {add, update, listTable, summary} from "../../modules/containers/actions";
-import {container as EMPTY_CONTAINER} from "../../models";
-import api, {withToken} from "../../utils/api";
-import {requiredRules, barcodeRules, nameRules} from "../../constants";
+import { add, update, listTable, summary } from "../../modules/containers/actions";
+import { container as EMPTY_CONTAINER } from "../../models";
+import api, { withToken } from "../../utils/api";
+import { requiredRules, barcodeRules, nameRules } from "../../constants";
 
 const searchContainers = (token, input, options) =>
   withToken(token, api.containers.search)(input, options)
-  .then(res => res.data.results)
+    .then(res => res.data.results)
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -24,11 +24,11 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
 });
 
-const actionCreators = {add, update, listTable, summary};
+const actionCreators = { add, update, listTable, summary };
 
-const ContainerEditContent = ({token, containerKinds, containersByID, add, update, listTable, summary}) => {
-  const history = useHistory();
-  const {id} = useParams();
+const ContainerEditContent = ({ token, containerKinds, containersByID, add, update, listTable, summary }) => {
+  const history = useNavigate();
+  const { id } = useParams();
   const isAdding = id === undefined
 
   const container = containersByID[id];
@@ -40,7 +40,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const [locationOptions, setLocationOptions] = useState([]);
   const onFocusLocation = ev => { onSearchLocation(ev.target.value) }
   const onSearchLocation = (input, options) => {
-    searchContainers(token, input, {...options, parent:true}).then(containers => {
+    searchContainers(token, input, { ...options, parent: true }).then(containers => {
       setLocationOptions(containers.map(Options.renderContainer))
     })
   }
@@ -60,7 +60,7 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
   const containerValue = container || EMPTY_CONTAINER
   useEffect(() => {
     const newData = deserialize(containerValue)
-    onSearchLocation(newData.location, {exact_match:true})
+    onSearchLocation(newData.location, { exact_match: true })
   }, [containerValue])
 
   const onValuesChange = (values) => {
@@ -71,12 +71,12 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     const data = serialize(formData)
     const action =
       isAdding ?
-        add(data).then(container => { history.push(`/containers/${container.id}`) }) :
-        update(id, data).then(() => { history.push(`/containers/${id}`) })
+        add(data).then(container => { history(`/containers/${container.id}`) }) :
+        update(id, data).then(() => { history(`/containers/${id}`) })
     action
-    .then(() => { setFormErrors({}) })
-    .catch(err => { setFormErrors(err.data || {}) })
-    .then(() => Promise.all([listTable(), summary()]))
+      .then(() => { setFormErrors({}) })
+      .catch(err => { setFormErrors(err.data || {}) })
+      .then(() => Promise.all([listTable(), summary()]))
   }
 
   /*
@@ -99,7 +99,6 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
     <>
       <AppPageHeader
         title={title}
-        onBack={() => history.push(`/containers/${id || 'list'}`)}
       />
       <PageContent>
         <Form
@@ -184,15 +183,15 @@ const ContainerEditContent = ({token, containerKinds, containersByID, add, updat
 
 
 function deserialize(values) {
-    if (!values)
-        return undefined
-    const newValues = { ...values }
-    return newValues
+  if (!values)
+    return undefined
+  const newValues = { ...values }
+  return newValues
 }
 
 function serialize(values) {
-    const newValues = { ...values }
-    return newValues
+  const newValues = { ...values }
+  return newValues
 }
 
 export default connect(mapStateToProps, actionCreators)(ContainerEditContent);

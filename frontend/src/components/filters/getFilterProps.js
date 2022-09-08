@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useRef, useState} from "react";
 import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
 import {SearchOutlined} from "@ant-design/icons";
 import moment from 'moment';
@@ -18,7 +18,9 @@ export default function getFilterProps(column, descriptions, filters, setFilter,
     case FILTER_TYPE.INPUT:
       return getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption)
     case FILTER_TYPE.INPUT_NUMBER:
-        return getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption)
+        return getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption, isValidInteger)
+    case FILTER_TYPE.INPUT_OBJECT_ID:
+      return getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption, isValidObjectID)
     case FILTER_TYPE.SELECT:
       if (description.mode !== 'multiple')
         return getRadioFilterProps(column, descriptions, filters, setFilter)
@@ -108,15 +110,40 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
   }
 }
 
-function getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
+function isValidObjectID(value) {
+  // Object ID's must be postive integer values, so we verify that the string
+  // contains only digits (and are tolerant of whitespace)
+  let regex = /^\s*\d+\s*$/
+  return regex.test(value)
+}
+
+function isValidInteger(value) {
+  let numericValue = Number.parseInt(value)
+  return !Number.isNaN(numericValue)
+}
+
+function getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption, validationFunc) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
-
+  const [isValid, setIsValid] = useState(true)
   const inputRef = useRef()
 
   const onSearch = value => {
-    setFilter(dataIndex, value)
+    // If a validation function was provided, use it to validate the numeric input.
+    // If it's invalid, set the input status as invalid and ignore the value.
+    // This is to avoid sending bad requests with garbage values to the backend.
+    if (typeof(validationFunc) === 'function') {
+      if (value.length === 0 || validationFunc(value)) {
+        setFilter(dataIndex, value)
+        setIsValid(true)
+      } else {
+        setIsValid(false)
+      }
+    } else {
+      // If no validation function is provided then just call setFilter with the value.
+      setFilter(dataIndex, value)
+    }
   }
 
   const onKeyDown = (ev, confirm) => {
@@ -137,6 +164,7 @@ function getInputNumberFilterProps(column, descriptions, filters, setFilter, set
           onChange={e => onSearch(e.target.value)}
           onPressEnter={confirm}
           onKeyDown={ev => onKeyDown(ev, confirm)}
+          status={isValid ? undefined : 'error'}
         />
       </div>
     ),

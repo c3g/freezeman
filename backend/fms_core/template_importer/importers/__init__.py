@@ -15,6 +15,7 @@ from .library_preparation import LibraryPreparationImporter
 from .library_conversion import LibraryConversionImporter
 from .library_qc import LibraryQCImporter
 from .normalization import NormalizationImporter
+from .normalization_planning import NormalizationPlanningImporter
 
 
 __all__ = [
@@ -34,5 +35,6 @@ __all__ = [
     "LibraryPreparationImporter",
     "LibraryConversionImporter"
     "LibraryQCImporter",
-    "NormalizationImporter"
+    "NormalizationImporter",
+    "NormalizationPlanningImporter"
 ]

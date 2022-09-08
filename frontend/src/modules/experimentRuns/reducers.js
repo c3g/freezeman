@@ -167,6 +167,7 @@ export const experimentRuns = (
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case EXPERIMENT_RUNS.SET_FILTER_OPTION:
@@ -178,6 +179,7 @@ export const experimentRuns = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case EXPERIMENT_RUNS.CLEAR_FILTERS:
@@ -185,6 +187,7 @@ export const experimentRuns = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
 
