@@ -11,7 +11,7 @@ class PoolsRowHandler(GenericRowHandler):
 
     def process_row_inner(self, protocol, imported_template, samples_info, pool, pooling_date, comment):
         # Add an error if the samples are not of the same type (sample mixed with library)
-        if len(set(sample["Source Sample"].isLibrary for sample in samples_info)) > 1:
+        if len(set(sample["Source Sample"].is_library for sample in samples_info)) > 1:
             self.errors["source_sample"].append(f"Source samples in pool {pool['name']} are not all either samples or libraries.")
 
         # Add a warning if the concentration of the samples/libraries are not within a tolerance
@@ -19,16 +19,17 @@ class PoolsRowHandler(GenericRowHandler):
         concentrations = [sample["Source Sample"].concentration for sample in samples_info]
         avg_concentration = sum(concentrations) / len(concentrations)
         if any(abs(concentration - avg_concentration) > TOLERANCE for concentration in concentrations):
-            self.warnings["concentration"].append(f"Source samples in pool {pool['name']} have concentrations that are more than "
-                                                  f"{TOLERANCE} ng/uL away from the average concentration of the pool.")
+            self.warnings["concentration"] = [(f"Source samples in pool {pool['name']} have concentrations that are more than "
+                                               f"{TOLERANCE} ng/uL away from the average concentration of the pool.")]
         
         # Create a process for each pool created
-        process, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,
-                                                                                   creation_comment=comment,
-                                                                                   create_children=False,
-                                                                                   children_protocols=None,
-                                                                                   imported_template=imported_template)
-      
+        process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,
+                                                                                               creation_comment=comment,
+                                                                                               create_children=False,
+                                                                                               children_protocols=None,
+                                                                                               imported_template=imported_template)
+        process = process_by_protocol[protocol.id]
+
         # Get/Create pool container
         container_destination_dict = pool["container"]
 
@@ -47,7 +48,9 @@ class PoolsRowHandler(GenericRowHandler):
         # Pool samples
         pool, self.errors["pool"], self.warnings["pool"] = pool_samples(process=process,
                                                                         samples_info=samples_info,
+                                                                        pool_name=pool["name"],
                                                                         container_destination=container_destination,
+                                                                        coordinates_destination=pool["coordinates"],
                                                                         execution_date=pooling_date)
 
         

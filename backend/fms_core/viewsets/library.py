@@ -7,8 +7,8 @@ from django.db.models import Q, When, Count, Case, BooleanField, F
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
-from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter, NormalizationPlanningImporter, NormalizationImporter
+from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
+from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter, NormalizationPlanningImporter, NormalizationImporter, SamplePoolingImporter
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
@@ -69,6 +69,12 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             "template": [NORMALIZATION_TEMPLATE["identity"]],
             "importer": NormalizationImporter,
         },
+        {
+            "name": "Pool Libraries",
+            "description": "Upload the provided template with information to pool libraries.",
+            "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
+            "importer": SamplePoolingImporter,
+        },
     ]
 
     template_prefill_list = [
@@ -76,7 +82,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         {"template": LIBRARY_CONVERSION_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
-        {"template": NORMALIZATION_TEMPLATE}
+        {"template": NORMALIZATION_TEMPLATE},
+        {"template": SAMPLE_POOLING_TEMPLATE}
     ]
 
     def get_queryset(self):
