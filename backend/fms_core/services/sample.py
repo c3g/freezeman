@@ -149,6 +149,7 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
                                            volume_ratio=volume_ratios[derived_sample_destination.id])
         
         # project inheritance
+        # TODO: If we move project to derive sample then we need a loop
         for project in sample_source.projects.all():
             SampleByProject.objects.create(project=project, sample=new_sample)
 
@@ -462,6 +463,7 @@ def add_sample_metadata(sample, metadata):
     if sample and metadata:
         try:
             # Retrieve the biosample of the given sample
+            # TODO: in case of pools, should we allow to add metadata?
             biosample_obj = sample.biosample_not_pool
             for (name, value) in metadata.items():
                 # Check if sample has already the metadata

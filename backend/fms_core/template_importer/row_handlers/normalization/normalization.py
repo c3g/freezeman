@@ -45,7 +45,9 @@ class NormalizationRowHandler(GenericRowHandler):
                 concentration = destination_sample['concentration_ngul']
             # Case when nM is given
             elif destination_sample['concentration_nm']:
+                # TODO: what if it is a pool?
                 if source_sample_obj.is_library:
+                    # TODO: Should we just take the first derived sample of the pool????
                     library = source_sample_obj.derived_sample_not_pool.library
                     if library.library_size:
                         concentration = convert_concentration_from_nm_to_ngbyul(destination_sample['concentration_nm'],

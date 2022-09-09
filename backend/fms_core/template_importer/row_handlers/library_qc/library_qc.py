@@ -29,6 +29,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             self.errors['library'] = f"Library sample for QC was not found in container ({barcode}) at ({coordinates})"
             return
 
+        # TODO: modify this for pool i.e. all derived samples
         if not source_sample_obj.is_library:
             self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library '
 
@@ -73,6 +74,7 @@ class LibraryQCRowHandler(GenericRowHandler):
                 self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume}). Please verify the volume currently stored for the library.'
 
         # library size
+        # TODO: modify to optional if sample is pool
         library_size = measures['library_size']
         if library_size is None:
             self.errors['library_size'] = 'Library size must be specified'
@@ -88,6 +90,7 @@ class LibraryQCRowHandler(GenericRowHandler):
         if concentration is None:
             concentration = measures['concentration_nm']
             if concentration is not None:
+                # TODO: for pool, should we take the first one?
                 molecular_weight = source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx
                 concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
                 if concentration is None:

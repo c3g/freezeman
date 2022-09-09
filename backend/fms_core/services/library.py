@@ -83,6 +83,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
         errors.append(f"Execution date is not valid.")
 
     # Retrieve library object linked to the source sample
+    #TODO: adapt this to pools i.e. loop
     library_source_obj = sample_source.derived_sample_not_pool.library
     if not sample_source.is_library or library_source_obj is None:
         errors.append(f"Sample {sample_source.name} is not a library.")
@@ -155,6 +156,7 @@ def update_library(sample, **kwargs):
         errors.append('Sample {sample.name} is not a library')
     else:
         try:
+            #TODO: In the case of pools, should we update each library?
             library = sample.derived_sample_not_pool.library
 
             if 'library_type' in kwargs:
