@@ -83,12 +83,9 @@ def convert_library(process, platform, sample_source, container_destination, coo
         errors.append(f"Execution date is not valid.")
 
     # Retrieve library object linked to the source sample
-    #TODO: adapt this to pools i.e. loop
-    library_source_obj = sample_source.derived_sample_not_pool.library
-    if not sample_source.is_library or library_source_obj is None:
-        errors.append(f"Sample {sample_source.name} is not a library.")
-    elif library_source_obj.platform == platform:
-        errors.append(f"Source library platform and destination library platform can't be the same.")
+    #TODO: adapt this to pools
+    if not sample_source.is_library or not sample_source.is_pool_of_libraries:
+        errors.append(f"Sample {sample_source.name} is not a library nor a pool of libraries.")
 
     if not errors:
         try:
@@ -110,6 +107,13 @@ def convert_library(process, platform, sample_source, container_destination, coo
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample_source in sample_source.derived_samples.all():
+                library_source_obj = derived_sample_source.library
+                # extra validation
+                if library_source_obj is None:
+                    errors.append(f"Sample {sample_source.name} is not a library or pool of libraries. ")
+                elif library_source_obj.platform == platform:
+                    errors.append(f"Source library platform and destination library platform can't be the same.")
+
                 # Create new destination library for each derived sample
                 library_destination, errors_library_destination, warnings_library_destinations = \
                     create_library(library_type=library_source_obj.library_type,
@@ -146,42 +150,44 @@ def convert_library(process, platform, sample_source, container_destination, coo
 
     return library_destination, errors, warnings
 
+
 def update_library(sample, **kwargs):
     errors = []
     warnings = []
 
     if sample is None:
         errors.append('Missing sample')
-    elif not sample.is_library:
+    elif not sample.is_library or not sample.is_pool_of_libraries:
         errors.append('Sample {sample.name} is not a library')
     else:
         try:
             #TODO: In the case of pools, should we update each library?
-            library = sample.derived_sample_not_pool.library
+            for derived_sample_source in sample.derived_samples.all():
+                library = derived_sample_source.library
 
-            if 'library_type' in kwargs:
-                library.library_type = kwargs['library_type']
+                if 'library_type' in kwargs:
+                    library.library_type = kwargs['library_type']
 
-            if 'platform' in kwargs:
-                library.platform = kwargs['platform']
+                if 'platform' in kwargs:
+                    library.platform = kwargs['platform']
 
-            if 'index' in kwargs:
-                library.index = kwargs['index']
+                if 'index' in kwargs:
+                    library.index = kwargs['index']
 
-            if 'strandedness' in kwargs:
-                strandedness = kwargs['strandedness']
-                if strandedness is None or strandedness in STRANDEDNESS_CHOICES:
-                    library.strandedness = strandedness
-                else:
-                    errors.append(f'Unexpected value for strandedness ({strandedness})')
-                    
-            if 'library_size' in kwargs:
-                library_size = kwargs['library_size']
-                if library_size is not None:
-                    library_size = Decimal(kwargs['library_size'])
-                library.library_size = library_size
+                if 'strandedness' in kwargs:
+                    strandedness = kwargs['strandedness']
+                    if strandedness is None or strandedness in STRANDEDNESS_CHOICES:
+                        library.strandedness = strandedness
+                    else:
+                        errors.append(f'Unexpected value for strandedness ({strandedness})')
 
-            library.save()
+                if 'library_size' in kwargs:
+                    library_size = kwargs['library_size']
+                    if library_size is not None:
+                        library_size = Decimal(kwargs['library_size'])
+                    library.library_size = library_size
+
+                library.save()
             
         except Exception as e:
             errors.append(str(e))

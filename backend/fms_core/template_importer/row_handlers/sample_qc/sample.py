@@ -73,7 +73,8 @@ class SampleQCRowHandler(GenericRowHandler):
 
                 # Validate required RIN for RNA
                 # TODO: for pools, do we check all sample kinds ?
-                if sample_obj.derived_sample_not_pool.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
-                    self.errors['RIN'] = 'RIN has to be specified for RNA.'
+                for derived_sample in sample_obj.derived_samples.all():
+                    if derived_sample.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
+                        self.errors['RIN'] = 'RIN has to be specified for RNA.'
 
 
