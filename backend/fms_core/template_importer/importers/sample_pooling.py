@@ -4,9 +4,9 @@ from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPool
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
-from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, check_truth_like
 
-class LibraryPreparationImporter(GenericImporter):
+class SamplePoolingImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_POOLING_TEMPLATE['sheets info']
 
     def __init__(self):
@@ -26,8 +26,8 @@ class LibraryPreparationImporter(GenericImporter):
             samplestopool_kwargs = {
                 'source_sample':
                     {'barcode': str_cast_and_normalize(row_data['Source Container Barcode']),
-                     'coordinates': str_cast_and_normalize(row_data['Source Container Coordinates']),
-                     'depleted': str_cast_and_normalize(row_data['Source Depleted']),
+                     'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
+                     'depleted': check_truth_like(row_data['Source Depleted']) if row_data['Source Depleted'] else None,
                      },
                 'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
                 'comment': str_cast_and_normalize(row_data['Comment']),
@@ -61,7 +61,7 @@ class LibraryPreparationImporter(GenericImporter):
                             "parent_barcode": str_cast_and_normalize(row_data["Destination Parent Container Barcode"]),
                         },
                     },
-                    "pooling date": input_to_date_and_none(row_data["Pooling Date (YYYY-MM-DD)"]),
+                    "pooling_date": input_to_date_and_none(row_data["Pooling Date (YYYY-MM-DD)"]),
                     "comment": str_cast_and_normalize(row_data["Comment"]),
                 }
 

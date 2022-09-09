@@ -16,6 +16,7 @@ from .library_conversion import LibraryConversionImporter
 from .library_qc import LibraryQCImporter
 from .normalization import NormalizationImporter
 from .normalization_planning import NormalizationPlanningImporter
+from .sample_pooling import SamplePoolingImporter
 
 
 __all__ = [
@@ -36,5 +37,6 @@ __all__ = [
     "LibraryConversionImporter"
     "LibraryQCImporter",
     "NormalizationImporter",
-    "NormalizationPlanningImporter"
+    "NormalizationPlanningImporter",
+    "SamplePoolingImporter"
 ]
