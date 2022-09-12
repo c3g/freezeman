@@ -7,7 +7,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, source_sample, volume_used, comment):
+    def process_row_inner(self, source_sample, pool, volume_used, comment):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 
@@ -17,6 +17,11 @@ class SamplesToPoolRowHandler(GenericRowHandler):
             self.errors["volume_used"] = f"Volume used ({volume_used}) is invalid."
         elif sample and sample.volume < volume_used:
             self.errors["volume_used"] = f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample.volume} uL)."
+
+        if pool["pool_name"] is None:
+            self.errors["pool_name"] = f"Pool Name is required."
+        elif pool["pool_name"] not in pool["pool_set"]:
+            self.errors["pool_name"] = f"Pool Name {pool['pool_name']} must match a pool on the Pools sheet {pool['pool_set']}."
 
         self.row_object = {
             "Source Sample": sample,

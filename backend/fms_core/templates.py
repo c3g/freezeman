@@ -229,14 +229,14 @@ SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_12_0.xlsx")},
   "sheets info": [
       {
-          'name': 'SamplesToPool',
-          'headers': ['Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
-                      'Pool Name', 'Source Depleted', 'Volume Used (uL)', 'Comment'],
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",
+                      "Source Container Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
       },
       {
-          'name': 'Pools',
-          'headers': ['Pool Name', 'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
-                      'Destination Parent Container Barcode', 'Destination Parent Container Coord',  'Pooling Date (YYYY-MM-DD)', 'Comment'],
+          "name": "Pools",
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name", "Destination Container Kind",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord",  "Pooling Date (YYYY-MM-DD)", "Comment"],
       },
   ],
   "prefill info": [
