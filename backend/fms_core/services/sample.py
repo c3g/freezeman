@@ -322,6 +322,8 @@ def prepare_library(process: Process,
         errors.append(f"Process is required.")
     if not sample_source:
         errors.append(f"Source sample is required.")
+    if sample_source and sample_source.is_pool:
+        errors.append(f"The source sample can't be a pool.")
     if not container_destination:
         errors.append(f"Destination container is required.")
 
@@ -359,6 +361,7 @@ def prepare_library(process: Process,
             }
             derived_samples_destination = []
             volume_ratios = {}
+            # TODO: Since library prep is not possible for pools should we modify this?
             for derived_sample_source in sample_source.derived_samples.all():
                 new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
                                                                                               new_derived_sample_data)
