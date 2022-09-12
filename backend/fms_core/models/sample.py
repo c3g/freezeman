@@ -4,14 +4,14 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.apps import apps
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from ..containers import (
     CONTAINER_KIND_SPECS,
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_after_today
+from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 
 from .tracked_model import TrackedModel
 from .container import Container
@@ -67,6 +67,12 @@ class Sample(TrackedModel):
     @property
     def is_library(self) -> bool:
         return True if any([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
+
+    @property
+    def avg_library_size(self) -> Union[Decimal, None]:
+        return None if not self.is_library or any(derived_by_sample.derived_sample.library.library_size is None for derived_by_sample in self.derived_by_samples.all()) \
+                    else decimal_rounded_to_precision(sum(derived_by_sample.volume_ratio * derived_by_sample.derived_sample.library.library_size \
+                    for derived_by_sample in self.derived_by_samples.all()))
 
     @property
     def derived_sample_not_pool(self) -> DerivedSample:
