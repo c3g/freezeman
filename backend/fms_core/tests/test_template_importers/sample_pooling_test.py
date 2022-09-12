@@ -85,7 +85,6 @@ class SamplePoolingTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result)
         self.assertEqual(result['valid'], True)
 
         self.source_sample_1.refresh_from_db()
