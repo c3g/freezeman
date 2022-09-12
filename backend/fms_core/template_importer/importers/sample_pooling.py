@@ -18,19 +18,29 @@ class SamplePoolingImporter(GenericImporter):
 
     def import_template_inner(self):
         pools_dict = defaultdict(list)
+        samplestopool_sheet = self.sheets['SamplesToPool']
+        pools_sheet = self.sheets['Pools']
+
         """
             SamplesToPool SHEET
         """
-        samplestopool_sheet = self.sheets['SamplesToPool']
+        
+        pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
+        result = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
+            pool_name = str_cast_and_normalize(row_data["Pool Name"])
             samplestopool_kwargs = {
-                'source_sample':
-                    {'barcode': str_cast_and_normalize(row_data['Source Container Barcode']),
-                     'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
-                     'depleted': check_truth_like(row_data['Source Depleted']) if row_data['Source Depleted'] else None,
-                     },
-                'volume_used': float_to_decimal_and_none(row_data['Volume Used (uL)']),
-                'comment': str_cast_and_normalize(row_data['Comment']),
+                "source_sample": {
+                    "barcode": str_cast_and_normalize(row_data["Source Container Barcode"]),
+                    "coordinates": str_cast_and_normalize(row_data["Source Container Coord"]),
+                    "depleted": check_truth_like(row_data["Source Depleted"]) if row_data["Source Depleted"] else None,
+                },
+                "pool": {
+                  "pool_set": pool_set,
+                  "pool_name": pool_name,
+                },
+                "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
+                "comment": str_cast_and_normalize(row_data["Comment"]),
             }
 
             (result, row_object) = self.handle_row(
@@ -39,13 +49,13 @@ class SamplePoolingImporter(GenericImporter):
                 row_i=i,
                 **samplestopool_kwargs,
             )
-            pools_dict[str_cast_and_normalize(row_data['Pool Name'])].append(row_object)
+            if pool_name is not None:
+                pools_dict[pool_name].append(row_object)
 
-        if not result['validation_error'].messages: # prevent the repetition of error messages for volume_used at the level of pools.
+        if result and not result['validation_error'].messages: # prevent the repetition of error messages for volume_used at the level of pools.
             """
                 POOLS SHEET
             """
-            pools_sheet = self.sheets['Pools']
 
             # Iterate through libraries rows
             for row_id, row_data in enumerate(pools_sheet.rows):
@@ -71,7 +81,7 @@ class SamplePoolingImporter(GenericImporter):
                     row_i=row_id,
                     protocol=self.preloaded_data['protocol'],
                     imported_template=self.imported_file,
-                    samples_info=pools_dict[str_cast_and_normalize(row_data['Pool Name'])],
+                    samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
                     **pool_kwargs
                 )
 
