@@ -12,13 +12,13 @@ class PoolsRowHandler(GenericRowHandler):
     def process_row_inner(self, protocol, imported_template, samples_info, pool, pooling_date, comment):
         # Ensure there is samples_tied to the pool
         if samples_info is None:
-            self.errors["source_sample"].append(f"Cannot find samples for pool {pool['name']}. "
-                                                f"Make sure SampleToPool sheet Pool Name column values "
-                                                f"match a value in Pools sheet Pool Name column.")
+            self.errors["source_sample"] = (f"Cannot find samples for pool {pool['name']}. "
+                                            f"Make sure SampleToPool sheet Pool Name column values "
+                                            f"match a value in Pools sheet Pool Name column.")
         else:
             # Add an error if the samples are not of the same type (sample mixed with library)
             if len(set(sample["Source Sample"].is_library for sample in samples_info)) > 1:
-                self.errors["source_sample"].append(f"Source samples in pool {pool['name']} are not all either samples or libraries.")
+                self.errors["source_sample"] = (f"Source samples in pool {pool['name']} are not all either samples or libraries.")
 
             # Add a warning if the concentration of the samples/libraries are not within a tolerance
             TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
