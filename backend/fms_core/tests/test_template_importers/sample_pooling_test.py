@@ -4,12 +4,10 @@ import datetime
 
 from fms_core.template_importer.importers import SamplePoolingImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
-from fms_core.tests.constants import create_sample_container, create_individual, create_fullsample
+from fms_core.tests.constants import create_individual
 
-from fms_core.models import SampleKind, Protocol, Process, LibraryType, Platform, Index, ProcessMeasurement, PropertyType, PropertyValue
-from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
-
-
+from fms_core.models import SampleKind, Protocol, Process, ProcessMeasurement
+from fms_core.models._constants import DOUBLE_STRANDED
 
 from fms_core.services.container import create_container
 from fms_core.services.sample import create_full_sample
@@ -42,9 +40,9 @@ class LibraryPreparationTestCase(TestCase):
 
         # index
         index_set, _, _, _ = get_or_create_index_set("PoolTestSet")
-        index_1, _, _ = create_index(index_name="PoolLibIndex1", index_structure="TruSeqLT", index_set=index_set)
-        index_2, _, _ = create_index(index_name="PoolLibIndex2", index_structure="TruSeqLT", index_set=index_set)
-        index_3, _, _ = create_index(index_name="PoolLibIndex3", index_structure="TruSeqLT", index_set=index_set)
+        self.index_1, _, _ = create_index(index_name="PoolLibIndex1", index_structure="TruSeqLT", index_set=index_set)
+        self.index_2, _, _ = create_index(index_name="PoolLibIndex2", index_structure="TruSeqLT", index_set=index_set)
+        self.index_3, _, _ = create_index(index_name="PoolLibIndex3", index_structure="TruSeqLT", index_set=index_set)
 
         # library type
         library_type, _, _ = get_library_type(name="PCR-free")
@@ -52,9 +50,9 @@ class LibraryPreparationTestCase(TestCase):
         # platform
         platform, _, _ = get_platform(name="ILLUMINA")
 
-        library_1, _, _ = create_library(index=index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
-        library_2, _, _ = create_library(index=index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
-        library_3, _, _ = create_library(index=index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
+        library_1, _, _ = create_library(index=self.index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
+        library_2, _, _ = create_library(index=self.index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
+        library_3, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
 
         self.source_sample_1, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL1", alias="SOURCESAMPLE1POOL1", volume=self.source_sample_initial_volume, concentration=25,
@@ -99,31 +97,82 @@ class LibraryPreparationTestCase(TestCase):
         pm1 = ProcessMeasurement.objects.get(source_sample=self.source_sample_1, process__protocol=self.protocol_pooling)
         self.assertEqual(pm1.volume_used, 200)
         self.assertEqual(pm1.execution_date, datetime.strptime("2022-05-10", "%Y-%m-%d").date())
+        self.assertEqual(pm1.comment, "Depleted source")
         self.assertEqual(self.source_sample_1.volume, self.source_sample_initial_volume-200)
         self.assertTrue(self.source_sample_1.depleted)
+
+        pool1 = pm1.lineage.child
 
         pm2 = ProcessMeasurement.objects.get(source_sample=self.source_sample_2, process__protocol=self.protocol_pooling)
         self.assertEqual(pm2.volume_used, 50)
         self.assertEqual(pm2.execution_date, datetime.strptime("2022-05-10", "%Y-%m-%d").date())
+        self.assertEqual(pm2.comment, "")
         self.assertEqual(self.source_sample_2.volume, self.source_sample_initial_volume-50)
         self.assertFalse(self.source_sample_2.depleted)
+        self.assertEqual(pm2.lineage.child, pool1)
 
         pm3 = ProcessMeasurement.objects.get(source_sample=self.source_sample_3, process__protocol=self.protocol_pooling)
         self.assertEqual(pm3.volume_used, 25)
         self.assertEqual(pm3.execution_date, datetime.strptime("2022-05-10", "%Y-%m-%d").date())
+        self.assertEqual(pm3.comment, "")
         self.assertEqual(self.source_sample_3.volume, self.source_sample_initial_volume-25)
         self.assertFalse(self.source_sample_3.depleted)
+        self.assertEqual(pm3.lineage.child, pool1)
+
+        p1 = pm1.process
+        self.assertEqual(p1.comment, "This is a test pool")
+
+        self.assertEqual(pool1.volume, 275)
+        self.assertEqual(pool1.concentration, 25)
+        self.assertEqual(pool1.container.name, "POOLTUBE")
+        self.assertEqual(pool1.container.barcode, "POOLTUBE")
+        self.assertEqual(pool1.container.kind, "tube")
+        
+        derived1 = pool1.derived_samples.filter(samples__in=self.source_sample_1)
+        self.assertEqual(derived1.individual.name, "Bobino")
+        self.assertEqual(derived1.library.index, self.index_1)
+        self.assertEqual(derived1.derived_by_samples.volume_ratio, 0.727)
+        derived2 = pool1.derived_samples.filter(samples__in=self.source_sample_2)
+        self.assertEqual(derived2.individual.name, "Bobinette")
+        self.assertEqual(derived2.library.index, self.index_2)
+        self.assertEqual(derived2.derived_by_samples.volume_ratio, 0.182)
+        derived3 = pool1.derived_samples.filter(samples__in=self.source_sample_3)
+        self.assertEqual(derived3.individual.name, "Bobinouche")
+        self.assertEqual(derived3.library.index, self.index_3)
+        self.assertEqual(derived3.derived_by_samples.volume_ratio, 0.091)
+
 
         pm4 = ProcessMeasurement.objects.get(source_sample=self.source_sample_4, process__protocol=self.protocol_pooling)
         self.assertEqual(pm4.volume_used, 100)
         self.assertEqual(pm4.execution_date, datetime.strptime("2022-05-12", "%Y-%m-%d").date())
+        self.assertEqual(pm4.comment, "half")
         self.assertEqual(self.source_sample_4.volume, self.source_sample_initial_volume-100)
         self.assertFalse(self.source_sample_4.depleted)
+
+        pool2 = pm4.lineage.child
 
         pm5 = ProcessMeasurement.objects.get(source_sample=self.source_sample_5, process__protocol=self.protocol_pooling)
         self.assertEqual(pm5.volume_used, 100)
         self.assertEqual(pm5.execution_date, datetime.strptime("2022-05-12", "%Y-%m-%d").date())
+        self.assertEqual(pm5.comment, "and half")
         self.assertEqual(self.source_sample_5.volume, self.source_sample_initial_volume-100)
         self.assertFalse(self.source_sample_5.depleted)
+        self.assertEqual(pm5.lineage.child, pool2)
         
+        p2 = pm4.process
+        self.assertEqual(p2.comment, "This is more test pool")
 
+        self.assertEqual(pool2.volume, 275)
+        self.assertEqual(pool2.concentration, 25)
+        self.assertEqual(pool2.container.name, "POOLPLATE")
+        self.assertEqual(pool2.container.barcode, "POOLPLATE")
+        self.assertEqual(pool2.container.kind, "96-well plate")
+        
+        derived4 = pool2.derived_samples.filter(samples__in=self.source_sample_4)
+        self.assertEqual(derived4.individual.name, "Bobinouille")
+        self.assertEqual(derived4.library.index, self.index_4)
+        self.assertEqual(derived4.derived_by_samples.volume_ratio, 0.500)
+        derived5 = pool2.derived_samples.filter(samples__in=self.source_sample_5)
+        self.assertEqual(derived5.individual.name, "Bobinoodle")
+        self.assertEqual(derived5.library.index, self.index_5)
+        self.assertEqual(derived5.derived_by_samples.volume_ratio, 0.500)
