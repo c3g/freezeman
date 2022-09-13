@@ -26,7 +26,7 @@ class SamplePoolingImporter(GenericImporter):
         """
         
         pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
-        result = []
+        result_list = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
             pool_name = str_cast_and_normalize(row_data["Pool Name"])
             samplestopool_kwargs = {
@@ -49,10 +49,11 @@ class SamplePoolingImporter(GenericImporter):
                 row_i=i,
                 **samplestopool_kwargs,
             )
+            result_list.append(result)
             if pool_name is not None:
                 pools_dict[pool_name].append(row_object)
 
-        if result and not result['validation_error'].messages: # prevent the repetition of error messages for volume_used at the level of pools.
+        if not any(result['validation_error'].messages for result in result_list): # prevent the repetition of error messages for volume_used at the level of pools.
             """
                 POOLS SHEET
             """
