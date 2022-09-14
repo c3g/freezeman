@@ -34,6 +34,6 @@ class SamplesToPoolRowHandler(GenericRowHandler):
             "Source Container Barcode": source_sample["barcode"],
             "Source Container Coordinate": source_sample["coordinates"],
             "Source Depleted": source_sample["depleted"],
-            "Volume Used (uL)": volume_used,
+            "Volume Used": volume_used,
             "Comment": comment,
         }
