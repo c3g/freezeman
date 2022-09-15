@@ -16,9 +16,15 @@ class PoolsRowHandler(GenericRowHandler):
                                             f"Make sure SampleToPool sheet Pool Name column values "
                                             f"match a value in Pools sheet Pool Name column.")
         else:
+            set_type = set(sample["Source Sample"].is_library for sample in samples_info)
+            set_kind = set(sample["Source Sample"].sample_kind_name for sample in samples_info)
             # Add an error if the samples are not of the same type (sample mixed with library)
-            if len(set(sample["Source Sample"].is_library for sample in samples_info)) > 1:
+            if len(set_type) > 1:
                 self.errors["source_sample"] = (f"Source samples in pool {pool['name']} are not all either samples or libraries.")
+            # Add an error if we are pooling samples and they are not of the same sample kind
+            elif not set_type.pop() and len(set_kind) > 1: # not set_type[0] => all samples and len(set_kind) > 1 => not all same kind
+                self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
+                                                f"Samples to be pooled are of the following kinds: {set_kind}.")
 
             # Add a warning if the concentration of the samples/libraries are not within a tolerance
             TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive

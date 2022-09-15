@@ -69,10 +69,18 @@ class Sample(TrackedModel):
         return True if any([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
 
     @property
-    def avg_library_size(self) -> Union[Decimal, None]:
-        return None if not self.is_library or any(derived_by_sample.derived_sample.library.library_size is None for derived_by_sample in self.derived_by_samples.all()) \
-                    else decimal_rounded_to_precision(sum(derived_by_sample.volume_ratio * derived_by_sample.derived_sample.library.library_size \
-                    for derived_by_sample in self.derived_by_samples.all()))
+    def sample_kind_name(self) -> str:
+        POOL_KIND_NAME = "POOL"
+
+        if self.is_library:
+            if self.is_pool:
+                sample_kind_name = POOL_KIND_NAME
+            else:
+                sample_kind_name = self.derived_samples.first().sample_kind.name
+        else:
+            sample_kind_name = self.derived_samples.first().sample_kind.name
+
+        return sample_kind_name
 
     @property
     def derived_sample_not_pool(self) -> DerivedSample:
