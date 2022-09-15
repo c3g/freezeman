@@ -66,7 +66,6 @@ class LibraryRowHandler(GenericRowHandler):
                 strandedness=strandedness,
             )
 
-            #TODO: adapt this to pool of samples
             libraries_by_derived_sample = {}
             for derived_sample_source in source_sample_obj.derived_samples.all():
                 library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_info['library_type'],
