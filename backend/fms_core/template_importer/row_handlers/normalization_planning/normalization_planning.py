@@ -46,8 +46,8 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
 
             # ensure that the sample source is a library if the norm choice is library
-            # TODO: what if it is a pool?
-            if robot['norm_choice'] == LIBRARY_CHOICE and (not source_sample_obj.is_library or not source_sample_obj.is_pool_of_libraries):
+            # TODO: If it is a pool we have to check if it is a pool of libraries
+            if robot['norm_choice'] == LIBRARY_CHOICE and not (source_sample_obj.is_library or source_sample_obj.is_pool_of_libraries):
                 self.errors[
                     'sample'] = f'The robot normalization choice was library. However, the source sample is not a library.'
 
@@ -61,7 +61,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 na_qty = decimal.Decimal(measurements['volume']) * decimal.Decimal(concentration_nguL)
                 combined_concentration_nguL = concentration_nguL
             elif measurements['concentration_nm'] is not None:
-                if not source_sample_obj.is_library or not source_sample_obj.is_pool_of_libraries:
+                if not source_sample_obj.is_library and not source_sample_obj.is_pool_of_libraries:
                     self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries or pool of libraries.'
                 else:
                     concentration_nm = measurements['concentration_nm']

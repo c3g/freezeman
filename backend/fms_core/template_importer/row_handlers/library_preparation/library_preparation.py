@@ -27,6 +27,10 @@ class LibraryRowHandler(GenericRowHandler):
             self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
 
         if source_sample_obj:
+            # Check if sample is not a library or a pool of libraries
+            if source_sample_obj.is_library or source_sample_obj.is_pool_of_libraries:
+                self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
+
             # Populate the libraries with the batch and  individual information
             protocol = library_batch_info['protocol']
             process_by_protocol = library_batch_info['process_by_protocol']

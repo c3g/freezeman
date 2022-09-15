@@ -22,6 +22,10 @@ class SampleQCRowHandler(GenericRowHandler):
         )
 
         if sample_obj:
+            # Check if sample is not a library or a pool of libraries
+            if sample_obj.is_library or sample_obj.is_pool_of_libraries:
+                self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
+
             # Update sample with sample_information
             new_volume = None
             if all([sample_information['initial_volume'], sample_information['measured_volume'],
@@ -72,7 +76,7 @@ class SampleQCRowHandler(GenericRowHandler):
                         self.errors['instrument'] = f'Invalid instrument {type}.'
 
                 # Validate required RIN for RNA
-                # TODO: for pools, do we check all sample kinds ?
+                # TODO: For pools we check all sample kinds
                 for derived_sample in sample_obj.derived_samples.all():
                     if derived_sample.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
                         self.errors['RIN'] = 'RIN has to be specified for RNA.'

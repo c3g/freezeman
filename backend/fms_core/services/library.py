@@ -84,8 +84,8 @@ def convert_library(process, platform, sample_source, container_destination, coo
 
     # Retrieve library object linked to the source sample
     #TODO: adapt this to pools
-    if not sample_source.is_library or not sample_source.is_pool_of_libraries:
-        errors.append(f"Sample {sample_source.name} is not a library nor a pool of libraries.")
+    if not sample_source.is_library and not sample_source.is_pool_of_libraries:
+        errors.append(f"Sample {sample_source.name} is not a library or a pool of libraries.")
 
     if not errors:
         try:
@@ -157,11 +157,11 @@ def update_library(sample, **kwargs):
 
     if sample is None:
         errors.append('Missing sample')
-    elif not sample.is_library or not sample.is_pool_of_libraries:
-        errors.append('Sample {sample.name} is not a library')
+    elif not sample.is_library and not sample.is_pool_of_libraries:
+        errors.append(f'Sample {sample.name} is not a library')
     else:
         try:
-            #TODO: In the case of pools, should we update each library?
+            #TODO: In the case of pools, we update each library
             for derived_sample_source in sample.derived_samples.all():
                 library = derived_sample_source.library
 

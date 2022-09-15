@@ -30,7 +30,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             return
 
         # TODO: modify this for pool i.e. all derived sampless
-        if not source_sample_obj.is_library or not source_sample_obj.is_pool_of_libraries:
+        if not source_sample_obj.is_library and not source_sample_obj.is_pool_of_libraries:
             self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library or a pool of libraries. '
 
         # volumes
