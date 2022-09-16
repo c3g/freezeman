@@ -12,12 +12,14 @@ __all__ = ["SampleByProject"]
 @reversion.register()
 class SampleByProject(TrackedModel):
     sample = models.ForeignKey("Sample", help_text="Sample assigned to a project.",
-                              on_delete=models.CASCADE, related_name="project_association")
+                              on_delete=models.PROTECT, related_name="project_association")
+    derived_sample = models.ForeignKey("DerivedSample", help_text="Derived sample assigned to a project.",
+                                       on_delete=models.PROTECT, related_name="project_association")
     project = models.ForeignKey("Project", help_text="Project to which the sample is associated.",
-                               on_delete=models.CASCADE, related_name="sample_association")
+                                on_delete=models.PROTECT, related_name="derived_sample_association")
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["sample", "project"], name="sample_by_project_unique")
+            models.UniqueConstraint(fields=["derived_sample", "project"], name="derivedsample_project_key")
         ]
 
     def clean(self):
