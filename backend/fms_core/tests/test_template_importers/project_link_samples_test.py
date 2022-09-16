@@ -6,7 +6,7 @@ import datetime
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import SampleKind, SampleByProject, Taxon
+from fms_core.models import SampleKind, DerivedSampleByProject, Taxon
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -75,12 +75,12 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        self.assertEqual(len(SampleByProject.objects.all()), 3)
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample1, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project2).exists())
-        self.assertFalse(SampleByProject.objects.filter(sample=self.sample1, project=self.project2).exists())
-        self.assertFalse(SampleByProject.objects.filter(sample=self.sample3, project=self.project3).exists())
+        self.assertEqual(len(DerivedSampleByProject.objects.all()), 3)
+        self.assertTrue(DerivedSampleByProject.objects.filter(sample=self.sample1, project=self.project1).exists())
+        self.assertTrue(DerivedSampleByProject.objects.filter(sample=self.sample2, project=self.project1).exists())
+        self.assertTrue(DerivedSampleByProject.objects.filter(sample=self.sample2, project=self.project2).exists())
+        self.assertFalse(DerivedSampleByProject.objects.filter(sample=self.sample1, project=self.project2).exists())
+        self.assertFalse(DerivedSampleByProject.objects.filter(sample=self.sample3, project=self.project3).exists())
 
     def test_invalid_project_link_samples(self):
         for f in self.invalid_template_tests:

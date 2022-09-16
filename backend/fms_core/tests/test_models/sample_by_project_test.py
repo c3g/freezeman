@@ -6,7 +6,7 @@ from fms_core.models import (
     SampleKind,
     Project,
     Sample,
-    SampleByProject,
+    DerivedSampleByProject,
     Individual,
 )
 
@@ -31,7 +31,7 @@ class SampleByProjectTest(TestCase):
         self.valid_project = Project.objects.create(name=self.valid_project_name)
 
     def test_sample_by_project(self):
-        my_sample_by_project = SampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
+        my_sample_by_project = DerivedSampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
 
         self.assertEqual(my_sample_by_project.project, self.valid_project)
         self.assertEqual(my_sample_by_project.sample, self.valid_sample)
@@ -40,7 +40,7 @@ class SampleByProjectTest(TestCase):
         invalid_sample = Sample()
         with self.assertRaises(ValidationError):
             try:
-                er_without_et = SampleByProject.objects.create(project=self.valid_project, sample=invalid_sample)
+                er_without_et = DerivedSampleByProject.objects.create(project=self.valid_project, sample=invalid_sample)
             except ValidationError as e:
                 self.assertTrue("sample" in e.message_dict)
                 raise e
@@ -49,15 +49,15 @@ class SampleByProjectTest(TestCase):
         invalid_project = Project()
         with self.assertRaises(ValidationError):
             try:
-                er_without_et = SampleByProject.objects.create(project=invalid_project, sample=self.valid_sample)
+                er_without_et = DerivedSampleByProject.objects.create(project=invalid_project, sample=self.valid_sample)
             except ValidationError as e:
                 self.assertTrue("project" in e.message_dict)
                 raise e
 
     def test_duplicate_link(self):
-        my_sample_by_project = SampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
+        my_sample_by_project = DerivedSampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
         with self.assertRaises(ValidationError):
             try:
-                my_sample_by_project_duplicated = SampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
+                my_sample_by_project_duplicated = DerivedSampleByProject.objects.create(project=self.valid_project, sample=self.valid_sample)
             except ValidationError as e:
                 raise e

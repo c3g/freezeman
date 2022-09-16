@@ -124,7 +124,7 @@ class Sample(TrackedModel):
     # Computed property for project relation
     @property
     def projects(self) -> List["Project"]:
-        return self.projects.all() if self.id else None
+        return self.derived_samples.projects.all() if self.id else None
 
     @property
     def source_depleted(self) -> bool:
