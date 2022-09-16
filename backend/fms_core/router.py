@@ -30,6 +30,7 @@ from .viewsets import (
     ImportedFileViewSet,
     DatasetViewSet,
     DatasetFileViewSet,
+    PooledSamplesViewSet,
 )
 
 __all__ = ["router"]
@@ -48,6 +49,7 @@ router.register(r"process-measurements", ProcessMeasurementViewSet)
 router.register(r"property-values", PropertyValueViewSet)
 router.register(r"samples", SampleViewSet)
 router.register(r"libraries", LibraryViewSet)
+router.register(r"pools", PooledSamplesViewSet)
 router.register(r"library-types", LibraryTypeViewSet)
 router.register(r"platforms", PlatformViewSet)
 router.register(r"indices", IndexViewSet)

@@ -10,6 +10,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    DerivedSample,
     ExperimentRun,
     RunType,
     Index,
@@ -361,6 +362,7 @@ class SampleSerializer(serializers.ModelSerializer):
     quality_flag = serializers.SerializerMethodField()
     quantity_flag = serializers.SerializerMethodField()
     is_library = serializers.SerializerMethodField()
+    is_pool = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -371,6 +373,9 @@ class SampleSerializer(serializers.ModelSerializer):
     
     def get_is_library(self, obj):
         return obj.is_library
+
+    def get_is_pool(self, obj):
+        return obj.is_pool
 
     def get_quality_flag(self, obj):
         return obj.quality_flag
