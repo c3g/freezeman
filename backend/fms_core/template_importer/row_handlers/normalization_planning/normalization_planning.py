@@ -65,7 +65,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries or pool of libraries.'
                 else:
                     concentration_nm = measurements['concentration_nm']
-                    # TODO: for pool we have to ue avg size and check how to get the molecular weight
+                    # TODO: Implement conversion service to include pool of libraries
                     library_obj = source_sample_obj.derived_samples.first().library
                     # library_obj = source_sample_obj.derived_sample_not_pool.library
                     combined_concentration_nguL = decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,

@@ -75,8 +75,15 @@ class LibraryQCRowHandler(GenericRowHandler):
         # library size
         # TODO: I modified to optional if sample is pool. Is the assumption correct?
         library_size = measures['library_size']
-        if library_size is None and not source_sample_obj.is_pool:
-            self.errors['library_size'] = 'Library size must be specified'
+        if not source_sample_obj.is_pool:
+            if library_size is None:
+                self.errors['library_size'] = 'Library size must be specified'
+            else:
+                # set the library size on the library
+                # TODO: modify this to send all the derived samples instead of the sample
+                for derived_sample in source_sample_obj.derived_samples.all():
+                    _, self.errors['library-size'], self.warnings['library-size'] = \
+                        update_library(derived_sample, **{'library_size': library_size})
 
         # concentration
         if measures['concentration_nm'] is None and measures['concentration_uL'] is None:
@@ -85,12 +92,11 @@ class LibraryQCRowHandler(GenericRowHandler):
         if measures['concentration_nm'] is not None and measures['concentration_uL'] is not None:
             self.errors['concentration'] = 'Concentration must be specified in either nM or ng/uL, not both.'
 
-        # TODO: if it is a pool, library size is not provided. Should we force concentration in uL?
         concentration = measures['concentration_uL']
         if concentration is None:
             concentration = measures['concentration_nm']
             if concentration is not None:
-                # TODO: for pool, we should come with a better way to computer molecular weight
+                # TODO: implement new service to conver concentration
                 molecular_weight = source_sample_obj.derived_samples.first().library.molecular_weight_approx
                 #molecular_weight = source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx
                 concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
@@ -135,10 +141,6 @@ class LibraryQCRowHandler(GenericRowHandler):
             update_qc_flags(sample=source_sample_obj,
                             quantity_flag=measures['quantity_flag'],
                             quality_flag=measures['quality_flag'])
-
-        # set the library size on the library
-        _, self.errors['library-size'], self.warnings['library-size'] = \
-            update_library(source_sample_obj, **{'library_size': library_size})
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \

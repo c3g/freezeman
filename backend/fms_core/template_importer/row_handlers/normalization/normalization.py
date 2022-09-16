@@ -46,10 +46,10 @@ class NormalizationRowHandler(GenericRowHandler):
             # Case when nM is given
             elif destination_sample['concentration_nm']:
                 if source_sample_obj.is_library:
-                    # TODO: Adapt so we use avg. library size of a pool
+                    # TODO: Compute the size of each library and use the new convert service for pool
                     library = source_sample_obj.derived_sample_not_pool.library
                     if library.library_size:
-                        # TODO: improve conversion service to include pool of libraries
+                        # TODO: Implement conversion service to include pool of libraries
                         concentration = convert_concentration_from_nm_to_ngbyul(destination_sample['concentration_nm'],
                                                                                 library.molecular_weight_approx,
                                                                                 library.library_size)

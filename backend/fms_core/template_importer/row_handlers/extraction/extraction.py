@@ -44,6 +44,5 @@ class ExtractionRowHandler(GenericRowHandler):
                                volume_destination=resulting_sample['volume'],
                                source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None,
                                comment=process_measurement['comment'])
-
         else:
             self.errors['source_sample'] = f"Source sample can't be a pool."

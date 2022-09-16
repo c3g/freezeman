@@ -109,7 +109,8 @@ def convert_library(process, platform, sample_source, container_destination, coo
                 library_source_obj = derived_sample_source.library
                 # extra validation
                 if library_source_obj is None:
-                    errors.append(f"Sample {sample_source.name} is not a library or pool of libraries. ")
+                    errors.append(f"Pool {sample_source.name} contains a sample {derived_sample_source.biosample.alias} that is not a library.")
+
                 elif library_source_obj.platform == platform:
                     errors.append(f"Source library platform and destination library platform can't be the same.")
 
@@ -150,45 +151,43 @@ def convert_library(process, platform, sample_source, container_destination, coo
     return library_destination, errors, warnings
 
 
-def update_library(sample, **kwargs):
+def update_library(derived_sample, **kwargs):
     errors = []
     warnings = []
 
-    if sample is None:
+    if derived_sample is None:
         errors.append('Missing sample')
-    elif not sample.is_library:
-        errors.append(f"Sample {sample.name} is not a library or a pool of libraries.")
+    elif not derived_sample.library:
+        errors.append(f"Sample {derived_sample.biosample.alias} is not a library or a pool of libraries.")
     else:
         try:
-            # In the case of pools, we update each library
-            for derived_sample_source in sample.derived_samples.all():
-                library = derived_sample_source.library
+            library = derived_sample.library
 
-                if 'library_type' in kwargs:
-                    library.library_type = kwargs['library_type']
+            if 'library_type' in kwargs:
+                library.library_type = kwargs['library_type']
 
-                if 'platform' in kwargs:
-                    library.platform = kwargs['platform']
+            if 'platform' in kwargs:
+                library.platform = kwargs['platform']
 
-                if 'index' in kwargs:
-                    library.index = kwargs['index']
+            if 'index' in kwargs:
+                library.index = kwargs['index']
 
-                if 'strandedness' in kwargs:
-                    strandedness = kwargs['strandedness']
-                    if strandedness is None or strandedness in STRANDEDNESS_CHOICES:
-                        library.strandedness = strandedness
-                    else:
-                        errors.append(f'Unexpected value for strandedness ({strandedness})')
+            if 'strandedness' in kwargs:
+                strandedness = kwargs['strandedness']
+                if strandedness is None or strandedness in STRANDEDNESS_CHOICES:
+                    library.strandedness = strandedness
+                else:
+                    errors.append(f'Unexpected value for strandedness ({strandedness})')
 
-                if 'library_size' in kwargs:
-                    library_size = kwargs['library_size']
-                    if library_size is not None:
-                        library_size = Decimal(kwargs['library_size'])
-                    library.library_size = library_size
+            if 'library_size' in kwargs:
+                library_size = kwargs['library_size']
+                if library_size is not None:
+                    library_size = Decimal(kwargs['library_size'])
+                library.library_size = library_size
 
-                library.save()
+            library.save()
             
         except Exception as e:
             errors.append(str(e))
 
-    return sample, errors, warnings
+    return derived_sample, errors, warnings

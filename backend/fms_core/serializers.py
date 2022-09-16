@@ -441,7 +441,9 @@ class LibrarySerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
     def get_concentration_nm(self, obj):
-        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
+        if obj.is_pool:
+            return None
+        elif not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
             return None
         else:
             return convert_concentration_from_ngbyul_to_nm(obj.concentration,

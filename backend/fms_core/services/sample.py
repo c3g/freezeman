@@ -148,8 +148,7 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
                                            derived_sample=derived_sample_destination,
                                            volume_ratio=volume_ratios[derived_sample_destination.id])
         
-        # project inheritance
-        # TODO: Move project to derived?
+        # project inheritances
         for project in sample_source.projects.all():
             SampleByProject.objects.create(project=project, sample=new_sample)
 
@@ -305,6 +304,7 @@ def extract_sample(process: Process,
     return (sample_destination, errors, warnings)
 
 
+# TODO: add docstring
 def prepare_library(process: Process,
                     sample_source: Sample,
                     container_destination: Container,

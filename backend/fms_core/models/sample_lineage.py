@@ -42,9 +42,13 @@ class SampleLineage(TrackedModel):
                     add_error("tissue_source", "Extracted sample need to have a tissue source.")
                 elif child_derived.tissue_source != parent_derived.sample_kind:
                     add_error("tissue_source", "Extracted sample tissue_source must match parent sample_kind.")
-        elif protocol_name == "Transfer":
+        elif any([protocol_name == "Transfer", protocol_name == "Illumina Infinium Preparation", protocol_name == "DNBSEQ Preparation"]):
             if list(self.child.derived_samples.values_list("id", flat=True).order_by("id")) != list(self.parent.derived_samples.values_list("id", flat=True).order_by("id")):
-                add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")           
+                add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")
+        elif protocol_name == "Sample Pooling":
+            # Check that parent.derived_samples are a subset of the child.derived_samples.
+            if not set(self.parent.derived_samples.values_list("id", flat=True)) <= set(self.child.derived_samples.values_list("id", flat=True)):
+                add_error("derived_sample", f"Pooled sample {self.child.name} does not include all the derived samples of the parent.")
 
         if self.child == self.parent:
             add_error("child", "A sample cannot have itself as child.")
