@@ -27,7 +27,7 @@ def attach_project_to_derived_sample(apps, schema_editor):
         for sample_by_project in SampleByProject.objects.all():
             derived_sample = sample_by_project.sample.derived_samples.first()
             if not DerivedSample.objects.filter(project=sample_by_project.project).exists():
-                derived_sample.project = sample_by_project.project
+                derived_sample.project_id = sample_by_project.project_id
                 derived_sample.save()
                 reversion.add_to_revision(derived_sample)
 
