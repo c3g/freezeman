@@ -66,12 +66,7 @@ class Sample(TrackedModel):
 
     @property
     def is_library(self) -> bool:
-        # TODO: any?
         return True if any([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
-
-    @property
-    def is_pool_of_libraries(self) -> bool:
-        return True if self.is_pool and all([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
 
     @property
     def derived_sample_not_pool(self) -> DerivedSample:

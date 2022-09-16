@@ -28,7 +28,7 @@ class LibraryRowHandler(GenericRowHandler):
 
         if source_sample_obj:
             # Check if sample is not a library or a pool of libraries
-            if source_sample_obj.is_library or source_sample_obj.is_pool_of_libraries:
+            if source_sample_obj.is_librarys:
                 self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
 
             # Populate the libraries with the batch and  individual information

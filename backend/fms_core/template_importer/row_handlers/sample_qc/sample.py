@@ -23,7 +23,7 @@ class SampleQCRowHandler(GenericRowHandler):
 
         if sample_obj:
             # Check if sample is not a library or a pool of libraries
-            if sample_obj.is_library or sample_obj.is_pool_of_libraries:
+            if sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
 
             # Update sample with sample_information

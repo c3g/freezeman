@@ -29,7 +29,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             self.errors['library'] = f"Library sample for QC was not found in container ({barcode}) at ({coordinates})"
             return
 
-        if not source_sample_obj.is_library and not source_sample_obj.is_pool_of_libraries:
+        if not source_sample_obj.is_library:
             self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library or a pool of libraries. '
 
         # volumes
