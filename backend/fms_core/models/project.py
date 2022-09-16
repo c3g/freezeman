@@ -28,7 +28,6 @@ class Project(TrackedModel):
     external_name = models.CharField(blank=True, null=True, max_length=200, help_text="Original project name used by external client.")
 
     comment = models.TextField(blank=True, help_text="Other relevant information about the project.")
-    samples = models.ManyToManyField("sample", blank=True, through="SampleByProject", related_name="projects")
 
     def clean(self):
         super().clean()
