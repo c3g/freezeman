@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, SampleByProject, Library, SampleMetadata
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, DerivedSampleByProject, Library, SampleMetadata
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -150,7 +150,7 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
         
         # project inheritances
         for project in sample_source.projects.all():
-            SampleByProject.objects.create(project=project, sample=new_sample)
+            DerivedSampleByProject.objects.create(project=project, sample=new_sample)
 
     except Error as e:
             errors.append(';'.join(e.messages))
@@ -416,8 +416,8 @@ def pool_samples(process: Process,
                 # project inheritance !!! Remove if moving projects to derived_sample.
                 try:
                     for project in source_sample.projects.all():
-                        if not SampleByProject.objects.filter(project=project, sample=sample_destination).exists():
-                            SampleByProject.objects.create(project=project, sample=sample_destination)
+                        if not DerivedSampleByProject.objects.filter(project=project, sample=sample_destination).exists():
+                            DerivedSampleByProject.objects.create(project=project, sample=sample_destination)
                 except Exception as e:
                         errors.append(e)
 

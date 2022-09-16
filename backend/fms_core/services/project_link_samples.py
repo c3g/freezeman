@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleByProject, Sample, Project
+from fms_core.models import DerivedSampleByProject, Sample, Project
 
 def create_link(sample=None, project=None):
     project_sample_link = None
@@ -14,14 +14,19 @@ def create_link(sample=None, project=None):
         errors.append(f"Invalid sample or project objects.")
         return (project_sample_link, errors, warnings)
 
-    if SampleByProject.objects.filter(sample=sample, project=project).exists():
-        errors.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
+    if sample.is_pool:
+        errors.append(f"Pooled samples and libraries cannot be assigned to a project. Assign the project to parent individually.")
         return (project_sample_link, errors, warnings)
 
-    try:
-        project_sample_link = SampleByProject.objects.create(sample=sample, project=project)
-    except ValidationError as e:
-        errors.append(str(e))
+    for derived_sample in sample.derived_samples.all():
+        if DerivedSampleByProject.objects.filter(derived_sample=derived_sample, project=project).exists():
+            errors.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
+            return (project_sample_link, errors, warnings)
+
+        try:
+            project_sample_link = DerivedSampleByProject.objects.create(derived_sample=derived_sample, project=project)
+        except ValidationError as e:
+            errors.append(str(e))
 
     return (project_sample_link, errors, warnings)
 

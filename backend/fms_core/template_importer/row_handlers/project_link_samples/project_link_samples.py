@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from fms_core.models import SampleByProject
-
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import get_sample_from_container

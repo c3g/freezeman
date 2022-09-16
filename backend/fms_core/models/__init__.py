@@ -8,7 +8,7 @@ from .individual import Individual
 from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
-from .sample_by_project import SampleByProject
+from .derived_sample_by_project import DerivedSampleByProject
 from .protocol import Protocol
 from .process import Process
 from .process_measurement import ProcessMeasurement
@@ -44,7 +44,7 @@ __all__ = [
     "Sample",
     "SampleKind",
     "SampleLineage",
-    "SampleByProject",
+    "DerivedSampleByProject",
     "SampleMetadata",
     "Protocol",
     "Process",
