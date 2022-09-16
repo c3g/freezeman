@@ -7,13 +7,11 @@ from .tracked_model import TrackedModel
 
 from ._utils import add_error as _add_error
 
-__all__ = ["SampleByProject"]
+__all__ = ["DerivedSampleByProject"]
 
 @reversion.register()
-class SampleByProject(TrackedModel):
-    sample = models.ForeignKey("Sample", help_text="Sample assigned to a project.",
-                              on_delete=models.PROTECT, related_name="project_association")
-    derived_sample = models.ForeignKey("DerivedSample", help_text="Derived sample assigned to a project.",
+class DerivedSampleByProject(TrackedModel):
+    derived_sample = models.ForeignKey("DerivedSample", help_text="Derived Sample assigned to a project.",
                                        on_delete=models.PROTECT, related_name="project_association")
     project = models.ForeignKey("Project", help_text="Project to which the sample is associated.",
                                 on_delete=models.PROTECT, related_name="derived_sample_association")

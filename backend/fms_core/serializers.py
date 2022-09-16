@@ -351,7 +351,7 @@ class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     sample_kind = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.sample_kind")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     individual = serializers.PrimaryKeyRelatedField(read_only=True, source="biosample_not_pool.individual")
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
@@ -386,7 +386,7 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
+                  'quality_flag', 'quantity_flag', 'derived_samples__projects', 'depleted', 'is_library', 'comment')
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):
@@ -401,7 +401,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     quantity_flag = serializers.SerializerMethodField()
     quality_flag = serializers.SerializerMethodField()
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
@@ -417,7 +417,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
 class LibrarySerializer(serializers.ModelSerializer):
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     container = serializers.CharField(read_only=True, source="container.id")
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
     quality_flag = serializers.SerializerMethodField()
     quantity_flag = serializers.SerializerMethodField()
     concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
@@ -432,7 +432,7 @@ class LibrarySerializer(serializers.ModelSerializer):
         model = Sample
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
-                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
+                  'quantity_flag', 'derived_samples__projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
     def get_quality_flag(self, obj):
         return obj.quality_flag
@@ -540,7 +540,7 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        exclude = ("samples",)
+        exclude = ("derived_samples",)
 
 
 class ProjectExportSerializer(serializers.ModelSerializer):
