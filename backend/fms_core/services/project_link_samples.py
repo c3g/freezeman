@@ -57,7 +57,7 @@ def remove_link(sample=None, project=None):
         try:
             derived_sample.project = None
             derived_sample.save()
-            num_objects_deleted += 1
+            num_links_removed += 1
         except ValidationError as e:
             errors.append(str(e))
 
