@@ -304,7 +304,6 @@ def extract_sample(process: Process,
     return (sample_destination, errors, warnings)
 
 
-# TODO: add docstring
 def prepare_library(process: Process,
                     sample_source: Sample,
                     container_destination: Container,
@@ -314,6 +313,24 @@ def prepare_library(process: Process,
                     coordinates_destination=None,
                     volume_destination=None,
                     comment=None):
+    """
+             Converts a sample into a library or a pool of samples into a pool of libraries.
+
+             Args:
+                 `process`: Process associated to the protocol.
+                 `sample_source`: The source sample to be converted.
+                 `container_destination`: The final volume of the sample (uL).
+                 `libraries_by_derived_sample`: A library object for each derived sample of the source sample.
+                 `volume_used`: The source sample's volume ued for the process (uL).
+                 `execution_date`: The date of the process measurement.
+                 `coordinates_destination`: The coordinates of the sample destination.
+                 `volume_destination`: The final volume of the sample (uL).
+                 `comment`: Extra comments to attach to the process.
+
+             Returns:
+                 The resulting sample or None if errors were encountered.
+        """
+
     sample_destination = None
     errors = []
     warnings = []
@@ -466,7 +483,6 @@ def add_sample_metadata(sample, metadata):
     if sample and metadata:
         try:
             # Retrieve the biosample of the given sample
-            # TODO: in case of pools, we should not allow metadata
             biosample_obj = sample.biosample_not_pool
             for (name, value) in metadata.items():
                 # Check if sample has already the metadata

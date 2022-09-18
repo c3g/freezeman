@@ -2,11 +2,10 @@ from decimal import Decimal
 from fms_core.models.sample import Sample
 from fms_core.services.sample import update_qc_flags
 from fms_core.models.instrument_type import InstrumentType
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
-from fms_core.services.library import update_library
+from fms_core.services.library import update_library, convert_library_concentration_from_nm_to_ngbyul
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
@@ -73,14 +72,13 @@ class LibraryQCRowHandler(GenericRowHandler):
                 self.errors['library_volume'] = f'The library\'s computed final volume would be less than zero ({final_volume}). Please verify the volume currently stored for the library.'
 
         # library size
-        # TODO: I modified to optional if sample is pool. Is the assumption correct?
         library_size = measures['library_size']
         if not source_sample_obj.is_pool:
             if library_size is None:
                 self.errors['library_size'] = 'Library size must be specified'
             else:
-                # set the library size on the library
-                # TODO: modify this to send all the derived samples instead of the sample
+                # Set the library size on the library
+                # Send all the derived samples related to the sample source
                 for derived_sample in source_sample_obj.derived_samples.all():
                     _, self.errors['library-size'], self.warnings['library-size'] = \
                         update_library(derived_sample, **{'library_size': library_size})
@@ -96,10 +94,9 @@ class LibraryQCRowHandler(GenericRowHandler):
         if concentration is None:
             concentration = measures['concentration_nm']
             if concentration is not None:
-                # TODO: implement new service to conver concentration
-                molecular_weight = source_sample_obj.derived_samples.first().library.molecular_weight_approx
-                #molecular_weight = source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx
-                concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
+                # Calculate the concentration taking into account volume ratios
+                concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
+                    convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, measures['concentration_nm'])
                 if concentration is None:
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
         

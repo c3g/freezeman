@@ -3,7 +3,7 @@ from typing import Dict, Any, Union, List
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from .utils import convert_concentration_from_ngbyul_to_nm
+from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 from django.db.models import Max
 
 from .models import (
@@ -441,14 +441,13 @@ class LibrarySerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
     def get_concentration_nm(self, obj):
-        if obj.is_pool:
-            return None
-        elif not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
+        # If object is not a library or there's a library size missing in any of the derived samples return none
+        if not obj.is_library or any(
+                [derived_sample.library.library_size is None for derived_sample in obj.derived_samples.all()]):
             return None
         else:
-            return convert_concentration_from_ngbyul_to_nm(obj.concentration,
-                                                           obj.derived_sample_not_pool.library.molecular_weight_approx,
-                                                           obj.derived_sample_not_pool.library.library_size)
+            return convert_library_concentration_from_ngbyul_to_nm(obj,
+                                                                   obj.concentration)
 
     def get_quantity_ng(self, obj):
         if not obj.concentration:
@@ -490,12 +489,13 @@ class LibraryExportSerializer(serializers.ModelSerializer):
 
     # TODO : update this formula to include RNA and single strand DNA
     def get_concentration_nm(self, obj):
-        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
+        # If object is not a library or there's a library size missing in any of the derived samples return none
+        if not obj.is_library or any(
+                [derived_sample.library.library_size is None for derived_sample in obj.derived_samples.all()]):
             return None
         else:
-            return convert_concentration_from_ngbyul_to_nm(obj.concentration,
-                                                           obj.derived_sample_not_pool.library.molecular_weight_approx,
-                                                           obj.derived_sample_not_pool.library.library_size)
+            return convert_library_concentration_from_ngbyul_to_nm(obj,
+                                                                   obj.concentration)
 
     def get_quantity_ng(self, obj):
         if not obj.concentration:
