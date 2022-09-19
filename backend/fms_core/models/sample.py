@@ -20,7 +20,7 @@ from .derived_sample import DerivedSample
 from .derived_by_sample import DerivedBySample
 from .biosample import Biosample
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, POOL_KIND_NAME
 from ._utils import add_error as _add_error
 from ._validators import name_validator
 
@@ -70,8 +70,6 @@ class Sample(TrackedModel):
 
     @property
     def sample_kind_name(self) -> str:
-        POOL_KIND_NAME = "POOL"
-
         if self.is_library:
             if self.is_pool:
                 sample_kind_name = POOL_KIND_NAME
