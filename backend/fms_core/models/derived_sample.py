@@ -27,7 +27,8 @@ class DerivedSample(TrackedModel):
                                       help_text="Can only be specified if the sample kind is DNA or RNA (i.e. is an extracted sample kind).")
     library = models.OneToOneField(Library, null=True, blank=True, on_delete=models.PROTECT, related_name="derived_sample",
                                    help_text="Library associated to this Derived Sample.")
-    projects= models.ManyToManyField("Project", blank=True, through="DerivedSampleByProject", related_name="derived_samples")
+    project= models.ForeignKey("Project", null=True, blank=True, on_delete=models.PROTECT, related_name="derived_samples",
+                               help_text="Project linked to the derived sample.")
 
 
     @property
