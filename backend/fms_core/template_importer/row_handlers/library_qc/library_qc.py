@@ -80,7 +80,6 @@ class LibraryQCRowHandler(GenericRowHandler):
             else:
                 # Set the library size on the library
                 # Send all the derived samples related to the sample source
-                # Looping is a clean way to do it even though we will not have updates on pool
                 for derived_sample in source_sample_obj.derived_samples.all():
                     _, self.errors['library-size'], self.warnings['library-size'] = \
                         update_library(derived_sample, **{'library_size': library_size})
