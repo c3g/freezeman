@@ -200,6 +200,10 @@ class Sample(TrackedModel):
                     # Fine, the coordinates are free to use.
                     pass
 
+        if self.is_pool and self.is_library:
+            if any([derived_sample.library is None for derived_sample in self.derived_samples.all()]):
+                add_error("Library of pools", f"Trying to create a pool of libraries with samples that are not libraries. ")
+
         if errors:
             raise ValidationError(errors)
 

@@ -453,7 +453,7 @@ def prepare_library(process: Process,
                  `process`: Process associated to the protocol.
                  `sample_source`: The source sample to be converted.
                  `container_destination`: The final volume of the sample (uL).
-                 `libraries_by_derived_sample`: A library object for each derived sample of the source sample.
+                 `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } containing a library for each derived sample of the source sample.
                  `volume_used`: The source sample's volume ued for the process (uL).
                  `execution_date`: The date of the process measurement.
                  `coordinates_destination`: The coordinates of the sample destination.

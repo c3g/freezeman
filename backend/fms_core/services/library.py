@@ -158,9 +158,9 @@ def update_library(derived_sample, **kwargs):
     warnings = []
 
     if derived_sample is None:
-        errors.append('Missing sample')
+        errors.append('Missing derived sample.')
     elif not derived_sample.library:
-        errors.append(f"Sample {derived_sample.biosample.alias} is not a library or a pool of libraries.")
+        errors.append(f"Sample is not a library or a pool of libraries.")
     else:
         try:
             library = derived_sample.library
@@ -197,7 +197,7 @@ def update_library(derived_sample, **kwargs):
 
 def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration_nm):
     """
-                 Converts the concentration of a library from nM to ng/uL by calculating each individual concentration
+                 Converts the concentration of a library from nM to ng/uL by calculating each partial concentration
                  of the derived samples and adjusting it with their respective volume ratio.
 
                  Args:
@@ -211,34 +211,35 @@ def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration
     warnings = []
 
     if source_sample is None:
-        errors.append(f'Missing sample')
+        errors.append(f'Missing sample.')
 
     final_concentration = 0
     for derived_sample in source_sample.derived_samples.all():
         # Compute the size of each library and its volume ratio
         library = derived_sample.library
         volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-        if library.library_size:
+        if library.library_size and library.strandedness:
             # Convert the concentration
-            individual_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
-                                                                               library.molecular_weight_approx,
-                                                                               library.library_size)
-            if individual_concentration is None:
-                errors.append(f'Failed to convert the concentration of this library {derived_sample.biosample.alias}.')
+            partial_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                            library.molecular_weight_approx,
+                                                                            library.library_size)
+            if partial_concentration is None:
+                errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
                 return None, errors, warnings
             else:
                 # Adjust the concentration according to its volume ratio
-                adjusted_concentration = individual_concentration * volume_ratio
+                adjusted_concentration = partial_concentration * volume_ratio
                 final_concentration += adjusted_concentration
         else:
-            errors.append(f'Library size has not been set for this library.')
+            errors.append(f'Either library size or strandedness has not been set for this library.')
             return None, errors, warnings
-        return final_concentration, errors, warnings
+    return final_concentration, errors, warnings
 
 
+# TODO: Double-check and test conversion
 def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration_ngbyul):
     """
-                 Converts the concentration of a library from ng/uL to nM by calculating each individual concentration
+                 Converts the concentration of a library from ng/uL to nM by calculating each partial concentration
                  of the derived samples and adjusting it with their respective volume ratio.
 
                  Args:
@@ -252,26 +253,26 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
     warnings = []
 
     if source_sample is None:
-        errors.append(f'Missing sample')
+        errors.append(f'Missing sample.')
 
     final_concentration = 0
     for derived_sample in source_sample.derived_samples.all():
         # Compute the size of each library and its volume ratio
         library = derived_sample.library
         volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-        if library.library_size:
+        if library.library_size and library.strandedness:
             # Convert the concentration
-            individual_concentration = convert_concentration_from_ngbyul_to_nm(concentration_ngbyul,
-                                                                               library.molecular_weight_approx,
-                                                                               library.library_size)
-            if individual_concentration is None:
-                errors.append(f'Failed to convert the concentration of this library {derived_sample.biosample.alias}.')
+            partial_concentration = convert_concentration_from_ngbyul_to_nm(concentration_ngbyul,
+                                                                            library.molecular_weight_approx,
+                                                                            library.library_size)
+            if partial_concentration is None:
+                errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
                 return None, errors, warnings
             else:
                 # Adjust the concentration according to its volume ratio
-                adjusted_concentration = individual_concentration * volume_ratio
+                adjusted_concentration = partial_concentration * volume_ratio
                 final_concentration += adjusted_concentration
         else:
-            errors.append(f'Library size has not been set for this library.')
+            errors.append(f'Either library size or strandedness has not been set for this library.')
             return None, errors, warnings
-        return final_concentration, errors, warnings
+    return final_concentration, errors, warnings

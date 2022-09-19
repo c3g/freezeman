@@ -441,13 +441,11 @@ class LibrarySerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
     def get_concentration_nm(self, obj):
-        # If object is not a library or there's a library size missing in any of the derived samples return none
-        if not obj.is_library or any(
-                [derived_sample.library.library_size is None for derived_sample in obj.derived_samples.all()]):
+        # If object is not a library or a pool of libraries return none
+        if not obj.is_library:
             return None
         else:
-            return convert_library_concentration_from_ngbyul_to_nm(obj,
-                                                                   obj.concentration)
+            return convert_library_concentration_from_ngbyul_to_nm(obj, obj.concentration)
 
     def get_quantity_ng(self, obj):
         if not obj.concentration:
@@ -489,13 +487,11 @@ class LibraryExportSerializer(serializers.ModelSerializer):
 
     # TODO : update this formula to include RNA and single strand DNA
     def get_concentration_nm(self, obj):
-        # If object is not a library or there's a library size missing in any of the derived samples return none
-        if not obj.is_library or any(
-                [derived_sample.library.library_size is None for derived_sample in obj.derived_samples.all()]):
+        # If object is not a library or a pool of libraries return none
+        if not obj.is_library:
             return None
         else:
-            return convert_library_concentration_from_ngbyul_to_nm(obj,
-                                                                   obj.concentration)
+            return convert_library_concentration_from_ngbyul_to_nm(obj, obj.concentration)
 
     def get_quantity_ng(self, obj):
         if not obj.concentration:

@@ -47,7 +47,7 @@ class SampleLineage(TrackedModel):
                 add_error("derived_sample", f"Transferred sample {self.child.name} need to have the same derived samples as its parent.")
         elif protocol_name == "Sample Pooling":
             # Check that parent.derived_samples are a subset of the child.derived_samples.
-            if not set(self.parent.derived_samples.values_list("id", flat=True)) <= set(self.child.derived_samples.values_list("id", flat=True)):
+            if not set(self.parent.derived_samples.values_list("id", flat=True)).issubset(set(self.child.derived_samples.values_list("id", flat=True))):
                 add_error("derived_sample", f"Pooled sample {self.child.name} does not include all the derived samples of the parent.")
 
         if self.child == self.parent:

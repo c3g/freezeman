@@ -73,7 +73,8 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # library size
         library_size = measures['library_size']
-        if not source_sample_obj.is_pool:
+        # If it is a pool of libraries that was previously QC'cd then we skip the updating (if none of the libraries have library size it was not QC'ed)
+        if not source_sample_obj.is_pool or all([derived_sample.library and derived_sample.library.library_size is None for derived_sample in source_sample_obj.derived_samples.all()]):
             if library_size is None:
                 self.errors['library_size'] = 'Library size must be specified'
             else:
