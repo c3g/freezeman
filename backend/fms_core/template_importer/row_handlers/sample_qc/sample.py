@@ -76,8 +76,6 @@ class SampleQCRowHandler(GenericRowHandler):
                         self.errors['instrument'] = f'Invalid instrument {type}.'
 
                 # Validate required RIN for RNA
-                # For pools we check all sample kinds
-                # TODO: check with the sample_kind_name property outcome
                 if sample_obj.sample_kind_name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
                     self.errors['RIN'] = 'RIN has to be specified for RNA.'
 
