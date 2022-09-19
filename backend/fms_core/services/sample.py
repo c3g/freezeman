@@ -6,7 +6,7 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
-from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today
+from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind, library=None, individual=None,
@@ -302,6 +302,139 @@ def extract_sample(process: Process,
             errors.append(e)
 
     return (sample_destination, errors, warnings)
+
+
+def pool_samples(process: Process,
+                 samples_info,
+                 pool_name,
+                 container_destination: Container,
+                 coordinates_destination,
+                 execution_date: datetime.date):
+    """
+    Creates the internal structures required to represent a pool formed by combining the source samples
+    listed in samples_info. Source samples have their volume reduced by the volume used.
+    The process parameter is used to create ProcessMeasurement for each source sample. A new pool sample
+    is created. Each source sample have a lineage created between source sample and pool sample.
+    The source sample derived samples are linked to the new pool sample through derivedbysample entries.
+    The volume_ratio for each source sample is calculated and stored on the derivedbysample entry.
+    Projects associated to the source samples are associated with the pool sample.
+     
+
+    Args:
+        process: a Process object that represent a single pooling operation.
+        samples_info: a dict for source samples info.
+                      {"Source Sample",
+                       "Source Container Barcode",
+                       "Source Container Coordinate",
+                       "Source Depleted",
+                       "Volume Used",
+                       "Comment"}
+        pool_name: the name given to the pool by the user (sample.name).
+        container_destination: a container object that will receive the pool.
+        coordinates_destination: the coordinate on the container where the pool is stored.
+        execution_date: the date where the pooling operation was completed.
+
+    Returns:
+        a tuple containing the following data.
+        sample_destination: a sample object that represents the new pool.
+        errors: errors that were encountered during the pool creation.
+        warnings: warnings to inform the user of potential mistakes or dangerous operations.
+    """
+    sample_destination = None
+    errors = []
+    warnings = []
+
+    if not process:
+        errors.append(f"Process for extraction is required.")
+    if not samples_info:
+        errors.append(f"Information must be provided about the samples to pool.")
+    if not container_destination:
+        errors.append(f"Destination container for extraction is required.")
+    if not pool_name:
+        errors.append(f"Pool Name is required.")
+    if not isinstance(execution_date, date):
+        errors.append(f"Execution date is not valid.")
+    
+    if not errors:
+        volume = sum(sample["Volume Used"] for sample in samples_info) # Calculate the total volume of the pool
+        for sample in samples_info:
+            volume_used = sample["Volume Used"]
+            sample_obj = sample["Source Sample"]
+            if volume_used is None:
+                errors.append(f"Volume used is required.")
+            else:
+                if volume_used <= 0:
+                    errors.append(f"Volume used ({volume_used}) is invalid.")
+                if sample_obj and volume_used > sample_obj.volume:
+                    errors.append(f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample_obj.volume} uL).")
+
+            sample["Volume Ratio"] = volume_used / volume # Calculate the volume ratio of each sample in the pool
+            sample["Fractional Concentration"] = sample["Volume Ratio"] * sample_obj.concentration
+            sample_obj.volume = decimal_rounded_to_precision(sample_obj.volume - volume_used)  # Reduce the volume of source samples by the volume used
+            if sample["Source Depleted"]:
+                sample_obj.depleted=sample["Source Depleted"]
+            sample_obj.save()
+        concentration = sum(sample["Fractional Concentration"] for sample in samples_info) # Calculate pool concentration using fractional concentration
+        concentration = decimal_rounded_to_precision(concentration)
+        # Create a a new sample
+        pool_data = dict(
+                name=pool_name,
+                volume=volume,
+                creation_date=execution_date,
+                container=container_destination,
+                comment=f"Automatically generated by sample pooling on {datetime.utcnow().isoformat()}Z",
+                **(dict(coordinates=coordinates_destination) if coordinates_destination is not None else dict()),
+                **(dict(concentration=concentration) if concentration is not None else dict()),
+            )
+        try:
+            sample_destination = Sample.objects.create(**pool_data)
+        except Exception as e:
+            errors.append(e)
+
+        if sample_destination:
+            for sample in samples_info:
+                source_sample = sample["Source Sample"]
+                volume_used = sample["Volume Used"]
+                volume_ratio = sample["Volume Ratio"]
+                comment = sample["Comment"]
+                # Create a process_measurement and sample lineage for each sample pooled
+                process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
+                                                                                         source_sample=source_sample,
+                                                                                         execution_date=execution_date,
+                                                                                         volume_used=volume_used,
+                                                                                         comment=comment)
+                errors.extend(errors_pm)
+                warnings.extend(warnings_pm)
+
+                if process_measurement:
+                    _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=source_sample,
+                                                                                              child_sample=sample_destination,
+                                                                                              process_measurement=process_measurement)
+                    errors.extend(errors_sample_lineage)
+                    warnings.extend(warnings_sample_lineage)
+                
+                # project inheritance !!! Remove if moving projects to derived_sample.
+                try:
+                    for project in source_sample.projects.all():
+                        if not SampleByProject.objects.filter(project=project, sample=sample_destination).exists():
+                            SampleByProject.objects.create(project=project, sample=sample_destination)
+                except Exception as e:
+                        errors.append(e)
+
+                # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
+                derived_samples_destination = source_sample.derived_samples.all()
+                for derived_sample in derived_samples_destination:
+                    parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
+                    final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio)
+
+                    try:
+                        DerivedBySample.objects.create(sample=sample_destination,
+                                                       derived_sample=derived_sample,
+                                                       volume_ratio=final_volume_ratio)
+                    except Exception as e:
+                        errors.append(e)
+
+    return sample_destination, errors, warnings
 
 
 def prepare_library(process: Process,

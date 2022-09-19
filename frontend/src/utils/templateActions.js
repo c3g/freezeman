@@ -20,6 +20,7 @@ export const actionIcon = a => {
   if (n.includes("Convert")) return <EditOutlined />;
   if (n.includes("Normalize")) return <DotChartOutlined />;
   if (n.includes("Planning")) return <FormOutlined />;
+  if (n.includes("Pool")) return <ExperimentOutlined />;
   return <DownloadOutlined />;
 };
 

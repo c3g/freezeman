@@ -11,10 +11,10 @@ from ..utils import RE_SEPARATOR, make_generator
 from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
 
-from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
+from fms_core.templates import SAMPLE_POOLING_TEMPLATE, SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
 from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
 
@@ -100,6 +100,12 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "template": [NORMALIZATION_TEMPLATE["identity"]],
             "importer": NormalizationImporter,
         },
+        {
+            "name": "Pool Samples or Libraries",
+            "description": "Upload the provided template with information to pool samples or libraries.",
+            "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
+            "importer": SamplePoolingImporter,
+        },
     ]
 
     template_prefill_list = [
@@ -114,6 +120,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": SAMPLE_METADATA_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
+        {"template": SAMPLE_POOLING_TEMPLATE},
     ]
 
     def get_queryset(self):
