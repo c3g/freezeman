@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, DerivedSampleByProject, Library, SampleMetadata
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, Library, SampleMetadata
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -147,10 +147,6 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
             DerivedBySample.objects.create(sample=new_sample,
                                            derived_sample=derived_sample_destination,
                                            volume_ratio=volume_ratios[derived_sample_destination.id])
-        
-        # project inheritances
-        for project in sample_source.projects.all():
-            DerivedSampleByProject.objects.create(project=project, sample=new_sample)
 
     except Error as e:
             errors.append(';'.join(e.messages))
@@ -412,14 +408,6 @@ def pool_samples(process: Process,
                                                                                               process_measurement=process_measurement)
                     errors.extend(errors_sample_lineage)
                     warnings.extend(warnings_sample_lineage)
-                
-                # project inheritance !!! Remove if moving projects to derived_sample.
-                try:
-                    for project in source_sample.projects.all():
-                        if not DerivedSampleByProject.objects.filter(project=project, sample=sample_destination).exists():
-                            DerivedSampleByProject.objects.create(project=project, sample=sample_destination)
-                except Exception as e:
-                        errors.append(e)
 
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 derived_samples_destination = source_sample.derived_samples.all()
