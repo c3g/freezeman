@@ -1,3 +1,4 @@
+from itertools import count
 import json
 from typing import Any, List, Union
 from rest_framework import viewsets
@@ -306,18 +307,18 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         sample_values_queryset = (
             samples_queryset
             .annotate(
-                is_library=Exists(DerivedSample.objects.filter(pk=OuterRef("first_derived_sample")).filter(library__isnull=False)),
+                is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)),
+            )
+            .annotate(
+                is_pool=Subquery(
+                    DerivedBySample.objects.filter(sample=OuterRef("pk")).count() > 1
+                )
             )
             .values(
                 'id',
                 'name',
-                'container__id',
-                'container__kind',
-                'container__name',
-                'container__barcode',
+                'container_id',
                 'coordinates',
-                'container__location__barcode',
-                'container__coordinates',
                 'volume',
                 'concentration',
                 'creation_date',
@@ -326,15 +327,20 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'depleted',
                 'comment',
                 'is_library',
+                'is_pool',
                 'first_derived_sample',
                 'projects',
+                'child_of',
+                'extracted_from',
+                'process_measurement',
+                'created_by',
+                'created_at',
+                'updated_by',
+                'updated_at',
+                'deleted',
             )
         )
         samples = { s["id"]: s for s in sample_values_queryset }
-
-        project_ids = sample_values_queryset.values_list("projects", flat=True)
-        project_values_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
-        projects = { p["id"]: p for p in project_values_queryset }
 
         derived_sample_ids = sample_values_queryset.values_list("first_derived_sample", flat=True)
         derived_sample_values_queryset = (
@@ -343,20 +349,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             .filter(id__in=derived_sample_ids)
             .values(
                 "id",
-                "biosample__id",
+                "biosample_id",
                 "biosample__alias",
-                "sample_kind__name",
-                "tissue_source__name",
+                "sample_kind_id",
+                "sample_kind_name",
+                "tissue_source_id",
                 "biosample__collection_site",
                 "experimental_group",
-                "biosample__individual__name",
-                "biosample__individual__alias",
-                'biosample__individual__sex',
-                'biosample__individual__taxon__name',
-                'biosample__individual__cohort',
-                'biosample__individual__father__name',
-                'biosample__individual__mother__name',
-                'biosample__individual__pedigree',
+                "biosample__individual_id",
             )
         )
         derived_samples = { ds["id"]: ds for ds in derived_sample_values_queryset }
@@ -364,41 +364,35 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         serialized_data = []
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
-            project_names = [projects[p]["name"] for p in make_generator(sample["projects"])]
 
             data = {
-                'sample_id': sample["id"],
-                'sample_name': sample["name"],
-                'biosample_id': derived_sample["biosample__id"],
+                'id': sample["id"],
+                'biosample_id': derived_sample["biosample_id"],
+                'name': sample["name"],
                 'alias': derived_sample["biosample__alias"],
-                'sample_kind': derived_sample["sample_kind__name"],
-                'tissue_source': derived_sample["tissue_source__name"] or "",
-                'container': sample["container__id"],
-                'container_kind': sample["container__kind"],
-                'container_name': sample["container__name"],
-                'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"],
-                'location_barcode': sample["container__location__barcode"] or "",
-                'location_coord': sample["container__coordinates"] or "",
-                'container_full_location': location_by_sample[sample["id"]] or "",
-                'current_volume': sample["volume"],
+                'volume': sample["volume"],
+                'depleted': sample["depleted"],
                 'concentration': sample["concentration"],
+                'child_of': sample["child_of"],
+                'extracted_from': sample["extracted_from"],
+                'individual': derived_sample["biosample__individual_id"],
+                'container': sample["container_id"],
+                'coordinates': sample["coordinates"],
+                'sample_kind': derived_sample["sample_kind_id"],
+                'is_library': sample["is_library"],
+                'projects': sample["projects"],
+                'process_measurements': sample["process_measurement"],
+                'tissue_source': derived_sample["tissue_source_id"],
                 'creation_date': sample["creation_date"],
                 'collection_site': derived_sample["biosample__collection_site"],
                 'experimental_group': json.dumps(derived_sample["experimental_group"]),
-                'individual_name': derived_sample["biosample__individual__name"] or "",
-                'individual_alias': derived_sample["biosample__individual__alias"] or "",
-                'sex': derived_sample["biosample__individual__sex"] or "",
-                'taxon': derived_sample["biosample__individual__taxon__name"] or "",
-                'cohort': derived_sample["biosample__individual__cohort"] or "",
-                'father_name': derived_sample["biosample__individual__father__name"] or "",
-                'mother_name': derived_sample["biosample__individual__mother__name"] or "",
-                'pedigree': derived_sample["biosample__individual__pedigree"] or "",
-                'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
-                'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
-                'projects': ",".join(project_names),
-                'depleted': ["No", "Yes"][sample["depleted"]],
-                'is_library': sample["is_library"],
+                'quality_flag': sample["quality_flag"],
+                'quantity_flag': sample["quantity_flag"],
+                'created_by': sample["created_by"],
+                'created_at': sample["created_at"],
+                'updated_by': sample["updated_by"],
+                'updated_at': sample["updated_at"],
+                'deleted': sample["deleted"],
                 'comment': sample["comment"],
             }
 

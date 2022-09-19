@@ -348,38 +348,13 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
 
 
 class SampleSerializer(serializers.ModelSerializer):
-    extracted_from = serializers.SerializerMethodField()
-    sample_kind = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.sample_kind")
-    process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.SerializerMethodField()
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    individual = serializers.PrimaryKeyRelatedField(read_only=True, source="biosample_not_pool.individual")
-    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
-    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    is_library = serializers.SerializerMethodField()
-
     class Meta:
         model = Sample
-        exclude = ('derived_samples', )
-
-    def get_projects(self, obj):
-        return obj.derived_samples.values()
-
-    def get_extracted_from(self, obj):
-        return obj.extracted_from and obj.extracted_from.id
-    
-    def get_is_library(self, obj):
-        return obj.is_library
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
+        fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
+                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'projects',
+                  'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
+                  'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
+                  'comment')
 
 class SampleExportSerializer(serializers.ModelSerializer):
     class Meta:
