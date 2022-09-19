@@ -13,7 +13,7 @@ class PoolsRowHandler(GenericRowHandler):
         # Ensure there is samples_tied to the pool
         if samples_info is None:
             self.errors["source_sample"] = (f"Cannot find samples for pool {pool['name']}. "
-                                            f"Make sure SampleToPool sheet Pool Name column values "
+                                            f"Make sure SamplesToPool sheet Pool Name column values "
                                             f"match a value in Pools sheet Pool Name column.")
         else:
             set_type = set(sample["Source Sample"].is_library for sample in samples_info)
