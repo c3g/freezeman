@@ -2,11 +2,10 @@ from decimal import Decimal
 from fms_core.models.sample import Sample
 from fms_core.services.sample import update_qc_flags
 from fms_core.models.instrument_type import InstrumentType
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
-from fms_core.services.library import update_library
+from fms_core.services.library import update_library, convert_library_concentration_from_nm_to_ngbyul
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
@@ -30,7 +29,7 @@ class LibraryQCRowHandler(GenericRowHandler):
             return
 
         if not source_sample_obj.is_library:
-            self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library '
+            self.errors['sample'] = f'The sample {source_sample_obj.name} at {barcode}@{coordinates} is not a library or a pool of libraries. '
 
         # volumes
         initial_volume = measures['initial_volume']
@@ -74,8 +73,16 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # library size
         library_size = measures['library_size']
-        if library_size is None:
-            self.errors['library_size'] = 'Library size must be specified'
+        # If it is a pool of libraries that was previously QC'cd then we skip the updating (if none of the libraries have library size it was not QC'ed)
+        if not source_sample_obj.is_pool or all([derived_sample.library and derived_sample.library.library_size is None for derived_sample in source_sample_obj.derived_samples.all()]):
+            if library_size is None:
+                self.errors['library_size'] = 'Library size must be specified'
+            else:
+                # Set the library size on the library
+                # Send all the derived samples related to the sample source
+                for derived_sample in source_sample_obj.derived_samples.all():
+                    _, self.errors['library-size'], self.warnings['library-size'] = \
+                        update_library(derived_sample, **{'library_size': library_size})
 
         # concentration
         if measures['concentration_nm'] is None and measures['concentration_uL'] is None:
@@ -88,8 +95,9 @@ class LibraryQCRowHandler(GenericRowHandler):
         if concentration is None:
             concentration = measures['concentration_nm']
             if concentration is not None:
-                molecular_weight = source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx
-                concentration = convert_concentration_from_nm_to_ngbyul(concentration, molecular_weight, library_size)
+                # Calculate the concentration taking into account volume ratios
+                concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
+                    convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, measures['concentration_nm'])
                 if concentration is None:
                     self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
         
@@ -131,10 +139,6 @@ class LibraryQCRowHandler(GenericRowHandler):
             update_qc_flags(sample=source_sample_obj,
                             quantity_flag=measures['quantity_flag'],
                             quality_flag=measures['quality_flag'])
-
-        # set the library size on the library
-        _, self.errors['library-size'], self.warnings['library-size'] = \
-           update_library(source_sample_obj, **{'library_size':library_size})
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \

@@ -148,7 +148,7 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
                                            derived_sample=derived_sample_destination,
                                            volume_ratio=volume_ratios[derived_sample_destination.id])
         
-        # project inheritance
+        # project inheritances
         for project in sample_source.projects.all():
             SampleByProject.objects.create(project=project, sample=new_sample)
 
@@ -440,12 +440,30 @@ def pool_samples(process: Process,
 def prepare_library(process: Process,
                     sample_source: Sample,
                     container_destination: Container,
-                    library: Library,
+                    libraries_by_derived_sample,
                     volume_used,
                     execution_date: datetime.date,
                     coordinates_destination=None,
                     volume_destination=None,
                     comment=None):
+    """
+             Converts a sample into a library or a pool of samples into a pool of libraries.
+
+             Args:
+                 `process`: Process associated to the protocol.
+                 `sample_source`: The source sample to be converted.
+                 `container_destination`: The final volume of the sample (uL).
+                 `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } containing a library for each derived sample of the source sample.
+                 `volume_used`: The source sample's volume ued for the process (uL).
+                 `execution_date`: The date of the process measurement.
+                 `coordinates_destination`: The coordinates of the sample destination.
+                 `volume_destination`: The final volume of the sample (uL).
+                 `comment`: Extra comments to attach to the process.
+
+             Returns:
+                 The resulting sample or None if errors were encountered.
+        """
+
     sample_destination = None
     errors = []
     warnings = []
@@ -486,12 +504,15 @@ def prepare_library(process: Process,
                 quality_flag=None
             )
 
-            new_derived_sample_data = {
-                "library_id": library.id
-            }
+
             derived_samples_destination = []
             volume_ratios = {}
+            # For pools of samples (a library for each derived sample)
             for derived_sample_source in sample_source.derived_samples.all():
+                library_obj = libraries_by_derived_sample[derived_sample_source.id]
+                new_derived_sample_data = {
+                    "library_id": library_obj.id
+                }
                 new_derived_sample, errors_inherit, warnings_inherit = inherit_derived_sample(derived_sample_source,
                                                                                               new_derived_sample_data)
                 errors.extend(errors_inherit)
