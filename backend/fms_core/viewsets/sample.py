@@ -1,10 +1,9 @@
-from itertools import count
 import json
 from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, Exists
+from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, Exists, Count
 from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR, make_generator
@@ -306,14 +305,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         sample_values_queryset = (
             samples_queryset
-            .annotate(
-                is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)),
-            )
-            .annotate(
-                is_pool=Subquery(
-                    DerivedBySample.objects.filter(sample=OuterRef("pk")).count() > 1
-                )
-            )
+            .annotate(is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)))
+            .annotate(is_pool=Count("derived_sample") > 1)
             .values(
                 'id',
                 'name',
