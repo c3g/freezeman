@@ -110,7 +110,7 @@ def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]:
     return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
     
 
-def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float, volume_ratio=1) -> float:
+def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:
     """
     Gets a concentration in ng/uL and convert it to molar concentration in nM.
     If any of the parameters are None or if the molecular_weight or the molecule_count is 0,
@@ -119,7 +119,7 @@ def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weig
     molar_concentration = None
     if concentration is None or not molecular_weight or not molecule_count:  # Prevent division by 0 and operation on NoneType
         return molar_concentration
-    molar_concentration = (concentration / (molecule_count * molecular_weight * volume_ratio)) * 1000000
+    molar_concentration = (concentration / (molecule_count * molecular_weight)) * 1000000
 
     return molar_concentration
 
