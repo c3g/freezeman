@@ -68,7 +68,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     concentration_nm = measurements['concentration_nm']
                     # Calculate the concentration taking into account volume ratios
                     combined_concentration_nguL, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
-                        (source_sample_obj, concentration_nm)
+                        convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, concentration_nm)
                     combined_concentration_nguL = decimal.Decimal(combined_concentration_nguL)
                     if combined_concentration_nguL is None:
                         self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
