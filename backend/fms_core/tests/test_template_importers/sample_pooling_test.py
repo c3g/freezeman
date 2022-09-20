@@ -146,7 +146,6 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(ds3.library.index, self.index_3)
         self.assertEqual(dbs3.volume_ratio, Decimal("0.091"))
 
-
         pm4 = ProcessMeasurement.objects.get(source_sample=self.source_sample_4, process__protocol=self.protocol_pooling)
         self.assertEqual(pm4.volume_used, 100)
         self.assertEqual(pm4.execution_date, datetime.strptime("2022-05-12", "%Y-%m-%d").date())
