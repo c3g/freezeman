@@ -262,16 +262,16 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
         volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
         if library.library_size and library.strandedness:
             # Convert the concentration
-            partial_concentration = convert_concentration_from_ngbyul_to_nm(concentration_ngbyul,
-                                                                            library.molecular_weight_approx,
-                                                                            library.library_size)
+            partial_concentration = convert_concentration_from_ngbyul_to_nm(concentration=concentration_ngbyul,
+                                                                            molecular_weight=library.molecular_weight_approx,
+                                                                            molecule_count=library.library_size,
+                                                                            volume_ratio=volume_ratio)
             if partial_concentration is None:
                 errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
                 return None, errors, warnings
             else:
                 # Adjust the concentration according to its volume ratio
-                adjusted_concentration = partial_concentration * volume_ratio
-                final_concentration += adjusted_concentration
+                final_concentration += partial_concentration
         else:
             errors.append(f'Either library size or strandedness has not been set for this library.')
             return None, errors, warnings
