@@ -50,6 +50,3 @@ class Project(TrackedModel):
 
     def __str__(self):
         return '%d: %s' % (self.id, self.name)
-
-    def __repr__(self):
-        return '%d: %s' % (self.id, self.name)

@@ -3,6 +3,7 @@ import reversion
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import OuterRef, F
 from django.apps import apps
 from typing import Optional, List, Union
 
@@ -122,7 +123,8 @@ class Sample(TrackedModel):
     # Computed property for project relation
     @property
     def projects(self) -> List["Project"]:
-        return [derived_sample.project_id for derived_sample in self.derived_samples] if self.id else []
+        #return [derived_sample.project_id for derived_sample in self.derived_samples] if self.id else []
+        return self.derived_samples.filter(project__isnull=False).distinct("project").value_list("project", flat=True)
 
     @property
     def source_depleted(self) -> bool:

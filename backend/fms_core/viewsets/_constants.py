@@ -145,7 +145,7 @@ _project_filterset_fields: FiltersetFields = {
     "status": CATEGORICAL_FILTERS,
     "external_id": CATEGORICAL_FILTERS,
     "external_name": CATEGORICAL_FILTERS,
-    **_prefix_keys("samples__", _sample_minimal_filterset_fields),
+    **_prefix_keys("project_derived_samples__samples__", _sample_minimal_filterset_fields),
 }
 
 _index_filterset_fields: FiltersetFields = {
