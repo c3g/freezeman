@@ -130,6 +130,11 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
 
+        # Check concentration fields given sample_kind (moved from sample and DerivedBySample because information unavailable until multiple relations created)
+        if sample['concentration'] is None and sample_kind_obj.concentration_required:
+            self.errors['concentration'] = [f"Concentration must be specified for a submitted sample if the sample_kind is DNA."]
+
+
         # Check if there's a sample with the same name
         if Sample.objects.filter(name__iexact=sample['name']).exists():
             # Output different warnings depending on whether the name is an exact match or a case insensitive match
@@ -145,10 +150,10 @@ class SampleRowHandler(GenericRowHandler):
         if library_obj is not None or not is_library:
             sample_obj, self.errors['sample'], self.warnings['sample'] = \
                 create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                                  creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                                  concentration=sample['concentration'], tissue_source=tissue_source_obj,
-                                  experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
-                                  library=library_obj, sample_kind=sample_kind_obj, comment=comment)
+                                   creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                                   concentration=sample['concentration'], tissue_source=tissue_source_obj,
+                                   experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                                   library=library_obj, sample_kind=sample_kind_obj, comment=comment)
 
         # Link sample to project if requested
         if project_obj and sample_obj:

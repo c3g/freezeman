@@ -390,17 +390,7 @@ def pool_samples(process: Process,
         if sample_destination:
             for sample in samples_info:
                 source_sample = sample["Source Sample"]
-                volume_used = sample["Volume Used"]
                 volume_ratio = sample["Volume Ratio"]
-                comment = sample["Comment"]
-                # Create a process_measurement and sample lineage for each sample pooled
-                process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
-                                                                                         source_sample=source_sample,
-                                                                                         execution_date=execution_date,
-                                                                                         volume_used=volume_used,
-                                                                                         comment=comment)
-                errors.extend(errors_pm)
-                warnings.extend(warnings_pm)
                 
                 # project inheritance !!! Remove if moving projects to derived_sample.
                 try:
@@ -422,6 +412,20 @@ def pool_samples(process: Process,
                                                        volume_ratio=final_volume_ratio)
                     except Exception as e:
                         errors.append(e)
+
+            for sample in samples_info:
+                source_sample = sample["Source Sample"]
+                volume_used = sample["Volume Used"]
+                comment = sample["Comment"]
+                # Create a process_measurement and sample lineage for each sample pooled
+                process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
+                                                                                         source_sample=source_sample,
+                                                                                         execution_date=execution_date,
+                                                                                         volume_used=volume_used,
+                                                                                         comment=comment)
+                errors.extend(errors_pm)
+                warnings.extend(warnings_pm)
+
 
                 if process_measurement: # Need to be executed after DerivedBySample are created because of lineage validations
                     _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=source_sample,
