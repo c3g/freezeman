@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR, make_generator
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleLineage, Project
 from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -21,7 +21,6 @@ from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANN
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
-
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
@@ -291,10 +290,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         return Response(full_sample)
 
-    @action(detail=False, methods=["get"])
-    def get(self, _request):
+    def retrieve(self, _request, pk=None):
         samples_queryset = self.filter_queryset(self.get_queryset())
 
+        samples_queryset = samples_queryset.filter(pk=pk)
+        
         samples_queryset = samples_queryset.annotate(
             first_derived_sample=Subquery(
                 DerivedBySample.objects
@@ -306,7 +306,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         sample_values_queryset = (
             samples_queryset
             .annotate(is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)))
-            .annotate(is_pool=Count("derived_sample") > 1)
+            .annotate(derived_count=Count("derived_samples"))
+            .annotate(extracted_from=Subquery(
+                    SampleLineage.objects
+                    .filter(child=OuterRef("pk"), process_measurement__process__protocol__name="Extraction")
+                    .values_list("parent", flat=True)[:1]
+                )
+            )
             .values(
                 'id',
                 'name',
@@ -320,9 +326,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'depleted',
                 'comment',
                 'is_library',
-                'is_pool',
+                'derived_count',
                 'first_derived_sample',
-                'projects',
+                'derived_samples__project',
                 'child_of',
                 'extracted_from',
                 'process_measurement',
@@ -337,15 +343,13 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         derived_sample_ids = sample_values_queryset.values_list("first_derived_sample", flat=True)
         derived_sample_values_queryset = (
-            DerivedSample
-            .objects
+            DerivedSample.objects
             .filter(id__in=derived_sample_ids)
             .values(
                 "id",
                 "biosample_id",
                 "biosample__alias",
                 "sample_kind_id",
-                "sample_kind_name",
                 "tissue_source_id",
                 "biosample__collection_site",
                 "experimental_group",
@@ -357,7 +361,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         serialized_data = []
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
-
+            is_pool = sample["derived_count"] > 1
+            is_library = sample["is_library"]
             data = {
                 'id': sample["id"],
                 'biosample_id': derived_sample["biosample_id"],
@@ -371,9 +376,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'individual': derived_sample["biosample__individual_id"],
                 'container': sample["container_id"],
                 'coordinates': sample["coordinates"],
-                'sample_kind': derived_sample["sample_kind_id"],
-                'is_library': sample["is_library"],
-                'projects': sample["projects"],
+                'sample_kind': derived_sample["sample_kind_id"] if not is_pool or (is_pool and not is_library) else "POOL",
+                'is_library': is_library,
+                'is_pool': is_pool,
+                'projects': sample["derived_samples__project"],
                 'process_measurements': sample["process_measurement"],
                 'tissue_source': derived_sample["tissue_source_id"],
                 'creation_date': sample["creation_date"],
@@ -388,7 +394,113 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'deleted': sample["deleted"],
                 'comment': sample["comment"],
             }
+            serialized_data.append(data)
 
+        return Response(serialized_data)
+
+    def list(self, _request):
+        limit = int(self.request.query_params.get('limit'))
+        offset = int(self.request.query_params.get('offset'))
+        samples_queryset = self.filter_queryset(self.get_queryset())
+
+        samples_queryset = samples_queryset.annotate(
+            first_derived_sample=Subquery(
+                DerivedBySample.objects
+                .filter(sample=OuterRef("pk"))
+                .values_list("derived_sample", flat=True)[:1]
+            )
+        )
+
+        sample_values_queryset = (
+            samples_queryset
+            .annotate(is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)))
+            .annotate(derived_count=Count("derived_samples"))
+            .annotate(extracted_from=Subquery(
+                    SampleLineage.objects
+                    .filter(child=OuterRef("pk"), process_measurement__process__protocol__name="Extraction")
+                    .values_list("parent", flat=True)[:1]
+                )
+            )[offset:offset+limit]
+            .values(
+                'id',
+                'name',
+                'container_id',
+                'coordinates',
+                'volume',
+                'concentration',
+                'creation_date',
+                'quality_flag',
+                'quantity_flag',
+                'depleted',
+                'comment',
+                'is_library',
+                'derived_count',
+                'first_derived_sample',
+                'derived_samples__project',
+                'child_of',
+                'extracted_from',
+                'process_measurement',
+                'created_by',
+                'created_at',
+                'updated_by',
+                'updated_at',
+                'deleted',
+            )
+        )
+        samples = { s["id"]: s for s in sample_values_queryset }
+        derived_sample_ids = [sample_values["first_derived_sample"]for sample_values in sample_values_queryset]
+        derived_sample_values_queryset = (
+            DerivedSample.objects
+            .filter(id__in=derived_sample_ids)
+            .values(
+                "id",
+                "biosample_id",
+                "biosample__alias",
+                "sample_kind_id",
+                "tissue_source_id",
+                "biosample__collection_site",
+                "experimental_group",
+                "biosample__individual_id",
+            )
+        )
+        derived_samples = { ds["id"]: ds for ds in derived_sample_values_queryset }
+
+        serialized_data = []
+        for sample in samples.values():
+            derived_sample = derived_samples[sample["first_derived_sample"]]
+            is_pool = sample["derived_count"] > 1
+            is_library = sample["is_library"]
+            data = {
+                'id': sample["id"],
+                'biosample_id': derived_sample["biosample_id"],
+                'name': sample["name"],
+                'alias': derived_sample["biosample__alias"],
+                'volume': sample["volume"],
+                'depleted': sample["depleted"],
+                'concentration': sample["concentration"],
+                'child_of': sample["child_of"],
+                'extracted_from': sample["extracted_from"],
+                'individual': derived_sample["biosample__individual_id"],
+                'container': sample["container_id"],
+                'coordinates': sample["coordinates"],
+                'sample_kind': derived_sample["sample_kind_id"] if not is_pool or (is_pool and not is_library) else "POOL",
+                'is_library': is_library,
+                'is_pool': is_pool,
+                'projects': sample["derived_samples__project"],
+                'process_measurements': sample["process_measurement"],
+                'tissue_source': derived_sample["tissue_source_id"],
+                'creation_date': sample["creation_date"],
+                'collection_site': derived_sample["biosample__collection_site"],
+                'experimental_group': json.dumps(derived_sample["experimental_group"]),
+                'quality_flag': sample["quality_flag"],
+                'quantity_flag': sample["quantity_flag"],
+                'created_by': sample["created_by"],
+                'created_at': sample["created_at"],
+                'updated_by': sample["updated_by"],
+                'updated_at': sample["updated_at"],
+                'deleted': sample["deleted"],
+                'comment': sample["comment"],
+            }
             serialized_data.append(data)
 
         return Response(serialized_data)

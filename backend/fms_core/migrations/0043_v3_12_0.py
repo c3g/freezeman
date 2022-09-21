@@ -16,7 +16,6 @@ def attach_project_to_derived_sample(apps, schema_editor):
         schema_editor: ignore
     """
     SampleByProject = apps.get_model("fms_core", "SampleByProject")
-    DerivedSample = apps.get_model("fms_core", "DerivedSample")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -26,7 +25,7 @@ def attach_project_to_derived_sample(apps, schema_editor):
 
         for sample_by_project in SampleByProject.objects.all():
             derived_sample = sample_by_project.sample.derived_samples.first()
-            if not DerivedSample.objects.filter(project=sample_by_project.project).exists():
+            if derived_sample.project is None:
                 derived_sample.project_id = sample_by_project.project_id
                 derived_sample.save()
                 reversion.add_to_revision(derived_sample)
@@ -39,10 +38,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='project',
+            name='samples',
+        ),
         migrations.AddField(
             model_name='derivedsample',
             name='project',
-            field=models.ForeignKey(null=True, blank=True, help_text='Project linked to the derived sample.', on_delete=django.db.models.deletion.PROTECT, related_name='derived_samples', to='fms_core.project'),
+            field=models.ForeignKey(null=True, blank=True, help_text='Project linked to the derived sample.', on_delete=django.db.models.deletion.PROTECT, related_name='project_derived_samples', to='fms_core.project'),
         ),
         migrations.AlterField(
             model_name='samplebyproject',
@@ -57,10 +60,6 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             attach_project_to_derived_sample,
             reverse_code=migrations.RunPython.noop,
-        ),
-        migrations.RemoveField(
-            model_name='project',
-            name='samples',
         ),
         migrations.DeleteModel(
             name='samplebyproject',

@@ -347,9 +347,8 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class SampleSerializer(serializers.ModelSerializer):
+class SampleSerializer(serializers.Serializer):
     class Meta:
-        model = Sample
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
                   'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'projects',
                   'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
@@ -516,9 +515,8 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        exclude = ("derived_samples",)
-
-
+        fields = '__all__'
+        
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
