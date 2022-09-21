@@ -273,9 +273,12 @@ def extract_sample(process: Process,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
             )
-            if concentration_destination:
+            if concentration_destination is not None:
                 sample_destination_data["concentration"] = concentration_destination
-         
+            elif sample_kind_destination.concentration_required:
+                # Force extracted sample to have a concentration if sample_kind is DNA.
+                errors.append(f"Concentration must be specified for an extracted sample if the sample_kind is DNA.")
+
             new_derived_sample_data = {"sample_kind_id": sample_kind_destination.id}
 
             derived_samples_destination = []
