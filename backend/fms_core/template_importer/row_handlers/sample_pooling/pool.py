@@ -17,15 +17,21 @@ class PoolsRowHandler(GenericRowHandler):
                                             f"match a value in Pools sheet Pool Name column.")
         else:
             set_type = set(sample["Source Sample"].is_library for sample in samples_info)
-            set_kind = set(sample["Source Sample"].sample_kind_name for sample in samples_info)
+            
             # Add an error if the samples are not of the same type (sample mixed with library)
             if len(set_type) > 1:
                 self.errors["source_sample"] = (f"Source samples in pool {pool['name']} are not all either samples or libraries.")
             # Add an error if we are pooling samples and they are not of the same sample kind
-            elif not set_type.pop() and len(set_kind) > 1: # not set_type[0] => all samples and len(set_kind) > 1 => not all same kind
-                self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
-                                                f"Samples to be pooled are of the following kinds: {set_kind}.")
-
+            elif not set_type.pop(): # len(set_type) = 1 and not set_type[0] => all pooled are samples
+                set_kind = set(sample["Source Sample"].sample_kind_name for sample in samples_info)
+                # Assumes source sample pools did not allow different individuals to be pooled
+                set_individual = set(sample["Source Sample"].biosample_not_pool.individual.name for sample in samples_info)
+                if len(set_kind) > 1: # len(set_kind) > 1 => not all same kind
+                    self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
+                                                    f"Samples to be pooled are of the following kinds: {set_kind}.")
+                if len(set_individual) > 1: # len(set_individual) > 1 => not all same individual
+                    self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be from the same infividual. "
+                                                    f"Samples to be pooled are of the following individuals: {set_individual}.")
             # Add a warning if the concentration of the samples/libraries are not within a tolerance
             TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
             concentrations = [sample["Source Sample"].concentration for sample in samples_info]
@@ -52,10 +58,10 @@ class PoolsRowHandler(GenericRowHandler):
                 container_parent = None
 
             container_destination, _, self.errors['container'], self.warnings['container'] = get_or_create_container(barcode=container_destination_dict['barcode'],
-                                                                                                                    kind=container_destination_dict['kind'].lower(),
-                                                                                                                    name=container_destination_dict['name'],
-                                                                                                                    coordinates=container_destination_dict['coordinates'],
-                                                                                                                    container_parent=container_parent)
+                                                                                                                     kind=container_destination_dict['kind'].lower(),
+                                                                                                                     name=container_destination_dict['name'],
+                                                                                                                     coordinates=container_destination_dict['coordinates'],
+                                                                                                                     container_parent=container_parent)
 
             # Pool samples
             pool, self.errors["pool"], self.warnings["pool"] = pool_samples(process=process,
