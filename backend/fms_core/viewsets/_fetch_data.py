@@ -1,9 +1,11 @@
 import json
+from decimal import Decimal
+from ..utils import decimal_rounded_to_precision
 from typing import List
 from django.db.models import OuterRef, Subquery, Exists, Count, Prefetch
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedBySample, DerivedSample, SampleLineage
+from fms_core.models import Sample, DerivedBySample, DerivedSample, SampleLineage, Project, ProcessMeasurement
 
 def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> List:
     """
@@ -38,11 +40,17 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             .values_list("derived_sample", flat=True)[:1]
         )
     )
-
     sample_values_queryset = (
         samples_queryset
-        .annotate(is_library=Exists(samples_queryset.filter(derived_samples__library__isnull=False)))
+        .annotate(is_library=Exists(DerivedBySample.objects.filter(sample=OuterRef("pk")).filter(derived_sample__library__isnull=False)))
         .annotate(derived_count=Count("derived_samples"))
+        .annotate(projects=Subquery(
+                DerivedSample.objects
+                .filter(derived_by_samples__sample=OuterRef("pk"))
+                .values_list("project_id", flat=True)
+            )
+        )
+        #.annotate(process_measurements=Subquery(samples_queryset.process_measurement.all().values_list("id", flat=True)))
         .annotate(extracted_from=Subquery(
                 SampleLineage.objects
                 .filter(child=OuterRef("pk"), process_measurement__process__protocol__name="Extraction")
@@ -64,7 +72,7 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             'is_library',
             'derived_count',
             'first_derived_sample',
-            'derived_samples__project',
+            'projects',
             'child_of',
             'extracted_from',
             'process_measurement',
@@ -106,7 +114,7 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             'volume': sample["volume"],
             'depleted': sample["depleted"],
             'concentration': sample["concentration"],
-            'child_of': sample["child_of"],
+            'child_of': sample["child_of"] if not is_pool else None,
             'extracted_from': sample["extracted_from"] if not is_pool else None,
             'individual': derived_sample["biosample__individual_id"] if not is_pool else None,
             'container': sample["container_id"],
@@ -114,12 +122,12 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             'sample_kind': derived_sample["sample_kind_id"] if not is_pool or (is_pool and not is_library) else "POOL",
             'is_library': is_library,
             'is_pool': is_pool,
-            'projects': sample["derived_samples__project"],
+            'projects': [sample["projects"]] if sample["projects"]is not None else [],
             'process_measurements': sample["process_measurement"],
             'tissue_source': derived_sample["tissue_source_id"] if not is_pool else None,
             'creation_date': sample["creation_date"],
             'collection_site': derived_sample["biosample__collection_site"] if not is_pool else None,
-            'experimental_group': json.dumps(derived_sample["experimental_group"]) if not is_pool else None,
+            'experimental_group': derived_sample["experimental_group"] if not is_pool else None,
             'quality_flag': sample["quality_flag"],
             'quantity_flag': sample["quantity_flag"],
             'created_by': sample["created_by"],

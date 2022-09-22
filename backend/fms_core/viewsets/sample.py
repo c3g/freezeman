@@ -298,7 +298,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     def list(self, _request, *args, **kwargs):
         samples_queryset = self.filter_queryset(self.get_queryset())
         serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
-        return Response(serialized_data)
+        return Response({"results": serialized_data, "count": len(serialized_data)})
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):

@@ -76,10 +76,10 @@ class ProjectLinkSamplesTestCase(TestCase):
 
         #Custom tests for each template
         self.assertEqual(len(DerivedSample.objects.filter(project__isnull=False).all()), 2)
-        self.assertTrue(DerivedSample.objects.filter(samples__in=self.sample1, project=self.project3).exists())
-        self.assertFalse(DerivedSample.objects.filter(samples__in=self.sample1, project=self.project1).exists())
-        self.assertTrue(DerivedSample.objects.filter(samples__in=self.sample2, project=self.project2).exists())
-        self.assertFalse(DerivedSample.objects.filter(samples__in=self.sample3, project=self.project3).exists())
+        self.assertTrue(DerivedSample.objects.filter(samples=self.sample1, project=self.project3).exists())
+        self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
+        self.assertTrue(DerivedSample.objects.filter(samples=self.sample2, project=self.project2).exists())
+        self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
 
     def test_invalid_project_link_samples(self):
         for f in self.invalid_template_tests:
