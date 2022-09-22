@@ -67,41 +67,40 @@ class NormalizationTestCase(TestCase):
         for info in destination_containers_info:
             get_or_create_container(barcode=info['barcode'], name=info['name'], kind=info['kind'])
 
-            # Create objects for the pooling test
-            samples_to_pool_info = [
-                {
-                    'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
-                                                        coordinates="A01"),
-                    'Volume Used': Decimal(3.5),
-                    'Source Depleted': False,
-                    'Comment': ''
-                },
-                {
-                    'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
-                                                        coordinates="A02"),
-                    'Volume Used': Decimal(5.0),
-                    'Source Depleted': False,
-                    'Comment': '',
-                }
-            ]
+        # Create objects for the pooling test
+        samples_to_pool_info = [
+            {
+                'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
+                                                    coordinates="A01"),
+                'Volume Used': Decimal(3.5),
+                'Source Depleted': False,
+                'Comment': ''
+            },
+            {
+                'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
+                                                    coordinates="A02"),
+                'Volume Used': Decimal(5.0),
+                'Source Depleted': False,
+                'Comment': '',
+            }
+        ]
 
-            (container_pool, _, errors, warnings) = get_or_create_container(barcode="PoolContainerSource",
-                                                                            kind='Tube',
-                                                                            name="PoolContainerSource")
+        (container_pool, _, errors, warnings) = get_or_create_container(barcode="PoolContainerSource",
+                                                                        kind='Tube',
+                                                                        name="PoolContainerSource")
 
-            self.protocol_pooling = Protocol.objects.get(name="Sample Pooling")
-            self.process_pooling = Process.objects.create(protocol=self.protocol_pooling)
+        self.protocol_pooling = Protocol.objects.get(name="Sample Pooling")
+        self.process_pooling = Process.objects.create(protocol=self.protocol_pooling)
 
-            (pool, errors, warnings) = pool_samples(process=self.process_pooling,
-                                                    samples_info=samples_to_pool_info,
-                                                    pool_name='PoolToNormalize',
-                                                    container_destination=container_pool,
-                                                    coordinates_destination=None,
-                                                    execution_date=datetime(2020, 5, 21, 0, 0))
+        (pool, errors, warnings) = pool_samples(process=self.process_pooling,
+                                                samples_info=samples_to_pool_info,
+                                                pool_name='PoolToNormalize',
+                                                container_destination=container_pool,
+                                                coordinates_destination=None,
+                                                execution_date=datetime(2020, 5, 21, 0, 0))
 
-
-            # Update concentration of pool (since it is not set when poolin)
-            pool, errors, warnings = update_sample(pool, concentration=10)
+        # Update concentration of pool (since it is not set when pooling)
+        pool, errors, warnings = update_sample(pool, concentration=10)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
