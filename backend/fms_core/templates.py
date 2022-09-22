@@ -246,7 +246,7 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_11_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_12_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
