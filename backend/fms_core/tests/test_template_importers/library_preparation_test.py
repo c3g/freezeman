@@ -194,18 +194,20 @@ class LibraryPreparationTestCase(TestCase):
 
         # Test first library
         sample_library_1, _, _ = get_sample_from_container(barcode='Container4Library1')
-        library_1 = sample_library_1.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_1.volume, self.library_1['library_volume'])
         self.assertEqual(sample_library_1.concentration, None)
         self.assertEqual(sample_library_1.quality_flag, None)
         self.assertEqual(sample_library_1.quantity_flag, None)
 
-        # Library info tests
-        self.assertEqual(library_1.library_type, self.library_1['library_type'])
-        self.assertEqual(library_1.platform, self.library_1['platform'])
-        self.assertEqual(library_1.index, self.library_1['index'])
-        self.assertEqual(library_1.strandedness, self.library_1['strandedness'])
+        for derived_sample in sample_library_1.derived_samples.all():
+            library = derived_sample.library
+
+            # Library info tests
+            self.assertEqual(library.library_type, self.library_1['library_type'])
+            self.assertEqual(library.platform, self.library_1['platform'])
+            self.assertEqual(library.index, self.library_1['index'])
+            self.assertEqual(library.strandedness, self.library_1['strandedness'])
 
         # Process and process measurements tests
         pm_1 = ProcessMeasurement.objects.get(source_sample=source_sample,
@@ -244,18 +246,20 @@ class LibraryPreparationTestCase(TestCase):
 
         # Test second library
         sample_library_2, _, _ = get_sample_from_container(barcode='Container4Library2')
-        library_2 = sample_library_2.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_2.volume, self.library_2['library_volume'])
         self.assertEqual(sample_library_2.concentration, None)
         self.assertEqual(sample_library_2.quality_flag, None)
         self.assertEqual(sample_library_2.quantity_flag, None)
 
-        # Library info tests
-        self.assertEqual(library_2.library_type, self.library_2['library_type'])
-        self.assertEqual(library_2.platform, self.library_2['platform'])
-        self.assertEqual(library_2.index, self.library_2['index'])
-        self.assertEqual(library_2.strandedness, self.library_2['strandedness'])
+        for derived_sample in sample_library_2.derived_samples.all():
+            library = derived_sample.library
+
+            # Library info tests
+            self.assertEqual(library.library_type, self.library_2['library_type'])
+            self.assertEqual(library.platform, self.library_2['platform'])
+            self.assertEqual(library.index, self.library_2['index'])
+            self.assertEqual(library.strandedness, self.library_2['strandedness'])
 
         # Process and process measurements tests
         pm_2 = ProcessMeasurement.objects.get(source_sample=source_sample,
@@ -271,19 +275,20 @@ class LibraryPreparationTestCase(TestCase):
         
         # Test third library
         sample_library_3, _, _ = get_sample_from_container(barcode='Container4Library3')
-        library_3 = sample_library_3.derived_sample_not_pool.library
 
         self.assertEqual(sample_library_3.volume, self.library_3['library_volume'])
         self.assertEqual(sample_library_3.concentration, None)
         self.assertEqual(sample_library_3.quality_flag, None)
         self.assertEqual(sample_library_3.quantity_flag, None)
 
+        for derived_sample in sample_library_3.derived_samples.all():
+            library = derived_sample.library
 
-        # Library info tests
-        self.assertEqual(library_3.library_type, self.library_3['library_type'])
-        self.assertEqual(library_3.platform, self.library_3['platform'])
-        self.assertEqual(library_3.index, self.library_3['index'])
-        self.assertEqual(library_3.strandedness, self.library_3['strandedness'])
+            # Library info tests
+            self.assertEqual(library.library_type, self.library_3['library_type'])
+            self.assertEqual(library.platform, self.library_3['platform'])
+            self.assertEqual(library.index, self.library_3['index'])
+            self.assertEqual(library.strandedness, self.library_3['strandedness'])
 
         # Process and process measurements tests
         pm_3 = ProcessMeasurement.objects.get(source_sample=source_sample,
