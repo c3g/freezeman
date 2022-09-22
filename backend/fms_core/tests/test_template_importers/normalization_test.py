@@ -10,7 +10,7 @@ from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
 from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue, Protocol, Process
 
 from fms_core.services.container import get_or_create_container
-from fms_core.services.sample import create_full_sample, pool_samples
+from fms_core.services.sample import create_full_sample, pool_samples, update_sample
 from fms_core.services.platform import get_platform
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.index import get_or_create_index_set, create_index
@@ -94,16 +94,18 @@ class NormalizationTestCase(TestCase):
 
             (pool, errors, warnings) = pool_samples(process=self.process_pooling,
                                                     samples_info=samples_to_pool_info,
-                                                    pool_name='PoolToNormalizer',
+                                                    pool_name='PoolToNormalize',
                                                     container_destination=container_pool,
                                                     coordinates_destination=None,
                                                     execution_date=datetime(2020, 5, 21, 0, 0))
 
 
+            # Update concentration of pool (since it is not set when poolin)
+            pool, errors, warnings = update_sample(pool, concentration=10)
+
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-
         self.assertEqual(result['valid'], True)
 
         # Source sample 1 tests
