@@ -66,7 +66,6 @@ __all__ = [
     "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
-    "serialize_sample_export",
     "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
