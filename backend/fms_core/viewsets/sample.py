@@ -1,4 +1,5 @@
 import json
+from mmap import PAGESIZE
 from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -21,6 +22,7 @@ from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANN
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
 from fms_core.filters import SampleFilter
+from fms.settings import REST_FRAMEWORK
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
@@ -290,11 +292,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         return Response(full_sample)
 
-    def retrieve(self, _request, pk=None):
+    def retrieve(self, _request, pk=None, *args, **kwargs):
         samples_queryset = self.filter_queryset(self.get_queryset())
-
         samples_queryset = samples_queryset.filter(pk=pk)
-        
         samples_queryset = samples_queryset.annotate(
             first_derived_sample=Subquery(
                 DerivedBySample.objects
@@ -398,11 +398,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         return Response(serialized_data)
 
-    def list(self, _request):
-        limit = int(self.request.query_params.get('limit'))
-        offset = int(self.request.query_params.get('offset'))
+    def list(self, _request, *args, **kwargs):
+        limit = int(self.request.query_params.get('limit')) if self.request.query_params.get('limit') is not None else REST_FRAMEWORK["PAGE_SIZE"]
+        offset = int(self.request.query_params.get('offset')) if self.request.query_params.get('offset') is not None else 0
+        
         samples_queryset = self.filter_queryset(self.get_queryset())
-
         samples_queryset = samples_queryset.annotate(
             first_derived_sample=Subquery(
                 DerivedBySample.objects
@@ -472,15 +472,15 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             is_library = sample["is_library"]
             data = {
                 'id': sample["id"],
-                'biosample_id': derived_sample["biosample_id"],
+                'biosample_id': derived_sample["biosample_id"] if not is_pool else None,
                 'name': sample["name"],
-                'alias': derived_sample["biosample__alias"],
+                'alias': derived_sample["biosample__alias"] if not is_pool else None,
                 'volume': sample["volume"],
                 'depleted': sample["depleted"],
                 'concentration': sample["concentration"],
                 'child_of': sample["child_of"],
-                'extracted_from': sample["extracted_from"],
-                'individual': derived_sample["biosample__individual_id"],
+                'extracted_from': sample["extracted_from"] if not is_pool else None,
+                'individual': derived_sample["biosample__individual_id"] if not is_pool else None,
                 'container': sample["container_id"],
                 'coordinates': sample["coordinates"],
                 'sample_kind': derived_sample["sample_kind_id"] if not is_pool or (is_pool and not is_library) else "POOL",
@@ -488,10 +488,10 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 'is_pool': is_pool,
                 'projects': sample["derived_samples__project"],
                 'process_measurements': sample["process_measurement"],
-                'tissue_source': derived_sample["tissue_source_id"],
+                'tissue_source': derived_sample["tissue_source_id"] if not is_pool else None,
                 'creation_date': sample["creation_date"],
-                'collection_site': derived_sample["biosample__collection_site"],
-                'experimental_group': json.dumps(derived_sample["experimental_group"]),
+                'collection_site': derived_sample["biosample__collection_site"] if not is_pool else None,
+                'experimental_group': json.dumps(derived_sample["experimental_group"]) if not is_pool else None,
                 'quality_flag': sample["quality_flag"],
                 'quantity_flag': sample["quantity_flag"],
                 'created_by': sample["created_by"],
