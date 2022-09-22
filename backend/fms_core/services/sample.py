@@ -2,7 +2,7 @@ import json
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, DerivedSampleByProject, Library, SampleMetadata
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, Container, Process, Library, SampleMetadata
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
@@ -147,10 +147,6 @@ def inherit_sample(sample_source, new_sample_data, derived_samples_destination, 
             DerivedBySample.objects.create(sample=new_sample,
                                            derived_sample=derived_sample_destination,
                                            volume_ratio=volume_ratios[derived_sample_destination.id])
-        
-        # project inheritances
-        for project in sample_source.projects.all():
-            DerivedSampleByProject.objects.create(project=project, sample=new_sample)
 
     except Error as e:
             errors.append(';'.join(e.messages))
@@ -394,14 +390,22 @@ def pool_samples(process: Process,
             for sample in samples_info:
                 source_sample = sample["Source Sample"]
                 volume_ratio = sample["Volume Ratio"]
-                
-                # project inheritance !!! Remove if moving projects to derived_sample.
-                try:
-                    for project in source_sample.projects.all():
-                        if not DerivedSampleByProject.objects.filter(project=project, sample=sample_destination).exists():
-                            DerivedSampleByProject.objects.create(project=project, sample=sample_destination)
-                except Exception as e:
-                        errors.append(e)
+                comment = sample["Comment"]
+                # Create a process_measurement and sample lineage for each sample pooled
+                process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
+                                                                                         source_sample=source_sample,
+                                                                                         execution_date=execution_date,
+                                                                                         volume_used=volume_used,
+                                                                                         comment=comment)
+                errors.extend(errors_pm)
+                warnings.extend(warnings_pm)
+
+                if process_measurement:
+                    _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=source_sample,
+                                                                                              child_sample=sample_destination,
+                                                                                              process_measurement=process_measurement)
+                    errors.extend(errors_sample_lineage)
+                    warnings.extend(warnings_sample_lineage)
 
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 derived_samples_destination = source_sample.derived_samples.all()

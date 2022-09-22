@@ -351,7 +351,7 @@ class SampleSerializer(serializers.ModelSerializer):
     extracted_from = serializers.SerializerMethodField()
     sample_kind = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.sample_kind")
     process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    projects = serializers.SerializerMethodField()
     biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
     individual = serializers.PrimaryKeyRelatedField(read_only=True, source="biosample_not_pool.individual")
     alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
@@ -365,6 +365,9 @@ class SampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
         exclude = ('derived_samples', )
+
+    def get_projects(self, obj):
+        return obj.derived_samples.values()
 
     def get_extracted_from(self, obj):
         return obj.extracted_from and obj.extracted_from.id
