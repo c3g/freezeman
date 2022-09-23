@@ -213,7 +213,7 @@ def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration
     if source_sample is None:
         errors.append(f'Missing sample.')
     elif not source_sample.is_library:
-        errors.append(f'Source sample is not a library.')
+        errors.append(f'Conversion from nM to ng/uL requires a library as source sample.')
 
     if not errors:
         final_concentration = 0
@@ -259,7 +259,7 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
     if source_sample is None:
         errors.append(f'Missing sample.')
     elif not source_sample.is_library:
-        errors.append(f'Source sample is not a library.')
+        errors.append(f'Conversion from ng/uL to nM requires a library as source sample.')
 
     if not errors:
         sum_adjusted_factor = 0
