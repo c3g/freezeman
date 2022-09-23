@@ -572,3 +572,34 @@ export const DATASET_FILE_FILTERS = {
     label: "Release Time",
   },
 }
+
+export const POOLED_SAMPLES_FILTERS = {
+    alias: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__alias",
+      label: "Sample Alias"
+    },
+    volume_ratio: {
+      type: FILTER_TYPE.INPUT_NUMBER,
+      key: "volume_ratio",
+      label: "Volume Ratio"
+    },
+    // TODO
+    // project: {
+    //     type: FILTER_TYPE.INPUT,
+    //     key: "derived_sample__alias",
+    //     label: "Project ID"
+    // },
+    index_set: {
+        type: FILTER_TYPE.INPUT,
+        key: 'derived_sample__library__index__index_set',
+        label: "Index Set"
+    },
+    index_name: {
+        type: FILTER_TYPE.INPUT,
+        key: 'derived_sample__library__index__name',
+        label: "Index Set"
+    },
+}
+
+
