@@ -349,20 +349,19 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
 class SampleSerializer(serializers.Serializer):
     class Meta:
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
-                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'projects',
+                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'project',
                   'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
                   'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
                   'comment')
 
-class SampleExportSerializer(serializers.ModelSerializer):
+class SampleExportSerializer(serializers.Serializer):
     class Meta:
-        model = Sample
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord', 'container_full_location',
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
-                  'quality_flag', 'quantity_flag', 'derived_samples__projects', 'depleted', 'is_library', 'comment')
+                  'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
 
 
 class NestedSampleSerializer(serializers.ModelSerializer):
@@ -377,7 +376,7 @@ class NestedSampleSerializer(serializers.ModelSerializer):
     sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
     quantity_flag = serializers.SerializerMethodField()
     quality_flag = serializers.SerializerMethodField()
-    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
+    derived_samples__project = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Sample
@@ -390,77 +389,18 @@ class NestedSampleSerializer(serializers.ModelSerializer):
         return obj.quantity_flag
 
 
-class LibrarySerializer(serializers.ModelSerializer):
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    container = serializers.CharField(read_only=True, source="container.id")
-    derived_samples__projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
-    concentration_nm = serializers.SerializerMethodField()
-    quantity_ng = serializers.SerializerMethodField()
-    library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
-    platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
-    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.id")
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
-
+class LibrarySerializer(serializers.Serializer):
     class Meta:
-        model = Sample
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
-                  'quantity_flag', 'derived_samples__projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
-
-    def get_concentration_nm(self, obj):
-        # If object is not a library or a pool of libraries return none
-        if not obj.is_library:
-            return None
-        else:
-            return convert_library_concentration_from_ngbyul_to_nm(obj, obj.concentration)
-
-    def get_quantity_ng(self, obj):
-        if not obj.concentration:
-            return None
-        else:
-            return obj.concentration * obj.volume
-
+                  'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
 class LibraryExportSerializer(serializers.ModelSerializer):
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
-    concentration_nm = serializers.SerializerMethodField()
-    quantity_ng = serializers.SerializerMethodField()
-    library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
-    platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
-    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.name")
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
-
     class Meta:
-        model = Sample
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
     
-    def get_quality_flag(self, obj):
-        if obj.quality_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quality_flag else "Failed"
-
-    def get_quantity_flag(self, obj):
-        if obj.quantity_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quantity_flag else "Failed"
-
     # TODO : update this formula to include RNA and single strand DNA
     def get_concentration_nm(self, obj):
         # If object is not a library or a pool of libraries return none

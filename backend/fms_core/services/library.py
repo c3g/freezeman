@@ -5,7 +5,7 @@ from fms_core.models import LibraryType, Library, DerivedBySample
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul, convert_concentration_from_ngbyul_to_nm
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
 from fms_core.models._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED
 
@@ -250,6 +250,7 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
             """
     errors = []
     warnings = []
+    concentration_nm = None
 
     if source_sample is None:
         errors.append(f'Missing sample.')

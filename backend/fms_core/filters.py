@@ -48,7 +48,7 @@ class SampleFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
-    projects__name = django_filters.CharFilter(method="insensitive_batch_filter")
+    derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
@@ -76,7 +76,7 @@ class SampleFilter(GenericFilter):
 class LibraryFilter(GenericFilter):
     name = django_filters.CharFilter(field_name="name", method="batch_filter")
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
-    projects__name = django_filters.CharFilter(method="batch_filter")
+    derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
 
     def qc_flag_filter(self, queryset, name, values):

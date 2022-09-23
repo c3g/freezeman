@@ -37,15 +37,15 @@ export const SAMPLE_FILTERS = {
     recursive: true,
     batch: true,
   },
-  projects__name: {
+  derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
-    key: "projects__name",
+    key: "derived_samples__project__name",
     label: "Projects",
     batch: true,
   },
-  projects__id: {
+  derived_samples__project__id: {
     type: FILTER_TYPE.SELECT,
-    key: "projects__id",
+    key: "derived_samples__project__id",
     label: "Projects ID",
     mode: "multiple",
   },
@@ -364,14 +364,14 @@ export const PROJECT_FILTERS = {
     key: "targeted_end_date",
     label: "Targeted End Date",
   },
-  samples__name: {
+  project_derived_samples__samples__name: {
     type: FILTER_TYPE.INPUT,
-    key: "samples__name",
+    key: "project_derived_samples__samples__name",
     label: "Samples",
   },
-  samples__id: {
+  project_derived_samples__samples__id: {
     type: FILTER_TYPE.SELECT,
-    key: "samples__id",
+    key: "project_derived_samples__samples__id",
     label: "Samples ID",
     mode: "multiple",
   },
@@ -451,9 +451,9 @@ export const LIBRARY_FILTERS = {
     key: "derived_samples__library__platform__name",
     label: "Platform",
   },
-  projects__name: {
+  derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
-    key: "projects__name",
+    key: "derived_samples__project__name",
     label: "Projects",
     batch: true,
   },
