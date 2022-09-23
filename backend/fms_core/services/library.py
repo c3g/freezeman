@@ -212,28 +212,33 @@ def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration
 
     if source_sample is None:
         errors.append(f'Missing sample.')
+    elif not source_sample.is_library:
+        errors.append(f'Conversion from nM to ng/uL requires a library as source sample.')
 
-    final_concentration = 0
-    for derived_sample in source_sample.derived_samples.all():
-        # Compute the size of each library and its volume ratio
-        library = derived_sample.library
-        volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-        if library.library_size and library.strandedness:
-            # Convert the concentration
-            partial_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
-                                                                            library.molecular_weight_approx,
-                                                                            library.library_size)
-            if partial_concentration is None:
-                errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
-                return None, errors, warnings
+    if not errors:
+        final_concentration = 0
+        for derived_sample in source_sample.derived_samples.all():
+            # Compute the size of each library and its volume ratio
+            library = derived_sample.library
+            volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
+            if library.library_size and library.strandedness:
+                # Convert the concentration
+                partial_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                                library.molecular_weight_approx,
+                                                                                library.library_size)
+                if partial_concentration is None:
+                    errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
+                    return None, errors, warnings
+                else:
+                    # Adjust the concentration according to its volume ratio
+                    adjusted_concentration = partial_concentration * volume_ratio
+                    final_concentration += adjusted_concentration
             else:
-                # Adjust the concentration according to its volume ratio
-                adjusted_concentration = partial_concentration * volume_ratio
-                final_concentration += adjusted_concentration
-        else:
-            errors.append(f'Either library size or strandedness has not been set for this library.')
-            return None, errors, warnings
-    return final_concentration, errors, warnings
+                errors.append(f'Either library size or strandedness has not been set for this library.')
+                return None, errors, warnings
+        return final_concentration, errors, warnings
+    else:
+        return None, errors, warnings
 
 
 def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration_ngbyul):
@@ -253,18 +258,23 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
 
     if source_sample is None:
         errors.append(f'Missing sample.')
+    elif not source_sample.is_library:
+        errors.append(f'Conversion from ng/uL to nM requires a library as source sample.')
 
-    sum_adjusted_factor = 0
-    for derived_sample in source_sample.derived_samples.all():
-        # Compute the size of each library and its volume ratio
-        library = derived_sample.library
-        volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-        if library.library_size and library.strandedness:
-            # Convert the concentration
-            adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
-            sum_adjusted_factor += adjusted_factor
-        else:
-            errors.append(f'Either library size or strandedness has not been set for this library.')
-            return None, errors, warnings
-    concentration_nm = (concentration_ngbyul * 1000000) / sum_adjusted_factor
-    return concentration_nm, errors, warnings
+    if not errors:
+        sum_adjusted_factor = 0
+        for derived_sample in source_sample.derived_samples.all():
+            # Compute the size of each library and its volume ratio
+            library = derived_sample.library
+            volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
+            if library.library_size and library.strandedness:
+                # Convert the concentration
+                adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
+                sum_adjusted_factor += adjusted_factor
+            else:
+                errors.append(f'Either library size or strandedness has not been set for this library.')
+                return None, errors, warnings
+        concentration_nm = (concentration_ngbyul * 1000000) / sum_adjusted_factor
+        return concentration_nm, errors, warnings
+    else:
+        return None, errors, warnings
