@@ -1,10 +1,11 @@
 
 from typing import List
 from collections import defaultdict
-from django.db.models import OuterRef, Subquery, Exists, Count, Prefetch, Q, ExpressionWrapper, BooleanField
+from django.db.models import OuterRef, Subquery, Count, Prefetch, Q, ExpressionWrapper, BooleanField
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedBySample, DerivedSample, SampleLineage, Project, ProcessMeasurement
+from fms_core.models import Sample, DerivedBySample, DerivedSample, SampleLineage, ProcessMeasurement
+from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import convert_concentration_from_ngbyul_to_nm
 
@@ -197,7 +198,6 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
             'coordinates',
             'volume',
             'concentration',
-            #'concentration_as_nm',
             'creation_date',
             'quality_flag',
             'quantity_flag',
@@ -219,7 +219,6 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
                 "id",
                 "project_id",
                 "biosample_id",
-                "library__molecular_weight_approx",
                 "library__library_type__name",
                 "library__platform__name",
                 "library__library_size",
@@ -232,6 +231,10 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
             is_pool = sample["derived_count"] > 1
+            concentration_nm = None
+            if sample["concentration"] is not None:
+                concentration_nm, _, _ = convert_library_concentration_from_ngbyul_to_nm(Sample.objects.get(id=sample["id"]),
+                                                                                         sample["concentration"])
             data = {
                 'id': sample["id"],
                 'biosample_id': derived_sample["biosample_id"] if not is_pool else None,
@@ -239,7 +242,7 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
                 'volume': sample["volume"],
                 'depleted': sample["depleted"],
                 'concentration_ng_ul': sample["concentration"],
-                'concentration_nm': convert_concentration_from_ngbyul_to_nm(sample["concentration"], derived_sample["library__molecular_weight_approx"], derived_sample["library__library_size"]) if not is_pool else None,
+                'concentration_nm': concentration_nm,
                 'quantity_ng': sample["concentration"] * sample["volume"] if sample["concentration"] else None,
                 'container': sample["container_id"],
                 'coordinates': sample["coordinates"],

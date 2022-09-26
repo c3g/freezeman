@@ -391,22 +391,7 @@ def pool_samples(process: Process,
                 source_sample = sample["Source Sample"]
                 volume_ratio = sample["Volume Ratio"]
                 comment = sample["Comment"]
-                # Create a process_measurement and sample lineage for each sample pooled
-                process_measurement, errors_pm, warnings_pm = create_process_measurement(process=process,
-                                                                                         source_sample=source_sample,
-                                                                                         execution_date=execution_date,
-                                                                                         volume_used=volume_used,
-                                                                                         comment=comment)
-                errors.extend(errors_pm)
-                warnings.extend(warnings_pm)
-
-                if process_measurement:
-                    _, errors_sample_lineage, warnings_sample_lineage = create_sample_lineage(parent_sample=source_sample,
-                                                                                              child_sample=sample_destination,
-                                                                                              process_measurement=process_measurement)
-                    errors.extend(errors_sample_lineage)
-                    warnings.extend(warnings_sample_lineage)
-
+                
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
                 derived_samples_destination = source_sample.derived_samples.all()
                 for derived_sample in derived_samples_destination:
