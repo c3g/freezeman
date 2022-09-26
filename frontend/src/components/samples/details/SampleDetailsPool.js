@@ -8,7 +8,7 @@ import { POOLED_SAMPLES_FILTERS } from "../../filters/descriptions";
 import { Typography } from "antd";
 import FilteredList from '../../FilteredList';
 import PaginatedList from '../../shared/PaginatedList'
-import {createListFilterForPool, setFilter, setFilterOption, setSortBy} from '../../../modules/pooledSamples/actions'
+import {flushState, listTable, setFilter, setFilterOption, setPoolId, setSortBy} from '../../../modules/pooledSamples/actions'
 import usePaginatedList from '../../../hooks/usePaginatedList'
 
 const { Title } = Typography;
@@ -17,74 +17,58 @@ const { Title } = Typography;
 
 /* Sample data returned.
 {
-            "id": 392696,
-            "volume_ratio": "0.500",
-            "derived_sample": {
-                "id": 392696,
-                "library": {
-                    "id": 6,
-                    "library_type": "PCR-free",
-                    "platform": "ILLUMINA",
-                    "index": {
-                        "id": 13133,
-                        "index_set": "IDT_10nt_UDI_TruSeq_Adapter",
-                        "index_structure": "TruSeqHT",
-                        "name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002",
-                        "sequences_3prime": [
-                            7094
-                        ],
-                        "sequences_5prime": [
-                            7093
-                        ]
-                    },
-                    "library_size": "100",
-                    "strandedness": "Double stranded"
-                },
-                "biosample": {
-                    "id": 296342,
-                    "alias": null,
-                    "collection_site": "MUHC",
-                    "individual": 189385
-                },
-                "tissue_source": {
-                    "name": "BLOOD",
-                    "is_extracted": false
-                },
-                "sample_kind": {
-                    "name": "DNA",
-                    "is_extracted": true
-                },
-                "experimental_group": []
+    "id": 392696,
+    "volume_ratio": "0.500",
+    "derived_sample": {
+        "id": 392696,
+        "library": {
+            "id": 6,
+            "library_type": "PCR-free",
+            "platform": "ILLUMINA",
+            "index": {
+                "id": 13133,
+                "index_set": "IDT_10nt_UDI_TruSeq_Adapter",
+                "index_structure": "TruSeqHT",
+                "name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002",
+                "sequences_3prime": [
+                    7094
+                ],
+                "sequences_5prime": [
+                    7093
+                ]
             },
-        }
-*/
-
-// Converts a dotted path to an array of string required by the Ant Table class.
-const dataIndex = (s) => s.split('.')
- 
-const DATA_INDEX = {
-    volume_ratio:       dataIndex('volume_ratio'),
-    library_type:       dataIndex('derived_sample.library.library_type'),
-    library_platform:   dataIndex('derived_sample.library.platform'),
-    index_structure:    dataIndex('derived_sample.library.index_structure'),
-    index_set:          dataIndex('derived_sample.library.index.index_set'),
-    index_name:         dataIndex('derived_sample.library.index.name'),
-    alias:              dataIndex('derived_sample.biosample.alias'),
-    tissue_source_name: dataIndex('derived_sample.biosample.name'),
-    sample_kind:        dataIndex('derived_sample.sample_kind.name')
+            "library_size": "100",
+            "strandedness": "Double stranded"
+        },
+        "biosample": {
+            "id": 296342,
+            "alias": null,
+            "collection_site": "MUHC",
+            "individual": 189385
+        },
+        "tissue_source": {
+            "name": "BLOOD",
+            "is_extracted": false
+        },
+        "sample_kind": {
+            "name": "DNA",
+            "is_extracted": true
+        },
+        "experimental_group": []
+    },
 }
-
+*/
 
 const getTableColumns = () => {
     return [
         {
             title: "Alias",
-            dataIndex: DATA_INDEX.alias,
+            dataIndex: "alias",
             sorter: true
         },
         {
             title: "Volume Ratio",
-            dataIndex: DATA_INDEX.volume_ratio,
+            dataIndex: "volume_ratio",
             sorter: true,
         },
         // TODO: 
@@ -95,12 +79,12 @@ const getTableColumns = () => {
         // },
         {
             title: "Index Set",
-            dataIndex: DATA_INDEX.index_set,
+            dataIndex: "index_set",
             sorter: true
         },
         {
             title: "Index",
-            dataIndex: DATA_INDEX.index_name,
+            dataIndex: "index",
             sorter: true
         },
     ].map((column) => ({ ...column, key: column.title }))
@@ -110,12 +94,12 @@ const getTableColumns = () => {
 const SampleDetailsPool = ({sample: pool}) => {
 
     const dispatch = useDispatch()
-    const dispatchListFilter = useCallback((...args) => {
-        // listFilter needs a pool_id query parameter, so we have to use a factory
-        // function to create a closure that includes the pool_id, and pass that
-        // to the filtered list component
-        const listFilter = createListFilterForPool(pool.id)
-        dispatch(listFilter(...args))
+    
+    const setPoolIdCallback = useCallback((...args) => {
+        dispatch(setPoolId(pool.id))
+    })
+    const dispatchListTable = useCallback((...args) => {
+        dispatch(listTable(...args))
     }, [dispatch, pool])
 
     const setFilterCallback = useCallback((...args) => {
@@ -127,15 +111,23 @@ const SampleDetailsPool = ({sample: pool}) => {
     const setSortByCallback = useCallback((...args) => {
         dispatch(setSortBy(...args))
     })
+    const flushStateCallback = useCallback(() => {
+        dispatch(flushState())
+    })
+
+    useEffect(() => {
+        setPoolIdCallback(pool.id)
+        return flushStateCallback()
+    }, [pool])
 
     // We have to force the initial page load
     useEffect(() => {
-        dispatchListFilter({})
-    }, [pool.id])
+        dispatchListTable({})
+    }, [pool])
     
-    const samples = useSelector((state) => state.pooledSamples.filteredItems)
+    const samples = useSelector((state) => state.pooledSamples.items)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
-    const totalCount = useSelector((state) => state.pooledSamples.filteredItemsCount)
+    const totalCount = useSelector((state) => state.pooledSamples.totalCount)
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
     const page = useSelector((state) => state.pooledSamples.page)
     const filters = useSelector((state) => state.pooledSamples.filters)
@@ -164,7 +156,7 @@ const SampleDetailsPool = ({sample: pool}) => {
         filters,
         filterKey,
         sortBy,
-        onLoad: dispatchListFilter,
+        onLoad: dispatchListTable,
         onChangeSort: setSortByCallback
     })
 

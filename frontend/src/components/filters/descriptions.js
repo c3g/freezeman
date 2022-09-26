@@ -573,10 +573,17 @@ export const DATASET_FILE_FILTERS = {
   },
 }
 
+export const POOLED_SAMPLES_FIXED_FILTERS = {
+  pool_id: {
+    type: FILTER_TYPE.FIXED,
+    key: "pool_id"
+  }
+}
+
 export const POOLED_SAMPLES_FILTERS = {
     alias: {
       type: FILTER_TYPE.INPUT,
-      key: "derived_sample__alias",
+      key: "derived_sample__biosample__alias",
       label: "Sample Alias"
     },
     volume_ratio: {
@@ -587,7 +594,7 @@ export const POOLED_SAMPLES_FILTERS = {
     // TODO
     // project: {
     //     type: FILTER_TYPE.INPUT,
-    //     key: "derived_sample__alias",
+    //     key: "derived_sample__project__??",
     //     label: "Project ID"
     // },
     index_set: {
@@ -595,10 +602,10 @@ export const POOLED_SAMPLES_FILTERS = {
         key: 'derived_sample__library__index__index_set',
         label: "Index Set"
     },
-    index_name: {
+    index: {
         type: FILTER_TYPE.INPUT,
         key: 'derived_sample__library__index__name',
-        label: "Index Set"
+        label: "Index"
     },
 }
 

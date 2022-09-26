@@ -149,7 +149,7 @@ export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get
 
 const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
   useEffect(() => {
-    const interval = setInterval(fetchSummariesData, 30000);
+    const interval = setInterval(fetchSummariesData, 3000000); // TODO << restore 30000 (30 seconds)
     fetchInitialData();
     return () => clearInterval(interval);
   }, []);
