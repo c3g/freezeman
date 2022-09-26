@@ -8,8 +8,8 @@ import { POOLED_SAMPLES_FILTERS } from "../../filters/descriptions";
 import { Typography } from "antd";
 import FilteredList from '../../FilteredList';
 import PaginatedList from '../../shared/PaginatedList'
-import {createListFilterForPool} from '../../../modules/pooledSamples/actions'
-import useFilteredList from '../../../hooks/useFilteredList'
+import {createListFilterForPool, setFilter, setFilterOption, setSortBy} from '../../../modules/pooledSamples/actions'
+import usePaginatedList from '../../../hooks/usePaginatedList'
 
 const { Title } = Typography;
 
@@ -59,18 +59,19 @@ const { Title } = Typography;
         }
 */
 
-const indexPath = (s) => s.split('.')
+// Converts a dotted path to an array of string required by the Ant Table class.
+const dataIndex = (s) => s.split('.')
  
 const DATA_INDEX = {
-    volume_ratio:       indexPath('volume_ratio'),
-    library_type:       indexPath('derived_sample.library.library_type'),
-    library_platform:   indexPath('derived_sample.library.platform'),
-    index_structure:    indexPath('derived_sample.library.index_structure'),
-    index_set:          indexPath('derived_sample.library.index.index_set'),
-    index_name:         indexPath('derived_sample.library.index.name'),
-    alias:              indexPath('derived_sample.biosample.alias'),
-    tissue_source_name: indexPath('derived_sample.biosample.name'),
-    sample_kind:        indexPath('derived_sample.sample_kind.name')
+    volume_ratio:       dataIndex('volume_ratio'),
+    library_type:       dataIndex('derived_sample.library.library_type'),
+    library_platform:   dataIndex('derived_sample.library.platform'),
+    index_structure:    dataIndex('derived_sample.library.index_structure'),
+    index_set:          dataIndex('derived_sample.library.index.index_set'),
+    index_name:         dataIndex('derived_sample.library.index.name'),
+    alias:              dataIndex('derived_sample.biosample.alias'),
+    tissue_source_name: dataIndex('derived_sample.biosample.name'),
+    sample_kind:        dataIndex('derived_sample.sample_kind.name')
 }
 
 
@@ -117,29 +118,54 @@ const SampleDetailsPool = ({sample: pool}) => {
         dispatch(listFilter(...args))
     }, [dispatch, pool])
 
+    const setFilterCallback = useCallback((...args) => {
+        dispatch(setFilter(...args))
+    })
+    const setFilterOptionCallback = useCallback((...args) => {
+        dispatch(setFilterOption(...args))
+    })
+    const setSortByCallback = useCallback((...args) => {
+        dispatch(setSortBy(...args))
+    })
+
+    // We have to force the initial page load
+    useEffect(() => {
+        dispatchListFilter({})
+    }, [pool.id])
     
     const samples = useSelector((state) => state.pooledSamples.filteredItems)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
     const totalCount = useSelector((state) => state.pooledSamples.filteredItemsCount)
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
     const page = useSelector((state) => state.pooledSamples.page)
+    const filters = useSelector((state) => state.pooledSamples.filters)
+    const sortBy = useSelector((state) => state.pooledSamples.sortBy)
 
-    const columns = getTableColumns()
+    let columns = getTableColumns()
+    columns = columns.map(c => Object.assign(c, getFilterProps(
+        c,
+        POOLED_SAMPLES_FILTERS,
+        filters,
+        setFilterCallback,
+        setFilterOptionCallback
+    )))
 
+    // TODO what is the filter key for?
     const filterKey = POOLED_SAMPLES_FILTERS.alias.key
 
-    const paginatedListProps = useFilteredList({
-        description: POOLED_SAMPLES_FILTERS,
-        columns: columns,
-        listFilter: dispatchListFilter,
+    const paginatedListProps = usePaginatedList({
+        columns,
         items: samples,
         itemsByID: samplesById,
-        totalCount: totalCount,
-        filterID: pool.id,
-        filterKey: filterKey,
         rowKey: 'id',
-        isFetching: isFetching,
-        page: page
+        loading: isFetching,
+        totalCount: totalCount,
+        page,
+        filters,
+        filterKey,
+        sortBy,
+        onLoad: dispatchListFilter,
+        onChangeSort: setSortByCallback
     })
 
     return (
