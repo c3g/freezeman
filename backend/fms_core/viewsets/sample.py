@@ -22,7 +22,6 @@ from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, ver
 from ._constants import _sample_filterset_fields
 from ._fetch_data import fetch_sample_data
 from fms_core.filters import SampleFilter
-from fms.settings import REST_FRAMEWORK
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
