@@ -23,8 +23,9 @@ class ProjectLinkSamplesTestCase(TestCase):
         ContentType.objects.clear_cache()
 
         self.invalid_template_tests = ["Project_link_samples_v3_5_0_invalid_project.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
+                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",]
+
+        self.warning_template_tests = ["Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
                                        "Project_link_samples_v3_5_0_invalid_sample_3.xlsx",]
 
         #Projects for Link
@@ -86,5 +87,13 @@ class ProjectLinkSamplesTestCase(TestCase):
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
+
+    def test_warning_project_link_samples(self):
+        for f in self.warning_template_tests:
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], True)
+            self.assertEqual(len(result["result_previews"][0]["rows"][0]['warnings']), 1)
             transaction.savepoint_rollback(s)
 

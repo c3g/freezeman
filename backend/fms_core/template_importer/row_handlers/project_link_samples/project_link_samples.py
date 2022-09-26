@@ -31,14 +31,14 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
             # Check if link exists to ensure there's not a duplicated association
             if action['name'] == ADD_ACTION:
                 # Create link object if no errors
-                project_sample_link, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
-                                                                                              project=project_obj)
+                link_created, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
+                                                                                       project=project_obj)
 
             # If the link doesn't exists we can't perform a remove action
             elif action['name'] == REMOVE_ACTION:
                 # Remove link object if no errors
-                num_objects_deleted, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
-                                                                                              project=project_obj)
+                link_removed, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
+                                                                                       project=project_obj)
 
             # Action not provided or invalid
             else:
