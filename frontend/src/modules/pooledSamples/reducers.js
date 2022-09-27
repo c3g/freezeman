@@ -26,18 +26,19 @@ export const pooledSamples = (
     switch (action.type) {
         case POOLED_SAMPLES.SET_FIXED_FILTER:
             // A fixed filter is a filter that gets set by a component when it is created and
-            // which is included with every listTable request. 
+            // which is included with every listTable request.
             return {
                 ...state,
                 fixedFilters: set(state.fixedFilters, [action.data.name, 'value'], action.data.value)
             }
         case POOLED_SAMPLES.SET_SORT_BY:
-            return { ...state, sortBy: action.data, items: [] };
+            return { ...state, sortBy: action.data, items: [], totalCount: 0 };
         case POOLED_SAMPLES.SET_FILTER:
             return {
                 ...state,
                 filters: set(state.filters, [action.data.name, 'value'], action.data.value),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             };
         case POOLED_SAMPLES.SET_FILTER_OPTION:
@@ -49,6 +50,7 @@ export const pooledSamples = (
                     action.data.value
                 ),
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             }
         case POOLED_SAMPLES.CLEAR_FILTERS:
@@ -56,6 +58,7 @@ export const pooledSamples = (
                 ...state,
                 filters: {},
                 items: [],
+                totalCount: 0,
                 page: set(state.page, ['offset'], 0),
             }
 

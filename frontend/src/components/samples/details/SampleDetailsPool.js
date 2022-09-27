@@ -8,8 +8,11 @@ import { POOLED_SAMPLES_FILTERS } from "../../filters/descriptions";
 import { Typography } from "antd";
 import FilteredList from '../../FilteredList';
 import PaginatedList from '../../shared/PaginatedList'
-import {flushState, listTable, setFilter, setFilterOption, setPoolId, setSortBy} from '../../../modules/pooledSamples/actions'
+import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPoolId, setSortBy} from '../../../modules/pooledSamples/actions'
 import usePaginatedList from '../../../hooks/usePaginatedList'
+import AppPageHeader from '../../AppPageHeader'
+import PageContent from '../../PageContent'
+import { Button } from 'antd'
 
 const { Title } = Typography;
 
@@ -66,6 +69,9 @@ const SampleDetailsPool = ({sample: pool}) => {
     const setSortByCallback = useCallback((...args) => {
         dispatch(setSortBy(...args))
     })
+    const clearFiltersCallback = useCallback((...args) => {
+        dispatch(clearFilters(...args))
+    })
     const flushStateCallback = useCallback(() => {
         dispatch(flushState())
     })
@@ -103,6 +109,8 @@ const SampleDetailsPool = ({sample: pool}) => {
     // TODO what is the filter key for?
     const filterKey = POOLED_SAMPLES_FILTERS.alias.key
 
+    const nFilters = getNFilters(filters)
+
     const paginatedListProps = usePaginatedList({
         columns,
         items: samples,
@@ -120,8 +128,24 @@ const SampleDetailsPool = ({sample: pool}) => {
 
     return (
     <>
-        <Title level={4}>Pooled Samples</Title>
-        <PaginatedList {...paginatedListProps}/>
+        <PageContent>
+        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+            <FiltersWarning
+                nFilters={nFilters}
+                filters={filters}
+                description={POOLED_SAMPLES_FILTERS}
+            />
+            <Button
+                style={{ margin: 6 }}
+                disabled={nFilters === 0}
+                onClick={clearFiltersCallback}
+            >
+                Clear Filters
+            </Button>
+        </div>
+            <PaginatedList {...paginatedListProps}/>
+        </PageContent>
+        
     </>
     )
 }
