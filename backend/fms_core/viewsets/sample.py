@@ -292,7 +292,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     def retrieve(self, _request, pk=None, *args, **kwargs):
         samples_queryset = self.filter_queryset(self.get_queryset())
         serialized_data = fetch_sample_data([pk] if pk is not None else [], samples_queryset, self.request.query_params)
-        return Response(serialized_data)
+        return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
         samples_queryset = self.filter_queryset(self.get_queryset())

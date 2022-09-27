@@ -121,7 +121,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     def retrieve(self, _request, pk=None, *args, **kwargs):
         libraries_queryset = self.filter_queryset(self.get_queryset())
         serialized_data = fetch_library_data([pk] if pk is not None else [], libraries_queryset, self.request.query_params)
-        return Response(serialized_data)
+        return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
         libraries_queryset = self.filter_queryset(self.get_queryset())

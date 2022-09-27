@@ -27,15 +27,17 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
         derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
         queryset = Sample.objects.all().prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
 
-    if query_params is not None:
-        limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
-        offset = int(query_params.get('offset', 0))
+    limit = None
+    offset = None
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
-        queryset.filter(id=ids[0])
+        queryset = queryset.filter(id=ids[0])
     elif len(ids) > 1:
-        queryset.filter(id__in=ids)
+        queryset = queryset.filter(id__in=ids)
+    elif query_params is not None:
+        limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
+        offset = int(query_params.get('offset', 0))
 
     samples_queryset = queryset.annotate(
         first_derived_sample=Subquery(
@@ -47,7 +49,8 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
 
     # Annotate sample queryset
     samples_queryset = samples_queryset.annotate(derived_count=Count("derived_samples"))
-    samples_queryset = samples_queryset[offset:offset+limit] # page the queryset
+    if offset is not None and limit is not None:
+        samples_queryset = samples_queryset[offset:offset+limit] # page the queryset
     sample_values_queryset = (
         samples_queryset
         .values(
@@ -171,9 +174,9 @@ def fetch_export_sample_data(ids: List[int] =[], queryset=None, query_params=Non
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
-        queryset.filter(id=ids[0])
+        queryset = queryset.filter(id=ids[0])
     elif len(ids) > 1:
-        queryset.filter(id__in=ids)
+        queryset = queryset.filter(id__in=ids)
 
     samples_queryset = queryset.annotate(
         first_derived_sample=Subquery(
@@ -326,15 +329,17 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
     if queryset is None:
         queryset = Sample.objects.select_related("container").all().distinct()
 
-    if query_params is not None:
-        limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
-        offset = int(query_params.get('offset', 0))
+    limit = None
+    offset = None
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
-        queryset.filter(id=ids[0])
+        queryset = queryset.filter(id=ids[0])
     elif len(ids) > 1:
-        queryset.filter(id__in=ids)
+        queryset = queryset.filter(id__in=ids)
+    elif query_params is not None:
+        limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
+        offset = int(query_params.get('offset', 0))
 
     # Keep only libraries
     queryset = queryset.filter(derived_samples__library__isnull=False)
