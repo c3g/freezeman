@@ -179,11 +179,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 **(dict(tissue_source_id=full_sample_data['tissue_source']) if full_sample_data['tissue_source'] is not None else dict()),
             )
             if full_sample_data['experimental_group']:
-                derived_sample_data['experimental_group'] = json.dumps([
-                    g.strip()
-                    for g in RE_SEPARATOR.split(full_sample_data['experimental_group'])
-                    if g.strip()
-                ])
+                derived_sample_data['experimental_group'] = [group.strip() for group in full_sample_data['experimental_group']]
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
@@ -214,7 +210,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         except Exception as err:
             raise ValidationError(err)
 
-        return Response(serialized_data)
+        return Response(serialized_data[0] if serialized_data else {})
 
     def update(self, request, *args, **kwargs):
         full_sample = request.data
@@ -287,7 +283,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         except Exception as err:
             raise ValidationError(err)
 
-        return Response(serialized_data)
+        return Response(serialized_data[0] if serialized_data else {})
 
     def retrieve(self, _request, pk=None, *args, **kwargs):
         samples_queryset = self.filter_queryset(self.get_queryset())

@@ -9,7 +9,7 @@ from fms.settings import REST_FRAMEWORK
 from fms_core.models import Sample, DerivedBySample, DerivedSample, SampleLineage, ProcessMeasurement, Project
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
-from ..utils import make_generator
+from ..utils import make_generator, decimal_rounded_to_precision
 
 def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> List:
     """
@@ -407,7 +407,7 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
                 'depleted': sample["depleted"],
                 'concentration_ng_ul': sample["concentration"],
                 'concentration_nm': concentration_nm,
-                'quantity_ng': sample["concentration"] * sample["volume"] if sample["concentration"] else None,
+                'quantity_ng': decimal_rounded_to_precision(sample["concentration"] * sample["volume"]) if sample["concentration"] else None,
                 'container': sample["container_id"],
                 'coordinates': sample["coordinates"],
                 'is_pool': is_pool,
@@ -511,7 +511,7 @@ def fetch_export_library_data(ids: List[int] =[], queryset=None, query_params=No
                 'depleted': sample["depleted"],
                 'concentration_ng_ul': sample["concentration"],
                 'concentration_nm': concentration_nm,
-                'quantity_ng': sample["concentration"] * sample["volume"] if sample["concentration"] else None,
+                'quantity_ng': decimal_rounded_to_precision(sample["concentration"] * sample["volume"]) if sample["concentration"] else None,
                 'container': sample["container__barcode"],
                 'coordinates': sample["coordinates"],
                 'is_pool': is_pool,
