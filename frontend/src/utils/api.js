@@ -127,7 +127,6 @@ const api = {
   },
 
   pooledSamples: {
-    // Note: pool_id must be included in options
     list: (options, abort) => get("/pooled-samples/", options, { abort })
   },
 

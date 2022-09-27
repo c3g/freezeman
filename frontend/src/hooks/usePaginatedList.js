@@ -75,7 +75,7 @@ export const usePaginatedList = ({
 
     const onChangeSizeChange = (newPageSize) => {
         dispatch(setPageSize(newPageSize));
-        onLoad({ filters, sortBy, filterKey });
+        onLoad({ filters, sortBy, filterKey }, 0);
     };
 
     return {

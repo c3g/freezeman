@@ -37,7 +37,7 @@ export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}
 
     return await dispatch(networkAction(LIST_TABLE,
         api.pooledSamples.list(options, abort),
-        { meta: {...options} }
+        { meta: { ...options, ignoreError: 'AbortError' } }
     ));
 };
 
