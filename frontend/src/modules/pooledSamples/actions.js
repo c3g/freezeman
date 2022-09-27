@@ -5,7 +5,6 @@ import serializeSortByParams from "../../utils/serializeSortByParams";
 import {POOLED_SAMPLES_FILTERS, POOLED_SAMPLES_FIXED_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
-// export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_TABLE             = createNetworkActionTypes("POOLED_SAMPLES.LIST_TABLE")
 export const SET_SORT_BY            = "POOLED_SAMPLES.SET_SORT_BY"
 export const SET_FIXED_FILTER      = "POOLED_SAMPLES.SET_FIXED_FILTER"
@@ -13,6 +12,7 @@ export const SET_FILTER             = "POOLED_SAMPLES.SET_FILTER"
 export const SET_FILTER_OPTION      = "POOLED_SAMPLES.SET_FILTER_OPTION"
 export const CLEAR_FILTERS          = "POOLED_SAMPLES.CLEAR_FILTERS"
 export const FLUSH_STATE            = "POOLED_SAMPLES.FLUSH_STATE"
+
 
 // This is a regular 'listFilter' function except that it adds the pool id as a pool_id query parameter.
 export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy = {} }, abort) => async (dispatch, getState) => {
@@ -23,6 +23,7 @@ export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filte
       return
 
     limit = getState().pagination.pageSize;
+
     filters = serializeFilterParams(filters, POOLED_SAMPLES_FILTERS)
 
     // The pool_id filter value is stored as a fixed filter in the redux state
@@ -110,6 +111,7 @@ export const flushState = () => {
 }
 
 export default {
+    FLUSH_STATE,
     SET_SORT_BY,
     SET_FIXED_FILTER,
     SET_FILTER,

@@ -14,51 +14,6 @@ import usePaginatedList from '../../../hooks/usePaginatedList'
 const { Title } = Typography;
 
 
-
-/* Sample data returned.
-{
-    "id": 392696,
-    "volume_ratio": "0.500",
-    "derived_sample": {
-        "id": 392696,
-        "library": {
-            "id": 6,
-            "library_type": "PCR-free",
-            "platform": "ILLUMINA",
-            "index": {
-                "id": 13133,
-                "index_set": "IDT_10nt_UDI_TruSeq_Adapter",
-                "index_structure": "TruSeqHT",
-                "name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002",
-                "sequences_3prime": [
-                    7094
-                ],
-                "sequences_5prime": [
-                    7093
-                ]
-            },
-            "library_size": "100",
-            "strandedness": "Double stranded"
-        },
-        "biosample": {
-            "id": 296342,
-            "alias": null,
-            "collection_site": "MUHC",
-            "individual": 189385
-        },
-        "tissue_source": {
-            "name": "BLOOD",
-            "is_extracted": false
-        },
-        "sample_kind": {
-            "name": "DNA",
-            "is_extracted": true
-        },
-        "experimental_group": []
-    },
-}
-*/
-
 const getTableColumns = () => {
     return [
         {
@@ -116,11 +71,14 @@ const SampleDetailsPool = ({sample: pool}) => {
     })
 
     useEffect(() => {
+        // Set the id of the pool that is displayed by this component.
+        // This must be called before any data is loaded.
         setPoolIdCallback(pool.id)
-        return flushStateCallback()
+        // Return a cleanup function that is called when the component is destroyed.
+        return flushStateCallback
     }, [pool])
 
-    // We have to force the initial page load
+    // Force the initial page load
     useEffect(() => {
         dispatchListTable({})
     }, [pool])
