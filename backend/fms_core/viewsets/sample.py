@@ -1,5 +1,3 @@
-import json
-from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,8 +6,8 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
-from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
@@ -323,16 +321,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         samples_data = Biosample.objects.filter().distinct("collection_site")
         collection_sites = [s.collection_site for s in samples_data]
         return Response(collection_sites)
-
-    def get_serializer_class(self):
-        # If the nested query param is passed in with a non-false-y string
-        # value, use the nested sample serializer; this will nest referenced
-        # objects 1 layer deep to provide more data in a single request.
-
-        nested = self.request.query_params.get("nested", False)
-        if nested:
-            return NestedSampleSerializer
-        return SampleSerializer
 
     @action(detail=False, methods=["get"])
     def search(self, _request):

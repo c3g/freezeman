@@ -1,9 +1,7 @@
 from django.contrib.auth.models import User, Group
-from typing import Dict, Any, Union, List
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 from django.db.models import Max
 
 from .models import (
@@ -25,7 +23,6 @@ from .models import (
     Process,
     ProcessMeasurement,
     Project,
-    Sample,
     SampleKind,
     SampleMetadata,
     Sequence,
@@ -66,7 +63,6 @@ __all__ = [
     "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
-    "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
     "UserSerializer",
@@ -362,31 +358,6 @@ class SampleExportSerializer(serializers.Serializer):
                   'current_volume', 'concentration', 'creation_date', 'collection_site', 'experimental_group',
                   'individual_name', 'sex', 'taxon', 'cohort', 'pedigree', 'father_name', 'mother_name',
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
-
-
-class NestedSampleSerializer(serializers.ModelSerializer):
-    # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
-    individual = IndividualSerializer(read_only=True, source="biosample_not_pool.individual")
-    container = SimpleContainerSerializer(read_only=True)
-    # Derived Sample and Biosample attributes
-    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
-    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source.name")
-    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
-    quantity_flag = serializers.SerializerMethodField()
-    quality_flag = serializers.SerializerMethodField()
-    derived_samples__project = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
-    class Meta:
-        model = Sample
-        exclude = ('derived_samples', )
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
 
 
 class LibrarySerializer(serializers.Serializer):
