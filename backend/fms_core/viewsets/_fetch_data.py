@@ -92,8 +92,8 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
                 "project_id",
                 "biosample_id",
                 "biosample__alias",
-                "sample_kind_id",
-                "tissue_source_id",
+                "sample_kind__id",
+                "tissue_source__id",
                 "biosample__collection_site",
                 "experimental_group",
                 "biosample__individual_id",
@@ -134,12 +134,12 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
                 'individual': derived_sample["biosample__individual_id"] if not is_pool else None,
                 'container': sample["container_id"],
                 'coordinates': sample["coordinates"],
-                'sample_kind': derived_sample["sample_kind_id"] if not is_pool or (is_pool and not is_library) else "POOL",
+                'sample_kind': derived_sample["sample_kind__id"] if not is_pool or (is_pool and not is_library) else None,
                 'is_library': is_library,
                 'is_pool': is_pool,
                 'project': derived_sample["project_id"] if not is_pool else None,
                 'process_measurements': process_measurements,
-                'tissue_source': derived_sample["tissue_source_id"] if not is_pool else None,
+                'tissue_source': derived_sample["tissue_source__id"] if not is_pool else None,
                 'creation_date': sample["creation_date"],
                 'collection_site': derived_sample["biosample__collection_site"] if not is_pool else None,
                 'experimental_group': derived_sample["experimental_group"] if not is_pool else None,
@@ -415,7 +415,7 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
                 'creation_date': sample["creation_date"],
                 'quality_flag': sample["quality_flag"],
                 'quantity_flag': sample["quantity_flag"],
-                'library_type': derived_sample["library__library_type__name"],
+                'library_type': derived_sample["library__library_type__name"] if not is_pool else None, 
                 'platform': derived_sample["library__platform__name"],
                 'library_size': derived_sample["library__library_size"] if not is_pool else None,
                 'index': derived_sample["library__index__id"] if not is_pool else None
@@ -441,9 +441,9 @@ def fetch_export_library_data(ids: List[int] =[], queryset=None, query_params=No
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
-        queryset.filter(id=ids[0])
+        queryset = queryset.filter(id=ids[0])
     elif len(ids) > 1:
-        queryset.filter(id__in=ids)
+        queryset = queryset.filter(id__in=ids)
 
     # Keep only libraries
     queryset = queryset.filter(derived_samples__library__isnull=False)
@@ -519,7 +519,7 @@ def fetch_export_library_data(ids: List[int] =[], queryset=None, query_params=No
                 'creation_date': sample["creation_date"],
                 'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
                 'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
-                'library_type': derived_sample["library__library_type__name"],
+                'library_type': derived_sample["library__library_type__name"] if not is_pool else None,
                 'platform': derived_sample["library__platform__name"],
                 'library_size': derived_sample["library__library_size"] if not is_pool else None,
                 'index': derived_sample["library__index__name"] if not is_pool else None

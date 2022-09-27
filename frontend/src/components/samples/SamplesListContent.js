@@ -42,7 +42,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       width: 80,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
-        <Tag>{sampleKinds.itemsByID[sample.sample_kind]?.name}</Tag>,
+        <Tag>{sample.sample_kind ? sampleKinds.itemsByID[sample.sample_kind]?.name : "POOL"}</Tag>,
     },
     {
       title: "Name",

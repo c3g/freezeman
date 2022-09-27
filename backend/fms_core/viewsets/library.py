@@ -171,9 +171,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             query = Q(name__icontains=search_input)
             query.add(Q(id__icontains=search_input), Q.OR)
 
-        full_library_data = self.get_queryset().filter(query)
-        page = self.paginate_queryset(full_library_data)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        libraries_queryset = self.get_queryset().filter(query)
+        serialized_data = fetch_library_data([], libraries_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": libraries_queryset.count()})
 
 

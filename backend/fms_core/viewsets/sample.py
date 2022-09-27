@@ -349,10 +349,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             query = Q(name__icontains=search_input)
             query.add(Q(id__icontains=search_input), Q.OR)
 
-        full_sample_data = Sample.objects.filter(query)
-        page = self.paginate_queryset(full_sample_data)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        samples_queryset = Sample.objects.filter(query)
+        serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": samples_queryset.count()})
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
