@@ -5,6 +5,8 @@ from fms_core.models import LibraryType, Library, DerivedBySample
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul, convert_concentration_from_ngbyul_to_nm
+
 from fms_core.models._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED
 
 def get_library_type(name):
@@ -83,11 +85,8 @@ def convert_library(process, platform, sample_source, container_destination, coo
         errors.append(f"Execution date is not valid.")
 
     # Retrieve library object linked to the source sample
-    library_source_obj = sample_source.derived_sample_not_pool.library
-    if not sample_source.is_library or library_source_obj is None:
-        errors.append(f"Sample {sample_source.name} is not a library.")
-    elif library_source_obj.platform == platform:
-        errors.append(f"Source library platform and destination library platform can't be the same.")
+    if not sample_source.is_library:
+        errors.append(f"Sample {sample_source.name} is not a library or a pool of libraries.")
 
     if not errors:
         try:
@@ -109,6 +108,14 @@ def convert_library(process, platform, sample_source, container_destination, coo
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample_source in sample_source.derived_samples.all():
+                library_source_obj = derived_sample_source.library
+                # extra validation
+                if library_source_obj is None:
+                    errors.append(f"Pool {sample_source.name} contains a sample {derived_sample_source.biosample.alias} that is not a library.")
+
+                elif library_source_obj.platform == platform:
+                    errors.append(f"Source library platform and destination library platform can't be the same.")
+
                 # Create new destination library for each derived sample
                 library_destination, errors_library_destination, warnings_library_destinations = \
                     create_library(library_type=library_source_obj.library_type,
@@ -145,17 +152,18 @@ def convert_library(process, platform, sample_source, container_destination, coo
 
     return library_destination, errors, warnings
 
-def update_library(sample, **kwargs):
+
+def update_library(derived_sample, **kwargs):
     errors = []
     warnings = []
 
-    if sample is None:
-        errors.append('Missing sample')
-    elif not sample.is_library:
-        errors.append('Sample {sample.name} is not a library')
+    if derived_sample is None:
+        errors.append('Missing derived sample.')
+    elif not derived_sample.library:
+        errors.append(f"Sample is not a library or a pool of libraries.")
     else:
         try:
-            library = sample.derived_sample_not_pool.library
+            library = derived_sample.library
 
             if 'library_type' in kwargs:
                 library.library_type = kwargs['library_type']
@@ -172,7 +180,7 @@ def update_library(sample, **kwargs):
                     library.strandedness = strandedness
                 else:
                     errors.append(f'Unexpected value for strandedness ({strandedness})')
-                    
+
             if 'library_size' in kwargs:
                 library_size = kwargs['library_size']
                 if library_size is not None:
@@ -184,4 +192,89 @@ def update_library(sample, **kwargs):
         except Exception as e:
             errors.append(str(e))
 
-    return sample, errors, warnings
+    return derived_sample, errors, warnings
+
+
+def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration_nm):
+    """
+                 Converts the concentration of a library from nM to ng/uL by calculating each partial concentration
+                 of the derived samples and adjusting it with their respective volume ratio.
+
+                 Args:
+                     `sample_source`: The source library to be converted.
+                     `concentration_nm`: The library concentration in nM.
+
+                 Returns:
+                     The resulting concentration in ng/uL
+            """
+    errors = []
+    warnings = []
+
+    if source_sample is None:
+        errors.append(f'Missing sample.')
+    elif not source_sample.is_library:
+        errors.append(f'Conversion from nM to ng/uL requires a library as source sample.')
+
+    if not errors:
+        final_concentration = 0
+        for derived_sample in source_sample.derived_samples.all():
+            # Compute the size of each library and its volume ratio
+            library = derived_sample.library
+            volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
+            if library.library_size and library.strandedness:
+                # Convert the concentration
+                partial_concentration = convert_concentration_from_nm_to_ngbyul(concentration_nm,
+                                                                                library.molecular_weight_approx,
+                                                                                library.library_size)
+                if partial_concentration is None:
+                    errors.append(f'Failed to convert the concentration of this library {source_sample.name}.')
+                    return None, errors, warnings
+                else:
+                    # Adjust the concentration according to its volume ratio
+                    adjusted_concentration = partial_concentration * volume_ratio
+                    final_concentration += adjusted_concentration
+            else:
+                errors.append(f'Either library size or strandedness has not been set for this library.')
+                return None, errors, warnings
+        return final_concentration, errors, warnings
+    else:
+        return None, errors, warnings
+
+
+def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration_ngbyul):
+    """
+                 Converts the concentration of a library from ng/uL to nM by calculating each partial concentration
+                 of the derived samples and adjusting it with their respective volume ratio.
+
+                 Args:
+                     `sample_source`: The source library to be converted.
+                     `concentration_nm`: The library concentration in ng/uL.
+
+                 Returns:
+                     The resulting concentration in nM
+            """
+    errors = []
+    warnings = []
+
+    if source_sample is None:
+        errors.append(f'Missing sample.')
+    elif not source_sample.is_library:
+        errors.append(f'Conversion from ng/uL to nM requires a library as source sample.')
+
+    if not errors:
+        sum_adjusted_factor = 0
+        for derived_sample in source_sample.derived_samples.all():
+            # Compute the size of each library and its volume ratio
+            library = derived_sample.library
+            volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
+            if library.library_size and library.strandedness:
+                # Convert the concentration
+                adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
+                sum_adjusted_factor += adjusted_factor
+            else:
+                errors.append(f'Either library size or strandedness has not been set for this library.')
+                return None, errors, warnings
+        concentration_nm = (concentration_ngbyul * 1000000) / sum_adjusted_factor
+        return concentration_nm, errors, warnings
+    else:
+        return None, errors, warnings

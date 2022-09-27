@@ -1,14 +1,15 @@
+import decimal
+
 from django.test import TestCase
 from datetime import datetime
-from decimal import Decimal
 
 from fms_core.template_importer.importers import TransferImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage
+from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage, Protocol, Process
 
 from fms_core.services.container import get_or_create_container
-from fms_core.services.sample import create_full_sample
+from fms_core.services.sample import create_full_sample, pool_samples
 
 
 class TransferTestCase(TestCase):
@@ -26,6 +27,8 @@ class TransferTestCase(TestCase):
             {'name': 'sample1transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A01'},
             {'name': 'sample2transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A02'},
             {'name': 'sample3transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A03'},
+            {'name': 'sample1pool', 'volume': 150, 'container_barcode': 'Pool_container_source_1', 'coordinates': 'A01'},
+            {'name': 'sample2pool', 'volume': 50,  'container_barcode': 'Pool_container_source_1', 'coordinates': 'A02'},
         ]
 
         for info in samples_info:
@@ -47,6 +50,37 @@ class TransferTestCase(TestCase):
         for info in destination_containers_info:
             get_or_create_container(barcode=info['barcode'], name=info['name'], kind=info['kind'],
                                     coordinates=info['coordinates'], container_parent=info['container_parent'])
+
+        # Create objects for the pooling test
+        samples_to_pool_info = [
+            {
+                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinates="A01"),
+                'Volume Used': decimal.Decimal(20.0),
+                'Source Depleted': False,
+                'Comment': ''
+             },
+            {
+                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinates="A02"),
+                'Volume Used': decimal.Decimal(5.0),
+                'Source Depleted': False,
+                'Comment': '',
+            }
+        ]
+
+        (container_pool, _, errors, warnings) = get_or_create_container(barcode="PoolContainerSource",
+                                                                        kind='Tube',
+                                                                        name="PoolContainerSource")
+
+        self.protocol_pooling = Protocol.objects.get(name="Sample Pooling")
+        self.process_pooling = Process.objects.create(protocol=self.protocol_pooling)
+
+
+        (pool, errors, warnings) = pool_samples(process=self.process_pooling,
+                                                samples_info=samples_to_pool_info,
+                                                pool_name='PoolToTransfer',
+                                                container_destination=container_pool,
+                                                coordinates_destination=None,
+                                                execution_date=datetime(2020, 5, 21, 0, 0))
 
 
     def test_import(self):
@@ -118,3 +152,27 @@ class TransferTestCase(TestCase):
         self.assertEqual(process3, process2)
         self.assertEqual(cs3.creation_date, pm3.execution_date)
         self.assertEqual(cs3.creation_date, datetime.strptime("2021-09-22", "%Y-%m-%d").date())
+
+        # Pool test
+        pool = Sample.objects.get(container__barcode="PoolContainerSource")
+        self.assertEqual(pool.volume, 15)
+        self.assertFalse(pool.depleted)
+        self.assertTrue(
+            Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A03").exists())
+        self.assertTrue(SampleLineage.objects.filter(parent=pool).exists())
+        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=pool).exists())
+        pool_transferred = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A03",
+                                              container__coordinates="A01")
+        sl4 = SampleLineage.objects.get(parent=pool)
+        pm4 = ProcessMeasurement.objects.get(source_sample=pool)
+        process4 = pm4.process
+        self.assertEqual(sl4.child, pool_transferred)
+        self.assertEqual(sl4.process_measurement, pm4)
+        self.assertEqual(pm4.source_sample, pool)
+        self.assertEqual(pm4.volume_used, 10)
+        self.assertEqual(pm4.protocol_name, "Transfer")
+        self.assertEqual(pm4.comment, "Pool Test")
+        self.assertEqual(pool_transferred.volume, 10)
+        self.assertEqual(process4, process3)
+        self.assertEqual(pool_transferred.creation_date, pm4.execution_date)
+        self.assertEqual(pool_transferred.creation_date, datetime.strptime("2022-01-01", "%Y-%m-%d").date())
