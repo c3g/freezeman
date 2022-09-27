@@ -96,6 +96,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                    destination_container_dict['coordinates'],
                                                                                                    container_parent_obj)
 
+            if destination_sample['coordinates'] is None:
+                self.errors['dest_container_coord'] = f'Destination container coordinates are required for plates.'
+
             volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 
             if combined_concentration_nguL > source_sample_obj.concentration:
