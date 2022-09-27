@@ -1,4 +1,3 @@
-import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,7 +12,7 @@ from fms_core.template_importer.importers import ExperimentRunImporter, LibraryC
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
-from ._fetch_data import fetch_library_data
+from ._fetch_data import fetch_library_data, fetch_export_library_data
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
@@ -131,8 +130,9 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = LibraryExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        return Response(serializer.data)
+        libraries_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_export_library_data([], libraries_queryset, self.request.query_params)
+        return Response(serialized_data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()

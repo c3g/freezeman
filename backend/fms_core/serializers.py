@@ -395,25 +395,12 @@ class LibrarySerializer(serializers.Serializer):
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
-class LibraryExportSerializer(serializers.ModelSerializer):
+
+class LibraryExportSerializer(serializers.Serializer):
     class Meta:
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
-    
-    # TODO : update this formula to include RNA and single strand DNA
-    def get_concentration_nm(self, obj):
-        # If object is not a library or a pool of libraries return none
-        if not obj.is_library:
-            return None
-        else:
-            return convert_library_concentration_from_ngbyul_to_nm(obj, obj.concentration)
-
-    def get_quantity_ng(self, obj):
-        if not obj.concentration:
-            return None
-        else:
-            return obj.concentration * obj.volume
 
 
 class VersionSerializer(serializers.ModelSerializer):
