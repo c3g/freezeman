@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import APIException
 from fms_core.models import Biosample, DerivedSample, DerivedBySample, Index, Library, LibraryType, SampleKind
-
+from fms_core.filters import PooledSampleFilter
 
 # Custom serializers
 # These serializers serialize the data we want to receive in pool samples.
@@ -63,21 +63,20 @@ class PooledSampleSerializer(serializers.Serializer):
 class MissingPoolIDException(APIException):
     status_code = 400
     default_code = 'bad_request'
-    default_detail = 'pool_id query parameter is required'
+    default_detail = 'No pool ID: query must include sample__id parameter containing the pool ID.'
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
     queryset = DerivedBySample.objects.all()
     serializer_class = PooledSampleSerializer
+    filter_class = PooledSampleFilter
 
     def get_queryset(self):
-        pool_id = self.request.query_params.get('pool_id')
-        # I'm not sure if this is the "django way" to force a query parameter to be
-        # included in the request... Maybe the parameter should be part of the url instead
-        # of a query parameter and the retrieve method should be used? But, how would
-        # pagination work in that case?
-        if (pool_id is None):
+        # Ensure that the pool id is specified to avoid trying to return all of the derived
+        # samples in the db...
+        sample_id = self.request.query_params.get('sample__id__in')
+        if (sample_id is None):
             raise MissingPoolIDException()
-        queryset = DerivedBySample.objects.all().filter(sample_id=pool_id)
+        queryset = DerivedBySample.objects.all().filter(sample_id=sample_id)
         return queryset
         
 

@@ -576,11 +576,16 @@ export const DATASET_FILE_FILTERS = {
 export const POOLED_SAMPLES_FIXED_FILTERS = {
   pool_id: {
     type: FILTER_TYPE.FIXED,
-    key: "pool_id"
+    key: "sample__id"
   }
 }
 
 export const POOLED_SAMPLES_FILTERS = {
+    // Fixed filter holding pool sample ID
+    sample__id: {
+      type: FILTER_TYPE.INPUT_OBJECT_ID,
+      key: "sample__id",
+    },
     alias: {
       type: FILTER_TYPE.INPUT,
       key: "derived_sample__biosample__alias",
@@ -599,7 +604,7 @@ export const POOLED_SAMPLES_FILTERS = {
     // },
     index_set: {
         type: FILTER_TYPE.INPUT,
-        key: 'derived_sample__library__index__index_set',
+        key: 'derived_sample__library__index__index_set__name',
         label: "Index Set"
     },
     index: {

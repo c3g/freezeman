@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Index, Individual, Sample, PropertyValue, Dataset
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset
 
 import django_filters
 
@@ -11,7 +11,8 @@ from .viewsets._constants import (
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
     _library_filterset_fields,
-    _dataset_filterset_fields
+    _dataset_filterset_fields,
+    _pooled_sample_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -117,3 +118,8 @@ class DatasetFilter(GenericFilter):
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class PooledSampleFilter(GenericFilter):
+    class Meta:
+        model = DerivedBySample
+        fields = _pooled_sample_filterset_fields

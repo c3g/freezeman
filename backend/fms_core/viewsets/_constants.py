@@ -215,3 +215,11 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,
 }
+
+_pooled_sample_filterset_fields: FiltersetFields = {
+    "sample__id": PK_FILTERS,
+    "volume_ratio": SCALAR_FILTERS,
+    "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__library__index__index_set__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+}

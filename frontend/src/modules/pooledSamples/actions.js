@@ -15,30 +15,25 @@ export const FLUSH_STATE            = "POOLED_SAMPLES.FLUSH_STATE"
 
 
 // This is a regular 'listFilter' function except that it adds the pool id as a pool_id query parameter.
-export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filters = {}, sortBy = {} }, abort) => async (dispatch, getState) => {
+export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
 
     const pooledSamples = getState().pooledSamples
 
     if(pooledSamples.isFetching && !abort)
       return
 
-    limit = getState().pagination.pageSize;
-
-    filters = serializeFilterParams(filters, POOLED_SAMPLES_FILTERS)
-
-    // The pool_id filter value is stored as a fixed filter in the redux state
-    // and is always appended to the list of filters.
-    const fixedFilters = serializeFilterParams(pooledSamples.fixedFilters ?? {}, POOLED_SAMPLES_FIXED_FILTERS)
-    
-    filters = Object.assign(filters, fixedFilters)
-
     // Safety check - make sure the pool_id is set so that the backend doesn't blow up if it's missing.
-    if (!fixedFilters.pool_id) {
+    if (!pooledSamples.fixedFilters.sample__id) {
         return Promise.reject(Error("pool_id must be set as a fixed filter before listTable can be called"))
     }
 
-    const ordering = serializeSortByParams(sortBy)
-    const options = { limit, offset, ordering, ...filters}
+    // The pool id is stored as a fixed filter value, and is merged with the user-editable filters.
+    const mergedFilters = Object.assign({}, pooledSamples.filters, pooledSamples.fixedFilters)
+    const serializedFilters = serializeFilterParams(mergedFilters, POOLED_SAMPLES_FILTERS)
+
+    const ordering = serializeSortByParams(pooledSamples.sortBy)
+    limit = getState().pagination.pageSize;
+    const options = { limit, offset, ordering, ...serializedFilters}
 
     return await dispatch(networkAction(LIST_TABLE,
         api.pooledSamples.list(options, abort),
@@ -55,7 +50,7 @@ export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT, filte
  * @returns 
  */
 export const setPoolId = (poolId) => {
-    return setFixedFilter("pool_id", poolId)
+    return setFixedFilter("sample__id", poolId)
 }
 
 /**

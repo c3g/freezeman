@@ -3,7 +3,6 @@
  */
 
 export const FILTER_TYPE = {
-  FIXED: "FIXED",
   RANGE: "RANGE",
   DATE_RANGE: "DATE_RANGE",
   SELECT: "SELECT",
