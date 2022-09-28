@@ -1,20 +1,13 @@
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import {FILTER_TYPE} from "../../../constants";
 import getFilterProps from "../../filters/getFilterProps";
 import getNFilters from "../../filters/getNFilters";
 import FiltersWarning from "../../filters/FiltersWarning";
 import { POOLED_SAMPLES_FILTERS } from "../../filters/descriptions";
-import { Typography } from "antd";
-import FilteredList from '../../FilteredList';
 import PaginatedList from '../../shared/PaginatedList'
 import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPoolId, setSortBy} from '../../../modules/pooledSamples/actions'
 import usePaginatedList from '../../../hooks/usePaginatedList'
-import AppPageHeader from '../../AppPageHeader'
-import PageContent from '../../PageContent'
 import { Button } from 'antd'
-
-const { Title } = Typography;
 
 
 const getTableColumns = () => {
@@ -93,7 +86,7 @@ const SampleDetailsPool = ({sample: pool}) => {
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
     const totalCount = useSelector((state) => state.pooledSamples.totalCount)
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
-    const page = useSelector((state) => state.pooledSamples.page)
+    // const page = useSelector((state) => state.pooledSamples.page)
     const filters = useSelector((state) => state.pooledSamples.filters)
     const sortBy = useSelector((state) => state.pooledSamples.sortBy)
 
@@ -118,7 +111,6 @@ const SampleDetailsPool = ({sample: pool}) => {
         rowKey: 'id',
         loading: isFetching,
         totalCount: totalCount,
-        page,
         filters,
         filterKey,
         sortBy,
@@ -128,7 +120,7 @@ const SampleDetailsPool = ({sample: pool}) => {
 
     return (
     <>
-        <PageContent>
+        {/* <PageContent> */}
         <div style={{ textAlign: 'right', marginBottom: '1em' }}>
             <FiltersWarning
                 nFilters={nFilters}
@@ -144,7 +136,7 @@ const SampleDetailsPool = ({sample: pool}) => {
             </Button>
         </div>
             <PaginatedList {...paginatedListProps}/>
-        </PageContent>
+        {/* </PageContent> */}
         
     </>
     )
