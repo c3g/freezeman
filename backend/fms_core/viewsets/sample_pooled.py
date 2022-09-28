@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import APIException
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Index, Library, LibraryType, SampleKind
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Index, Library, LibraryType, SampleKind, Sample
 from fms_core.filters import PooledSampleFilter
 
 # Custom serializers
@@ -43,10 +43,12 @@ class DerivedSampleSerializer(serializers.ModelSerializer):
     biosample = BiosampleSerializer(required=False)
     tissue_source = SampleKindSerializer(required=False)
     sample_kind=SampleKindSerializer(required=False)
+    
     class Meta:
         model = DerivedSample
         exclude = EXCLUDE_BOOKKEEPING
         depth = 1
+        
 
 # Serializes a DerivedBySample object
 class PooledSampleSerializer(serializers.Serializer):
@@ -55,9 +57,22 @@ class PooledSampleSerializer(serializers.Serializer):
     # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
     # as a top level id in the returned data structure. The UX needs this for 'objectsById' stuff.
     id = serializers.IntegerField(read_only = True, source='derived_sample.id')
+    parent_sample_name=serializers.SerializerMethodField()
+    parent_sample_id = serializers.SerializerMethodField()
     class Meta:
         model = DerivedBySample
         exclude = EXCLUDE_BOOKKEEPING + ['sample']
+
+    # Finds the id of the parent sample from which this pooled sample was derived. For example, if this
+    # pool member is from a library then it returns the id of the library sample. 
+    def get_parent_sample_id(self, obj):
+        parent_sample = Sample.objects.get(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return parent_sample.id if parent_sample is not None else ''
+
+    # Finds the id of the parent sample from which this pooled sample was derived.
+    def get_parent_sample_name(self, obj):
+        sample = Sample.objects.get(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return sample.name if sample is not None else ''
 
 
 class MissingPoolIDException(APIException):
