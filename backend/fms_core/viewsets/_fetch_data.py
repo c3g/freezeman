@@ -1,5 +1,4 @@
 
-import imp
 import json
 from typing import List
 from collections import defaultdict
@@ -46,9 +45,9 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             .values_list("derived_sample", flat=True)[:1]
         )
     )
-
     # Annotate sample queryset
     samples_queryset = samples_queryset.annotate(derived_count=Count("derived_samples"))
+    
     if offset is not None and limit is not None:
         samples_queryset = samples_queryset[offset:offset+limit] # page the queryset
     sample_values_queryset = (
@@ -67,7 +66,6 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
             'comment',
             'derived_count',
             'first_derived_sample',
-            'child_of',
             'created_by',
             'created_at',
             'updated_by',
@@ -107,19 +105,26 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
         for pm in pms:
             pms_by_sample[pm["source_sample_id"]].append(pm["id"])
 
-        # Building subquery Lineage
-        samples_extracted_from = SampleLineage.objects.filter(child__in=samples_ids) \
-                                                      .filter(process_measurement__process__protocol__name="Extraction") \
-                                                      .values("child_id", "parent_id",)
+        # Building subquery child_of
+        samples_parent = SampleLineage.objects.filter(child__in=samples_ids) \
+                                              .values("child_id", "parent_id",)
+        childs_of = {}
+        for sample_parent in samples_parent:
+            childs_of[sample_parent["child_id"]] = sample_parent["parent_id"]
+        
+        # Checking for extracted_from
+        samples_extracted_from = samples_parent.filter(process_measurement__process__protocol__name="Extraction")
         extract_by_sample = {}
         for extracted in samples_extracted_from:
             extract_by_sample[extracted["child_id"]] = extracted["parent_id"]
+
         serialized_data = []
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
             is_pool = sample["derived_count"] > 1
             is_library = derived_sample["is_library"]
             process_measurements = pms_by_sample[sample["id"]]
+            child_of = childs_of.get(sample["id"], None)
             extracted_from = extract_by_sample.get(sample["id"], None)
             data = {
                 'id': sample["id"],
@@ -129,7 +134,7 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
                 'volume': sample["volume"],
                 'depleted': sample["depleted"],
                 'concentration': sample["concentration"],
-                'child_of': sample["child_of"] if not is_pool else None,
+                'child_of': child_of if not is_pool else None,
                 'extracted_from': extracted_from if not is_pool else None,
                 'individual': derived_sample["biosample__individual_id"] if not is_pool else None,
                 'container': sample["container_id"],
