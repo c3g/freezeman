@@ -46,7 +46,7 @@ const SampleDetailsPool = ({sample: pool}) => {
 
     const dispatch = useDispatch()
     
-    const setPoolIdCallback = useCallback((...args) => {
+    const setPoolIdCallback = useCallback(() => {
         dispatch(setPoolId(pool.id))
     })
     const dispatchListTable = useCallback((...args) => {
@@ -86,7 +86,6 @@ const SampleDetailsPool = ({sample: pool}) => {
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
     const totalCount = useSelector((state) => state.pooledSamples.totalCount)
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
-    // const page = useSelector((state) => state.pooledSamples.page)
     const filters = useSelector((state) => state.pooledSamples.filters)
     const sortBy = useSelector((state) => state.pooledSamples.sortBy)
 
@@ -120,7 +119,6 @@ const SampleDetailsPool = ({sample: pool}) => {
 
     return (
     <>
-        {/* <PageContent> */}
         <div style={{ textAlign: 'right', marginBottom: '1em' }}>
             <FiltersWarning
                 nFilters={nFilters}
@@ -135,9 +133,7 @@ const SampleDetailsPool = ({sample: pool}) => {
                 Clear Filters
             </Button>
         </div>
-            <PaginatedList {...paginatedListProps}/>
-        {/* </PageContent> */}
-        
+        <PaginatedList {...paginatedListProps}/>        
     </>
     )
 }
