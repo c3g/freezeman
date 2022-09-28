@@ -310,6 +310,36 @@ def pool_samples(process: Process,
                  container_destination: Container,
                  coordinates_destination,
                  execution_date: datetime.date):
+    """
+    Creates the internal structures required to represent a pool formed by combining the source samples
+    listed in samples_info. Source samples have their volume reduced by the volume used.
+    The process parameter is used to create ProcessMeasurement for each source sample. A new pool sample
+    is created. Each source sample have a lineage created between source sample and pool sample.
+    The source sample derived samples are linked to the new pool sample through derivedbysample entries.
+    The volume_ratio for each source sample is calculated and stored on the derivedbysample entry.
+    Projects associated to the source samples are associated with the pool sample.
+     
+
+    Args:
+        process: a Process object that represent a single pooling operation.
+        samples_info: a dict for source samples info.
+                      {"Source Sample",
+                       "Source Container Barcode",
+                       "Source Container Coordinate",
+                       "Source Depleted",
+                       "Volume Used",
+                       "Comment"}
+        pool_name: the name given to the pool by the user (sample.name).
+        container_destination: a container object that will receive the pool.
+        coordinates_destination: the coordinate on the container where the pool is stored.
+        execution_date: the date where the pooling operation was completed.
+
+    Returns:
+        a tuple containing the following data.
+        sample_destination: a sample object that represents the new pool.
+        errors: errors that were encountered during the pool creation.
+        warnings: warnings to inform the user of potential mistakes or dangerous operations.
+    """
     sample_destination = None
     errors = []
     warnings = []
@@ -326,9 +356,9 @@ def pool_samples(process: Process,
         errors.append(f"Execution date is not valid.")
     
     if not errors:
-        volume = sum(sample["Volume Used (uL)"] for sample in samples_info) # Calculate the total volume of the pool
+        volume = sum(sample["Volume Used"] for sample in samples_info) # Calculate the total volume of the pool
         for sample in samples_info:
-            volume_used = sample["Volume Used (uL)"]
+            volume_used = sample["Volume Used"]
             sample_obj = sample["Source Sample"]
             if volume_used is None:
                 errors.append(f"Volume used is required.")
@@ -364,7 +394,7 @@ def pool_samples(process: Process,
         if sample_destination:
             for sample in samples_info:
                 source_sample = sample["Source Sample"]
-                volume_used = sample["Volume Used (uL)"]
+                volume_used = sample["Volume Used"]
                 volume_ratio = sample["Volume Ratio"]
                 comment = sample["Comment"]
                 # Create a process_measurement and sample lineage for each sample pooled

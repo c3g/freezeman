@@ -48,7 +48,6 @@ class SamplePoolingTestCase(TestCase):
         # platform
         platform, _, _ = get_platform(name="ILLUMINA")
 
-
         library_1, _, _ = create_library(index=self.index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
         library_2, _, _ = create_library(index=self.index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
         library_3, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
@@ -83,7 +82,6 @@ class SamplePoolingTestCase(TestCase):
                                individual=Individual.objects.create(**create_individual(individual_name="Bobinoodle")),
                                container=container, coordinates="A05", sample_kind=self.RNA_sample_kind)
 
-
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
@@ -110,7 +108,6 @@ class SamplePoolingTestCase(TestCase):
         pm2 = ProcessMeasurement.objects.get(source_sample=self.source_sample_2, process__protocol=self.protocol_pooling)
         self.assertEqual(pm2.volume_used, 50)
         self.assertEqual(pm2.execution_date, datetime.strptime("2022-05-10", "%Y-%m-%d").date())
-
         self.assertEqual(pm2.comment[:13], "Automatically")
         self.assertEqual(self.source_sample_2.volume, self.source_sample_initial_volume-50)
         self.assertFalse(self.source_sample_2.depleted)
@@ -119,7 +116,6 @@ class SamplePoolingTestCase(TestCase):
         pm3 = ProcessMeasurement.objects.get(source_sample=self.source_sample_3, process__protocol=self.protocol_pooling)
         self.assertEqual(pm3.volume_used, 25)
         self.assertEqual(pm3.execution_date, datetime.strptime("2022-05-10", "%Y-%m-%d").date())
-
         self.assertEqual(pm3.comment[:13], "Automatically")
         self.assertEqual(self.source_sample_3.volume, self.source_sample_initial_volume-25)
         self.assertFalse(self.source_sample_3.depleted)
@@ -165,10 +161,8 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(pm5.comment, "and half")
         self.assertEqual(self.source_sample_5.volume, self.source_sample_initial_volume-100)
         self.assertFalse(self.source_sample_5.depleted)
-
         self.assertEqual(SampleLineage.objects.get(process_measurement=pm5, parent=self.source_sample_5).child, pool2)
-
-       
+        
         p2 = pm4.process
         self.assertEqual(p2.comment, "This is more test pool")
 
@@ -178,7 +172,6 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(pool2.container.barcode, "POOLPLATE")
         self.assertEqual(pool2.container.kind, "96-well plate")
         
-
         dbs4 = DerivedBySample.objects.get(sample=pool2, derived_sample=DerivedSample.objects.get(id=self.source_sample_4.derived_samples.first().id))
         ds4 = dbs4.derived_sample
         self.assertEqual(ds4.biosample.individual.name, "Bobinouille")

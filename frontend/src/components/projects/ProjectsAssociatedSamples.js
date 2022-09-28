@@ -21,7 +21,7 @@ const getTableColumns = (sampleKinds, individualsByID) => [
       width: 70,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
-        <Tag>{sampleKinds.itemsByID[sample.sample_kind].name}</Tag>,
+        {return sample.sample_kind && <Tag>{sampleKinds.itemsByID[sample.sample_kind].name}</Tag>}
     },
     {
       title: "Name",
