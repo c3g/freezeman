@@ -1,8 +1,9 @@
 from django.test import TestCase
  
 import datetime
+from decimal import Decimal
 
-from fms_core.models import SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure
+from fms_core.models import SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure, Project, DerivedSample, DerivedBySample
 from fms_core.models._constants import DOUBLE_STRANDED
 
 from fms_core.services.sample import create_full_sample, pool_samples
@@ -38,7 +39,7 @@ class SampleServicesTestCase(TestCase):
             {"name": "BobToo", "alias": "WillJello", "sex": "F", "taxon": 9606, "pedigree": "BobToo", "cohort": "TEMP01"},
         ]
         
-        test_individuals = []
+        self.test_individuals = []
         for individual in TEST_INDIVIDUALS:
             new_individual, _, _ = get_or_create_individual(name=individual["name"],
                                                             alias=individual["alias"],
@@ -46,9 +47,9 @@ class SampleServicesTestCase(TestCase):
                                                             taxon=Taxon.objects.get(ncbi_id=individual["taxon"]),
                                                             pedigree=individual["pedigree"],
                                                             cohort=individual["cohort"])
-            test_individuals.append(new_individual)
+            self.test_individuals.append(new_individual)
 
-        sample_kind_dna, _ = SampleKind.objects.get_or_create(name="DNA")
+        self.sample_kind_dna, _ = SampleKind.objects.get_or_create(name="DNA")
         platform_illumina, _ = Platform.objects.get_or_create(name="ILLUMINA")
 
         index_set, _, _, _ = get_or_create_index_set(set_name="Indexati")
@@ -72,19 +73,19 @@ class SampleServicesTestCase(TestCase):
             {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 150},
         ]
 
-        test_libraries = []
+        self.test_libraries = []
         for library in TEST_LIBRARIES:
             new_library, _, _ = create_library(library_type=LibraryType.objects.get(name=library["library_type"]),
                                                index=library["index"],
                                                platform=library["platform"],
                                                strandedness=library["strandedness"],
                                                library_size=library["library_size"])
-            test_libraries.append(new_library)
+            self.test_libraries.append(new_library)
 
         # Create samples for testing
         SUBMITTED_SAMPLES = [
-            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": test_individuals[0], "sample_kind": sample_kind_dna, "library": test_libraries[0], "project": "Testouille"},
-            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": test_individuals[1], "sample_kind": sample_kind_dna, "library": test_libraries[1], "project": "Projecto"},
+            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 10, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[0], "project": "Testouille"},
+            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": self.test_individuals[1], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[1], "project": "Projecto"},
         ]
 
         self.samples = []
@@ -99,11 +100,14 @@ class SampleServicesTestCase(TestCase):
                                                   individual=sample["individual"],
                                                   sample_kind=sample["sample_kind"],
                                                   library=sample["library"])
-        self.samples.append(new_sample)
+            for derived_sample in new_sample.derived_samples.all():
+                derived_sample.project = Project.objects.create(name=sample["project"])
+                derived_sample.save()
+            self.samples.append(new_sample)
 
     def test_pool_samples(self):
         POOL_NAME = "Patate"
-        EXECUTION_DATE = datetime.datetime(2022, 9, 15, 0, 0)
+        EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol, _ = Protocol.objects.get_or_create(name="Sample pooling")
         process, _, _ = create_process(protocol)
 
@@ -114,12 +118,11 @@ class SampleServicesTestCase(TestCase):
                 "Source Container Barcode": sample.container.barcode,
                 "Source Container Coordinate": sample.coordinates,
                 "Source Depleted": False,
-                "Volume Used (uL)": 20,
+                "Volume Used": 20,
                 "Comment": "Comment " + str(i),
             }
             samples_info.append(sample_info)
-
-        pool, errors, warnings = pool_samples(process=process,
+        pool, errors, warnings = pool_samples(process=process[protocol.id],
                                               samples_info=samples_info,
                                               pool_name=POOL_NAME,
                                               container_destination=self.test_containers[2],
@@ -130,3 +133,31 @@ class SampleServicesTestCase(TestCase):
         self.assertFalse(warnings)
         self.assertIsNotNone(pool)
         self.assertEqual(pool.name, POOL_NAME)
+        self.assertEqual(pool.volume, Decimal("40"))
+        self.assertIsNone(pool.concentration)
+        self.assertIn(self.samples[0], [sample for sample in pool.parents.all()])
+        self.assertIn(self.samples[1], [sample for sample in pool.parents.all()])
+        self.assertEqual(pool.container, self.test_containers[2])
+        self.assertEqual(pool.coordinates, "")
+        self.assertEqual(pool.creation_date, EXECUTION_DATE)
+
+        derived_sample_1 = DerivedSample.objects.get(derived_by_samples__sample__id=self.samples[0].id)
+        derived_by_sample_parent_1 = DerivedBySample.objects.get(derived_sample=derived_sample_1, sample=self.samples[0])
+        derived_by_sample_pool_1 = DerivedBySample.objects.get(derived_sample=derived_sample_1, sample=pool)
+
+        self.assertEqual(derived_by_sample_parent_1.volume_ratio, Decimal("1"))
+        self.assertEqual(derived_by_sample_pool_1.volume_ratio, Decimal("0.5"))
+        self.assertEqual(derived_sample_1.biosample.individual, self.test_individuals[0])
+        self.assertEqual(derived_sample_1.library, self.test_libraries[0])
+        self.assertEqual(derived_sample_1.project.name, "Testouille")
+        
+        derived_sample_2 = DerivedSample.objects.get(derived_by_samples__sample__id=self.samples[1].id)
+        derived_by_sample_parent_2 = DerivedBySample.objects.get(derived_sample=derived_sample_2, sample=self.samples[1])
+        derived_by_sample_pool_2 = DerivedBySample.objects.get(derived_sample=derived_sample_2, sample=pool)
+
+        self.assertEqual(derived_by_sample_parent_2.volume_ratio, Decimal("1"))
+        self.assertEqual(derived_by_sample_pool_2.volume_ratio, Decimal("0.5"))
+        self.assertEqual(derived_sample_2.biosample.individual, self.test_individuals[1])
+        self.assertEqual(derived_sample_2.library, self.test_libraries[1])
+        self.assertEqual(derived_sample_2.project.name, "Projecto")
+        
