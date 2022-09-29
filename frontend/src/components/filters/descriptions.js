@@ -573,39 +573,43 @@ export const DATASET_FILE_FILTERS = {
   },
 }
 
-export const POOLED_SAMPLES_FIXED_FILTERS = {
-  pool_id: {
-    type: FILTER_TYPE.FIXED,
-    key: "sample__id"
-  }
-}
 
 export const POOLED_SAMPLES_FILTERS = {
-    // Fixed filter holding pool sample ID
     sample__id: {
+        // Note: The sample__id filter adds the pool id to the query.
+        // It's not mapped to any column, but is required for the pool id to be sent
+        // to the endpoint properly.
       type: FILTER_TYPE.INPUT_OBJECT_ID,
       key: "sample__id",
     },
+    // TODO
+    // projects: {
+    //     type: FILTER_TYPE.INPUT,
+    //     key: "derived_sample__project__??",
+    //     label: "Project ID"
+    // },
     alias: {
+      // TODO : The table displays the parent sample name along with the alias.
+      // The filter should not be limited to just the alias, especially if the alias
+      // might be empty. ???
       type: FILTER_TYPE.INPUT,
       key: "derived_sample__biosample__alias",
-      label: "Sample Alias"
+      label: "Sample"
     },
     volume_ratio: {
       type: FILTER_TYPE.INPUT_NUMBER,
       key: "volume_ratio",
       label: "Volume Ratio"
     },
-    // TODO
-    // project: {
-    //     type: FILTER_TYPE.INPUT,
-    //     key: "derived_sample__project__??",
-    //     label: "Project ID"
-    // },
-    index_set: {
-        type: FILTER_TYPE.INPUT,
-        key: 'derived_sample__library__index__index_set__name',
-        label: "Index Set"
+    library_type: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__library__library_type",
+      label: "Library Type"
+    },
+    library_size: {
+      type: FILTER_TYPE.RANGE,
+      key: "derived_sample__library__library_size",
+      label: "Library Size",
     },
     index: {
         type: FILTER_TYPE.INPUT,

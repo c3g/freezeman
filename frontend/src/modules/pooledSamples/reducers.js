@@ -110,12 +110,13 @@ function preprocess(pooledSample) {
  */
 function flattenSample(pooledSample) {
     return {
-        id: pooledSample.id,                                    // The id of the pooled derived sample
-        parent_sample_name: pooledSample.parent_sample_name,    // The name of the sample that was added to this pool
-        parent_sample_id: pooledSample.parent_sample_id,        // 
-        biosample_id: pooledSample.biosample?.id,               // The biosample attached to the sample that was added to this pool
-        alias: pooledSample.derived_sample.biosample?.alias,    // The sample alias
-        project: undefined,     // TODO project isn't available on derived sample yet
+        id: pooledSample.id,                                        // The id of the pooled derived sample
+        parent_sample_name: pooledSample.parent_sample_name,        // The name of the sample that was added to this pool
+        parent_sample_id: pooledSample.parent_sample_id,            // The id of the sample that was added to this pool
+        biosample_id: pooledSample.biosample?.id,                   // The biosample attached to the sample that was added to this pool
+        alias: pooledSample.derived_sample.biosample?.alias,
+        project_name: pooledSample.derived_sample.project?.name,   
+        project_id: pooledSample.derived_sample.project?.id,
         volume_ratio: pooledSample.volume_ratio,
 
         // library fields

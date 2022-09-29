@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import APIException
-from fms_core.models import Biosample, DerivedSample, DerivedBySample, Index, Library, LibraryType, SampleKind, Sample
+from fms_core.models import Biosample, DerivedSample, DerivedBySample, Index, Library, LibraryType, Project, Sample, SampleKind
 from fms_core.filters import PooledSampleFilter
 
 # Custom serializers
@@ -38,11 +38,17 @@ class LibrarySerializer(serializers.ModelSerializer):
         exclude = EXCLUDE_BOOKKEEPING
         depth = 1
 
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['name', 'id']
+
 class DerivedSampleSerializer(serializers.ModelSerializer):
     library = LibrarySerializer(required=False)
     biosample = BiosampleSerializer(required=False)
     tissue_source = SampleKindSerializer(required=False)
     sample_kind=SampleKindSerializer(required=False)
+    project = ProjectSerializer(required=False)
     
     class Meta:
         model = DerivedSample
@@ -50,8 +56,11 @@ class DerivedSampleSerializer(serializers.ModelSerializer):
         depth = 1
         
 
-# Serializes a DerivedBySample object
 class PooledSampleSerializer(serializers.Serializer):
+    ''' Serializes a DerivedBySample object, representing a pooled sample. 
+        The result is a nested data structure containing all of the information about the
+        pooled sample needed by the frontend for display.
+    '''
     volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
     derived_sample = DerivedSampleSerializer()
     # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
@@ -81,6 +90,14 @@ class MissingPoolIDException(APIException):
     default_detail = 'No pool ID: query must include sample__id parameter containing the pool ID.'
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
+    '''
+        Lists the samples that are contained in a pool. This is a custom endpoint designed
+        for the frontend to display pooled samples in a table. It returns the list of derived
+        samples contained in a single pool.
+
+        The request must include a 'sampled__id__in` query parameter specifying the id of the
+        pool sample. If not, MissingPoolIDException is raised.
+    '''
     queryset = DerivedBySample.objects.all()
     serializer_class = PooledSampleSerializer
     filter_class = PooledSampleFilter

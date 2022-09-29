@@ -2,7 +2,7 @@ import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import serializeFilterParams from "../../utils/serializeFilterParams";
 import serializeSortByParams from "../../utils/serializeSortByParams";
-import {POOLED_SAMPLES_FILTERS, POOLED_SAMPLES_FIXED_FILTERS} from "../../components/filters/descriptions";
+import {POOLED_SAMPLES_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
 export const LIST_TABLE             = createNetworkActionTypes("POOLED_SAMPLES.LIST_TABLE")

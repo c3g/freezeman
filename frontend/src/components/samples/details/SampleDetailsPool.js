@@ -15,9 +15,13 @@ import { withIndex } from '../../../utils/withItem'
 const getTableColumns = (indicesByID) => {
     return [
         {    
-            title: "Projects",
-            dataIndex: "project",   
+            title: "Project",
+            dataIndex: "project_name",   
             sorter: true,
+            render: (_, pooledSample) => {
+                return (pooledSample.project_id && pooledSample.project_name) &&
+                    <Link to={`/projects/${pooledSample.project_id}`}>{pooledSample.project_name}</Link>
+            }               
         },
         {
             title: "Sample",
