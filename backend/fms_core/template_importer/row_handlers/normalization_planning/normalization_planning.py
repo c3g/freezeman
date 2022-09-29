@@ -33,7 +33,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             self.errors['concentration'] = 'One option (A, B or C) should be specified.'
 
         # Check that there's only one option provided
-        if sum([measurements['concentration_nm'] is not None,
+        elif sum([measurements['concentration_nm'] is not None,
                 measurements['concentration_ngul'] is not None,
                 measurements['na_quantity'] is not None]) != 1:
             self.errors['concentration'] = 'Only one option must be specified out  of the following: NA quantity, conc. ng/uL or conc. nM.'
@@ -42,7 +42,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
-        if source_sample_obj is not None:
+        if source_sample_obj is not None and "concentration" not in self.errors.keys():
             if source_sample_obj.concentration is None:
                 self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
 
@@ -95,6 +95,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                    destination_container_dict['name'],
                                                                                                    destination_container_dict['coordinates'],
                                                                                                    container_parent_obj)
+
+            if destination_sample['coordinates'] is None:
+                self.errors['dest_container_coord'] = f'Destination container coordinates are required for plates.'
 
             volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 
