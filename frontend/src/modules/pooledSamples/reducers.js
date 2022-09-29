@@ -124,7 +124,8 @@ function flattenSample(pooledSample) {
         strandedness: pooledSample.derived_sample.library?.strandedness,
         platform: pooledSample.derived_sample.library?.platform,
         index_set: pooledSample.derived_sample.library?.index?.index_set,
-        index: pooledSample.derived_sample.library?.index?.name
+        index: pooledSample.derived_sample.library?.index?.name,
+        index_id: pooledSample.derived_sample.library?.index?.id,
     }
 }
 
