@@ -255,17 +255,20 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
     if source_sample is None:
         errors.append(f'Missing sample.')
 
-    sum_adjusted_factor = 0
-    for derived_sample in source_sample.derived_samples.all():
-        # Compute the size of each library and its volume ratio
-        library = derived_sample.library
-        volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
-        if library.library_size and library.strandedness:
-            # Convert the concentration
-            adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
-            sum_adjusted_factor += adjusted_factor
-        else:
-            errors.append(f'Either library size or strandedness has not been set for this library.')
-            return None, errors, warnings
-    concentration_nm = decimal_rounded_to_precision(Decimal((concentration_ngbyul * 1000000) / sum_adjusted_factor))
-    return concentration_nm, errors, warnings
+    if not errors:
+        sum_adjusted_factor = 0
+        for derived_sample in source_sample.derived_samples.all():
+            # Compute the size of each library and its volume ratio
+            library = derived_sample.library
+            volume_ratio = DerivedBySample.objects.get(derived_sample=derived_sample, sample=source_sample).volume_ratio
+            if library.library_size and library.strandedness:
+                # Convert the concentration
+                adjusted_factor = (library.library_size * library.molecular_weight_approx * volume_ratio)
+                sum_adjusted_factor += adjusted_factor
+            else:
+                errors.append(f'Either library size or strandedness has not been set for this library.')
+                return None, errors, warnings
+        concentration_nm = decimal_rounded_to_precision(Decimal((concentration_ngbyul * 1000000) / sum_adjusted_factor))
+        return concentration_nm, errors, warnings
+    else:
+        return None, errors, warnings
