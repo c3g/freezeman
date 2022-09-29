@@ -70,17 +70,16 @@ class SamplePoolingTestCase(TestCase):
                                individual=Individual.objects.create(**create_individual(individual_name="Bobinouche")),
                                container=container, coordinates="A03", sample_kind=self.DNA_sample_kind, library=library_3)
 
+        same_individual = Individual.objects.create(**create_individual(individual_name="Bobinouille"))
         self.source_sample_4, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL2", alias="SOURCESAMPLE1POOL2", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
-                               individual=Individual.objects.create(**create_individual(individual_name="Bobinouille")),
-                               container=container, coordinates="A04", sample_kind=self.RNA_sample_kind)
+                               individual=same_individual, container=container, coordinates="A04", sample_kind=self.RNA_sample_kind)
 
         self.source_sample_5, _, _ = \
             create_full_sample(name="SOURCESAMPLE2POOL2", alias="SOURCESAMPLE2POOL2", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
-                               individual=Individual.objects.create(**create_individual(individual_name="Bobinoodle")),
-                               container=container, coordinates="A05", sample_kind=self.RNA_sample_kind)
+                               individual=same_individual, container=container, coordinates="A05", sample_kind=self.RNA_sample_kind)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
@@ -125,7 +124,7 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(p1.comment, "This is a test pool")
 
         self.assertEqual(pool1.volume, 275)
-        self.assertEqual(pool1.concentration, 25)
+        self.assertIsNone(pool1.concentration)
         self.assertEqual(pool1.container.name, "POOLTUBE")
         self.assertEqual(pool1.container.barcode, "POOLTUBE")
         self.assertEqual(pool1.container.kind, "tube")
@@ -167,7 +166,7 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(p2.comment, "This is more test pool")
 
         self.assertEqual(pool2.volume, 200)
-        self.assertEqual(pool2.concentration, 25)
+        self.assertIsNone(pool2.concentration)
         self.assertEqual(pool2.container.name, "POOLPLATE")
         self.assertEqual(pool2.container.barcode, "POOLPLATE")
         self.assertEqual(pool2.container.kind, "96-well plate")
@@ -179,6 +178,6 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(dbs4.volume_ratio, Decimal("0.500"))
         dbs5 = DerivedBySample.objects.get(sample=pool2, derived_sample=DerivedSample.objects.get(id=self.source_sample_5.derived_samples.first().id))
         ds5 = dbs5.derived_sample
-        self.assertEqual(ds5.biosample.individual.name, "Bobinoodle")
+        self.assertEqual(ds5.biosample.individual.name, "Bobinouille")
         self.assertIsNone(ds5.library)
         self.assertEqual(dbs5.volume_ratio, Decimal("0.500"))
