@@ -43,13 +43,14 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
         </div>),
     },
     {
-      title: "Projects",
-      dataIndex: "projects__name",
-      render: (_, library) => (library.projects &&
-        library.projects.map(id => {
-          return (<div> <Link to={`/projects/${id}`}> {projectsByID[id]?.name} </Link> </div>);
-        })
-      ),
+      title: "Project",
+      dataIndex: "derived_samples__project__name",
+      render: (_, library) => {
+        return (library.project &&
+          <Link to={`/projects/${library.project}`}> 
+            {projectsByID[library.project]?.name} 
+          </Link>)
+      }
     },
     {
       title: "Name",

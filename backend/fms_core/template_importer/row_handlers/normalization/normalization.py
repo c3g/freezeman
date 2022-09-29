@@ -1,12 +1,11 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.models import ProcessMeasurement
+from fms_core.models import ProcessMeasurement, DerivedBySample
 
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample, validate_normalization
 from fms_core.services.property_value import create_process_measurement_properties
-
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
+from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
 
 
 class NormalizationRowHandler(GenericRowHandler):
@@ -46,15 +45,11 @@ class NormalizationRowHandler(GenericRowHandler):
             # Case when nM is given
             elif destination_sample['concentration_nm']:
                 if source_sample_obj.is_library:
-                    library = source_sample_obj.derived_sample_not_pool.library
-                    if library.library_size:
-                        concentration = convert_concentration_from_nm_to_ngbyul(destination_sample['concentration_nm'],
-                                                                                library.molecular_weight_approx,
-                                                                                library.library_size)
-                    else:
-                        self.errors['library'] = 'Library size has not been set for this library.'
+                    # Calculate the concentration taking into account volume ratios
+                    concentration, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
+                        convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, destination_sample['concentration_nm'])
                     if concentration is None:
-                        self.errors['concentration'] = 'Failed to convert concentration from nM to ng/uL'
+                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
                 else:
                     self.errors['concentration'] = 'Concentration specified in nM should be only for libraries.'
 

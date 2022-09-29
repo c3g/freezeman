@@ -45,7 +45,8 @@ export const sample = {
   coordinates: "", // string(10)
   individual: null, // individual.id
   container: null, // container.id
-  extracted_from: null // sample.id
+  extracted_from: null, // sample.id
+  project: null // project.id
 }
 // Example:
 // {
@@ -64,7 +65,8 @@ export const sample = {
 //     coordinates: "",
 //     individual: 401,
 //     container: 1658,
-//     extracted_from: 5797
+//     extracted_from: 5797,
+//     project: 21
 // }
 
 export const individual = {
@@ -159,12 +161,13 @@ export const library = {
   creation_date: null, // date
   quality_flag: "", // passed or failed
   quantity_flag: "", // passed or failed
-  projects: [], // project.id
+  project: null, // project.id
   depleted: false,
   library_type: "", // string(200)
   platform: "", // string(200)
   index: "", // string(200)
   library_size: null, // int
+  is_pool: false, // bool
 }
 // Example:
 // {
@@ -179,12 +182,13 @@ export const library = {
 //     creation_date: "2020-06-16",
 //     quality_flag: "passed",
 //     quantity_flag: "failed",
-//     projects: [1, 2, 3]
+//     project: 1
 //     depleted: false,
 //     library_type: "RNASeq",
 //     platform: "DNBSEQ",
 //     index: "Index_2",
-//     library_size: 250
+//     library_size: 250,
+//     is_pool: true
 // }
 
 export const index = {

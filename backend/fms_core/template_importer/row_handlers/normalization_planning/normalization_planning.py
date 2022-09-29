@@ -3,8 +3,9 @@ from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_CH
 
 from fms_core.services.container import get_container, is_container_valid
 from fms_core.services.sample import get_sample_from_container
+from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_rounded_to_precision
+from fms_core.utils import decimal_rounded_to_precision
 
 import decimal
 
@@ -32,7 +33,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             self.errors['concentration'] = 'One option (A, B or C) should be specified.'
 
         # Check that there's only one option provided
-        if sum([measurements['concentration_nm'] is not None,
+        elif sum([measurements['concentration_nm'] is not None,
                 measurements['concentration_ngul'] is not None,
                 measurements['na_quantity'] is not None]) != 1:
             self.errors['concentration'] = 'Only one option must be specified out  of the following: NA quantity, conc. ng/uL or conc. nM.'
@@ -41,14 +42,15 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
-        if source_sample_obj is not None:
+        if source_sample_obj is not None and "concentration" not in self.errors.keys():
             if source_sample_obj.concentration is None:
                 self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
 
             # ensure that the sample source is a library if the norm choice is library
+            # If it is a pool we have to check if it is a pool of libraries
             if robot['norm_choice'] == LIBRARY_CHOICE and not source_sample_obj.is_library:
                 self.errors[
-                    'sample'] = f'The robot normalization choice was library. However, the source sample is not a library.'
+                    'sample'] = f'The robot normalization choice was library. However, the source sample is not a library or a pool of libraries.'
 
             # ensure that if the sample source is in a tube, the tube has a parent container in FMS.
             container_obj, self.errors['src_container'], self.warnings['src_container'] = get_container(barcode=source_sample['container']['barcode'])
@@ -61,12 +63,15 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 combined_concentration_nguL = concentration_nguL
             elif measurements['concentration_nm'] is not None:
                 if not source_sample_obj.is_library:
-                    self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries.'
+                    self.errors['concentration'] = 'Concentration in nM cannot be used to normalize samples that are not libraries or pool of libraries.'
                 else:
                     concentration_nm = measurements['concentration_nm']
-                    combined_concentration_nguL = decimal.Decimal(convert_concentration_from_nm_to_ngbyul(concentration_nm,
-                                                                                                          source_sample_obj.derived_sample_not_pool.library.molecular_weight_approx,
-                                                                                                          source_sample_obj.derived_sample_not_pool.library.library_size))
+                    # Calculate the concentration taking into account volume ratios
+                    combined_concentration_nguL, self.errors['concentration_conversion'], self.warnings['concentration_conversion'] = \
+                        convert_library_concentration_from_nm_to_ngbyul(source_sample_obj, concentration_nm)
+                    combined_concentration_nguL = decimal.Decimal(combined_concentration_nguL)
+                    if combined_concentration_nguL is None:
+                        self.errors['concentration'] = 'Concentration could not be converted from nM to ng/uL'
                 na_qty = decimal.Decimal(measurements['volume']) * combined_concentration_nguL
             elif measurements['na_quantity'] is not None:
                 #compute concentration in ngul
@@ -90,6 +95,9 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                                                                                                    destination_container_dict['name'],
                                                                                                    destination_container_dict['coordinates'],
                                                                                                    container_parent_obj)
+
+            if destination_sample['coordinates'] is None:
+                self.errors['dest_container_coord'] = f'Destination container coordinates are required for plates.'
 
             volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 

@@ -31,7 +31,7 @@ class ExtractionRowHandler(GenericRowHandler):
         original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=source_sample['container']['barcode'],
                                                                                                     coordinates=source_sample['coordinates'])
 
-        if original_sample:
+        if original_sample and not original_sample.is_pool:
             _, self.errors['extracted_sample'], self.warnings['extracted_sample'] = \
                 extract_sample(process=process_measurement['process'],
                                sample_source=original_sample,
@@ -44,3 +44,5 @@ class ExtractionRowHandler(GenericRowHandler):
                                volume_destination=resulting_sample['volume'],
                                source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None,
                                comment=process_measurement['comment'])
+        else:
+            self.errors['source_sample'] = f"Source sample can't be a pool."

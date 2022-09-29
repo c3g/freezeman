@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from fms_core.models import SampleByProject
-
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.sample import get_sample_from_container, add_sample_metadata, update_sample_metadata, remove_sample_metadata
@@ -23,8 +21,7 @@ class SampleMetadataHandler(GenericRowHandler):
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=sample_info['container_barcode'],
                                                                                                coordinates=sample_info['container_coordinates'])
 
-
-        if sample_obj:
+        if sample_obj and not sample_obj.is_pool:
             if sample_obj.name != sample_info['name']:
                 error_msg = f"Sample in container with barcode {sample_info['container_barcode']} " + \
                             (f"at coordinate {sample_info['container_coordinates']} " if sample_info['container_coordinates'] else f"") + \
@@ -55,3 +52,5 @@ class SampleMetadataHandler(GenericRowHandler):
             # Action not provided or invalid
             else:
                 self.errors['action'] = 'Action is required.'
+        else:
+            self.errors['pool_metadata'] = 'Adding metadata to pools is not supported.'

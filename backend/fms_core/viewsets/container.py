@@ -15,7 +15,6 @@ from fms_core.template_importer.importers import ContainerCreationImporter, Cont
 from fms_core.serializers import (
     ContainerSerializer,
     ContainerExportSerializer,
-    SampleSerializer,
 )
 
 from fms_core.templates import (
@@ -25,6 +24,7 @@ from fms_core.templates import (
 )
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
+from ._fetch_data import fetch_sample_data
 
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
@@ -194,9 +194,9 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         """
         Lists all samples stored in a given container.
         """
-        samples = Container.objects.get(pk=pk).samples
-        serializer = SampleSerializer(samples, many=True)
-        return Response(serializer.data)
+        samples_ids = [sample.id for sample in Container.objects.get(pk=pk).samples]
+        serialized_data = fetch_sample_data(samples_ids)
+        return Response(serialized_data)
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

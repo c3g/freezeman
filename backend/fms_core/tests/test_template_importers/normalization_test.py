@@ -7,10 +7,10 @@ from fms_core.tests.test_template_importers._utils import load_template, APP_DAT
 
 from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
 
-from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue
+from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue, Protocol, Process
 
 from fms_core.services.container import get_or_create_container
-from fms_core.services.sample import create_full_sample
+from fms_core.services.sample import create_full_sample, pool_samples, update_sample
 from fms_core.services.platform import get_platform
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.index import get_or_create_index_set, create_index
@@ -45,6 +45,9 @@ class NormalizationTestCase(TestCase):
             {'name': 'Sample1Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A01', 'library': None},
             {'name': 'Sample2Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A02', 'library': None},
             {'name': 'Sample3Normalization', 'volume': 30, 'container_barcode': 'SOURCE_CONTAINER', 'coordinates': 'A03', 'library': library_1},
+            {'name': 'Sample1Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': 'A01', 'library': None},
+            {'name': 'Sample2Pooling', 'volume': 30, 'container_barcode': 'POOLING_CONTAINER', 'coordinates': 'A02', 'library': None},
+
         ]
 
         for info in samples_info:
@@ -64,11 +67,44 @@ class NormalizationTestCase(TestCase):
         for info in destination_containers_info:
             get_or_create_container(barcode=info['barcode'], name=info['name'], kind=info['kind'])
 
+        # Create objects for the pooling test
+        samples_to_pool_info = [
+            {
+                'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
+                                                    coordinates="A01"),
+                'Volume Used': Decimal(3.5),
+                'Source Depleted': False,
+                'Comment': ''
+            },
+            {
+                'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
+                                                    coordinates="A02"),
+                'Volume Used': Decimal(5.0),
+                'Source Depleted': False,
+                'Comment': '',
+            }
+        ]
+
+        (container_pool, _, errors, warnings) = get_or_create_container(barcode="PoolContainerSource",
+                                                                        kind='Tube',
+                                                                        name="PoolContainerSource")
+
+        self.protocol_pooling = Protocol.objects.get(name="Sample Pooling")
+        self.process_pooling = Process.objects.create(protocol=self.protocol_pooling)
+
+        (pool, errors, warnings) = pool_samples(process=self.process_pooling,
+                                                samples_info=samples_to_pool_info,
+                                                pool_name='PoolToNormalize',
+                                                container_destination=container_pool,
+                                                coordinates_destination=None,
+                                                execution_date=datetime(2020, 5, 21, 0, 0))
+
+        # Update concentration of pool (since it is not set when pooling)
+        pool, errors, warnings = update_sample(pool, concentration=10)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-
         self.assertEqual(result['valid'], True)
 
         # Source sample 1 tests
@@ -85,6 +121,11 @@ class NormalizationTestCase(TestCase):
         ss3 = Sample.objects.get(container__barcode="SOURCE_CONTAINER", coordinates="A03")
         self.assertEqual(ss3.volume, 25)
         self.assertTrue(ss3.depleted)
+
+        # Source pool tests
+        ss4 = Sample.objects.get(container__barcode="PoolContainerSource")
+        self.assertEqual(ss4.volume, 3.5)
+        self.assertFalse(ss4.depleted)
 
         # Destination sample 1 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A01").exists())
@@ -172,3 +213,33 @@ class NormalizationTestCase(TestCase):
 
         self.assertEqual(p_1.value, '5.000')
         self.assertEqual(Decimal(p_2.value), convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150)))
+
+        # Destination sample 4 test
+        self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A04").exists())
+        self.assertTrue(SampleLineage.objects.filter(parent=ss4).exists())
+        self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss4).exists())
+
+        cs4 = Sample.objects.get(container__barcode="DESTINATION_CONTAINER", coordinates="A04")
+        sl4 = SampleLineage.objects.get(parent=ss4)
+        pm4 = ProcessMeasurement.objects.get(source_sample=ss4)
+
+        self.assertEqual(sl4.child, cs4)
+        self.assertEqual(sl4.process_measurement, pm4)
+        self.assertEqual(pm4.source_sample, ss4)
+        self.assertEqual(pm4.volume_used, 5)
+        self.assertEqual(pm4.protocol_name, "Normalization")
+        self.assertEqual(pm4.comment, "Comment4")
+        self.assertEqual(cs4.volume, 5)
+        self.assertEqual(cs4.creation_date, pm4.execution_date)
+        self.assertEqual(cs4.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
+
+        # Property Values tests
+        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm4.process.protocol.id)
+        p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm4.id)
+
+        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm4.process.protocol.id)
+        p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm4.id)
+
+        self.assertEqual(p_1.value, '5.000')
+        self.assertEqual(p_2.value, '10.000')
+
