@@ -4,8 +4,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 
-from fms_core.models import Sample
-from fms_core.serializers import SampleSerializer, ProcessMeasurementSerializer
 
 class SampleLineageViewSet(viewsets.ViewSet):
     @action(detail=True, methods=["get"])

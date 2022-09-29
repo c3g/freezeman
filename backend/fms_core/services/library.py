@@ -5,7 +5,7 @@ from fms_core.models import LibraryType, Library, DerivedBySample
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul, convert_concentration_from_ngbyul_to_nm
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_rounded_to_precision
 
 from fms_core.models._constants import STRANDEDNESS_CHOICES, SINGLE_STRANDED
 
@@ -255,6 +255,7 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
             """
     errors = []
     warnings = []
+    concentration_nm = None
 
     if source_sample is None:
         errors.append(f'Missing sample.')
@@ -274,7 +275,7 @@ def convert_library_concentration_from_ngbyul_to_nm(source_sample, concentration
             else:
                 errors.append(f'Either library size or strandedness has not been set for this library.')
                 return None, errors, warnings
-        concentration_nm = (concentration_ngbyul * 1000000) / sum_adjusted_factor
+        concentration_nm = decimal_rounded_to_precision(Decimal((concentration_ngbyul * 1000000) / sum_adjusted_factor))
         return concentration_nm, errors, warnings
     else:
         return None, errors, warnings

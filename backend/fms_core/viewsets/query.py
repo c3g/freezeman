@@ -10,7 +10,7 @@ from fms_core.models import Container, Individual, Sample, Project
 from fms_core.serializers import ContainerSerializer, IndividualSerializer, SampleSerializer, UserSerializer, ProjectSerializer
 
 from ._utils import FZY
-
+from ._fetch_data import fetch_sample_data
 
 # noinspection PyMethodMayBeStatic,PyUnusedLocal
 class QueryViewSet(viewsets.ViewSet):
@@ -32,7 +32,7 @@ class QueryViewSet(viewsets.ViewSet):
                 return s
             if item_type == Sample:
                 s["type"] = "sample"
-                s["item"] = SampleSerializer(s["item"]).data
+                s["item"] = fetch_sample_data([s["item"].id]).pop() # TODO: Would be more effective to fetch outside the loop
                 return s
             if item_type == Individual:
                 s["type"] = "individual"

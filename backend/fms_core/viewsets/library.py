@@ -1,9 +1,9 @@
-import json
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, When, Count, Case, BooleanField, F
 
+from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, Container
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
@@ -12,7 +12,7 @@ from fms_core.template_importer.importers import ExperimentRunImporter, LibraryC
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._constants import _library_filterset_fields
-from fms_core.filters import LibraryFilter
+from ._fetch_data import fetch_library_data, fetch_export_library_data
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
@@ -118,10 +118,21 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
         return self.queryset
 
+    def retrieve(self, _request, pk=None, *args, **kwargs):
+        libraries_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_library_data([pk] if pk is not None else [], libraries_queryset, self.request.query_params)
+        return Response(serialized_data[0] if serialized_data else {})
+
+    def list(self, _request, *args, **kwargs):
+        libraries_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_library_data([], libraries_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": libraries_queryset.count()})
+
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        serializer = LibraryExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
-        return Response(serializer.data)
+        libraries_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_export_library_data([], libraries_queryset, self.request.query_params)
+        return Response(serialized_data)
 
     def get_renderer_context(self):
         context = super().get_renderer_context()
@@ -160,9 +171,8 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             query = Q(name__icontains=search_input)
             query.add(Q(id__icontains=search_input), Q.OR)
 
-        full_library_data = self.get_queryset().filter(query)
-        page = self.paginate_queryset(full_library_data)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        libraries_queryset = self.get_queryset().filter(query)
+        serialized_data = fetch_library_data([], libraries_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": libraries_queryset.count()})
 
 
