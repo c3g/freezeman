@@ -9,10 +9,9 @@ import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPool
 import usePaginatedList from '../../../hooks/usePaginatedList'
 import { Button } from 'antd'
 import { Link } from 'react-router-dom'
-import { withIndex } from '../../../utils/withItem'
 
 
-const getTableColumns = (indicesByID) => {
+const getTableColumns = () => {
     return [
         {    
             title: "Project",
@@ -24,15 +23,18 @@ const getTableColumns = (indicesByID) => {
             }               
         },
         {
-            title: "Sample",
-            dataIndex: "alias",
+            title: "Sample Name",
+            dataIndex: "parent_sample_name",
             sorter: true,
-            render: (alias, pooledSample) => 
-                <Link to={`/samples/${pooledSample.parent_sample_id}`}>
-                    <div>{pooledSample.parent_sample_name}</div>
-                    <div><small>{alias}</small></div>
-                </Link>
-            
+            render: (_, pooledSample) => {
+                return (
+                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>
+                        <div>{pooledSample.parent_sample_name}</div>
+                        <div><small>{pooledSample.alias}</small></div>
+                    </Link>
+                )
+                    
+            }  
         },
         {
             title: "Volume Ratio",
@@ -54,11 +56,9 @@ const getTableColumns = (indicesByID) => {
             title: "Index",
             dataIndex: "index",
             sorter: true,
-            render: (index, pooledSample) => {
+            render: (_, pooledSample) => {
                 return pooledSample.index && 
-                <Link to={`/indices/${pooledSample.index_id}`}>
-                    {withIndex(indicesByID, pooledSample.index_id, index => index.name, "loading...")}
-                </Link>
+                <Link to={`/indices/${pooledSample.index_id}`}>{pooledSample.index}</Link>
             }
         },
     ].map((column) => ({ ...column, key: column.title }))
@@ -111,9 +111,8 @@ const SampleDetailsPool = ({sample: pool}) => {
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
     const filters = useSelector((state) => state.pooledSamples.filters)
     const sortBy = useSelector((state) => state.pooledSamples.sortBy)
-    const indicesByID = useSelector((state) => state.indices.itemsByID)
 
-    let columns = getTableColumns(indicesByID)
+    let columns = getTableColumns()
     columns = columns.map(c => Object.assign(c, getFilterProps(
         c,
         POOLED_SAMPLES_FILTERS,
@@ -123,7 +122,7 @@ const SampleDetailsPool = ({sample: pool}) => {
     )))
 
     // TODO what is the filter key for?
-    const filterKey = POOLED_SAMPLES_FILTERS.alias.key
+    const filterKey = POOLED_SAMPLES_FILTERS.sample__id.key
 
     const nFilters = getNFilters(filters)
 

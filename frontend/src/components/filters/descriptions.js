@@ -582,13 +582,13 @@ export const POOLED_SAMPLES_FILTERS = {
       type: FILTER_TYPE.INPUT_OBJECT_ID,
       key: "sample__id",
     },
-    // TODO
-    // projects: {
-    //     type: FILTER_TYPE.INPUT,
-    //     key: "derived_sample__project__??",
-    //     label: "Project ID"
-    // },
-    alias: {
+    project_name: {
+        type: FILTER_TYPE.INPUT,
+        key: "derived_sample__project__name",
+        label: "Project Name"
+    },
+    // TODO filter on sample name, not alias (or both?)
+    parent_sample_name: {
       // TODO : The table displays the parent sample name along with the alias.
       // The filter should not be limited to just the alias, especially if the alias
       // might be empty. ???
@@ -597,13 +597,13 @@ export const POOLED_SAMPLES_FILTERS = {
       label: "Sample"
     },
     volume_ratio: {
-      type: FILTER_TYPE.INPUT_NUMBER,
+      type: FILTER_TYPE.RANGE,
       key: "volume_ratio",
       label: "Volume Ratio"
     },
     library_type: {
       type: FILTER_TYPE.INPUT,
-      key: "derived_sample__library__library_type",
+      key: "derived_sample__library__library_type__name",
       label: "Library Type"
     },
     library_size: {

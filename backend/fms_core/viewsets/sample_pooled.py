@@ -106,9 +106,11 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         # Ensure that the pool id is specified to avoid trying to return all of the derived
         # samples in the db...
         sample_id = self.request.query_params.get('sample__id__in')
+
         if (sample_id is None):
             raise MissingPoolIDException()
         queryset = DerivedBySample.objects.all().filter(sample_id=sample_id)
+
         return queryset
         
 
