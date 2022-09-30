@@ -2,8 +2,10 @@ from django.test import TestCase
 from datetime import datetime
 from decimal import Decimal
 
+from django.db import transaction
+
 from fms_core.template_importer.importers import SamplePoolingImporter
-from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
+from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 from fms_core.tests.constants import create_individual
 
 from fms_core.models import SampleKind, Protocol, Process, ProcessMeasurement, Individual, Sample, SampleLineage, DerivedSample, DerivedBySample
@@ -20,6 +22,11 @@ class SamplePoolingTestCase(TestCase):
         self.importer = SamplePoolingImporter()
         self.file = APP_DATA_ROOT / "Sample_pooling_v3_12_0.xlsx"
 
+        self.invalid_template_tests = [#"Sample_pooling_v3_12_0_different_individuals.xlsx",
+                                       #"Sample_pooling_v3_12_0_different_kinds.xlsx",
+                                       #"Sample_pooling_v3_12_0_different_types.xlsx",
+                                       "Sample_pooling_v3_12_0_missing_library_size.xlsx"]
+
         self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
         self.RNA_sample_kind, _ = SampleKind.objects.get_or_create(name="RNA")
         self.protocol_pooling = Protocol.objects.get(name="Sample Pooling")
@@ -32,9 +39,9 @@ class SamplePoolingTestCase(TestCase):
 
     def prefill_data(self):
 
-        container, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
-                                           kind='96-well plate',
-                                           name=self.plate_source_name_and_barcode)
+        self.container, _, _ = create_container(barcode=self.plate_source_name_and_barcode,
+                                                kind='96-well plate',
+                                                name=self.plate_source_name_and_barcode)
 
         # index
         index_set, _, _, _ = get_or_create_index_set("PoolTestSet")
@@ -48,40 +55,44 @@ class SamplePoolingTestCase(TestCase):
         # platform
         platform, _, _ = get_platform(name="ILLUMINA")
 
-        library_1, _, _ = create_library(index=self.index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
-        library_2, _, _ = create_library(index=self.index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
-        library_3, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
+        self.library_1, _, _ = create_library(index=self.index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
+        self.library_2, _, _ = create_library(index=self.index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
+        self.library_3, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
+        self.library_4, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
 
+        self.same_individual = Individual.objects.create(**create_individual(individual_name="Bobinouille"))
+        self.different_individual = Individual.objects.create(**create_individual(individual_name="Bobinoodle"))
+
+        
+    def test_import(self):
         self.source_sample_1, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL1", alias="SOURCESAMPLE1POOL1", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite1", creation_date=datetime(2022, 9, 13, 0, 0), 
                                individual=Individual.objects.create(**create_individual(individual_name="Bobino")),
-                               container=container, coordinates="A01", sample_kind=self.DNA_sample_kind, library=library_1)
+                               container=self.container, coordinates="A01", sample_kind=self.DNA_sample_kind, library=self.library_1)
                     
         self.source_sample_2, _, _ = \
             create_full_sample(name="SOURCESAMPLE2POOL1", alias="SOURCESAMPLE2POOL1", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite2", creation_date=datetime(2022, 9, 13, 0, 0),
                                individual=Individual.objects.create(**create_individual(individual_name="Bobinette")),
-                               container=container, coordinates="A02", sample_kind=self.DNA_sample_kind, library=library_2)
+                               container=self.container, coordinates="A02", sample_kind=self.DNA_sample_kind, library=self.library_2)
 
         self.source_sample_3, _, _ = \
             create_full_sample(name="SOURCESAMPLE3POOL1", alias="SOURCESAMPLE3POOL1", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite3", creation_date=datetime(2022, 9, 13, 0, 0),
                                individual=Individual.objects.create(**create_individual(individual_name="Bobinouche")),
-                               container=container, coordinates="A03", sample_kind=self.DNA_sample_kind, library=library_3)
+                               container=self.container, coordinates="A03", sample_kind=self.DNA_sample_kind, library=self.library_3)
 
-        same_individual = Individual.objects.create(**create_individual(individual_name="Bobinouille"))
         self.source_sample_4, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL2", alias="SOURCESAMPLE1POOL2", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
-                               individual=same_individual, container=container, coordinates="A04", sample_kind=self.RNA_sample_kind)
+                               individual=self.same_individual, container=self.container, coordinates="A04", sample_kind=self.RNA_sample_kind)
 
         self.source_sample_5, _, _ = \
             create_full_sample(name="SOURCESAMPLE2POOL2", alias="SOURCESAMPLE2POOL2", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
-                               individual=same_individual, container=container, coordinates="A05", sample_kind=self.RNA_sample_kind)
+                               individual=self.same_individual, container=self.container, coordinates="A05", sample_kind=self.RNA_sample_kind)
 
-    def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
@@ -181,3 +192,50 @@ class SamplePoolingTestCase(TestCase):
         self.assertEqual(ds5.biosample.individual.name, "Bobinouille")
         self.assertIsNone(ds5.library)
         self.assertEqual(dbs5.volume_ratio, Decimal("0.500"))
+
+    def test_invalid_sample_pooling(self):
+        self.source_sample_6, _, _ = \
+            create_full_sample(name="SOURCESAMPLE1POOL3", alias="SOURCESAMPLE1POOL3", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
+                               individual=self.same_individual, container=self.container, coordinates="A06", sample_kind=self.DNA_sample_kind)
+
+        self.source_sample_7, _, _ = \
+            create_full_sample(name="SOURCESAMPLE2POOL3", alias="SOURCESAMPLE2POOL3", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
+                               individual=self.different_individual, container=self.container, coordinates="A07", sample_kind=self.DNA_sample_kind)
+
+        self.source_sample_8, _, _ = \
+            create_full_sample(name="SOURCESAMPLE1POOL4", alias="SOURCESAMPLE1POOL4", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
+                               individual=self.same_individual, container=self.container, coordinates="A08", sample_kind=self.RNA_sample_kind)
+
+        self.source_sample_9, _, _ = \
+            create_full_sample(name="SOURCESAMPLE1POOL4", alias="SOURCESAMPLE1POOL4", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
+                               individual=self.same_individual, container=self.container, coordinates="A09", sample_kind=self.DNA_sample_kind)
+
+        self.source_sample_10, _, _ = \
+            create_full_sample(name="SOURCESAMPLE1POOL5", alias="SOURCESAMPLE1POOL5", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0),
+                               individual=self.same_individual, container=self.container, coordinates="A10", sample_kind=self.DNA_sample_kind)
+
+        self.source_sample_11, _, _ = \
+            create_full_sample(name="SOURCESAMPLE2POOL5", alias="SOURCESAMPLE2POOL5", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite1", creation_date=datetime(2022, 9, 13, 0, 0), individual=self.same_individual,
+                               container=self.container, coordinates="A11", sample_kind=self.DNA_sample_kind, library=self.library_1)
+
+        self.source_sample_12, _, _ = \
+            create_full_sample(name="SOURCESAMPLE1POOL6", alias="SOURCESAMPLE1POOL6", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0), individual=self.same_individual,
+                                container=self.container, coordinates="B01", sample_kind=self.DNA_sample_kind, library=self.library_2)
+
+        self.source_sample_13, _, _ = \
+            create_full_sample(name="SOURCESAMPLE2POOL6", alias="SOURCESAMPLE2POOL6", volume=self.source_sample_initial_volume, concentration=25,
+                               collection_site="PoolSite1", creation_date=datetime(2022, 9, 13, 0, 0), individual=self.different_individual,
+                               container=self.container, coordinates="B02", sample_kind=self.DNA_sample_kind, library=self.library_4)
+
+        for f in self.invalid_template_tests:
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
