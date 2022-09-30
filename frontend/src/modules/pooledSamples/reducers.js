@@ -104,7 +104,7 @@ function preprocess(pooledSample) {
 
 /**
  * Convert the nested data structure returned by the pool sample api to a flat
- * list of properties for the UX.
+ * list of properties for the UX (column/filter mapping requires a flat structure)
  * @param {*} pooledSample 
  * @returns 
  */
