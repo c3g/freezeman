@@ -219,7 +219,6 @@ _dataset_file_filterset_fields: FiltersetFields = {
 _pooled_sample_filterset_fields: FiltersetFields = {
     "sample__id": PK_FILTERS,
     "derived_sample__project__name": CATEGORICAL_FILTERS_LOOSE,
-    # TODO filter on sample name, not alias
     "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
     "volume_ratio": SCALAR_FILTERS,
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
