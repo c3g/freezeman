@@ -23,17 +23,15 @@ const getTableColumns = () => {
             }               
         },
         {
-            title: "Sample Name",
-            dataIndex: "parent_sample_name",
+            title: "Alias",
+            dataIndex: "alias",
             sorter: true,
             render: (_, pooledSample) => {
                 return (
-                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>
-                        <div>{pooledSample.parent_sample_name}</div>
-                        <div><small>{pooledSample.alias}</small></div>
-                    </Link>
+                    // The link points to the parent sample of the pooled derived sample, eg. the library
+                    // that was pooled.
+                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.alias}</Link>
                 )
-                    
             }  
         },
         {
@@ -121,7 +119,6 @@ const SampleDetailsPool = ({sample: pool}) => {
         setFilterOptionCallback
     )))
 
-    // TODO what is the filter key for?
     const filterKey = POOLED_SAMPLES_FILTERS.sample__id.key
 
     const nFilters = getNFilters(filters)

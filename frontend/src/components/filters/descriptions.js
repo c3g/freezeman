@@ -587,14 +587,10 @@ export const POOLED_SAMPLES_FILTERS = {
         key: "derived_sample__project__name",
         label: "Project Name"
     },
-    // TODO filter on sample name, not alias (or both?)
-    parent_sample_name: {
-      // TODO : The table displays the parent sample name along with the alias.
-      // The filter should not be limited to just the alias, especially if the alias
-      // might be empty. ???
+    alias: {
       type: FILTER_TYPE.INPUT,
       key: "derived_sample__biosample__alias",
-      label: "Sample"
+      label: "Alias"
     },
     volume_ratio: {
       type: FILTER_TYPE.RANGE,
