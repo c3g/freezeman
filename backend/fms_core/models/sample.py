@@ -71,18 +71,6 @@ class Sample(TrackedModel):
         return True if any([derived_sample.library is not None for derived_sample in self.derived_samples.all()]) else False
 
     @property
-    def sample_kind_name(self) -> str:
-        if self.is_library:
-            if self.is_pool:
-                sample_kind_name = POOL_KIND_NAME
-            else:
-                sample_kind_name = self.derived_samples.first().sample_kind.name
-        else:
-            sample_kind_name = self.derived_samples.first().sample_kind.name
-
-        return sample_kind_name
-
-    @property
     def derived_sample_not_pool(self) -> DerivedSample:
         return self.derived_samples.first() if not self.is_pool else []  # Forces crash if pool
 

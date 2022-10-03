@@ -23,9 +23,9 @@ class PoolsRowHandler(GenericRowHandler):
                 self.errors["source_sample"] = (f"Source samples in pool {pool['name']} are not all either samples or libraries.")
             # Add an error if we are pooling samples and they are not of the same sample kind
             elif not set_type.pop(): # len(set_type) = 1 and not set_type[0] => all pooled are samples
-                set_kind = set(sample["Source Sample"].sample_kind_name for sample in samples_info)
+                set_kind = set(sample["Source Sample"].derived_samples.first().sample_kind.name for sample in samples_info)
                 # Assumes source sample pools did not allow different individuals to be pooled
-                set_individual = set(sample["Source Sample"].biosample_not_pool.individual.name for sample in samples_info)
+                set_individual = set(sample["Source Sample"].derived_samples.first().biosample.individual.name for sample in samples_info)
                 if len(set_kind) > 1: # len(set_kind) > 1 => not all same kind
                     self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
                                                     f"Samples to be pooled are of the following kinds: {set_kind}.")
