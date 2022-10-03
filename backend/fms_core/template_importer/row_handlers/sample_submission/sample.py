@@ -21,25 +21,6 @@ class SampleRowHandler(GenericRowHandler):
     def process_row_inner(self, sample, library, container, project, parent_container, individual, individual_mother, individual_father, sample_kind_objects_by_name):
         comment = sample['comment'] if sample['comment'] else f"Automatically generated via Sample submission Template on {datetime.utcnow().isoformat()}Z"
 
-        # Container related section
-        parent_container_obj = None
-        if parent_container['barcode']:
-            parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
-
-        container_obj, _, self.errors['container'], self.warnings['container'] = \
-            get_or_create_container(barcode=container['barcode'],
-                                    kind=container['kind'],
-                                    name=container['name'],
-                                    coordinates=container['coordinates'],
-                                    container_parent=parent_container_obj,
-                                    creation_comment=comment,
-                                    )
-
-        # Project related section
-        project_obj = None
-        if project['name']:
-            project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
-
         # Individual related section
         taxon_obj = None
         if individual['taxon']:
@@ -130,33 +111,72 @@ class SampleRowHandler(GenericRowHandler):
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'])
 
-        # Check concentration fields given sample_kind (moved from sample and DerivedBySample because information unavailable until multiple relations created)
-        if sample['concentration'] is None and sample_kind_obj.concentration_required:
-            self.errors['concentration'] = [f"Concentration must be specified for a submitted sample if the sample_kind is DNA."]
+        # Project related section
+        project_obj = None
+        if project['name']:
+            project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
+
+        # Continue creating the sample objects if this sample is not associated with a pool
+        if library['pool_name'] is None:
+            # Check concentration fields given sample_kind (moved from sample and DerivedBySample because information unavailable until multiple relations created)
+            if sample['concentration'] is None and sample_kind_obj.concentration_required:
+                self.errors['concentration'] = [f"Concentration must be specified for a submitted sample if the sample_kind is DNA."]
 
 
-        # Check if there's a sample with the same name
-        if Sample.objects.filter(name__iexact=sample['name']).exists():
-            # Output different warnings depending on whether the name is an exact match or a case insensitive match
-            if Sample.objects.filter(name__exact=sample['name']).exists():
-                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
-                                        f'A new sample with the same name will be created.'
-            else:
-                self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
-                                        f'Please verify the name is correct.'
+            # Check if there's a sample with the same name
+            if Sample.objects.filter(name__iexact=sample['name']).exists():
+                # Output different warnings depending on whether the name is an exact match or a case insensitive match
+                if Sample.objects.filter(name__exact=sample['name']).exists():
+                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] already exists. ' \
+                                            f'A new sample with the same name will be created.'
+                else:
+                    self.warnings['name'] = f'Sample with the same name [{sample["name"]}] but different type casing already exists. ' \
+                                            f'Please verify the name is correct.'
 
-            
-        sample_obj = None
-        if library_obj is not None or not is_library:
-            sample_obj, self.errors['sample'], self.warnings['sample'] = \
-                create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
-                                   creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
-                                   concentration=sample['concentration'], tissue_source=tissue_source_obj,
-                                   experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
-                                   library=library_obj, sample_kind=sample_kind_obj, comment=comment)
+            # Container related section
+            parent_container_obj = None
+            if parent_container['barcode']:
+                parent_container_obj, self.errors['parent_container'], self.warnings['parent_container'] = get_container(barcode=parent_container['barcode'])
 
-        # Link sample to project if requested
-        if project_obj and sample_obj:
-            _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+            container_obj, _, self.errors['container'], self.warnings['container'] = \
+                get_or_create_container(barcode=container['barcode'],
+                                        kind=container['kind'],
+                                        name=container['name'],
+                                        coordinates=container['coordinates'],
+                                        container_parent=parent_container_obj,
+                                        creation_comment=comment,
+                                        )
+
+            sample_obj = None
+            if library_obj is not None or not is_library:
+                sample_obj, self.errors['sample'], self.warnings['sample'] = \
+                    create_full_sample(name=sample['name'], volume=sample['volume'], collection_site=sample['collection_site'],
+                                       creation_date=sample['creation_date'], coordinates=sample['coordinates'], alias=sample['alias'],
+                                       concentration=sample['concentration'], tissue_source=tissue_source_obj,
+                                       experimental_group=sample['experimental_group'], container=container_obj, individual=individual_obj,
+                                       library=library_obj, sample_kind=sample_kind_obj, comment=comment)
+
+            # Link sample to project if requested
+            if project_obj and sample_obj:
+                _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+        # If this sample belongs to a pool but the library obj was not successfully created raise an error
+        elif library['pool_name'] and not library_obj:
+            self.errors['pooling'] = [f"A valid library is necessary to be able to pool this sample."]
+
+        # For pooling purposes
+        self.row_object = {
+            # Biosample info
+            "alias": sample['alias'],
+            "individual": individual_obj,
+            "collection_site": sample['collection_site'],
+            # Derived sample info
+            "sample_kind": sample_kind_obj,
+            "tissue_source": tissue_source_obj,
+            "experimental_group": sample['experimental_group'],
+            "library": library_obj,
+            "project": project_obj,
+            # Pool relation info
+            "volume": sample['volume'],
+        }
 
 
