@@ -30,7 +30,7 @@ class PoolsRowHandler(GenericRowHandler):
                     self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
                                                     f"Samples to be pooled are of the following kinds: {set_kind}.")
                 if len(set_individual) > 1: # len(set_individual) > 1 => not all same individual
-                    self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be from the same infividual. "
+                    self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be from the same individual. "
                                                     f"Samples to be pooled are of the following individuals: {set_individual}.")
             # Add a warning if the concentration of the samples/libraries are not within a tolerance
             TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
