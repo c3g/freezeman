@@ -115,7 +115,7 @@ class SampleSubmissionImporter(GenericImporter):
                             "name": str_cast_and_normalize(row_data["Container Name"]),
                             "kind": str_cast_and_normalize_lower(row_data["Container Kind"]),
                             "coordinates": str_cast_and_normalize(row_data["Container Coord"]),
-                            "parent_barcode": str_cast_and_normalize(row_data["Parent Barcode"]),
+                            "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
                         },
                     },
                     "reception_date": input_to_date_and_none(row_data["Reception (YYYY-MM-DD)"]),

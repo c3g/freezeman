@@ -486,7 +486,7 @@ def pool_submitted_samples(samples_info,
         for sample in samples_info:
             sample_volume = sample["volume"]
             # Calculate the volume ratio of each sample in the pool
-            sample["volume_ratio"] = sample_volume / pool_volume
+            sample["volume_ratio"] = decimal_rounded_to_precision(sample_volume / pool_volume)
         # Create a a new sample - Concentration value is not set (need a QC to set it)
         pool_data = dict(
             name=pool_name,
