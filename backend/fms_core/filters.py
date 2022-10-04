@@ -119,7 +119,3 @@ class DatasetFilter(GenericFilter):
         model = Dataset
         fields = _dataset_filterset_fields
 
-class PooledSampleFilter(GenericFilter):
-    class Meta:
-        model = DerivedBySample
-        fields = _pooled_sample_filterset_fields

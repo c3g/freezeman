@@ -257,20 +257,27 @@ export const importedFile = {
 export const pooledSample = {
   // Note: Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
   id: 1,                          // The id of the pooled derived sample (used as the id for the pooled sample)
-  parent_sample_name: "",         // The name of the sample that was added to this pool
-  parent_sample_id: "",           // The id of the sample that was added to this pool
-  biosample_id: "",               // The biosample attached to the sample that was added to this pool
-  alias: "",                      // The alias (from the biosample)
-  project_name: "",               // Project associated with the derived sample
-  project_id: "",                 // Project associated with the derived sample
   volume_ratio: "",               // Derived sample volume as a ratio of the total pool volume
 
+  project_id: "",                 // Project associated with the derived sample
+  project_name: "",               // Project associated with the derived sample
+
+  // Sample info
+  alias: "",                      // The alias (from the biosample)
+  collection_site: "",            // Collection site, eg MUHC
+  experimental_group: [""],       // An array of experimental group names
+  individual_id: 1,               // The ID of the individual to whom this sample was extracted
+  individual_name: "",            // Individual name
+  parent_sample_id: "",           // The id of the sample that was added to this pool
+  parent_sample_name: "",         // The name of the sample that was added to this pool
+  sample_kind: "",                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
+  
   // library fields               // Library fields are only defined if pool contains libraries
-  library_type: "",               // Library Type (eg. PCR-free)
-  library_size: "",               // Library size (in bp)
-  strandedness: "",               // "Double stranded" (for DNA) or "Single stranded" (for RNA)
-  platform: "",                   // Platform (eg. ILLUMINA)
-  index_set: "",                  // Name of index set containing library index
   index: "",                      // Name of index
   index_id: "",                   // ID of index
+  index_set: "",                  // Name of index set containing library index
+  library_size: 100,              // Library size in base pairs (integer)
+  library_type: "",               // Library Type (eg. PCR-free) (pre-defined)
+  platform: "",                   // Platform (eg. ILLUMINA)
+  strandedness: "",               // "Double stranded" (for DNA) or "Single stranded" (for RNA)
 }

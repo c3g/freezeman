@@ -95,5 +95,6 @@ export const pooledSamples = (
 function preprocess(pooledSample) {
     pooledSample.isFetching = false
     pooledSample.isLoaded = true
+    return pooledSample
 }
 

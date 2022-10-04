@@ -224,4 +224,6 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     "derived_sample__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__library__library_size": SCALAR_FILTERS,
     "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
+
 }

@@ -7,11 +7,11 @@ import { POOLED_SAMPLES_FILTERS } from "../../filters/descriptions";
 import PaginatedList from '../../shared/PaginatedList'
 import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPoolId, setSortBy} from '../../../modules/pooledSamples/actions'
 import usePaginatedList from '../../../hooks/usePaginatedList'
-import { Button } from 'antd'
+import { Button, Tag } from 'antd'
 import { Link } from 'react-router-dom'
 
 
-const getTableColumns = () => {
+const getTableColumns = (sampleKinds) => {
     return [
         {    
             title: "Project",
@@ -39,7 +39,14 @@ const getTableColumns = () => {
             dataIndex: "volume_ratio",
             sorter: true,
         },
-    
+        {
+            title: "Kind",
+            dataIndex: "sample_kind",
+            sorter: true,
+            options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
+            render: (_, sample) =>
+                <Tag>{sample.sample_kind ? sample.sample_kind : "POOL"}</Tag>,
+        },
         {
             title: "Library Type",
             dataIndex: "library_type",
@@ -105,12 +112,13 @@ const SampleDetailsPool = ({sample: pool}) => {
     
     const samples = useSelector((state) => state.pooledSamples.items)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
+    const sampleKinds = useSelector((state) => state.sampleKinds)
     const totalCount = useSelector((state) => state.pooledSamples.totalCount)
     const isFetching = useSelector((state) => state.pooledSamples.isFetching)
     const filters = useSelector((state) => state.pooledSamples.filters)
     const sortBy = useSelector((state) => state.pooledSamples.sortBy)
 
-    let columns = getTableColumns()
+    let columns = getTableColumns(sampleKinds)
     columns = columns.map(c => Object.assign(c, getFilterProps(
         c,
         POOLED_SAMPLES_FILTERS,

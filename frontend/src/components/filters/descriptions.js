@@ -612,6 +612,13 @@ export const POOLED_SAMPLES_FILTERS = {
         key: 'derived_sample__library__index__name',
         label: "Index"
     },
+    sample_kind: {
+      type: FILTER_TYPE.SELECT,
+      key: "derived_sample__sample_kind__name",
+      label: "Type",
+      mode: "multiple",
+      placeholder: "All"
+    }
 }
 
 

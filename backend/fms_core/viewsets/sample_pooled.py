@@ -1,7 +1,9 @@
 from rest_framework import viewsets, serializers
 from rest_framework.exceptions import APIException
 from fms_core.models import DerivedBySample, Sample
-from fms_core.filters import PooledSampleFilter
+from ._constants import (
+    _pooled_sample_filterset_fields,
+)
 
         
 class PooledSampleSerializer(serializers.Serializer):
@@ -33,9 +35,9 @@ class PooledSampleSerializer(serializers.Serializer):
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
-    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.size')
-    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type')
-    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform')
+    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
+    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
 
     class Meta:
@@ -90,7 +92,7 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
     '''
     queryset = DerivedBySample.objects.all()
     serializer_class = PooledSampleSerializer
-    filter_class = PooledSampleFilter
+    filterset_fields = _pooled_sample_filterset_fields
 
     def get_queryset(self):
         # Ensure that the pool id is specified to avoid trying to return all of the derived
