@@ -442,19 +442,19 @@ def pool_submitted_samples(samples_info,
     This sample is then connected to the created derived samples and biosamples. This service is to be used by the
     sample submission importer due to the necessity of creating pools without having to create futile sample objects
     and containers.
-    The volume_ratio is calcuated for each source sample and stored on the derivedbysample entry.
+    The volume_ratio is calculated for each source sample and stored on the derivedbysample entry.
 
 
     Args:
         samples_info: a dict for source samples info.
-                      {"Alias",
-                       "Individual",
-                       "Collection Site",
-                       "Sample Kind",
-                       "Tissue Source",
-                       "Experimental Group",
-                       "Project",
-                       "Volume"}
+                      {"alias",
+                       "individual",
+                       "collection_site",
+                       "sample_kind",
+                       "tissue_source",
+                       "experimental_group",
+                       "project",
+                       "volume"}
 
         pool_name: the name given to the pool by the user.
         container_destination: a container object that will receive the pool.
