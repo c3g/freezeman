@@ -78,6 +78,8 @@ class LibraryFilter(GenericFilter):
     container__barcode = django_filters.CharFilter(field_name="container__barcode", method="batch_filter")
     derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
+    quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
+    quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -87,6 +89,14 @@ class LibraryFilter(GenericFilter):
             else:
                 bool_value = (value == 'true')
             condition |= Q(qc_flag=bool_value)
+        return queryset.filter(condition)
+
+    def quantity_ng_lte_filter(self, queryset, name, value):
+        condition = Q(quantity_ng__lte=value)
+        return queryset.filter(condition)
+    
+    def quantity_ng_gte_filter(self, queryset, name, value):
+        condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
 
     class Meta:
