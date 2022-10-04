@@ -1,7 +1,7 @@
 import {createNetworkActionTypes, networkAction} from "../../utils/actions";
 import api from "../../utils/api"
 import serializeFilterParams from "../../utils/serializeFilterParams";
-import serializeSortByParams from "../../utils/serializeSortByParams";
+import { serializeSortByParamsWithFilterKey } from "../../utils/serializeSortByParams";
 import {POOLED_SAMPLES_FILTERS} from "../../components/filters/descriptions";
 import {DEFAULT_PAGINATION_LIMIT} from "../../config";
 
@@ -31,7 +31,7 @@ export const listTable =  ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}
     const mergedFilters = Object.assign({}, pooledSamples.filters, pooledSamples.fixedFilters)
     const serializedFilters = serializeFilterParams(mergedFilters, POOLED_SAMPLES_FILTERS)
 
-    const ordering = serializeSortByParams(pooledSamples.sortBy)
+    const ordering = serializeSortByParamsWithFilterKey(pooledSamples.sortBy, POOLED_SAMPLES_FILTERS)
     limit = getState().pagination.pageSize;
     const options = { limit, offset, ordering, ...serializedFilters}
 

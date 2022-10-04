@@ -4,6 +4,7 @@ from fms_core.models import DerivedBySample, Sample
 from ._constants import (
     _pooled_sample_filterset_fields,
 )
+from ._utils import _list_keys
 
         
 class PooledSampleSerializer(serializers.Serializer):
@@ -93,6 +94,9 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
     queryset = DerivedBySample.objects.all()
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
+    ordering_fields = {
+        *_list_keys(_pooled_sample_filterset_fields),
+    }
 
     def get_queryset(self):
         # Ensure that the pool id is specified to avoid trying to return all of the derived
