@@ -13,14 +13,14 @@ from fms_core.services.index import get_or_create_index_set, create_index
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_11_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_13_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
 
-        self.invalid_template_tests = ["Sample_submission_v3_11_0_bad_location.xlsx",
-                                       "Sample_submission_v3_11_0_dna_no_conc.xlsx",
-                                       "Sample_submission_v3_11_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v3_13_0_bad_location.xlsx",
+                                       "Sample_submission_v3_13_0_dna_no_conc.xlsx",
+                                       "Sample_submission_v3_13_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
