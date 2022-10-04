@@ -363,7 +363,7 @@ class SampleExportSerializer(serializers.Serializer):
 class LibrarySerializer(serializers.Serializer):
     class Meta:
         fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
-                  'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
+                  'concentration', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
 
