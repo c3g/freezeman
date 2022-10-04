@@ -24,6 +24,10 @@ class SamplesToPoolRowHandler(GenericRowHandler):
         if sample and sample.is_library and not all(derived_sample.library and derived_sample.library.library_size is not None for derived_sample in sample.derived_samples.all()):
             self.errors["source_sample"].append(f"Library must have a measured library size to be pooled. Complete quality control if you want to pool.")
 
+        # Prevent pooling of samples that are not extracted.
+        if sample and not sample.derived_samples.first().sample_kind.is_extracted:
+            self.errors["source_sample"].append(f"Sample must be extracted before being pooled.")
+
         if pool["pool_name"] is None:
             self.errors["pool_name"] = f"Pool Name is required."
         elif pool["pool_name"] not in pool["pool_set"]:
