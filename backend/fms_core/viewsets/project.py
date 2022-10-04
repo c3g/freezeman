@@ -14,7 +14,7 @@ from ._constants import _project_filterset_fields
 
 
 class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
-    queryset = Project.objects.all()
+    queryset = Project.objects.all().distinct()
     serializer_class = ProjectSerializer
 
     ordering_fields = (
