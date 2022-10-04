@@ -25,7 +25,7 @@ class PooledSampleSerializer(serializers.Serializer):
     # Sample info
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
-    experimental_group = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
+    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
     individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
     parent_sample_id = serializers.SerializerMethodField(read_only=True)
@@ -46,7 +46,7 @@ class PooledSampleSerializer(serializers.Serializer):
         fields = [
             'alias', 
             'collection_site',
-            'experimental_group',
+            'experimental_groups',
             'id', 
             'index_id',
             'index_set',
@@ -77,10 +77,10 @@ class PooledSampleSerializer(serializers.Serializer):
         return sample.name if sample is not None else ''
 
 
-class MissingPoolIDException(APIException):
-    status_code = 400
-    default_code = 'bad_request'
-    default_detail = 'No pool ID: query must include sample__id parameter containing the pool ID.'
+# class MissingPoolIDException(APIException):
+#     status_code = 400
+#     default_code = 'bad_request'
+#     default_detail = 'No pool ID: query must include sample__id parameter containing the pool ID.'
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
     '''
@@ -98,16 +98,16 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         *_list_keys(_pooled_sample_filterset_fields),
     }
 
-    def get_queryset(self):
-        # Ensure that the pool id is specified to avoid trying to return all of the derived
-        # samples in the db...
-        sample_id = self.request.query_params.get('sample__id__in')
+    # def get_queryset(self):
+    #     # Ensure that the pool id is specified to avoid trying to return all of the derived
+    #     # samples in the db...
+    #     sample_id = self.request.query_params.get('sample__id__in')
 
-        if (sample_id is None):
-            raise MissingPoolIDException()
-        queryset = DerivedBySample.objects.all().filter(sample_id=sample_id)
+    #     if (sample_id is None):
+    #         raise MissingPoolIDException()
+    #     queryset = DerivedBySample.objects.all().filter(sample_id=sample_id)
 
-        return queryset
+    #     return queryset
         
 
 

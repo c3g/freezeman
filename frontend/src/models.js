@@ -37,7 +37,7 @@ export const sample = {
   volume: null, //
   concentration: null,
   depleted: false,
-  experimental_group: null, // string[]
+  experimental_groups: null, // string[]
   collection_site: "", // string(200)
   tissue_source: null,
   creation_date: null, // date

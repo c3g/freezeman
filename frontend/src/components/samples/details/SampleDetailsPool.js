@@ -66,6 +66,35 @@ const getTableColumns = (sampleKinds) => {
                 <Link to={`/indices/${pooledSample.index_id}`}>{pooledSample.index}</Link>
             }
         },
+        {
+            title: "Individual",
+            dataIndex: "individual_name",
+            sorter: true,
+            render: (_, pooledSample) => 
+            {
+                return pooledSample.individual_id ?
+                    <Link to={`/individuals/${pooledSample.individual_id}`}>{pooledSample.individual_name}</Link>
+                    : 
+                    <div>{pooledSample.individual_name}</div>
+            }
+                
+        },
+        {
+            title: "Collection Site",
+            dataIndex: "collection_site",
+            sorter: true
+        },
+        {
+            title: "Experimental Groups",
+            dataIndex: "experimental_groups",
+            sorter: false,
+            render: (_, pooledSample) => {
+                return pooledSample.experimental_group && pooledSample.experimental_group.length > 0 &&
+                    <div>
+                        { pooledSample.experimental_group.map( groupName => <span key={groupName}>{groupName}</span>) }
+                    </div>
+            }
+        }
     ].map((column) => ({ ...column, key: column.title }))
 }
 

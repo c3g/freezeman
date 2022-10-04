@@ -597,6 +597,7 @@ export const POOLED_SAMPLES_FILTERS = {
       key: "volume_ratio",
       label: "Volume Ratio"
     },
+
     library_type: {
       type: FILTER_TYPE.INPUT,
       key: "derived_sample__library__library_type__name",
@@ -618,7 +619,24 @@ export const POOLED_SAMPLES_FILTERS = {
       label: "Type",
       mode: "multiple",
       placeholder: "All"
-    }
+    },
+    individual_name: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__biosample__individual__name",
+      label: "Individual"
+    },
+    collection_site: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__biosample__collection_site",
+      label: "Collection Site"
+    },
+    // TODO: The backend doesn't support filtering on a JSONField yet. Once that is fixed,
+    // restore this filter and update the key string to match what is expected.
+    // experimental_groups: {
+    //   type: FILTER_TYPE.INPUT,
+    //   key: "derived_sample__experimental_group",
+    //   label: "Experimental Groups"
+    // }
 }
 
 
