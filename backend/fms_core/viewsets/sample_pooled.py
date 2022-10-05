@@ -68,13 +68,13 @@ class PooledSampleSerializer(serializers.Serializer):
     # Finds the id of the parent sample from which this pooled sample was derived. For example, if this
     # pool member is from a library then it returns the id of the library sample. 
     def get_parent_sample_id(self, obj):
-        parent_sample = Sample.objects.get(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
-        return parent_sample.id if parent_sample is not None else ''
+        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return parent_sample.first().id if parent_sample else None
 
     # Finds the id of the parent sample from which this pooled sample was derived.
     def get_parent_sample_name(self, obj):
-        sample = Sample.objects.get(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
-        return sample.name if sample is not None else ''
+        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return parent_sample.first().name if parent_sample else None
 
 
 # class MissingPoolIDException(APIException):
