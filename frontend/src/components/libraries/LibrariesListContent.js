@@ -114,7 +114,6 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Conc. (nM)",
       dataIndex: "concentration_nm",
-      sorter: true,
       align: "right",
       className: "table-column-numbers",
       render: conc => conc !== null ? parseFloat(conc).toFixed(3) : null,
@@ -122,7 +121,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     },
     {
       title: "Conc. (ng/µL)",
-      dataIndex: "concentration_ng_ul",
+      dataIndex: "concentration",
       sorter: true,
       align: "right",
       className: "table-column-numbers",

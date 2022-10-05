@@ -462,15 +462,10 @@ export const LIBRARY_FILTERS = {
     key: "volume",
     label: "Volume",
   },
-  concentration_ng_ul: {
+  concentration: {
     type: FILTER_TYPE.RANGE,
-    key: "concentration_ng_ul",
+    key: "concentration",
     label: "Conc. (ng/ul)",
-  },
-  concentration_nm: {
-    type: FILTER_TYPE.RANGE,
-    key: "concentration_nm",
-    label: "Conc. (nM)",
   },
   quantity_ng: {
     type: FILTER_TYPE.RANGE,

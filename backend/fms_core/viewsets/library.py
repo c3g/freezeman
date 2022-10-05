@@ -26,10 +26,14 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     queryset = queryset.annotate(
         sample_strandedness=F('derived_samples__library__strandedness')
     )
+    queryset = queryset.annotate(
+        quantity_ng=F('concentration')*F('volume')
+    )
     serializer_class = LibrarySerializer
 
     ordering_fields = (
         *_list_keys(_library_filterset_fields),
+        "quantity_ng"
     )
 
     filterset_fields = {

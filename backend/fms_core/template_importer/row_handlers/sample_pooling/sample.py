@@ -18,11 +18,15 @@ class SamplesToPoolRowHandler(GenericRowHandler):
         elif sample and sample.volume < volume_used:
             self.errors["volume_used"] = f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample.volume} uL)."
 
-        # Ensure concentration related information is present, but do not enforce the quality control. Might have information provided at reception.
-        if sample and sample.concentration is None:
-            self.errors["source_sample"].append(f"Sample must have a measured concentration to be pooled. Complete quality control if you want to pool.")
+        # Ensure concentration related information is present for library, but do not enforce the quality control. Might have information provided at reception.
+        if sample and sample.is_library and sample.concentration is None:
+            self.errors["source_sample"].append(f"Library must have a measured concentration to be pooled. Complete quality control if you want to pool.")
         if sample and sample.is_library and not all(derived_sample.library and derived_sample.library.library_size is not None for derived_sample in sample.derived_samples.all()):
             self.errors["source_sample"].append(f"Library must have a measured library size to be pooled. Complete quality control if you want to pool.")
+
+        # Prevent pooling of samples that are not extracted.
+        if sample and not sample.derived_samples.first().sample_kind.is_extracted:
+            self.errors["source_sample"].append(f"Sample must be extracted before being pooled.")
 
         if pool["pool_name"] is None:
             self.errors["pool_name"] = f"Pool Name is required."
