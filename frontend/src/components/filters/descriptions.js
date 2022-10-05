@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
+import {FILTER_TYPE, SEX, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   id: {
@@ -625,13 +625,6 @@ export const POOLED_SAMPLES_FILTERS = {
       key: "derived_sample__biosample__collection_site",
       label: "Collection Site"
     },
-    // TODO: The backend doesn't support filtering on a JSONField yet. Once that is fixed,
-    // restore this filter and update the key string to match what is expected.
-    // experimental_groups: {
-    //   type: FILTER_TYPE.INPUT,
-    //   key: "derived_sample__experimental_group",
-    //   label: "Experimental Groups"
-    // }
 }
 
 

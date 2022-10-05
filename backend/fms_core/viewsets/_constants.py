@@ -227,6 +227,4 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
-    # TODO Find out how to filter on a JSONField...
-    # "derived_sample__experimental_group": FREE_TEXT_FILTERS,
 }
