@@ -226,7 +226,7 @@ SAMPLE_METADATA_TEMPLATE = {
 }
 
 SAMPLE_POOLING_TEMPLATE = {
-  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_12_0.xlsx")},
+  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_13_0.xlsx")},
   "sheets info": [
       {
           "name": "SamplesToPool",
@@ -236,7 +236,7 @@ SAMPLE_POOLING_TEMPLATE = {
       {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name", "Destination Container Kind",
-                      "Destination Parent Container Barcode", "Destination Parent Container Coord",  "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord", "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
       },
   ],
   "prefill info": [
