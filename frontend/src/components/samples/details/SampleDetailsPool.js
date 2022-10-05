@@ -30,6 +30,7 @@ const getTableColumns = (sampleKinds) => {
                 return (
                     // The link points to the parent sample of the pooled derived sample, eg. the library
                     // that was pooled.
+                    // TODO: https://206.12.92.46/issues/1295 (create separate parent sample column)
                     <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.alias}</Link>
                 )
             }  
@@ -89,10 +90,10 @@ const getTableColumns = (sampleKinds) => {
             dataIndex: "experimental_groups",
             sorter: false,
             render: (_, pooledSample) => {
-                return pooledSample.experimental_group && pooledSample.experimental_group.length > 0 &&
-                    <div>
-                        { pooledSample.experimental_group.map( groupName => <span key={groupName}>{groupName}</span>) }
-                    </div>
+                return pooledSample.experimental_groups && pooledSample.experimental_groups.length > 0 &&
+                    <>
+                        { pooledSample.experimental_groups.map( groupName => <div key={groupName}>{groupName}</div>) }
+                    </>
             }
         }
     ].map((column) => ({ ...column, key: column.title }))
