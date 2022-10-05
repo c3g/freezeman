@@ -257,6 +257,7 @@ export const importedFile = {
 export const pooledSample = {
   // Note: Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
   id: 1,                          // The id of the pooled derived sample (used as the id for the pooled sample)
+  pool_id: 1,                     // The id of the pool containing the sample
   volume_ratio: "",               // Derived sample volume as a ratio of the total pool volume
 
   project_id: "",                 // Project associated with the derived sample
@@ -272,7 +273,7 @@ export const pooledSample = {
   parent_sample_name: "",         // The name of the sample that was added to this pool
   sample_kind: "",                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
   
-  // library fields               // Library fields are only defined if pool contains libraries
+  // Library fields               // Library fields are only defined if pool contains libraries
   index: "",                      // Name of index
   index_id: "",                   // ID of index
   index_set: "",                  // Name of index set containing library index
@@ -281,3 +282,26 @@ export const pooledSample = {
   platform: "",                   // Platform (eg. ILLUMINA)
   strandedness: "",               // "Double stranded" (for DNA) or "Single stranded" (for RNA)
 }
+// Example:
+// {
+//   "id": 392963,
+//   "pool_id": 727627,
+//   "volume_ratio": "0.014",
+//   "project_id": 23,
+//   "project_name": "CK",
+//   "alias": "CK-POOL-SAMPLE-28",
+//   "collection_site": "MUHC",
+//   "experimental_groups": [],
+//   "individual_id": "189486",
+//   "individual_name": "PATIENT-28",
+//   "parent_sample_id": 727573,
+//   "parent_sample_name": "CK-POOL-SAMPLE-28",
+//   "sample_kind": "DNA",
+//   "index": "IDT_10nt_UDI_i7_021-IDT_10nt_UDI_i5_021",
+//   "index_id": "13152",
+//   "index_set": "IDT_10nt_UDI_TruSeq_Adapter",
+//   "library_size": "200",
+//   "library_type": "PCR-free",
+//   "platform": "ILLUMINA",
+//   "strandedness": "Double stranded"
+// }
