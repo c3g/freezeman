@@ -168,7 +168,7 @@ def validate_indices(indices, instrument_type, length_5_prime=0, length_3_prime=
             min_3prime_index_length = 0
             max_3prime_index_length = STANDARD_SEQUENCE_FIELD_LENGTH * 2 # Assuming max size index and flanker
             index_dict["actual_3prime_sequences"] = []
-            for sequence_3prime in index_dict["obj"].list_3prime_sequences:                        
+            for sequence_3prime in index_dict["obj"].list_3prime_sequences:
                 if index_read_direction_3_prime == INDEX_READ_FORWARD:
                     actual_3prime_sequence = sequence_3prime + flanker_3_prime
                 else:
