@@ -453,6 +453,7 @@ def pool_submitted_samples(samples_info,
                        "sample_kind",
                        "tissue_source",
                        "experimental_group",
+                       "library",
                        "project",
                        "volume"}
 

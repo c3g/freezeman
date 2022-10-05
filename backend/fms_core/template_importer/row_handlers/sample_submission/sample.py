@@ -99,7 +99,7 @@ class SampleRowHandler(GenericRowHandler):
 
         # Library are submitted
         library_obj = None
-        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness']])
+        is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness'], library['library_size']])
         if is_library:
             # Create library objects
             library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
@@ -109,7 +109,8 @@ class SampleRowHandler(GenericRowHandler):
             library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_type_obj,
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
-                                                                                           strandedness=library['strandedness'])
+                                                                                           strandedness=library['strandedness'],
+                                                                                           library_size=library['library_size'])
 
         # Project related section
         project_obj = None
@@ -159,9 +160,9 @@ class SampleRowHandler(GenericRowHandler):
             # Link sample to project if requested
             if project_obj and sample_obj:
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
-        # If this sample belongs to a pool but the library obj was not successfully created raise an error
-        elif library['pool_name'] and not library_obj:
-            self.errors['pooling'] = [f"A valid library is necessary to be able to pool this sample."]
+        # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
+        elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
+            self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]
 
         # For pooling purposes
         self.row_object = {

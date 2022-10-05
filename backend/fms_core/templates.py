@@ -253,8 +253,8 @@ SAMPLE_SUBMISSION_TEMPLATE = {
           'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
                       'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Pool Name',
-                      'Reception (YYYY-MM-DD)', 'Comment']
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
+                      'Index Set', 'Index', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
       },
       {
           "name": "PoolSubmission",
