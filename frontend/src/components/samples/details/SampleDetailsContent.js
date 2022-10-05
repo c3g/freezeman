@@ -318,8 +318,8 @@ const SampleDetailsContent = ({
           <Title level={5} style={{ marginTop: '1rem' }}> Metadata </Title>
           <Descriptions bordered={true} size="small">
             {
-              sampleMetadata.map(metadata => {
-                return <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+              sampleMetadata.map((metadata, index) => {
+                return <Descriptions.Item key={index} label={metadata?.name}>{metadata?.value} </Descriptions.Item>
               })
             }
 
@@ -330,12 +330,9 @@ const SampleDetailsContent = ({
           <SampleDetailsLineage sample={sample} />
         </TabPane>
 
-        // Only display the Pool tab if the sample is a pool
-        {sample.is_pool &&
-          <TabPane tab="Pool" key="7" style={tabStyle}>
-            <SampleDetailsPool sample={sample}></SampleDetailsPool>
-          </TabPane>
-        }
+        <TabPane tab="Pool" key="7" style={tabStyle}>
+          <SampleDetailsPool sample={sample}></SampleDetailsPool>
+        </TabPane>
       </Tabs>
 
     </PageContent>

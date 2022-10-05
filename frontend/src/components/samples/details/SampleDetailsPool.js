@@ -99,7 +99,24 @@ const getTableColumns = (sampleKinds) => {
 }
 
 
-const SampleDetailsPool = ({sample: pool}) => {
+const SampleDetailsPool = ({sample}) => {
+    // Only display the pooled samples table if the sample is actually a pool.
+    // Otherwise, just display a message saying that there are no pooled samples to display.
+    return (
+        sample.is_pool ?
+            <PooledSamples sample={sample}/>
+        :
+            <NoPooledSamples/>
+    )
+}
+
+export const NoPooledSamples = () => {
+    return (
+        <div>This sample does not contain any pooled samples.</div>
+    )
+}
+
+const PooledSamples = ({sample: pool}) => {
 
     const dispatch = useDispatch()
     
@@ -194,5 +211,6 @@ const SampleDetailsPool = ({sample: pool}) => {
     </>
     )
 }
+
 
 export default SampleDetailsPool
