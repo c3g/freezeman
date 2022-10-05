@@ -242,7 +242,7 @@ SAMPLE_POOLING_TEMPLATE = {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
                       "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
-                      "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
       },
   ],
   "prefill info": [
