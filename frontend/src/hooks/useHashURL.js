@@ -22,6 +22,8 @@ export const useHashURL = (defaultKey) => {
     const location = useLocation()
     const currentKey = location.hash.slice(1)
     const setCurrentKey = useCallback((key) => { history(`#${key}`) }, [])
+    // If no key is currently in the url then add the default key automatically.
+    // This is just to keep the hash url's consistent when Tabs is first rendered.
     if(!currentKey) {
         setCurrentKey(defaultKey)
     }
