@@ -51,20 +51,23 @@ class PoolsRowHandler(GenericRowHandler):
             if pool_is_library and seq_instrument_type is not None:
                 instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
 
-                index_list = []
+                indices = []
+                samples_name = []
                 for sample in samples_info:
+                    sample_name = sample["Source Sample"].name
                     for derived_sample in sample["Source Sample"].derived_samples.all():
-                        index_list.append(derived_sample.library.index)
-                print(index_list)
-                results, _, _ = validate_indices(indices=index_list, instrument_type=instrument_type_obj,threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
-                print(results["distances"])
+                        indices.append(derived_sample.library.index)
+                        samples_name.append(sample_name)
+                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj,threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
                 index_warnings = []
                 if not results["is_valid"]:
-                    for i, index_ref in enumerate(index_list):
-                        for j, index_val in enumerate(index_list):
+                    for i, index_ref in enumerate(indices):
+                        for j, index_val in enumerate(indices):
                             index_distance = results["distances"][i][j]
                             if index_distance is not None and any(map(lambda x: x < DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
-                                index_warnings.append(f"Index {index_ref.name} and Index {index_val.name} are not different enough ({index3prime}, {index5prime}).")
+                                index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
+                                                      f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                self.warnings["index_colision"] = index_warnings
 
             # Create a process for each pool created
             process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,
