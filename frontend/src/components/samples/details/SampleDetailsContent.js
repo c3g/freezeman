@@ -42,7 +42,7 @@ import {
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
-import useHashURL from "../../../hooks/useHashURL";
+import useHashURL, { TabsWithHashURL } from "../../../hooks/useHashURL";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -180,7 +180,9 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs activeKey={activeKey} size="large" type="card" style={tabsStyle} onChange={(activeKey) => { setHashURL(activeKey) }}>
+      {/* <Tabs activeKey={activeKey} size="large" type="card" style={tabsStyle} onChange={(activeKey) => { setHashURL(activeKey) }}> */}
+
+      <TabsWithHashURL defaultActiveKey="overview" size="large" type="card" style={tabsStyle}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
@@ -331,7 +333,7 @@ const SampleDetailsContent = ({
         <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
           <SampleDetailsLineage sample={sample}/>
         </TabPane>
-      </Tabs>
+      </TabsWithHashURL>
 
     </PageContent>
   </>;
