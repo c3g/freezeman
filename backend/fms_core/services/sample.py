@@ -1,4 +1,4 @@
-import json
+from decimal import Decimal
 from datetime import datetime, date
 from django.db import Error
 from django.core.exceptions import ValidationError
@@ -355,9 +355,9 @@ def pool_samples(process: Process,
         errors.append(f"Execution date is not valid.")
     
     if not errors:
-        volume = sum(sample["Volume Used"] for sample in samples_info) # Calculate the total volume of the pool
+        volume = decimal_rounded_to_precision(Decimal(sum(sample["Volume Used"] for sample in samples_info))) # Calculate the total volume of the pool
         for sample in samples_info:
-            volume_used = sample["Volume Used"]
+            volume_used = decimal_rounded_to_precision(Decimal(sample["Volume Used"]))
             sample_obj = sample["Source Sample"]
             if volume_used is None:
                 errors.append(f"Volume used is required.")
@@ -368,7 +368,7 @@ def pool_samples(process: Process,
                     errors.append(f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample_obj.volume} uL).")
 
             sample["Volume Ratio"] = volume_used / volume # Calculate the volume ratio of each sample in the pool
-            sample_obj.volume = decimal_rounded_to_precision(sample_obj.volume - volume_used)  # Reduce the volume of source samples by the volume used
+            sample_obj.volume = sample_obj.volume - volume_used  # Reduce the volume of source samples by the volume used
             if sample["Source Depleted"]:
                 sample_obj.depleted=sample["Source Depleted"]
             sample_obj.save()
