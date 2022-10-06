@@ -192,6 +192,23 @@ NORMALIZATION_TEMPLATE = {
   ],
 }
 
+NORMALIZATION_PLANNING_TEMPLATE = {
+  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_12_0.xlsx")},
+  "sheets info": [
+      {
+        'name': 'Normalization',
+        'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
+                    'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
+                    'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
+                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+      },
+  ],
+  "prefill info": [
+      ("Normalization", "Sample Name", "name"),
+      ("Normalization", "Source Container Barcode", "container__barcode"),
+      ("Normalization", "Source Container Coord", "coordinates"),
+  ],
+}
 
 SAMPLE_METADATA_TEMPLATE = {
   "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
@@ -208,15 +225,35 @@ SAMPLE_METADATA_TEMPLATE = {
   ],
 }
 
+SAMPLE_POOLING_TEMPLATE = {
+  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_12_0.xlsx")},
+  "sheets info": [
+      {
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",
+                      "Source Container Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+      },
+      {
+          "name": "Pools",
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name", "Destination Container Kind",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord",  "Pooling Date (YYYY-MM-DD)", "Comment"],
+      },
+  ],
+  "prefill info": [
+      ("SamplesToPool", "Source Sample Name", "name"),
+      ("SamplesToPool", "Source Container Barcode", "container__barcode"),
+      ("SamplesToPool", "Source Container Coord", "coordinates"),],
+}
+
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_12_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Project', 'Cohort', 'Experimental Group', 'NCBI Taxon ID #', 'Sample Coord',
-                      'Container Kind', 'Container Name', 'Container Barcode', 'Location Barcode', 'Container Coord',
-                      'Individual ID', 'Individual Alias', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception Date', 'Comment']
+          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
+                      'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
+                      'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception (YYYY-MM-DD)', 'Comment']
       },],
   "prefill info": [],
 }

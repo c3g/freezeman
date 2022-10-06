@@ -1,27 +1,25 @@
-import json
-from typing import Any, List, Union
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch, OuterRef, Subquery, Exists
+from django.db.models import Q, When, Case, BooleanField, Prefetch
 from django.core.exceptions import ValidationError
 
-from ..utils import RE_SEPARATOR, make_generator
+from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, Project
-from fms_core.serializers import SampleSerializer, SampleExportSerializer, NestedSampleSerializer
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
-from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter
-from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter
+from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
+from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
 
-from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
+from fms_core.templates import SAMPLE_POOLING_TEMPLATE, SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
-from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE
+from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
 from ._constants import _sample_filterset_fields
+from ._fetch_data import fetch_sample_data, fetch_export_sample_data
 from fms_core.filters import SampleFilter
-
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Sample.objects.select_related("container").all().distinct()
@@ -89,10 +87,22 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             "importer": SampleMetadataImporter,
         },
         {
+            "name": "Perform Normalization Planning",
+            "description": "Upload the provided template with normalization information to populate normalization template and the robot file.",
+            "template": [NORMALIZATION_PLANNING_TEMPLATE["identity"]],
+            "importer": NormalizationPlanningImporter,
+        },
+        {
             "name": "Normalize Samples or Libraries",
             "description": "Upload the provided template with information to normalize samples or libraries.",
             "template": [NORMALIZATION_TEMPLATE["identity"]],
             "importer": NormalizationImporter,
+        },
+        {
+            "name": "Pool Samples or Libraries",
+            "description": "Upload the provided template with information to pool samples or libraries.",
+            "template": [SAMPLE_POOLING_TEMPLATE["identity"]],
+            "importer": SamplePoolingImporter,
         },
     ]
 
@@ -106,7 +116,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": LIBRARY_PREPARATION_TEMPLATE},
         {"template": EXPERIMENT_INFINIUM_TEMPLATE},
         {"template": SAMPLE_METADATA_TEMPLATE},
+        {"template": NORMALIZATION_PLANNING_TEMPLATE},
         {"template": NORMALIZATION_TEMPLATE},
+        {"template": SAMPLE_POOLING_TEMPLATE},
     ]
 
     def get_queryset(self):
@@ -165,11 +177,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 **(dict(tissue_source_id=full_sample_data['tissue_source']) if full_sample_data['tissue_source'] is not None else dict()),
             )
             if full_sample_data['experimental_group']:
-                derived_sample_data['experimental_group'] = json.dumps([
-                    g.strip()
-                    for g in RE_SEPARATOR.split(full_sample_data['experimental_group'])
-                    if g.strip()
-                ])
+                derived_sample_data['experimental_group'] = [group.strip() for group in full_sample_data['experimental_group']]
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
@@ -196,12 +204,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         # Serialize full sample using the created sample
         try:
-            serializer = SampleSerializer(Sample.objects.get(pk=sample.id))
-            full_sample = serializer.data
+            serialized_data = fetch_sample_data([sample.id])
         except Exception as err:
             raise ValidationError(err)
 
-        return Response(full_sample)
+        return Response(serialized_data[0] if serialized_data else {})
 
     def update(self, request, *args, **kwargs):
         full_sample = request.data
@@ -270,151 +277,26 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         # Return updated sample
         # Serialize full sample using the created sample
         try:
-            serializer = SampleSerializer(Sample.objects.get(pk=sample_to_update.id))
-            full_sample = serializer.data
+            serialized_data = fetch_sample_data([sample_to_update.id])
         except Exception as err:
             raise ValidationError(err)
 
-        return Response(full_sample)
+        return Response(serialized_data[0] if serialized_data else {})
+
+    def retrieve(self, _request, pk=None, *args, **kwargs):
+        samples_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_sample_data([pk] if pk is not None else [], samples_queryset, self.request.query_params)
+        return Response(serialized_data[0] if serialized_data else {})
+
+    def list(self, _request, *args, **kwargs):
+        samples_queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": samples_queryset.count()})
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         samples_queryset = self.filter_queryset(self.get_queryset())
-
-        samples_queryset = samples_queryset.annotate(
-            first_derived_sample=Subquery(
-                DerivedBySample.objects
-                .filter(sample=OuterRef("pk"))
-                .values_list("derived_sample", flat=True)[:1]
-            )
-        )
-
-        # full location
-        sample_ids = tuple(samples_queryset.values_list('id', flat=True))
-        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
-                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
-                                                                FROM fms_core_container AS container 
-                                                                WHERE container.location_id IS NULL
-
-                                                                UNION ALL
-
-                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
-                                                                CASE 
-                                                                WHEN (container.coordinates = '') THEN ''
-                                                                ELSE 'at ' || container.coordinates::varchar || ' '
-                                                                END
-
-                                                                || 'in ' ||container_hierarchy.full_location::varchar
-                                                                FROM container_hierarchy
-                                                                JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
-                                                                ) 
-
-                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
-                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
-
-        location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
-
-        sample_values_queryset = (
-            samples_queryset
-            .annotate(
-                is_library=Exists(DerivedSample.objects.filter(pk=OuterRef("first_derived_sample")).filter(library__isnull=False)),
-            )
-            .values(
-                'id',
-                'name',
-                'container__id',
-                'container__kind',
-                'container__name',
-                'container__barcode',
-                'coordinates',
-                'container__location__barcode',
-                'container__coordinates',
-                'volume',
-                'concentration',
-                'creation_date',
-                'quality_flag',
-                'quantity_flag',
-                'depleted',
-                'comment',
-                'is_library',
-                'first_derived_sample',
-                'projects',
-            )
-        )
-        samples = { s["id"]: s for s in sample_values_queryset }
-
-        project_ids = sample_values_queryset.values_list("projects", flat=True)
-        project_values_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
-        projects = { p["id"]: p for p in project_values_queryset }
-
-        derived_sample_ids = sample_values_queryset.values_list("first_derived_sample", flat=True)
-        derived_sample_values_queryset = (
-            DerivedSample
-            .objects
-            .filter(id__in=derived_sample_ids)
-            .values(
-                "id",
-                "biosample__id",
-                "biosample__alias",
-                "sample_kind__name",
-                "tissue_source__name",
-                "biosample__collection_site",
-                "experimental_group",
-                "biosample__individual__name",
-                "biosample__individual__alias",
-                'biosample__individual__sex',
-                'biosample__individual__taxon__name',
-                'biosample__individual__cohort',
-                'biosample__individual__father__name',
-                'biosample__individual__mother__name',
-                'biosample__individual__pedigree',
-            )
-        )
-        derived_samples = { ds["id"]: ds for ds in derived_sample_values_queryset }
-
-        serialized_data = []
-        for sample in samples.values():
-            derived_sample = derived_samples[sample["first_derived_sample"]]
-            project_names = [projects[p]["name"] for p in make_generator(sample["projects"])]
-
-            data = {
-                'sample_id': sample["id"],
-                'sample_name': sample["name"],
-                'biosample_id': derived_sample["biosample__id"],
-                'alias': derived_sample["biosample__alias"],
-                'sample_kind': derived_sample["sample_kind__name"],
-                'tissue_source': derived_sample["tissue_source__name"] or "",
-                'container': sample["container__id"],
-                'container_kind': sample["container__kind"],
-                'container_name': sample["container__name"],
-                'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"],
-                'location_barcode': sample["container__location__barcode"] or "",
-                'location_coord': sample["container__coordinates"] or "",
-                'container_full_location': location_by_sample[sample["id"]] or "",
-                'current_volume': sample["volume"],
-                'concentration': sample["concentration"],
-                'creation_date': sample["creation_date"],
-                'collection_site': derived_sample["biosample__collection_site"],
-                'experimental_group': json.dumps(derived_sample["experimental_group"]),
-                'individual_name': derived_sample["biosample__individual__name"] or "",
-                'individual_alias': derived_sample["biosample__individual__alias"] or "",
-                'sex': derived_sample["biosample__individual__sex"] or "",
-                'taxon': derived_sample["biosample__individual__taxon__name"] or "",
-                'cohort': derived_sample["biosample__individual__cohort"] or "",
-                'father_name': derived_sample["biosample__individual__father__name"] or "",
-                'mother_name': derived_sample["biosample__individual__mother__name"] or "",
-                'pedigree': derived_sample["biosample__individual__pedigree"] or "",
-                'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
-                'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
-                'projects': ",".join(project_names),
-                'depleted': ["No", "Yes"][sample["depleted"]],
-                'is_library': sample["is_library"],
-                'comment': sample["comment"],
-            }
-
-            serialized_data.append(data)
-
+        serialized_data = fetch_export_sample_data([], samples_queryset, self.request.query_params)
         return Response(serialized_data)
 
     def get_renderer_context(self):
@@ -440,16 +322,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         collection_sites = [s.collection_site for s in samples_data]
         return Response(collection_sites)
 
-    def get_serializer_class(self):
-        # If the nested query param is passed in with a non-false-y string
-        # value, use the nested sample serializer; this will nest referenced
-        # objects 1 layer deep to provide more data in a single request.
-
-        nested = self.request.query_params.get("nested", False)
-        if nested:
-            return NestedSampleSerializer
-        return SampleSerializer
-
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
@@ -465,10 +337,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             query = Q(name__icontains=search_input)
             query.add(Q(id__icontains=search_input), Q.OR)
 
-        full_sample_data = Sample.objects.filter(query)
-        page = self.paginate_queryset(full_sample_data)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        samples_queryset = Sample.objects.filter(query)
+        serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
+        return Response({"results": serialized_data, "count": samples_queryset.count()})
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

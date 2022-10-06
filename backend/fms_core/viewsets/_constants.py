@@ -42,6 +42,7 @@ _individual_filterset_fields: FiltersetFields = {
 }
 
 _user_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
     "username": FREE_TEXT_FILTERS,
     "email": FREE_TEXT_FILTERS,
 }
@@ -73,7 +74,7 @@ _sample_filterset_fields: FiltersetFields = {
     "container": FK_FILTERS,  # PK
     "derived_samples__biosample__collection_site": FREE_TEXT_FILTERS,
     **_prefix_keys("container__", _container_filterset_fields),
-    **_prefix_keys("projects__", _project_minimal_filterset_fields),
+    **_prefix_keys("derived_samples__project__", _project_minimal_filterset_fields),
     **_prefix_keys("derived_samples__biosample__individual__", _individual_filterset_fields),
     **_prefix_keys("derived_samples__sample_kind__", _sample_kind_filterset_fields),
 }
@@ -142,7 +143,9 @@ _project_filterset_fields: FiltersetFields = {
     "principal_investigator": CATEGORICAL_FILTERS_LOOSE,
     "requestor_name": CATEGORICAL_FILTERS_LOOSE,
     "status": CATEGORICAL_FILTERS,
-    **_prefix_keys("samples__", _sample_minimal_filterset_fields),
+    "external_id": CATEGORICAL_FILTERS,
+    "external_name": CATEGORICAL_FILTERS,
+    **_prefix_keys("project_derived_samples__samples__", _sample_minimal_filterset_fields),
 }
 
 _index_filterset_fields: FiltersetFields = {
@@ -188,11 +191,27 @@ _library_filterset_fields: FiltersetFields = {
     "container": FK_FILTERS,  # PK
     **_prefix_keys("container__", _container_filterset_fields),
 
-    **_prefix_keys("projects__", _project_minimal_filterset_fields),
+    **_prefix_keys("derived_samples__project__", _project_minimal_filterset_fields),
 
     "derived_samples__library": FK_FILTERS,  # PK
     **_prefix_keys("derived_samples__library__library_type__", _library_type_filterset_fields),
     **_prefix_keys("derived_samples__library__platform__", _platform_filterset_fields),
     **_prefix_keys("derived_samples__library__index__", _index_filterset_fields),
     "derived_samples__library__library_size": SCALAR_FILTERS,
+}
+
+_dataset_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "run_name": CATEGORICAL_FILTERS_LOOSE,
+    "external_project_id": CATEGORICAL_FILTERS_LOOSE,
+    "lane": CATEGORICAL_FILTERS,
+}
+
+_dataset_file_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "dataset": FK_FILTERS,
+    "file_path": CATEGORICAL_FILTERS_LOOSE,
+    "sample_name": CATEGORICAL_FILTERS_LOOSE,
+    "release_status": CATEGORICAL_FILTERS,
+    "release_status_timestamp": DATE_FILTERS,
 }

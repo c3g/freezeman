@@ -3,7 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 
 import {Button, Menu, Dropdown} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined,
-  CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined} from "@ant-design/icons";
+  CheckCircleOutlined, DownloadOutlined, SelectOutlined, MonitorOutlined, DotChartOutlined, FormOutlined} from "@ant-design/icons";
 
 export const actionIcon = a => {
   const n = a.name || a
@@ -19,6 +19,8 @@ export const actionIcon = a => {
   if (n.includes("Prepare")) return <ExperimentOutlined />;
   if (n.includes("Convert")) return <EditOutlined />;
   if (n.includes("Normalize")) return <DotChartOutlined />;
+  if (n.includes("Planning")) return <FormOutlined />;
+  if (n.includes("Pool")) return <ExperimentOutlined />;
   return <DownloadOutlined />;
 };
 

@@ -27,7 +27,17 @@ class LibraryRowHandler(GenericRowHandler):
             self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
 
         if source_sample_obj:
+            # Check if sample is not a library or a pool of libraries
+            if source_sample_obj.is_library:
+                self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
+
             # Populate the libraries with the batch and  individual information
+            protocol = library_batch_info['protocol']
+            process_by_protocol = library_batch_info['process_by_protocol']
+
+            # Retrieve process
+            process_obj = process_by_protocol[protocol.id]
+
             container_coordinates = container['coordinates']
 
             container_parent_obj = None
@@ -56,22 +66,19 @@ class LibraryRowHandler(GenericRowHandler):
                 strandedness=strandedness,
             )
 
-            library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_info['library_type'],
-                                                                                           index=index_obj,
-                                                                                           platform=library_info['platform'],
-                                                                                           strandedness=strandedness)
-
-            protocol = library_batch_info['protocol']
-            process_by_protocol = library_batch_info['process_by_protocol']
-
-            # Retrieve process
-            process_obj = process_by_protocol[protocol.id]
+            libraries_by_derived_sample = {}
+            for derived_sample_source in source_sample_obj.derived_samples.all():
+                library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_info['library_type'],
+                                                                                               index=index_obj,
+                                                                                               platform=library_info['platform'],
+                                                                                               strandedness=strandedness)
+                libraries_by_derived_sample[derived_sample_source.id] = library_obj
 
             sample_destination, self.errors['library_preparation'], self.warnings['library_preparation'] = \
                 prepare_library(process=process_obj,
                                 sample_source=source_sample_obj,
                                 container_destination=container_obj,
-                                library=library_obj,
+                                libraries_by_derived_sample=libraries_by_derived_sample,
                                 volume_used=volume_used,
                                 execution_date=library_info['library_date'],
                                 coordinates_destination=container_coordinates,

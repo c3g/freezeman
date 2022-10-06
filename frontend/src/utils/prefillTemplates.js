@@ -20,6 +20,7 @@ export const templateIcon = t => {
   if (n.includes("prepare")) return <ExperimentOutlined />;
   if (n.includes("convert")) return <EditOutlined />;
   if (n.includes("normalization")) return <DotChartOutlined />;
+  if (n.includes("pool")) return <ExperimentOutlined />;
   return undefined;
 };
 

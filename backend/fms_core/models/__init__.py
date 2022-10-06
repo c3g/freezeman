@@ -8,7 +8,6 @@ from .individual import Individual
 from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
-from .sample_by_project import SampleByProject
 from .protocol import Protocol
 from .process import Process
 from .process_measurement import ProcessMeasurement
@@ -31,7 +30,8 @@ from .library_type import LibraryType
 from .taxon import Taxon
 from .sample_metadata import SampleMetadata
 from .id_generator import IdGenerator
-
+from .dataset import Dataset
+from .dataset_file import DatasetFile
 
 __all__ = [
     "Biosample",
@@ -43,7 +43,6 @@ __all__ = [
     "Sample",
     "SampleKind",
     "SampleLineage",
-    "SampleByProject",
     "SampleMetadata",
     "Protocol",
     "Process",
@@ -66,4 +65,6 @@ __all__ = [
     "LibraryType",
     "Taxon",
     "IdGenerator",
+    "Dataset",
+    "DatasetFile",
 ]

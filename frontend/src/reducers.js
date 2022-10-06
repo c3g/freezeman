@@ -12,6 +12,8 @@ import {
   containerPrefillTemplates,
   containers,
 } from "./modules/containers/reducers";
+import {datasets} from "./modules/datasets/reducers";
+import {datasetFiles} from "./modules/datasetFiles/reducers";
 import {taxons} from "./modules/taxons/reducers";
 import {individuals} from "./modules/individuals/reducers";
 import {
@@ -91,6 +93,8 @@ const allReducers = combineReducers({
   containerTemplateActions,
   containerPrefillTemplates,
   containers,
+  datasets,
+  datasetFiles,
   experimentRuns,
   experimentRunTemplateActions,
   runTypes,

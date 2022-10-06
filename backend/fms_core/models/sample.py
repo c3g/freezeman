@@ -1,17 +1,19 @@
+from calendar import c
 import reversion
 
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import OuterRef, F
 from django.apps import apps
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from ..containers import (
     CONTAINER_KIND_SPECS,
     SAMPLE_CONTAINER_KINDS,
 )
 from ..coordinates import CoordinateError, check_coordinate_overlap
-from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_after_today
+from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 
 from .tracked_model import TrackedModel
 from .container import Container
@@ -110,7 +112,9 @@ class Sample(TrackedModel):
     # Computed property for project relation
     @property
     def projects(self) -> List["Project"]:
-        return self.projects.all() if self.id else None
+        #return [derived_sample.project_id for derived_sample in self.derived_samples] if self.id else []
+        queryset = self.derived_samples.filter(project__isnull=False).distinct("project")
+        return [queryset.value_list("project", flat=True)] if queryset else []
 
     @property
     def source_depleted(self) -> bool:
@@ -123,6 +127,20 @@ class Sample(TrackedModel):
     @property
     def transferred_from(self) -> "Sample":
         return self.child_of.filter(parent_sample__child=self, parent_sample__process_measurement__process__protocol__name="Transfer").first() if self.id else None
+
+    @property
+    def concentration_as_nm(self) -> Decimal:
+        if not self.is_library: # Calculation requires a library
+            return None
+        else:
+            from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
+            concentration_as_nm, _, _ = convert_library_concentration_from_ngbyul_to_nm(self, self.concentration)
+            return concentration_as_nm
+    
+    @property
+    def quantity_in_ng(self) -> Decimal:
+        return self.concentration * self.volume if self.concentration is not None else None
+
 
     # Representations
 
@@ -187,6 +205,10 @@ class Sample(TrackedModel):
                 except Sample.DoesNotExist:
                     # Fine, the coordinates are free to use.
                     pass
+
+        if self.is_pool and self.is_library:
+            if any([derived_sample.library is None for derived_sample in self.derived_samples.all()]):
+                add_error("Library of pools", f"Trying to create a pool of libraries with samples that are not libraries. ")
 
         if errors:
             raise ValidationError(errors)

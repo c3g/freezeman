@@ -257,9 +257,10 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
                 <Descriptions.Item label="Index">
-                  <Link to={`/samples/${sample.extracted_from}`}>
+                  {library?.index && 
+                  <Link to={`/indices/${library?.index}`}>
                     {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
-                  </Link>
+                  </Link>}
                 </Descriptions.Item>
                 <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
                 <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
