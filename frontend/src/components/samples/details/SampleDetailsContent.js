@@ -37,12 +37,10 @@ import {
   withSample,
   withIndividual,
   withProcessMeasurement,
-  withProject,
-  withLibrary,
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
-import useHashURL, { TabsWithHashURL } from "../../../hooks/useHashURL";
+import useHashURL from "../../../hooks/useHashURL";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -130,7 +128,7 @@ const SampleDetailsContent = ({
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
-  const [activeKey, setHashURL] = useHashURL("overview")
+  const [activeKey, setActiveKey] = useHashURL('overview')
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -180,9 +178,7 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      {/* <Tabs activeKey={activeKey} size="large" type="card" style={tabsStyle} onChange={(activeKey) => { setHashURL(activeKey) }}> */}
-
-      <TabsWithHashURL defaultActiveKey="overview" size="large" type="card" style={tabsStyle}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
         <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
@@ -333,7 +329,7 @@ const SampleDetailsContent = ({
         <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
           <SampleDetailsLineage sample={sample}/>
         </TabPane>
-      </TabsWithHashURL>
+      </Tabs>
 
     </PageContent>
   </>;

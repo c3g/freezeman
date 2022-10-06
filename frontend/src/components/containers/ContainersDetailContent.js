@@ -13,8 +13,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
 import { withContainer } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
-import { TabsWithHashURL } from "../../hooks/useHashURL"
-
+import useHashURL from "../../hooks/useHashURL";
 
 const pageStyle = {
   padding: 0,
@@ -46,6 +45,7 @@ const ContainersDetailContent = ({
 }) => {
   const history = useNavigate();
   const { id } = useParams();
+  const [activeKey, setActiveKey] = useHashURL('overview')
 
   const container = containersByID[id] || {};
   // const error = container.error;
@@ -75,7 +75,7 @@ const ContainersDetailContent = ({
             </Space>
         } />
       <PageContent loading={!isLoaded && isFetching} style={pageStyle}>
-        <TabsWithHashURL defaultActiveKey="overview" size="large" type="card" style={tabsStyle}>
+        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
           <TabPane tab="Overview" key="overview" style={tabStyle}>
             <Descriptions bordered={true} size="small">
               <Descriptions.Item label="ID" span={2}>{container.id}</Descriptions.Item>
@@ -111,7 +111,7 @@ const ContainersDetailContent = ({
             }
 
           </TabPane>
-        </TabsWithHashURL>
+        </Tabs>
 
 
       </PageContent>

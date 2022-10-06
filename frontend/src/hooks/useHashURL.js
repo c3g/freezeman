@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom"
+import { useCallback } from "react"
 
 /**
  * This hook is used for managing a # hash url with the current location.
@@ -13,15 +14,20 @@ import { useLocation, useNavigate } from "react-router-dom"
  * It returns a function to set a new key and update the location with the given
  * key.
  * 
- * @param {*} defaultValue 
+ * @param {*} defaultKey 
  * @returns 
  */
-export const useHashURL = (defaultValue) => {
+export const useHashURL = (defaultKey) => {
     const history = useNavigate()
     const location = useLocation()
-    const tab = location.hash.slice(1) || defaultValue
+    const currentKey = location.hash.slice(1)
+    const setCurrentKey = useCallback((key) => { history(`#${key}`) }, [])
+    if(!currentKey) {
+        setCurrentKey(defaultKey)
+    }
 
-    return [tab, (value) => { history(`#${value}`) }]
+    return [currentKey || defaultKey, setCurrentKey]
 }
 
 export default useHashURL
+
