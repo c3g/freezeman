@@ -20,7 +20,8 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
     '''
     queryset = DerivedBySample.objects.all()
 
-    # Limit queries to DerivedBySamples that are in a pooled parent sample.
+    # Limit queries to DerivedBySamples that are in a pooled parent sample,
+    # ie. a parent sample that contains more than one derived sample.
     queryset = queryset.annotate(is_pooled=Case(
         When(sample__derived_samples__gt=1, then=True),
         default=False,
