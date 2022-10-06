@@ -45,6 +45,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Project",
       dataIndex: "derived_samples__project__name",
+      sorter: true,
       render: (_, library) => {
         return (library.project &&
           <Link to={`/projects/${library.project}`}> 

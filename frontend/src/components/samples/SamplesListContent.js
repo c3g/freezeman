@@ -88,6 +88,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Project",
       dataIndex: "derived_samples__project__name",
+      sorter: true,
       render: (_, sample) => {
         return (sample.project &&
           <Link to={`/projects/${sample.project}`}> 

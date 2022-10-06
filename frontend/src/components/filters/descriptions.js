@@ -40,7 +40,7 @@ export const SAMPLE_FILTERS = {
   derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
     key: "derived_samples__project__name",
-    label: "Projects",
+    label: "Project",
     batch: true,
   },
   derived_samples__project__id: {
@@ -454,7 +454,7 @@ export const LIBRARY_FILTERS = {
   derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
     key: "derived_samples__project__name",
-    label: "Projects",
+    label: "Project",
     batch: true,
   },
   volume: {
