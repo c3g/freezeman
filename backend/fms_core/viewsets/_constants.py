@@ -215,3 +215,16 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,
 }
+
+_pooled_sample_filterset_fields: FiltersetFields = {
+    "sample__id": PK_FILTERS,
+    "derived_sample__project__name": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__alias": CATEGORICAL_FILTERS_LOOSE,
+    "volume_ratio": SCALAR_FILTERS,
+    **_prefix_keys("derived_sample__library__library_type__", _library_type_filterset_fields),
+    "derived_sample__library__library_size": SCALAR_FILTERS,
+    "derived_sample__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("derived_sample__sample_kind__", _sample_kind_filterset_fields),
+    "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
+    "derived_sample__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
+}

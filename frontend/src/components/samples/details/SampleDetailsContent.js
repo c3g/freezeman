@@ -29,6 +29,7 @@ import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import { Depletion } from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import SampleDetailsLineage from "./SampleDetailsLineage";
+import SampleDetailsPool from './SampleDetailsPool'
 import { get as getSample, listVersions } from "../../../modules/samples/actions";
 import { get as getLibrary } from "../../../modules/libraries/actions";
 import api, { withToken } from "../../../utils/api";
@@ -318,8 +319,8 @@ const SampleDetailsContent = ({
           <Title level={5} style={{ marginTop: '1rem' }}> Metadata </Title>
           <Descriptions bordered={true} size="small">
             {
-              sampleMetadata.map(metadata => {
-                return <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+              sampleMetadata.map((metadata, index) => {
+                return <Descriptions.Item key={index} label={metadata?.name}>{metadata?.value} </Descriptions.Item>
               })
             }
 
@@ -328,6 +329,10 @@ const SampleDetailsContent = ({
 
         <TabPane tab={`Lineage`} key="6" style={tabStyle}>
           <SampleDetailsLineage sample={sample} />
+        </TabPane>
+
+        <TabPane tab="Pool" key="7" style={tabStyle}>
+          <SampleDetailsPool sample={sample}></SampleDetailsPool>
         </TabPane>
       </Tabs>
 

@@ -126,6 +126,10 @@ const api = {
     list: (options, abort) => get("/platforms/", options, { abort }),
   },
 
+  pooledSamples: {
+    list: (options, abort) => get("/pooled-samples/", options, { abort })
+  },
+
   processes: {
     get: processId => get(`/processes/${processId}/`),
     list: (options, abort) => get("/processes/", options, { abort }),

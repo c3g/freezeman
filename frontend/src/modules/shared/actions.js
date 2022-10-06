@@ -21,7 +21,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     if (!getState().auth.tokens.access) return;
 
     // Higher priority
-    await Promise.all([
+    await Promise.allSettled([
         Containers.listKinds,
         Containers.summary,
         ExperimentRuns.listInstruments,
@@ -38,7 +38,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Taxons.list,
     ].map(a => dispatch(a())))
 
-    await Promise.all([
+    await Promise.allSettled([
         Containers.listTable,
         ExperimentRuns.listTable,
         Indices.listTable,
@@ -52,7 +52,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
     ].map(a => dispatch(a())))
 
     // Lower priority
-    await Promise.all([
+    await Promise.allSettled([
         Containers.listTemplateActions,
         Indices.listTemplateActions,
         Samples.listTemplateActions,

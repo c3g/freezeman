@@ -25,7 +25,6 @@ function PaginatedTable ({
     rowKey = 'id',
     loading,
     totalCount,
-    page,
     filters,
     filterKey,
     sortBy,
@@ -60,7 +59,7 @@ function PaginatedTable ({
     let offset
 
     if (isCurrentPageUnloaded)
-      offset = Math.floor(startIndex / page.limit) * page.limit;
+      offset = Math.floor(startIndex / pageSize) * pageSize;
     else if (doesNextPageContainUnloaded)
       offset = items.length;
 
@@ -76,7 +75,7 @@ function PaginatedTable ({
     filtersRef.current = filters
   }
 
-  const onChangePage = (page, pageSize) => {
+  const onChangePage = (page/*, pageSize*/) => {
     setCurrentPage(page);
   };
 
