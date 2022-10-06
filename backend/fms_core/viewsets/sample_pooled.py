@@ -1,3 +1,4 @@
+from django.db.models import BooleanField, F, Q, When, Count, Case
 from rest_framework import viewsets, serializers
 from rest_framework.exceptions import APIException
 from fms_core.models import DerivedBySample, Sample
@@ -18,6 +19,15 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         pool sample.
     '''
     queryset = DerivedBySample.objects.all()
+
+    # Limit queries to DerivedBySamples that are in a pooled parent sample.
+    queryset = queryset.annotate(is_pooled=Case(
+        When(sample__derived_samples__gt=1, then=True),
+        default=False,
+        output_field=BooleanField()
+    )).distinct()
+    queryset = queryset.filter(is_pooled=True)
+    
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
