@@ -38,13 +38,9 @@ function PaginatedTable ({
   const filtersRef = useRef(filters);
   const sortByRef = useRef(sortBy);
   const [currentPage, setCurrentPage] = useState(1);
-  const nextPage = currentPage + 1;
-  const nextPageEndIndex = nextPage * pageSize;
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex   = Math.min((currentPage) * pageSize, totalCount);
-
-  const isLastPage = endIndex >= totalCount;
 
   const dataSource =
     items.slice(startIndex, endIndex)
@@ -52,17 +48,14 @@ function PaginatedTable ({
 
   const hasUnloadedItems = dataSource.some(d => d === undefined);
   const isCurrentPageUnloaded = ((endIndex - 1) > items.length) || hasUnloadedItems;
-  const doesNextPageContainUnloaded = !isLastPage && nextPageEndIndex > items.length && items.length < totalCount;
   const shouldLoadNextChunk =
-    !loading && (isCurrentPageUnloaded || doesNextPageContainUnloaded);
+    !loading && (isCurrentPageUnloaded);
 
   if (shouldLoadNextChunk) {
     let offset
 
     if (isCurrentPageUnloaded)
       offset = Math.floor(startIndex / page.limit) * page.limit;
-    else if (doesNextPageContainUnloaded)
-      offset = items.length;
 
     setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
   }
