@@ -113,7 +113,7 @@ const SampleDetailsPool = ({sample}) => {
 
 export const NoPooledSamples = () => {
     return (
-        <div>This sample does not contain any pooled samples.</div>
+        <div>This is not a pooled sample.</div>
     )
 }
 
