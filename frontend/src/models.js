@@ -257,7 +257,7 @@ export const importedFile = {
 export const pooledSample = {
   // Note: Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
   id: 1,                          // The id of the pooled derived sample (used as the id for the pooled sample)
-  pool_id: 1,                     // The id of the pool containing the sample
+  pooled_sample_id: 1,            // The id of the parent sample pool containing this derived sample
   volume_ratio: "",               // Derived sample volume as a ratio of the total pool volume
 
   project_id: "",                 // Project associated with the derived sample
@@ -285,7 +285,7 @@ export const pooledSample = {
 // Example:
 // {
 //   "id": 392963,
-//   "pool_id": 727627,
+//   "pooled_sample_id": 727627,
 //   "volume_ratio": "0.014",
 //   "project_id": 23,
 //   "project_name": "CK",
