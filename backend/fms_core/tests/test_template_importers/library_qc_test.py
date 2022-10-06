@@ -358,13 +358,13 @@ class LibraryQCTestCase(TestCase):
 
         # Process measurement property values
 
-        measured_volume = self.get_process_measurement_value('Measured Volume', protocol, process_measurement)
+        measured_volume = self.get_process_measurement_value('Measured Volume (uL)', protocol, process_measurement)
         self.assertEqual(float(measured_volume), expected_values.measured_volume)
 
-        concentration = self.get_process_measurement_value('Concentration', protocol, process_measurement)
+        concentration = self.get_process_measurement_value('Concentration (ng/uL)', protocol, process_measurement)
         self.assertEqual(float(concentration), expected_values.concentration)
 
-        library_size = self.get_process_measurement_value('Library Size', protocol, process_measurement)
+        library_size = self.get_process_measurement_value('Library Size (bp)', protocol, process_measurement)
         self.assertEqual(float(library_size), expected_values.library_size)
 
         quality_flag = self.get_process_measurement_value('Library Quality QC Flag', protocol, process_measurement)
