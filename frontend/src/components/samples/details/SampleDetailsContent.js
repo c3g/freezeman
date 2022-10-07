@@ -328,10 +328,10 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
-          <SampleDetailsLineage sample={sample}/>
+          <SampleDetailsLineage sample={sample} tabPaneKey="lineage"/>
         </TabPane>
 
-        <TabPane tab="Pool" key="7" style={tabStyle}>
+        <TabPane tab={`Pool`} key="pool" style={tabStyle}>
           <SampleDetailsPool sample={sample}></SampleDetailsPool>
         </TabPane>
       </Tabs>

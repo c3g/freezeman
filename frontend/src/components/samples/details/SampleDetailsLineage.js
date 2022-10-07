@@ -14,14 +14,13 @@ import { useResizeObserver } from "../../../utils/ref"
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
 });
+
 
 const SampleDetailsLineage = ({
   token,
   sample,
+  tabPaneKey  /* This key (should be 'lineage') is used to construct a url when the user clicks a node in the graph. */
 }) => {
   const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
@@ -190,8 +189,8 @@ const SampleDetailsLineage = ({
             </Button>
           </Popover>
         </Space>
-        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }}>
-          <div style={{ ...graphSize, border: "solid 1px gray" }}>
+        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }} className='PARENT-DIV'>
+          <div style={{ ...graphSize, border: "solid 1px gray" }} className='GRAPH-DIV'>
             {
               // graphData must contain at least one node
               // after fetching all nodes and edges
@@ -202,7 +201,10 @@ const SampleDetailsLineage = ({
                     id="graph-id"
                     data={adjustedGraphData}
                     config={graphConfig}
-                    onClickNode={(id, _) => history(`/samples/${id}`)}
+                    // tabPaneKey is used to generate a hash url for the lineage tab.
+                    // Without the hash url, clicking a node navigates the user to the Overview tab
+                    // rather than staying in the graph.
+                    onClickNode={(id, _) => history(`/samples/${id}#${tabPaneKey}`)}
                     onClickLink={(source, target) => {
                       const linkId = nodesToEdges[`${source}:${target}`].id
                       history(`/process-measurements/${linkId}`)
