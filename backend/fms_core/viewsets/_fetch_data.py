@@ -346,9 +346,6 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
         limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
         offset = int(query_params.get('offset', 0))
 
-    # Keep only libraries
-    queryset = queryset.filter(derived_samples__library__isnull=False)
-
     libraries_queryset = queryset.annotate(
         first_derived_sample=Subquery(
             DerivedBySample.objects
@@ -359,7 +356,6 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
     library_values_queryset = (
         libraries_queryset
         .annotate(derived_count=Count("derived_samples"))
-        [offset:offset+limit]
         .values(
             'id',
             'name',
@@ -380,7 +376,10 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
     if not libraries_queryset:
         return [] # Do not lose time processing data for an empty queryset
     else:
-        samples = { s["id"]: s for s in library_values_queryset }
+        # Prevents duplicates
+        samples = {s["id"]: s for s in library_values_queryset}
+        # After removing duplicates slice the queryset
+        samples = {k: v for idx, (k, v) in enumerate(samples.items()) if offset <= idx < offset + limit}
         derived_sample_ids = [sample_values["first_derived_sample"]for sample_values in library_values_queryset]
         derived_sample_values_queryset = (
             DerivedSample.objects
