@@ -2,10 +2,12 @@ import React from "react";
 import {Popover, Table, Tabs, Badge} from "antd";
 import {WarningOutlined} from "@ant-design/icons";
 import innerHTMLPurified from "../../utils/innerHTMLPurified";
-
+import useHashURL from "../../hooks/useHashURL";
 const {TabPane} = Tabs;
 
+
 export const TemplatePreview = ({checkResult}) => {
+  const [activeKey, setActiveKey] = useHashURL(0)
  return <>
     <p>
        {checkResult?.error?.message}
@@ -15,7 +17,7 @@ export const TemplatePreview = ({checkResult}) => {
           {baseError.error}
         </p>)
     }
-    <Tabs size="large" type="card">
+    <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
       {checkResult.result_previews?.map((preview, index) =>
          <TabPane tab={preview.name} key={index}>
                 {!checkResult.valid && renderResultWithErrors(preview)}
