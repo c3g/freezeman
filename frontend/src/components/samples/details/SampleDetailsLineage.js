@@ -189,8 +189,8 @@ const SampleDetailsLineage = ({
             </Button>
           </Popover>
         </Space>
-        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }} className='PARENT-DIV'>
-          <div style={{ ...graphSize, border: "solid 1px gray" }} className='GRAPH-DIV'>
+        <div ref={resizeRef} style={{ height: "100%", width: "100%", position: "absolute" }}>
+          <div style={{ ...graphSize, border: "solid 1px gray" }}>
             {
               // graphData must contain at least one node
               // after fetching all nodes and edges
