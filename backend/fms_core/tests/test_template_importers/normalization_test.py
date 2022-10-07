@@ -147,10 +147,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs1.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm1.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm1.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm1.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm1.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm1.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm1.id)
 
         self.assertEqual(p_1.value, '4.000')
@@ -176,10 +176,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs2.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm2.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm2.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm2.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm2.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm2.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm2.id)
 
         self.assertEqual(p_1.value, '5.000')
@@ -205,10 +205,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs3.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm3.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm3.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm3.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm3.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm3.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm3.id)
 
         self.assertEqual(p_1.value, '5.000')
@@ -234,10 +234,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs4.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm4.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm4.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm4.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm4.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm4.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm4.id)
 
         self.assertEqual(p_1.value, '5.000')

@@ -106,9 +106,9 @@ class LibraryQCRowHandler(GenericRowHandler):
             concentration = round(concentration, 3)
        
         # Set the process measurement properties
-        process_measurement_properties['Measured Volume']['value'] = measured_volume
-        process_measurement_properties['Concentration']['value'] = concentration
-        process_measurement_properties['Library Size']['value'] = library_size
+        process_measurement_properties['Measured Volume (uL)']['value'] = measured_volume
+        process_measurement_properties['Concentration (ng/uL)']['value'] = concentration
+        process_measurement_properties['Library Size (bp)']['value'] = library_size
         process_measurement_properties['Library Quality QC Flag']['value'] = measures['quality_flag']
         process_measurement_properties['Quality Instrument']['value'] = measures['quality_instrument']
         process_measurement_properties['Library Quantity QC Flag']['value'] = measures['quantity_flag']

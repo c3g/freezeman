@@ -82,8 +82,8 @@ class NormalizationRowHandler(GenericRowHandler):
                     update_sample(sample_to_update=resulting_sample, concentration=concentration)
 
                 # Set the process measurement properties
-                process_measurement_properties['Final Volume']['value'] = destination_sample['volume']
-                process_measurement_properties['Final Concentration']['value'] = concentration
+                process_measurement_properties['Final Volume (uL)']['value'] = destination_sample['volume']
+                process_measurement_properties['Final Concentration (ng/uL)']['value'] = concentration
 
                 # Create process measurement's properties
                 process_measurement_obj = ProcessMeasurement.objects.get(source_sample=source_sample_obj,
