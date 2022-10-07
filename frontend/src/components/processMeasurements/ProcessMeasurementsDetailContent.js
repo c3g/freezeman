@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Descriptions, Typography, Tabs } from "antd";
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -21,7 +20,6 @@ const mapStateToProps = state => ({
   propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
   samplesByID: state.samples.itemsByID,
-  usersByID: state.users.itemsByID,
 });
 
 const actionCreators = { get, listPropertyValues };
@@ -31,11 +29,9 @@ const ProcessMeasurementsDetailContent = ({
   propertyValuesByID,
   protocolsByID,
   samplesByID,
-  usersByID,
   get,
   listPropertyValues
 }) => {
-  const history = useNavigate();
   const { id } = useParams();
   const [activeKey, setActiveKey] = useHashURL('overview')
   const isLoaded = id in processMeasurementsByID;

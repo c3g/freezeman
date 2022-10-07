@@ -328,7 +328,24 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
-          <SampleDetailsLineage sample={sample} tabPaneKey="lineage"/>
+          <SampleDetailsLineage sample={sample} 
+            handleSampleClick={
+              // Navigate to another sample in the lineage graph
+              (sample_id) => {
+                if (sample_id) {
+                  history(`/samples/${sample_id}#lineage`)
+                }
+              }
+            }
+            handleProcessClick={
+              // Navigate to the process measurement details page
+              (process_id) => {
+                if (process_id) {
+                  history(`/process-measurements/${process_id}`)
+                }
+              }
+            }
+          />
         </TabPane>
 
         <TabPane tab={`Pool`} key="pool" style={tabStyle}>

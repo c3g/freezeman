@@ -20,9 +20,9 @@ const mapStateToProps = state => ({
 const SampleDetailsLineage = ({
   token,
   sample,
-  tabPaneKey  /* This key (should be 'lineage') is used to construct a url when the user clicks a node in the graph. */
+  handleSampleClick, // Function to navigate to a sample in the graph
+  handleProcessClick // Function to navigate to a process details page
 }) => {
-  const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
@@ -204,10 +204,16 @@ const SampleDetailsLineage = ({
                     // tabPaneKey is used to generate a hash url for the lineage tab.
                     // Without the hash url, clicking a node navigates the user to the Overview tab
                     // rather than staying in the graph.
-                    onClickNode={(id, _) => history(`/samples/${id}#${tabPaneKey}`)}
+                    onClickNode={(id, _) => {
+                      if (id && handleSampleClick) {
+                        handleSampleClick(id)
+                      }
+                    }}
                     onClickLink={(source, target) => {
                       const linkId = nodesToEdges[`${source}:${target}`].id
-                      history(`/process-measurements/${linkId}`)
+                      if (linkId && handleProcessClick) {
+                        handleProcessClick(linkId)
+                      }
                     }}
                   />
                 : <Spin size={"large"} />
