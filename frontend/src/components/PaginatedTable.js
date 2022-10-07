@@ -50,15 +50,7 @@ function PaginatedTable ({
   const shouldLoadNextChunk = !loading && isCurrentPageUnloaded;
 
   if (shouldLoadNextChunk) {
-    let offset
-
-    if (isCurrentPageUnloaded){
-      offset = Math.floor(startIndex / pageSize) * pageSize;
-    }
-    else{
-      offset = 0
-    }
-
+    const offset = Math.floor(startIndex / pageSize) * pageSize;
     setTimeout(() => onLoad({ offset, filters, sortBy, filterKey }), 0);
   }
 
