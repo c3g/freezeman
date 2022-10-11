@@ -37,7 +37,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
         biosample_data = dict(
             collection_site=collection_site,
             **(dict(individual=individual) if individual is not None else dict()),
-            **(dict(alias=alias) if alias is not None else dict()),
+            **(dict(alias=alias) if alias else dict(alias=name)),
         )
 
         try:

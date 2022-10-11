@@ -14,7 +14,7 @@ __all__ = ["Biosample"]
 
 @reversion.register()
 class Biosample(TrackedModel):
-    alias = models.CharField(max_length=200, blank=True, null=True, help_text="Alternative biosample name given by the collaborator or customer.")
+    alias = models.CharField(max_length=200, help_text="Alternative biosample name given by the collaborator or customer.")
     individual = models.ForeignKey("Individual", blank=True, null=True, on_delete=models.PROTECT,
                                    related_name="biosamples", help_text="Individual associated with the biosample.")
     collection_site = models.CharField(max_length=200, help_text="The facility designated for the collection of samples.")

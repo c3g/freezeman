@@ -50,6 +50,7 @@ class SampleSubmissionTestCase(TestCase):
             sample = Sample.objects.get(name=sample_name)
             derived_sample_id = DerivedBySample.objects.filter(sample_id=sample.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
+            self.assertEqual(biosample.alias, sample_name)
             self.assertEqual(biosample.individual.name, individual_name)
             self.assertEqual(biosample.individual.alias, individual_alias)
 

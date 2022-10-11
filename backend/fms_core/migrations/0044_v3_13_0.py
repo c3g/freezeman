@@ -26,7 +26,7 @@ def populate_sample_alias(apps, schema_editor):
         for biosample in Biosample.objects.all():
             first_sample = biosample.derived_samples.order_by('created_at').first().samples.order_by('created_at').first()
             sample_name = first_sample.name
-            if biosample.alias is None:
+            if not biosample.alias:
                 biosample.alias = sample_name
                 biosample.save()
                 reversion.add_to_revision(biosample)
@@ -43,4 +43,10 @@ class Migration(migrations.Migration):
             populate_sample_alias,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.AlterField(
+            model_name='biosample',
+            name='alias',
+            field=models.CharField(help_text='Alternative biosample name given by the collaborator or customer.',
+                                   max_length=200),
+        )
     ]
