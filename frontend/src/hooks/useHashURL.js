@@ -17,11 +17,12 @@ import { useCallback } from "react"
  * @param {*} defaultKey 
  * @returns 
  */
+
 export const useHashURL = (defaultKey) => {
     const history = useNavigate()
     const location = useLocation()
     const currentKey = location.hash.slice(1)
-    const setCurrentKey = useCallback((key) => { history(`#${key}`) }, [])
+    const setCurrentKey = (key) => { history(`#${key}`) }
     return [currentKey || defaultKey, setCurrentKey]
 }
 
