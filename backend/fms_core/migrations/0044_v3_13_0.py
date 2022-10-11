@@ -15,7 +15,7 @@ def populate_sample_alias(apps, schema_editor):
         apps: apps class handle
         schema_editor: ignore
     """
-    Biosample = apps.get_model("fms_core", "Biosample")
+    Sample = apps.get_model("fms_core", "Sample")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -23,9 +23,9 @@ def populate_sample_alias(apps, schema_editor):
         reversion.set_comment(f"Populate biosamples' alias with the name of the first submitted sample.")
         reversion.set_user(admin_user)
 
-        for biosample in Biosample.objects.all():
-            first_sample = biosample.derived_samples.order_by('created_at').first().samples.order_by('created_at').first()
-            sample_name = first_sample.name
+        for root_sample in Sample.objects.filter(child_of__isnull=True):
+            sample_name = root_sample.name
+            biosample = root_sample.derived_samples.first().biosample
             if not biosample.alias:
                 biosample.alias = sample_name
                 biosample.save()
