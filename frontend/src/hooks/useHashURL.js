@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom"
-import { useCallback } from "react"
 
 /**
  * This hook is used for managing a # hash url with the current location.
