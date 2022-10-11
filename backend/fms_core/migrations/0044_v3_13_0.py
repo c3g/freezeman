@@ -8,8 +8,8 @@ ADMIN_USERNAME = 'biobankadmin'
 
 def populate_sample_alias(apps, schema_editor):
     """
-    For each biosample object we retrieve the first sample submitted associated with it and we update the alias of the
-    biosample to be that of this first sample.
+    For each biosample object we retrieve the first sample submitted associated with it and we update the alias
+    to be that of this first sample.
 
     Args:
         apps: apps class handle
@@ -20,7 +20,7 @@ def populate_sample_alias(apps, schema_editor):
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
 
-        reversion.set_comment(f"Populate biosamples's alias with the name of the first submitted sample.")
+        reversion.set_comment(f"Populate biosamples' alias with the name of the first submitted sample.")
         reversion.set_user(admin_user)
 
         for biosample in Biosample.objects.all():
