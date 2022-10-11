@@ -70,16 +70,18 @@ const SampleDetailsLineage = ({
   let dx = 0
   let dy = 0
   if (nodes.length > 0 && sample?.id !== undefined) {
-    const enclosedWidth = Math.max(...nodes.map((n) => n.x))
+    // Find the node that matches the current sample.
+    const currentNode = nodes.find((n) => n.id === sample.id.toString())
+    if (currentNode) {
+      const enclosedWidth = Math.max(...nodes.map((n) => n.x))
+      const { x: cx, y: cy } = currentNode
 
-    // find position of current node
-    const { x: cx, y: cy } = nodes.find((n) => n.id === sample.id.toString())
-
-    // if graph too wide
-    if (enclosedWidth > (graphSize.width - nodeSize.width)) {
-      dx = graphSize.width / 2 - cx
+        // if graph too wide
+      if (enclosedWidth > (graphSize.width - nodeSize.width)) {
+        dx = graphSize.width / 2 - cx
+      }
+      dy = (graphSize.height) / 2 - cy
     }
-    dy = (graphSize.height) / 2 - cy
   }
   const adjustedGraphData = {
     nodes: nodes.map((n) => ({
