@@ -191,29 +191,34 @@ def fetch_export_sample_data(ids: List[int] =[], queryset=None, query_params=Non
         )
     )
 
+    # Annotate sample queryset
+    samples_queryset = samples_queryset.annotate(derived_count=Count("derived_samples"))
+
     # full location
     sample_ids = tuple(samples_queryset.values_list('id', flat=True))
-    samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
-                                                            SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
-                                                            FROM fms_core_container AS container 
-                                                            WHERE container.location_id IS NULL
+    samples_with_full_location = tuple()
+    if sample_ids: # Query crashes on empty tuple
+        samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+                                                                FROM fms_core_container AS container 
+                                                                WHERE container.location_id IS NULL
 
-                                                            UNION ALL
+                                                                UNION ALL
 
-                                                            SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
-                                                            CASE 
-                                                            WHEN (container.coordinates = '') THEN ''
-                                                            ELSE 'at ' || container.coordinates::varchar || ' '
-                                                            END
+                                                                SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
+                                                                CASE 
+                                                                WHEN (container.coordinates = '') THEN ''
+                                                                ELSE 'at ' || container.coordinates::varchar || ' '
+                                                                END
 
-                                                            || 'in ' ||container_hierarchy.full_location::varchar
-                                                            FROM container_hierarchy
-                                                            JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
-                                                            ) 
+                                                                || 'in ' ||container_hierarchy.full_location::varchar
+                                                                FROM container_hierarchy
+                                                                JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
+                                                                ) 
 
-                                                            SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
-                                                            WHERE sample.id IN  %s;''', params=[sample_ids])
-
+                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 
+                                                                WHERE sample.id IN  %s;''', params=[sample_ids])
+    
     location_by_sample = {sample.id: sample.full_location for sample in samples_with_full_location }
 
     sample_values_queryset = (
@@ -239,15 +244,11 @@ def fetch_export_sample_data(ids: List[int] =[], queryset=None, query_params=Non
             'depleted',
             'comment',
             'is_library',
+            'derived_count',
             'first_derived_sample',
-            'projects',
         )
     )
     samples = { s["id"]: s for s in sample_values_queryset }
-
-    project_ids = sample_values_queryset.values_list("projects", flat=True)
-    project_values_queryset = Project.objects.filter(id__in=project_ids).values("id", "name")
-    projects = { p["id"]: p for p in project_values_queryset }
 
     derived_sample_ids = sample_values_queryset.values_list("first_derived_sample", flat=True)
     derived_sample_values_queryset = (
@@ -270,22 +271,25 @@ def fetch_export_sample_data(ids: List[int] =[], queryset=None, query_params=Non
             'biosample__individual__father__name',
             'biosample__individual__mother__name',
             'biosample__individual__pedigree',
+            'project__name',
         )
     )
     derived_samples = { ds["id"]: ds for ds in derived_sample_values_queryset }
 
     serialized_data = []
+    if not samples:
+        serialized_data.append({}) # Allow the returned csv file to be named instead of random name.
     for sample in samples.values():
         derived_sample = derived_samples[sample["first_derived_sample"]]
-        project_names = [projects[p]["name"] for p in make_generator(sample["projects"])]
-
+        is_library = sample["is_library"]
+        is_pool = sample["derived_count"] > 1
         data = {
             'sample_id': sample["id"],
             'sample_name': sample["name"],
-            'biosample_id': derived_sample["biosample__id"],
-            'alias': derived_sample["biosample__alias"],
-            'sample_kind': derived_sample["sample_kind__name"],
-            'tissue_source': derived_sample["tissue_source__name"] or "",
+            'biosample_id': derived_sample["biosample__id"] if not is_pool else None,
+            'alias': derived_sample["biosample__alias"] if not is_pool or not is_library else None,
+            'sample_kind': derived_sample["sample_kind__name"] if not is_pool or not is_library else "POOL",
+            'tissue_source': derived_sample["tissue_source__name"] if not is_pool else None,
             'container': sample["container__id"],
             'container_kind': sample["container__kind"],
             'container_name': sample["container__name"],
@@ -297,21 +301,21 @@ def fetch_export_sample_data(ids: List[int] =[], queryset=None, query_params=Non
             'current_volume': sample["volume"],
             'concentration': sample["concentration"],
             'creation_date': sample["creation_date"],
-            'collection_site': derived_sample["biosample__collection_site"],
-            'experimental_group': json.dumps(derived_sample["experimental_group"]),
-            'individual_name': derived_sample["biosample__individual__name"] or "",
-            'individual_alias': derived_sample["biosample__individual__alias"] or "",
-            'sex': derived_sample["biosample__individual__sex"] or "",
-            'taxon': derived_sample["biosample__individual__taxon__name"] or "",
-            'cohort': derived_sample["biosample__individual__cohort"] or "",
-            'father_name': derived_sample["biosample__individual__father__name"] or "",
-            'mother_name': derived_sample["biosample__individual__mother__name"] or "",
-            'pedigree': derived_sample["biosample__individual__pedigree"] or "",
+            'collection_site': derived_sample["biosample__collection_site"] if not is_pool else None,
+            'experimental_group': json.dumps(derived_sample["experimental_group"]) if not is_pool or not is_library else None,
+            'individual_name': derived_sample["biosample__individual__name"] if not is_pool or not is_library else None,
+            'individual_alias': derived_sample["biosample__individual__alias"] if not is_pool or not is_library else None,
+            'sex': derived_sample["biosample__individual__sex"] if not is_pool or not is_library else None,
+            'taxon': derived_sample["biosample__individual__taxon__name"] if not is_pool or not is_library else None,
+            'cohort': derived_sample["biosample__individual__cohort"] if not is_pool or not is_library else None,
+            'father_name': derived_sample["biosample__individual__father__name"] if not is_pool or not is_library else None,
+            'mother_name': derived_sample["biosample__individual__mother__name"] if not is_pool or not is_library else None,
+            'pedigree': derived_sample["biosample__individual__pedigree"] if not is_pool or not is_library else None,
             'quality_flag': ["Failed", "Passed"][sample["quality_flag"]] if sample["quality_flag"] is not None else None,
             'quantity_flag': ["Failed", "Passed"][sample["quantity_flag"]] if sample["quantity_flag"] is not None else None,
-            'projects': ",".join(project_names),
+            'projects': derived_sample["project__name"] if not is_pool else None,
             'depleted': ["No", "Yes"][sample["depleted"]],
-            'is_library': sample["is_library"],
+            'is_library': is_library,
             'comment': sample["comment"],
         }
         serialized_data.append(data)
