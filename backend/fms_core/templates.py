@@ -193,14 +193,14 @@ NORMALIZATION_TEMPLATE = {
 }
 
 NORMALIZATION_PLANNING_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_12_0.xlsx")},
+  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_13_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
-                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
       },
   ],
   "prefill info": [
