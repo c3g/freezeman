@@ -91,6 +91,23 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     ]
 
     def get_queryset(self):
+        # Filter out pools when ordering on fields behind m2m relationship
+        LIBRARY_ORDERING_WITHOUT_POOLS = [
+            "derived_samples__library__index__name",
+            "-derived_samples__library__index__name",
+            "derived_samples__library__library_size",
+            "-derived_samples__library__library_size",
+            "derived_samples__library__library_type__name",
+            "-derived_samples__library__library_type__name",
+            "derived_samples__project__name",
+            "-derived_samples__project__name",
+        ]
+
+        ordering = self.request.query_params.get('ordering', None)
+        if ordering and ordering in LIBRARY_ORDERING_WITHOUT_POOLS:
+            pooled_samples_ids = Sample.objects.annotate(derived_count=Count("derived_samples")).filter(Q(derived_count__gt=1)).values_list("id", flat=True)
+            self.queryset = self.queryset.exclude(id__in=pooled_samples_ids)
+
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name

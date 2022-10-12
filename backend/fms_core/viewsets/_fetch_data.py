@@ -10,26 +10,6 @@ from fms_core.services.library import convert_library_concentration_from_ngbyul_
 
 from ..utils import make_generator, decimal_rounded_to_precision
 
-SAMPLE_ORDERING_WITHOUT_POOLS = [
-    "derived_samples__sample_kind__name",
-    "-derived_samples__sample_kind__name",
-    "derived_samples__biosample__individual__name",
-    "-derived_samples__biosample__individual__name",
-    "derived_samples__project__name",
-    "-derived_samples__project__name",
-]
-
-LIBRARY_ORDERING_WITHOUT_POOLS = [
-    "derived_samples__library__index__name",
-    "-derived_samples__library__index__name",
-    "derived_samples__library__library_size",
-    "-derived_samples__library__library_size",
-    "derived_samples__library__library_type__name",
-    "-derived_samples__library__library_type__name",
-    "derived_samples__project__name",
-    "-derived_samples__project__name",
-]
-
 def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> List:
     """
     Function used to replace the sample serializer across various viewsets.
@@ -48,7 +28,6 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
 
     limit = None
     offset = None
-    ordering = None
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
@@ -58,13 +37,8 @@ def fetch_sample_data(ids: List[int] =[], queryset=None, query_params=None) -> L
     elif query_params is not None:
         limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
         offset = int(query_params.get('offset', 0))
-        ordering = query_params.get('ordering', None)
 
     queryset = queryset.annotate(derived_count=Count("derived_samples"))
-
-    if ordering and ordering in SAMPLE_ORDERING_WITHOUT_POOLS:
-        pooled_samples_ids = Sample.objects.annotate(derived_count=Count("derived_samples")).filter(Q(derived_count__gt=1)).values_list("id", flat=True)
-        queryset = queryset.exclude(id__in=pooled_samples_ids)
 
     samples_queryset = queryset.annotate(
         first_derived_sample=Subquery(
@@ -364,7 +338,6 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
 
     limit = None
     offset = None
-    ordering = None
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
@@ -374,13 +347,8 @@ def fetch_library_data(ids: List[int] =[], queryset=None, query_params=None) -> 
     elif query_params is not None:
         limit = int(query_params.get('limit', REST_FRAMEWORK["PAGE_SIZE"]))
         offset = int(query_params.get('offset', 0))
-        ordering = query_params.get('ordering', None)
 
     queryset = queryset.annotate(derived_count=Count("derived_samples"))
-
-    if ordering and ordering in LIBRARY_ORDERING_WITHOUT_POOLS:
-        pooled_samples_ids = Sample.objects.annotate(derived_count=Count("derived_samples")).filter(Q(derived_count__gt=1)).values_list("id", flat=True)
-        queryset = queryset.exclude(id__in=pooled_samples_ids)
 
     libraries_queryset = queryset.annotate(
         first_derived_sample=Subquery(
@@ -480,22 +448,15 @@ def fetch_export_library_data(ids: List[int] =[], queryset=None, query_params=No
     """
     if queryset is None:
         queryset = Sample.objects.select_related("container").all().distinct()
-
-    ordering = None
+        queryset = queryset.filter(derived_samples__library__isnull=False)
 
     # No filtering for empty ids list otherwise use most effective selector
     if len(ids) == 1:
         queryset = queryset.filter(id=ids[0])
     elif len(ids) > 1:
         queryset = queryset.filter(id__in=ids)
-    elif query_params is not None:
-        ordering = query_params.get('ordering', None)
 
     queryset = queryset.annotate(derived_count=Count("derived_samples"))
-
-    if ordering and ordering in LIBRARY_ORDERING_WITHOUT_POOLS:
-        pooled_samples_ids = Sample.objects.annotate(derived_count=Count("derived_samples")).filter(Q(derived_count__gt=1)).values_list("id", flat=True)
-        queryset = queryset.exclude(id__in=pooled_samples_ids)
 
     libraries_queryset = queryset.annotate(
         first_derived_sample=Subquery(
