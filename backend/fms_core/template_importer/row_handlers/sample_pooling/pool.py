@@ -26,7 +26,7 @@ class PoolsRowHandler(GenericRowHandler):
                 pool_is_library = False
                 set_kind = set(sample["Source Sample"].derived_samples.first().sample_kind.name for sample in samples_info)
                 # Assumes source sample pools did not allow different individuals to be pooled
-                set_individual = set(sample["Source Sample"].derived_samples.first().biosample.individual.name for sample in samples_info)
+                set_individual = set(sample["Source Sample"].derived_samples.first().biosample.individual for sample in samples_info)
                 if len(set_kind) > 1: # len(set_kind) > 1 => not all same kind
                     self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be of the same sample kind (when pooling samples). "
                                                     f"Samples to be pooled are of the following kinds: {set_kind}.")
