@@ -191,8 +191,8 @@ const SamplesListContent = ({
   const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
 
   function getCurrentToggleOption(){
-    if (filters.isPooledFilterKey?.value === "true") return TOGGLE_OPTIONS.POOLS
-    else if (filters.isPooledFilterKey?.value === "false") return TOGGLE_OPTIONS.SAMPLES
+    if (filters[isPooledFilterKey]?.value === "true") return TOGGLE_OPTIONS.POOLS
+    else if (filters[isPooledFilterKey]?.value === "false") return TOGGLE_OPTIONS.SAMPLES
     else return TOGGLE_OPTIONS.ALL
   }
   // Check if there's a is_pool filter applied before showing the list (important when user changes page)
