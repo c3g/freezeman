@@ -136,6 +136,16 @@ export const SAMPLE_FILTERS = {
     options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
     detached:true,
   },
+  is_pooled: {
+    type: FILTER_TYPE.SELECT,
+    key: "is_pooled",
+    label: "Pooled",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false" },
+    ]
+  }
 }
 
 export const CONTAINER_FILTERS = {
@@ -626,5 +636,3 @@ export const POOLED_SAMPLES_FILTERS = {
       label: "Collection Site"
     },
 }
-
-

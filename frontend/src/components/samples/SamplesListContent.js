@@ -1,7 +1,7 @@
-import React, {useRef} from "react";
+import React, {useRef, useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import {Button, Tag, Radio} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -24,7 +24,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
-const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds, show) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -38,7 +38,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Kind",
       dataIndex: "derived_samples__sample_kind__name",
-      sorter: true,
+      sorter: show === "samples" ? true : false,
       width: 80,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
@@ -59,7 +59,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Individual",
       dataIndex: "derived_samples__biosample__individual__name",
-      sorter: true,
+      sorter: show === "samples" ? true : false,
       render: (_, sample) => {
         const individual = sample.individual
         return (individual &&
@@ -88,11 +88,11 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Project",
       dataIndex: "derived_samples__project__name",
-      sorter: true,
+      sorter: show === "samples" ? true : false,
       render: (_, sample) => {
         return (sample.project &&
-          <Link to={`/projects/${sample.project}`}> 
-            {projectsByID[sample.project]?.name} 
+          <Link to={`/projects/${sample.project}`}>
+            {projectsByID[sample.project]?.name}
           </Link>)
       }
     },
@@ -185,6 +185,17 @@ const SamplesListContent = ({
   clearFilters,
   setSortBy,
 }) => {
+  function getCurrentShow(){
+    if (filters.is_pooled?.value === "true") return "pools"
+    else if (filters.is_pooled?.value === "false") return "samples"
+    else return "all"
+  }
+  // Check if there's a is_pool filter applied before showing the list (important when user leaves/comes back)
+  const initialShow = getCurrentShow()
+
+  // Show both samples and pools as default
+  const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, show));
+  const [show, setShow] = useState(initialShow);
 
   const listExport = () =>
     withToken(token, api.samples.listExport)
@@ -196,16 +207,34 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
       .then(response => response)
 
-  const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
-  .map(c => Object.assign(c, getFilterProps(
+  const nFilters = getNFilters(filters)
+
+  useEffect(() => {
+    setColumns(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, show))
+    if (getCurrentShow() !== show){
+      if (show !== 'all')
+        setFilter('is_pooled', show === 'pools' ? "true" : "false")
+      else
+        setFilter('is_pooled', '')
+    }
+  }, [show, containersByID, individualsByID, projectsByID, sampleKinds])
+
+  const handleShowChange = (e) => {
+      setShow(e.target.value);
+  };
+
+  const localClearFilters = () => {
+    clearFilters()
+    setShow("all")
+  }
+
+  const mappedColumns = columns.map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,
     filters,
     setFilter,
     setFilterOption
   )))
-
-  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Samples" extra={[
@@ -225,13 +254,18 @@ const SamplesListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={localClearFilters}
         >
           Clear Filters
         </Button>
       </div>
+      <Radio.Group disabled={isFetching} value={show} onChange={handleShowChange} style={{marginBottom: '1rem', displey: 'flex'}}>
+         <Radio.Button value="samples"> Samples </Radio.Button>
+         <Radio.Button value="pools"> Pools </Radio.Button>
+         <Radio.Button value="all"> All </Radio.Button>
+      </Radio.Group>
       <PaginatedTable
-        columns={columns}
+        columns={mappedColumns}
         items={samples}
         itemsByID={samplesByID}
         rowKey="id"

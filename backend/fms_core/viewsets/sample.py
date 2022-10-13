@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch
+from django.db.models import Q, When, Case, BooleanField, Prefetch, Count
 from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
@@ -31,6 +31,14 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             output_field=BooleanField()
         )
     )
+    queryset = queryset.annotate(
+        count_derived_samples=Count('derived_samples')
+    )
+    queryset = queryset.annotate(is_pooled=Case(
+        When(count_derived_samples__gt=1, then=True),
+        default=False,
+        output_field=BooleanField()
+    ))
     serializer_class = SampleSerializer
 
     ordering_fields = (
