@@ -1,7 +1,7 @@
 import os
 from io import BytesIO
 from openpyxl.reader.excel import load_workbook
-from ._utils import load_position_dict
+from ._utils import load_position_dict, find_worksheet_header_offset
 from django.conf import settings
 
 
@@ -31,15 +31,15 @@ def PrefillTemplate(template_path, template_info, queryset):
     return out_stream.getvalue()
 
 
-def PrefillTemplateFromDict(template, rows_dict):
+def PrefillTemplateFromDict(template, rows_dicts):
     """
     Function that return a prefilled template byte stream.
     It fetch a designated empty template using template_path.
     It loads data from a dictionary with format { column : value } for each row
     It used the template_info sheet info to locate and position the information in the excel workbook.
-
-    position_dict has the following structure :
-    {SHEET_NAME: {header_offset: HEADER_OFFSET, dictionary_column_list: [COLUMN_NAME, ...], column_offsets: {COLUMN_NAME: COLUMN_OFFSET, ...}}, ...}
+    
+    rows_dicts is a list of list of rows dictionaries: one list for each sheet to prefill.
+    The order of the dicts match the one from the template sheets_info.
     """
 
     # Get the template information
@@ -49,18 +49,15 @@ def PrefillTemplateFromDict(template, rows_dict):
     out_stream = BytesIO()
 
     workbook = load_workbook(filename=template_path)
-    position_dict = load_position_dict(workbook, template["sheets info"], template["prefill info"])
 
     # Populate template
     try:
-        for sheet_name, sheet_dict in position_dict.items():
-            current_sheet = workbook[sheet_name]
-            for i, entry in enumerate(rows_dict):
-                for sheet in template["sheets info"]:
-                    for header_index, template_column in enumerate(sheet['headers']):
-                        if sheet["name"] == sheet_name:
-                            current_sheet.cell(row=sheet_dict["header_offset"] + i, column=header_index + 1).value = \
-                            entry[template_column]
+        for i, sheet_info in enumerate(template["sheets info"]):
+            current_sheet = workbook[sheet_info["name"]]
+            header_offset = find_worksheet_header_offset(current_sheet, sheet_info['headers'])
+            for j, entry in enumerate(rows_dicts[i]):
+                for header_index, template_column in enumerate(sheet_info['headers']):
+                    current_sheet.cell(row=header_offset + j, column=header_index + 1).value = entry[template_column]
         workbook.save(out_stream)
         return out_stream.getvalue()
     except Exception as e:

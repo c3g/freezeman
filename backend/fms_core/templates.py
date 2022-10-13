@@ -202,6 +202,11 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
       },
+      {
+        'name': 'Pools',
+        'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
+                    'Pool Parent Container Barcode', 'Pool Parent Container Coord'],
+      },
   ],
   "prefill info": [
       ("Normalization", "Sample Name", "name"),

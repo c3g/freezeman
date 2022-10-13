@@ -17,7 +17,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, source_sample, destination_sample, measurements, robot):
+    def process_row_inner(self, source_sample, destination_sample, measurements, robot, pool):
         concentration_nguL = None
         concentration_nm = None
         combined_concentration_nguL = None
@@ -117,8 +117,22 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             volume_used = decimal_rounded_to_precision(volume_used)
             adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
 
+            if bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
+                self.errors["pool"] = f"Incomplete information provided for pooling sample after normalization."
+
+            # ensure the volume for pooling does not surpass the volume after normalization
+            if pool["volume_pooled"] and pool["volume_pooled"] > adjusted_volume:
+                adjusted_pooled_volume = adjusted_volume
+                self.warnings['volume_pooled'] = f'Insufficient normalized sample volume to comply. ' \
+                                                 f'Requested volume pooled ({pool["volume_pooled"]} uL) ' \
+                                                 f'will be adjusted to {adjusted_pooled_volume} uL to ' \
+                                                 f'complete the pooling operation successfully.'
+            else:
+                adjusted_pooled_volume = pool["volume_pooled"]
+
             if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
                 self.row_object = {
+                    'Source Sample': source_sample_obj,
                     'Sample Name': source_sample['name'],
                     'Source Container Barcode': source_sample['container']['barcode'],
                     'Source Container Coord': source_sample['coordinates'],
@@ -138,5 +152,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
                     'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
                     'Normalization Date (YYYY-MM-DD)': '',
+                    'Pool Name': pool['pool_name'] if pool['pool_name'] is not None else '',
+                    'Volume Pooled (uL)': str(adjusted_pooled_volume),
                     'Comment': '',
                 }

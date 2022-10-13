@@ -1,7 +1,7 @@
 from fms_core.template_prefiller.prefiller import PrefillTemplateFromDict
-from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler
+from fms_core.template_importer.row_handlers.normalization_planning import NormalizationPlanningRowHandler, PoolPlanningRowHandler
 from fms_core.template_importer._constants import SAMPLE_BIOMEK_CHOICE, SAMPLE_JANUS_CHOICE, LIBRARY_CHOICE
-from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE
+from fms_core.templates import NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
 
 from fms_core.models import Container
 from ...containers import CONTAINER_KIND_SPECS
@@ -14,6 +14,7 @@ from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower,
 from io import BytesIO
 from datetime import datetime
 import decimal
+from collections import defaultdict
 
 class NormalizationPlanningImporter(GenericImporter):
     """
@@ -38,8 +39,10 @@ class NormalizationPlanningImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
-        mapping_rows_template = []
+        normalization_mapping_rows = []
+        samplestopool_mapping_rows = []
         norm_choice = []
+        pools_dict = defaultdict(list)
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):
             source_sample = {
@@ -70,22 +73,69 @@ class NormalizationPlanningImporter(GenericImporter):
                 'norm_choice': str_cast_and_normalize(row_data['Robot Norm Choice']),
             }
 
+            pool = {
+                'pool_name': str_cast_and_normalize(row_data['Pool Name']),
+                'volume_pooled': float_to_decimal_and_none(row_data['Volume Pooled (uL)']),
+            }
+
             normalization_kwargs = dict(
                 source_sample=source_sample,
                 destination_sample=destination_sample,
                 measurements=measurements,
-                robot=robot
+                robot=robot,
+                pool=pool
             )
 
-            (result, row_mapping) = self.handle_row(
+            (result, normalization_row_mapping) = self.handle_row(
                 row_handler_class=NormalizationPlanningRowHandler,
                 sheet=sheet,
                 row_i=row_id,
                 **normalization_kwargs,
             )
 
-            mapping_rows_template.append(row_mapping)
+            normalization_mapping_rows.append(normalization_row_mapping)
             norm_choice.append(robot["norm_choice"])
+
+            # Prepare mapping for pooling samplestopool sheet
+            if normalization_row_mapping["Pool Name"]:
+                sample_info = {
+                    'Source Sample': normalization_row_mapping["Source Sample"],
+                    'Pool Name': normalization_row_mapping["Pool Name"],
+                    'Source Sample Name': normalization_row_mapping["Sample Name"],
+                    'Source Container Barcode': normalization_row_mapping["Destination Container Barcode"],
+                    'Source Container Coord': normalization_row_mapping["Destination Container Coord"],
+                    'Volume Used (uL)': normalization_row_mapping["Volume Pooled (uL)"],
+                }
+                samplestopool_mapping_rows.append(sample_info)
+                pools_dict[normalization_row_mapping["Pool Name"]].append(sample_info)
+                
+
+            sheet = self.sheets['Pools']
+
+            pools_mapping_rows = []
+            # For each row initialize the object that is going to be prefilled in the normalization template
+            for row_id, row_data in enumerate(sheet.rows):
+                pool = {
+                    'name': str_cast_and_normalize(row_data['Pool Name']),
+                    'coordinates': str_cast_and_normalize(row_data['Pool Container Coord']),
+                    'container': {
+                        'barcode': str_cast_and_normalize(row_data['Pool Container Barcode']),
+                        'name': str_cast_and_normalize(row_data['Pool Container Name']),
+                        'kind': str_cast_and_normalize_lower(row_data['Pool Container Kind']),
+                        'coordinates': str_cast_and_normalize(row_data['Pool Parent Container Coord']),
+                        'parent_barcode': str_cast_and_normalize(row_data['Pool Parent Container Barcode']),
+                    },
+                }
+
+                (result, pool_row_mapping) = self.handle_row(
+                    row_handler_class=PoolPlanningRowHandler,
+                    sheet=sheet,
+                    row_i=row_id,
+                    samples_info=pools_dict.get(pool["name"], None),
+                    pool=pool,
+                )
+
+                pools_mapping_rows.append(pool_row_mapping)
 
         # Make sure all the normalization choices and formats for outputs are the same
         if len(set(norm_choice)) != 1:
@@ -93,14 +143,20 @@ class NormalizationPlanningImporter(GenericImporter):
 
         if not self.dry_run:
             # Create robot file and complete mapping_rows_template with the
-            robot_files, updated_mapping_rows = self.prepare_robot_file(mapping_rows_template, norm_choice[0])
+            robot_files, updated_norm_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, norm_choice[0])
 
-            output_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_mapping_rows)
-
-            output_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
-
-            files_to_zip = [{'name': output_prefilled_template_name,
-                             'content': output_prefilled_template,}]
+            # Prepare the Normalization template
+            normalization_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_norm_mapping_rows)
+            normalization_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
+            files_to_zip = [{'name': normalization_prefilled_template_name,
+                             'content': normalization_prefilled_template,}]
+            # Prepare the Pooling template
+            if pools_mapping_rows:
+                pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [samplestopool_mapping_rows, pools_mapping_rows])
+                pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
+                files_to_zip.append({'name': pooling_prefilled_template_name,
+                                     'content': pooling_prefilled_template,})
+            
             files_to_zip.extend(robot_files)
 
             output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{str(get_unique_id())}"
