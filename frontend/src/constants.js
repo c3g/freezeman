@@ -31,6 +31,12 @@ export const QPCR_SELECTION_STATUS = [
 
 export const DATE_FORMAT = "YYYY-MM-DD"
 
+export const TOGGLE_OPTIONS = {
+  POOLS: "Pools",
+  SAMPLES: "Samples",
+  ALL: "All"
+}
+
 // Validation constants
 export const requiredRules = [{ required: true, message: 'Missing field' }]
 export const barcodeRules = [{ pattern: /^[\S]{1,200}$/ }]

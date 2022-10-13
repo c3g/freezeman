@@ -91,6 +91,13 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
+export const setSortByWithoutList = (key, order) => async dispatch => {
+    return dispatch({
+        type: SET_SORT_BY,
+        data: { key, order }
+    })
+};
+
 export const setFilter = thenList((name, value) => {
     return {
         type: SET_FILTER,
@@ -162,6 +169,7 @@ export default {
     add,
     update,
     setSortBy,
+    setSortByWithoutList,
     setFilter,
     setFilterOption,
     clearFilters,
