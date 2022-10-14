@@ -208,16 +208,20 @@ const LibrariesListContent = ({
   const isPooledFilterKey = LIBRARY_FILTERS.is_pooled.key
 
   function getCurrentToggleOption(){
-    if (filters[isPooledFilterKey]?.value === "true") return TOGGLE_OPTIONS.POOLS
-    else if (filters[isPooledFilterKey]?.value === "false") return TOGGLE_OPTIONS.LIBRARIES
-    else return TOGGLE_OPTIONS.ALL
+    switch(filters[isPooledFilterKey]?.value){
+      case "true":
+        return TOGGLE_OPTIONS.POOLS
+        break;
+      case "false":
+        return TOGGLE_OPTIONS.LIBRARIES
+        break;
+      default:
+        return TOGGLE_OPTIONS.ALL
+    }
   }
-  // Check if there's a is_pool filter applied before showing the list (important when user changes page)
-  const initialToggleOption = getCurrentToggleOption()
-
   // Show both libraries and pools as default
+  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
   const [columns, setColumns] = useState(getTableColumns(containersByID, indicesByID, projectsByID, toggleOption));
-  const [toggleOption, setToggleOption] = useState(initialToggleOption);
 
   const listExport = () =>
     withToken(token, api.libraries.listExport)
@@ -273,7 +277,7 @@ const LibrariesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+      <div style={{ float: 'right', textAlign: 'right', marginBottom: '1rem' }}>
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
@@ -287,7 +291,7 @@ const LibrariesListContent = ({
           Clear Filters
         </Button>
       </div>
-      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginBottom: '1rem', displey: 'flex'}}>
+      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginTop:6}}>
          <Radio.Button value={TOGGLE_OPTIONS.LIBRARIES}> Libraries </Radio.Button>
          <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
          <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>

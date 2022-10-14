@@ -191,16 +191,20 @@ const SamplesListContent = ({
   const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
 
   function getCurrentToggleOption(){
-    if (filters[isPooledFilterKey]?.value === "true") return TOGGLE_OPTIONS.POOLS
-    else if (filters[isPooledFilterKey]?.value === "false") return TOGGLE_OPTIONS.SAMPLES
-    else return TOGGLE_OPTIONS.ALL
+    switch(filters[isPooledFilterKey]?.value){
+      case "true":
+        return TOGGLE_OPTIONS.POOLS
+        break;
+      case "false":
+        return TOGGLE_OPTIONS.SAMPLES
+        break;
+      default:
+        return TOGGLE_OPTIONS.ALL
+    }
   }
-  // Check if there's a is_pool filter applied before showing the list (important when user changes page)
-  const initialToggleOption = getCurrentToggleOption()
-
   // Show both samples and pools as default
+  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
   const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, toggleOption));
-  const [toggleOption, setToggleOption] = useState(initialToggleOption);
 
   const listExport = () =>
     withToken(token, api.samples.listExport)
@@ -272,7 +276,7 @@ const SamplesListContent = ({
           Clear Filters
         </Button>
       </div>
-      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginBottom: '1rem', displey: 'flex'}}>
+      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginBottom: '1rem'}}>
          <Radio.Button value={TOGGLE_OPTIONS.SAMPLES}> Samples </Radio.Button>
          <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
          <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
