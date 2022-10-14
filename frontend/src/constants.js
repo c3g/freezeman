@@ -34,6 +34,7 @@ export const DATE_FORMAT = "YYYY-MM-DD"
 export const TOGGLE_OPTIONS = {
   POOLS: "Pools",
   SAMPLES: "Samples",
+  LIBRARIES: "Libraries",
   ALL: "All"
 }
 

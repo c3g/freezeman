@@ -86,6 +86,7 @@ class LibraryFilter(GenericFilter):
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
+    is_pooled = django_filters.CharFilter(method="is_pooled_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -104,6 +105,10 @@ class LibraryFilter(GenericFilter):
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
+
+    def is_pooled_filter(self, queryset, name, values):
+        bool_value = (values == 'true')
+        return queryset.filter(is_pooled=bool_value)
 
     class Meta:
         model = Sample

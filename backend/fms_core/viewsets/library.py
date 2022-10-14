@@ -29,6 +29,14 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     queryset = queryset.annotate(
         quantity_ng=F('concentration')*F('volume')
     )
+    queryset = queryset.annotate(
+        count_derived_samples=Count('derived_samples')
+    )
+    queryset = queryset.annotate(is_pooled=Case(
+        When(count_derived_samples__gt=1, then=True),
+        default=False,
+        output_field=BooleanField()
+    ))
     serializer_class = LibrarySerializer
 
     ordering_fields = (

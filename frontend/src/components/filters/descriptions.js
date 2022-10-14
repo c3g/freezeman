@@ -514,6 +514,16 @@ export const LIBRARY_FILTERS = {
       { label: "Failed",  value: "false" },
     ],
   },
+  is_pooled: {
+    type: FILTER_TYPE.SELECT,
+    key: "is_pooled",
+    label: "Pooled",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false" },
+    ]
+  }
 }
 
 export const DATASET_FILTERS = {
