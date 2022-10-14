@@ -131,6 +131,22 @@ const SampleDetailsContent = ({
   const [sampleMetadata, setSampleMetadata] = useState([])
   const [activeKey, setActiveKey] = useHashURL('overview')
 
+
+  // Navigate to a sample when the sample's node is clicked in the lineage graph.
+  const navigateToSample = (sample_id) => {
+    if (sample_id) {
+      history(`/samples/${sample_id}#lineage`)
+    }
+  }
+
+  // Navigate to a process measurement when the user clicks an edge
+  // in the lineage graph.
+  const navigateToProcess = (process_id) => {
+    if (process_id) {
+      history(`/process-measurements/${process_id}`)
+    }
+  }
+
   // TODO: This spams API requests
   if (!samplesByID[id])
     getSample(id);
@@ -328,10 +344,13 @@ const SampleDetailsContent = ({
         </TabPane>
 
         <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
-          <SampleDetailsLineage sample={sample}/>
+          <SampleDetailsLineage sample={sample} 
+            handleSampleClick={navigateToSample}
+            handleProcessClick={navigateToProcess}
+          />
         </TabPane>
 
-        <TabPane tab="Pool" key="7" style={tabStyle}>
+        <TabPane tab={`Pool`} key="pool" style={tabStyle}>
           <SampleDetailsPool sample={sample}></SampleDetailsPool>
         </TabPane>
       </Tabs>
