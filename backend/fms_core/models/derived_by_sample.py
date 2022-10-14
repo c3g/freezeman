@@ -17,6 +17,11 @@ class DerivedBySample(TrackedModel):
     sample = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="derived_by_samples")
     volume_ratio = models.DecimalField(max_digits=4, decimal_places=3, help_text="Volume ratio in pools.")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["derived_sample_id", "sample_id"], name="derivedbysample_derivedsampleid_sampleid_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
