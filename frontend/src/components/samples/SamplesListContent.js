@@ -13,7 +13,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setSortByWithoutList} from "../../modules/samples/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withIndividual} from "../../utils/withItem";
@@ -163,7 +163,7 @@ const mapStateToProps = state => ({
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, setSortByWithoutList};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy};
 
 const SamplesListContent = ({
   token,
@@ -185,7 +185,7 @@ const SamplesListContent = ({
   setFilterOption,
   clearFilters,
   setSortBy,
-  setSortByWithoutList,
+  clearSortBy,
 }) => {
 
   const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
@@ -222,7 +222,7 @@ const SamplesListContent = ({
     // Only apply filters if the new selected option is different from the current one
     if (getCurrentToggleOption() !== toggleOption){
       // Need to reset the sortBy when there's a new toggle option to avoid problems
-      setSortByWithoutList('', '')
+      clearSortBy()
 
       if (toggleOption !== TOGGLE_OPTIONS.ALL)
         setFilter(isPooledFilterKey, toggleOption === TOGGLE_OPTIONS.POOLS ? "true" : "false")
