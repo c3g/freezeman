@@ -20,7 +20,7 @@ export default function serializeFilterParams(filters, descriptions) {
       return
 
     switch (description.type) {
-     
+
       case FILTER_TYPE.DATE_RANGE:
       case FILTER_TYPE.RANGE: {
         if (value) {

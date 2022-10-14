@@ -51,6 +51,7 @@ class SampleFilter(GenericFilter):
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
     derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
+    is_pooled = django_filters.CharFilter(method="is_pooled_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
@@ -70,6 +71,10 @@ class SampleFilter(GenericFilter):
             condition |= Q(qc_flag=bool_value)
         return queryset.filter(condition)
 
+    def is_pooled_filter(self, queryset, name, values):
+        bool_value = (values == 'true')
+        return queryset.filter(is_pooled=bool_value)
+
     class Meta:
         model = Sample
         fields = _sample_filterset_fields
@@ -81,6 +86,7 @@ class LibraryFilter(GenericFilter):
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
+    is_pooled = django_filters.CharFilter(method="is_pooled_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -99,6 +105,10 @@ class LibraryFilter(GenericFilter):
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
+
+    def is_pooled_filter(self, queryset, name, values):
+        bool_value = (values == 'true')
+        return queryset.filter(is_pooled=bool_value)
 
     class Meta:
         model = Sample

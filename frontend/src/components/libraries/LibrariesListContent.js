@@ -1,7 +1,7 @@
-import React, {useRef} from "react";
+import React, {useRef, useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import {Button, Tag, Radio} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -12,7 +12,7 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/libraries/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
 import {withContainer, withIndex} from "../../utils/withItem";
@@ -21,8 +21,9 @@ import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import {TOGGLE_OPTIONS} from "../../constants.js"
 
-const getTableColumns = (containersByID, indicesByID, projectsByID) => [
+const getTableColumns = (containersByID, indicesByID, projectsByID, toggleOption) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -36,7 +37,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Platform",
       dataIndex: "derived_samples__library__platform__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       render: (_, library) => (library.platform &&
         <div>
           {library.platform}
@@ -45,11 +46,11 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Project",
       dataIndex: "derived_samples__project__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       render: (_, library) => {
         return (library.project &&
-          <Link to={`/projects/${library.project}`}> 
-            {projectsByID[library.project]?.name} 
+          <Link to={`/projects/${library.project}`}>
+            {projectsByID[library.project]?.name}
           </Link>)
       }
     },
@@ -80,7 +81,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Library Type",
       dataIndex: "derived_samples__library__library_type__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       render: (_, library) => (library.library_type &&
         <div>
           {library.library_type}
@@ -89,7 +90,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Index",
       dataIndex: "derived_samples__library__index__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       render: (_, library) => (library.index &&
         <Link to={`/indices/${library.index}`}>
           {withIndex(indicesByID, library.index, index => index.name, "loading...")}
@@ -106,7 +107,7 @@ const getTableColumns = (containersByID, indicesByID, projectsByID) => [
     {
       title: "Library Size",
       dataIndex: "derived_samples__library__library_size",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
       align: "right",
       className: "table-column-numbers",
       render: (_, library) => library.library_size !== null ? parseInt(library.library_size) : null,
@@ -180,7 +181,7 @@ const mapStateToProps = state => ({
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy};
 
 const LibrariesListContent = ({
   token,
@@ -201,7 +202,26 @@ const LibrariesListContent = ({
   setFilterOption,
   clearFilters,
   setSortBy,
+  clearSortBy
 }) => {
+
+  const isPooledFilterKey = LIBRARY_FILTERS.is_pooled.key
+
+  function getCurrentToggleOption(){
+    switch(filters[isPooledFilterKey]?.value){
+      case "true":
+        return TOGGLE_OPTIONS.POOLS
+        break;
+      case "false":
+        return TOGGLE_OPTIONS.LIBRARIES
+        break;
+      default:
+        return TOGGLE_OPTIONS.ALL
+    }
+  }
+  // Show both libraries and pools as default
+  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
+  const [columns, setColumns] = useState(getTableColumns(containersByID, indicesByID, projectsByID, toggleOption));
 
   const listExport = () =>
     withToken(token, api.libraries.listExport)
@@ -213,16 +233,42 @@ const LibrariesListContent = ({
     (mergedListQueryParams(LIBRARY_FILTERS, filters, sortBy), template)
       .then(response => response)
 
-  const columns = getTableColumns(containersByID, indicesByID, projectsByID)
-    .map(c => Object.assign(c, getFilterProps(
-      c,
-      LIBRARY_FILTERS,
-      filters,
-      setFilter,
-      setFilterOption
-    )))
-
   const nFilters = getNFilters(filters)
+
+  // Listen to the changes in toggle to get new columns and set filters accordingly
+  useEffect(() => {
+    // Get the new columns depending on the new option
+    setColumns(getTableColumns(containersByID, indicesByID, projectsByID, toggleOption))
+
+    // Only apply filters if the new selected option is different from the current one
+    if (getCurrentToggleOption() !== toggleOption){
+      // Need to reset the sortBy when there's a new toggle option to avoid problems
+      clearSortBy()
+
+      if (toggleOption !== TOGGLE_OPTIONS.ALL)
+        setFilter(isPooledFilterKey, toggleOption === TOGGLE_OPTIONS.POOLS ? "true" : "false")
+      else
+        setFilter(isPooledFilterKey, '')
+    }
+  }, [toggleOption, containersByID, indicesByID, projectsByID])
+
+  const handleToggleOptionChange = (e) => {
+      setToggleOption(e.target.value);
+  };
+
+  // Design decision: If the user clears all filters return to displaying all
+  const localClearFilters = () => {
+    clearFilters()
+    setToggleOption(TOGGLE_OPTIONS.ALL)
+  }
+
+  const mappedColumns = columns.map(c => Object.assign(c, getFilterProps(
+    c,
+    LIBRARY_FILTERS,
+    filters,
+    setFilter,
+    setFilterOption
+  )))
 
   return <>
     <AppPageHeader title="Libraries" extra={[
@@ -231,7 +277,7 @@ const LibrariesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+      <div style={{ float: 'right', textAlign: 'right', marginBottom: '1rem' }}>
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}
@@ -240,11 +286,16 @@ const LibrariesListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={localClearFilters}
         >
           Clear Filters
         </Button>
       </div>
+      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginTop:6}}>
+         <Radio.Button value={TOGGLE_OPTIONS.LIBRARIES}> Libraries </Radio.Button>
+         <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
+         <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
+      </Radio.Group>
       <PaginatedTable
         columns={columns}
         items={libraries}
