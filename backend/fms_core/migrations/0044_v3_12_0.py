@@ -41,5 +41,9 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             add_units_to_property_names,
             reverse_code=migrations.RunPython.noop,
-        )
+        ),
+        migrations.AddConstraint(
+            model_name='derivedbysample',
+            constraint=models.UniqueConstraint(fields=('derived_sample_id', 'sample_id'), name='derivedbysample_derivedsampleid_sampleid_key'),
+        ),
     ]

@@ -393,17 +393,22 @@ def pool_samples(process: Process,
                 comment = sample["Comment"]
                 
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
-                derived_samples_destination = source_sample.derived_samples.all()
-                for derived_sample in derived_samples_destination:
+                for derived_sample in source_sample.derived_samples.all():
                     parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
                     final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio)
 
-                    try:
-                        DerivedBySample.objects.create(sample=sample_destination,
-                                                       derived_sample=derived_sample,
-                                                       volume_ratio=final_volume_ratio)
-                    except Exception as e:
-                        errors.append(e)
+                    # In case samples with common derived samples (transfer, normalization, pooling) are pooled together
+                    if DerivedBySample.objects.filter(sample=sample_destination, derived_sample=derived_sample).exists():
+                        shared_derived_by_sample = DerivedBySample.objects.get(sample=sample_destination, derived_sample=derived_sample)
+                        shared_derived_by_sample.volume_ratio = shared_derived_by_sample.volume_ratio + final_volume_ratio
+                        shared_derived_by_sample.save()
+                    else:
+                        try:  # catch duplicates integrity errors
+                            DerivedBySample.objects.create(sample=sample_destination,
+                                                          derived_sample=derived_sample,
+                                                          volume_ratio=final_volume_ratio)
+                        except Exception as e:
+                            errors.append(e)
 
             for sample in samples_info:
                 source_sample = sample["Source Sample"]
