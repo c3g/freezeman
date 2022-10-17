@@ -36,7 +36,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
         elif sum([measurements['concentration_nm'] is not None,
                 measurements['concentration_ngul'] is not None,
                 measurements['na_quantity'] is not None]) != 1:
-            self.errors['concentration'] = 'Only one option must be specified out  of the following: NA quantity, conc. ng/uL or conc. nM.'
+            self.errors['concentration'] = 'Only one option must be specified out of the following: NA quantity, conc. ng/uL or conc. nM.'
 
         source_sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=source_sample['container']['barcode'],
@@ -49,8 +49,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
             if robot['norm_choice'] == LIBRARY_CHOICE and not source_sample_obj.is_library:
-                self.errors[
-                    'sample'] = f'The robot normalization choice was library. However, the source sample is not a library or a pool of libraries.'
+                self.errors['sample'] = f'The robot normalization choice was library. However, the source sample is not a library or a pool of libraries.'
 
             # ensure that if the sample source is in a tube, the tube has a parent container in FMS.
             container_obj, self.errors['src_container'], self.warnings['src_container'] = get_container(barcode=source_sample['container']['barcode'])
@@ -117,18 +116,21 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             volume_used = decimal_rounded_to_precision(volume_used)
             adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
 
-            if bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
-                self.errors["pool"] = f"Incomplete information provided for pooling sample after normalization."
+            if pool["pool_name"] is not None:
+                if not source_sample_obj.is_library:
+                    self.errors["pool"] = f"Only libraries can be pooled after normalization." 
+                elif bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
+                    self.errors["pool"] = f"Incomplete information provided for pooling libraries after normalization."                
 
-            # ensure the volume for pooling does not surpass the volume after normalization
-            if pool["volume_pooled"] and pool["volume_pooled"] > adjusted_volume:
-                adjusted_pooled_volume = adjusted_volume
-                self.warnings['volume_pooled'] = f'Insufficient normalized sample volume to comply. ' \
-                                                 f'Requested volume pooled ({pool["volume_pooled"]} uL) ' \
-                                                 f'will be adjusted to {adjusted_pooled_volume} uL to ' \
-                                                 f'complete the pooling operation successfully.'
-            else:
-                adjusted_pooled_volume = pool["volume_pooled"]
+                # ensure the volume for pooling does not surpass the volume after normalization
+                if pool["volume_pooled"] and pool["volume_pooled"] > adjusted_volume:
+                    adjusted_pooled_volume = adjusted_volume
+                    self.warnings['volume_pooled'] = f'Insufficient normalized sample volume to comply. ' \
+                                                    f'Requested volume pooled ({pool["volume_pooled"]} uL) ' \
+                                                    f'will be adjusted to {adjusted_pooled_volume} uL to ' \
+                                                    f'complete the pooling operation successfully.'
+                else:
+                    adjusted_pooled_volume = pool["volume_pooled"]
 
             if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
                 self.row_object = {

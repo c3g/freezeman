@@ -13,7 +13,6 @@ class PoolPlanningRowHandler(GenericRowHandler):
                                             f"match between both template sheets.")
         else:
             set_type = set(sample["Source Sample"].is_library for sample in samples_info)
-            pool_is_library = True
             # Add an error if the samples are not of the same type (sample mixed with library)
             if len(set_type) > 1:
                 self.errors["source_sample"] = f"Source samples in pool {pool['name']} are not all libraries."
@@ -26,6 +25,8 @@ class PoolPlanningRowHandler(GenericRowHandler):
                     'Pool Name': pool['name'],
                     'Destination Container Barcode': pool['container']['barcode'],
                     'Destination Container Coord': pool['coordinates'],
+                    'Robot Destination Container': '',
+                    'Robot Destination Coord': '',
                     'Destination Container Name': pool['container']['name'],
                     'Destination Container Kind': pool['container']['kind'],
                     'Destination Parent Container Barcode': pool['container']['parent_barcode'],
