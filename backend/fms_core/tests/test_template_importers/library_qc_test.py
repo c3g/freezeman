@@ -285,7 +285,6 @@ class LibraryQCTestCase(TestCase):
         """ Import the library QC template and check the results """
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
         
         self.verify_library(LIBRARY_DATA_1, EXPECTED_VALUES_1)

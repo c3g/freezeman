@@ -20,7 +20,7 @@ class PoolPlanningRowHandler(GenericRowHandler):
             elif not set_type.pop(): # len(set_type) = 1 and not set_type[0] => all pooled are samples
                 self.errors["source_sample"] = f"Source samples in pool {pool['name']} are not libraries."
 
-            if not self.errors["source_sample"]:
+            if not self.errors.get("source_sample", None):
                 self.row_object = {
                     'Pool Name': pool['name'],
                     'Destination Container Barcode': pool['container']['barcode'],

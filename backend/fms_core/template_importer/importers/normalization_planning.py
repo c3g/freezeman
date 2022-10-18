@@ -39,6 +39,10 @@ class NormalizationPlanningImporter(GenericImporter):
         pass
 
     def import_template_inner(self):
+        sheet = self.sheets['Pools']
+        # Build a list of the pools to be able to validate on the normalization sheet
+        pool_list = [row_data["Pool Name"] for row_data in sheet.rows]
+
         sheet = self.sheets['Normalization']
 
         normalization_mapping_rows = []
@@ -76,7 +80,8 @@ class NormalizationPlanningImporter(GenericImporter):
 
             pool = {
                 'pool_name': str_cast_and_normalize(row_data['Pool Name']),
-                'volume_pooled': float_to_decimal_and_none(row_data['Volume Pooled (uL)']),
+                'volume_pooled': float_to_decimal_and_none(row_data['Pooled Volume (uL)']),
+                'pool_list': pool_list,
             }
 
             normalization_kwargs = dict(
@@ -100,42 +105,40 @@ class NormalizationPlanningImporter(GenericImporter):
             # Prepare pool dict for pooling sheet row handler
             if normalization_row_mapping["Pool Name"]:
                 pools_dict[normalization_row_mapping["Pool Name"]].append(normalization_row_mapping)
-                
-            sheet = self.sheets['Pools']
 
-            pools_mapping_rows = []
-            # For each row initialize the object that is going to be prefilled in the normalization template
-            for row_id, row_data in enumerate(sheet.rows):
-                pool = {
-                    'name': str_cast_and_normalize(row_data['Pool Name']),
-                    'coordinates': str_cast_and_normalize(row_data['Pool Container Coord']),
-                    'container': {
-                        'barcode': str_cast_and_normalize(row_data['Pool Container Barcode']),
-                        'name': str_cast_and_normalize(row_data['Pool Container Name']),
-                        'kind': str_cast_and_normalize_lower(row_data['Pool Container Kind']),
-                        'coordinates': str_cast_and_normalize(row_data['Pool Parent Container Coord']),
-                        'parent_barcode': str_cast_and_normalize(row_data['Pool Parent Container Barcode']),
-                    },
-                }
+        sheet = self.sheets['Pools']
 
-                (result, pool_row_mapping) = self.handle_row(
-                    row_handler_class=PoolPlanningRowHandler,
-                    sheet=sheet,
-                    row_i=row_id,
-                    samples_info=pools_dict.get(pool["name"], None),
-                    pool=pool,
-                )
+        pools_mapping_rows = []
+        # For each row initialize the object that is going to be prefilled in the normalization template
+        for row_id, row_data in enumerate(sheet.rows):
+            pool = {
+                'name': str_cast_and_normalize(row_data['Pool Name']),
+                'coordinates': str_cast_and_normalize(row_data['Pool Container Coord']),
+                'container': {
+                    'barcode': str_cast_and_normalize(row_data['Pool Container Barcode']),
+                    'name': str_cast_and_normalize(row_data['Pool Container Name']),
+                    'kind': str_cast_and_normalize_lower(row_data['Pool Container Kind']),
+                    'coordinates': str_cast_and_normalize(row_data['Pool Parent Container Coord']),
+                    'parent_barcode': str_cast_and_normalize(row_data['Pool Parent Container Barcode']),
+                },
+            }
 
-                pools_mapping_rows.append(pool_row_mapping)
+            (result, pool_row_mapping) = self.handle_row(
+                row_handler_class=PoolPlanningRowHandler,
+                sheet=sheet,
+                row_i=row_id,
+                samples_info=pools_dict.get(pool["name"], None),
+                pool=pool,
+            )
+            pools_mapping_rows.append(pool_row_mapping)
 
         # Make sure all the normalization choices and formats for outputs are the same
         if len(set(norm_choice)) != 1:
             self.base_errors.append(f"All Robot norm choices need to be identical.")
 
         if not self.dry_run:
-            # Create robot file and complete mapping_rows_template with the
+            # Create robot file using both the input from the normalization sheet and the pools sheet.
             robot_files, updated_norm_mapping_rows, updated_pool_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, pools_mapping_rows, norm_choice[0])
-
             samplestopool_mapping_rows = []
             for row in updated_norm_mapping_rows:
                 if row["Pool Name"]:
@@ -147,24 +150,24 @@ class NormalizationPlanningImporter(GenericImporter):
                         'Source Container Coord': row["Destination Container Coord"],
                         'Robot Source Container': row["Robot Destination Container"],
                         'Robot Source Coord': row["Robot Destination Coord"],
-                        'Volume Used (uL)': row["Volume Pooled (uL)"],
+                        'Volume Used (uL)': row["Pooled Volume (uL)"],
                     }
                     samplestopool_mapping_rows.append(sample_info)
 
             # Prepare the Normalization template
-            normalization_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, updated_norm_mapping_rows)
+            normalization_prefilled_template = PrefillTemplateFromDict(NORMALIZATION_TEMPLATE, [updated_norm_mapping_rows])
             normalization_prefilled_template_name = "/".join(NORMALIZATION_TEMPLATE["identity"]["file"].split("/")[-1:])
             files_to_zip = [{'name': normalization_prefilled_template_name,
                              'content': normalization_prefilled_template,}]
+
             # Prepare the Pooling template
             if pools_mapping_rows:
                 pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [samplestopool_mapping_rows, updated_pool_mapping_rows])
                 pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
                 files_to_zip.append({'name': pooling_prefilled_template_name,
                                      'content': pooling_prefilled_template,})
-            
-            files_to_zip.extend(robot_files)
 
+            files_to_zip.extend(robot_files)
             output_zip_name = f"Normalization_planning_output_{datetime.today().strftime('%Y-%m-%d')}_{str(get_unique_id())}"
 
             # Zip files
@@ -314,17 +317,17 @@ class NormalizationPlanningImporter(GenericImporter):
                     # Raise an error to prevent going forward
                     raise ValidationError(f"Pooling destination container need a container kind if it does not exist in Freezeman.")
             
-            kind = output_row_data["Destination Container Kind"]
-            if kind == TUBE:
-                pass # replace with code to fetch parent coordinate or 
-            coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec # kind should not be tube
-
             # Add robot barcode to the rows_data
             output_row_data["Robot Destination Container"] = ROBOT_POOL_PREFIX + str(i)
             # Add robot dest coord to the rows_data
-            
-            output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(CONTAINER_KIND_SPECS[kind].coordinate_spec,
-                                                                                          output_row_data["Destination Container Coord"])
+
+            kind = output_row_data["Destination Container Kind"]
+            if kind == TUBE:
+                output_row_data["Robot Destination Coord"] = i
+            else:
+                coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec           
+                output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(CONTAINER_KIND_SPECS[kind].coordinate_spec,
+                                                                                              output_row_data["Destination Container Coord"])
                                                                                           
             mapping_pool_containers[output_row_data["Pool Name"]] = {
                 "Pool Destination Container": output_row_data["Robot Destination Container"],
@@ -363,7 +366,7 @@ class NormalizationPlanningImporter(GenericImporter):
                                                     str(volume_library)]) + "\n").encode())
 
                 if output_row_data["Pool Name"]:
-                    volume_pooling = decimal.Decimal(output_row_data["Volume Pooled (uL)"])
+                    volume_pooling = decimal.Decimal(output_row_data["Pooled Volume (uL)"])
                     robot_pool_barcode = mapping_pool_containers[output_row_data["Pool Name"]]["Pool Destination Container"]
                     robot_pool_coord = mapping_pool_containers[output_row_data["Pool Name"]]["Pool Destination Coord"]
 
@@ -376,15 +379,15 @@ class NormalizationPlanningImporter(GenericImporter):
             add_diluent_io.writelines(add_diluent_lines)
             add_library_io.writelines(add_library_lines)
             robot_files = [
-                {"name": f"Normalization_libraries_diluent_{timestamp}.csv",
-                  "content": add_diluent_io.getvalue(),},
-                {"name": f"Normalization_libraries_main_dilution_{timestamp}.csv",
+                {"name": f"Normalization_libraries_diluent_{timestamp.replace(' ', '_')}.csv",
+                 "content": add_diluent_io.getvalue(),},
+                {"name": f"Normalization_libraries_main_dilution_{timestamp.replace(' ', '_')}.csv",
                  "content": add_library_io.getvalue(),},
             ]
             # Add the optional pooling robot file if pooling is requested
             if mapping_pool_containers:
                 add_pool_io.writelines(add_pool_lines)
-                robot_files.append({"name": f"Pooling_libraries_{timestamp}.csv",
+                robot_files.append({"name": f"Pooling_libraries_{timestamp.replace(' ', '_')}.csv",
                                     "content": add_pool_io.getvalue()})
 
         elif  norm_choice == SAMPLE_BIOMEK_CHOICE:

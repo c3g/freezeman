@@ -116,19 +116,23 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             volume_used = decimal_rounded_to_precision(volume_used)
             adjusted_volume = decimal_rounded_to_precision(adjusted_volume)
 
+            adjusted_pooled_volume = None
+            if bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
+                self.errors["pool"].append(f"Incomplete information provided for pooling libraries after normalization.")
+
             if pool["pool_name"] is not None:
+                if pool["pool_name"] not in pool["pool_list"]:
+                    self.errors["pool"].append(f"Pool {pool['pool_name']} is not listed in the pools sheet.")
                 if not source_sample_obj.is_library:
-                    self.errors["pool"] = f"Only libraries can be pooled after normalization." 
-                elif bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
-                    self.errors["pool"] = f"Incomplete information provided for pooling libraries after normalization."                
+                    self.errors["pool"].append(f"Only libraries can be pooled after normalization.")
 
                 # ensure the volume for pooling does not surpass the volume after normalization
                 if pool["volume_pooled"] and pool["volume_pooled"] > adjusted_volume:
                     adjusted_pooled_volume = adjusted_volume
                     self.warnings['volume_pooled'] = f'Insufficient normalized sample volume to comply. ' \
-                                                    f'Requested volume pooled ({pool["volume_pooled"]} uL) ' \
-                                                    f'will be adjusted to {adjusted_pooled_volume} uL to ' \
-                                                    f'complete the pooling operation successfully.'
+                                                     f'Requested pooled volume ({pool["volume_pooled"]} uL) ' \
+                                                     f'will be adjusted to {adjusted_pooled_volume} uL to ' \
+                                                     f'complete the pooling operation successfully.'
                 else:
                     adjusted_pooled_volume = pool["volume_pooled"]
 
@@ -155,6 +159,6 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Conc. (nM)': str(concentration_nm) if concentration_nm is not None else '',
                     'Normalization Date (YYYY-MM-DD)': '',
                     'Pool Name': pool['pool_name'] if pool['pool_name'] is not None else '',
-                    'Volume Pooled (uL)': str(adjusted_pooled_volume),
+                    'Pooled Volume (uL)': str(adjusted_pooled_volume) if adjusted_pooled_volume is not None else '',
                     'Comment': '',
                 }

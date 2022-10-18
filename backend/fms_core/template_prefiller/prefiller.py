@@ -35,21 +35,18 @@ def PrefillTemplateFromDict(template, rows_dicts):
     """
     Function that return a prefilled template byte stream.
     It fetch a designated empty template using template_path.
-    It loads data from a dictionary with format { column : value } for each row
+    For each sheet, It loads data from a dictionary with format { column : value } for each row
     It used the template_info sheet info to locate and position the information in the excel workbook.
     
-    rows_dicts is a list of list of rows dictionaries: one list for each sheet to prefill.
+    rows_dicts is a list of list of row dictionaries: one list for each sheet to prefill, one list for each row.
     The order of the dicts match the one from the template sheets_info.
     """
-
     # Get the template information
     filename = "/".join(template["identity"]["file"].split("/")[-2:])
     template_path = os.path.join(settings.STATIC_ROOT, filename)
-
     out_stream = BytesIO()
-
     workbook = load_workbook(filename=template_path)
-
+    
     # Populate template
     try:
         for i, sheet_info in enumerate(template["sheets info"]):
@@ -57,7 +54,7 @@ def PrefillTemplateFromDict(template, rows_dicts):
             header_offset = find_worksheet_header_offset(current_sheet, sheet_info['headers'])
             for j, entry in enumerate(rows_dicts[i]):
                 for header_index, template_column in enumerate(sheet_info['headers']):
-                    current_sheet.cell(row=header_offset + j, column=header_index + 1).value = entry[template_column]
+                    current_sheet.cell(row=header_offset + j, column=header_index + 1).value = entry.get(template_column, None)
         workbook.save(out_stream)
         return out_stream.getvalue()
     except Exception as e:

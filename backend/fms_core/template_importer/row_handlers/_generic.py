@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from collections import defaultdict
 
 '''
     RowHandler objects
@@ -14,14 +15,14 @@ from django.core.exceptions import ValidationError
 
 class GenericRowHandler():
     def __init__(self):
-        self.errors = {}
-        self.warnings = {}
+        self.errors = defaultdict(list)
+        self.warnings = defaultdict(list)
 
         # optional - in case the Importer needs the current row main object from the RowHandler
         self.row_object = None
 
     def process_row(self, **kwargs):
-        if self.errors == {}:
+        if not self.errors:
             self.process_row_inner(**kwargs)
 
         result = self.get_result()
