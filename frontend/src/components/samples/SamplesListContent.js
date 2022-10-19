@@ -16,7 +16,7 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndividual} from "../../utils/withItem";
+import {withContainer, withIndividual, withProject} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -90,12 +90,10 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
       title: "Project",
       dataIndex: "derived_samples__project__name",
       sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
-      render: (_, sample) => {
-        return (sample.project &&
-          <Link to={`/projects/${sample.project}`}>
-            {projectsByID[sample.project]?.name}
-          </Link>)
-      }
+      render: (_, sample) => (sample.project &&
+        <Link to={`/projects/${sample.project}`}>
+          {withProject(projectsByID, sample.project, project => project.name, "loading...")}
+        </Link>)
     },
     {
       title: "Coords",
