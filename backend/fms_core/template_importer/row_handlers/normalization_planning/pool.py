@@ -1,5 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
+from fms_core.services.container import get_container, is_container_valid_destination
+
 class PoolPlanningRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
@@ -20,7 +22,23 @@ class PoolPlanningRowHandler(GenericRowHandler):
             elif not set_type.pop(): # len(set_type) = 1 and not set_type[0] => all pooled are samples
                 self.errors["source_sample"] = f"Source samples in pool {pool['name']} are not libraries."
 
-            if not self.errors.get("source_sample", None):
+            # Ensure the pool destination container exists or has enough information to be created.
+            pool_destination_container_dict = pool["container"]
+            parent_barcode = pool_destination_container_dict["parent_barcode"]
+
+            if parent_barcode:
+                pool_container_parent_obj, self.errors["pool_parent_container"], self.warnings["pool_parent_container"] = get_container(barcode=parent_barcode)
+            else:
+                pool_container_parent_obj = None
+
+            _, self.errors["pool_container"], self.warnings['pool_container'] = is_container_valid_destination(pool_destination_container_dict['barcode'],
+                                                                                                               pool["coordinates"],
+                                                                                                               pool_destination_container_dict['kind'],
+                                                                                                               pool_destination_container_dict['name'],
+                                                                                                               pool_destination_container_dict['coordinates'],
+                                                                                                               pool_container_parent_obj)
+            
+            if not self.errors:
                 self.row_object = {
                     'Pool Name': pool['name'],
                     'Destination Container Barcode': pool['container']['barcode'],

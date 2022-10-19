@@ -1,7 +1,7 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.template_importer._constants import VALID_NORM_CHOICES, LIBRARY_CHOICE
 
-from fms_core.services.container import get_container, is_container_valid
+from fms_core.services.container import get_container, is_container_valid_destination
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
 
@@ -89,14 +89,12 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             else:
                 container_parent_obj = None
 
-            _, self.errors['dest_container'], self.warnings['dest_container'] = is_container_valid(destination_container_dict['barcode'],
-                                                                                                   destination_container_dict['kind'],
-                                                                                                   destination_container_dict['name'],
-                                                                                                   destination_container_dict['coordinates'],
-                                                                                                   container_parent_obj)
-
-            if destination_sample['coordinates'] is None:
-                self.errors['dest_container_coord'] = f'Destination container coordinates are required for plates.'
+            _, self.errors['dest_container'], self.warnings['dest_container'] = is_container_valid_destination(destination_container_dict['barcode'],
+                                                                                                               destination_sample['coordinates'],
+                                                                                                               destination_container_dict['kind'],
+                                                                                                               destination_container_dict['name'],
+                                                                                                               destination_container_dict['coordinates'],
+                                                                                                               container_parent_obj)
 
             volume_used = na_qty / source_sample_obj.concentration # calculate the volume of source sample to use.
 
