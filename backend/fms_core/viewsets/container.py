@@ -1,6 +1,4 @@
-from collections import Counter
-
-from django.db.models import Count, Q, F, Prefetch
+from django.db.models import Count, Q, Prefetch
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -24,8 +22,6 @@ from fms_core.templates import (
 )
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
-from ._fetch_data import fetch_sample_data
-
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
@@ -188,15 +184,6 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         containers.reverse()
         serializer = self.get_serializer(containers, many=True)
         return Response(serializer.data)
-
-    @action(detail=True, methods=["get"])
-    def list_samples(self, _request, pk=None):
-        """
-        Lists all samples stored in a given container.
-        """
-        samples_ids = [sample.id for sample in Container.objects.get(pk=pk).samples]
-        serialized_data = fetch_sample_data(samples_ids)
-        return Response(serialized_data)
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

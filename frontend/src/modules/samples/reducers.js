@@ -9,7 +9,6 @@ import {templateActionsReducerFactory} from "../../utils/templateActions";
 import {prefillTemplatesReducerFactory} from "../../utils/prefillTemplates";
 import {resetTable} from "../../utils/reducers";
 
-import CONTAINERS from "../containers/actions";
 import SAMPLES from "./actions";
 
 export const sampleKinds = (
@@ -195,24 +194,6 @@ export const samples = (
                 versions: [],
                 error: action.error,
             });
-
-        /*
-         * NOTE: CONTAINERS.LIST_SAMPLES is handled in samples & containers
-         */
-        case CONTAINERS.LIST_SAMPLES.REQUEST: {
-            const itemsByID = indexByID(
-                action.meta.samples.map(id => ({ id, isFetching: true })))
-            return merge(state, ['itemsByID'], itemsByID);
-        }
-        case CONTAINERS.LIST_SAMPLES.RECEIVE: {
-            return merge(state, ['itemsByID'], indexByID(action.data.map(preprocess)));
-        }
-        case CONTAINERS.LIST_SAMPLES.ERROR: {
-            const itemsByID =
-                action.meta.samples
-                    .reduce((acc, id) => (acc[id] = undefined, acc), {})
-            return merge(state, ['itemsByID'], itemsByID);
-        }
 
         default:
             return state;

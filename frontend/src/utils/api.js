@@ -23,7 +23,6 @@ const api = {
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),
-    listSamples: id => get(`/containers/${id}/list_samples/`),
     summary: () => get("/containers/summary/"),
     template: {
       actions: () => get(`/containers/template_actions/`),
