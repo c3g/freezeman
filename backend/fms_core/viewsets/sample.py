@@ -23,7 +23,40 @@ from fms_core.filters import SampleFilter
 
 class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchSampleData):
     queryset = Sample.objects.select_related("container").all().distinct()
-    
+     # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+    derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
+    queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
+            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+            default=None,
+            output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(count_derived_samples=Count('derived_samples'))
+    queryset = queryset.annotate(
+        first_volume_ratio=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("volume_ratio", flat=True)[:1]
+        )
+    )
+    queryset = queryset.annotate(
+        is_pooled=Case(
+            When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
+            default=False,
+            output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(
+        first_derived_sample=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("derived_sample", flat=True)[:1]
+        )
+    )
     serializer_class = SampleSerializer
 
     ordering_fields = (
@@ -115,33 +148,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
 
     def get_queryset(self):
-        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
-        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
-        queryset = self.queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
-
-        queryset = queryset.annotate(
-            qc_flag=Case(
-                When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
-                When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
-                default=None,
-                output_field=BooleanField()
-            )
-        )
-        queryset = queryset.annotate(count_derived_samples=Count('derived_samples'))
-        queryset = queryset.annotate(is_pooled=Case(
-            When(count_derived_samples__gt=1, then=True),
-            default=False,
-            output_field=BooleanField()
-        ))
-
-        queryset = queryset.annotate(
-            first_derived_sample=Subquery(
-                DerivedBySample.objects
-                .filter(sample=OuterRef("pk"))
-                .values_list("derived_sample", flat=True)[:1]
-            )
-        )
-
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -169,9 +175,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                                                                )
                                                                SELECT * FROM parent''', params=[container_ids])
 
-            return queryset.filter(container__in=parent_containers)
+            return self.queryset.filter(container__in=parent_containers)
 
-        return queryset
+        return self.queryset
 
     def create(self, request, *args, **kwargs):
         error = {}

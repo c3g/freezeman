@@ -1,6 +1,6 @@
 
 import json
-from typing import List
+from typing import List, Tuple
 from collections import defaultdict
 from django.db.models import Q, ExpressionWrapper, BooleanField
 
@@ -17,7 +17,7 @@ class FetchData:
     fetch_limit = None
     fetch_offset = None
 
-    def fetch_data(self, ids: List[int] =[]) -> List:
+    def fetch_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Abstract function to overload to produce serialized data for automated processing.
 
@@ -39,7 +39,7 @@ class FetchData:
 
         return (None, None) # abstract function, must be overloaded. call base function for initialization
         
-    def fetch_export_data(self, ids: List[int] =[]) -> List:
+    def fetch_export_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Abstract function to overload to produce serialized data for user consumption
 
@@ -70,7 +70,7 @@ class FetchSampleData(FetchData):
         fetch_data: base class
     """
 
-    def fetch_data(self, ids: List[int] =[]) -> List:
+    def fetch_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Function used to replace the sample serializer across various viewsets.
 
@@ -83,6 +83,7 @@ class FetchSampleData(FetchData):
         """
 
         super().fetch_data(ids) # Initialize queryset by calling base abstract function
+
         self.queryset = self.queryset.values(
             'id',
             'name',
@@ -110,7 +111,7 @@ class FetchSampleData(FetchData):
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
 
         if not self.queryset:
-            return [] # Do not lose time processing data for an empty queryset
+            return ([], 0) # Do not lose time processing data for an empty queryset
         else:
             samples = {s["id"]: s for s in self.queryset}
             samples_ids = samples.keys() 
@@ -196,7 +197,7 @@ class FetchSampleData(FetchData):
             return (serialized_data, count)
 
 
-    def fetch_export_data(self, ids: List[int] =[]) -> List:
+    def fetch_export_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Function used to replace the sample serializer when exporting data.
 
@@ -345,7 +346,7 @@ class FetchLibraryData(FetchData):
 
     """
 
-    def fetch_data(self, ids: List[int] =[]) -> List:
+    def fetch_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Function used to replace the library serializer across various viewsets.
 
@@ -381,7 +382,7 @@ class FetchLibraryData(FetchData):
             self.queryset = self.queryset[self.fetch_offset:self.fetch_offset+self.fetch_limit] # page the queryset
 
         if not self.queryset:
-            return [] # Do not lose time processing data for an empty queryset
+            return ([], 0) # Do not lose time processing data for an empty queryset
         else:
             samples = {s["id"]: s for s in self.queryset}
             first_derived_sample_ids = [sample_values["first_derived_sample"]for sample_values in self.queryset]
@@ -433,7 +434,7 @@ class FetchLibraryData(FetchData):
             return (serialized_data, count)
 
 
-    def fetch_export_data(self, ids: List[int] =[]) -> List:
+    def fetch_export_data(self, ids: List[int] =[]) -> Tuple[List, int]:
         """
         Function used to replace the library serializer when exporting data.
 

@@ -16,7 +16,50 @@ from ._constants import _library_filterset_fields
 
 class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchLibraryData):
     queryset = Sample.objects.select_related("container").filter(derived_samples__library__isnull=False).all().distinct()
-    
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
+            When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
+            default=None,
+            output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(
+        count_derived_samples=Count("derived_samples")
+    )
+    queryset = queryset.annotate(
+        quantity_ng=F('concentration')*F('volume')
+    )
+    queryset = queryset.annotate(
+        first_volume_ratio=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("volume_ratio", flat=True)[:1]
+        )
+    )
+    queryset = queryset.annotate(
+        is_pooled=Case(
+            When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
+            default=False,
+            output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(
+        sample_strandedness=Case(
+            When(Q(is_pooled__exact=True), then=None),
+            When(Q(is_pooled__exact=False), then=F('derived_samples__library__strandedness')),
+            default=None,
+            output_field=CharField())
+    )
+    queryset = queryset.annotate(
+        first_derived_sample=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("derived_sample", flat=True)[:1]
+        )
+    )
+
+
     serializer_class = LibrarySerializer
 
     ordering_fields = (
@@ -79,40 +122,6 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
     ]
 
     def get_queryset(self):
-        queryset = self.queryset.annotate(
-            qc_flag=Case(
-                When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
-                When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
-                default=None,
-                output_field=BooleanField()
-            )
-        )
-        queryset = queryset.annotate(
-            count_derived_samples=Count("derived_samples")
-        )
-        queryset = queryset.annotate(
-            quantity_ng=F('concentration')*F('volume')
-        )
-        queryset = queryset.annotate(is_pooled=Case(
-            When(count_derived_samples__gt=1, then=True),
-            default=False,
-            output_field=BooleanField()
-        ))
-        queryset = queryset.annotate(
-            sample_strandedness=Case(
-                When(Q(count_derived_samples__gt=1), then=None),
-                When(Q(count_derived_samples__exact=1), then=F('derived_samples__library__strandedness')),
-                default=None,
-                output_field=CharField())
-        )
-        queryset = queryset.annotate(
-            first_derived_sample=Subquery(
-                DerivedBySample.objects
-                .filter(sample=OuterRef("pk"))
-                .values_list("derived_sample", flat=True)[:1]
-            )
-        )
-
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -130,19 +139,19 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
                 container_ids = tuple([None])
 
             parent_containers = Container.objects.raw('''WITH RECURSIVE parent(id, location_id) AS (
-                                                                   SELECT id, location_id
-                                                                   FROM fms_core_container
-                                                                   WHERE id IN %s
-                                                                   UNION ALL
-                                                                   SELECT child.id, child.location_id
-                                                                   FROM fms_core_container AS child, parent
-                                                                   WHERE child.location_id = parent.id
-                                                               )
-                                                               SELECT * FROM parent''', params=[container_ids])
+                                                            SELECT id, location_id
+                                                            FROM fms_core_container
+                                                            WHERE id IN %s
+                                                            UNION ALL
+                                                            SELECT child.id, child.location_id
+                                                            FROM fms_core_container AS child, parent
+                                                            WHERE child.location_id = parent.id
+                                                        )
+                                                        SELECT * FROM parent''', params=[container_ids])
 
-            return queryset.filter(container__in=parent_containers)
+            return self.queryset.filter(container__in=parent_containers)
 
-        return queryset
+        return self.queryset
 
     def retrieve(self, _request, pk=None, *args, **kwargs):
         self.queryset = self.filter_queryset(self.get_queryset())

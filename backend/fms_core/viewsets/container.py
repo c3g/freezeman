@@ -22,8 +22,6 @@ from fms_core.templates import (
 )
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
-from .sample import SampleViewSet
-
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
