@@ -193,13 +193,13 @@ NORMALIZATION_TEMPLATE = {
 }
 
 NORMALIZATION_PLANNING_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_11_0.xlsx")},
+  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_12_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
-                    'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'NA Quantity (ng)',
+                    'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
       },
   ],
@@ -225,8 +225,28 @@ SAMPLE_METADATA_TEMPLATE = {
   ],
 }
 
+SAMPLE_POOLING_TEMPLATE = {
+  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_12_0.xlsx")},
+  "sheets info": [
+      {
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",
+                      "Source Container Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+      },
+      {
+          "name": "Pools",
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name", "Destination Container Kind",
+                      "Destination Parent Container Barcode", "Destination Parent Container Coord",  "Pooling Date (YYYY-MM-DD)", "Comment"],
+      },
+  ],
+  "prefill info": [
+      ("SamplesToPool", "Source Sample Name", "name"),
+      ("SamplesToPool", "Source Container Barcode", "container__barcode"),
+      ("SamplesToPool", "Source Container Coord", "coordinates"),],
+}
+
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_11_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_12_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',

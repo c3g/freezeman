@@ -17,16 +17,17 @@ class DerivedBySample(TrackedModel):
     sample = models.ForeignKey("Sample", on_delete=models.PROTECT, related_name="derived_by_samples")
     volume_ratio = models.DecimalField(max_digits=4, decimal_places=3, help_text="Volume ratio in pools.")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["derived_sample_id", "sample_id"], name="derivedbysample_derivedsampleid_sampleid_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
-
-        # Check concentration fields given sample_kind (moved from sample because information unavailable until relation created)
-        if self.sample.concentration is None and (self.derived_sample.sample_kind.concentration_required and self.derived_sample.library is None):
-            add_error("concentration", "Concentration must be specified for a pool or if the sample_kind is DNA (except for a library)")
 
         if errors:
             raise ValidationError(errors)

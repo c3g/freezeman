@@ -61,7 +61,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             measurements = {
                 'volume': float_to_decimal_and_none(row_data['Final Volume (uL)']),
-                'na_quantity': float_to_decimal_and_none(row_data['NA Quantity (ng)']),
+                'na_quantity': float_to_decimal_and_none(row_data['Norm. NA Quantity (ng)']),
                 'concentration_ngul': float_to_decimal_and_none(row_data['Norm. Conc. (ng/uL)']),
                 'concentration_nm': float_to_decimal_and_none(row_data['Norm. Conc. (nM)']),
             }

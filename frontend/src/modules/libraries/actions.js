@@ -71,6 +71,13 @@ export const setSortBy = thenList((key, order) => {
     }
 });
 
+export const clearSortBy = () => async dispatch => {
+    return dispatch({
+        type: SET_SORT_BY,
+        data: { }
+    })
+};
+
 export const setFilter = thenList((name, value) => {
     return {
         type: SET_FILTER,
@@ -117,6 +124,7 @@ export default {
     SUMMARY,
     get,
     setSortBy,
+    clearSortBy,
     setFilter,
     setFilterOption,
     clearFilters,

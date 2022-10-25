@@ -229,19 +229,6 @@ class ExtractedSampleTest(TestCase):
                 self.assertIn('volume_used', e.message_dict)
                 raise e
 
-    def test_concentration(self):
-        with self.assertRaises(ValidationError):
-            try:
-                # for DNA samples concentration cannot be None
-                invalid_concentration = create_fullsample(name="test_extracted_sample_01",
-                                                          alias="12",
-                                                          volume=0,
-                                                          sample_kind=self.sample_kind_DNA,
-                                                          **self.constants)
-            except ValidationError as e:
-                self.assertIn('concentration', e.message_dict)
-                raise e
-
     def test_negative_volume(self):
         with self.assertRaises(ValidationError):
             try:

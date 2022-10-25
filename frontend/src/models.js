@@ -37,7 +37,7 @@ export const sample = {
   volume: null, //
   concentration: null,
   depleted: false,
-  experimental_group: null, // string[]
+  experimental_groups: null, // string[]
   collection_site: "", // string(200)
   tissue_source: null,
   creation_date: null, // date
@@ -45,7 +45,8 @@ export const sample = {
   coordinates: "", // string(10)
   individual: null, // individual.id
   container: null, // container.id
-  extracted_from: null // sample.id
+  extracted_from: null, // sample.id
+  project: null // project.id
 }
 // Example:
 // {
@@ -64,7 +65,8 @@ export const sample = {
 //     coordinates: "",
 //     individual: 401,
 //     container: 1658,
-//     extracted_from: 5797
+//     extracted_from: 5797,
+//     project: 21
 // }
 
 export const individual = {
@@ -159,12 +161,13 @@ export const library = {
   creation_date: null, // date
   quality_flag: "", // passed or failed
   quantity_flag: "", // passed or failed
-  projects: [], // project.id
+  project: null, // project.id
   depleted: false,
   library_type: "", // string(200)
   platform: "", // string(200)
   index: "", // string(200)
   library_size: null, // int
+  is_pool: false, // bool
 }
 // Example:
 // {
@@ -179,12 +182,13 @@ export const library = {
 //     creation_date: "2020-06-16",
 //     quality_flag: "passed",
 //     quantity_flag: "failed",
-//     projects: [1, 2, 3]
+//     project: 1
 //     depleted: false,
 //     library_type: "RNASeq",
 //     platform: "DNBSEQ",
 //     index: "Index_2",
-//     library_size: 250
+//     library_size: 250,
+//     is_pool: true
 // }
 
 export const index = {
@@ -247,4 +251,57 @@ export const importedFile = {
 //     id: 1,
 //     filename: "sample_submission_v3_5_0.xlsx",
 //     location: "/home/bob/mysite/templates/sample_submission_v3_5_0.xlsx",
+// }
+
+
+export const pooledSample = {
+  // Note: Pooled sample is a flattened version of the pooled sample data returned by the endpoint.
+  id: 1,                          // The id of the pooled derived sample (used as the id for the pooled sample)
+  pooled_sample_id: 1,            // The id of the parent sample pool containing this derived sample
+  volume_ratio: "",               // Derived sample volume as a ratio of the total pool volume
+
+  project_id: "",                 // Project associated with the derived sample
+  project_name: "",               // Project associated with the derived sample
+
+  // Sample info
+  alias: "",                      // The alias (from the biosample)
+  collection_site: "",            // Collection site, eg MUHC
+  experimental_group: [""],       // An array of experimental group names
+  individual_id: 1,               // The ID of the individual to whom this sample was extracted
+  individual_name: "",            // Individual name
+  parent_sample_id: "",           // The id of the sample that was added to this pool
+  parent_sample_name: "",         // The name of the sample that was added to this pool
+  sample_kind: "",                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
+  
+  // Library fields               // Library fields are only defined if pool contains libraries
+  index: "",                      // Name of index
+  index_id: "",                   // ID of index
+  index_set: "",                  // Name of index set containing library index
+  library_size: 100,              // Library size in base pairs (integer)
+  library_type: "",               // Library Type (eg. PCR-free) (pre-defined)
+  platform: "",                   // Platform (eg. ILLUMINA)
+  strandedness: "",               // "Double stranded" (for DNA) or "Single stranded" (for RNA)
+}
+// Example:
+// {
+//   "id": 392963,
+//   "pooled_sample_id": 727627,
+//   "volume_ratio": "0.014",
+//   "project_id": 23,
+//   "project_name": "CK",
+//   "alias": "CK-POOL-SAMPLE-28",
+//   "collection_site": "MUHC",
+//   "experimental_groups": [],
+//   "individual_id": "189486",
+//   "individual_name": "PATIENT-28",
+//   "parent_sample_id": 727573,
+//   "parent_sample_name": "CK-POOL-SAMPLE-28",
+//   "sample_kind": "DNA",
+//   "index": "IDT_10nt_UDI_i7_021-IDT_10nt_UDI_i5_021",
+//   "index_id": "13152",
+//   "index_set": "IDT_10nt_UDI_TruSeq_Adapter",
+//   "library_size": "200",
+//   "library_type": "PCR-free",
+//   "platform": "ILLUMINA",
+//   "strandedness": "Double stranded"
 // }

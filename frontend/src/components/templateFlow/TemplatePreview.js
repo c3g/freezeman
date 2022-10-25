@@ -2,8 +2,8 @@ import React from "react";
 import {Popover, Table, Tabs, Badge} from "antd";
 import {WarningOutlined} from "@ant-design/icons";
 import innerHTMLPurified from "../../utils/innerHTMLPurified";
-
 const {TabPane} = Tabs;
+
 
 export const TemplatePreview = ({checkResult}) => {
  return <>

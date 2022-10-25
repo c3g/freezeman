@@ -24,6 +24,9 @@ import {
   samples,
 } from "./modules/samples/reducers";
 import {
+  pooledSamples
+} from "./modules/pooledSamples/reducers"
+import {
   processes
 } from "./modules/processes/reducers"
 import {
@@ -106,6 +109,7 @@ const allReducers = combineReducers({
   sampleTemplateActions,
   samplePrefillTemplates,
   samples,
+  pooledSamples,
   protocols,
   processes,
   processMeasurementsSummary,

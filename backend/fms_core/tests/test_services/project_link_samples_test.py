@@ -39,58 +39,70 @@ class ProjectLinkSamplesServicesTestCase(TestCase):
                                                            )
 
     def test_create_valid_link(self):
-        link, errors, warnings = create_link(self.full_sample, self.project)
+        link_created, errors, warnings = create_link(self.full_sample, self.project)
+        self.assertTrue(link_created)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
     def test_create_duplicate_link(self):
-        link, errors, warnings = create_link(self.full_sample, self.project)
-        duplicate_link, errors, warnings = create_link(self.full_sample, self.project)
+        link_created, errors, warnings = create_link(self.full_sample, self.project)
+        link_not_created_again, errors, warnings = create_link(self.full_sample, self.project)
 
-        self.assertEqual(duplicate_link, None)
-        self.assertTrue("already associated" in errors[0])
+        self.assertTrue(link_created)
+        self.assertFalse(link_not_created_again)
+        self.assertTrue("already associated" in warnings[0])
 
     def test_remove_valid_link(self):
-        link, errors, warnings = create_link(self.full_sample, self.project)
-        num_deleted, errors, warnings = remove_link(self.full_sample, self.project)
+        link_created, errors, warnings = create_link(self.full_sample, self.project)
+        link_removed, errors, warnings = remove_link(self.full_sample, self.project)
 
-        self.assertEqual(num_deleted, 1)
+        self.assertTrue(link_created)
+        self.assertTrue(link_removed)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
     def test_remove_invalid_link(self):
-        num_deleted, errors, warnings = remove_link(self.full_sample, self.project)
+        link_not_removed, errors, warnings = remove_link(self.full_sample, self.project)
 
-        self.assertEqual(num_deleted,  0)
-        self.assertEqual(errors, [f"Sample [{self.valid_sample_name}] is not currently associated to project [{self.valid_project_name}]."])
-        self.assertEqual(warnings, [])
+        self.assertFalse(link_not_removed)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [f"Sample [{self.valid_sample_name}] is not currently associated to project [{self.valid_project_name}]."])
 
     def test_missing_project(self):
-        link, errors, warnings = create_link(self.full_sample, None)
+        link_not_created, errors, warnings = create_link(self.full_sample, None)
+
+        self.assertFalse(link_not_created)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
 
-        num_deleted, errors, warnings = remove_link(self.full_sample, None)
+        link_not_removed, errors, warnings = remove_link(self.full_sample, None)
+        self.assertFalse(link_not_removed)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
 
     def test_missing_sample(self):
-        link, errors, warnings = create_link(None, self.project)
+        link_not_created, errors, warnings = create_link(None, self.project)
+        self.assertFalse(link_not_created)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
 
-        num_deleted, errors, warnings = remove_link(None, self.project)
+        link_not_removed, errors, warnings = remove_link(None, self.project)
+        self.assertFalse(link_not_removed)
         self.assertEqual(errors, [f"Unable to process sample or project information."])
 
     def test_invalid_sample(self):
-        link, errors, warnings = create_link(self.project, self.project)
+        link_not_created, errors, warnings = create_link(self.project, self.project)
+        self.assertFalse(link_not_created)
         self.assertEqual(errors, [f"Invalid sample or project objects."])
 
-        num_deleted, errors, warnings = remove_link(self.project, self.project)
+        link_not_removed, errors, warnings = remove_link(self.project, self.project)
+        self.assertFalse(link_not_removed)
         self.assertEqual(errors, [f"Invalid sample or project objects."])
 
     def test_invalid_project(self):
-        link, errors, warnings = create_link(self.full_sample, self.full_sample)
+        link_not_created, errors, warnings = create_link(self.full_sample, self.full_sample)
+        self.assertFalse(link_not_created)
         self.assertEqual(errors, [f"Invalid sample or project objects."])
 
-        num_deleted, errors, warnings = remove_link(self.project, self.project)
+        link_not_removed, errors, warnings = remove_link(self.project, self.project)
+        self.assertFalse(link_not_removed)
         self.assertEqual(errors, [f"Invalid sample or project objects."])
 
 

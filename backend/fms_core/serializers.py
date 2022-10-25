@@ -1,15 +1,14 @@
 from django.contrib.auth.models import User, Group
-from typing import Dict, Any, Union, List
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from .utils import convert_concentration_from_ngbyul_to_nm
 from django.db.models import Max
 
 from .models import (
     Container,
     Dataset,
     DatasetFile,
+    DerivedBySample,
     ExperimentRun,
     RunType,
     Index,
@@ -66,8 +65,6 @@ __all__ = [
     "SampleMetadataSerializer",
     "SampleSerializer",
     "SampleExportSerializer",
-    "serialize_sample_export",
-    "NestedSampleSerializer",
     "VersionSerializer",
     "RevisionSerializer",
     "UserSerializer",
@@ -77,6 +74,7 @@ __all__ = [
     "SequenceSerializer",
     "TaxonSerializer",
     "ImportedFileSerializer",
+    "PooledSampleSerializer",
 ]
 
 
@@ -346,41 +344,16 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
         model = SampleMetadata
         fields = "__all__"
 
-
-class SampleSerializer(serializers.ModelSerializer):
-    extracted_from = serializers.SerializerMethodField()
-    sample_kind = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.sample_kind")
-    process_measurements = serializers.PrimaryKeyRelatedField(source='process_measurement', many=True, read_only=True)
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    individual = serializers.PrimaryKeyRelatedField(read_only=True, source="biosample_not_pool.individual")
-    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
-    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.PrimaryKeyRelatedField(read_only=True, source="derived_sample_not_pool.tissue_source")
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    is_library = serializers.SerializerMethodField()
-
+class SampleSerializer(serializers.Serializer):
     class Meta:
-        model = Sample
-        exclude = ('derived_samples', )
+        fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
+                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'is_pool', 'project',
+                  'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
+                  'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
+                  'comment')
 
-    def get_extracted_from(self, obj):
-        return obj.extracted_from and obj.extracted_from.id
-    
-    def get_is_library(self, obj):
-        return obj.is_library
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
-
-class SampleExportSerializer(serializers.ModelSerializer):
+class SampleExportSerializer(serializers.Serializer):
     class Meta:
-        model = Sample
         fields = ('sample_id', 'sample_name', 'biosample_id', 'alias', 'individual_alias', 'sample_kind', 'tissue_source',
                   'container', 'container_kind', 'container_name', 'container_barcode', 'coordinates',
                   'location_barcode', 'location_coord', 'container_full_location',
@@ -389,117 +362,18 @@ class SampleExportSerializer(serializers.ModelSerializer):
                   'quality_flag', 'quantity_flag', 'projects', 'depleted', 'is_library', 'comment')
 
 
-class NestedSampleSerializer(serializers.ModelSerializer):
-    # Serialize foreign keys' objects; don't allow posting new objects (rather accept foreign keys)
-    individual = IndividualSerializer(read_only=True, source="biosample_not_pool.individual")
-    container = SimpleContainerSerializer(read_only=True)
-    # Derived Sample and Biosample attributes
-    alias = serializers.CharField(read_only=True, source="biosample_not_pool.alias")
-    collection_site = serializers.CharField(read_only=True, source="biosample_not_pool.collection_site")
-    experimental_group = serializers.JSONField(read_only=True, source="derived_sample_not_pool.experimental_group")
-    tissue_source = serializers.CharField(read_only=True, source="derived_sample_not_pool.tissue_source.name")
-    sample_kind = serializers.CharField(read_only=True, source="derived_sample_not_pool.sample_kind.name")
-    quantity_flag = serializers.SerializerMethodField()
-    quality_flag = serializers.SerializerMethodField()
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-
+class LibrarySerializer(serializers.Serializer):
     class Meta:
-        model = Sample
-        exclude = ('derived_samples', )
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
+                  'concentration', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
+                  'quantity_flag', 'project', 'depleted', 'library_type', 'platform', 'index', 'library_size')
 
 
-class LibrarySerializer(serializers.ModelSerializer):
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    container = serializers.CharField(read_only=True, source="container.id")
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
-    concentration_nm = serializers.SerializerMethodField()
-    quantity_ng = serializers.SerializerMethodField()
-    library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
-    platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
-    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.id")
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
-
+class LibraryExportSerializer(serializers.Serializer):
     class Meta:
-        model = Sample
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume',
+        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 'is_pool',
                   'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
                   'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
-
-    def get_quality_flag(self, obj):
-        return obj.quality_flag
-
-    def get_quantity_flag(self, obj):
-        return obj.quantity_flag
-
-    def get_concentration_nm(self, obj):
-        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
-            return None
-        else:
-            return convert_concentration_from_ngbyul_to_nm(obj.concentration,
-                                                           obj.derived_sample_not_pool.library.molecular_weight_approx,
-                                                           obj.derived_sample_not_pool.library.library_size)
-
-    def get_quantity_ng(self, obj):
-        if not obj.concentration:
-            return None
-        else:
-            return obj.concentration * obj.volume
-
-
-class LibraryExportSerializer(serializers.ModelSerializer):
-    biosample_id = serializers.IntegerField(read_only=True, source="biosample_not_pool.id")
-    projects = serializers.PrimaryKeyRelatedField(read_only=True, many=True)
-    quality_flag = serializers.SerializerMethodField()
-    quantity_flag = serializers.SerializerMethodField()
-    concentration_ng_ul = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True, source="concentration")
-    concentration_nm = serializers.SerializerMethodField()
-    quantity_ng = serializers.SerializerMethodField()
-    library_type = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.library_type.name")
-    platform = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.platform.name")
-    index = serializers.CharField(read_only=True, source="derived_sample_not_pool.library.index.name")
-    library_size = serializers.DecimalField(max_digits=20, decimal_places=0, read_only=True, source="derived_sample_not_pool.library.library_size")
-
-    class Meta:
-        model = Sample
-        fields = ('id', 'name', 'biosample_id', 'container', 'coordinates', 'volume', 
-                  'concentration_ng_ul', 'concentration_nm', 'quantity_ng', 'creation_date', 'quality_flag',
-                  'quantity_flag', 'projects', 'depleted', 'library_type', 'platform', 'index', 'library_size')
-    
-    def get_quality_flag(self, obj):
-        if obj.quality_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quality_flag else "Failed"
-
-    def get_quantity_flag(self, obj):
-        if obj.quantity_flag is None:
-            return None
-        else:
-            return "Passed" if obj.quantity_flag else "Failed"
-
-    # TODO : update this formula to include RNA and single strand DNA
-    def get_concentration_nm(self, obj):
-        if not obj.derived_sample_not_pool.library or not obj.derived_sample_not_pool.library.library_size:
-            return None
-        else:
-            return convert_concentration_from_ngbyul_to_nm(obj.concentration,
-                                                           obj.derived_sample_not_pool.library.molecular_weight_approx,
-                                                           obj.derived_sample_not_pool.library.library_size)
-
-    def get_quantity_ng(self, obj):
-        if not obj.concentration:
-            return None
-        else:
-            return obj.concentration * obj.volume
 
 
 class VersionSerializer(serializers.ModelSerializer):
@@ -540,9 +414,8 @@ class GroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        exclude = ("samples",)
-
-
+        fields = '__all__'
+        
 class ProjectExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -630,3 +503,75 @@ class DatasetFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetFile
         fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")
+
+class PooledSampleSerializer(serializers.Serializer):
+    ''' Serializes a DerivedBySample object, representing a pooled sample. 
+    '''
+    # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
+    # as a top level id in the returned data structure. The UX needs this for 'objectsById' stuff.
+    id = serializers.IntegerField(read_only = True, source='derived_sample.id')
+
+    # Return the id of the pool containing this sample. This allows api clients to request
+    # a list of samples from multiple pools and then group them by pool on the client side.
+    pooled_sample_id = serializers.IntegerField(read_only=True, source='sample.id')
+
+    volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+
+    # Associated project info
+    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
+    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    
+    # Sample info
+    alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
+    collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
+    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
+    individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
+    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
+    parent_sample_id = serializers.SerializerMethodField(read_only=True)
+    parent_sample_name = serializers.SerializerMethodField(read_only=True)
+    sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
+
+    # Library info
+    index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
+    index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
+    index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
+    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
+    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
+    strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+
+    class Meta:
+        model = DerivedBySample
+        fields = [
+            'alias', 
+            'collection_site',
+            'experimental_groups',
+            'id', 
+            'index_id',
+            'index_set',
+            'index',
+            'individual_id',
+            'individual_name',
+            'library_size',
+            'library_type', 
+            'parent_sample_id', 
+            'parent_sample_name', 
+            'platform',
+            'project_id', 
+            'project_name', 
+            'sample_kind'
+            'strandedness',
+            'volume_ratio', 
+            ]
+
+    # Finds the id of the parent sample from which this pooled sample was derived. For example, if this
+    # pool member is from a library then it returns the id of the library sample. 
+    def get_parent_sample_id(self, obj):
+        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return parent_sample.first().id if parent_sample else None
+
+    # Finds the id of the parent sample from which this pooled sample was derived.
+    def get_parent_sample_name(self, obj):
+        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
+        return parent_sample.first().name if parent_sample else None
+

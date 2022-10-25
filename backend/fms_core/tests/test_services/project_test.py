@@ -34,7 +34,6 @@ class ProjectServicesTestCase(TestCase):
 
         self.assertEqual(project, None)
         self.assertTrue("name" in errors[0])
-        print(errors)
 
     def test_create_project_invalid_status(self):
         project, errors, warnings = create_project(name=self.valid_project_name,

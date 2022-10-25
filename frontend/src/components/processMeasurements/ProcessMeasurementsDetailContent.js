@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Descriptions, Typography, Tabs } from "antd";
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -14,13 +13,13 @@ import { listPropertyValues } from "../../modules/experimentRuns/actions";
 import { withSample } from "../../utils/withItem";
 import { get } from "../../modules/processMeasurements/actions";
 import AllProcessProperties from "../shared/AllProcessProperties";
+import useHashURL from "../../hooks/useHashURL";
 
 const mapStateToProps = state => ({
   processMeasurementsByID: state.processMeasurements.itemsByID,
   propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
   samplesByID: state.samples.itemsByID,
-  usersByID: state.users.itemsByID,
 });
 
 const actionCreators = { get, listPropertyValues };
@@ -30,12 +29,11 @@ const ProcessMeasurementsDetailContent = ({
   propertyValuesByID,
   protocolsByID,
   samplesByID,
-  usersByID,
   get,
   listPropertyValues
 }) => {
-  const history = useNavigate();
   const { id } = useParams();
+  const [activeKey, setActiveKey] = useHashURL('overview')
   const isLoaded = id in processMeasurementsByID;
   const processMeasurement = processMeasurementsByID[id] || {};
   const propertiesAreLoaded = processMeasurement?.properties?.every(property => property in propertyValuesByID)
@@ -58,8 +56,8 @@ const ProcessMeasurementsDetailContent = ({
   return <>
     <AppPageHeader title={title} />
     <PageContent loading={isLoading}>
-      <Tabs defaultActiveKey="1" size="large" type="card">
-        <TabPane tab="Overview" key="1" style={{ marginTop: 8 }}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card">
+        <TabPane tab="Overview" key="overview" style={{ marginTop: 8 }}>
           <Descriptions bordered={true} size="small" column={4}>
             <Descriptions.Item label="Protocol" span={4}>{protocolsByID[processMeasurement.protocol]?.name}</Descriptions.Item>
             <Descriptions.Item label="Applied To Sample" span={2}>
@@ -80,7 +78,7 @@ const ProcessMeasurementsDetailContent = ({
           </Descriptions>
           <TrackingFieldsContent entity={processMeasurement} />
         </TabPane>
-        <TabPane tab="Properties" key="2" style={{ marginTop: 8 }}>
+        <TabPane tab="Properties" key="properties" style={{ marginTop: 8 }}>
           <Title level={3} style={{ marginTop: '20px' }}>Shared Process Properties</Title>
           {processMeasurement?.process && <AllProcessProperties id={processMeasurement?.process} />}
           <Title level={3} style={{ marginTop: '20px' }}>Sample Process Properties</Title>

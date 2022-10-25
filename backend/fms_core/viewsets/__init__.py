@@ -27,6 +27,7 @@ from .sample_lineage import SampleLineageViewSet
 from .imported_file import ImportedFileViewSet
 from .dataset import DatasetViewSet
 from .dataset_file import DatasetFileViewSet
+from .sample_pooled import PooledSamplesViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -57,5 +58,6 @@ __all__ = [
     "ImportedFileViewSet",
     "SampleLineageViewSet",
     "DatasetViewSet",
-    "DatasetFileViewSet"
+    "DatasetFileViewSet",
+    "PooledSamplesViewSet"
 ]

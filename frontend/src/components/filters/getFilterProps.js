@@ -344,7 +344,7 @@ function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
-  const minValue = value && nullize(value.min) && moment(value.min) 
+  const minValue = value && nullize(value.min) && moment(value.min)
   const maxValue = value && nullize(value.max) && moment(value.max)
 
   const dateRangeRef = useRef()

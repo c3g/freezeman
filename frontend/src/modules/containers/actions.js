@@ -16,7 +16,6 @@ export const LIST = createNetworkActionTypes("CONTAINERS.LIST");
 export const LIST_TABLE = createNetworkActionTypes("CONTAINERS.LIST_TABLE");
 export const LIST_PARENTS = createNetworkActionTypes("CONTAINERS.LIST_PARENTS");
 export const LIST_CHILDREN = createNetworkActionTypes("CONTAINERS.LIST_CHILDREN");
-export const LIST_SAMPLES = createNetworkActionTypes("CONTAINERS.LIST_SAMPLES");
 export const LIST_KINDS = createNetworkActionTypes("CONTAINERS.LIST_KINDS");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("CONTAINERS.LIST_TEMPLATE_ACTIONS");
 export const LIST_PREFILL_TEMPLATES = createNetworkActionTypes("CONTAINERS.LIST_PREFILL_TEMPLATES");
@@ -124,17 +123,6 @@ export const listChildren = (id, excludes = []) => async (dispatch, getState) =>
     ));
 };
 
-export const listSamples = (id) => async (dispatch, getState) => {
-    const container = getState().containers.itemsByID[id];
-    if (!container || container.isFetching) return;
-
-    return await dispatch(networkAction(
-        LIST_SAMPLES,
-        api.containers.listSamples(id),
-        { meta: { id, samples: container.samples } }
-    ));
-};
-
 export const listKinds = () => async (dispatch, getState) => {
     // Check if we're already fetching or have fetched container kinds first (they won't change dynamically.)
     if (getState().containerKinds.isFetching || getState().containerKinds.items.length > 0)
@@ -167,7 +155,6 @@ export default {
     LIST_TABLE,
     LIST_PARENTS,
     LIST_CHILDREN,
-    LIST_SAMPLES,
     LIST_KINDS,
     LIST_TEMPLATE_ACTIONS,
     LIST_PREFILL_TEMPLATES,
@@ -183,7 +170,6 @@ export default {
     listTable,
     listParents,
     listChildren,
-    listSamples,
     listKinds,
     listTemplateActions,
     listPrefillTemplates,
