@@ -20,12 +20,12 @@ from fms_core.services.sample import create_full_sample
 class SamplePoolingTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SamplePoolingImporter()
-        self.file = APP_DATA_ROOT / "Sample_pooling_v3_12_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_pooling_v3_13_0.xlsx"
 
-        self.invalid_template_tests = [#"Sample_pooling_v3_12_0_different_individuals.xlsx",
-                                       #"Sample_pooling_v3_12_0_different_kinds.xlsx",
-                                       #"Sample_pooling_v3_12_0_different_types.xlsx",
-                                       "Sample_pooling_v3_12_0_missing_library_size.xlsx"]
+        self.invalid_template_tests = ["Sample_pooling_v3_13_0_different_individuals.xlsx",
+                                       "Sample_pooling_v3_13_0_different_kinds.xlsx",
+                                       "Sample_pooling_v3_13_0_different_types.xlsx",
+                                       "Sample_pooling_v3_13_0_missing_library_size.xlsx"]
 
         self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
         self.RNA_sample_kind, _ = SampleKind.objects.get_or_create(name="RNA")
