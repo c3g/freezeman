@@ -112,7 +112,7 @@ class NormalizationTestCase(TestCase):
                             # First library
                             self.assertEqual(csv_content[1][0], "Dil1")
                             self.assertEqual(csv_content[1][1], "1")
-                            self.assertEqual(csv_content[1][2], "11.381")
+                            self.assertEqual(csv_content[1][2], "11.382")
                             # Second library
                             self.assertEqual(csv_content[2][0], "Dil1")
                             self.assertEqual(csv_content[2][1], "2")
@@ -136,7 +136,7 @@ class NormalizationTestCase(TestCase):
                             self.assertEqual(csv_content[1][2], "1")
                             self.assertEqual(csv_content[1][3], "Dil1")
                             self.assertEqual(csv_content[1][4], "1")
-                            self.assertEqual(csv_content[1][5], "38.619")
+                            self.assertEqual(csv_content[1][5], "38.618")
                             # Second library
                             self.assertEqual(csv_content[2][0], "SRC_PLATE_NORM")
                             self.assertEqual(csv_content[2][1], "Source1")

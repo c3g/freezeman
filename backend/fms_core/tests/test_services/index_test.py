@@ -81,16 +81,16 @@ class IndexServicesTestCase(TestCase):
         test_single_value = ["CGTTTTATA"]
         test_multi_values = ["AGTCTTTCAG", "AGCCCCCAG", "AGTGGTACAG"] # To test index pool
         # test
-        links_3prime_1, errors, warnings = create_indices_5prime_by_sequence(index_1, test_single_value)
+        links_5prime_1, errors, warnings = create_indices_5prime_by_sequence(index_1, test_single_value)
         self.assertFalse(errors)
         self.assertFalse(warnings)
-        for link in links_3prime_1:
+        for link in links_5prime_1:
             self.assertEqual(link.index, index_1)
             self.assertIn(link.sequence.value, test_single_value)
-        links_3prime_2, errors, warnings = create_indices_5prime_by_sequence(index_2, test_multi_values)
+        links_5prime_2, errors, warnings = create_indices_5prime_by_sequence(index_2, test_multi_values)
         self.assertFalse(errors)
         self.assertFalse(warnings)
-        for link in links_3prime_2:
+        for link in links_5prime_2:
             self.assertEqual(link.index, index_2)
             self.assertIn(link.sequence.value, test_multi_values)
 
@@ -120,10 +120,7 @@ class IndexServicesTestCase(TestCase):
                                                      length_5_prime=10,
                                                      length_3_prime=10,
                                                      threshold=1)
-        print(results["distances"])
-        print(errors)
-        print(warnings)
         self.assertTrue(results["is_valid"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
-                         
+        

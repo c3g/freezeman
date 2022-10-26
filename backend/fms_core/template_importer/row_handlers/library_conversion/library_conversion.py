@@ -53,7 +53,7 @@ class LibraryRowHandler(GenericRowHandler):
                 # Retrieve process
                 process_obj = process_by_protocol[protocol.id]
 
-                library_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
+                sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
                     convert_library(process=process_obj,
                                     platform=library_info['platform'],
                                     sample_source=sample_source_obj,

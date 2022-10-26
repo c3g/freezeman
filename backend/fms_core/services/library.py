@@ -150,7 +150,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
         except Exception as e:
             errors.append(e)
 
-    return library_destination, errors, warnings
+    return sample_destination, errors, warnings
 
 
 def update_library(derived_sample, **kwargs):
@@ -236,7 +236,7 @@ def convert_library_concentration_from_nm_to_ngbyul(source_sample, concentration
             else:
                 errors.append(f'Either library size or strandedness has not been set for this library.')
                 return None, errors, warnings
-        return final_concentration, errors, warnings
+        return decimal_rounded_to_precision(final_concentration), errors, warnings
     else:
         return None, errors, warnings
 
