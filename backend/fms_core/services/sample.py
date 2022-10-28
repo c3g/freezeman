@@ -444,22 +444,23 @@ def prepare_library(process: Process,
                     volume_destination=None,
                     comment=None):
     """
-             Converts a sample into a library or a pool of samples into a pool of libraries.
+    Converts a sample into a library or a pool of samples into a pool of libraries.
 
-             Args:
-                 `process`: Process associated to the protocol.
-                 `sample_source`: The source sample to be converted.
-                 `container_destination`: The final volume of the sample (uL).
-                 `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } containing a library for each derived sample of the source sample.
-                 `volume_used`: The source sample's volume ued for the process (uL).
-                 `execution_date`: The date of the process measurement.
-                 `coordinates_destination`: The coordinates of the sample destination.
-                 `volume_destination`: The final volume of the sample (uL).
-                 `comment`: Extra comments to attach to the process.
+    Args:
+        `process`: Process associated to the protocol.
+        `sample_source`: The source sample to be converted.
+        `container_destination`: The final volume of the sample (uL).
+        `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } 
+                                       containing a library for each derived sample of the source sample.
+        `volume_used`: The source sample's volume ued for the process (uL).
+        `execution_date`: The date of the process measurement.
+        `coordinates_destination`: The coordinates of the sample destination.
+        `volume_destination`: The final volume of the sample (uL).
+        `comment`: Extra comments to attach to the process.
 
-             Returns:
-                 The resulting sample or None if errors were encountered.
-        """
+    Returns:
+        The resulting sample or None if errors were encountered. Errors and warnings.
+    """
 
     sample_destination = None
     errors = []
@@ -574,6 +575,17 @@ def _process_sample(process,
 
 
 def update_qc_flags(sample, quantity_flag, quality_flag):
+    """
+    Set the quantity_flag and quality_flag to given values.
+
+    Args:
+      `sample`: Sample receiving the new flags.
+      `quantity_flag`: 'Passed' or 'Failed' values to set the quantity flag.
+      `quality_flag`: 'Passed' or 'Failed' values to set the quantity flag.
+      
+    Returns:
+      The updated sample, errors and warnings
+    """
     errors = []
     warnings = []
 
