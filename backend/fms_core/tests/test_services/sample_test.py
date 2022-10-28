@@ -1,16 +1,20 @@
+from curses import meta
 from django.test import TestCase
  
 import datetime
 from decimal import Decimal
 
 from fms_core.models import (SampleKind, Platform, Protocol, Taxon, LibraryType, Index, IndexStructure,
-                             Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage)
+                             Project, DerivedSample, DerivedBySample, ProcessMeasurement, SampleLineage,
+                             SampleMetadata)
 from fms_core.models._constants import DOUBLE_STRANDED, SINGLE_STRANDED
 
 from fms_core.services.sample import (create_full_sample, get_sample_from_container, update_sample,
                                       inherit_sample, transfer_sample, extract_sample, pool_samples,
                                       prepare_library, _process_sample, update_qc_flags, remove_qc_flags,
-                                      inherit_derived_sample)
+                                      add_sample_metadata, update_sample_metadata, remove_sample_metadata,
+                                      validate_normalization)
+from fms_core.services.derived_sample import inherit_derived_sample
 from fms_core.services.container import create_container, get_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.library import create_library
@@ -479,4 +483,111 @@ class SampleServicesTestCase(TestCase):
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
-        
+    def test_add_sample_metadata(self):
+        new_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                              volume=self.TEST_SAMPLES[0]["volume"],
+                                              concentration=self.TEST_SAMPLES[0]["concentration"],
+                                              collection_site=self.TEST_SAMPLES[0]["collection_site"],
+                                              creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                              container=self.TEST_SAMPLES[0]["container"],
+                                              coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                              individual=self.TEST_SAMPLES[0]["individual"],
+                                              sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                              library=self.TEST_SAMPLES[0]["library"])
+        metadata = {
+          "TestField1": "I am a potato.",
+          "TestField2": "You are a tomato.",
+          "PatatePoil": "Coucouroucuicui",
+        }
+        metadata_added, errors, warnings = add_sample_metadata(sample=new_sample, metadata=metadata)
+        self.assertEqual(metadata_added, metadata)
+        for metadata_field in new_sample.derived_samples.first().biosample.metadata.all():
+            self.assertEqual(metadata[metadata_field.name], metadata_field.value)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_update_sample_metadata(self):
+        new_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                              volume=self.TEST_SAMPLES[0]["volume"],
+                                              concentration=self.TEST_SAMPLES[0]["concentration"],
+                                              collection_site=self.TEST_SAMPLES[0]["collection_site"],
+                                              creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                              container=self.TEST_SAMPLES[0]["container"],
+                                              coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                              individual=self.TEST_SAMPLES[0]["individual"],
+                                              sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                              library=self.TEST_SAMPLES[0]["library"])
+        metadata = {
+          "TestField1": "I am a potato.",
+          "TestField2": "You are a tomato.",
+          "PatatePoil": "Coucouroukwikwi",
+        }
+        metadata_added, _, _ = add_sample_metadata(sample=new_sample, metadata=metadata)
+        self.assertEqual(metadata_added, metadata)
+        for metadata_field in new_sample.derived_samples.first().biosample.metadata.all():
+            self.assertEqual(metadata[metadata_field.name], metadata_field.value)
+        new_metadata = {
+          "TestField1": "I am a tomato.",
+          "TestField2": "You are a potato.",
+          "PatatePoil": "Coucouroukwakwa",
+        }
+        metadata_updated, errors, warnings = update_sample_metadata(sample=new_sample, metadata=new_metadata)
+        self.assertEqual(metadata_updated, new_metadata)
+        for metadata_field in new_sample.derived_samples.first().biosample.metadata.all():
+            self.assertEqual(new_metadata[metadata_field.name], metadata_field.value)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_delete_sample_metadata(self):
+        new_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                              volume=self.TEST_SAMPLES[0]["volume"],
+                                              concentration=self.TEST_SAMPLES[0]["concentration"],
+                                              collection_site=self.TEST_SAMPLES[0]["collection_site"],
+                                              creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                              container=self.TEST_SAMPLES[0]["container"],
+                                              coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                              individual=self.TEST_SAMPLES[0]["individual"],
+                                              sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                              library=self.TEST_SAMPLES[0]["library"])
+        metadata = {
+          "TestField1": "I am a potato.",
+          "TestField2": "You are a tomato.",
+          "PatatePoil": "Coucouroukwikwi",
+        }
+        metadata_added, _, _ = add_sample_metadata(sample=new_sample, metadata=metadata)
+        self.assertEqual(metadata_added, metadata)
+        for metadata_field in new_sample.derived_samples.first().biosample.metadata.all():
+            self.assertEqual(metadata[metadata_field.name], metadata_field.value)
+        delete_metadata = {
+          "PatatePoil": "Coucouroukwikwi",
+        }
+        deleted, errors, warnings = remove_sample_metadata(sample=new_sample, metadata=delete_metadata)
+        self.assertTrue(deleted)
+        self.assertFalse(SampleMetadata.objects.filter(biosample=new_sample.derived_samples.first().biosample, name="PatatePoil").exists())
+        for metadata_field in new_sample.derived_samples.first().biosample.metadata.all():
+            self.assertEqual(metadata[metadata_field.name], metadata_field.value)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_validate_normalization(self):
+        initial_volume = 100
+        initial_concentration = 10
+        final_volume = 200
+        desired_concentration_valid = 5
+        desired_concentration_invalid = 6
+        is_valid, errors, warnings = validate_normalization(initial_volume=initial_volume,
+                                                            initial_concentration=initial_concentration,
+                                                            final_volume=final_volume,
+                                                            desired_concentration=desired_concentration_valid,
+                                                            tolerance=0.01)
+        self.assertTrue(is_valid)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+        is_valid, errors, warnings = validate_normalization(initial_volume=initial_volume,
+                                                            initial_concentration=initial_concentration,
+                                                            final_volume=final_volume,
+                                                            desired_concentration=desired_concentration_invalid,
+                                                            tolerance=0.01)
+        self.assertFalse(is_valid)
+        self.assertTrue(errors)
+        self.assertFalse(warnings)
