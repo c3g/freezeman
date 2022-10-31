@@ -23,6 +23,16 @@ const getTableColumns = (sampleKinds) => {
             }               
         },
         {
+          title: "Parent Sample Name",
+          dataIndex: "parent_sample_name",
+          sorter: true,
+          render: (_, pooledSample) => {
+              return (
+                  <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.parent_sample_name}</Link>
+              )
+          }  
+        },
+        {
             title: "Alias",
             dataIndex: "alias",
             sorter: true,
