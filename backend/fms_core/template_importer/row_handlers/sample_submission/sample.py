@@ -179,5 +179,3 @@ class SampleRowHandler(GenericRowHandler):
             # Pool relation info
             "volume": sample['volume'],
         }
-
-

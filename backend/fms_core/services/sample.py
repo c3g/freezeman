@@ -460,7 +460,8 @@ def pool_submitted_samples(samples_info,
         pool_name: the name given to the pool by the user.
         container_destination: a container object that will receive the pool.
         coordinates_destination: the coordinate on the container where the pool is stored.
-        reception_date: The date which the pool was received .
+        reception_date: The date which the pool was received.
+        comment: Extra comments to attach to the pool.
 
     Returns:
         a tuple containing the following data.
@@ -504,13 +505,16 @@ def pool_submitted_samples(samples_info,
 
         if pool_sample_obj:
             for sample in samples_info:
+                if sample['library'] is None:
+                    errors.append(f"Library for sample {sample['alias']} is missing.")
+
                 volume_ratio = sample["volume_ratio"]
 
                 # Create Derived Samples and Biosamples for each sample
                 biosample_data = dict(
                     collection_site=sample['collection_site'],
                     **(dict(individual=sample['individual']) if sample['individual'] is not None else dict()),
-                    **(dict(alias=sample['alias']) if sample['alias'] is not None else dict()),
+                    **(dict(alias=sample['alias']) if sample['alias'] is not None else dict(alias=pool_name)),
                 )
 
                 try:
