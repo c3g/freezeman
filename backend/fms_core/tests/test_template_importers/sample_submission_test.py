@@ -37,21 +37,33 @@ class SampleSubmissionTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        sample_names = ['Sample_DNA1', 'Sample_RNA1', 'Sample_Blood1', 'Sample_Expectoration1',
-                        'Sample_gargle1', 'Sample_plasma1', 'Sample_saliva1', 'Library_pcr_free']
+        samples = [
+            {'name': 'Sample_DNA1', 'alias': 'DNA1_Alias'},
+            {'name': 'Sample_RNA1', 'alias': 'RNA1_Alias'},
+            {'name': 'Sample_Blood1', 'alias': 'Blood1_Alias'},
+            {'name': 'Sample_Expectoration1', 'alias': 'Expectoration1_Alias'},
+            {'name': 'Sample_gargle1', 'alias': ''},
+            {'name': 'Sample_plasma1', 'alias': ''},
+            {'name': 'Sample_saliva1', 'alias': ''},
+            {'name': 'Library_pcr_free', 'alias': ''}
+        ]
         individual_name = 'MrTest'
         individual_alias = 'MonsieurTest'
 
         self.assertTrue(Individual.objects.get(name=individual_name))
 
-        for sample_name in sample_names:
-            self.assertTrue(Sample.objects.filter(name=sample_name).exists())
+        for sample in samples:
+            self.assertTrue(Sample.objects.filter(name=sample['name']).exists())
 
-            sample = Sample.objects.get(name=sample_name)
-            derived_sample_id = DerivedBySample.objects.filter(sample_id=sample.id).first().derived_sample_id
+            sample_obj = Sample.objects.get(name=sample['name'])
+            derived_sample_id = DerivedBySample.objects.filter(sample_id=sample_obj.id).first().derived_sample_id
             biosample = DerivedSample.objects.get(id=derived_sample_id).biosample
             self.assertEqual(biosample.individual.name, individual_name)
             self.assertEqual(biosample.individual.alias, individual_alias)
+            if sample['alias']:
+                self.assertEqual(biosample.alias, sample['alias'])
+            else:
+                self.assertEqual(biosample.alias, sample['name'])
 
         # Verify the library is created
         library_derived_sample = Sample.objects.get(name='Library_pcr_free').derived_sample_not_pool
