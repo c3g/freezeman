@@ -19,12 +19,12 @@ from fms_core.services.index import get_or_create_index_set, create_index
 
 from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
-class NormalizationTestCase(TestCase):
+class NormalizationplanningTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = NormalizationPlanningImporter()
-        self.files = [APP_DATA_ROOT / "Normalization_planning_v3_12_0_Library.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v3_12_0_Sample_Tube.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v3_12_0_Sample_Plate.xlsx"]
+        self.files = [APP_DATA_ROOT / "Normalization_planning_v3_13_0_Library.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Tube.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Plate.xlsx"]
 
         self.prefill_data()
 

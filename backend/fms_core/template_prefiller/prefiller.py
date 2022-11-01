@@ -37,7 +37,7 @@ def PrefillTemplateFromDict(template, rows_dicts):
     It fetch a designated empty template using template_path.
     For each sheet, It loads data from a dictionary with format { column : value } for each row
     It used the template_info sheet info to locate and position the information in the excel workbook.
-    
+
     rows_dicts is a list of list of row dictionaries: one list for each sheet to prefill, one list for each row.
     The order of the dicts match the one from the template sheets_info.
     """

@@ -64,7 +64,7 @@ def is_container_valid_destination(barcode, coordinates=None, kind=None, name=No
                 errors.append(f"Parent container kind {container_parent.kind} requires that you provide coordinates.")
             elif container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates:
                 try:
-                    CONTAINER_KIND_SPECS[container_parent.kind].container_specs.validate_and_normalize_coordinates(parent_coordinates)
+                    CONTAINER_KIND_SPECS[container_parent.kind].validate_and_normalize_coordinates(parent_coordinates)
                 except:
                     errors.append(f"Container coordinates {parent_coordinates} are not valid for parent container kind {container_parent.kind}.")
             if container_parent and not CONTAINER_KIND_SPECS[container_parent.kind].can_hold_kind(kind):
@@ -76,19 +76,20 @@ def is_container_valid_destination(barcode, coordinates=None, kind=None, name=No
         if container_spec is None:
             errors.append(f"Provided container kind {kind} is not valid.")
         else:
-            try:
-                container_spec.validate_and_normalize_coordinates(coordinates)
-            except CoordinateError as err:
-                errors.append(f"Sample coordinates {coordinates} are not valid for container kind {kind}.")
-
-        if coordinates is None:
-            if container_spec and container_spec.requires_coordinates:
-                errors.append(f"Container coordinates are required for container kind {local_kind}.")
-            elif container and Sample.objects.filter(container=container).exists():
-                errors.append(f"Container {barcode} already contains a sample.")
-        else:
-            if container and Sample.objects.filter(container=container, coordinates=coordinates).exists():
-                errors.append(f"Container coordinates {barcode}@{coordinates} already contain a sample.")
+            if not container_spec.sample_holding:
+                errors.append(f"Container kind {local_kind} cannot hold samples.")
+            if coordinates is None:
+                if container_spec and container_spec.requires_coordinates:
+                    errors.append(f"Container coordinates are required for container kind {local_kind}.")
+                elif container and Sample.objects.filter(container=container).exists():
+                    errors.append(f"Container {barcode} already contains a sample.")
+            else:
+                try:
+                    container_spec.validate_and_normalize_coordinates(coordinates)
+                except CoordinateError as err:
+                    errors.append(f"Sample coordinates {coordinates} are not valid for container kind {kind}.")
+                if container and Sample.objects.filter(container=container, coordinates=coordinates).exists():
+                    errors.append(f"Container coordinates {barcode}@{coordinates} already contain a sample.")
     else:
         errors.append(f"Barcode is required for any container.")
 
