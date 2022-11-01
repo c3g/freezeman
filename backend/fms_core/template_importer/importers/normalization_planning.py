@@ -316,7 +316,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 else:
                     # Raise an error to prevent going forward
                     raise ValidationError(f"Pooling destination container need a container kind if it does not exist in Freezeman.")
-            
+
             # Add robot barcode to the rows_data
             output_row_data["Robot Destination Container"] = ROBOT_POOL_PREFIX + str(i)
             # Add robot dest coord to the rows_data
@@ -328,7 +328,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 coord_spec_by_barcode[barcode] = CONTAINER_KIND_SPECS[kind].coordinate_spec           
                 output_row_data["Robot Destination Coord"] = convert_to_numerical_robot_coord(CONTAINER_KIND_SPECS[kind].coordinate_spec,
                                                                                               output_row_data["Destination Container Coord"])
-                                                                                          
+
             mapping_pool_containers[output_row_data["Pool Name"]] = {
                 "Pool Destination Container": output_row_data["Robot Destination Container"],
                 "Pool Destination Coord": output_row_data["Robot Destination Coord"],

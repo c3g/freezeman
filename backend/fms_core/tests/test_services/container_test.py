@@ -157,7 +157,7 @@ class ContainerServicesTestCase(TestCase):
         # Test container that is not sample holding
         test_barcode = "BARCODECONTAINER1"
         shelve_empty_coordinates="A04"
-        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=shelve_empty_coordinates)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=empty_coordinate, kind=kind)
         self.assertEqual(is_valid, False)
 
         # Test not existing container without kind

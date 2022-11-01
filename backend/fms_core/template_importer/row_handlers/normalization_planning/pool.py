@@ -37,8 +37,8 @@ class PoolPlanningRowHandler(GenericRowHandler):
                                                                                                                pool_destination_container_dict['name'],
                                                                                                                pool_destination_container_dict['coordinates'],
                                                                                                                pool_container_parent_obj)
-            
-            if not self.errors:
+
+            if self.has_errors():
                 self.row_object = {
                     'Pool Name': pool['name'],
                     'Destination Container Barcode': pool['container']['barcode'],
@@ -50,6 +50,3 @@ class PoolPlanningRowHandler(GenericRowHandler):
                     'Destination Parent Container Barcode': pool['container']['parent_barcode'],
                     'Destination Parent Container Coord': pool['container']['coordinates'],
                 }
-
-
-       

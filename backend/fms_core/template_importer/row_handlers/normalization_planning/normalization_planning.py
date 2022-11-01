@@ -78,7 +78,6 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 na_qty = decimal.Decimal(measurements['na_quantity'])
                 combined_concentration_nguL = concentration_nguL
 
-
             # Ensure the destination container exist or has enough information to be created.
             destination_container_dict = destination_sample['container']
             parent_barcode = destination_container_dict['parent_barcode']
