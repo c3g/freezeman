@@ -1,12 +1,14 @@
 from django.test import TestCase
 
-from fms_core.services import container
-from fms_core.models import Container
+from fms_core.services import container, sample
+from fms_core.models import Container, SampleKind
 
 TEST_CONTAINERS = {"BARCODECONTAINER1": {"name":"CONTAINER1", "kind": "freezer rack 7x4", "location": "", "coordinates": ""},
                    "BARCODECONTAINER2": {"name":"CONTAINER2", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinates": "A01"},
                    "BARCODECONTAINER3": {"name":"CONTAINER3", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A01"},
-                   "BARCODECONTAINER8": {"name":"CONTAINER8", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinates": "A02"},}
+                   "BARCODECONTAINER8": {"name":"CONTAINER8", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinates": "A02"},
+                   "BARCODECONTAINER9": {"name":"CONTAINER9", "kind": "96-well plate", "location": "BARCODECONTAINER1", "coordinates": "A03"},}
+
 TEST_CONTAINERS_CREATION = {"BARCODECONTAINER4": {"name":"CONTAINER4", "kind": "tube", "location": "", "coordinates": ""},
                             "BARCODECONTAINER5": {"name":"CONTAINER5", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A02"},
                             "BARCODECONTAINER6": {"name":"CONTAINER6", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A03"},
@@ -25,6 +27,16 @@ class ContainerServicesTestCase(TestCase):
                                      kind=container["kind"],
                                      location=location,
                                      coordinates=container["coordinates"])
+        plate_container = Container.objects.get(barcode="BARCODECONTAINER9")
+        sample_kind_dna, _ = SampleKind.objects.get_or_create(name="DNA")
+        sample.create_full_sample(name="MrSample",
+                                  volume=1000,
+                                  concentration=10,
+                                  collection_site="Street",
+                                  creation_date="2022-02-10",
+                                  container=plate_container,
+                                  coordinates="A01",
+                                  sample_kind=sample_kind_dna,)
 
     def test_get_container(self):
         # Test existing container
@@ -123,61 +135,74 @@ class ContainerServicesTestCase(TestCase):
         self.assertEqual(error, [f"Parent container kind {location.kind} requires that you provide coordinates."])
         self.assertEqual(warning, [])
 
-    def test_is_container_valid(self):
+    def test_is_container_valid_destination(self):
         # Test existing container
-        test_barcode = "BARCODECONTAINER1"
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode)
+        test_barcode = "BARCODECONTAINER9"
+        empty_coordinate = "A02"
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=empty_coordinate)
         self.assertEqual(is_valid, True)
 
+        # Test existing container with occupied coordinates
+        test_barcode = "BARCODECONTAINER9"
+        occupied_coordinate = "A01"
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=occupied_coordinate)
+        self.assertEqual(is_valid, False)
+
         # Test existing container with wrong kind
-        test_barcode = "BARCODECONTAINER1"
+        test_barcode = "BARCODECONTAINER9"
         kind = "tube"
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode, kind=kind)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=empty_coordinate, kind=kind)
+        self.assertEqual(is_valid, False)
+
+        # Test container that is not sample holding
+        test_barcode = "BARCODECONTAINER1"
+        shelve_empty_coordinates="A04"
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, coordinates=shelve_empty_coordinates)
         self.assertEqual(is_valid, False)
 
         # Test not existing container without kind
-        test_barcode = "BARCODECONTAINER9"
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode)
+        test_barcode = "BARCODECONTAINER10"
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode)
         self.assertEqual(is_valid, False)
 
         # Test not existing container with kind
-        test_barcode = "BARCODECONTAINER9"
+        test_barcode = "BARCODECONTAINER10"
         kind = "tube"
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode, kind=kind)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode, kind=kind)
         self.assertEqual(is_valid, True)
 
         # Test not existing container with invalid parent (wrong kind)
-        test_barcode = "BARCODECONTAINER9"
+        test_barcode = "BARCODECONTAINER10"
         kind = "tube"
         parent_barcode = "BARCODECONTAINER1"
         coordinates="A01"
         parent_container = Container.objects.get(barcode=parent_barcode)
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
-                                                                kind=kind,
-                                                                coordinates=coordinates,
-                                                                container_parent=parent_container)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode,
+                                                                            kind=kind,
+                                                                            coordinates=coordinates,
+                                                                            container_parent=parent_container)
         self.assertEqual(is_valid, False)
 
         # Test not existing container with valid parent but missing coordinates
-        test_barcode = "BARCODECONTAINER9"
+        test_barcode = "BARCODECONTAINER10"
         kind = "tube"
         parent_barcode = "BARCODECONTAINER2"
         parent_container = Container.objects.get(barcode=parent_barcode)
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
-                                                                kind=kind,
-                                                                container_parent=parent_container)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode,
+                                                                            kind=kind,
+                                                                            container_parent=parent_container)
         self.assertEqual(is_valid, False)
 
         # Test not existing container with valid parent but bad coordinates
-        test_barcode = "BARCODECONTAINER9"
+        test_barcode = "BARCODECONTAINER10"
         kind = "tube"
         parent_barcode = "BARCODECONTAINER2"
         coordinates="Z01"
         parent_container = Container.objects.get(barcode=parent_barcode)
-        is_valid, error, warning = container.is_container_valid(barcode=test_barcode,
-                                                                kind=kind,
-                                                                coordinates=coordinates,
-                                                                container_parent=parent_container)
+        is_valid, error, warning = container.is_container_valid_destination(barcode=test_barcode,
+                                                                            kind=kind,
+                                                                            coordinates=coordinates,
+                                                                            container_parent=parent_container)
         self.assertEqual(is_valid, False)
 
     def test_rename_container(self):

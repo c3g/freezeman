@@ -193,14 +193,19 @@ NORMALIZATION_TEMPLATE = {
 }
 
 NORMALIZATION_PLANNING_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_12_0.xlsx")},
+  "identity": {"description": "Template to perform normalization planning", "file": static("submission_templates/Normalization_planning_v3_13_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Robot Norm Choice', 'Sample Name', 'Source Container Barcode', 'Source Container Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
-                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)'],
+                    'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
+      },
+      {
+        'name': 'Pools',
+        'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
+                    'Pool Parent Container Barcode', 'Pool Parent Container Coord'],
       },
   ],
   "prefill info": [
@@ -226,17 +231,18 @@ SAMPLE_METADATA_TEMPLATE = {
 }
 
 SAMPLE_POOLING_TEMPLATE = {
-  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_12_0.xlsx")},
+  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_13_0.xlsx")},
   "sheets info": [
       {
           "name": "SamplesToPool",
-          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",
-                      "Source Container Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
       },
       {
           "name": "Pools",
-          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name", "Destination Container Kind",
-                      "Destination Parent Container Barcode", "Destination Parent Container Coord",  "Pooling Date (YYYY-MM-DD)", "Comment"],
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
+                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
+                      "Pooling Date (YYYY-MM-DD)", "Comment"],
       },
   ],
   "prefill info": [

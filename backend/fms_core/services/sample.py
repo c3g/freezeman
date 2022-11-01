@@ -723,10 +723,3 @@ def validate_normalization(initial_volume, initial_concentration, final_volume, 
             is_valid = False
 
     return is_valid, errors, warnings
-
-
-
-
-
-
-
