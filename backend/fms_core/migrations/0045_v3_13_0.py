@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('fms_core', '0043_v3_12_0'),
+        ('fms_core', '0044_v3_12_0'),
     ]
 
     operations = [
