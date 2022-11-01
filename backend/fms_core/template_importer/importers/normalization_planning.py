@@ -162,7 +162,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             # Prepare the Pooling template
             if pools_mapping_rows:
-                pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [samplestopool_mapping_rows, updated_pool_mapping_rows])
+                pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [updated_pool_mapping_rows, samplestopool_mapping_rows])
                 pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
                 files_to_zip.append({'name': pooling_prefilled_template_name,
                                      'content': pooling_prefilled_template,})
