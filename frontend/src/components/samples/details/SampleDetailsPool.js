@@ -36,14 +36,7 @@ const getTableColumns = (sampleKinds) => {
             title: "Alias",
             dataIndex: "alias",
             sorter: true,
-            render: (_, pooledSample) => {
-                return (
-                    // The link points to the parent sample of the pooled derived sample, eg. the library
-                    // that was pooled.
-                    // TODO: https://206.12.92.46/issues/1295 (create separate parent sample column)
-                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.alias}</Link>
-                )
-            }  
+            render: (_, pooledSample) => <div>{pooledSample.alias}</div>
         },
         {
             title: "Volume Ratio",

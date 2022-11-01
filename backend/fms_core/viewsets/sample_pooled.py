@@ -6,7 +6,7 @@ from ._constants import (
 )
 from ._utils import _list_keys
 from fms_core.serializers import PooledSampleSerializer
-        
+from fms_core.filters import PooledSamplesFilter        
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
     '''
@@ -37,14 +37,15 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         parent_sample_name=Subquery(
             DerivedBySample.objects
             .filter(sample__parent_of=OuterRef("sample"))
-            .filter(derived_sample=OuterRef("pk"))
+            .filter(derived_sample=OuterRef("derived_sample"))
             .values_list("sample__name", flat=True)[:1]
         )
     )
-    
+
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
         *_list_keys(_pooled_sample_filterset_fields),
         "parent_sample_name"
     }
+    filter_class = PooledSamplesFilter
