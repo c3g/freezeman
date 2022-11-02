@@ -1,13 +1,12 @@
-from django.db.models import BooleanField, F, Q, When, Count, Case
-from rest_framework import viewsets, serializers
-from rest_framework.exceptions import APIException
+from django.db.models import BooleanField, When, Count, Case, Subquery, OuterRef
+from rest_framework import viewsets
 from fms_core.models import DerivedBySample, Sample
 from ._constants import (
     _pooled_sample_filterset_fields,
 )
 from ._utils import _list_keys
 from fms_core.serializers import PooledSampleSerializer
-        
+from fms_core.filters import PooledSamplesFilter        
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
     '''
@@ -33,10 +32,29 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         output_field=BooleanField()
     )).distinct()
     queryset = queryset.filter(is_pooled=True)
-    
+
+    queryset = queryset.annotate(
+        parent_sample_name=Subquery(
+            DerivedBySample.objects
+            .filter(sample__parent_of=OuterRef("sample"))
+            .filter(derived_sample=OuterRef("derived_sample"))
+            .values_list("sample__name", flat=True)[:1]
+        )
+    )
+
+    queryset = queryset.annotate(
+        parent_sample_id=Subquery(
+            DerivedBySample.objects
+            .filter(sample__parent_of=OuterRef("sample"))
+            .filter(derived_sample=OuterRef("derived_sample"))
+            .values_list("sample__id", flat=True)[:1]
+        )
+    )
+
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
         *_list_keys(_pooled_sample_filterset_fields),
+        "parent_sample_name"
     }
-
+    filter_class = PooledSamplesFilter
