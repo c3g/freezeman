@@ -7,6 +7,8 @@ from ._constants import (
 )
 from ._utils import _list_keys
 from fms_core.serializers import PooledSampleSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
         
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
@@ -39,4 +41,9 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
     ordering_fields = {
         *_list_keys(_pooled_sample_filterset_fields),
     }
+
+    @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        serializer = PooledSampleSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        return Response(serializer.data)
 

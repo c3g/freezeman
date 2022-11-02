@@ -9,7 +9,11 @@ import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPool
 import usePaginatedList from '../../../hooks/usePaginatedList'
 import { Button, Tag } from 'antd'
 import { Link } from 'react-router-dom'
+import ExportButton from '../../ExportButton';
+import api from '../../../utils/api'
+import { withToken } from '../../../utils/api'
 
+import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
 const getTableColumns = (sampleKinds) => {
     return [
@@ -143,7 +147,7 @@ const PooledSamples = ({sample: pool}) => {
     const flushStateCallback = useCallback(() => {
         dispatch(flushState())
     })
-
+ 
     useEffect(() => {
         // Set the id of the pool that is displayed by this component.
         // This must be called before any data is loaded.
@@ -192,6 +196,24 @@ const PooledSamples = ({sample: pool}) => {
         onChangeSort: setSortByCallback
     })
 
+    const token = useSelector(state => state.auth.tokens.access)
+
+    const listExport = () => {
+        // The sample__id filter is a fixed filter containing the pool id. It is not user-editable,
+        // and is not contained in 'filters'. It has to be added explicitly to the list of filters
+        // before sending the export request, as it specifies which pool we want to export.
+        const filtersWithSampleId = {
+            ...filters,
+            sample__id : {value: pool.id}
+        }
+        let queryParams = mergedListQueryParams(POOLED_SAMPLES_FILTERS, filtersWithSampleId, sortBy)
+
+        return  withToken(token, api.pooledSamples.listExport)
+                    (queryParams)
+                    .then(response => response.data)
+    }
+   
+
     return (
     <>
         <div style={{ textAlign: 'right', marginBottom: '1em' }}>
@@ -207,6 +229,7 @@ const PooledSamples = ({sample: pool}) => {
             >
                 Clear Filters
             </Button>
+            <ExportButton exportFunction={listExport} filename={'pooled_samples'} itemsCount={totalCount}/>
         </div>
         <PaginatedList {...paginatedListProps}/>        
     </>
