@@ -61,6 +61,14 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         "parent_sample_name"
     }
 
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            fields = PooledSampleSerializer.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        return context
+
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
         serializer = PooledSampleSerializer(self.filter_queryset(self.get_queryset()), many=True)

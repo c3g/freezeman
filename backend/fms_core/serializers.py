@@ -543,25 +543,25 @@ class PooledSampleSerializer(serializers.Serializer):
     class Meta:
         model = DerivedBySample
         fields = [
-            'alias', 
-            'collection_site',
-            'experimental_groups',
             'id', 
+            'alias',
+            'parent_sample_id', 
+            'parent_sample_name', 
+            'volume_ratio', 
+            'library_size',
+            'library_type', 
+            'platform',
             'index_id',
             'index_set',
             'index',
+            'strandedness',
+            'sample_kind',
+            'collection_site',
+            'experimental_groups',
             'individual_id',
             'individual_name',
-            'library_size',
-            'library_type', 
-            'parent_sample_id', 
-            'parent_sample_name', 
-            'platform',
             'project_id', 
             'project_name', 
-            'sample_kind'
-            'strandedness',
-            'volume_ratio', 
             ]
 
 
