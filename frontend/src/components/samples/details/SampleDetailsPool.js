@@ -158,7 +158,7 @@ const PooledSamples = ({sample: pool}) => {
     // Force the initial page load
     useEffect(() => {
         dispatchListTable({})
-    }, [pool])
+    }, [pool.id])   // Depend on pool.id, and not just 'pool'. The `isFetching` flag in the pool changes multiple times on load.
     
     const samples = useSelector((state) => state.pooledSamples.items)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)

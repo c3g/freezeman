@@ -42,6 +42,15 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         )
     )
 
+    queryset = queryset.annotate(
+        parent_sample_id=Subquery(
+            DerivedBySample.objects
+            .filter(sample__parent_of=OuterRef("sample"))
+            .filter(derived_sample=OuterRef("derived_sample"))
+            .values_list("sample__id", flat=True)[:1]
+        )
+    )
+
     serializer_class = PooledSampleSerializer
     filterset_fields = _pooled_sample_filterset_fields
     ordering_fields = {
