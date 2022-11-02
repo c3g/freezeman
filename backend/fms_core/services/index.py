@@ -60,7 +60,7 @@ def create_index(index_name, index_structure, index_set=None):
 
 
 def create_indices_3prime_by_sequence(index, index_3prime):
-    indices_3prime_by_sequence = None
+    indices_3prime_by_sequence = []
     errors = []
     warnings = []
 
@@ -77,7 +77,7 @@ def create_indices_3prime_by_sequence(index, index_3prime):
 
         if sequence:
             try:
-                indices_3prime_by_sequence = SequenceByIndex3Prime.objects.create(index=index, sequence=sequence)
+                indices_3prime_by_sequence.append(SequenceByIndex3Prime.objects.create(index=index, sequence=sequence))
             except ValidationError as e:
                 errors.append(';'.join(e.messages))
 
@@ -85,7 +85,7 @@ def create_indices_3prime_by_sequence(index, index_3prime):
 
 
 def create_indices_5prime_by_sequence(index, index_5prime):
-    indices_5prime_by_sequence = None
+    indices_5prime_by_sequence = []
     errors = []
     warnings = []
 
@@ -102,7 +102,7 @@ def create_indices_5prime_by_sequence(index, index_5prime):
 
         if sequence:
             try:
-                indices_5prime_by_sequence = SequenceByIndex5Prime.objects.create(index=index, sequence=sequence)
+                indices_5prime_by_sequence.append(SequenceByIndex5Prime.objects.create(index=index, sequence=sequence))
             except ValidationError as e:
                 errors.append(';'.join(e.messages))
 
