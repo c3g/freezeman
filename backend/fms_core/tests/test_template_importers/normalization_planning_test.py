@@ -26,9 +26,9 @@ class NormalizationplanningTestCase(TestCase):
                       APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Tube.xlsx",
                       APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Plate.xlsx"]
 
-        self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": "ACTTTGTC", "sequence_5_prime": "CAGGTGTC"},
-                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002", "sequence_3_prime": "AGGTAGTC", "sequence_5_prime": "CAGGTGTC"},
-                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": "ACAATGTC", "sequence_5_prime": "CAGGTGTC"},]
+        self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": ["ACAAAGTC"], "sequence_5_prime": ["CAGGTGTC"]},
+                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002", "sequence_3_prime": ["ACTTTGTC"], "sequence_5_prime": ["CAGGTGTC"]},
+                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": ["ACAATGTC"], "sequence_5_prime": ["CAGGTGTC"]},]
 
         self.prefill_data()
 

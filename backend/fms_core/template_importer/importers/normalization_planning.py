@@ -131,13 +131,16 @@ class NormalizationPlanningImporter(GenericImporter):
                 pool=pool,
                 seq_instrument_type=str_cast_and_normalize(row_data["Seq Instrument Type"])
             )
-            pools_mapping_rows.append(pool_row_mapping)
+            if pool_row_mapping is not None:
+                pools_mapping_rows.append(pool_row_mapping)
+            else:
+                self.base_errors.append(f"Fix pool errors to complete planning.")
 
         # Make sure all the normalization choices and formats for outputs are the same
         if len(set(norm_choice)) != 1:
             self.base_errors.append(f"All Robot norm choices need to be identical.")
 
-        if not self.dry_run:
+        if not self.dry_run and not self.base_errors:
             # Create robot file using both the input from the normalization sheet and the pools sheet.
             robot_files, updated_norm_mapping_rows, updated_pool_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, pools_mapping_rows, norm_choice[0])
             samplestopool_mapping_rows = []

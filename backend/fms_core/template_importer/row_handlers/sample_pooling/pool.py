@@ -65,7 +65,7 @@ class PoolsRowHandler(GenericRowHandler):
                     for i, index_ref in enumerate(indices):
                         for j, index_val in enumerate(indices):
                             index_distance = results["distances"][i][j]
-                            if index_distance is not None and any(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
+                            if index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
                                 index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
                                                       f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
                     self.warnings["index_colision"] = index_warnings

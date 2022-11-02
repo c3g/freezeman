@@ -63,12 +63,12 @@ class PoolPlanningRowHandler(GenericRowHandler):
                     for i, index_ref in enumerate(indices):
                         for j, index_val in enumerate(indices):
                             index_distance = results["distances"][i][j]
-                            if index_distance is not None and any(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
+                            if index_distance is not None and all(map(lambda x: x <= INDEX_COLLISION_THRESHOLD, index_distance)):
                                 index_errors.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
                                                     f"Index {index_val.name} for sample {samples_name[j]} are not different "
                                                     f"for index validation length ({results['validation_length_3prime']}, "
-                                                    f"{results['validation_length_5prime']}")
-                    self.errors["index_colision"] = index_errors
+                                                    f"{results['validation_length_5prime']}).")
+                    self.errors["index_collision"] = index_errors
                 else:
                   # Verify then for near near collision for distances not higher than the default threshold (raise warning in this case)
                   is_valid, collisions = validate_distance_matrix(results["distances"], DEFAULT_INDEX_VALIDATION_THRESHOLD)
@@ -78,8 +78,9 @@ class PoolPlanningRowHandler(GenericRowHandler):
                           index_distance = results["distances"][i][j]
                           index_warnings.append(f"Index {indices[i].name} for sample {samples_name[i]} and "
                                                 f"Index {indices[j].name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                      self.warnings["index_collision"] = index_warnings
 
-            if self.has_errors():
+            if not self.has_errors():
                 self.row_object = {
                     'Pool Name': pool['name'],
                     'Destination Container Barcode': pool['container']['barcode'],
