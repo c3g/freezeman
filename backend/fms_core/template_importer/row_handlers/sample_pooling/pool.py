@@ -58,16 +58,17 @@ class PoolsRowHandler(GenericRowHandler):
                     for derived_sample in sample["Source Sample"].derived_samples.all():
                         indices.append(derived_sample.library.index)
                         samples_name.append(sample_name)
-                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj,threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
-                index_warnings = []
+                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
+
                 if not results["is_valid"]:
+                    index_warnings = []
                     for i, index_ref in enumerate(indices):
                         for j, index_val in enumerate(indices):
                             index_distance = results["distances"][i][j]
-                            if index_distance is not None and any(map(lambda x: x < DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
+                            if index_distance is not None and any(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
                                 index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
                                                       f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
-                self.warnings["index_colision"] = index_warnings
+                    self.warnings["index_colision"] = index_warnings
 
             # Create a process for each pool created
             process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,

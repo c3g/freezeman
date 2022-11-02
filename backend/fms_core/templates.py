@@ -205,7 +205,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       {
         'name': 'Pools',
         'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
-                    'Pool Parent Container Barcode', 'Pool Parent Container Coord'],
+                    'Pool Parent Container Barcode', 'Pool Parent Container Coord', 'Seq Instrument Type'],
       },
   ],
   "prefill info": [

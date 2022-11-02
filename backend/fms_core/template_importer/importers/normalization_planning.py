@@ -129,6 +129,7 @@ class NormalizationPlanningImporter(GenericImporter):
                 row_i=row_id,
                 samples_info=pools_dict.get(pool["name"], None),
                 pool=pool,
+                seq_instrument_type=str_cast_and_normalize(row_data["Seq Instrument Type"])
             )
             pools_mapping_rows.append(pool_row_mapping)
 
