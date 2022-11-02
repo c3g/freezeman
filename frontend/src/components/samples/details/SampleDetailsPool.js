@@ -27,17 +27,20 @@ const getTableColumns = (sampleKinds) => {
             }               
         },
         {
+          title: "Parent Sample Name",
+          dataIndex: "parent_sample_name",
+          sorter: true,
+          render: (_, pooledSample) => {
+              return (
+                  <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.parent_sample_name}</Link>
+              )
+          }  
+        },
+        {
             title: "Alias",
             dataIndex: "alias",
             sorter: true,
-            render: (_, pooledSample) => {
-                return (
-                    // The link points to the parent sample of the pooled derived sample, eg. the library
-                    // that was pooled.
-                    // TODO: https://206.12.92.46/issues/1295 (create separate parent sample column)
-                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.alias}</Link>
-                )
-            }  
+            render: (_, pooledSample) => <div>{pooledSample.alias}</div>
         },
         {
             title: "Volume Ratio",
@@ -159,7 +162,7 @@ const PooledSamples = ({sample: pool}) => {
     // Force the initial page load
     useEffect(() => {
         dispatchListTable({})
-    }, [pool])
+    }, [pool.id])   // Depend on pool.id, and not just 'pool'. The `isFetching` flag in the pool changes multiple times on load.
     
     const samples = useSelector((state) => state.pooledSamples.items)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)

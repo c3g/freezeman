@@ -527,8 +527,8 @@ class PooledSampleSerializer(serializers.Serializer):
     experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
     individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
-    parent_sample_id = serializers.SerializerMethodField(read_only=True)
-    parent_sample_name = serializers.SerializerMethodField(read_only=True)
+    parent_sample_id = serializers.CharField(read_only=True)
+    parent_sample_name = serializers.CharField(read_only=True)
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
 
     # Library info
@@ -564,14 +564,4 @@ class PooledSampleSerializer(serializers.Serializer):
             'volume_ratio', 
             ]
 
-    # Finds the id of the parent sample from which this pooled sample was derived. For example, if this
-    # pool member is from a library then it returns the id of the library sample. 
-    def get_parent_sample_id(self, obj):
-        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
-        return parent_sample.first().id if parent_sample else None
-
-    # Finds the id of the parent sample from which this pooled sample was derived.
-    def get_parent_sample_name(self, obj):
-        parent_sample = Sample.objects.filter(parent_of=obj.sample.id, derived_samples=obj.derived_sample.id)
-        return parent_sample.first().name if parent_sample else None
 

@@ -139,3 +139,16 @@ class DatasetFilter(GenericFilter):
         model = Dataset
         fields = _dataset_filterset_fields
 
+class PooledSamplesFilter(GenericFilter):
+    parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")
+    parent_sample_name__startswith = django_filters.CharFilter(method="parent_sample_name_exact_filter")
+
+    def parent_sample_name_filter(self, queryset, name, value):
+        return queryset.filter(parent_sample_name__icontains=value)
+
+    def parent_sample_name_exact_filter(self, queryset, name, value):
+        return queryset.filter(parent_sample_name__startswith=value)
+
+    class Meta:
+        model = DerivedBySample
+        fields = _pooled_sample_filterset_fields
