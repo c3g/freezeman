@@ -39,7 +39,6 @@ class SampleSubmissionTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
@@ -74,7 +73,7 @@ class SampleSubmissionTestCase(TestCase):
         # Tests for the submitted pool
         pool_name = 'SubmittedPool'
         pooled_libraries_alias = ['Library_for_pool_1', 'Library_for_pool_2']
-        self.assertTrue(Sample.objects.filter(name=sample_name).exists())
+        self.assertTrue(Sample.objects.filter(name=pool_name).exists())
         pool = Sample.objects.get(name=pool_name)
         derived_by_samples = DerivedBySample.objects.filter(sample_id=pool.id)
         self.assertEqual(derived_by_samples.count(), 2)
