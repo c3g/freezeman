@@ -12,7 +12,7 @@ import { list as listProcesses } from "../../modules/processes/actions";
 import { withContainer } from "../../utils/withItem";
 import ProcessProperties from "../shared/ProcessProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
-
+import useHashURL from "../../hooks/useHashURL";
 
 const pageStyle = {
   padding: 0,
@@ -56,6 +56,7 @@ const ExperimentRunsDetailContent = ({
 }) => {
   const history = useNavigate();
   const { id } = useParams();
+  const [activeKey, setActiveKey] = useHashURL('overview')
 
   const experimentRun = experimentRunsByID[id] || {};
   const isFetching = !experimentRunsByID[id] || experimentRun.isFetching;
@@ -93,8 +94,8 @@ const ExperimentRunsDetailContent = ({
       />
 
       <PageContent loading={!isLoaded && isFetching} style={pageStyle} tabs={true}>
-        <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
-          <TabPane tab="Overview" key="1" style={tabStyle}>
+        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+          <TabPane tab="Overview" key="overview" style={tabStyle}>
             <Descriptions bordered={true} size="small">
               <Descriptions.Item label="ID" span={3}>
                 {experimentRun.id}
@@ -133,7 +134,7 @@ const ExperimentRunsDetailContent = ({
             <TrackingFieldsContent entity={experimentRun} />
           </TabPane>
 
-          <TabPane tab="Steps" key="2" style={tabStyle}>
+          <TabPane tab="Steps" key="steps" style={tabStyle}>
             <ProcessProperties
               propertyIDs={processesByID[experimentRun.process]?.children_properties}
               protocolName={protocolsByID[processesByID[experimentRun.process]?.protocol]?.name}
@@ -152,7 +153,7 @@ const ExperimentRunsDetailContent = ({
             }
           </TabPane>
 
-          <TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="3" style={tabStyle}>
+          <TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples" style={tabStyle}>
             <ExperimentRunsSamples container={container} experimentRun={experimentRun} />
           </TabPane>
 

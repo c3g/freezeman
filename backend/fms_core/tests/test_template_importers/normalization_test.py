@@ -15,7 +15,7 @@ from fms_core.services.platform import get_platform
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.index import get_or_create_index_set, create_index
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_rounded_to_precision
 
 class NormalizationTestCase(TestCase):
     def setUp(self) -> None:
@@ -147,10 +147,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs1.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm1.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm1.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm1.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm1.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm1.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm1.id)
 
         self.assertEqual(p_1.value, '4.000')
@@ -176,10 +176,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs2.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm2.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm2.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm2.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm2.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm2.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm2.id)
 
         self.assertEqual(p_1.value, '5.000')
@@ -205,14 +205,14 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs3.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm3.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm3.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm3.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm3.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm3.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm3.id)
 
         self.assertEqual(p_1.value, '5.000')
-        self.assertEqual(Decimal(p_2.value), convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150)))
+        self.assertEqual(Decimal(p_2.value), decimal_rounded_to_precision(convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150))))
 
         # Destination sample 4 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A04").exists())
@@ -234,10 +234,10 @@ class NormalizationTestCase(TestCase):
         self.assertEqual(cs4.creation_date, datetime.strptime("2022-07-05", "%Y-%m-%d").date())
 
         # Property Values tests
-        pt_1 = PropertyType.objects.get(name='Final Volume', object_id=pm4.process.protocol.id)
+        pt_1 = PropertyType.objects.get(name='Final Volume (uL)', object_id=pm4.process.protocol.id)
         p_1 = PropertyValue.objects.get(property_type_id=pt_1, object_id=pm4.id)
 
-        pt_2 = PropertyType.objects.get(name='Final Concentration', object_id=pm4.process.protocol.id)
+        pt_2 = PropertyType.objects.get(name='Final Concentration (ng/uL)', object_id=pm4.process.protocol.id)
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm4.id)
 
         self.assertEqual(p_1.value, '5.000')

@@ -7,24 +7,28 @@ from io import BytesIO
 from fms_core.template_importer.importers import NormalizationPlanningImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models._constants import DOUBLE_STRANDED, DSDNA_MW
+from fms_core.models._constants import DOUBLE_STRANDED
 
-from fms_core.models import Sample, SampleKind, ProcessMeasurement, SampleLineage, PropertyType, PropertyValue
+from fms_core.models import SampleKind
 
-from fms_core.services.container import get_or_create_container, create_container, get_container
+from fms_core.services.container import create_container, get_container
 from fms_core.services.sample import create_full_sample
 from fms_core.services.platform import get_platform
 from fms_core.services.library import get_library_type, create_library
-from fms_core.services.index import get_or_create_index_set, create_index
+from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
 
-class NormalizationTestCase(TestCase):
+class NormalizationplanningTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = NormalizationPlanningImporter()
-        self.files = [APP_DATA_ROOT / "Normalization_planning_v3_12_0_Library.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v3_12_0_Sample_Tube.xlsx",
-                      APP_DATA_ROOT / "Normalization_planning_v3_12_0_Sample_Plate.xlsx"]
+        self.files = [APP_DATA_ROOT / "Normalization_planning_v3_13_0_Library.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v3_13_0_Pool.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Tube.xlsx",
+                      APP_DATA_ROOT / "Normalization_planning_v3_13_0_Sample_Plate.xlsx"]
+
+        self.INDICES = [{"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001", "sequence_3_prime": "ACTTTGTC", "sequence_5_prime": "CAGGTGTC"},
+                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_002-IDT_10nt_UDI_i5_002", "sequence_3_prime": "AGGTAGTC", "sequence_5_prime": "CAGGTGTC"},
+                        {"index_set": "IDT_10nt_UDI_TruSeq_Adapter", "index_structure": "TruSeqHT", "index_name": "IDT_10nt_UDI_i7_003-IDT_10nt_UDI_i5_003", "sequence_3_prime": "ACAATGTC", "sequence_5_prime": "CAGGTGTC"},]
 
         self.prefill_data()
 
@@ -36,12 +40,17 @@ class NormalizationTestCase(TestCase):
         library_type, _, _ = get_library_type(name="PCR-free")
 
         # Create indices
-        (index_set, _, _, _) = get_or_create_index_set(set_name="IDT_10nt_UDI_TruSeq_Adapter")
-        (index_1, _, _) = create_index(index_set=index_set, index_structure="TruSeqHT",
-                                                      index_name="IDT_10nt_UDI_i7_001-IDT_10nt_UDI_i5_001")
+        indices = {}
+        for i, index in enumerate(self.INDICES):
+            (index_set, _, _, _) = get_or_create_index_set(set_name=index["index_set"])
+            (indices[i], _, _) = create_index(index_set=index_set, index_structure=index["index_structure"],
+                                              index_name=index["index_name"])
+            create_indices_3prime_by_sequence(indices[i], index["sequence_3_prime"])
+            create_indices_5prime_by_sequence(indices[i], index["sequence_5_prime"])
+
         libraries = [None] * 3
         for i, _ in enumerate(libraries):
-            libraries[i], _, _ = create_library(index=index_1,
+            libraries[i], _, _ = create_library(index=indices[i],
                                                 library_type=library_type,
                                                 platform=platform_illumina,
                                                 strandedness=DOUBLE_STRANDED,
@@ -112,7 +121,7 @@ class NormalizationTestCase(TestCase):
                             # First library
                             self.assertEqual(csv_content[1][0], "Dil1")
                             self.assertEqual(csv_content[1][1], "1")
-                            self.assertEqual(csv_content[1][2], "11.381")
+                            self.assertEqual(csv_content[1][2], "11.382")
                             # Second library
                             self.assertEqual(csv_content[2][0], "Dil1")
                             self.assertEqual(csv_content[2][1], "2")
@@ -136,7 +145,7 @@ class NormalizationTestCase(TestCase):
                             self.assertEqual(csv_content[1][2], "1")
                             self.assertEqual(csv_content[1][3], "Dil1")
                             self.assertEqual(csv_content[1][4], "1")
-                            self.assertEqual(csv_content[1][5], "38.619")
+                            self.assertEqual(csv_content[1][5], "38.618")
                             # Second library
                             self.assertEqual(csv_content[2][0], "SRC_PLATE_NORM")
                             self.assertEqual(csv_content[2][1], "Source1")
@@ -151,6 +160,26 @@ class NormalizationTestCase(TestCase):
                             self.assertEqual(csv_content[3][3], "Dil1")
                             self.assertEqual(csv_content[3][4], "3")
                             self.assertEqual(csv_content[3][5], "28.964")
+
+                        elif filename.find("Pooling_libraries_") != -1:
+                            # First library
+                            self.assertEqual(csv_content[1][0], "Dil1")
+                            self.assertEqual(csv_content[1][1], "1")
+                            self.assertEqual(csv_content[1][2], "Pools1")
+                            self.assertEqual(csv_content[1][3], "1")
+                            self.assertEqual(csv_content[1][4], "10.000")
+                            # Second library
+                            self.assertEqual(csv_content[2][0], "Dil1")
+                            self.assertEqual(csv_content[2][1], "2")
+                            self.assertEqual(csv_content[2][2], "Pools1")
+                            self.assertEqual(csv_content[2][3], "1")
+                            self.assertEqual(csv_content[2][4], "10.000")
+                            # Third library
+                            self.assertEqual(csv_content[3][0], "Dil1")
+                            self.assertEqual(csv_content[3][1], "3")
+                            self.assertEqual(csv_content[3][2], "Pools1")
+                            self.assertEqual(csv_content[3][3], "1")
+                            self.assertEqual(csv_content[3][4], "20.000")
 
                         elif filename.find("Normalization_samples_Janus") != -1:
                             # 0: robot_src_barcode

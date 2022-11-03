@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { connect } from "react-redux";
-import { useNavigate } from "react-router-dom";
 
 import { Typography, Card, Space, Popover, Button, Spin } from 'antd';
 
@@ -14,16 +13,15 @@ import { useResizeObserver } from "../../../utils/ref"
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
-  samplesByID: state.samples.itemsByID,
-  processMeasurementsByID: state.processMeasurements.itemsByID,
-  protocolsByID: state.protocols.itemsByID,
 });
+
 
 const SampleDetailsLineage = ({
   token,
   sample,
+  handleSampleClick, // Function to navigate to a sample in the graph
+  handleProcessClick // Function to navigate to a process details page
 }) => {
-  const history = useNavigate()
   const { ref: resizeRef, size: maxSize } = useResizeObserver(720, 720)
 
   const [graphData, setGraphData] = useState({ nodes: [], links: [] })
@@ -72,16 +70,18 @@ const SampleDetailsLineage = ({
   let dx = 0
   let dy = 0
   if (nodes.length > 0 && sample?.id !== undefined) {
-    const enclosedWidth = Math.max(...nodes.map((n) => n.x))
+    // Find the node that matches the current sample.
+    const currentNode = nodes.find((n) => n.id === sample.id.toString())
+    if (currentNode) {
+      const enclosedWidth = Math.max(...nodes.map((n) => n.x))
+      const { x: cx, y: cy } = currentNode
 
-    // find position of current node
-    const { x: cx, y: cy } = nodes.find((n) => n.id === sample.id.toString())
-
-    // if graph too wide
-    if (enclosedWidth > (graphSize.width - nodeSize.width)) {
-      dx = graphSize.width / 2 - cx
+        // if graph too wide
+      if (enclosedWidth > (graphSize.width - nodeSize.width)) {
+        dx = graphSize.width / 2 - cx
+      }
+      dy = (graphSize.height) / 2 - cy
     }
-    dy = (graphSize.height) / 2 - cy
   }
   const adjustedGraphData = {
     nodes: nodes.map((n) => ({
@@ -202,10 +202,19 @@ const SampleDetailsLineage = ({
                     id="graph-id"
                     data={adjustedGraphData}
                     config={graphConfig}
-                    onClickNode={(id, _) => history(`/samples/${id}`)}
+                    // tabPaneKey is used to generate a hash url for the lineage tab.
+                    // Without the hash url, clicking a node navigates the user to the Overview tab
+                    // rather than staying in the graph.
+                    onClickNode={(id, _) => {
+                      if (id && handleSampleClick) {
+                        handleSampleClick(id)
+                      }
+                    }}
                     onClickLink={(source, target) => {
                       const linkId = nodesToEdges[`${source}:${target}`].id
-                      history(`/process-measurements/${linkId}`)
+                      if (linkId && handleProcessClick) {
+                        handleProcessClick(linkId)
+                      }
                     }}
                   />
                 : <Spin size={"large"} />

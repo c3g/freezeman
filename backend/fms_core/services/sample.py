@@ -37,7 +37,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
         biosample_data = dict(
             collection_site=collection_site,
             **(dict(individual=individual) if individual is not None else dict()),
-            **(dict(alias=alias) if alias is not None else dict()),
+            **(dict(alias=alias) if alias else dict(alias=name)),
         )
 
         try:
@@ -393,17 +393,22 @@ def pool_samples(process: Process,
                 comment = sample["Comment"]
                 
                 # Create the DerivedToSample entries for the pool (flatten inherited derived samples and ratios)
-                derived_samples_destination = source_sample.derived_samples.all()
-                for derived_sample in derived_samples_destination:
+                for derived_sample in source_sample.derived_samples.all():
                     parent_volume_ratio = DerivedBySample.objects.get(sample=source_sample, derived_sample=derived_sample).volume_ratio
                     final_volume_ratio = decimal_rounded_to_precision(volume_ratio * parent_volume_ratio)
 
-                    try:
-                        DerivedBySample.objects.create(sample=sample_destination,
-                                                       derived_sample=derived_sample,
-                                                       volume_ratio=final_volume_ratio)
-                    except Exception as e:
-                        errors.append(e)
+                    # In case samples with common derived samples (transfer, normalization, pooling) are pooled together
+                    if DerivedBySample.objects.filter(sample=sample_destination, derived_sample=derived_sample).exists():
+                        shared_derived_by_sample = DerivedBySample.objects.get(sample=sample_destination, derived_sample=derived_sample)
+                        shared_derived_by_sample.volume_ratio = shared_derived_by_sample.volume_ratio + final_volume_ratio
+                        shared_derived_by_sample.save()
+                    else:
+                        try:  # catch duplicates integrity errors
+                            DerivedBySample.objects.create(sample=sample_destination,
+                                                          derived_sample=derived_sample,
+                                                          volume_ratio=final_volume_ratio)
+                        except Exception as e:
+                            errors.append(e)
 
             for sample in samples_info:
                 source_sample = sample["Source Sample"]
@@ -557,22 +562,23 @@ def prepare_library(process: Process,
                     volume_destination=None,
                     comment=None):
     """
-             Converts a sample into a library or a pool of samples into a pool of libraries.
+    Converts a sample into a library or a pool of samples into a pool of libraries.
 
-             Args:
-                 `process`: Process associated to the protocol.
-                 `sample_source`: The source sample to be converted.
-                 `container_destination`: The final volume of the sample (uL).
-                 `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } containing a library for each derived sample of the source sample.
-                 `volume_used`: The source sample's volume ued for the process (uL).
-                 `execution_date`: The date of the process measurement.
-                 `coordinates_destination`: The coordinates of the sample destination.
-                 `volume_destination`: The final volume of the sample (uL).
-                 `comment`: Extra comments to attach to the process.
+    Args:
+        `process`: Process associated to the protocol.
+        `sample_source`: The source sample to be converted.
+        `container_destination`: The final volume of the sample (uL).
+        `libraries_by_derived_sample`: A dictionary of the form { derived_sample_id : library_obj } 
+                                       containing a library for each derived sample of the source sample.
+        `volume_used`: The source sample's volume ued for the process (uL).
+        `execution_date`: The date of the process measurement.
+        `coordinates_destination`: The coordinates of the sample destination.
+        `volume_destination`: The final volume of the sample (uL).
+        `comment`: Extra comments to attach to the process.
 
-             Returns:
-                 The resulting sample or None if errors were encountered.
-        """
+    Returns:
+        The resulting sample or None if errors were encountered. Errors and warnings.
+    """
 
     sample_destination = None
     errors = []
@@ -687,6 +693,17 @@ def _process_sample(process,
 
 
 def update_qc_flags(sample, quantity_flag, quality_flag):
+    """
+    Set the quantity_flag and quality_flag to given values.
+
+    Args:
+      `sample`: Sample receiving the new flags.
+      `quantity_flag`: 'Passed' or 'Failed' values to set the quantity flag.
+      `quality_flag`: 'Passed' or 'Failed' values to set the quantity flag.
+      
+    Returns:
+      The updated sample, errors and warnings
+    """
     errors = []
     warnings = []
 
@@ -836,10 +853,3 @@ def validate_normalization(initial_volume, initial_concentration, final_volume, 
             is_valid = False
 
     return is_valid, errors, warnings
-
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Case, BooleanField, Prefetch
+from django.db.models import Q, When, Case, BooleanField, Prefetch, Count, Subquery, OuterRef
 from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
@@ -17,18 +17,44 @@ from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_
 from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
+from ._fetch_data import FetchSampleData
 from ._constants import _sample_filterset_fields
-from ._fetch_data import fetch_sample_data, fetch_export_sample_data
 from fms_core.filters import SampleFilter
 
-class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
+class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin, FetchSampleData):
     queryset = Sample.objects.select_related("container").all().distinct()
+     # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
+    derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
+    queryset = queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
+
     queryset = queryset.annotate(
         qc_flag=Case(
             When(Q(quality_flag=True) & Q(quantity_flag=True), then=True),
             When(Q(quality_flag=False) | Q(quantity_flag=False), then=False),
             default=None,
             output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(count_derived_samples=Count('derived_samples'))
+    queryset = queryset.annotate(
+        first_volume_ratio=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("volume_ratio", flat=True)[:1]
+        )
+    )
+    queryset = queryset.annotate(
+        is_pooled=Case(
+            When(Q(first_volume_ratio__lt=1) | Q(count_derived_samples__gt=1), then=True),
+            default=False,
+            output_field=BooleanField()
+        )
+    )
+    queryset = queryset.annotate(
+        first_derived_sample=Subquery(
+            DerivedBySample.objects
+            .filter(sample=OuterRef("pk"))
+            .values_list("derived_sample", flat=True)[:1]
         )
     )
     serializer_class = SampleSerializer
@@ -122,10 +148,6 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     ]
 
     def get_queryset(self):
-        # Select related models in derived sample beforehand to improve performance and prefetch then in sample queryset
-        derived_samples = DerivedSample.objects.all().select_related('biosample', 'biosample__individual')
-        self.queryset = self.queryset.prefetch_related(Prefetch('derived_samples', queryset=derived_samples))
-
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
         recursive = container_barcode or container_name
@@ -204,7 +226,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         # Serialize full sample using the created sample
         try:
-            serialized_data = fetch_sample_data([sample.id])
+            self.queryset = self.get_queryset()
+            serialized_data, _ = self.fetch_data([sample.id])
         except Exception as err:
             raise ValidationError(err)
 
@@ -277,26 +300,27 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         # Return updated sample
         # Serialize full sample using the created sample
         try:
-            serialized_data = fetch_sample_data([sample_to_update.id])
+            self.queryset = self.get_queryset()
+            serialized_data, _ = self.fetch_data([sample_to_update.id])
         except Exception as err:
             raise ValidationError(err)
 
         return Response(serialized_data[0] if serialized_data else {})
 
     def retrieve(self, _request, pk=None, *args, **kwargs):
-        samples_queryset = self.filter_queryset(self.get_queryset())
-        serialized_data = fetch_sample_data([pk] if pk is not None else [], samples_queryset, self.request.query_params)
+        self.queryset = self.filter_queryset(self.get_queryset())
+        serialized_data, _ = self.fetch_data([pk] if pk is not None else [])
         return Response(serialized_data[0] if serialized_data else {})
 
     def list(self, _request, *args, **kwargs):
-        samples_queryset = self.filter_queryset(self.get_queryset())
-        serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
-        return Response({"results": serialized_data, "count": samples_queryset.count()})
+        self.queryset = self.filter_queryset(self.get_queryset())
+        serialized_data, count = self.fetch_data()
+        return Response({"results": serialized_data, "count": count})
 
     @action(detail=False, methods=["get"])
     def list_export(self, _request):
-        samples_queryset = self.filter_queryset(self.get_queryset())
-        serialized_data = fetch_export_sample_data([], samples_queryset, self.request.query_params)
+        self.queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = self.fetch_export_data()
         return Response(serialized_data)
 
     def get_renderer_context(self):
@@ -337,9 +361,9 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             query = Q(name__icontains=search_input)
             query.add(Q(id__icontains=search_input), Q.OR)
 
-        samples_queryset = Sample.objects.filter(query)
-        serialized_data = fetch_sample_data([], samples_queryset, self.request.query_params)
-        return Response({"results": serialized_data, "count": samples_queryset.count()})
+        self.queryset = self.get_queryset().filter(query)
+        serialized_data, count = self.fetch_data()
+        return Response({"results": serialized_data, "count": count})
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])

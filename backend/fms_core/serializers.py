@@ -8,6 +8,7 @@ from .models import (
     Container,
     Dataset,
     DatasetFile,
+    DerivedBySample,
     ExperimentRun,
     RunType,
     Index,
@@ -23,6 +24,7 @@ from .models import (
     Process,
     ProcessMeasurement,
     Project,
+    Sample,
     SampleKind,
     SampleMetadata,
     Sequence,
@@ -72,6 +74,7 @@ __all__ = [
     "SequenceSerializer",
     "TaxonSerializer",
     "ImportedFileSerializer",
+    "PooledSampleSerializer",
 ]
 
 
@@ -341,11 +344,10 @@ class SampleMetadataSerializer(serializers.ModelSerializer):
         model = SampleMetadata
         fields = "__all__"
 
-
 class SampleSerializer(serializers.Serializer):
     class Meta:
         fields = ('id', 'biosample_id', 'name', 'alias', 'volume', 'depleted', 'concentration', 'child_of',
-                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'project',
+                  'extracted_from', 'individual', 'container', 'coordinates', 'sample_kind', 'is_library', 'is_pool', 'project',
                   'process_measurements', 'tissue_source', 'creation_date', 'collection_site', 'experimental_group',
                   'quality_flag', 'quantity_flag', 'created_by', 'created_at', 'updated_by', 'updated_at', 'deleted', 
                   'comment')
@@ -501,3 +503,65 @@ class DatasetFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = DatasetFile
         fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")
+
+class PooledSampleSerializer(serializers.Serializer):
+    ''' Serializes a DerivedBySample object, representing a pooled sample. 
+    '''
+    # Since DerivedBySample doesn't have its own id field, we use the derived_sample id
+    # as a top level id in the returned data structure. The UX needs this for 'objectsById' stuff.
+    id = serializers.IntegerField(read_only = True, source='derived_sample.id')
+
+    # Return the id of the pool containing this sample. This allows api clients to request
+    # a list of samples from multiple pools and then group them by pool on the client side.
+    pooled_sample_id = serializers.IntegerField(read_only=True, source='sample.id')
+
+    volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+
+    # Associated project info
+    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
+    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    
+    # Sample info
+    alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
+    collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
+    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
+    individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
+    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
+    parent_sample_id = serializers.CharField(read_only=True)
+    parent_sample_name = serializers.CharField(read_only=True)
+    sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
+
+    # Library info
+    index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
+    index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
+    index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
+    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
+    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
+    strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+
+    class Meta:
+        model = DerivedBySample
+        fields = [
+            'alias', 
+            'collection_site',
+            'experimental_groups',
+            'id', 
+            'index_id',
+            'index_set',
+            'index',
+            'individual_id',
+            'individual_name',
+            'library_size',
+            'library_type', 
+            'parent_sample_id', 
+            'parent_sample_name', 
+            'platform',
+            'project_id', 
+            'project_name', 
+            'sample_kind'
+            'strandedness',
+            'volume_ratio', 
+            ]
+
+

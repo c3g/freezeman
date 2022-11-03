@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, Index, Individual, Sample, PropertyValue, Dataset
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset
 
 import django_filters
 
@@ -11,7 +11,8 @@ from .viewsets._constants import (
     _sample_minimal_filterset_fields,
     _index_filterset_fields,
     _library_filterset_fields,
-    _dataset_filterset_fields
+    _dataset_filterset_fields,
+    _pooled_sample_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -50,6 +51,7 @@ class SampleFilter(GenericFilter):
     qPCR_status__in = django_filters.CharFilter(method="process_measurement_properties_filter")
     derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
+    is_pooled = django_filters.CharFilter(method="is_pooled_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
@@ -69,6 +71,10 @@ class SampleFilter(GenericFilter):
             condition |= Q(qc_flag=bool_value)
         return queryset.filter(condition)
 
+    def is_pooled_filter(self, queryset, name, values):
+        bool_value = (values == 'true')
+        return queryset.filter(is_pooled=bool_value)
+
     class Meta:
         model = Sample
         fields = _sample_filterset_fields
@@ -80,6 +86,7 @@ class LibraryFilter(GenericFilter):
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
     quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
+    is_pooled = django_filters.CharFilter(method="is_pooled_filter")
 
     def qc_flag_filter(self, queryset, name, values):
         condition = Q()
@@ -98,6 +105,10 @@ class LibraryFilter(GenericFilter):
     def quantity_ng_gte_filter(self, queryset, name, value):
         condition = Q(quantity_ng__gte=value)
         return queryset.filter(condition)
+
+    def is_pooled_filter(self, queryset, name, values):
+        bool_value = (values == 'true')
+        return queryset.filter(is_pooled=bool_value)
 
     class Meta:
         model = Sample
@@ -127,3 +138,17 @@ class DatasetFilter(GenericFilter):
     class Meta:
         model = Dataset
         fields = _dataset_filterset_fields
+
+class PooledSamplesFilter(GenericFilter):
+    parent_sample_name__icontains = django_filters.CharFilter(method="parent_sample_name_filter")
+    parent_sample_name__startswith = django_filters.CharFilter(method="parent_sample_name_exact_filter")
+
+    def parent_sample_name_filter(self, queryset, name, value):
+        return queryset.filter(parent_sample_name__icontains=value)
+
+    def parent_sample_name_exact_filter(self, queryset, name, value):
+        return queryset.filter(parent_sample_name__startswith=value)
+
+    class Meta:
+        model = DerivedBySample
+        fields = _pooled_sample_filterset_fields

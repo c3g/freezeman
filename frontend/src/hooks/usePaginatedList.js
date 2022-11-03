@@ -9,7 +9,6 @@ export const usePaginatedList = ({
     rowKey = 'id',
     loading,
     totalCount,
-    page,
     filters,
     filterKey,
     sortBy,
@@ -44,7 +43,7 @@ export const usePaginatedList = ({
         let offset
 
         if (isCurrentPageUnloaded)
-            offset = Math.floor(startIndex / page.limit) * page.limit;
+            offset = Math.floor(startIndex / pageSize) * pageSize;
         else if (doesNextPageContainUnloaded)
             offset = items.length;
 
@@ -75,7 +74,7 @@ export const usePaginatedList = ({
 
     const onChangeSizeChange = (newPageSize) => {
         dispatch(setPageSize(newPageSize));
-        onLoad({ filters, sortBy, filterKey });
+        onLoad({ filters, sortBy, filterKey }, 0);
     };
 
     return {

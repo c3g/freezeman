@@ -1,4 +1,4 @@
-import {FILTER_TYPE, SEX, TAXON, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
+import {FILTER_TYPE, SEX, PROJECT_STATUS, QPCR_SELECTION_STATUS} from "../../constants";
 
 export const SAMPLE_FILTERS = {
   id: {
@@ -40,7 +40,7 @@ export const SAMPLE_FILTERS = {
   derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
     key: "derived_samples__project__name",
-    label: "Projects",
+    label: "Project",
     batch: true,
   },
   derived_samples__project__id: {
@@ -136,6 +136,16 @@ export const SAMPLE_FILTERS = {
     options: QPCR_SELECTION_STATUS.map(x => ({ label: x, value: x })),
     detached:true,
   },
+  is_pooled: {
+    type: FILTER_TYPE.SELECT,
+    key: "is_pooled",
+    label: "Pooled",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false" },
+    ]
+  }
 }
 
 export const CONTAINER_FILTERS = {
@@ -454,7 +464,7 @@ export const LIBRARY_FILTERS = {
   derived_samples__project__name: {
     type: FILTER_TYPE.INPUT,
     key: "derived_samples__project__name",
-    label: "Projects",
+    label: "Project",
     batch: true,
   },
   volume: {
@@ -504,6 +514,16 @@ export const LIBRARY_FILTERS = {
       { label: "Failed",  value: "false" },
     ],
   },
+  is_pooled: {
+    type: FILTER_TYPE.SELECT,
+    key: "is_pooled",
+    label: "Pooled",
+    placeholder: "All",
+    options: [
+      { label: "Yes", value: "true" },
+      { label: "No",  value: "false" },
+    ]
+  }
 }
 
 export const DATASET_FILTERS = {
@@ -566,4 +586,68 @@ export const DATASET_FILE_FILTERS = {
     key: "release_flag_timestamp",
     label: "Release Time",
   },
+}
+
+
+export const POOLED_SAMPLES_FILTERS = {
+    sample__id: {
+        // Note: The sample__id filter adds the pool id to the query.
+        // It's not mapped to any column, but is required for the pool id to be sent
+        // to the endpoint properly.
+      type: FILTER_TYPE.INPUT_OBJECT_ID,
+      key: "sample__id",
+    },
+    project_name: {
+        type: FILTER_TYPE.INPUT,
+        key: "derived_sample__project__name",
+        label: "Project Name"
+    },
+    parent_sample_name: {
+      type: FILTER_TYPE.INPUT,
+      key: "parent_sample_name",
+      label: "Parent Sample Name"
+    },
+    alias: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__biosample__alias",
+      label: "Alias"
+    },
+    volume_ratio: {
+      type: FILTER_TYPE.RANGE,
+      key: "volume_ratio",
+      label: "Volume Ratio"
+    },
+
+    library_type: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__library__library_type__name",
+      label: "Library Type"
+    },
+    library_size: {
+      type: FILTER_TYPE.RANGE,
+      key: "derived_sample__library__library_size",
+      label: "Library Size",
+    },
+    index: {
+        type: FILTER_TYPE.INPUT,
+        key: 'derived_sample__library__index__name',
+        label: "Index"
+    },
+    sample_kind: {
+      type: FILTER_TYPE.SELECT,
+      key: "derived_sample__sample_kind__name",
+      label: "Type",
+      mode: "multiple",
+      placeholder: "All"
+    },
+    individual_name: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__biosample__individual__name",
+      label: "Individual"
+    },
+    collection_site: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__biosample__collection_site",
+      label: "Collection Site"
+    },
 }

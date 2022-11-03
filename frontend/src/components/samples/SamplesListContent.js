@@ -1,7 +1,7 @@
-import React, {useRef} from "react";
+import React, {useRef, useState, useEffect} from "react";
 import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import {Button, Tag, Radio} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -13,18 +13,19 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/samples/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/samples/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndividual} from "../../utils/withItem";
+import {withContainer, withIndividual, withProject} from "../../utils/withItem";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import SamplesFilters from "./SamplesFilters";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import {TOGGLE_OPTIONS} from "../../constants.js"
 
-const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds) => [
+const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKinds, toggleOption) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -38,7 +39,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Kind",
       dataIndex: "derived_samples__sample_kind__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
       width: 80,
       options: sampleKinds.items.map(x => ({ label: x.name, value: x.name })), // for getFilterProps
       render: (_, sample) =>
@@ -59,7 +60,7 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Individual",
       dataIndex: "derived_samples__biosample__individual__name",
-      sorter: true,
+      sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
       render: (_, sample) => {
         const individual = sample.individual
         return (individual &&
@@ -88,12 +89,11 @@ const getTableColumns = (containersByID, individualsByID, projectsByID, sampleKi
     {
       title: "Project",
       dataIndex: "derived_samples__project__name",
-      render: (_, sample) => {
-        return (sample.project &&
-          <Link to={`/projects/${sample.project}`}> 
-            {projectsByID[sample.project]?.name} 
-          </Link>)
-      }
+      sorter: toggleOption === TOGGLE_OPTIONS.SAMPLES ? true : false,
+      render: (_, sample) => (sample.project &&
+        <Link to={`/projects/${sample.project}`}>
+          {withProject(projectsByID, sample.project, project => project.name, "loading...")}
+        </Link>)
     },
     {
       title: "Coords",
@@ -161,7 +161,7 @@ const mapStateToProps = state => ({
   sortBy: state.samples.sortBy,
 });
 
-const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
+const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy};
 
 const SamplesListContent = ({
   token,
@@ -183,7 +183,26 @@ const SamplesListContent = ({
   setFilterOption,
   clearFilters,
   setSortBy,
+  clearSortBy,
 }) => {
+
+  const isPooledFilterKey = SAMPLE_FILTERS.is_pooled.key
+
+  function getCurrentToggleOption(){
+    switch(filters[isPooledFilterKey]?.value){
+      case "true":
+        return TOGGLE_OPTIONS.POOLS
+        break;
+      case "false":
+        return TOGGLE_OPTIONS.SAMPLES
+        break;
+      default:
+        return TOGGLE_OPTIONS.ALL
+    }
+  }
+  // Show both samples and pools as default
+  const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
+  const [columns, setColumns] = useState(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, toggleOption));
 
   const listExport = () =>
     withToken(token, api.samples.listExport)
@@ -195,16 +214,42 @@ const SamplesListContent = ({
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy), template)
       .then(response => response)
 
-  const columns = getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds)
-  .map(c => Object.assign(c, getFilterProps(
+  const nFilters = getNFilters(filters)
+
+  // Listen to the changes in toggle to get new columns and set filters accordingly
+  useEffect(() => {
+    // Get the new columns depending on the new option
+    setColumns(getTableColumns(containersByID, individualsByID, projectsByID, sampleKinds, toggleOption))
+
+    // Only apply filters if the new selected option is different from the current one
+    if (getCurrentToggleOption() !== toggleOption){
+      // Need to reset the sortBy when there's a new toggle option to avoid problems
+      clearSortBy()
+
+      if (toggleOption !== TOGGLE_OPTIONS.ALL)
+        setFilter(isPooledFilterKey, toggleOption === TOGGLE_OPTIONS.POOLS ? "true" : "false")
+      else
+        setFilter(isPooledFilterKey, '')
+    }
+  }, [toggleOption, containersByID, individualsByID, projectsByID, sampleKinds])
+
+  const handleToggleOptionChange = (e) => {
+      setToggleOption(e.target.value);
+  };
+
+  // Design decision: If the user clears all filters return to displaying all
+  const localClearFilters = () => {
+    clearFilters()
+    setToggleOption(TOGGLE_OPTIONS.ALL)
+  }
+
+  const mappedColumns = columns.map(c => Object.assign(c, getFilterProps(
     c,
     SAMPLE_FILTERS,
     filters,
     setFilter,
     setFilterOption
   )))
-
-  const nFilters = getNFilters(filters)
 
   return <>
     <AppPageHeader title="Samples" extra={[
@@ -224,13 +269,18 @@ const SamplesListContent = ({
         <Button
           style={{ margin: 6 }}
           disabled={nFilters === 0}
-          onClick={clearFilters}
+          onClick={localClearFilters}
         >
           Clear Filters
         </Button>
       </div>
+      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginBottom: '1rem'}}>
+         <Radio.Button value={TOGGLE_OPTIONS.SAMPLES}> Samples </Radio.Button>
+         <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
+         <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
+      </Radio.Group>
       <PaginatedTable
-        columns={columns}
+        columns={mappedColumns}
         items={samples}
         itemsByID={samplesByID}
         rowKey="id"

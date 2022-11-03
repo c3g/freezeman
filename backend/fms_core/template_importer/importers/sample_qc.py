@@ -10,8 +10,8 @@ from fms_core.utils import str_cast_and_normalize
 TEMPLATE_PROPERTY_MAPPING = {
     "Quality Flag": "Sample Quality QC Flag",
     "Quantity Flag": "Sample Quantity QC Flag",
-    "Measured Volume (uL)": "Measured Volume",
-    "Concentration (ng/uL)": "Concentration",
+    "Measured Volume (uL)": "Measured Volume (uL)",
+    "Concentration (ng/uL)": "Concentration (ng/uL)",
     "RIN (for RNA only)": "RIN",
     "Quality Instrument": "Quality Instrument",
     "Quantity Instrument": "Quantity Instrument",
