@@ -578,7 +578,6 @@ class PooledSampleExportSerializer(serializers.Serializer):
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
     experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
-    individual_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.id')
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
@@ -586,7 +585,6 @@ class PooledSampleExportSerializer(serializers.Serializer):
 
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
-    index_id = serializers.CharField(read_only=True, source='derived_sample.library.index.id')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
@@ -605,14 +603,12 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'library_size',
             'library_type', 
             'platform',
-            'index_id',
             'index_set',
             'index',
             'strandedness',
             'sample_kind',
             'collection_site',
             'experimental_groups',
-            'individual_id',
             'individual_name',
             ]
 
