@@ -39,6 +39,7 @@ class SampleSubmissionTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
+        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
