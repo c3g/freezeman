@@ -167,7 +167,7 @@ class SampleRowHandler(GenericRowHandler):
         # For pooling purposes
         self.row_object = {
             # Biosample info
-            "alias": sample['alias'],
+            "alias": sample['alias'] or sample['name'],
             "individual": individual_obj,
             "collection_site": sample['collection_site'],
             # Derived sample info
