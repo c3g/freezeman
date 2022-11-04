@@ -252,15 +252,24 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_12_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_13_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
                       'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
-                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Index Set', 'Index', 'Reception (YYYY-MM-DD)', 'Comment']
-      },],
+                      'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
+                      'Index Set', 'Index', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
+      },
+      {
+          "name": "PoolSubmission",
+          "headers": ["Pool Name", "Container Kind", "Container Name",
+                      "Container Barcode", "Pool Coord",
+                      "Location Barcode", "Container Coord",
+                      "Reception (YYYY-MM-DD)", "Comment"],
+      },
+  ],
   "prefill info": [],
 }
 

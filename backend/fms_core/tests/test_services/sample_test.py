@@ -13,7 +13,7 @@ from fms_core.services.sample import (create_full_sample, get_sample_from_contai
                                       inherit_sample, transfer_sample, extract_sample, pool_samples,
                                       prepare_library, _process_sample, update_qc_flags, remove_qc_flags,
                                       add_sample_metadata, update_sample_metadata, remove_sample_metadata,
-                                      validate_normalization)
+                                      validate_normalization, pool_submitted_samples)
 from fms_core.services.derived_sample import inherit_derived_sample
 from fms_core.services.container import create_container, get_container
 from fms_core.services.individual import get_or_create_individual
@@ -83,6 +83,8 @@ class SampleServicesTestCase(TestCase):
             {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 150},
             {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_dnbseq, "strandedness": SINGLE_STRANDED, "library_size": 100},
             {"library_type": "PCR-enriched", "index": test_indices[1], "platform": platform_illumina, "strandedness": DOUBLE_STRANDED, "library_size": 100},
+            {"library_type": "PCR-free", "index": test_indices[0], "platform": platform_illumina, "strandedness": SINGLE_STRANDED, "library_size": 100},
+            {"library_type": "PCR-free", "index": test_indices[1], "platform": platform_illumina, "strandedness": SINGLE_STRANDED, "library_size": 100},
         ]
 
         self.test_libraries = []
@@ -122,6 +124,12 @@ class SampleServicesTestCase(TestCase):
             {"name": "TESTCREATEFULLSAMPLE", "volume": 1000, "concentration": 2, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A03", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[2], "project": "Testouille"},
             {"name": "TESTEXTRACTSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A08", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_blood, "library": None, "project": "Testouille"},
             {"name": "TESTPREPARELIBRARYSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A10", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": None, "project": "Testouille"},
+        ]
+
+        # Create samples for testing
+        self.SUBMITTED_SAMPLES_TO_POOL = [
+            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "volume": Decimal(10), "experimental_group": None},
+            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "volume": Decimal(30), "experimental_group": None},
         ]
 
     def test_create_full_sample(self):
@@ -591,3 +599,42 @@ class SampleServicesTestCase(TestCase):
         self.assertFalse(is_valid)
         self.assertTrue(errors)
         self.assertFalse(warnings)
+
+    def test_pool_submitted_samples(self):
+        POOL_NAME = "SubmittedPool"
+        EXECUTION_DATE = datetime.date(2022, 9, 15)
+
+        pool, errors, warnings = pool_submitted_samples(samples_info=self.SUBMITTED_SAMPLES_TO_POOL,
+                                                        pool_name=POOL_NAME,
+                                                        container_destination=self.test_containers[2],
+                                                        coordinates_destination="",
+                                                        reception_date=EXECUTION_DATE,
+                                                        comment="Submitted Pool")
+
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+        self.assertIsNotNone(pool)
+        self.assertEqual(pool.name, POOL_NAME)
+        self.assertEqual(pool.volume, Decimal("40"))
+        self.assertIsNone(pool.concentration)
+        self.assertEqual(pool.container, self.test_containers[2])
+        self.assertEqual(pool.coordinates, "")
+        self.assertEqual(pool.creation_date, EXECUTION_DATE)
+        self.assertEqual(pool.comment, "Submitted Pool")
+
+        # There's just connection to the pool since there's no really source sample objects
+        derived_samples_pool = DerivedSample.objects.filter(derived_by_samples__sample__id=pool.id)
+        self.assertEqual(derived_samples_pool.count(), 2)
+
+        for derived_sample in derived_samples_pool:
+            derived_by_sample_pool_ = DerivedBySample.objects.get(derived_sample=derived_sample, sample=pool)
+
+            # first sample in pool
+            if derived_sample.biosample.individual.name == "Bob1":
+                self.assertEqual(derived_sample.biosample.individual, self.test_individuals[0])
+                self.assertEqual(derived_by_sample_pool_.volume_ratio, Decimal("0.25"))
+                self.assertEqual(derived_sample.library, self.test_libraries[4])
+            else:
+                self.assertEqual(derived_sample.biosample.individual, self.test_individuals[1])
+                self.assertEqual(derived_by_sample_pool_.volume_ratio, Decimal("0.75"))
+                self.assertEqual(derived_sample.library, self.test_libraries[5])
