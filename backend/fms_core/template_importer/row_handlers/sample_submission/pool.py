@@ -17,8 +17,8 @@ class PoolsRowHandler(GenericRowHandler):
         else:
             # Validate that all libraries have the same platform
             set_platform = set(sample['library'].platform_id for sample in samples_info)
-            if len(set_platform) > 1:  # len(set_kind) > 1 => not all same platform
-                self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be have the same platform .")
+            if len(set_platform) > 1:
+                self.errors["source_sample"] = (f"Libraries in pool {pool['name']} must have the same platform .")
 
             # Get/Create pool container
             pool_container_dict = pool["container"]
