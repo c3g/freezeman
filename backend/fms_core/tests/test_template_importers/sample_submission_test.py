@@ -13,19 +13,24 @@ from fms_core.services.index import get_or_create_index_set, create_index
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_11_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_13_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
 
-        self.invalid_template_tests = ["Sample_submission_v3_11_0_bad_location.xlsx",
-                                       "Sample_submission_v3_11_0_dna_no_conc.xlsx",
-                                       "Sample_submission_v3_11_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v3_13_0_bad_location.xlsx",
+                                       "Sample_submission_v3_13_0_dna_no_conc.xlsx",
+                                       "Sample_submission_v3_13_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
         (index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
                                                    index_name="SSXTHSV2703-SSXTHSV2503")
+        (index_2, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+                                                   index_name="SSXTHSV2704-SSXTHSV2504")
+        (index_3, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
+                                                   index_name="SSXTHSV2705-SSXTHSV2505")
+
         self.prefill_data()
 
     def prefill_data(self):
@@ -64,6 +69,18 @@ class SampleSubmissionTestCase(TestCase):
                 self.assertEqual(biosample.alias, sample['alias'])
             else:
                 self.assertEqual(biosample.alias, sample['name'])
+
+        # Tests for the submitted pool
+        pool_name = 'SubmittedPool'
+        pooled_libraries_alias = ['Library_for_pool_1', 'Library_for_pool_2']
+        self.assertTrue(Sample.objects.filter(name=pool_name).exists())
+        pool = Sample.objects.get(name=pool_name)
+        derived_by_samples = DerivedBySample.objects.filter(sample_id=pool.id)
+        self.assertEqual(derived_by_samples.count(), 2)
+
+        for derived_by_sample in derived_by_samples:
+            self.assertIsNotNone(derived_by_sample.derived_sample.library)
+            self.assertIn(derived_by_sample.derived_sample.biosample.alias, pooled_libraries_alias)
 
         # Verify the library is created
         library_derived_sample = Sample.objects.get(name='Library_pcr_free').derived_sample_not_pool
