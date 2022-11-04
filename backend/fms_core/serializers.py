@@ -75,6 +75,7 @@ __all__ = [
     "TaxonSerializer",
     "ImportedFileSerializer",
     "PooledSampleSerializer",
+    "PooledSampleExportSerializer"
 ]
 
 
@@ -578,18 +579,49 @@ class PooledSampleExportSerializer(serializers.Serializer):
     alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
     collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
     experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
-    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual_name')
     parent_sample_id = serializers.CharField(read_only=True)
     parent_sample_name = serializers.CharField(read_only=True)
     sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
 
+    # Individual info
+    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.name')
+    taxon_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
+    taxon_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.name')
+    sex = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.sex')
+    mother = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.mother.name')
+    father = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.father.name')
+    pedigree = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.pedigree')
+    cohort = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.cohort')
+
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
+    index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.structure.name')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
+    # sequences_3prime = serializers.CharField(read_only=True, source='derived_sample.library.index.list_3prime_sequences')
+    # sequences_5prime = serializers.CharField(read_only=True, source='derived_sample.library.index.list_5prime_sequences')
+    sequences_3prime = serializers.SerializerMethodField()
+    sequences_5prime = serializers.SerializerMethodField()
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
     platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+
+    def get_sequences_3prime(self, derived_by_sample):
+        library = derived_by_sample.derived_sample.library
+        if (library):
+            sequences = library.index.list_3prime_sequences
+            return ", ".join(sequences) 
+        else:
+            return ""
+        
+    
+    def get_sequences_5prime(self, derived_by_sample):
+        library = derived_by_sample.derived_sample.library
+        if (library):
+            sequences = library.index.list_5prime_sequences
+            return ", ".join(sequences)
+        else:
+            return ""
 
     class Meta:
         model = DerivedBySample
@@ -605,10 +637,20 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'platform',
             'index_set',
             'index',
+            'index_structure',
+            'sequences_3prime',
+            'sequences_5prime',
             'strandedness',
             'sample_kind',
             'collection_site',
             'experimental_groups',
+            'cohort',
             'individual_name',
+            'taxon_name',
+            'taxon_id',
+            'sex',
+            'mother',
+            'father',
+            'pedigree',
             ]
 
