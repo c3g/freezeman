@@ -15,6 +15,11 @@ class PoolsRowHandler(GenericRowHandler):
                                             f"Make sure SampleSubmission sheet Pool Name column values "
                                             f"match a value in PoolSubmission sheet Pool Name column.")
         else:
+            # Validate that all libraries have the same platform
+            set_platform = set(sample['library'].platform_id for sample in samples_info)
+            if len(set_platform) > 1:  # len(set_kind) > 1 => not all same platform
+                self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be have the same platform .")
+
             # Get/Create pool container
             pool_container_dict = pool["container"]
 
