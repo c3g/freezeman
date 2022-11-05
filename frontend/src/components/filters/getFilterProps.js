@@ -1,8 +1,8 @@
 import React from "react"
 import {SearchOutlined} from "@ant-design/icons"
 import moment from 'moment'
-// import InputFilter from './FilterProps/InputFilter'
-import DebouncedInputFilter from "./FilterProps/DebouncedInputFilter"
+import InputFilter from './FilterProps/InputFilter'
+// import DebouncedInputFilter from "./FilterProps/DebouncedInputFilter"
 import InputNumberFilter from './FilterProps/InputNumberFilter'
 import SelectFilter from './FilterProps/SelectFilter'
 import RadioFilter from "./FilterProps/RadioFilter"
@@ -69,7 +69,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
         confirm,
         visible
       }
-      return <DebouncedInputFilter {...props}/>
+      return <InputFilter {...props}/>
     },
   })
 }

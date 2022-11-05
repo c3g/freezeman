@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
-import { Input, Switch, Tooltip } from 'antd'
+import { Switch, Tooltip } from 'antd'
+import DebouncedInput from './DebouncedInput'
 
 
 const InputFilter = ({value, options, description, dataIndex, setFilter, setFilterOption, confirm, visible}) => {
@@ -32,13 +33,13 @@ const InputFilter = ({value, options, description, dataIndex, setFilter, setFilt
   
     return (
       <div style={{ padding: 8, alignItems: 'center' }}>
-            <Input
+            <DebouncedInput
               ref={inputRef}
               allowClear
               placeholder={`Search ${description.label}`}
               style={{ marginRight: 8 }}
               value={value}
-              onChange={e => onSearch(e.target.value)}
+              onChange={text => onSearch(text)}
               onPressEnter={confirm}
               onKeyDown={ev => onKeyDown(ev, confirm)}
             />
