@@ -39,7 +39,7 @@ const FiltersInfos = ({
   return (
     <>
       {appliedFilters.map(key => (
-        <div>
+        <div key="key">
           <strong>{description[key].label}: </strong>
           {getValue(key)}
         </div>

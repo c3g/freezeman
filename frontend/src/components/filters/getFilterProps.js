@@ -1,12 +1,16 @@
-import React, {useRef, useState} from "react";
-import {Button, Input, InputNumber, Radio, Select, Switch, Space, Tooltip, DatePicker} from "antd";
-import {SearchOutlined} from "@ant-design/icons";
-import moment from 'moment';
+import React from "react"
+import {SearchOutlined} from "@ant-design/icons"
+import moment from 'moment'
+// import InputFilter from './FilterProps/InputFilter'
+import DebouncedInputFilter from "./FilterProps/DebouncedInputFilter"
+import InputNumberFilter from './FilterProps/InputNumberFilter'
+import SelectFilter from './FilterProps/SelectFilter'
+import RadioFilter from "./FilterProps/RadioFilter"
+import RangeFilterComponent from "./FilterProps/RangeFilter"
+import DateRangeFilter from "./FilterProps/DateRange"
 
-import {FILTER_TYPE, DATE_FORMAT} from "../../constants";
+import {FILTER_TYPE} from "../../constants"
 
-const EMPTY_VALUE = '__EMPTY_VALUE__'
-const { RangePicker } = DatePicker;
 
 export default function getFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
   const dataIndex = column.dataIndex
@@ -33,83 +37,6 @@ export default function getFilterProps(column, descriptions, filters, setFilter,
   throw new Error(`unreachable: ${description.type}`)
 }
 
-function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
-  const options = filters[dataIndex]?.options;
-
-  const inputRef = useRef()
-
-  const onSearch = value => {
-    setFilter(dataIndex, value)
-  }
-
-  const onKeyDown = (ev, confirm) => {
-    if (ev.key === 'Escape')
-      confirm()
-  }
-
-  const onToggleSwitch = (key, checked )=> {
-    setFilterOption(dataIndex, key, checked)
-  }
-
-  const onChangeRecursive = checked => {
-    onToggleSwitch( 'recursiveMatch', checked)
-    setFilterOption(dataIndex, 'exactMatch', checked)
-  }
-
-  return {
-    filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm }) => (
-      <div style={{ padding: 8, alignItems: 'center' }}>
-          <Input
-            ref={inputRef}
-            allowClear
-            placeholder={`Search ${description.label}`}
-            style={{ marginRight: 8 }}
-            value={value}
-            onChange={e => onSearch(e.target.value)}
-            onPressEnter={confirm}
-            onKeyDown={ev => onKeyDown(ev, confirm)}
-          />
-          <div style={{ padding: 8, alignItems: 'right' }}>
-            <Tooltip title="Exact Match">
-              <Switch
-                size="large"
-                checkedChildren="Exact"
-                unCheckedChildren="Exact"
-                checked={options?.exactMatch ?? false}
-                disabled={options?.recursiveMatch ?? false}
-                onChange={e => onToggleSwitch( 'exactMatch', e)}
-              />
-            </Tooltip>
-            {description.recursive &&
-              <Tooltip title="Exhaustive">
-                <Switch
-                  checkedChildren="Recursive"
-                  unCheckedChildren="Recursive"
-                  checked={options?.recursiveMatch ?? false}
-                  onChange={onChangeRecursive}
-                />
-              </Tooltip>
-            }
-          </div>
-
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => inputRef?.current.select(), 100);
-        document.body.classList.add('input-dropdown-visible')
-      }
-      else {
-        document.body.classList.remove('input-dropdown-visible')
-      }
-    },
-  }
-}
-
 function isValidObjectID(value) {
   // Object ID's must be postive integer values, so we verify that the string
   // contains only digits (and are tolerant of whitespace)
@@ -122,150 +49,81 @@ function isValidInteger(value) {
   return !Number.isNaN(numericValue)
 }
 
+
+function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
+  const dataIndex = column.dataIndex;
+  const description = descriptions[dataIndex];
+  const value = filters[dataIndex]?.value;
+  const options = filters[dataIndex]?.options;
+
+  return ({
+    filterIcon: getFilterIcon(Boolean(value)),
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        value,
+        options,
+        description,
+        dataIndex,
+        setFilter,
+        setFilterOption,
+        confirm,
+        visible
+      }
+      return <DebouncedInputFilter {...props}/>
+    },
+  })
+}
+
 function getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption, validationFunc) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
-  const [isValid, setIsValid] = useState(true)
-  const inputRef = useRef()
 
-  const onSearch = value => {
-    // If a validation function was provided, use it to validate the numeric input.
-    // If it's invalid, set the input status as invalid and ignore the value.
-    // This is to avoid sending bad requests with garbage values to the backend.
-    if (typeof(validationFunc) === 'function') {
-      if (value.length === 0 || validationFunc(value)) {
-        setFilter(dataIndex, value)
-        setIsValid(true)
-      } else {
-        setIsValid(false)
-      }
-    } else {
-      // If no validation function is provided then just call setFilter with the value.
-      setFilter(dataIndex, value)
-    }
-  }
-
-  const onKeyDown = (ev, confirm) => {
-    if (ev.key === 'Escape')
-      confirm()
-  }
-
-  return {
+  return ({
     filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm }) => (
-      <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
-        <Input
-          ref={inputRef}
-          allowClear
-          placeholder={`Search ${description.label}`}
-          style={{ marginRight: 8 }}
-          value={value}
-          onChange={e => onSearch(e.target.value)}
-          onPressEnter={confirm}
-          onKeyDown={ev => onKeyDown(ev, confirm)}
-          status={isValid ? undefined : 'error'}
-        />
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => inputRef?.current.select(), 100);
-        document.body.classList.add('input-dropdown-visible')
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        value, validationFunc, description, dataIndex, setFilter, confirm, visible
       }
-      else {
-        document.body.classList.remove('input-dropdown-visible')
-      }
-    },
-  }
+      return <InputNumberFilter {...props}/>
+    }
+  })
 }
 
 function getSelectFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
   const value = filters[dataIndex]?.value;
-
-  const selectRef = useRef()
-
-  const onSearch = (value) => {
-    setFilter(dataIndex, value.length === 0 ? undefined : value)
-  }
-
-  const onKeyDown = (ev, confirm) => {
-    if (ev.key === 'Escape')
-      confirm()
-  }
-
   const options = description.options || column.options || []
+  const title = column.title
 
-  return {
+  return ({
     filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm }) => (
-      <div style={{ padding: 8 }}>
-        <Select
-          ref={selectRef}
-          style={{ width: 200, display: 'block' }}
-          placeholder={`Select ${column.title}`}
-          mode='multiple'
-          allowClear
-          options={options}
-          value={value}
-          onChange={e => onSearch(e)}
-          onKeyDown={ev => onKeyDown(ev, confirm)}
-        />
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => selectRef?.current.focus(), 100);
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        value,  title, options, dataIndex, setFilter, confirm, visible
       }
+      return <SelectFilter {...props}/>
     },
-  }
+  })
 }
 
 function getRadioFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
   const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
-
-  const buttonRef = useRef()
-
-  const onSearch = (ev, confirm) => {
-    const value = typeof ev === 'string' ? ev : ev.target.value
-    const storeValue = value === EMPTY_VALUE ? undefined : value
-    setFilter(dataIndex, storeValue)
-    confirm()
-  }
-
+  const value = filters[dataIndex]?.value
   const options = description.options || column.options || []
 
-  return {
+  return ({
     filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm }) => (
-      <div style={{ padding: 8 }}>
-        <Radio.Group
-          value={value}
-          onChange={ev => onSearch(ev, confirm)}
-        >
-          <Radio.Button key={EMPTY_VALUE} value={EMPTY_VALUE} ref={buttonRef}>
-            {description.placeholder}
-          </Radio.Button>
-          {
-            options.map(item =>
-              <Radio.Button key={item.value} value={item.value}>
-                {item.label}
-              </Radio.Button>
-            )
-          }
-        </Radio.Group>
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => buttonRef?.current.focus(), 100);
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        value, options, description, dataIndex, setFilter, confirm, visible
       }
-    },
-  }
+
+      return <RadioFilter {...props} />
+    }
+  })
 }
 
 function getRangeFilterProps(column, descriptions, filters, setFilter) {
@@ -276,136 +134,39 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
   const minValue = value?.min
   const maxValue = value?.max
 
-  const inputRef = useRef()
-
-  const onSearch = (values) => {
-    setFilter(dataIndex, values)
-  }
-
-  const onReset = () => {
-    setFilter(dataIndex, undefined)
-  };
-
-  const onKeyDown = (ev, confirm) => {
-    if (ev.key === 'Escape')
-      confirm()
-  }
-
-  return {
+  return ({
     filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm, clearFilters }) => (
-      <div style={{ padding: 8 }}>
-        <Input.Group compact style={{ marginBottom: 8 }}>
-          <InputNumber
-            ref={inputRef}
-            placeholder='From'
-            min={defaultMin}
-            style={{ width: 100 }}
-            value={minValue}
-            onChange={newMin => onSearch({min: nullize(newMin), max: maxValue})}
-            onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={confirm}
-          />
-          <InputNumber
-            placeholder='To'
-            min={defaultMin}
-            style={{ width: 100 }}
-            value={maxValue}
-            onChange={newMax => onSearch({min: minValue, max: nullize(newMax)})}
-            onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={confirm}
-          />
-        </Input.Group>
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Done
-          </Button>
-          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </Space>
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => inputRef?.current.focus(), 100);
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        minValue,
+        defaultMin,
+        maxValue,
+        dataIndex,
+        setFilter,
+        confirm,
+        visible
       }
+
+      return <RangeFilterComponent {...props} />
     },
-  }
+  })
 }
 
 function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
   const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
+  const value = filters[dataIndex]?.value
   const minValue = value && nullize(value.min) && moment(value.min)
   const maxValue = value && nullize(value.max) && moment(value.max)
 
-  const dateRangeRef = useRef()
-
-  const onSearch = (values) => {
-    setFilter(dataIndex, values)
-  }
-
-  const onReset = () => {
-    setFilter(dataIndex, undefined)
-  };
-
-  const onKeyDown = (ev, confirm) => {
-    if (ev.key === 'Escape')
-      confirm()
-  }
-
-  return {
+  return ({
     filterIcon: getFilterIcon(Boolean(value)),
-    filterDropdown: ({ confirm, clearFilters }) => (
-      <div style={{ padding: 8 }}>
-        <Input.Group compact style={{ marginBottom: 8 }}>
-          <RangePicker
-            ref={dateRangeRef}
-            style={{ width: 300 }}
-            format={DATE_FORMAT}
-            allowEmpty={[true, true]}
-            defaultValue={[null, null]}
-            value={[minValue, maxValue]}
-            onChange={dates => {
-              const newDates = {}
-              newDates.min = nullize(dates[0]) && dates[0].isValid && dates[0].toISOString().slice(0, 10) || undefined
-              newDates.max = nullize(dates[1]) && dates[1].isValid && dates[1].toISOString().slice(0, 10) || undefined
-              onSearch(newDates)
-            }}
-            onKeyDown={ev => onKeyDown(ev, confirm)}
-            onPressEnter={confirm}
-          />
-        </Input.Group>
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Done
-          </Button>
-          <Button onClick={() => onReset()} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </Space>
-      </div>
-    ),
-    onFilterDropdownVisibleChange: visible => {
-      if (visible) {
-        setTimeout(() => dateRangeRef?.current.focus(), 100);
+    filterDropdown: ({ confirm, visible }) => {
+      const props = {
+        minValue, maxValue, dataIndex, setFilter, confirm, visible
       }
-    },
-  }
+      return <DateRangeFilter {...props} />
+    }
+  })
 }
 
 function getFilterIcon(filtered) {
