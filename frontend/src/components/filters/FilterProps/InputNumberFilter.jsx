@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Input } from 'antd'
+import DebouncedInput from './DebouncedInput'
 
 const InputNumberFilter = ({value, validationFunc, description, dataIndex, setFilter, confirm, visible}) => {
 
@@ -37,16 +37,16 @@ const InputNumberFilter = ({value, validationFunc, description, dataIndex, setFi
   
     return (
         <div style={{ padding: 8, display: 'flex', alignItems: 'center' }}>
-            <Input
-            ref={inputRef}
-            allowClear
-            placeholder={`Search ${description.label}`}
-            style={{ marginRight: 8 }}
-            value={value}
-            onChange={e => onSearch(e.target.value)}
-            onPressEnter={confirm}
-            onKeyDown={ev => onKeyDown(ev, confirm)}
-            status={isValid ? undefined : 'error'}
+            <DebouncedInput
+              ref={inputRef}
+              allowClear
+              placeholder={`Search ${description.label}`}
+              style={{ marginRight: 8 }}
+              value={value}
+              onInputChange={num => onSearch(num)}
+              onPressEnter={confirm}
+              onKeyDown={ev => onKeyDown(ev, confirm)}
+              status={isValid ? undefined : 'error'}
             />
         </div>
     )

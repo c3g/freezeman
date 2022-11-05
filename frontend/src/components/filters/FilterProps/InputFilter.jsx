@@ -39,7 +39,7 @@ const InputFilter = ({value, options, description, dataIndex, setFilter, setFilt
               placeholder={`Search ${description.label}`}
               style={{ marginRight: 8 }}
               value={value}
-              onChange={text => onSearch(text)}
+              onInputChange={text => onSearch(text)}
               onPressEnter={confirm}
               onKeyDown={ev => onKeyDown(ev, confirm)}
             />

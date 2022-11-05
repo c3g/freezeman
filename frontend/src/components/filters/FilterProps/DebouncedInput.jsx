@@ -26,7 +26,7 @@ const useDebounce = (debouncedFunction, debounceTime = 500) => {
 
 // DebouncedInput uses a forwardRef. This allows a ref to created by the component
 // using DebouncedInput that gets passed down to the Input element.
-const DebouncedInput = ({ value, onChange, ...rest }, ref) => {
+const DebouncedInput = ({ value, onInputChange, ...rest }, ref) => {
 
     // The input box keeps its current value in this state.
     // The value is initialized with the filter value received as props, but
@@ -35,7 +35,7 @@ const DebouncedInput = ({ value, onChange, ...rest }, ref) => {
     const [filterText, setFilterText] = useState(value)
 
     // Create a debounced version of onChange
-    const debouncedOnChange = useDebounce(onChange)
+    const debouncedOnChange = useDebounce(onInputChange)
 
     // Reset the filter text if value has changed - normally because the user has cleared
     // all filters and the filter value has been reset to undefined.
