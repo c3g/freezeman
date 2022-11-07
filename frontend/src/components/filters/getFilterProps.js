@@ -8,6 +8,7 @@ import SelectFilter from './FilterProps/SelectFilter'
 import RadioFilter from "./FilterProps/RadioFilter"
 import RangeFilterComponent from "./FilterProps/RangeFilter"
 import DateRangeFilter from "./FilterProps/DateRange"
+import { nullize } from "./nullize"
 
 import {FILTER_TYPE} from "../../constants"
 
@@ -177,8 +178,3 @@ function getFilterIcon(filtered) {
   )
 }
 
-function nullize(v) {
-  if (v === '')
-    return null
-  return v
-}

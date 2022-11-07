@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import {Button, DatePicker, Input, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
 import { DATE_FORMAT } from '../../../constants'
+import { nullize } from '../nullize'
 
 const { RangePicker } = DatePicker
 
@@ -64,12 +65,6 @@ const DateRangeFilter = ({minValue, maxValue, dataIndex, setFilter, confirm, vis
         </Space>
       </div>
     )
-  }
-
-  function nullize(v) {
-    if (v === '')
-      return null
-    return v
   }
 
   export default DateRangeFilter

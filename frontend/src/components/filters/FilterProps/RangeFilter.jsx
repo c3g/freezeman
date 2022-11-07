@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import {Button, Input, InputNumber, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
+import { nullize } from '../nullize'
 
 const RangeFilterComponent = ({minValue, defaultMin, maxValue, dataIndex, setFilter, confirm, visible}) => {
 
@@ -64,12 +65,6 @@ const RangeFilterComponent = ({minValue, defaultMin, maxValue, dataIndex, setFil
           </Space>
         </div>
     )
-  }
-
-  function nullize(v) {
-    if (v === '')
-      return null
-    return v
   }
 
   export default RangeFilterComponent
