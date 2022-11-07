@@ -75,6 +75,7 @@ __all__ = [
     "TaxonSerializer",
     "ImportedFileSerializer",
     "PooledSampleSerializer",
+    "PooledSampleExportSerializer"
 ]
 
 
@@ -513,7 +514,7 @@ class PooledSampleSerializer(serializers.Serializer):
 
     # Return the id of the pool containing this sample. This allows api clients to request
     # a list of samples from multiple pools and then group them by pool on the client side.
-    pooled_sample_id = serializers.IntegerField(read_only=True, source='sample.id')
+    pool_id = serializers.IntegerField(read_only=True, source='sample.id')
 
     volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
 
@@ -543,7 +544,7 @@ class PooledSampleSerializer(serializers.Serializer):
     class Meta:
         model = DerivedBySample
         fields = [
-            'alias', 
+            'alias',
             'collection_site',
             'experimental_groups',
             'id', 
@@ -557,11 +558,97 @@ class PooledSampleSerializer(serializers.Serializer):
             'parent_sample_id', 
             'parent_sample_name', 
             'platform',
+            'pool_id',
             'project_id', 
             'project_name', 
-            'sample_kind'
+            'sample_kind',
             'strandedness',
             'volume_ratio', 
             ]
 
+class PooledSampleExportSerializer(serializers.Serializer):
+    ''' Serializes a DerivedBySample object, representing a pooled sample, for export to CSV.
+    '''
+    volume_ratio = serializers.DecimalField(max_digits=20, decimal_places=3, read_only=True)
+
+    # Associated project info
+    project_id = serializers.IntegerField(read_only=True, source='derived_sample.project.id')
+    project_name = serializers.CharField(read_only=True, source='derived_sample.project.name')
+    
+    # Sample info
+    alias = serializers.CharField(read_only=True, source='derived_sample.biosample.alias')
+    collection_site = serializers.CharField(read_only=True, source='derived_sample.biosample.collection_site')
+    experimental_groups = serializers.JSONField(read_only=True, source='derived_sample.experimental_group')
+    parent_sample_id = serializers.CharField(read_only=True)
+    parent_sample_name = serializers.CharField(read_only=True)
+    sample_kind = serializers.CharField(read_only=True, source='derived_sample.sample_kind.name')
+
+    # Individual info
+    individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.name')
+    taxon_ncbi_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
+    taxon_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.name')
+    sex = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.sex')
+    mother = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.mother.name')
+    father = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.father.name')
+    pedigree = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.pedigree')
+    cohort = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.cohort')
+
+    # Library info
+    index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
+    index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.index_structure.name')
+    index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
+    index_sequences_3prime = serializers.SerializerMethodField()
+    index_sequences_5prime = serializers.SerializerMethodField()
+    library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
+    library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
+    strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
+
+    def get_index_sequences_3prime(self, derived_by_sample):
+        library = derived_by_sample.derived_sample.library
+        if (library):
+            sequences = library.index.list_3prime_sequences
+            return ", ".join(sequences) 
+        else:
+            return ""
+        
+    
+    def get_index_sequences_5prime(self, derived_by_sample):
+        library = derived_by_sample.derived_sample.library
+        if (library):
+            sequences = library.index.list_5prime_sequences
+            return ", ".join(sequences)
+        else:
+            return ""
+
+    class Meta:
+        model = DerivedBySample
+        fields = [
+            'alias',
+            'parent_sample_id', 
+            'parent_sample_name', 
+            'volume_ratio', 
+            'project_id', 
+            'project_name',
+            'library_size',
+            'library_type', 
+            'platform',
+            'index_set',
+            'index',
+            'index_structure',
+            'index_sequences_3prime',
+            'index_sequences_5prime',
+            'strandedness',
+            'sample_kind',
+            'collection_site',
+            'experimental_groups',
+            'cohort',
+            'individual_name',
+            'taxon_name',
+            'taxon_ncbi_id',
+            'sex',
+            'mother',
+            'father',
+            'pedigree',
+            ]
 

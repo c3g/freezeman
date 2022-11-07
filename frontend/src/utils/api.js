@@ -126,7 +126,8 @@ const api = {
   },
 
   pooledSamples: {
-    list: (options, abort) => get("/pooled-samples/", options, { abort })
+    list: (options, abort) => get("/pooled-samples/", options, { abort }),
+    listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
   },
 
   processes: {

@@ -5,7 +5,10 @@ from ._constants import (
     _pooled_sample_filterset_fields,
 )
 from ._utils import _list_keys
-from fms_core.serializers import PooledSampleSerializer
+from fms_core.serializers import PooledSampleSerializer, PooledSampleExportSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+        
 from fms_core.filters import PooledSamplesFilter        
 
 class PooledSamplesViewSet(viewsets.ModelViewSet):
@@ -57,4 +60,18 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         *_list_keys(_pooled_sample_filterset_fields),
         "parent_sample_name"
     }
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        if self.action == 'list_export':
+            fields = PooledSampleExportSerializer.Meta.fields
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        return context
+
+    @action(detail=False, methods=["get"])
+    def list_export(self, _request):
+        serializer = PooledSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
+        return Response(serializer.data)
+
     filter_class = PooledSamplesFilter
