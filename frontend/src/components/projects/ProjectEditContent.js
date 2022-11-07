@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,10 +8,9 @@ import {
   DatePicker,
   Form,
   Input,
-  Select,
+  Space,
   Switch,
 } from "antd";
-const { Option } = Select
 const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
@@ -65,6 +64,10 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
       .catch(err => { setFormErrors(err.data || {}) })
       .then(() => Promise.all([listTable(), summary()]))
   }
+
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
 
   /*
    * Render
@@ -142,9 +145,12 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+            <Space>
+              <Button onClick={onCancel}>Cancel</Button>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </PageContent>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,9 +11,9 @@ import {
   Input,
   InputNumber,
   Select,
+  Space,
   Switch,
 } from "antd";
-const { Option } = Select
 const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
@@ -171,6 +171,10 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       .then(() => Promise.all([listTable(), summary()]))
   }
 
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
+
 
   /*
    * Render
@@ -305,9 +309,12 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+            <Space>
+              <Button onClick={onCancel}>Cancel</Button>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </PageContent>

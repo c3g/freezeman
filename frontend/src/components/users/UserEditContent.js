@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Button, Checkbox, Form, Input, Select, Tag } from "antd";
+import { Alert, Button, Checkbox, Form, Input, Select, Space, Tag } from "antd";
 
 import { withUser } from "../../utils/withItem"
 import AppPageHeader from "../AppPageHeader";
@@ -68,6 +68,10 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
       .catch(err => { setFormErrors(err.data || {}) })
       .then(listTable)
   }
+
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
 
   /*
    * Render
@@ -188,14 +192,17 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
             />
           }
           <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={isFetching}
-              disabled={!isAdmin}
-            >
-              Submit
-            </Button>
+            <Space>
+              <Button onClick={onCancel}>Cancel</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={isFetching}
+                disabled={!isAdmin}
+              >
+                Submit
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </PageContent>
