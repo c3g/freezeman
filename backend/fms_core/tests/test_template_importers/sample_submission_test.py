@@ -5,9 +5,9 @@ from django.db import transaction
 from fms_core.template_importer.importers import SampleSubmissionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Container
+from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample
 from fms_core.services.project import create_project
-from fms_core.services.index import get_or_create_index_set, create_index
+from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
 
 class SampleSubmissionTestCase(TestCase):
@@ -26,10 +26,16 @@ class SampleSubmissionTestCase(TestCase):
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
         (index_1, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
                                                    index_name="SSXTHSV2703-SSXTHSV2503")
+        create_indices_3prime_by_sequence(index_1, ["ACGTTTAGAC"])
+        create_indices_5prime_by_sequence(index_1, ["GCGCCCAGAC"])
         (index_2, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
                                                    index_name="SSXTHSV2704-SSXTHSV2504")
+        create_indices_3prime_by_sequence(index_2, ["ACGTCTATAC"])
+        create_indices_5prime_by_sequence(index_2, ["GCGCCCAGAC"])
         (index_3, errors, warnings) = create_index(index_set=index_set, index_structure="TruSeqHT",
                                                    index_name="SSXTHSV2705-SSXTHSV2505")
+        create_indices_3prime_by_sequence(index_3, ["ACGTTTAGAC"])
+        create_indices_5prime_by_sequence(index_3, ["GCGCCCAGAC"])
 
         self.prefill_data()
 
