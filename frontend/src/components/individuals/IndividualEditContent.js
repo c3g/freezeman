@@ -195,10 +195,10 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
           }
           <Form.Item>
             <Space>
-              <Button onClick={onCancel}>Cancel</Button>
               <Button type="primary" htmlType="submit">
                 Submit
               </Button>
+              <Button onClick={onCancel}>Cancel</Button>
             </Space>
           </Form.Item>
         </Form>

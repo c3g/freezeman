@@ -146,10 +146,10 @@ const ProjectEditContent = ({ token, projectsByID, add, update, listTable, summa
           }
           <Form.Item>
             <Space>
-              <Button onClick={onCancel}>Cancel</Button>
               <Button type="primary" htmlType="submit">
                 Submit
               </Button>
+              <Button onClick={onCancel}>Cancel</Button>
             </Space>
           </Form.Item>
         </Form>

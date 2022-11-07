@@ -284,16 +284,13 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
               />
             }
             <Space>
-              <Button onClick={onCancel}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"
                 disabled={!allIndicesLoaded}
                 loading={validationLoading}
-                style={{ float: 'right', marginRight: '25rem' }}
-              >
-                Submit
-              </Button>
+              >Submit</Button>
+              <Button onClick={onCancel}>Cancel</Button>
             </Space>
            
           </Form>

@@ -193,7 +193,6 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
           }
           <Form.Item>
             <Space>
-              <Button onClick={onCancel}>Cancel</Button>
               <Button
                 type="primary"
                 htmlType="submit"
@@ -202,6 +201,7 @@ const UserEditContent = ({ requestorID, isFetching, groups, usersByID, groupsByI
               >
                 Submit
               </Button>
+              <Button onClick={onCancel}>Cancel</Button>
             </Space>
           </Form.Item>
         </Form>

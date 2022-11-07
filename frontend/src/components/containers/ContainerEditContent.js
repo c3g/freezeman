@@ -175,10 +175,10 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
           }
           <Item>
             <Space>
-              <Button onClick={onCancel}>Cancel</Button>
               <Button type="primary" htmlType="submit">
                 Submit
               </Button>
+              <Button onClick={onCancel}>Cancel</Button>
             </Space>
           </Item>
         </Form>
