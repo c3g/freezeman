@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import {Button, DatePicker, Input, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
 import { DATE_FORMAT } from '../../../constants'
-import { nullize } from '../nullize'
+import { nullize } from '../../../utils/nullize'
 
 const { RangePicker } = DatePicker
 

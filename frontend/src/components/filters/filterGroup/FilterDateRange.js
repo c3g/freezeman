@@ -3,7 +3,7 @@ import {DatePicker} from "antd";
 import FilterLabel from "./FilterLabel"
 import * as style from "../style"
 import {DATE_FORMAT} from "../../../constants"
-import { nullize } from "../nullize"
+import { nullize } from '../../../utils/nullize'
 
 const { RangePicker } = DatePicker;
 
