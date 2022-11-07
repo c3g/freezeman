@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Button, Form, Input, Select } from "antd";
+import { Alert, Button, Form, Input, Select, Space } from "antd";
 const { Option } = Select;
 const { Item } = Form;
 const { TextArea } = Input;
@@ -79,6 +79,9 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
       .then(() => Promise.all([listTable(), summary()]))
   }
 
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
   /*
    * Rendering
    */
@@ -171,9 +174,12 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
             />
           }
           <Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+              <Button onClick={onCancel}>Cancel</Button>
+            </Space>
           </Item>
         </Form>
       </PageContent>

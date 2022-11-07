@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Alert, Button, Form, Input, Radio, Select } from "antd";
+import { Alert, Button, Form, Input, Radio, Select, Space } from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -68,6 +68,10 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
       .catch(err => { setFormErrors(err.data || {}) })
       .then(listTable)
   }
+
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
 
   /*
    * Individual autocomplete
@@ -190,9 +194,12 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+              <Button onClick={onCancel}>Cancel</Button>
+            </Space>
           </Form.Item>
         </Form>
       </PageContent>
