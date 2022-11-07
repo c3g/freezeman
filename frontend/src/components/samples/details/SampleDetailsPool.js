@@ -219,7 +219,7 @@ const PooledSamples = ({sample: pool}) => {
 
     return (
     <>
-        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+        <div style={{ textAlign: 'right', marginBottom: '1em', padding: '0 24px' }}>
             <FiltersWarning
                 nFilters={nFilters}
                 filters={filters}
