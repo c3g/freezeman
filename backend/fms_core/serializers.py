@@ -585,7 +585,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
 
     # Individual info
     individual_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.name')
-    taxon_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
+    taxon_ncbi_id = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.ncbi_id')
     taxon_name = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.taxon.name')
     sex = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.sex')
     mother = serializers.CharField(read_only=True, source='derived_sample.biosample.individual.mother.name')
@@ -595,10 +595,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
 
     # Library info
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
-    index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.structure.name')
+    index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.index_structure.name')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
-    # sequences_3prime = serializers.CharField(read_only=True, source='derived_sample.library.index.list_3prime_sequences')
-    # sequences_5prime = serializers.CharField(read_only=True, source='derived_sample.library.index.list_5prime_sequences')
     sequences_3prime = serializers.SerializerMethodField()
     sequences_5prime = serializers.SerializerMethodField()
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
@@ -647,7 +645,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'cohort',
             'individual_name',
             'taxon_name',
-            'taxon_id',
+            'taxon_ncbi_id',
             'sex',
             'mother',
             'father',
