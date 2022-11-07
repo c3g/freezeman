@@ -597,14 +597,14 @@ class PooledSampleExportSerializer(serializers.Serializer):
     index = serializers.CharField(read_only=True, source='derived_sample.library.index.name')
     index_structure = serializers.CharField(read_only=True, source='derived_sample.library.index.index_structure.name')
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
-    sequences_3prime = serializers.SerializerMethodField()
-    sequences_5prime = serializers.SerializerMethodField()
+    index_sequences_3prime = serializers.SerializerMethodField()
+    index_sequences_5prime = serializers.SerializerMethodField()
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
     platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
 
-    def get_sequences_3prime(self, derived_by_sample):
+    def get_index_sequences_3prime(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
         if (library):
             sequences = library.index.list_3prime_sequences
@@ -613,7 +613,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
             return ""
         
     
-    def get_sequences_5prime(self, derived_by_sample):
+    def get_index_sequences_5prime(self, derived_by_sample):
         library = derived_by_sample.derived_sample.library
         if (library):
             sequences = library.index.list_5prime_sequences
@@ -636,8 +636,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'index_set',
             'index',
             'index_structure',
-            'sequences_3prime',
-            'sequences_5prime',
+            'index_sequences_3prime',
+            'index_sequences_5prime',
             'strandedness',
             'sample_kind',
             'collection_site',
