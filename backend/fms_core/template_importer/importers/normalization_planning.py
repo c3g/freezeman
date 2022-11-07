@@ -129,14 +129,18 @@ class NormalizationPlanningImporter(GenericImporter):
                 row_i=row_id,
                 samples_info=pools_dict.get(pool["name"], None),
                 pool=pool,
+                seq_instrument_type=str_cast_and_normalize(row_data["Seq Instrument Type"])
             )
-            pools_mapping_rows.append(pool_row_mapping)
+            if pool_row_mapping is not None:
+                pools_mapping_rows.append(pool_row_mapping)
+            else:
+                self.base_errors.append(f"Fix pool errors to complete planning.")
 
         # Make sure all the normalization choices and formats for outputs are the same
         if len(set(norm_choice)) != 1:
             self.base_errors.append(f"All Robot norm choices need to be identical.")
 
-        if not self.dry_run:
+        if not self.dry_run and not self.base_errors:
             # Create robot file using both the input from the normalization sheet and the pools sheet.
             robot_files, updated_norm_mapping_rows, updated_pool_mapping_rows = self.prepare_robot_file(normalization_mapping_rows, pools_mapping_rows, norm_choice[0])
             samplestopool_mapping_rows = []
@@ -162,7 +166,7 @@ class NormalizationPlanningImporter(GenericImporter):
 
             # Prepare the Pooling template
             if pools_mapping_rows:
-                pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [samplestopool_mapping_rows, updated_pool_mapping_rows])
+                pooling_prefilled_template = PrefillTemplateFromDict(SAMPLE_POOLING_TEMPLATE, [updated_pool_mapping_rows, samplestopool_mapping_rows])
                 pooling_prefilled_template_name = "/".join(SAMPLE_POOLING_TEMPLATE["identity"]["file"].split("/")[-1:])
                 files_to_zip.append({'name': pooling_prefilled_template_name,
                                      'content': pooling_prefilled_template,})

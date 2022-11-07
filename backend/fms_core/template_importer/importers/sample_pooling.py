@@ -72,6 +72,7 @@ class SamplePoolingImporter(GenericImporter):
                             "parent_barcode": str_cast_and_normalize(row_data["Destination Parent Container Barcode"]),
                         },
                     },
+                    "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),
                     "pooling_date": input_to_date_and_none(row_data["Pooling Date (YYYY-MM-DD)"]),
                     "comment": str_cast_and_normalize(row_data["Comment"]),
                 }

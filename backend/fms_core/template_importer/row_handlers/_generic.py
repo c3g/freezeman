@@ -22,7 +22,7 @@ class GenericRowHandler():
 
     def has_errors(self):
         has_errors = False
-        for error in self.errors:
+        for error in self.errors.values():
             has_errors = has_errors or bool(error)
         return has_errors
 

@@ -205,7 +205,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
       {
         'name': 'Pools',
         'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
-                    'Pool Parent Container Barcode', 'Pool Parent Container Coord'],
+                    'Pool Parent Container Barcode', 'Pool Parent Container Coord', 'Seq Instrument Type'],
       },
   ],
   "prefill info": [
@@ -234,16 +234,16 @@ SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_13_0.xlsx")},
   "sheets info": [
       {
-          "name": "SamplesToPool",
-          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
-      },
-      {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
                       "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
-                      "Pooling Date (YYYY-MM-DD)", "Comment"],
+                      "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
       },
+      {
+          "name": "SamplesToPool",
+          "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
+                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+      }
   ],
   "prefill info": [
       ("SamplesToPool", "Source Sample Name", "name"),
@@ -266,7 +266,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
           "name": "PoolSubmission",
           "headers": ["Pool Name", "Container Kind", "Container Name",
                       "Container Barcode", "Pool Coord",
-                      "Location Barcode", "Container Coord",
+                      "Location Barcode", "Container Coord", "Seq Instrument Type",
                       "Reception (YYYY-MM-DD)", "Comment"],
       },
   ],

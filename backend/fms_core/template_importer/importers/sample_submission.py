@@ -119,6 +119,7 @@ class SampleSubmissionImporter(GenericImporter):
                             "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
                         },
                     },
+                    "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),
                     "reception_date": input_to_date_and_none(row_data["Reception (YYYY-MM-DD)"]),
                     "comment": str_cast_and_normalize(row_data["Comment"]),
                 }

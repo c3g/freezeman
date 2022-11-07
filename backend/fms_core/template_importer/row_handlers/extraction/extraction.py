@@ -1,4 +1,3 @@
-from fms_core.models import Sample, DerivedSample, DerivedBySample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container, extract_sample
 from fms_core.services.container import get_or_create_container, get_container
@@ -27,7 +26,6 @@ class ExtractionRowHandler(GenericRowHandler):
                                                                                                                  container_parent=container_parent)
 
         # Sample & Extraction
-
         original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=source_sample['container']['barcode'],
                                                                                                     coordinates=source_sample['coordinates'])
 
