@@ -38,7 +38,15 @@ class PoolsRowHandler(GenericRowHandler):
                     self.errors["source_sample"] = (f"Source samples in pool {pool['name']} must be from the same individual. "
                                                     f"Samples to be pooled are of the following individuals: {set_individual}.")
 
-            if pool_is_library:                                 
+            if pool_is_library:
+                # Validate that all libraries have the same platform
+                set_platform = set()
+                for sample in samples_info:
+                    for derived_sample in sample["Source Sample"].derived_samples.all():
+                        set_platform.add(derived_sample.library.platform_id)
+                if len(set_platform) > 1:
+                    self.errors["source_sample"] = (f"Libraries in pool {pool['name']} must have the same platform.")
+
                 # Add a warning if the concentration of the libraries are not within a tolerance
                 TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
                 concentrations = [sample["Source Sample"].concentration for sample in samples_info]
