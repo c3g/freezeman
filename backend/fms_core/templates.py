@@ -10,6 +10,7 @@ __all__ = [
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
+    "EXPERIMENT_ILLUMINA_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
@@ -84,6 +85,15 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 
 EXPERIMENT_MGI_TEMPLATE = {
   "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_10_0.xlsx")},
+  "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+  "prefill info": [
+      ("Samples", "Source Sample Name", "name"),
+      ("Samples", "Source Container Barcode", "container__barcode"),
+      ("Samples", "Source Container Coordinates", "coordinates"),],
+}
+
+EXPERIMENT_ILLUMINA_TEMPLATE = {
+  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_Illumina_v3_14_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),

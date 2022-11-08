@@ -41,6 +41,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
+        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
@@ -223,6 +224,7 @@ class ExperimentRunMGITestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
+        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
@@ -241,31 +243,32 @@ class ExperimentRunMGITestCase(TestCase):
         self.assertEqual(process_obj.protocol.name, 'DNBSEQ Preparation')
 
         # Process properties Tests (check properties for process)
+        protocol_id = process_obj.protocol.id
 
         p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Flowcell Lot'))
+                                             property_type=PropertyType.objects.get(name='Flowcell Lot', object_id=protocol_id))
         p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Loading Method'))
+                                             property_type=PropertyType.objects.get(name='Loading Method', object_id=protocol_id))
         p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Sequencer Side'))
+                                             property_type=PropertyType.objects.get(name='Sequencer Side', object_id=protocol_id))
         p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Sequencer Kit Used'))
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Used', object_id=protocol_id))
         p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Sequencer Kit Lot'))
+                                             property_type=PropertyType.objects.get(name='Sequencer Kit Lot', object_id=protocol_id))
         p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Load DNB Cartridge Lot'))
+                                             property_type=PropertyType.objects.get(name='Load DNB Cartridge Lot', object_id=protocol_id))
         p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Primer Kit'))
+                                             property_type=PropertyType.objects.get(name='Primer Kit', object_id=protocol_id))
         p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Primer Kit Lot'))
+                                             property_type=PropertyType.objects.get(name='Primer Kit Lot', object_id=protocol_id))
         p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Read 1 Cycles'))
+                                             property_type=PropertyType.objects.get(name='Read 1 Cycles', object_id=protocol_id))
         p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Read 2 Cycles'))
+                                             property_type=PropertyType.objects.get(name='Read 2 Cycles', object_id=protocol_id))
         p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Index 1 Cycles'))
+                                             property_type=PropertyType.objects.get(name='Index 1 Cycles', object_id=protocol_id))
         p12 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
-                                             property_type=PropertyType.objects.get(name='Index 2 Cycles'))
+                                             property_type=PropertyType.objects.get(name='Index 2 Cycles', object_id=protocol_id))
 
 
         # Check property values DNBSEQ preparation process
