@@ -99,7 +99,7 @@ def set_needs_processing_flags(apps, schema_editor) :
         run_types = RunType.objects.all()
 
         for run_type in run_types:
-            if (run_type.platform.name == "DNBSEQ" or run_type.platform.name == "Illumina"):
+            if (run_type.platform.name == "DNBSEQ" or run_type.platform.name == "ILLUMINA"):
                 run_type.needs_run_processing = True
             run_type.save()
             reversion.add_to_revision(run_type)
