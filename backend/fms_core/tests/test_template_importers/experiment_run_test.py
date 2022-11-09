@@ -41,7 +41,6 @@ class ExperimentRunInfiniumTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
@@ -224,7 +223,6 @@ class ExperimentRunMGITestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
@@ -284,3 +282,88 @@ class ExperimentRunMGITestCase(TestCase):
         self.assertEqual(p10.value, 'r2c')
         self.assertEqual(p11.value, 'i1c')
         self.assertEqual(p12.value, 'i2c')
+
+class ExperimentRunIlluminaTestCase(TestCase):
+    def setUp(self) -> None:
+        self.importer = ExperimentRunImporter()
+        self.file = APP_DATA_ROOT / "Experiment_run_illumina_v3_14_0.xlsx"
+        ContentType.objects.clear_cache()
+
+        self.container_barcode = "CONTAINERWITHSAMPLETESTILLUMINA"
+        self.sample_name = "ExperimentIlluminaTestSample"
+
+        self.prefill_data()
+
+
+    def prefill_data(self):
+        sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
+        taxon = Taxon.objects.get(name='Homo sapiens')
+
+        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+
+        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunIllumina', taxon=taxon)
+
+        create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
+                           creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
+                           individual=individual, sample_kind=sample_kind_DNA)
+
+
+    def test_import(self):
+        # Basic test for all templates - checks that template is valid
+        result = load_template(importer=self.importer, file=self.file)
+        self.assertEqual(result['valid'], True)
+
+        # Custom tests for each template
+
+        # Test experiment run Illumina
+        experiment_run_obj = ExperimentRun.objects.get(container__barcode="containerIllumina")
+        process_obj = Process.objects.get(experiment_runs=experiment_run_obj)
+        content_type_process = ContentType.objects.get_for_model(Process)
+
+        # Experiment Run tests
+        self.assertEqual(experiment_run_obj.run_type.name, 'Illumina')
+        self.assertEqual(experiment_run_obj.instrument.name, 'Carrie Derick')
+
+        # Process Tests
+        self.assertEqual(process_obj.child_process.count(), 0)
+        self.assertEqual(process_obj.protocol.name, 'Illumina Preparation')
+
+        # Process properties Tests (check properties for process)
+        protocol_id = process_obj.protocol.id
+
+        p1 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Flowcell Lot', object_id=protocol_id))
+        p2 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Sequencer Side', object_id=protocol_id))
+        p3 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='PhiX V3 Lot', object_id=protocol_id))
+        p4 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='NaOH 2N Lot', object_id=protocol_id))
+        p5 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Buffer Reagents Lot', object_id=protocol_id))
+        p6 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='SBS Reagents Lot', object_id=protocol_id))
+        p7 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='NovaSeq XP Lot', object_id=protocol_id))
+        p8 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 1 Cycles', object_id=protocol_id))
+        p9 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Read 2 Cycles', object_id=protocol_id))
+        p10 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 1 Cycles', object_id=protocol_id))
+        p11 = PropertyValue.objects.get(content_type=content_type_process, object_id=process_obj.id,
+                                             property_type=PropertyType.objects.get(name='Index 2 Cycles', object_id=protocol_id))
+
+
+        # Check property values for Illumina preparation process
+        self.assertEqual(p1.value, 'flowcell-lot')
+        self.assertEqual(p2.value, 'Side A')
+        self.assertEqual(p3.value, 'phix lot')
+        self.assertEqual(p4.value, '2n lot')
+        self.assertEqual(p5.value, 'buffer lot')
+        self.assertEqual(p6.value, 'sbs lot')
+        self.assertEqual(p7.value, 'xp-lot')
+        self.assertEqual(p8.value, 'r1c')
+        self.assertEqual(p9.value, 'r2c')
+        self.assertEqual(p10.value, 'i1c')
+        self.assertEqual(p11.value, 'i2c')
