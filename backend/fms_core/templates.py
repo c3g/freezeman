@@ -6,6 +6,7 @@ various viewsets. Can be used to calculate URIs for the template files too.
 from django.templatetags.static import static
 
 __all__ = [
+    "CAPTURE_PREPARATION_TEMPLATE",
     "CONTAINER_CREATION_TEMPLATE",
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
@@ -26,6 +27,29 @@ __all__ = [
 ]
 
 MAX_HEADER_OFFSET = 20
+
+CAPTURE_PREPARATION_TEMPLATE = {
+  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Capture_preparation_v3_14_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Capture Batch',
+          'headers': ['Capture Batch ID', 'Capture Type', 'Capture Date (YYYY-MM-DD)', 'Comment',
+                      'Capture Technician Name', 'Library Kit Used', 'Library Kit Lot',
+                      'Baits Used', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Capture Batch ID', 'Library Name', 'Source Container Barcode', 'Source Container Coordinates',
+                      'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
+                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
+                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Sample Name", "name"),
+      ("Library", "Source Container Barcode", "container__barcode"),
+      ("Library", "Source Container Coordinates", "coordinates"),],
+}
 
 CONTAINER_CREATION_TEMPLATE = {
   "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
