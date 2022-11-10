@@ -19,8 +19,8 @@ def populate_instrument_serial_id(apps, schema_editor):
     INSTRUMENTS = {
       "iScan_1": "iScan_1",
       "01-Marie Curie": "R2130400190016",
-      "02-Frida Kahlo": "",
-      "03-Jennifer Doudna": "",
+      "02-Frida Kahlo": "R2130400190018",
+      "03-Jennifer Doudna": "R1100600200054",
     }
 
     with reversion.create_revision(manage_manually=True):
