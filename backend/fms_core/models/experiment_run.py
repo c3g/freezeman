@@ -41,6 +41,7 @@ class ExperimentRun(TrackedModel):
                                 on_delete=models.PROTECT,
                                 related_name="experiment_runs",
                                 help_text="Main process associated to this experiment")
+    run_processing_launch_date = models.DateField(null=True, help_text="Date on which run processing was launched, if it has been launched.")
 
     def clean(self):
         super().clean()

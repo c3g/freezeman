@@ -43,6 +43,7 @@ import {
   instruments,
   propertyValues,
   experimentRunTemplateActions,
+  experimentRunLaunches
 } from "./modules/experimentRuns/reducers";
 import {
   projectsSummary,
@@ -99,6 +100,7 @@ const allReducers = combineReducers({
   datasets,
   datasetFiles,
   experimentRuns,
+  experimentRunLaunches,
   experimentRunTemplateActions,
   runTypes,
   individuals,

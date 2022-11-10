@@ -18,6 +18,9 @@ export const LIST_TYPES            = createNetworkActionTypes("EXPERIMENT_RUNS.L
 export const LIST_INSTRUMENTS      = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_INSTRUMENTS")
 export const LIST_PROPERTY_VALUES  = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_PROPERTY_VALUES");
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("EXPERIMENT_RUNS.LIST_TEMPLATE_ACTIONS");
+export const LAUNCH_EXPERIMENT_RUN = createNetworkActionTypes("EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN")
+export const FLUSH_EXPERIMENT_RUN_LAUNCH = "EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH"
+
 
 export const get = id => async (dispatch, getState) => {
     const experimentRun = getState().experimentRuns.itemsByID[id];
@@ -108,6 +111,27 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.experimentRuns.template.actions()));
 };
 
+export const launchExperimentRun = (experimentRunId) => (dispatch, getState) => {
+    const meta = {
+        experimentRunId
+    }
+    // Make sure the run isn't already launched
+    const launchState = getState().experimentRunLaunches[experimentRunId]
+    if (launchState && launchState.status === 'LAUNCHING') {
+        return
+    }
+
+    // Dispatch the network action
+    return dispatch(networkAction(LAUNCH_EXPERIMENT_RUN, api.experimentRuns.launchRunProcessing(experimentRunId), {meta}))
+}
+
+export const flushExperimentRunLaunch = (experimentRunId) => {
+    return {
+        type: FLUSH_EXPERIMENT_RUN_LAUNCH,
+        data: experimentRunId
+    }
+}
+
 export default {
     GET,
     SET_SORT_BY,
@@ -120,6 +144,8 @@ export default {
     LIST_INSTRUMENTS,
     LIST_PROPERTY_VALUES,
     LIST_TEMPLATE_ACTIONS,
+    LAUNCH_EXPERIMENT_RUN,
+    FLUSH_EXPERIMENT_RUN_LAUNCH,
     get,
     setSortBy,
     setFilter,
@@ -131,6 +157,8 @@ export default {
     listInstruments,
     listPropertyValues,
     listTemplateActions,
+    launchExperimentRun,
+    flushExperimentRunLaunch
 };
 
 // Helper to call list() after another action

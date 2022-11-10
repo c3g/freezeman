@@ -42,3 +42,22 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["get"])   # TODO should this be post? update?
+    def launch_run_processing(self, _request, pk=None):
+        try:
+            experiment_run = ExperimentRun.objects.get(pk=pk)
+        except ExperimentRun.DoesNotExist:
+            return Response(status=404, data= {
+                'ok': False,
+                'message': f'Experiment run with id {pk} not found.'
+            })
+
+        # TODO Create a service to launch experiment runs
+        # raise Exception('Test Error')
+     
+        # TODO Decide on what information the response should contain
+        return Response({
+            'ok': True,
+            'message': 'Experiment run launched successfully'
+        })
