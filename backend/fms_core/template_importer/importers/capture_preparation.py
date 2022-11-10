@@ -10,7 +10,7 @@ from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 PROPERTIES_STARTING_INDEX = 4
 
-class LibraryPreparationImporter(GenericImporter):
+class CapturePreparationImporter(GenericImporter):
     SHEETS_INFO = CAPTURE_PREPARATION_TEMPLATE['sheets info']
 
     def __init__(self):
@@ -62,7 +62,7 @@ class LibraryPreparationImporter(GenericImporter):
             capture_batch_info = dict(
                 # Library attributes data dictionary and related objects
                 capture_date=input_to_date_and_none(capture_batch_dict['Capture Date (YYYY-MM-DD)']),
-                # Capture Type 
+                # library selection
                 **batch_objects,
                 # Additional data for this row
                 protocol=self.preloaded_data['protocol'],

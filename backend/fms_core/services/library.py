@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from datetime import date
-from fms_core.models import LibraryType, Library, DerivedBySample
+from fms_core.models import LibraryType, Library, DerivedBySample, LibrarySelection
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
@@ -21,6 +21,25 @@ def get_library_type(name):
         errors.append(f"More than one Library Type was found with the name {name}.")
 
     return library_type, errors, warnings
+
+
+def get_library_selection(name, target=None):
+    library_selection = None
+    errors = []
+    warnings = []
+
+    # Current state of things (with Capture and ChipSeq) target is required. Could eventually have target = None.
+    if name is None:
+        errors.append(f"You need a name identify a library selection.")
+    else:
+        try:
+            library_selection = LibrarySelection.objects.get(name=name, target=target)
+        except LibrarySelection.DoesNotExist as e:
+            errors.append(f"No Library Selection named {name} with target {target} could be found.")
+        except LibrarySelection.MultipleObjectsReturned as e:
+            errors.append(f"More than one Library Selection was found with the name {name}.")
+
+    return library_selection, errors, warnings
 
 
 def create_library(library_type, index, platform, strandedness, library_size=None):

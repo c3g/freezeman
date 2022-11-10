@@ -4,7 +4,7 @@ import datetime
 from decimal import Decimal
 
 from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
-from fms_core.services.library import (get_library_type, create_library, convert_library, update_library,
+from fms_core.services.library import (get_library_type, get_library_selection, create_library, convert_library, update_library,
                                        convert_library_concentration_from_ngbyul_to_nm, convert_library_concentration_from_nm_to_ngbyul)
 from fms_core.services.platform import get_platform
 from fms_core.services.process import create_process
@@ -22,6 +22,8 @@ class LibraryServicesTestCase(TestCase):
         self.index_set_name = "TEST_INDEX_SET"
         self.index_name = "TEST_INDEX_1"
         self.library_type_name = "RNASeq"
+        self.library_selection_name = "ChipSeq"
+        self.library_selection_target = "H3K4me1"
         self.structure_name = "Nextera"
         self.platform_name = "ILLUMINA"
         self.convertion_platform_name = "DNBSEQ"
@@ -40,6 +42,14 @@ class LibraryServicesTestCase(TestCase):
     def test_get_library_type(self):
         library_type_obj, errors, warnings = get_library_type(self.library_type_name)
         self.assertEqual(library_type_obj.name, self.library_type_name)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_get_library_selection(self):
+        library_selection_obj, errors, warnings = get_library_selection(name=self.library_selection_name,
+                                                                        target=self.library_selection_target)
+        self.assertEqual(library_selection_obj.name, self.library_selection_name)
+        self.assertEqual(library_selection_obj.target, self.library_selection_target)
         self.assertFalse(errors)
         self.assertFalse(warnings)
 

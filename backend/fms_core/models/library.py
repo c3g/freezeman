@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from .tracked_model import TrackedModel
 from .library_type import LibraryType
+from .library_selection import LibrarySelection
 from .platform import Platform
 from .index import Index
 
@@ -25,9 +26,10 @@ class Library(TrackedModel):
                               help_text="The index associated to this library.")
     library_size = models.DecimalField(max_digits=20, decimal_places=0, null=True, blank=True,
                                         help_text="Average size of the nucleic acid strands in base pairs.")
-
     strandedness = models.CharField(choices=((type, type) for type in STRANDEDNESS_CHOICES), max_length=20,
                                     help_text="Number of Library NA strands.")
+    library_selection = models.ForeignKey(LibrarySelection, null=True, blank=True, on_delete=models.PROTECT,
+                                          related_name="libraries", help_text="Library selection used on the library.")
 
     @property
     def molecular_weight_approx(self):

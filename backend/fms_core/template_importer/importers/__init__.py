@@ -13,6 +13,7 @@ from .transfer import TransferImporter
 from .project_link_sample import ProjectLinkSamples
 from .library_preparation import LibraryPreparationImporter
 from .library_conversion import LibraryConversionImporter
+from .capture_preparation import CapturePreparationImporter
 from .library_qc import LibraryQCImporter
 from .normalization import NormalizationImporter
 from .normalization_planning import NormalizationPlanningImporter
@@ -35,6 +36,7 @@ __all__ = [
     "ContainerMoveImporter",
     "LibraryPreparationImporter",
     "LibraryConversionImporter"
+    "CapturePreparationImporter",
     "LibraryQCImporter",
     "NormalizationImporter",
     "NormalizationPlanningImporter",
