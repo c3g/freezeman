@@ -24,6 +24,9 @@ class ExperimentRunRowHandler(GenericRowHandler):
                                                                                                kind=container['kind'],
                                                                                                coordinates=None,
                                                                                                creation_comment=comment)
+        # Add a warning if any of the samples have a failed qc flag
+        if not all([sample["sample_obj"].quantity_flag and sample["sample_obj"].quality_flag for sample in sample_rows_info]):
+            self.warnings["source_sample"] = (f"Some samples in the experiment {experiment_run_name} have failed QC.")
 
         if run_type_obj and instrument_obj and container_obj:
             _, self.errors['experiment'], self.warnings['experiment'] = create_experiment_run(experiment_run_name,
