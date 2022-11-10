@@ -185,10 +185,11 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         database.
         """
         # Creates a dictionary of libraries of the form {library_id : library_type_id} which removes duplicates (pools)
-        libraries = {l['id']: l['derived_samples__library__library_type'] if not l['is_pooled'] else "pool" for l in self.queryset.values('id', 'is_pooled', 'derived_samples__library__library_type')}
+        libraries = self.queryset.values('id', 'is_pooled', 'derived_samples__library__library_type')
+        libraries_type = {l['id']: l['derived_samples__library__library_type'] for l in libraries if not l['is_pooled']}
         return Response({
             "total_count": len(libraries),
-            "library_type_counts": Counter(libraries.values()),
+            "library_type_counts": Counter(libraries_type.values()),
         })
 
     @action(detail=False, methods=["get"])
