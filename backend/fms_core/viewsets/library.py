@@ -184,11 +184,11 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         Returns summary statistics about the current set of libraries in the
         database.
         """
-        # Creates a dictionary of libraries of the form {library_id : library_type_id} which removes duplicates
-        library_type_by_library = {l['id']: l['derived_samples__library__library_type'] for l in self.queryset.values('id', 'derived_samples__library__library_type')}
+        # Creates a dictionary of libraries of the form {library_id : library_type_id} which removes duplicates (pools)
+        libraries = {l['id']: l['derived_samples__library__library_type'] if not l['is_pooled'] else "pool" for l in self.queryset.values('id', 'is_pooled', 'derived_samples__library__library_type')}
         return Response({
-            "total_count": len(library_type_by_library),
-            "library_type_counts": Counter(library_type_by_library.values()),
+            "total_count": len(libraries),
+            "library_type_counts": Counter(libraries.values()),
         })
 
     @action(detail=False, methods=["get"])

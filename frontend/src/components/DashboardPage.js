@@ -142,7 +142,7 @@ const DashboardPage = ({
               </Col>
               <Col {...STATS_COL_PROPS}>
                 {((librariesSummary.library_type_counts && Object.keys(librariesSummary.library_type_counts)) || []).map((library_type) =>
-                  <Statistic title={libraryTypesByID[library_type]?.name} value={librariesSummary.library_type_counts[library_type] || "—"} />
+                  <Statistic title={libraryTypesByID[library_type]?.name || 'Pool'} value={librariesSummary.library_type_counts[library_type] || "—"} />
                 )}
               </Col>
             </Row>
