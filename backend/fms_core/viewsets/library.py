@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery
+from collections import Counter
 
 from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, Container, DerivedBySample
@@ -183,12 +184,11 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         Returns summary statistics about the current set of libraries in the
         database.
         """
+        # Creates a dictionary of libraries of the form {library_id : library_type_id} which removes duplicates
+        library_type_by_library = {t['id']: t['derived_samples__library__library_type'] for t in self.queryset.values('id', 'derived_samples__library__library_type')}
         return Response({
-            "total_count": self.queryset.all().count(),
-            "library_type_counts": {
-                 c["derived_samples__library__library_type"]: c["derived_samples__library__library_type__count"]
-                 for c in self.queryset.values("derived_samples__library__library_type").annotate(Count("derived_samples__library__library_type"))
-            },
+            "total_count": len(library_type_by_library),
+            "library_type_counts": Counter(library_type_by_library.values()),
         })
 
     @action(detail=False, methods=["get"])
