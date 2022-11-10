@@ -46,10 +46,6 @@ class PoolsRowHandler(GenericRowHandler):
                 if any(abs(concentration - avg_concentration) > TOLERANCE for concentration in concentrations):
                     self.warnings["concentration"] = [(f"Source samples in pool {pool['name']} have concentrations that are more than "
                                                        f"{TOLERANCE} ng/uL away from the average concentration of the pool.")]
-
-                # Add a warning if any of the libraries have a failed qc flag
-                if not all([sample["Source Sample"].quantity_flag and sample["Source Sample"].quality_flag for sample in samples_info]):
-                    self.warnings["source_sample"] = (f"Some samples in pool {pool['name']} have failed QC.")
             
             # Validate indices from the samples being pooled
             if pool_is_library and seq_instrument_type is not None:
