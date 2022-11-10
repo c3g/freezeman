@@ -29,6 +29,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Indices.summary,
         Samples.listKinds,
         Samples.summary,
+        LibraryTypes.list,
         Libraries.summary,
         Projects.summary,
         Protocols.list,
@@ -75,8 +76,8 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
         Containers.summary,
         Indices.summary,
         Samples.summary,
-        Libraries.summary,
         LibraryTypes.list,
+        Libraries.summary,
         Projects.summary,
         ProcessMeasurements.summary,
     ].map(a => dispatch(a())))
