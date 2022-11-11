@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
+from django.forms.models import model_to_dict
 from datetime import date
 from fms_core.models import LibraryType, Library, DerivedBySample, LibrarySelection
 
@@ -42,7 +43,7 @@ def get_library_selection(name, target=None):
     return library_selection, errors, warnings
 
 
-def create_library(library_type, index, platform, strandedness, library_size=None):
+def create_library(library_type, index, platform, strandedness, library_size=None, library_selection=None):
     library = None
     errors = []
     warnings = []
@@ -68,7 +69,8 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
                                          library_size=library_size,
                                          index=index,
                                          platform=platform,
-                                         strandedness=strandedness)
+                                         strandedness=strandedness,
+                                         library_selection=library_selection)
     except ValidationError as e:
         errors.append(';'.join(e.messages))
 
@@ -77,14 +79,82 @@ def create_library(library_type, index, platform, strandedness, library_size=Non
 
 def convert_library(process, platform, sample_source, container_destination, coordinates_destination, volume_used,
                     volume_destination, execution_date, comment):
-    library_destination = None
+    sample_destination = None
+    errors = []
+    warnings = []
+
+    if not platform:
+        errors.append(f"Platform is required.")
+
+    for derived_sample_source in sample_source.derived_samples.all():
+        library_source_obj = derived_sample_source.library
+           
+        if library_source_obj.platform == platform:
+            errors.append(f"Source library platform and destination library platform can't be the same.")
+
+    new_library_info = {
+        "platform": platform,
+        "strandedness": SINGLE_STRANDED, # This is only valid as long as MGI is the only conversion acceptable
+    }
+    sample_destination, errors_inherit, warnings_inherit = _inherit_library(process=process,
+                                                                            new_library_info=new_library_info,
+                                                                            sample_source=sample_source,
+                                                                            container_destination=container_destination,
+                                                                            coordinates_destination=coordinates_destination,
+                                                                            volume_used=volume_used,
+                                                                            volume_destination=volume_destination,
+                                                                            execution_date=execution_date,
+                                                                            comment=comment)
+
+    errors.extend(errors_inherit)
+    warnings.extend(warnings_inherit)
+
+    return sample_destination, errors, warnings
+
+
+def capture_library(process, library_selection, sample_source, container_destination, coordinates_destination, volume_used,
+                    volume_destination, execution_date, comment):
+    sample_destination = None
+    errors = []
+    warnings = []
+
+    if not library_selection:
+        errors.append(f"Capture type is required.")
+
+    for derived_sample_source in sample_source.derived_samples.all():
+        library_source_obj = derived_sample_source.library
+           
+        if library_source_obj.library_selection is not None:
+            errors.append(f"Sample {sample_source.name} already has a selection (Capture or ChipSeq) completed on it.")
+
+    new_library_info = {
+        "library_selection": library_selection,
+    }
+
+    sample_destination, errors_inherit, warnings_inherit = _inherit_library(process=process,
+                                                                            new_library_info=new_library_info,
+                                                                            sample_source=sample_source,
+                                                                            container_destination=container_destination,
+                                                                            coordinates_destination=coordinates_destination,
+                                                                            volume_used=volume_used,
+                                                                            volume_destination=volume_destination,
+                                                                            execution_date=execution_date,
+                                                                            comment=comment)
+
+    errors.extend(errors_inherit)
+    warnings.extend(warnings_inherit)
+
+    return sample_destination, errors, warnings
+
+
+def _inherit_library(process, new_library_info, sample_source, container_destination, coordinates_destination, volume_used,
+                     volume_destination, execution_date, comment):
+    sample_destination = None
     errors = []
     warnings = []
 
     if not process:
         errors.append(f"Process is required.")
-    if not platform:
-        errors.append(f"Platform is required.")
     if not sample_source:
         errors.append(f"Source sample is required.")
     if not container_destination:
@@ -103,7 +173,6 @@ def convert_library(process, platform, sample_source, container_destination, coo
     if not isinstance(execution_date, date):
         errors.append(f"Execution date is not valid.")
 
-    # Retrieve library object linked to the source sample
     if not sample_source.is_library:
         errors.append(f"Sample {sample_source.name} is not a library or a pool of libraries.")
 
@@ -127,21 +196,18 @@ def convert_library(process, platform, sample_source, container_destination, coo
             derived_samples_destination = []
             volume_ratios = {}
             for derived_sample_source in sample_source.derived_samples.all():
+                library_destination = None
                 library_source_obj = derived_sample_source.library
                 # extra validation
                 if library_source_obj is None:
                     errors.append(f"Pool {sample_source.name} contains a sample {derived_sample_source.biosample.alias} that is not a library.")
 
-                elif library_source_obj.platform == platform:
-                    errors.append(f"Source library platform and destination library platform can't be the same.")
+                library_info = model_to_dict(library_source_obj)
+                print(library_info)
+                library_info.update(new_library_info)
 
                 # Create new destination library for each derived sample
-                library_destination, errors_library_destination, warnings_library_destinations = \
-                    create_library(library_type=library_source_obj.library_type,
-                                   library_size=library_source_obj.library_size,
-                                   index=library_source_obj.index,
-                                   platform=platform,
-                                   strandedness=SINGLE_STRANDED)
+                library_destination, errors_library_destination, warnings_library_destinations = create_library(**library_info)
 
                 new_derived_sample_data = {
                     "library_id": library_destination.id
@@ -170,7 +236,6 @@ def convert_library(process, platform, sample_source, container_destination, coo
             errors.append(e)
 
     return sample_destination, errors, warnings
-
 
 def update_library(derived_sample, **kwargs):
     errors = []

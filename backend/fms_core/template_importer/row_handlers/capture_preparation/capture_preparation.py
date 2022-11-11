@@ -1,9 +1,9 @@
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
-from fms_core.services.sample import get_sample_from_container, prepare_library
+from fms_core.services.sample import get_sample_from_container
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.index import get_index
-from fms_core.services.library import create_library
+from fms_core.services.library import capture_library
 
 
 
@@ -62,9 +62,22 @@ class LibraryRowHandler(GenericRowHandler):
             )
 
             # Capture library propagate the capture to all libraries in a pool
+            protocol = capture_batch_info['protocol']
+            process_by_protocol = capture_batch_info['process_by_protocol']
 
+            # Retrieve process
+            process_obj = process_by_protocol[protocol.id]
 
-
+            sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
+                capture_library(process=process_obj,
+                                library_selection=library_info['library_selection'],
+                                sample_source=source_sample_obj,
+                                container_destination=container_obj,
+                                coordinates_destination=container_coordinates,
+                                volume_used=volume_used,
+                                volume_destination=volume,
+                                execution_date=library_info['capture_date'],
+                                comment=comment)
 
         else:
             self.errors['sample_source'] = 'Sample source is needed to capture a library.'
