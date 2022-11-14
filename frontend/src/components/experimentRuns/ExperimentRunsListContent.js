@@ -1,7 +1,7 @@
 import React from "react";
-import {connect, useDispatch} from "react-redux";
+import {connect} from "react-redux";
 import {Link} from "react-router-dom";
-import {Button, Space, Spin, Tag, Typography} from "antd";
+import {Button, Tag} from "antd";
 
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
@@ -9,7 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
-import {launchExperimentRun, listTable, setFilter, setFilterOption, clearFilters, setSortBy, flushExperimentRunLaunch} from "../../modules/experimentRuns/actions";
+import {launchExperimentRun, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/experimentRuns/actions";
 import {EXPERIMENT_RUN_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -17,11 +17,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
-import moment from "moment"
-import { LAUNCH_STATUS } from "../../modules/experimentRuns/reducers";
-import { CloseSquareOutlined, WarningOutlined } from "@ant-design/icons";
-
-const { Text } = Typography
+import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
 
 
 const getTableColumns = (containersByID, runTypes, instruments, launchesById) => [
@@ -62,15 +58,6 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
     render: (_, experimentRun) =>
       <div>{experimentRun.instrument_type}</div>,
   },
-  // Make space for launch controls
-  // {
-  //   title: "Container Name",
-  //   dataIndex: "container__name",
-  //   sorter: true,
-  //   render: (_, experimentRun) =>
-  //     (experimentRun.container &&
-  //       withContainer(containersByID, experimentRun.container, container => container.name, "loading...")),
-  // },
   {
     title: "Container Barcode",
     dataIndex: "container__barcode",
@@ -91,82 +78,12 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
     dataIndex: "run_processing_launch_date",
     sorter: true,
     render: (_, experimentRun) => (
-      <div style={{minWidth: "220px"}}>
-        <ExperimentRunLaunchField experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]}/>
+      <div style={{minWidth: "12rem"}}>
+        <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} launchExperimentRun={launchExperimentRun}/>
       </div>
-     
     )
   },
 ];
-
-const ExperimentRunLaunchField = ({experimentRun, experimentRunLaunch}) => {
-  /*
-    Cases:
-      - run has never been launched
-      - run was launched in the past
-      - run is being launched
-      - run was launched successfully
-      - run launch failed with error
-  */
-
-  const dispatch = useDispatch()
-  const launchRunProcessing = () => {
-    dispatch(launchExperimentRun(experimentRun.id))
-  }
-
-  const flushLaunch = () => {
-    dispatch(flushExperimentRunLaunch(experimentRun.id))
-  }
-
-  const launchDate = experimentRun.run_processing_launch_date ?
-    moment(experimentRun.run_processing_launch_date).format("YYYY-MM-DD LT")
-    : '2022-11-12'
-
-  if (experimentRunLaunch) {
-    switch(experimentRunLaunch.status) {
-      case LAUNCH_STATUS.LAUNCHING: {
-        return (
-          <Spin size='small'/>
-        )
-      }
-      case LAUNCH_STATUS.LAUNCHED: {
-        return (
-          <div>
-            <Button icon={<CloseSquareOutlined/>} type="text" onClick={flushLaunch}/><Text type='success'>Launched Successfully</Text>
-            
-          </div>
-        )
-      }
-      case LAUNCH_STATUS.ERROR: {
-        return (
-          <>
-            <Button icon={<CloseSquareOutlined/>} type="text" onClick={flushLaunch}/>
-            <Space><WarningOutlined/><Text type='danger'>Launch Failed</Text></Space>
-          </>
-        )
-      }
-    }
-    
-  } else {
-    // User has not launched the run since the page was loaded
-    if(experimentRun.run_processing_launch_date) {
-      return (
-        <>
-          <Button type="primary" onClick={launchRunProcessing}>Relaunch Run</Button>
-          {/* { launchDate && <Text>{launchDate}</Text>} */}
-        </>
-      )
-    } else {
-      return (
-        <>
-          <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
-          {/* { launchDate && <div><Text>{launchDate}</Text></div>} */}
-        </>
-        
-      ) 
-    }
-  }
-}
 
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
@@ -206,8 +123,6 @@ const ExperimentRunsListContent = ({
   clearFilters,
   setSortBy,
 }) => {
-
-  
 
   const listExport = () =>
     withToken(token, api.experimentRuns.listExport)
