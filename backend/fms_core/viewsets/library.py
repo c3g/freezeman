@@ -185,30 +185,24 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         database.
         """
         pooled_libraries = self.queryset.filter(is_pooled=True).values('id')
-
         non_pooled_libraries = self.queryset.filter(is_pooled=False)
 
-        # Solution 1: Easy but bad performance
-        library_types_1 = {l['id']: l['derived_samples__library__library_type'] for l in self.queryset.filter(is_pooled=False).values('id', 'derived_samples__library__library_type')}
-
-        # Solution 2: Supposedly good performance but may be overkill (simpler way of doing it???)
+        # Get the existing library types from the current libraries
         library_types_ids = non_pooled_libraries.values_list('derived_samples__library__library_type')
 
         class SubqueryCount(Subquery):
             template = "(SELECT count(*) FROM (%(subquery)s) _count)"
             output_field = IntegerField()
 
-        library_types_2 = LibraryType.objects.filter(id__in=[library_types_ids]).annotate(
+        # Count the number of libraries per library type by doing a SubQueryCount (see class above)
+        library_types = LibraryType.objects.filter(id__in=[library_types_ids]).annotate(
             library_count=SubqueryCount(
-                non_pooled_libraries.filter(derived_samples__library__library_type_id=OuterRef("pk")) # I tried to add .count() or Count() here but nothing worked
-        ))
+                non_pooled_libraries.filter(derived_samples__library__library_type_id=OuterRef("pk"))
+            ))
 
         return Response({
             "total_count": len(pooled_libraries) + len(non_pooled_libraries),
-            # First solution
-            "library_type_counts": Counter(library_types_1.values()),
-            # Second solution
-            "library_type_counts_2": {c['id']: c['library_count'] for c in library_types_2.values('id', 'library_count')},
+            "library_type_counts": {c['id']: c['library_count'] for c in library_types.values('id', 'library_count')},
         })
 
     @action(detail=False, methods=["get"])
