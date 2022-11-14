@@ -22,7 +22,7 @@ class LibraryServicesTestCase(TestCase):
         self.index_set_name = "TEST_INDEX_SET"
         self.index_name = "TEST_INDEX_1"
         self.library_type_name = "RNASeq"
-        self.library_selection_name = "ChipSeq"
+        self.library_selection_name = "ChIP-Seq"
         self.library_selection_target = "H3K4me1"
         self.structure_name = "Nextera"
         self.platform_name = "ILLUMINA"
@@ -41,17 +41,17 @@ class LibraryServicesTestCase(TestCase):
 
     def test_get_library_type(self):
         library_type_obj, errors, warnings = get_library_type(self.library_type_name)
-        self.assertEqual(library_type_obj.name, self.library_type_name)
         self.assertFalse(errors)
         self.assertFalse(warnings)
+        self.assertEqual(library_type_obj.name, self.library_type_name)
 
     def test_get_library_selection(self):
         library_selection_obj, errors, warnings = get_library_selection(name=self.library_selection_name,
                                                                         target=self.library_selection_target)
-        self.assertEqual(library_selection_obj.name, self.library_selection_name)
-        self.assertEqual(library_selection_obj.target, self.library_selection_target)
         self.assertFalse(errors)
         self.assertFalse(warnings)
+        self.assertEqual(library_selection_obj.name, self.library_selection_name)
+        self.assertEqual(library_selection_obj.target, self.library_selection_target)
 
     def test_create_library(self):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,

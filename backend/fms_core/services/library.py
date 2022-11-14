@@ -1,6 +1,5 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
-from django.forms.models import model_to_dict
 from datetime import date
 from fms_core.models import LibraryType, Library, DerivedBySample, LibrarySelection
 
@@ -85,12 +84,14 @@ def convert_library(process, platform, sample_source, container_destination, coo
 
     if not platform:
         errors.append(f"Platform is required.")
-
-    for derived_sample_source in sample_source.derived_samples.all():
-        library_source_obj = derived_sample_source.library
-           
-        if library_source_obj.platform == platform:
-            errors.append(f"Source library platform and destination library platform can't be the same.")
+    if not sample_source:
+        errors.append(f"Source sample is required.")
+    else:
+        for derived_sample_source in sample_source.derived_samples.all():
+            library_source_obj = derived_sample_source.library
+              
+            if library_source_obj.platform == platform:
+                errors.append(f"Source library platform and destination library platform can't be the same.")
 
     new_library_info = {
         "platform": platform,
@@ -105,7 +106,7 @@ def convert_library(process, platform, sample_source, container_destination, coo
                                                                             volume_destination=volume_destination,
                                                                             execution_date=execution_date,
                                                                             comment=comment)
-
+    print(errors_inherit)
     errors.extend(errors_inherit)
     warnings.extend(warnings_inherit)
 
@@ -121,11 +122,14 @@ def capture_library(process, library_selection, sample_source, container_destina
     if not library_selection:
         errors.append(f"Capture type is required.")
 
-    for derived_sample_source in sample_source.derived_samples.all():
-        library_source_obj = derived_sample_source.library
-           
-        if library_source_obj.library_selection is not None:
-            errors.append(f"Sample {sample_source.name} already has a selection (Capture or ChipSeq) completed on it.")
+    if not sample_source:
+        errors.append(f"Source sample is required.")
+    else:
+        for derived_sample_source in sample_source.derived_samples.all():
+            library_source_obj = derived_sample_source.library
+              
+            if library_source_obj.library_selection is not None:
+                errors.append(f"Sample {sample_source.name} already has a selection (Capture or ChipSeq) completed on it.")
 
     new_library_info = {
         "library_selection": library_selection,
@@ -155,8 +159,6 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
 
     if not process:
         errors.append(f"Process is required.")
-    if not sample_source:
-        errors.append(f"Source sample is required.")
     if not container_destination:
         errors.append(f"Destination container is required.")
     if volume_used is None:
@@ -202,12 +204,23 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                 if library_source_obj is None:
                     errors.append(f"Pool {sample_source.name} contains a sample {derived_sample_source.biosample.alias} that is not a library.")
 
-                library_info = model_to_dict(library_source_obj)
-                print(library_info)
-                library_info.update(new_library_info)
+                # Will need to be maintained when library change.
+                # Tried to make it genereic with model_to_dict and queryset.values() but the function create_library() takes objects.
+                library_info = {
+                    "library_type": library_source_obj.library_type,
+                    "library_size": library_source_obj.library_size,
+                    "index": library_source_obj.index,
+                    "platform": library_source_obj.platform,
+                    "strandedness": library_source_obj.strandedness,
+                    "library_selection": library_source_obj.library_selection,
+                }
+                library_info.update(new_library_info) # Replace the attributes that change
 
                 # Create new destination library for each derived sample
                 library_destination, errors_library_destination, warnings_library_destinations = create_library(**library_info)
+
+                errors.extend(errors_library_destination)
+                warnings.extend(warnings_library_destinations)
 
                 new_derived_sample_data = {
                     "library_id": library_destination.id

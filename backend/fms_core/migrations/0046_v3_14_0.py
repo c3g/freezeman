@@ -17,30 +17,34 @@ def populate_library_selection(apps, schema_editor):
         schema_editor: ignore
     """
 
-    LIBRARY_SELECTION = {
-      # name: target
-      "Capture": "Exome",
-      "Capture": "MCC",
-      "Capture": "Panel",
+    LIBRARY_SELECTION = [
+      # (name, target),
+      ("Capture", "Exome"),
+      ("Capture", "MCC"),
+      ("Capture", "Panel"),
       # ChIP-Seq marks are only commonly used ones. New entries will have to be done for experiments that use different ones.
-      "ChIP-Seq": "H3K4me1",
-      "ChIP-Seq": "H3K27ac",
-      "ChIP-Seq": "H3K4me3",
-      "ChIP-Seq": "H3K36me3",
-      "ChIP-Seq": "H3K27me3",
-      "ChIP-Seq": "H3K9me3",
-    }
+      ("ChIP-Seq", "H3K4me1"),
+      ("ChIP-Seq", "H3K27ac"),
+      ("ChIP-Seq", "H3K4me3"),
+      ("ChIP-Seq", "H3K36me3"),
+      ("ChIP-Seq", "H3K27me3"),
+      ("ChIP-Seq", "H3K9me3"),
+    ]
 
     LibrarySelection = apps.get_model("fms_core", "LibrarySelection")
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
 
         reversion.set_comment(f"Populate library_selection table with the name and target of valid selection methods.")
         reversion.set_user(admin_user)
 
-        for name, target in LIBRARY_SELECTION.items():
-            library_selection = LibrarySelection.create(name=name, target=target)
+        for name, target in LIBRARY_SELECTION:
+            library_selection = LibrarySelection.objects.create(name=name,
+                                                                target=target,
+                                                                created_by_id=admin_user_id,
+                                                                updated_by_id=admin_user_id)
             reversion.add_to_revision(library_selection)
 
 
@@ -76,7 +80,7 @@ def create_library_capture_objects(apps, schema_editor):
             reversion.add_to_revision(protocol)
 
             for (property, value_type) in PROPERTY_TYPES_BY_PROTOCOL[protocol_name]:
-                if any([property == 'Library Technician Name', property == 'Library Kit Used', property == 'Library Kit Lot'], property == 'Baits Used'):
+                if any([property == 'Library Technician Name', property == 'Library Kit Used', property == 'Library Kit Lot', property == 'Baits Used']):
                     is_optional = False
                 else:
                     is_optional = True
@@ -85,7 +89,8 @@ def create_library_capture_objects(apps, schema_editor):
                                                  content_type=protocol_content_type,
                                                  value_type=value_type,
                                                  is_optional=is_optional,
-                                                 created_by_id=admin_user_id, updated_by_id=admin_user_id)
+                                                 created_by_id=admin_user_id,
+                                                 updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
 
 
