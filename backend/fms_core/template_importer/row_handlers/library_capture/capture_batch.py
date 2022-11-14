@@ -16,10 +16,10 @@ class CaptureBatchRowHandler(GenericRowHandler):
         library_selection_obj, self.errors['capture_type'], self.warnings['capture_type'] = \
             get_library_selection(name="Capture", target=capture_type)
 
-        process_by_protocol, self.errors['capture_preparation'], self.warnings['capture_preparation'] = \
+        process_by_protocol, self.errors['library_capture'], self.warnings['library_capture'] = \
             create_process(protocol=protocol,
                            creation_comment=comment if comment
-                           else f"Automatically generated via capture preparation "f"on {datetime.utcnow().isoformat()}Z",
+                           else f"Automatically generated via library capture preparation "f"on {datetime.utcnow().isoformat()}Z",
                            imported_template=imported_template)
 
         # Create process' properties
@@ -27,10 +27,10 @@ class CaptureBatchRowHandler(GenericRowHandler):
             create_process_properties(process_properties, process_by_protocol)
 
         if not library_selection_obj:
-            self.errors['capture_preparation'] = f"Capture type is required for capture preparation."
+            self.errors['library_capture'] = f"Capture type is required for capture preparation."
 
         if not properties:
-            self.errors['capture_preparation'] = f"Unable to process this capture batch."
+            self.errors['library_capture'] = f"Unable to process this capture batch."
 
         self.row_object = {
             'process_by_protocol': process_by_protocol,

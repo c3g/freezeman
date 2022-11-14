@@ -15,7 +15,7 @@ class LibraryRowHandler(GenericRowHandler):
                           comment, container, volume):
 
         if not capture_batch_info:
-            self.errors['capture_preparation'] = 'No batch is associated with this capture.'
+            self.errors['library_capture'] = 'No batch is associated with this capture.'
 
         # Calling the service creator for Samples in LibraryPreparation
         source_sample_obj, self.errors['container'], self.warnings['container'] = \

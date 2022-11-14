@@ -2,16 +2,16 @@ import copy
 
 from fms_core.models import PropertyType, Protocol, Process
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.capture_preparation import LibraryRowHandler, CaptureBatchRowHandler
-from fms_core.templates import CAPTURE_PREPARATION_TEMPLATE
+from fms_core.template_importer.row_handlers.library_capture import LibraryRowHandler, CaptureBatchRowHandler
+from fms_core.templates import LIBRARY_CAPTURE_TEMPLATE
 from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
 PROPERTIES_STARTING_INDEX = 4
 
-class CapturePreparationImporter(GenericImporter):
-    SHEETS_INFO = CAPTURE_PREPARATION_TEMPLATE['sheets info']
+class LibraryCaptureImporter(GenericImporter):
+    SHEETS_INFO = LIBRARY_CAPTURE_TEMPLATE['sheets info']
 
     def __init__(self):
         super().__init__()
@@ -19,8 +19,8 @@ class CapturePreparationImporter(GenericImporter):
         self.properties_starting_index = PROPERTIES_STARTING_INDEX
 
     def initialize_data_for_template(self):
-        # Get protocol for Capture Preparation
-        protocol = Protocol.objects.get(name='Capture Preparation')
+        # Get protocol for Library Capture
+        protocol = Protocol.objects.get(name='Library Capture')
 
         self.preloaded_data = {'protocol': protocol, 'process_properties': {}}
 
@@ -35,7 +35,7 @@ class CapturePreparationImporter(GenericImporter):
         """
             CAPTURE BATCH SHEET
         """
-        capture_batch_sheet = self.sheets['Library Batch']
+        capture_batch_sheet = self.sheets['Capture Batch']
 
         # Iterate through libraries rows
         capture_batch_rows_data = defaultdict(list)

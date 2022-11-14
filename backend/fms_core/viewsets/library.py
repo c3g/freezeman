@@ -7,8 +7,20 @@ from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, Container, DerivedBySample
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
-from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
-from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter, NormalizationPlanningImporter, NormalizationImporter, SamplePoolingImporter
+from fms_core.templates import ( EXPERIMENT_MGI_TEMPLATE,
+                                 LIBRARY_CAPTURE_TEMPLATE,
+                                 LIBRARY_CONVERSION_TEMPLATE,
+                                 LIBRARY_QC_TEMPLATE,
+                                 NORMALIZATION_PLANNING_TEMPLATE,
+                                 NORMALIZATION_TEMPLATE,
+                                 SAMPLE_POOLING_TEMPLATE )
+from fms_core.template_importer.importers import ( ExperimentRunImporter,
+                                                   LibraryCaptureImporter,
+                                                   LibraryConversionImporter,
+                                                   LibraryQCImporter,
+                                                   NormalizationPlanningImporter,
+                                                   NormalizationImporter,
+                                                   SamplePoolingImporter )
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
 from ._fetch_data import FetchLibraryData
@@ -81,6 +93,12 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             "importer": ExperimentRunImporter,
         },
         {
+            "name": "Capture Libraries",
+            "description": "Upload the provided template with libraries or pooled libraries to capture.",
+            "template": [LIBRARY_CAPTURE_TEMPLATE["identity"]],
+            "importer": LibraryCaptureImporter,
+        },
+        {
             "name": "Convert Libraries",
             "description": "Upload the provided template with libraries to convert.",
             "template": [LIBRARY_CONVERSION_TEMPLATE["identity"]],
@@ -93,16 +111,16 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
             "importer": LibraryQCImporter,
         },
         {
-            "name": "Perform Normalization Planning",
-            "description": "Upload the provided template with normalization information to populate normalization template and the robot file.",
-            "template": [NORMALIZATION_PLANNING_TEMPLATE["identity"]],
-            "importer": NormalizationPlanningImporter,
-        },
-        {
             "name": "Normalize Libraries",
             "description": "Upload the provided template with information to normalize libraries.",
             "template": [NORMALIZATION_TEMPLATE["identity"]],
             "importer": NormalizationImporter,
+        },
+        {
+            "name": "Perform Normalization Planning",
+            "description": "Upload the provided template with normalization information to populate normalization template and the robot file.",
+            "template": [NORMALIZATION_PLANNING_TEMPLATE["identity"]],
+            "importer": NormalizationPlanningImporter,
         },
         {
             "name": "Pool Libraries",
@@ -114,6 +132,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     template_prefill_list = [
         {"template": EXPERIMENT_MGI_TEMPLATE},
+        {"template": LIBRARY_CAPTURE_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},

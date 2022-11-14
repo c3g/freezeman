@@ -1,5 +1,5 @@
 from .capture_batch import CaptureBatchRowHandler
-from .capture_preparation import LibraryRowHandler
+from .library_capture import LibraryRowHandler
 
 __all__ = [
     "LibraryRowHandler",
