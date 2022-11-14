@@ -111,7 +111,7 @@ export const listTemplateActions = () => (dispatch, getState) => {
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.experimentRuns.template.actions()));
 };
 
-export const launchExperimentRun = (experimentRunId) => (dispatch, getState) => {
+export const launchExperimentRun = (experimentRunId) => async (dispatch, getState) => {
     const meta = {
         experimentRunId
     }
@@ -122,7 +122,9 @@ export const launchExperimentRun = (experimentRunId) => (dispatch, getState) => 
     }
 
     // Dispatch the network action
-    return dispatch(networkAction(LAUNCH_EXPERIMENT_RUN, api.experimentRuns.launchRunProcessing(experimentRunId), {meta}))
+    await dispatch(networkAction(LAUNCH_EXPERIMENT_RUN, api.experimentRuns.launchRunProcessing(experimentRunId), {meta}))
+    dispatch(get(experimentRunId))
+
 }
 
 export const flushExperimentRunLaunch = (experimentRunId) => {

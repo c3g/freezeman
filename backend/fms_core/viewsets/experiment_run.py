@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
+from fms_core.services.experiment_run import launch_experiment_run
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -45,19 +46,18 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=True, methods=["get"])   # TODO should this be post? update?
     def launch_run_processing(self, _request, pk=None):
-        try:
-            experiment_run = ExperimentRun.objects.get(pk=pk)
-        except ExperimentRun.DoesNotExist:
-            return Response(status=404, data= {
-                'ok': False,
-                'message': f'Experiment run with id {pk} not found.'
-            })
+        experiment_run, errors, warnings = launch_experiment_run(pk)
 
-        # TODO Create a service to launch experiment runs
-        # raise Exception('Test Error')
-     
-        # TODO Decide on what information the response should contain
-        return Response({
-            'ok': True,
-            'message': 'Experiment run launched successfully'
-        })
+        # TODO finalize response contents
+        response = None
+        if(errors):
+            response = Response({
+                'ok': False,
+                'message': errors.join(',')
+            })
+        else:
+            response = Response({
+                'ok': True,
+            })
+        
+        return response
