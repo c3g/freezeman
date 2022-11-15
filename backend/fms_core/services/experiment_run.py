@@ -1,6 +1,8 @@
 from xml.dom import NotFoundErr
 from django.core.exceptions import ValidationError
 from datetime import datetime
+
+from fms_core.services.event_file import generate_event_file
 from ..models import ExperimentRun
 
 from .process import create_process
@@ -94,6 +96,10 @@ def launch_experiment_run(pk):
 
     # For now, just set the launch timestamp on the experiment run...
     experiment_run = ExperimentRun.objects.get(id=pk)
+
+    with open("event_file.json", "w", encoding="utf-8") as file:
+        generate_event_file(experiment_run, file)
+
     experiment_run.run_processing_launch_date = datetime.now()
     experiment_run.save()
    
