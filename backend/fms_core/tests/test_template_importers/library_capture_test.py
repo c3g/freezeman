@@ -41,13 +41,13 @@ class LibraryCaptureTestCase(TestCase):
             capture_type='MCC',
             platform=self.platform_illumina,
             library_selection=self.library_selection,
-            batch_comment='Comment batch 1',
+            batch_comment='Capture test',
             technician_name='Patrick Willett',
             kit_used='MCC-Seq',
             kit_lot='2g32g3rf',
             baits_used='MCC-Seq ImmuneV2 (ImmuneV3B)',
             thermocycler_used='Eppendorf 1',
-            pcr_cycles='Eppendorf 1',
+            pcr_cycles='2',
             pcr_enzyme='KAPA HiFi HotStart Polymerase',
             pcr_enzyme_lot='geg5ujhge'
         )
@@ -139,7 +139,7 @@ class LibraryCaptureTestCase(TestCase):
                                container=container_2, sample_kind=sample_kind, library=library_2)
 
         # Create objects for the pooling test
-        samples_to_pool_info = [
+        self.samples_to_pool_info = [
             {
                 'Source Sample': source_sample_1,
                 'Volume Used': Decimal(100),
@@ -158,7 +158,7 @@ class LibraryCaptureTestCase(TestCase):
         self.process_pooling = Process.objects.create(protocol=self.protocol_pooling)
 
         (source_pool, _, _) = pool_samples(process=self.process_pooling,
-                                           samples_info=samples_to_pool_info,
+                                           samples_info=self.samples_to_pool_info,
                                            pool_name='PoolToCapture',
                                            container_destination=pool_container_3,
                                            coordinates_destination=None,
@@ -176,7 +176,7 @@ class LibraryCaptureTestCase(TestCase):
         # Test first source sample
         source_sample_1, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode_1)
 
-        new_volume = self.source_sample_initial_volume - self.library_1['volume_used']
+        new_volume = self.source_sample_initial_volume - self.samples_to_pool_info[0]["Volume Used"] - self.library_1['volume_used']
         self.assertEqual(source_sample_1.volume, new_volume)
         self.assertTrue(source_sample_1.quantity_flag)
         self.assertTrue(source_sample_1.quality_flag)
@@ -246,7 +246,7 @@ class LibraryCaptureTestCase(TestCase):
         # Test second source sample
         source_sample_2, _, _ = get_sample_from_container(barcode=self.source_sample_container_barcode_2)
 
-        new_volume = self.source_sample_initial_volume - self.library_2['volume_used']
+        new_volume = self.source_sample_initial_volume - self.samples_to_pool_info[1]["Volume Used"] - self.library_2['volume_used']
         self.assertEqual(source_sample_2.volume, new_volume)
         self.assertTrue(source_sample_2.quantity_flag)
         self.assertTrue(source_sample_2.quality_flag)
@@ -316,7 +316,7 @@ class LibraryCaptureTestCase(TestCase):
       # Test pooled source sample
         pooled_sample, _, _ = get_sample_from_container(barcode=self.source_pool_container_barcode_3)
 
-        new_volume = self.source_sample_initial_volume - self.pool_1['volume_used']
+        new_volume = self.samples_to_pool_info[0]["Volume Used"] + self.samples_to_pool_info[1]["Volume Used"] - self.pool_1['volume_used']
         self.assertEqual(pooled_sample.volume, new_volume)
         self.assertTrue(pooled_sample.quantity_flag)
         self.assertTrue(pooled_sample.quality_flag)

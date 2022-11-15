@@ -106,7 +106,6 @@ def convert_library(process, platform, sample_source, container_destination, coo
                                                                             volume_destination=volume_destination,
                                                                             execution_date=execution_date,
                                                                             comment=comment)
-    print(errors_inherit)
     errors.extend(errors_inherit)
     warnings.extend(warnings_inherit)
 
@@ -183,6 +182,7 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
+            # Might need to take this outside the combined function to make this function more generic.
             sample_destination_data = dict(
                 container_id=container_destination.id,
                 coordinates=coordinates_destination if coordinates_destination else "",

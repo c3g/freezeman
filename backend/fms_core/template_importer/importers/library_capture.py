@@ -50,7 +50,7 @@ class LibraryCaptureImporter(GenericImporter):
 
             (result, batch_objects) = self.handle_row(
                 row_handler_class=CaptureBatchRowHandler,
-                sheet=capture_batch_rows_data,
+                sheet=capture_batch_sheet,
                 row_i=row_id,
                 protocol=self.preloaded_data['protocol'],
                 process_properties=copy.deepcopy(process_properties),
