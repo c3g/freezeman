@@ -139,6 +139,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Sample Name': source_sample['name'],
                     'Source Container Barcode': source_sample['container']['barcode'],
                     'Source Container Coord': source_sample['coordinates'],
+                    'Sample Initial Concentration': source_sample_obj.concentration,
                     'Robot Source Container': '',
                     'Robot Source Coord': '',
                     'Destination Container Barcode': destination_container_dict['barcode'],

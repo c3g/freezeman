@@ -174,11 +174,11 @@ LIBRARY_QC_TEMPLATE = {
 }
 
 NORMALIZATION_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_10_0.xlsx")},
+  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_14_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
+        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Sample Initial Concentration', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
                     'Destination Parent Container Coord', 'Source Depleted', 'Volume Used (uL)', 'Volume (uL)',
@@ -189,6 +189,7 @@ NORMALIZATION_TEMPLATE = {
       ("Normalization", "Sample Name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode"),
       ("Normalization", "Source Container Coord", "coordinates"),
+      ("Normalization", "Sample Initial Concentration", "concentration"),
   ],
 }
 
