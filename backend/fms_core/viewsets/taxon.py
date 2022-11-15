@@ -32,7 +32,7 @@ class TaxonViewSet(viewsets.ModelViewSet):
             query.add(Q(name=search_input), Q.OR)
         else:
             query = Q(id__icontains=search_input)
-            query.add(Q(name__startswith=search_input), Q.OR)
+            query.add(Q(name__icontains=search_input), Q.OR)
 
         taxons_data = Taxon.objects.filter(query)
         page = self.paginate_queryset(taxons_data)
