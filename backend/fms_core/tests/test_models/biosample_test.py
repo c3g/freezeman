@@ -1,5 +1,7 @@
 from django.test import TestCase
 
+from django.core.exceptions import ValidationError
+
 from fms_core.models import Biosample, Individual
 from fms_core.tests.constants import create_individual,create_biosample
 
@@ -28,3 +30,11 @@ class BiosampleTest(TestCase):
         self.assertEqual(biosample_no_individual.alias, "53")
         self.assertEqual(biosample_no_individual.collection_site, "Site1")
         self.assertIsNone(biosample_no_individual.individual)
+
+    def test_no_alias(self):
+        with self.assertRaises(ValidationError):
+            try:
+                biosample_no_alias = Biosample.objects.create(collection_site="TestCollectionSite")
+            except ValidationError as e:
+                self.assertTrue("alias" in e.message_dict)
+                raise e

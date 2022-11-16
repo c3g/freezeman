@@ -49,7 +49,7 @@ def create_sample(container, coordinates='', **kwargs):
     }
 
 def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates="", tissue_source=None, concentration=None):
-    biosample = Biosample.objects.create(individual=individual, alias=alias, collection_site="Site1")
+    biosample = Biosample.objects.create(individual=individual, alias=alias if alias else name, collection_site="Site1")
     derivedsample = DerivedSample.objects.create(biosample=biosample,
                                                  sample_kind=sample_kind,
                                                  experimental_group=["EG01"],

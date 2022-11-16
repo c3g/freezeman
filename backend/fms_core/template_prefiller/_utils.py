@@ -28,7 +28,7 @@ def load_position_dict(workbook, sheets_info, prefill_info):
 
 def find_worksheet_header_offset(worksheet, header_values, max_offset=-1):
     for i, row_values in enumerate(worksheet.iter_rows(min_col=1, max_col=len(header_values), values_only=True), start=2):
-        if header_values == list(row_values):
+        if header_values == [row_value for row_value in row_values if row_value is not None]:
             return i
         elif max_offset >= 0 and i > max_offset:
             return HEADER_NOT_FOUND

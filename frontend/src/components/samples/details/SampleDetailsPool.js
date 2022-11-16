@@ -9,7 +9,11 @@ import {clearFilters, flushState, listTable, setFilter, setFilterOption, setPool
 import usePaginatedList from '../../../hooks/usePaginatedList'
 import { Button, Tag } from 'antd'
 import { Link } from 'react-router-dom'
+import ExportButton from '../../ExportButton';
+import api from '../../../utils/api'
+import { withToken } from '../../../utils/api'
 
+import mergedListQueryParams from '../../../utils/mergedListQueryParams'
 
 const getTableColumns = (sampleKinds) => {
     return [
@@ -23,17 +27,20 @@ const getTableColumns = (sampleKinds) => {
             }               
         },
         {
+          title: "Parent Sample Name",
+          dataIndex: "parent_sample_name",
+          sorter: true,
+          render: (_, pooledSample) => {
+              return (
+                  <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.parent_sample_name}</Link>
+              )
+          }  
+        },
+        {
             title: "Alias",
             dataIndex: "alias",
             sorter: true,
-            render: (_, pooledSample) => {
-                return (
-                    // The link points to the parent sample of the pooled derived sample, eg. the library
-                    // that was pooled.
-                    // TODO: https://206.12.92.46/issues/1295 (create separate parent sample column)
-                    <Link to={`/samples/${pooledSample.parent_sample_id}`}>{pooledSample.alias}</Link>
-                )
-            }  
+            render: (_, pooledSample) => <div>{pooledSample.alias}</div>
         },
         {
             title: "Volume Ratio",
@@ -143,7 +150,7 @@ const PooledSamples = ({sample: pool}) => {
     const flushStateCallback = useCallback(() => {
         dispatch(flushState())
     })
-
+ 
     useEffect(() => {
         // Set the id of the pool that is displayed by this component.
         // This must be called before any data is loaded.
@@ -155,7 +162,7 @@ const PooledSamples = ({sample: pool}) => {
     // Force the initial page load
     useEffect(() => {
         dispatchListTable({})
-    }, [pool])
+    }, [pool.id])   // Depend on pool.id, and not just 'pool'. The `isFetching` flag in the pool changes multiple times on load.
     
     const samples = useSelector((state) => state.pooledSamples.items)
     const samplesById = useSelector((state) => state.pooledSamples.itemsByID)
@@ -192,9 +199,27 @@ const PooledSamples = ({sample: pool}) => {
         onChangeSort: setSortByCallback
     })
 
+    const token = useSelector(state => state.auth.tokens.access)
+
+    const listExport = () => {
+        // The sample__id filter is a fixed filter containing the pool id. It is not user-editable,
+        // and is not contained in 'filters'. It has to be added explicitly to the list of filters
+        // before sending the export request, as it specifies which pool we want to export.
+        const filtersWithSampleId = {
+            ...filters,
+            sample__id : {value: pool.id}
+        }
+        let queryParams = mergedListQueryParams(POOLED_SAMPLES_FILTERS, filtersWithSampleId, sortBy)
+
+        return  withToken(token, api.pooledSamples.listExport)
+                    (queryParams)
+                    .then(response => response.data)
+    }
+   
+
     return (
     <>
-        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+        <div style={{ textAlign: 'right', marginBottom: '1em', padding: '0 24px' }}>
             <FiltersWarning
                 nFilters={nFilters}
                 filters={filters}
@@ -207,6 +232,7 @@ const PooledSamples = ({sample: pool}) => {
             >
                 Clear Filters
             </Button>
+            <ExportButton exportFunction={listExport} filename={'pooled_samples'} itemsCount={totalCount}/>
         </div>
         <PaginatedList {...paginatedListProps}/>        
     </>

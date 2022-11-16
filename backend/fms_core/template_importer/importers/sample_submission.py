@@ -1,6 +1,7 @@
 from fms_core.models import SampleKind
 from ._generic import GenericImporter
-from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler
+from collections import defaultdict
+from fms_core.template_importer.row_handlers.sample_submission import SampleRowHandler, PoolsRowHandler
 from fms_core.templates import SAMPLE_SUBMISSION_TEMPLATE
 from .._utils import float_to_decimal_and_none, input_to_date_and_none, input_to_integer_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
@@ -18,7 +19,15 @@ class SampleSubmissionImporter(GenericImporter):
     def import_template_inner(self):
         samples_sheet = self.sheets['SampleSubmission']
 
+        # Pool submission information
+        pools_sheet = self.sheets['PoolSubmission']
+        pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
+        pools_dict = defaultdict(list)
+        result_list = []
+
         for row_id, row_data in enumerate(samples_sheet.rows):
+            pool_name = str_cast_and_normalize(row_data["Pool Name"])
+
             container = {
                 'kind': str_cast_and_normalize_lower(row_data['Container Kind']),   # container kinds must be lower case to match model
                 'name': str_cast_and_normalize(row_data['Container Name']),
@@ -47,6 +56,8 @@ class SampleSubmissionImporter(GenericImporter):
                 'index': str_cast_and_normalize(row_data['Index']),
                 'platform': str_cast_and_normalize(row_data['Platform']),
                 'strandedness': str_cast_and_normalize(row_data['Strandedness']),
+                'library_size': float_to_decimal_and_none(row_data['Library Size (bp)'], 0),
+                'pool_name': pool_name
             }
             project = {
                 'name': str_cast_and_normalize(row_data['Project']),
@@ -78,9 +89,49 @@ class SampleSubmissionImporter(GenericImporter):
                 sample_kind_objects_by_name=self.preloaded_data['sample_kind_objects_by_name'],
             )
 
-            (result, _) = self.handle_row(
+            (result, row_object) = self.handle_row(
                 row_handler_class=SampleRowHandler,
                 sheet=samples_sheet,
                 row_i=row_id,
                 **sample_kwargs,
             )
+
+            result_list.append(result)
+            if pool_name is not None:
+                pools_dict[pool_name].append(row_object)
+
+        # prevent the repetition of error messages at the level of pools.
+        if not any(result['validation_error'].messages for result in result_list):
+            """
+                POOLS SHEET
+            """
+            # Iterate through libraries rows
+            for row_id, row_data in enumerate(pools_sheet.rows):
+                pool_kwargs = {
+                    "pool": {
+                        "name": str_cast_and_normalize(row_data["Pool Name"]),
+                        "coordinates": str_cast_and_normalize(row_data["Pool Coord"]),
+                        "container": {
+                            "barcode": str_cast_and_normalize(row_data["Container Barcode"]),
+                            "name": str_cast_and_normalize(row_data["Container Name"]),
+                            "kind": str_cast_and_normalize_lower(row_data["Container Kind"]),
+                            "coordinates": str_cast_and_normalize(row_data["Container Coord"]),
+                            "parent_barcode": str_cast_and_normalize(row_data["Location Barcode"]),
+                        },
+                    },
+                    "seq_instrument_type": str_cast_and_normalize(row_data["Seq Instrument Type"]),
+                    "reception_date": input_to_date_and_none(row_data["Reception (YYYY-MM-DD)"]),
+                    "comment": str_cast_and_normalize(row_data["Comment"]),
+                }
+
+                (result, _) = self.handle_row(
+                    row_handler_class=PoolsRowHandler,
+                    sheet=pools_sheet,
+                    row_i=row_id,
+                    samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
+                    **pool_kwargs
+                )
+
+
+
+

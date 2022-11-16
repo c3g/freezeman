@@ -15,7 +15,7 @@ from fms_core.services.platform import get_platform
 from fms_core.services.library import get_library_type, create_library
 from fms_core.services.index import get_or_create_index_set, create_index
 
-from fms_core.utils import convert_concentration_from_nm_to_ngbyul
+from fms_core.utils import convert_concentration_from_nm_to_ngbyul, decimal_rounded_to_precision
 
 class NormalizationTestCase(TestCase):
     def setUp(self) -> None:
@@ -212,7 +212,7 @@ class NormalizationTestCase(TestCase):
         p_2 = PropertyValue.objects.get(property_type_id=pt_2, object_id=pm3.id)
 
         self.assertEqual(p_1.value, '5.000')
-        self.assertEqual(Decimal(p_2.value), convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150)))
+        self.assertEqual(Decimal(p_2.value), decimal_rounded_to_precision(convert_concentration_from_nm_to_ngbyul(Decimal(108), Decimal(DSDNA_MW), Decimal(150))))
 
         # Destination sample 4 test
         self.assertTrue(Sample.objects.filter(container__barcode="DESTINATION_CONTAINER", coordinates="A04").exists())

@@ -4,12 +4,16 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.process import create_process
 from fms_core.services.sample import pool_samples
 from fms_core.services.container import get_container, get_or_create_container
+from fms_core.services.instrument import get_instrument_type
+from fms_core.services.index import validate_indices
+
+from fms_core.template_importer._constants import DEFAULT_INDEX_VALIDATION_THRESHOLD
 
 class PoolsRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, protocol, imported_template, samples_info, pool, pooling_date, comment):
+    def process_row_inner(self, protocol, imported_template, samples_info, pool, seq_instrument_type, pooling_date, comment):
         # Ensure there is samples_tied to the pool
         if samples_info is None:
             self.errors["source_sample"] = (f"Cannot find samples for pool {pool['name']}. "
@@ -43,12 +47,35 @@ class PoolsRowHandler(GenericRowHandler):
                     self.warnings["concentration"] = [(f"Source samples in pool {pool['name']} have concentrations that are more than "
                                                        f"{TOLERANCE} ng/uL away from the average concentration of the pool.")]
             
+            # Validate indices from the samples being pooled
+            if pool_is_library and seq_instrument_type is not None:
+                instrument_type_obj, self.errors["seq_instrument_type"], self.warnings["seq_instrument_type"] = get_instrument_type(seq_instrument_type)
+
+                indices = []
+                samples_name = []
+                for sample in samples_info:
+                    sample_name = sample["Source Sample"].name
+                    for derived_sample in sample["Source Sample"].derived_samples.all():
+                        indices.append(derived_sample.library.index)
+                        samples_name.append(sample_name)
+                results, _, _ = validate_indices(indices=indices, instrument_type=instrument_type_obj, threshold=DEFAULT_INDEX_VALIDATION_THRESHOLD)
+
+                if not results["is_valid"]:
+                    index_warnings = []
+                    for i, index_ref in enumerate(indices):
+                        for j, index_val in enumerate(indices):
+                            index_distance = results["distances"][i][j]
+                            if index_distance is not None and all(map(lambda x: x <= DEFAULT_INDEX_VALIDATION_THRESHOLD, index_distance)):
+                                index_warnings.append(f"Index {index_ref.name} for sample {samples_name[i]} and "
+                                                      f"Index {index_val.name} for sample {samples_name[j]} are not different enough {index_distance}.")
+                    self.warnings["index_colision"] = index_warnings
+
             # Create a process for each pool created
             process_by_protocol, self.errors["process"], self.warnings["process"] = create_process(protocol=protocol,
-                                                                                                  creation_comment=comment,
-                                                                                                  create_children=False,
-                                                                                                  children_protocols=None,
-                                                                                                  imported_template=imported_template)
+                                                                                                   creation_comment=comment,
+                                                                                                   create_children=False,
+                                                                                                   children_protocols=None,
+                                                                                                   imported_template=imported_template)
             process = process_by_protocol[protocol.id]
 
             # Get/Create pool container
