@@ -33,6 +33,7 @@ class TaxonViewSet(viewsets.ModelViewSet):
         else:
             query = Q(id__icontains=search_input)
             query.add(Q(name__icontains=search_input), Q.OR)
+            query.add(Q(ncbi_id__icontains=search_input), Q.OR)
 
         taxons_data = Taxon.objects.filter(query)
         page = self.paginate_queryset(taxons_data)
