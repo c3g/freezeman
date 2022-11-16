@@ -42,10 +42,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
-        if source_sample_obj is not None and "concentration" not in self.errors.keys():
-            if source_sample_obj.concentration is None:
-                self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
+        if source_sample_obj.concentration is None:
+            self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
 
+        if source_sample_obj is not None and "concentration" not in self.errors.keys():
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
             if robot['norm_choice'] == LIBRARY_CHOICE and not source_sample_obj.is_library:
