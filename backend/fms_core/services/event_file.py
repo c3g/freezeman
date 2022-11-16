@@ -2,18 +2,22 @@ from typing import List, TextIO, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
-from fms_core.models import ExperimentRun, Process, ProcessMeasurement, Sample, DerivedSample, Biosample, Project
+from fms_core.models import Container, ExperimentRun, Process, ProcessMeasurement, Sample, DerivedSample, Biosample, Project
 
+FMS_Id = Union[int, None]
 
 @dataclass
 class EventSample:
     fms_sample_name: Union[str, None]
 
-    fms_sample_id: Union[int, None] = None
-    fms_derived_sample_id: Union[int, None] = None
-    fms_biosample_id: Union[int, None] = None
+    fms_sample_id: FMS_Id = None
+    fms_derived_sample_id: FMS_Id = None
+    fms_biosample_id: FMS_Id = None
 
-    fms_project_id: Union[str, None] = None
+    # Flowcell lane containing the sample
+    fms_container_coordinates: Union[str, None] = None
+
+    fms_project_id: FMS_Id = None
     fms_project_name: Union[str, None] = None
     hercules_project_id: Union[str, None] = None
     hercules_project_name: Union[str, None] = None
@@ -21,9 +25,17 @@ class EventSample:
 
 @dataclass
 class EventManifest:
+    # Manifest version (1.0.0 to start) 
     version: str
+
+    # Experiment run name and id
     run_name: str
     fms_run_id: int
+
+    # Flowcell / container for experiment
+    fms_container_id: int
+    fms_container_barcode: str
+
     samples: List[EventSample]
 
 EVENT_FILE_VERSION = "1.0.0"
@@ -41,37 +53,37 @@ def generate_event_file(experiment_run: ExperimentRun, file: TextIO):
     text_stream.close()
 
 def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
-    # rows = list(map(asdict, _generate_event_manifest_samples(experiment_run=experiment_run)))
-    rows = _generate_event_manifest_samples(experiment_run=experiment_run)
+    
     manifest : EventManifest = EventManifest(
         version=EVENT_FILE_VERSION,
         run_name=experiment_run.name,
         fms_run_id=experiment_run.id,
-        samples=rows,
+        fms_container_id=experiment_run.container.id,
+        fms_container_barcode=experiment_run.container.barcode,
+        samples=[]
     )
+
+    manifest.samples = _generate_event_manifest_samples(experiment_run=experiment_run)
+
     return manifest
+
 
 def _generate_event_manifest_samples(experiment_run: ExperimentRun) -> List[EventSample]:
     generated_rows: List[EventSample] = []
-    # get the process
-    process: Process = experiment_run.process
+   
+    samples = Sample.objects.filter(container=experiment_run.container)
 
-    # get the measurements from the process
-    measurements = ProcessMeasurement.objects.filter(process_id=process.id)
-    
-    # for each measurement, output the sample data
-    for measurement in measurements:
-        sample = measurement.source_sample
-        row = _generate_sample(experiment_run, measurement, sample)
-        generated_rows.append(row)
+    for sample in samples:
+        event_sample = _generate_sample(experiment_run, sample)
+        generated_rows.append(event_sample)
 
     return generated_rows
 
-def _generate_sample(experiment_run: ExperimentRun, measurement: ProcessMeasurement, sample: Sample) -> EventSample:
+def _generate_sample(experiment_run: ExperimentRun, sample: Sample) -> EventSample:
     row = EventSample(fms_sample_name=sample.name, fms_sample_id=sample.id)
 
-    derived_sample: DerivedSample = sample.derived_samples.first()    
     biosample: Biosample = sample.biosample_not_pool
+    derived_sample: DerivedSample = sample.derived_samples.first()    
 
     row.fms_derived_sample_id = derived_sample.id
     row.fms_biosample_id = biosample.id
@@ -82,6 +94,8 @@ def _generate_sample(experiment_run: ExperimentRun, measurement: ProcessMeasurem
     row.fms_project_name = project.name
     row.hercules_project_id = project.external_id
     row.hercules_project_name = project.external_name
+
+    row.fms_container_coordinates = sample.coordinates
 
     return row
 
