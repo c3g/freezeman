@@ -100,8 +100,3 @@ class SampleSubmissionTestCase(TestCase):
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)
             transaction.savepoint_rollback(s)
-
-
-
-
-
