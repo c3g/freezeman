@@ -30,6 +30,12 @@ class LibraryRowHandler(GenericRowHandler):
             # Check if sample is not a library or a pool of libraries
             if not source_sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample {source_sample_obj.name} must be a library to be captured."
+            # Make sure no Capture were previously done on the library
+            error = []
+            for derived_sample in source_sample_obj.derived_samples.all():
+                if derived_sample.library.library_selection is not None:
+                    error = f"Source sample {source_sample_obj.name} must not have a selection method applied already (Capture, ChIP-Seq)."
+            self.errors['source_sample'].append(error)
 
             # Populate the libraries with the batch and  individual information
             protocol = capture_batch_info['protocol']

@@ -9,7 +9,7 @@ from fms_core.services.project import get_project
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual, get_taxon
 from fms_core.services.sample import create_full_sample
-from fms_core.services.library import get_library_type, create_library
+from fms_core.services.library import get_library_type, get_library_selection, create_library
 from fms_core.services.platform import get_platform
 from fms_core.services.index import get_index
 
@@ -105,12 +105,19 @@ class SampleRowHandler(GenericRowHandler):
             library_type_obj, self.errors['library_type'], self.warnings['library_type'] = get_library_type(library['library_type'])
             index_obj, self.errors['index'], self.warnings['index'] = get_index(library['index'])
             platform_obj, self.errors['platform'], self.warnings['platform'] = get_platform(library['platform'])
+            library_selection_obj = None
+            if library['selection_name'] and library['selection_target']:
+                library_selection_obj, self.errors['library_selection'], self.warnings['library_selection'] = \
+                    get_library_selection(name=library['selection_name'], target=library['selection_target'])
+            elif bool(library['selection_name']) != bool(library['selection_target']):
+                self.errors['library_selection'].append(f"Selection and Selection Target need to have both values together to define the library.")
 
             library_obj, self.errors['library'], self.warnings['library'] = create_library(library_type=library_type_obj,
                                                                                            index=index_obj,
                                                                                            platform=platform_obj,
                                                                                            strandedness=library['strandedness'],
-                                                                                           library_size=library['library_size'])
+                                                                                           library_size=library['library_size'],
+                                                                                           library_selection=library_selection_obj)
 
         # Project related section
         project_obj = None
