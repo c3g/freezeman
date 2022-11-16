@@ -25,7 +25,7 @@ class Container(TrackedModel):
     """ Class to store information about a sample. """
 
     # TODO: Model for choices?
-    kind = models.CharField(max_length=25,
+    kind = models.CharField(max_length=30,
                             choices=CONTAINER_KIND_CHOICES,
                             help_text="What kind of container this is. Dictates the coordinate system and other container-specific properties.")
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
