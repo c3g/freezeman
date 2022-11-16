@@ -88,6 +88,15 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, toggleOption
         </div>),
     },
     {
+      title: "Selection Target",
+      dataIndex: "derived_samples__library__library_selection__target",
+      sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,
+      render: (_, library) => (library.library_selection_target &&
+        <div>
+          {library.library_selection_target}
+        </div>),
+    },
+    {
       title: "Index",
       dataIndex: "derived_samples__library__index__name",
       sorter: toggleOption === TOGGLE_OPTIONS.LIBRARIES ? true : false,

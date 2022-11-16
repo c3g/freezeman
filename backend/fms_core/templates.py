@@ -121,7 +121,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
       },
   ],
   "prefill info": [
-      ("Library", "Sample Name", "name"),
+      ("Library", "Library Name", "name"),
       ("Library", "Source Container Barcode", "container__barcode"),
       ("Library", "Source Container Coordinates", "coordinates"),],
 }

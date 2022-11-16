@@ -93,6 +93,21 @@ def create_library_capture_objects(apps, schema_editor):
                                                  updated_by_id=admin_user_id)
                 reversion.add_to_revision(pt)
 
+def add_library_type_chipseq(apps, schema_editor):
+    LibraryType = apps.get_model("fms_core", "LibraryType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add ChIP-Seq to the library_type table.")
+        reversion.set_user(admin_user)
+
+        library_type = LibraryType.objects.create(name="ChIP-Seq",
+                                                  created_by_id=admin_user_id,
+                                                  updated_by_id=admin_user_id)
+        reversion.add_to_revision(library_type)
+
 
 class Migration(migrations.Migration):
 
@@ -130,6 +145,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             create_library_capture_objects,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            add_library_type_chipseq,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
