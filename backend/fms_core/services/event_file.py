@@ -1,8 +1,21 @@
-from typing import List, TextIO, Union
+from decimal import Decimal
+from typing import cast, List, TextIO, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
-from fms_core.models import Container, ExperimentRun, Process, ProcessMeasurement, Sample, DerivedSample, Biosample, Project
+from fms_core.models import (
+    Biosample, 
+    Container, 
+    DerivedSample, 
+    DerivedBySample,
+    ExperimentRun, 
+    Instrument, 
+    InstrumentType, 
+    Process, 
+    ProcessMeasurement, 
+    Project,
+    Sample, 
+)
 
 FMS_Id = Union[int, None]
 
@@ -22,6 +35,7 @@ class EventSample:
     hercules_project_id: Union[str, None] = None
     hercules_project_name: Union[str, None] = None
 
+    fms_pool_volume_ratio: Union[float, None] = None
 
 @dataclass
 class EventManifest:
@@ -35,6 +49,9 @@ class EventManifest:
     # Flowcell / container for experiment
     fms_container_id: int
     fms_container_barcode: str
+
+    instrument_id: str
+    fms_instrument_type: str
 
     samples: List[EventSample]
 
@@ -53,17 +70,22 @@ def generate_event_file(experiment_run: ExperimentRun, file: TextIO):
     text_stream.close()
 
 def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
-    
+
+    instrument: Instrument = experiment_run.instrument
+
+
     manifest : EventManifest = EventManifest(
         version=EVENT_FILE_VERSION,
         run_name=experiment_run.name,
         fms_run_id=experiment_run.id,
         fms_container_id=experiment_run.container.id,
         fms_container_barcode=experiment_run.container.barcode,
+        instrument_id=instrument.id,
+        fms_instrument_type=instrument.type.type,
         samples=[]
     )
 
-    manifest.samples = _generate_event_manifest_samples(experiment_run=experiment_run)
+    manifest.samples = _generate_event_manifest_samples(experiment_run)
 
     return manifest
 
@@ -71,19 +93,40 @@ def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
 def _generate_event_manifest_samples(experiment_run: ExperimentRun) -> List[EventSample]:
     generated_rows: List[EventSample] = []
    
+    # Get the samples contained in the experiment run container (normally
+    # a flow cell with 2 or 4 lanes).
     samples = Sample.objects.filter(container=experiment_run.container)
 
     for sample in samples:
-        event_sample = _generate_sample(experiment_run, sample)
-        generated_rows.append(event_sample)
+        if (sample.is_pool):
+            generated_rows += _generate_pooled_samples(experiment_run, sample)
+        else:
+            event_sample = _generate_sample(experiment_run, sample, sample.derived_sample_not_pool)
+            generated_rows += [event_sample]
 
     return generated_rows
 
-def _generate_sample(experiment_run: ExperimentRun, sample: Sample) -> EventSample:
+def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[EventSample]:
+    event_samples: List[EventSample] = []
+    
+    derived_samples = cast(List[DerivedSample], pool.derived_samples.all())
+    for derived_sample in derived_samples:
+        event_sample = _generate_sample(experiment_run, pool, derived_sample)
+
+        # get the pool volume ratio of the sample
+        derived_by_sample: DerivedBySample = DerivedBySample.objects.get(derived_sample=derived_sample, sample=pool)
+        event_sample.fms_pool_volume_ratio = float(derived_by_sample.volume_ratio)
+
+        event_samples.append(event_sample)
+
+    return event_samples
+
+
+
+def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> EventSample:
     row = EventSample(fms_sample_name=sample.name, fms_sample_id=sample.id)
 
-    biosample: Biosample = sample.biosample_not_pool
-    derived_sample: DerivedSample = sample.derived_samples.first()    
+    biosample: Biosample = derived_sample.biosample
 
     row.fms_derived_sample_id = derived_sample.id
     row.fms_biosample_id = biosample.id
@@ -102,3 +145,5 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample) -> EventSamp
 def _serialize_event_manifest(event_file: EventManifest, stream: TextIO):
     file_dict = asdict(event_file)
     json.dump(file_dict, stream, indent=4)
+
+

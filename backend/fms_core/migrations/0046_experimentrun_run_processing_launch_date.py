@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fms_core', '0045_v3_13_0'),
+        ('fms_core', '0046_v3_14_0'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='experimentrun',
             name='run_processing_launch_date',
-            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True),
+            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True, blank=True),
         ),
     ]
