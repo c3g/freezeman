@@ -1,8 +1,9 @@
 import React from "react";
 import {DatePicker} from "antd";
 import FilterLabel from "./FilterLabel"
-import * as style from "./style"
-import {DATE_FORMAT} from "../../constants";
+import * as style from "../style"
+import {DATE_FORMAT} from "../../../constants"
+import { nullize } from '../../../utils/nullize'
 
 const { RangePicker } = DatePicker;
 
@@ -33,11 +34,5 @@ const FilterDateRange = ({
     </div>
   );
 };
-
-function nullize(v) {
-  if (v === '')
-    return null
-  return v
-}
 
 export default FilterDateRange;
