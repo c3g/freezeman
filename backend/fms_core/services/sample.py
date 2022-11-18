@@ -519,7 +519,7 @@ def pool_submitted_samples(samples_info,
                 biosample_data = dict(
                     collection_site=sample['collection_site'],
                     **(dict(individual=sample['individual']) if sample['individual'] is not None else dict()),
-                    **(dict(alias=sample['alias']) if sample['alias'] is not None else dict(alias=pool_name)),
+                    **(dict(alias=sample['alias']) if sample['alias'] is not None else dict()),
                 )
 
                 try:

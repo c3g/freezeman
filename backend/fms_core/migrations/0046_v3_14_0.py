@@ -11,6 +11,35 @@ import reversion
 ADMIN_USERNAME = 'biobankadmin'
 
 
+def populate_instrument_serial_id(apps, schema_editor):
+    """
+    For each existing instrument, populate the new serial_id field with their value.
+
+    Args:
+        apps: apps class handle
+        schema_editor: ignore
+    """
+    Instrument = apps.get_model("fms_core", "Instrument")
+
+    INSTRUMENTS = {
+      "iScan_1": "iScan_1",
+      "01-Marie Curie": "R2130400190016",
+      "02-Frida Kahlo": "R2130400190018",
+      "03-Jennifer Doudna": "R1100600200054",
+    }
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Populate existing instruments with their respective serial_id.")
+        reversion.set_user(admin_user)
+
+        for seq_instrument in Instrument.objects.all():
+            seq_instrument.serial_id = INSTRUMENTS[seq_instrument.name]
+            seq_instrument.save()
+            reversion.add_to_revision(seq_instrument)
+            
+            
 def create_illumina_related_objects(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
@@ -92,6 +121,20 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='instrument',
+            name='serial_id',
+            field=models.CharField(max_length=200, null=True, blank=True, help_text="Internal identifier for the instrument."),
+        ),
+        migrations.RunPython(
+            populate_instrument_serial_id,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='instrument',
+            name='serial_id',
+            field=models.CharField(max_length=200, unique=True, help_text="Internal identifier for the instrument."),
+        )
         migrations.RunPython(
             create_illumina_related_objects,
             reverse_code=migrations.RunPython.noop,
@@ -158,5 +201,5 @@ class Migration(migrations.Migration):
                 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate',
                 '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples',
                                     to='fms_core.container'),
-        ),
+        )
     ]

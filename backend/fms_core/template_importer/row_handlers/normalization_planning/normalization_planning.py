@@ -42,10 +42,10 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             barcode=source_sample['container']['barcode'],
             coordinates=source_sample['coordinates'])
 
-        if source_sample_obj is not None and "concentration" not in self.errors.keys():
-            if source_sample_obj.concentration is None:
-                self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
+        if source_sample_obj.concentration is None:
+            self.errors['concentration'] = f'A sample or library needs a known concentration to be normalized. QC sample {source_sample_obj.name} first.'
 
+        if source_sample_obj is not None and not self.has_errors():
             # ensure that the sample source is a library if the norm choice is library
             # If it is a pool we have to check if it is a pool of libraries
             if robot['norm_choice'] == LIBRARY_CHOICE and not source_sample_obj.is_library:
@@ -117,7 +117,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
             if bool(pool["pool_name"]) != bool(pool["volume_pooled"]):
                 self.errors["pool"].append(f"Incomplete information provided for pooling libraries after normalization.")
 
-            if pool["pool_name"] is not None:
+            if pool["pool_name"] is not None and pool["volume_pooled"] is not None:
                 if pool["pool_name"] not in pool["pool_list"]:
                     self.errors["pool"].append(f"Pool {pool['pool_name']} is not listed in the pools sheet.")
                 if not source_sample_obj.is_library:
@@ -133,7 +133,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                 else:
                     adjusted_pooled_volume = pool["volume_pooled"]
 
-            if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
+            if not self.has_errors():
                 self.row_object = {
                     'Source Sample': source_sample_obj,
                     'Sample Name': source_sample['name'],
