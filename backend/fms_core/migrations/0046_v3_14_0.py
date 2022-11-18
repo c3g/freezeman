@@ -79,10 +79,10 @@ def create_illumina_related_objects(apps, schema_editor):
             },
         }
         for name in INSTRUMENTS.keys():
-            it = InstrumentType.objects.get(type=INSTRUMENTS[name].type)
+            it = InstrumentType.objects.get(type=INSTRUMENTS[name]["type"])
             i = Instrument.objects.create(name=name,
                                           type=it,
-                                          serial_id=INSTRUMENTS[name].serial_id,
+                                          serial_id=INSTRUMENTS[name]["serial_id"],
                                           created_by_id=admin_user_id,
                                           updated_by_id=admin_user_id)
             reversion.add_to_revision(i)
