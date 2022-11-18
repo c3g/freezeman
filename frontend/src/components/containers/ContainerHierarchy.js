@@ -103,7 +103,7 @@ const mapStateToProps = state => ({
 const actionCreators = {get, listChildren};
 
 const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
-  
+
   const [explodedKeys, setExplodedKeys] = useState({});
   useEffect(() => { setExplodedKeys({}) }, [container?.id]);
 
@@ -144,7 +144,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
             { container.samples?.map(sampleId => {
               const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
               const sample = context.samplesByID[id]
-              const sampleKind = context.sampleKinds.itemsByID[sample?.sample_kind]?.name
+              const sampleKind = sample?.sample_kind ? context.sampleKinds.itemsByID[sample?.sample_kind]?.name : "POOL"
               return <li>
                 {sample ?
                     renderSample(sample, sampleKind) :

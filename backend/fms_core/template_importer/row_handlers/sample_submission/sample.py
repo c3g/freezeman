@@ -163,11 +163,16 @@ class SampleRowHandler(GenericRowHandler):
         # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
         elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
             self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]
+        # for pools
+        else:
+            sample['alias'] = sample['alias'] or sample['name']
+            if not sample['alias']:
+                self.errors['alias'].append([f"A pooled library must have a valid alias."])
 
         # For pooling purposes
         self.row_object = {
             # Biosample info
-            "alias": sample['alias'] or sample['name'],
+            "alias": sample['alias'],
             "individual": individual_obj,
             "collection_site": sample['collection_site'],
             # Derived sample info

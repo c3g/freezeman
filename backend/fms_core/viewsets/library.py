@@ -1,10 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery
+from django.db.models import Q, When, Count, Case, BooleanField, CharField, F, OuterRef, Subquery, IntegerField
+from collections import Counter
 
 from fms_core.filters import LibraryFilter
-from fms_core.models import Sample, Container, DerivedBySample
+from fms_core.models import Sample, Container, DerivedBySample, LibraryType, Library
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
 from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
@@ -184,12 +185,25 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         Returns summary statistics about the current set of libraries in the
         database.
         """
+        pooled_libraries = self.queryset.filter(is_pooled=True).values('id')
+        non_pooled_libraries = self.queryset.filter(is_pooled=False)
+
+        # Get the existing library types from the current libraries
+        library_types_ids = non_pooled_libraries.values_list('derived_samples__library__library_type')
+
+        class SubqueryCount(Subquery):
+            template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+            output_field = IntegerField()
+
+        # Count the number of libraries per library type by doing a SubQueryCount (see class above)
+        library_types = LibraryType.objects.filter(id__in=[library_types_ids]).annotate(
+            library_count=SubqueryCount(
+                non_pooled_libraries.filter(derived_samples__library__library_type_id=OuterRef("pk"))
+            ))
+
         return Response({
-            "total_count": self.queryset.all().count(),
-            "library_type_counts": {
-                 c["derived_samples__library__library_type"]: c["derived_samples__library__library_type__count"]
-                 for c in self.queryset.values("derived_samples__library__library_type").annotate(Count("derived_samples__library__library_type"))
-            },
+            "total_count": len(pooled_libraries) + len(non_pooled_libraries),
+            "library_type_counts": {c['id']: c['library_count'] for c in library_types.values('id', 'library_count')},
         })
 
     @action(detail=False, methods=["get"])
