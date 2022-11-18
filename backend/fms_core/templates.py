@@ -178,10 +178,10 @@ NORMALIZATION_TEMPLATE = {
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Sample Initial Concentration', 'Robot Source Container', 'Robot Source Coord',
+        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
-                    'Destination Parent Container Coord', 'Source Depleted', 'Volume Used (uL)', 'Volume (uL)',
+                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Volume Used (uL)', 'Volume (uL)',
                     'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment'],
       },
   ],
@@ -189,7 +189,7 @@ NORMALIZATION_TEMPLATE = {
       ("Normalization", "Sample Name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode"),
       ("Normalization", "Source Container Coord", "coordinates"),
-      ("Normalization", "Sample Initial Concentration", "concentration"),
+      ("Normalization", "Initial Conc. (ng/uL)", "concentration"),
   ],
 }
 
