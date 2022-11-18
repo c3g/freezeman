@@ -1,4 +1,4 @@
-from typing import cast, List, TextIO, Union
+from typing import Iterable, List, TextIO, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
@@ -11,7 +11,12 @@ from fms_core.models import (
     Individual,
     Instrument, 
     Library,
+    Process,
+    ProcessMeasurement,
     Project,
+    PropertyType,
+    PropertyValue,
+    Protocol,
     Sample, 
 )
 
@@ -48,6 +53,7 @@ class EventSample:
     fms_index_name: Union[str, None] = None
     fms_index_sequence_3_prime: Union[List[str], None] = None
     fms_index_sequence_5_prime: Union[List[str], None] = None
+    fms_library_kit: Union[str, None] = None
     
 
 @dataclass
@@ -93,13 +99,13 @@ def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
 
     manifest : EventManifest = EventManifest(
         version=EVENT_FILE_VERSION,
-        run_name=experiment_run.name,
-        fms_run_id=experiment_run.id,
+        run_name=experiment_run.name or '',
+        fms_run_id=experiment_run.pk,
         fms_run_start_date= start_date,
-        fms_container_id=experiment_run.container.id,
+        fms_container_id=experiment_run.container.pk,
         fms_container_barcode=experiment_run.container.barcode,
         # TODO Merge master and then use instrument.serial_id for instrument_id
-        instrument_id='TODO: serial_id',
+        instrument_id='',
         fms_instrument_type=instrument.type.type,
         samples=[]
     )
@@ -128,7 +134,7 @@ def _generate_event_manifest_samples(experiment_run: ExperimentRun) -> List[Even
 def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[EventSample]:
     event_samples: List[EventSample] = []
     
-    derived_samples = cast(List[DerivedSample], pool.derived_samples.all())
+    derived_samples: Iterable[DerivedSample] = pool.derived_samples.all()
     for derived_sample in derived_samples:
         event_sample = _generate_sample(experiment_run, pool, derived_sample)
 
@@ -138,30 +144,30 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
 
         event_samples.append(event_sample)
 
-    return event_samples
-
-
+    return event_samples    
 
 def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> EventSample:
-    row = EventSample(fms_sample_name=sample.name, fms_sample_id=sample.id)
+    row = EventSample(fms_sample_name=sample.name, fms_sample_id=sample.pk)
 
-    biosample: Biosample = derived_sample.biosample
+    biosample: Union[Biosample, None] = derived_sample.biosample
+    if biosample is None:
+        raise Exception(f'Sample {sample.pk} has no biosample')
 
-    row.fms_derived_sample_id = derived_sample.id
-    row.fms_biosample_id = biosample.id
+    row.fms_derived_sample_id = derived_sample.pk
+    row.fms_biosample_id = biosample.pk
 
-    project: Project = derived_sample.project
-
-    row.fms_project_id = project.id
-    row.fms_project_name = project.name
-    row.hercules_project_id = project.external_id
-    row.hercules_project_name = project.external_name
+    project: Union[Project, None] = derived_sample.project
+    if project is not None:
+        row.fms_project_id = project.id
+        row.fms_project_name = project.name
+        row.hercules_project_id = project.external_id
+        row.hercules_project_name = project.external_name
 
     row.fms_container_coordinates = sample.coordinates
 
     # INDIVIDUAL
-    individual: Individual = biosample.individual
-    if individual is not None:
+    if biosample.individual is not None:
+        individual: Individual = biosample.individual
         row.fms_expected_sex = individual.sex
 
         if individual.taxon is not None:
@@ -169,21 +175,67 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
             row.fms_taxon_name = individual.taxon.name
 
     # LIBRARY
-    library: Library = derived_sample.library
-    if library is not None:
+    if derived_sample.library is not None:
+        library: Library = derived_sample.library
         index: Index = library.index
 
         row.fms_platform_name = library.platform.name
         row.fms_library_type = library.library_type.name
         row.fms_library_size = float(library.library_size) if library.library_size is not None else None 
 
-        row.fms_index_id = index.id
+        row.fms_index_id = index.pk
         row.fms_index_name = index.name
 
         row.fms_index_sequence_3_prime = index.list_3prime_sequences
         row.fms_index_sequence_5_prime = index.list_5prime_sequences
 
+        # Get the Library Preparation process that was run on the library
+        # to get the Library Kit property
+        lib_prep_measurement = _find_library_prep(sample, derived_sample)
+        if lib_prep_measurement is not None:
+            # Get the library kit property
+            # property_type = PropertyType.objects.get(name="Library Kit")
+            try:
+                property_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, property_type__name="Library Kit Used")
+                if property_value is not None:
+                    row.fms_library_kit = json.dumps(property_value.value)
+            except PropertyValue.DoesNotExist:
+                pass
+
     return row
+
+
+# Find all the derived samples that have this library
+
+def _find_library_prep(sample: Sample, derived_sample: DerivedSample) -> Union[ProcessMeasurement, None]:
+    if derived_sample.library is None:
+        return None
+    protocol: Protocol = Protocol.objects.get(name="Library Preparation")
+    library_prep = _find_library_prep_measurement(sample, derived_sample.library, protocol)
+    return library_prep
+
+def _find_library_prep_measurement(currentSample: Sample, library: Library, library_prep_protocol: Protocol) -> Union[ProcessMeasurement, None]:
+    ''' Locate the process with the Library Preparation protocol that generated this library. '''
+    measurement: Union[ProcessMeasurement, None] = None
+    try:
+        # Does the current parent have a library prep measurement?
+        measurement = ProcessMeasurement.objects.get(source_sample=currentSample, process__protocol=library_prep_protocol)
+    except:
+        pass
+
+    if measurement is not None:
+        return measurement
+    else:
+        # Get parent samples of current sample and try again
+        parents: List[Sample] = currentSample.parents
+        for parent in parents:
+            measurement = _find_library_prep_measurement(parent, library, library_prep_protocol)
+            if measurement is not None:
+                return measurement
+
+    return None
+   
+
 
 def _serialize_event_manifest(event_file: EventManifest, stream: TextIO):
     file_dict = asdict(event_file)
