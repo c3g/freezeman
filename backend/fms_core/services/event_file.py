@@ -193,12 +193,11 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         # to get the Library Kit property
         lib_prep_measurement = _find_library_prep(sample, derived_sample)
         if lib_prep_measurement is not None:
-            # Get the library kit property
-            # property_type = PropertyType.objects.get(name="Library Kit")
             try:
                 property_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, property_type__name="Library Kit Used")
                 if property_value is not None:
-                    row.fms_library_kit = json.dumps(property_value.value)
+                    # row.fms_library_kit = json.loads(property_value.value)
+                    row.fms_library_kit = property_value.value
             except PropertyValue.DoesNotExist:
                 pass
 
@@ -215,23 +214,22 @@ def _find_library_prep(sample: Sample, derived_sample: DerivedSample) -> Union[P
     return library_prep
 
 def _find_library_prep_measurement(currentSample: Sample, library: Library, library_prep_protocol: Protocol) -> Union[ProcessMeasurement, None]:
-    ''' Locate the process with the Library Preparation protocol that generated this library. '''
+    ''' Recursively search through parent samples for a sample that underwent Library Prep.
+    '''
     measurement: Union[ProcessMeasurement, None] = None
     try:
         # Does the current parent have a library prep measurement?
         measurement = ProcessMeasurement.objects.get(source_sample=currentSample, process__protocol=library_prep_protocol)
-    except:
+        return measurement
+    except ProcessMeasurement.DoesNotExist:
         pass
 
-    if measurement is not None:
-        return measurement
-    else:
-        # Get parent samples of current sample and try again
-        parents: List[Sample] = currentSample.parents
-        for parent in parents:
-            measurement = _find_library_prep_measurement(parent, library, library_prep_protocol)
-            if measurement is not None:
-                return measurement
+    # Recurse up the the tree of parent samples and try again.
+    parents: List[Sample] = currentSample.parents
+    for parent in parents:
+        measurement = _find_library_prep_measurement(parent, library, library_prep_protocol)
+        if measurement is not None:
+            return measurement
 
     return None
    
