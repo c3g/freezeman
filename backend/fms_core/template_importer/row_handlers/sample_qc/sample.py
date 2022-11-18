@@ -48,6 +48,10 @@ class SampleQCRowHandler(GenericRowHandler):
                                                                               quantity_flag=sample_information['quantity_flag'],
                                                                               quality_flag=sample_information['quality_flag'])
 
+            # Add a warning if the sample has failed qc
+            if any([sample_information['quantity_flag'] == 'Failed', sample_information['quality_flag'] == 'Failed']):
+                self.warnings["flags"] = (f"Source sample {sample_obj.name} has failed QC.")
+
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
                     process=process_measurement['process'],
