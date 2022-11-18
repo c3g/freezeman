@@ -8,6 +8,14 @@ __all__ = [
     "CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP",
     "CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL",
     "CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_NOVASEQ_S4_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_MISEQ_V2_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL",
+    "CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL",
     "CONTAINER_SPEC_96_WELL_PLATE",
     "CONTAINER_SPEC_384_WELL_PLATE",
     "CONTAINER_SPEC_TUBE",
@@ -158,10 +166,82 @@ CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL = ContainerSpec(
     is_run_container=True,
 )
 
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-sp flowcell",
+     coordinate_spec=(alphas(1), ints(2, pad_to=2)), #2 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-s1 flowcell",
+     coordinate_spec=(alphas(1), ints(2, pad_to=2)), #2 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-s2 flowcell",
+     coordinate_spec=(alphas(1), ints(2, pad_to=2)), #2 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_NOVASEQ_S4_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-novaseq-s4 flowcell",
+     coordinate_spec=(alphas(1), ints(4, pad_to=2)), #4 lanes
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_MISEQ_V2_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-miseq-v2 flowcell",
+     coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-miseq-v3 flowcell",
+     coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-miseq-micro flowcell",
+     coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
+CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL = ContainerSpec(
+     container_kind_id="illumina-miseq-nano flowcell",
+     coordinate_spec=(alphas(1), ints(1, pad_to=2)), #1 lane
+     coordinate_overlap_allowed=False,
+     children=(),  # Leaf node; sample-holding
+     is_run_container=True,
+)
+
 RUN_CONTAINER_SPECS = (
     CONTAINER_SPEC_INFINIUM_GS_24_BEADCHIP,
     CONTAINER_SPEC_DNBSEQ_T7_FLOWCELL,
     CONTAINER_SPEC_DNBSEQ_G400_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_SP_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_S1_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_S2_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_NOVASEQ_S4_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_MISEQ_V2_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_MISEQ_V3_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_MISEQ_MICRO_FLOWCELL,
+    CONTAINER_SPEC_ILLUMINA_MISEQ_NANO_FLOWCELL,
 )
 
 # Containers

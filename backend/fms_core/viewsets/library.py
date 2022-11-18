@@ -8,7 +8,7 @@ from fms_core.filters import LibraryFilter
 from fms_core.models import Sample, Container, DerivedBySample, LibraryType, Library
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
-from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
+from fms_core.templates import EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, LIBRARY_CONVERSION_TEMPLATE, LIBRARY_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE, SAMPLE_POOLING_TEMPLATE
 from fms_core.template_importer.importers import ExperimentRunImporter, LibraryConversionImporter, LibraryQCImporter, NormalizationPlanningImporter, NormalizationImporter, SamplePoolingImporter
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys
@@ -78,7 +78,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         {
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_MGI_TEMPLATE["identity"]],
+            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity']],
             "importer": ExperimentRunImporter,
         },
         {
@@ -115,6 +115,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     template_prefill_list = [
         {"template": EXPERIMENT_MGI_TEMPLATE},
+        {"template": EXPERIMENT_ILLUMINA_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},
         {"template": NORMALIZATION_PLANNING_TEMPLATE},
