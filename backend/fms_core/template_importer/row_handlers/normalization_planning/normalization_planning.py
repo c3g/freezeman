@@ -154,6 +154,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
                     'Destination Parent Container Barcode': destination_container_dict['parent_barcode'],
                     'Destination Parent Container Coord': destination_container_dict['coordinates'],
                     'Source Depleted': '',
+                    'Initial Conc. (ng/uL)': source_sample_obj.concentration,
                     'Volume Used (uL)': str(volume_used),
                     'Volume (uL)': str(adjusted_volume),
                     'Conc. (ng/uL)': str(concentration_nguL) if concentration_nguL is not None else '',
