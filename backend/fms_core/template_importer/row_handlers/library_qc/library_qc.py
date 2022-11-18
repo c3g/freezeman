@@ -142,7 +142,7 @@ class LibraryQCRowHandler(GenericRowHandler):
 
         # Add a warning if the sample has failed qc
         if any([measures['quantity_flag'] == 'Failed', measures['quality_flag'] == 'Failed']):
-            self.warnings["flags"] = (f"Source library {source_sample_obj.name} has failed QC.")
+            self.warnings["flags"] = (f"QC flags of source library {source_sample_obj.name} will be overwritten with a failed QC.")
             
         # library qc flags are stored as process measurements
         process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
