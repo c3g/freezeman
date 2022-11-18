@@ -61,15 +61,28 @@ def create_illumina_related_objects(apps, schema_editor):
 
         # Instrument dictionary {NAME: TYPE} for creation
         INSTRUMENTS = {
-            "Rosalind Franklin": "Illumina NovaSeq 6000",
-            "Carrie Derick": "Illumina NovaSeq 6000",
-            "Barbara McClintock": "Illumina NovaSeq 6000",
-            "Mykonos": "Illumina MiSeq",
+            "Rosalind Franklin": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A00266",
+            },
+            "Carrie Derick": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A01433",
+            },
+            "Barbara McClintock": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A01861",
+            },
+            "Mykonos": {
+                "type": "Illumina MiSeq",
+                "serial_id": "M03555",
+            },
         }
         for name in INSTRUMENTS.keys():
-            it = InstrumentType.objects.get(type=INSTRUMENTS[name])
+            it = InstrumentType.objects.get(type=INSTRUMENTS[name].type)
             i = Instrument.objects.create(name=name,
                                           type=it,
+                                          serial_id=INSTRUMENTS[name].serial_id,
                                           created_by_id=admin_user_id,
                                           updated_by_id=admin_user_id)
             reversion.add_to_revision(i)
@@ -134,7 +147,7 @@ class Migration(migrations.Migration):
             model_name='instrument',
             name='serial_id',
             field=models.CharField(max_length=200, unique=True, help_text="Internal identifier for the instrument."),
-        )
+        ),
         migrations.RunPython(
             create_illumina_related_objects,
             reverse_code=migrations.RunPython.noop,
