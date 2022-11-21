@@ -18,6 +18,7 @@ from fms_core.models import (
     PropertyValue,
     Protocol,
     Sample, 
+    SampleLineage,
 )
 
 FMS_Id = Union[int, None]
@@ -75,6 +76,7 @@ class EventManifest:
 
     samples: List[EventSample]
 
+
 EVENT_FILE_VERSION = "1.0.0"
 
 def generate_event_file(experiment_run: ExperimentRun, file: TextIO):
@@ -104,8 +106,7 @@ def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
         fms_run_start_date= start_date,
         fms_container_id=experiment_run.container.pk,
         fms_container_barcode=experiment_run.container.barcode,
-        # TODO Merge master and then use instrument.serial_id for instrument_id
-        instrument_id='',
+        instrument_id=experiment_run.instrument.serial_id,
         fms_instrument_type=instrument.type.type,
         samples=[]
     )
@@ -191,7 +192,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
         # Get the Library Preparation process that was run on the library
         # to get the Library Kit property
-        lib_prep_measurement = _find_library_prep(sample, derived_sample)
+        lib_prep_measurement = _find_library_prep(library)
         if lib_prep_measurement is not None:
             try:
                 property_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, property_type__name="Library Kit Used")
@@ -204,35 +205,28 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     return row
 
 
-# Find all the derived samples that have this library
+def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
+    ''' Given a library, find the Library Preparation process that was used to create the
+        library, if any, to extract the library preparation properties (eg. Library Kit).
 
-def _find_library_prep(sample: Sample, derived_sample: DerivedSample) -> Union[ProcessMeasurement, None]:
-    if derived_sample.library is None:
-        return None
-    protocol: Protocol = Protocol.objects.get(name="Library Preparation")
-    library_prep = _find_library_prep_measurement(sample, derived_sample.library, protocol)
-    return library_prep
-
-def _find_library_prep_measurement(currentSample: Sample, library: Library, library_prep_protocol: Protocol) -> Union[ProcessMeasurement, None]:
-    ''' Recursively search through parent samples for a sample that underwent Library Prep.
+        Note that not all libraries will have a Library Preparation measurement,
+        since they can be imported directly into freezeman without passing the
+        Library Preparation step.
     '''
-    measurement: Union[ProcessMeasurement, None] = None
+    protocol: Protocol = Protocol.objects.get(name="Library Preparation")
+
+    library_prep: Union[ProcessMeasurement, None] = None
     try:
-        # Does the current parent have a library prep measurement?
-        measurement = ProcessMeasurement.objects.get(source_sample=currentSample, process__protocol=library_prep_protocol)
-        return measurement
-    except ProcessMeasurement.DoesNotExist:
+        lineage: SampleLineage = SampleLineage.objects.get(
+            process_measurement__process__protocol_id=protocol.pk,
+            child__derived_samples__library__id=library.pk)
+        library_prep = lineage.process_measurement
+    except SampleLineage.DoesNotExist:
+        pass
+    except SampleLineage.MultipleObjectsReturned:
         pass
 
-    # Recurse up the the tree of parent samples and try again.
-    parents: List[Sample] = currentSample.parents
-    for parent in parents:
-        measurement = _find_library_prep_measurement(parent, library, library_prep_protocol)
-        if measurement is not None:
-            return measurement
-
-    return None
-   
+    return library_prep
 
 
 def _serialize_event_manifest(event_file: EventManifest, stream: TextIO):
