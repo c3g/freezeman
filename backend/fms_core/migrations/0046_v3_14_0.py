@@ -162,7 +162,7 @@ class Migration(migrations.Migration):
          migrations.AddField(
             model_name='experimentrun',
             name='run_processing_launch_date',
-            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True),
+            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True, blank=True),
         ),
         migrations.AddField(
             model_name='instrument',
