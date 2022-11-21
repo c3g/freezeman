@@ -11,10 +11,8 @@ from fms_core.models import (
     Individual,
     Instrument, 
     Library,
-    Process,
     ProcessMeasurement,
     Project,
-    PropertyType,
     PropertyValue,
     Protocol,
     Sample, 
@@ -88,7 +86,6 @@ def generate_event_file(experiment_run: ExperimentRun, file: TextIO):
     _serialize_event_manifest(manifest, text_stream)
     file.write(text_stream.getvalue())
 
-    print(text_stream.getvalue())
     text_stream.close()
 
 def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:

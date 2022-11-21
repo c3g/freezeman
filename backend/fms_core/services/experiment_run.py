@@ -1,4 +1,5 @@
 from xml.dom import NotFoundErr
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import datetime
 
@@ -100,7 +101,7 @@ def launch_experiment_run(pk):
     with open("event_file.json", "w", encoding="utf-8") as file:
         generate_event_file(experiment_run, file)
 
-    experiment_run.run_processing_launch_date = datetime.now()
+    experiment_run.run_processing_launch_date = timezone.now()
     experiment_run.save()
    
     return (experiment_run, errors, warnings)
