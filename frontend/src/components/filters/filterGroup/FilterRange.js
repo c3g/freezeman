@@ -2,6 +2,7 @@ import React from "react";
 import {Input, InputNumber} from "antd";
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"
+import { nullize } from '../../../utils/nullize'
 
 
 const FilterRange = ({
@@ -35,11 +36,5 @@ const FilterRange = ({
     </div>
   );
 };
-
-function nullize(v) {
-  if (v === '')
-    return null
-  return v
-}
 
 export default FilterRange;

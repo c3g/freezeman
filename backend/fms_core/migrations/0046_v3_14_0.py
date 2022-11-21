@@ -11,6 +11,35 @@ import reversion
 ADMIN_USERNAME = 'biobankadmin'
 
 
+def populate_instrument_serial_id(apps, schema_editor):
+    """
+    For each existing instrument, populate the new serial_id field with their value.
+
+    Args:
+        apps: apps class handle
+        schema_editor: ignore
+    """
+    Instrument = apps.get_model("fms_core", "Instrument")
+
+    INSTRUMENTS = {
+      "iScan_1": "iScan_1",
+      "01-Marie Curie": "R2130400190016",
+      "02-Frida Kahlo": "R2130400190018",
+      "03-Jennifer Doudna": "R1100600200054",
+    }
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Populate existing instruments with their respective serial_id.")
+        reversion.set_user(admin_user)
+
+        for seq_instrument in Instrument.objects.all():
+            seq_instrument.serial_id = INSTRUMENTS[seq_instrument.name]
+            seq_instrument.save()
+            reversion.add_to_revision(seq_instrument)
+            
+            
 def create_illumina_related_objects(apps, schema_editor):
     Platform = apps.get_model("fms_core", "Platform")
     InstrumentType = apps.get_model("fms_core", "InstrumentType")
@@ -32,15 +61,28 @@ def create_illumina_related_objects(apps, schema_editor):
 
         # Instrument dictionary {NAME: TYPE} for creation
         INSTRUMENTS = {
-            "Rosalind Franklin": "Illumina NovaSeq 6000",
-            "Carrie Derick": "Illumina NovaSeq 6000",
-            "Barbara McClintock": "Illumina NovaSeq 6000",
-            "Mykonos": "Illumina MiSeq",
+            "Rosalind Franklin": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A00266",
+            },
+            "Carrie Derick": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A01433",
+            },
+            "Barbara McClintock": {
+                "type": "Illumina NovaSeq 6000",
+                "serial_id": "A01861",
+            },
+            "Mykonos": {
+                "type": "Illumina MiSeq",
+                "serial_id": "M03555",
+            },
         }
         for name in INSTRUMENTS.keys():
-            it = InstrumentType.objects.get(type=INSTRUMENTS[name])
+            it = InstrumentType.objects.get(type=INSTRUMENTS[name]["type"])
             i = Instrument.objects.create(name=name,
                                           type=it,
+                                          serial_id=INSTRUMENTS[name]["serial_id"],
                                           created_by_id=admin_user_id,
                                           updated_by_id=admin_user_id)
             reversion.add_to_revision(i)
@@ -80,9 +122,29 @@ def create_illumina_related_objects(apps, schema_editor):
         rt = RunType.objects.create(name="Illumina",
                                     platform=platform,
                                     protocol=protocol,
+                                    needs_run_processing=True,
                                     created_by_id=admin_user_id,
                                     updated_by_id=admin_user_id)
         reversion.add_to_revision(rt)
+
+
+def set_needs_processing_flags(apps, schema_editor) :
+    # Set the RunType.needs_run_processing flag to True for DBNSEQ and Illumina run types.
+    RunType = apps.get_model("fms_core", "RunType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Set needs_run_processing flags on DBNSEQ and Illumina run types.")
+        reversion.set_user(admin_user)
+
+        run_types = RunType.objects.all()
+
+        for run_type in run_types:
+            if (run_type.platform.name == "DNBSEQ" or run_type.platform.name == "ILLUMINA"):
+                run_type.needs_run_processing = True
+            run_type.save()
+            reversion.add_to_revision(run_type)
 
 
 class Migration(migrations.Migration):
@@ -92,6 +154,30 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='runtype',
+            name='needs_run_processing',
+            field=models.BooleanField(default=False, help_text='Run processing is expected for this run type.'),
+        ),
+         migrations.AddField(
+            model_name='experimentrun',
+            name='run_processing_launch_date',
+            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True, blank=True),
+        ),
+        migrations.AddField(
+            model_name='instrument',
+            name='serial_id',
+            field=models.CharField(max_length=200, null=True, blank=True, help_text="Internal identifier for the instrument."),
+        ),
+        migrations.RunPython(
+            populate_instrument_serial_id,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='instrument',
+            name='serial_id',
+            field=models.CharField(max_length=200, unique=True, help_text="Internal identifier for the instrument."),
+        ),
         migrations.RunPython(
             create_illumina_related_objects,
             reverse_code=migrations.RunPython.noop,
@@ -158,5 +244,9 @@ class Migration(migrations.Migration):
                 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate',
                 '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples',
                                     to='fms_core.container'),
+        ),
+         migrations.RunPython(
+            set_needs_processing_flags,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

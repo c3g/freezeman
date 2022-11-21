@@ -31,6 +31,10 @@ class LibraryRowHandler(GenericRowHandler):
             if source_sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
 
+            # Add a warning if the sample has failed qc
+            if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
+                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+
             # Populate the libraries with the batch and  individual information
             protocol = library_batch_info['protocol']
             process_by_protocol = library_batch_info['process_by_protocol']

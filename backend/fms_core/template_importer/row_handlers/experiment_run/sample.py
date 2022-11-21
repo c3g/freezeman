@@ -14,6 +14,10 @@ class SampleRowHandler(GenericRowHandler):
 
         self.row_object = sample
 
+        # Add a warning if the sample has failed qc
+        if any([sample.quality_flag is False, sample.quantity_flag is False]):
+            self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+
         if not volume_used:
             self.errors['volume_used'] = f"Volume used must be entered"
         elif sample and volume_used > sample.volume:

@@ -18,6 +18,7 @@ class RunType(TrackedModel):
                             help_text="Name of the run type.")
     protocol = models.ForeignKey(Protocol, on_delete=models.PROTECT, related_name="run_types", help_text="Protocol used by the experiment run.")
     platform = models.ForeignKey(Platform, on_delete=models.PROTECT, related_name="run_types", help_text="Platform used by the run type.")
+    needs_run_processing = models.BooleanField(default=False, help_text="Run processing is expected for this run type.")
 
 
     def __str__(self):

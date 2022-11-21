@@ -101,13 +101,11 @@ class NormalizationPlanningImporter(GenericImporter):
 
             normalization_mapping_rows.append(normalization_row_mapping)
             norm_choice.append(robot["norm_choice"])
-
             # Prepare pool dict for pooling sheet row handler
-            if normalization_row_mapping["Pool Name"]:
+            if normalization_row_mapping and normalization_row_mapping["Pool Name"]:
                 pools_dict[normalization_row_mapping["Pool Name"]].append(normalization_row_mapping)
 
         sheet = self.sheets['Pools']
-
         pools_mapping_rows = []
         # For each row initialize the object that is going to be prefilled in the normalization template
         for row_id, row_data in enumerate(sheet.rows):

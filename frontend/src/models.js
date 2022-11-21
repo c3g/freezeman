@@ -37,7 +37,7 @@ export const sample = {
   volume: null, //
   concentration: null,
   depleted: false,
-  experimental_groups: null, // string[]
+  experimental_group: null, // string[]
   collection_site: "", // string(200)
   tissue_source: null,
   creation_date: null, // date
@@ -82,7 +82,7 @@ export const individual = {
 // {
 //     id: 100,
 //     name: "L00217559",
-//     taxon: 1, 
+//     taxon: 1,
 //     sex: "Unknown",
 //     pedigree: "L00217559",
 //     cohort: "INSPQ_COVID",
@@ -272,7 +272,7 @@ export const pooledSample = {
   parent_sample_id: "",           // The id of the sample that was added to this pool
   parent_sample_name: "",         // The name of the sample that was added to this pool
   sample_kind: "",                // Predefined sample kind (eg BLOOD, DNA, SALIVA...)
-  
+
   // Library fields               // Library fields are only defined if pool contains libraries
   index: "",                      // Name of index
   index_id: "",                   // ID of index
