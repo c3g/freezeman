@@ -122,9 +122,29 @@ def create_illumina_related_objects(apps, schema_editor):
         rt = RunType.objects.create(name="Illumina",
                                     platform=platform,
                                     protocol=protocol,
+                                    needs_run_processing=True,
                                     created_by_id=admin_user_id,
                                     updated_by_id=admin_user_id)
         reversion.add_to_revision(rt)
+
+
+def set_needs_processing_flags(apps, schema_editor) :
+    # Set the RunType.needs_run_processing flag to True for DBNSEQ and Illumina run types.
+    RunType = apps.get_model("fms_core", "RunType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment("Set needs_run_processing flags on DBNSEQ and Illumina run types.")
+        reversion.set_user(admin_user)
+
+        run_types = RunType.objects.all()
+
+        for run_type in run_types:
+            if (run_type.platform.name == "DNBSEQ" or run_type.platform.name == "ILLUMINA"):
+                run_type.needs_run_processing = True
+            run_type.save()
+            reversion.add_to_revision(run_type)
 
 
 class Migration(migrations.Migration):
@@ -134,6 +154,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='runtype',
+            name='needs_run_processing',
+            field=models.BooleanField(default=False, help_text='Run processing is expected for this run type.'),
+        ),
         migrations.AddField(
             model_name='instrument',
             name='serial_id',
@@ -214,5 +239,9 @@ class Migration(migrations.Migration):
                 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate',
                 '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples',
                                     to='fms_core.container'),
-        )
+        ),
+         migrations.RunPython(
+            set_needs_processing_flags,
+            reverse_code=migrations.RunPython.noop,
+        ),
     ]
