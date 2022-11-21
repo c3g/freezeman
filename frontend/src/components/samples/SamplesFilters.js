@@ -4,7 +4,7 @@ import {filter as filterObject} from "rambda";
 import {Collapse} from "antd";
 
 import {setFilter} from "../../modules/samples/actions";
-import FilterGroup from "../filters/FilterGroup";
+import FilterGroup from "../filters/filterGroup/FilterGroup";
 import {SAMPLE_FILTERS} from "../filters/descriptions";
 
 const mapStateToProps = state => ({
