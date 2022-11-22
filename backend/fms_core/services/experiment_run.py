@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import datetime
 
-from fms_core.services.event_file import generate_event_file
+from fms_core.services.experiment_run_info import generate_run_info_file
 from ..models import ExperimentRun
 
 from .process import create_process
@@ -93,15 +93,16 @@ def create_experiment_run(experiment_run_name,
 
 def launch_experiment_run(pk):
     '''
-    Generates an event file for an experiment and drops it in a spool directory
+    Generates a run info file for an experiment and drops it in a spool directory
     watched by Tech Dev, which triggers run processing to be scheduled.
 
-    If the event file is generated without error then the run_processing_launch_date
+    If the run info file is generated without error then the run_processing_launch_date
     timestamp is updated with the current date and time.
     '''
     errors = []
     warnings = []
 
+    experiment_run = None
     try:
         experiment_run = ExperimentRun.objects.get(id=pk)
     except ExperimentRun.DoesNotExist:
@@ -112,7 +113,7 @@ def launch_experiment_run(pk):
     if experiment_run is not None:
         try:
             with open("event_file.json", "w", encoding="utf-8") as file:
-                generate_event_file(experiment_run, file)
+                generate_run_info_file(experiment_run, file)
 
             experiment_run.run_processing_launch_date = timezone.now()
             experiment_run.save()

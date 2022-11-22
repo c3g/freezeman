@@ -19,20 +19,20 @@ from fms_core.models import (
     SampleLineage,
 )
 
-FMS_Id = Union[int, None]
+Obj_Id = Union[int, None]
 
 @dataclass
-class EventSample:
+class RunInfoSample:
     sample_name: Union[str, None]
 
-    sample_fms_id: FMS_Id = None
-    derived_sample_fms_id: FMS_Id = None
-    biosample_fms_id: FMS_Id = None
+    sample_obj_id: Obj_Id = None
+    derived_sample_obj_id: Obj_Id = None
+    biosample_obj_id: Obj_Id = None
 
     # Flowcell lane containing the sample
     container_coordinates: Union[str, None] = None
 
-    project_fms_id: FMS_Id = None
+    project_obj_id: Obj_Id = None
     project_name: Union[str, None] = None
     hercules_project_id: Union[str, None] = None
     hercules_project_name: Union[str, None] = None
@@ -48,9 +48,9 @@ class EventSample:
     platform_name: Union[str, None] = None
     library_type: Union[str, None] = None
     library_size: Union[float, None] = None
-    index_set_fms_id: Union[str, None] = None
+    index_set_obj_id: Union[str, None] = None
     index_set_name: Union[str, None] = None
-    index_fms_id: FMS_Id = None
+    index_obj_id: Obj_Id = None
     index_name: Union[str, None] = None
     index_sequence_3_prime: Union[List[str], None] = None
     index_sequence_5_prime: Union[List[str], None] = None
@@ -58,39 +58,39 @@ class EventSample:
     
 
 @dataclass
-class EventManifest:
+class RunInfo:
     # Manifest version (1.0.0 to start) 
     version: str
 
     # Experiment run name and id
     run_name: str
-    run_fms_id: int
+    run_obj_id: int
     run_start_date: Union[str, None]
 
     # Flowcell / container for experiment
-    container_fms_id: int
+    container_obj_id: int
     container_barcode: str
 
-    instrument_id: str
+    instrument_serial_number: str
     instrument_type: str
 
-    samples: List[EventSample]
+    samples: List[RunInfoSample]
 
 
-EVENT_FILE_VERSION = "1.0.0"
+RUN_INFO_FILE_VERSION = "1.0.0"
 
-def generate_event_file(experiment_run: ExperimentRun, file: TextIO):
-    manifest = _generate_event_manifest(experiment_run)
+def generate_run_info_file(experiment_run: ExperimentRun, file: TextIO):
+    manifest = _generate_run_info(experiment_run)
 
     # TODO after debugging, just serialize the manifest straight to the file
     text_stream = StringIO()
 
-    _serialize_event_manifest(manifest, text_stream)
+    _serialize_run_info(manifest, text_stream)
     file.write(text_stream.getvalue())
 
     text_stream.close()
 
-def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
+def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
 
     instrument: Instrument = experiment_run.instrument
 
@@ -98,25 +98,25 @@ def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
     if experiment_run.start_date is not None:
         start_date = experiment_run.start_date.strftime("%Y-%m-%d")
 
-    manifest : EventManifest = EventManifest(
-        version=EVENT_FILE_VERSION,
+    manifest : RunInfo = RunInfo(
+        version=RUN_INFO_FILE_VERSION,
         run_name=experiment_run.name or '',
-        run_fms_id=experiment_run.pk,
+        run_obj_id=experiment_run.pk,
         run_start_date= start_date,
-        container_fms_id=experiment_run.container.pk,
+        container_obj_id=experiment_run.container.pk,
         container_barcode=experiment_run.container.barcode,
-        instrument_id=experiment_run.instrument.serial_id,
+        instrument_serial_number=experiment_run.instrument.serial_id,
         instrument_type=instrument.type.type,
         samples=[]
     )
 
-    manifest.samples = _generate_event_manifest_samples(experiment_run)
+    manifest.samples = _generate_run_info_samples(experiment_run)
 
     return manifest
 
 
-def _generate_event_manifest_samples(experiment_run: ExperimentRun) -> List[EventSample]:
-    generated_rows: List[EventSample] = []
+def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSample]:
+    generated_rows: List[RunInfoSample] = []
    
     # Get the samples contained in the experiment run container (normally
     # a flow cell with 2 or 4 lanes).
@@ -126,39 +126,39 @@ def _generate_event_manifest_samples(experiment_run: ExperimentRun) -> List[Even
         if (sample.is_pool):
             generated_rows += _generate_pooled_samples(experiment_run, sample)
         else:
-            event_sample = _generate_sample(experiment_run, sample, sample.derived_sample_not_pool)
-            generated_rows += [event_sample]
+            run_info_sample = _generate_sample(experiment_run, sample, sample.derived_sample_not_pool)
+            generated_rows += [run_info_sample]
 
     return generated_rows
 
-def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[EventSample]:
-    event_samples: List[EventSample] = []
+def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[RunInfoSample]:
+    run_info_samples: List[RunInfoSample] = []
     
     derived_samples: Iterable[DerivedSample] = pool.derived_samples.all()
     for derived_sample in derived_samples:
-        event_sample = _generate_sample(experiment_run, pool, derived_sample)
+        run_info_sample = _generate_sample(experiment_run, pool, derived_sample)
 
         # get the pool volume ratio of the sample
         derived_by_sample: DerivedBySample = DerivedBySample.objects.get(derived_sample=derived_sample, sample=pool)
-        event_sample.pool_volume_ratio = float(derived_by_sample.volume_ratio)
+        run_info_sample.pool_volume_ratio = float(derived_by_sample.volume_ratio)
 
-        event_samples.append(event_sample)
+        run_info_samples.append(run_info_sample)
 
-    return event_samples    
+    return run_info_samples    
 
-def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> EventSample:
-    row = EventSample(sample_name=sample.name, sample_fms_id=sample.pk)
+def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> RunInfoSample:
+    row = RunInfoSample(sample_name=sample.name, sample_obj_id=sample.pk)
 
     biosample: Union[Biosample, None] = derived_sample.biosample
     if biosample is None:
         raise Exception(f'Sample {sample.pk} has no biosample')
 
-    row.derived_sample_fms_id = derived_sample.pk
-    row.biosample_fms_id = biosample.pk
+    row.derived_sample_obj_id = derived_sample.pk
+    row.biosample_obj_id = biosample.pk
 
     project: Union[Project, None] = derived_sample.project
     if project is not None:
-        row.project_fms_id = project.id
+        row.project_obj_id = project.id
         row.project_name = project.name
         row.hercules_project_id = project.external_id
         row.hercules_project_name = project.external_name
@@ -183,10 +183,10 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         row.library_type = library.library_type.name
         row.library_size = float(library.library_size) if library.library_size is not None else None 
 
-        row.index_fms_id = index.pk
+        row.index_obj_id = index.pk
         row.index_name = index.name
 
-        row.index_set_fms_id = index.index_set.id
+        row.index_set_obj_id = index.index_set.id
         row.index_set_name = index.index_set.name
 
         row.index_sequence_3_prime = index.list_3prime_sequences
@@ -231,8 +231,8 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     return library_prep
 
 
-def _serialize_event_manifest(event_file: EventManifest, stream: TextIO):
-    file_dict = asdict(event_file)
+def _serialize_run_info(run_info: RunInfo, stream: TextIO):
+    file_dict = asdict(run_info)
     json.dump(file_dict, stream, indent=4)
 
 
