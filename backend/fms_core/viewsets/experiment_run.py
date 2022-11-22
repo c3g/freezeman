@@ -44,11 +44,10 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=["get"])   # TODO should this be post? update?
+    @action(detail=True, methods=["patch"])
     def launch_run_processing(self, _request, pk=None):
         experiment_run, errors, warnings = launch_experiment_run(pk)
 
-        # TODO finalize response contents
         response = None
         if(errors):
             response = Response({
