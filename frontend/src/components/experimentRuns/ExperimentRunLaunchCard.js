@@ -24,7 +24,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     const dispatch = useDispatch()
 
     // Controls whether launch button and launch state is displayed
-    const [panelIsOpen, setPanelIsOpen] = useState(false)
+    const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
 
     const openLaunchPanel = () => {
       setPanelIsOpen(true)
