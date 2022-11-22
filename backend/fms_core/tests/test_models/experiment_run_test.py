@@ -32,7 +32,8 @@ class ExperimentRunTest(TestCase):
                                                                   index_read_3_prime=INDEX_READ_REVERSE)
         self.instrument_name = "Instrument1"
         self.instrument, _ = Instrument.objects.get_or_create(name=self.instrument_name,
-                                                              type=instrument_type)
+                                                              type=instrument_type,
+                                                              serial_id="Test101")
 
         self.protocol_name = "MyProtocolTest"
         self.protocol, _ = Protocol.objects.get_or_create(name=self.protocol_name)

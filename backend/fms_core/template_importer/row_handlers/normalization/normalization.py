@@ -38,6 +38,10 @@ class NormalizationRowHandler(GenericRowHandler):
             container_parent_obj = None
 
         if source_sample_obj and (container_parent_obj or not parent_barcode) and "concentration" not in self.errors.keys():
+            # Add a warning if the sample has failed qc
+            if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
+                self.warnings["qc_flags"] = (f"Source sample {source_sample_obj.name} has failed QC.")
+
             concentration = None
             # Case when ng/uL is given
             if destination_sample['concentration_ngul']:

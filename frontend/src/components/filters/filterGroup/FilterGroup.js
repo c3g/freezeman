@@ -3,7 +3,7 @@ import {connect} from "react-redux";
 import FilterSelect from "./FilterSelect";
 import FilterRange from "./FilterRange";
 import FilterInput from "./FilterInput";
-import {FILTER_TYPE} from "../../constants";
+import {FILTER_TYPE} from "../../../constants";
 
 const style = {}
 
@@ -23,10 +23,8 @@ const FilterGroup = ({
     switch(item.key){
       case "kind__in":
         return containersKinds.map(x => ({ label: x.id, value: x.id }))
-        break;
       default:
         return item.options || []
-        break;
     }
   }
 

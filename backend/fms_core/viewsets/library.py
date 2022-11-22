@@ -9,6 +9,7 @@ from fms_core.models import Sample, Container, DerivedBySample, LibraryType, Lib
 from fms_core.serializers import LibrarySerializer, LibraryExportSerializer
 
 from fms_core.templates import ( EXPERIMENT_MGI_TEMPLATE,
+                                 EXPERIMENT_ILLUMINA_TEMPLATE,
                                  LIBRARY_CAPTURE_TEMPLATE,
                                  LIBRARY_CONVERSION_TEMPLATE,
                                  LIBRARY_QC_TEMPLATE,
@@ -90,7 +91,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
         {
             "name": "Add Experiments",
             "description": "Upload the provided template with experiment run information.",
-            "template": [EXPERIMENT_MGI_TEMPLATE["identity"]],
+            "template": [EXPERIMENT_ILLUMINA_TEMPLATE['identity'], EXPERIMENT_MGI_TEMPLATE['identity']],
             "importer": ExperimentRunImporter,
         },
         {
@@ -133,6 +134,7 @@ class LibraryViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefil
 
     template_prefill_list = [
         {"template": EXPERIMENT_MGI_TEMPLATE},
+        {"template": EXPERIMENT_ILLUMINA_TEMPLATE},
         {"template": LIBRARY_CAPTURE_TEMPLATE},
         {"template": LIBRARY_CONVERSION_TEMPLATE},
         {"template": LIBRARY_QC_TEMPLATE},

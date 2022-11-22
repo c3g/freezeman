@@ -112,3 +112,7 @@ abbr.--time {
 .flex-fill {
   flex: 1;
 }
+
+.ant-cascader-menu {
+  padding-right: 15px;
+}

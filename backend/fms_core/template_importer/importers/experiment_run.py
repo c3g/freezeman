@@ -29,11 +29,16 @@ class ExperimentRunImporter(GenericImporter):
             self.preloaded_data['protocols_dict'] = self.preloaded_data['run_type'].get_protocols_dict()
 
         except Exception as e:
-            self.base_errors.append(f"No type type with name {runtype} could be found.")
+            self.base_errors.append(f"No run type with name {runtype} could be found.")
 
         # Preload PropertyType objects for this experiment type in a dictionary for faster access
         try:
-            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties))}
+            run_protocols_ids = []
+            for protocol_parent, children_protocol in self.preloaded_data['protocols_dict'].items():
+                run_protocols_ids.append(protocol_parent.id)
+                for child_protocol in children_protocol:
+                    run_protocols_ids.append(child_protocol.id)
+            self.preloaded_data['process_properties'] = {o.name: {'property_type_obj': o} for o in list(PropertyType.objects.filter(name__in=properties, object_id__in=run_protocols_ids))}
         except Exception as e:
             self.base_errors.append(f"Property Type could not be found. {e}")
 

@@ -19,6 +19,7 @@ class Instrument(TrackedModel):
                             help_text="Unique name for the instrument instance.",
                             validators=[name_validator])
     type = models.ForeignKey(InstrumentType, on_delete=models.PROTECT, related_name="instruments", help_text="Instrument type")
+    serial_id = models.CharField(unique=True, max_length=200, help_text="Internal identifier for the instrument.")
 
     def __str__(self):
         return self.name
