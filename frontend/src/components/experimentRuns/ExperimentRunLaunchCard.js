@@ -82,7 +82,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing}>Relaunch Run</Button>
 
         return (
-          <Space>
+          <Space align='end'>
             {isFirstLaunch ? launchButton : relaunchButton}
           </Space>
         )
@@ -108,7 +108,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
 
     return (
         <Row align='middle' justify='center' wrap={false}>
-          <Col flex="auto">{getContents()}</Col>
+          <Col flex="auto" style={{'text-align': 'center'}}>{getContents()}</Col>
           <Col span="32px">{panelIsOpen ? closeButton : openButton}</Col>  
         </Row>
     )
