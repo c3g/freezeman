@@ -79,7 +79,7 @@ const getTableColumns = (containersByID, runTypes, instruments, launchesById) =>
     sorter: true,
     render: (_, experimentRun) => (
       <div style={{minWidth: "12rem"}}>
-        <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]} launchExperimentRun={launchExperimentRun}/>
+        <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]}/>
       </div>
     )
   },
