@@ -29,57 +29,57 @@ class LibraryRowHandler(GenericRowHandler):
         if source_sample_obj:
             # Add a warning if the library has failed qc
             if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
-                self.warnings["qc_flags"] = (f"Source library {source_sample_obj.name} has failed QC.")
+                self.warnings['qc_flags'] = f"Source library {source_sample_obj.name} has failed QC."
 
             # Check if sample is not a library or a pool of libraries
             if not source_sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample {source_sample_obj.name} must be a library to be captured."
 
-            # Make sure no Capture were previously done on the library
-            error = []
-            for derived_sample in source_sample_obj.derived_samples.all():
-                if derived_sample.library.library_selection is not None:
-                    error = f"Source sample {source_sample_obj.name} must not have a selection method applied already (Capture, ChIP-Seq)."
-            self.errors['source_sample'].append(error)
-
-            # Populate the libraries with the batch and  individual information
-            protocol = capture_batch_info['protocol']
-            process_by_protocol = capture_batch_info['process_by_protocol']
-
-            # Retrieve process
-            process_obj = process_by_protocol[protocol.id]
-
-            container_coordinates = container['coordinates']
-
-            container_parent_obj = None
-            if container['parent_barcode']:
-                container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
-                    get_container(barcode=container['parent_barcode'])
-
-            container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
-                name=container['name'],
-                barcode=container['barcode'],
-                kind=container['kind'],
-                container_parent=container_parent_obj if container_parent_obj else None,
-                coordinates=container['parent_coordinates'] if container_parent_obj else None,
-                creation_comment=comment)
-
-            if container_obj and not created:
-                self.warnings['library_container'] = f'Using existing container {container_obj.name}'
-
-            library_info = dict(
-                library_selection=capture_batch_info['library_selection'],
-                capture_date=capture_batch_info['capture_date'],
-            )
-
-            # Capture library propagate the capture to all libraries in a pool
-            protocol = capture_batch_info['protocol']
-            process_by_protocol = capture_batch_info['process_by_protocol']
-
-            # Retrieve process
-            process_obj = process_by_protocol[protocol.id]
-
             if not self.has_errors():
+                # Make sure no Capture were previously done on the library
+                error = []
+                for derived_sample in source_sample_obj.derived_samples.all():
+                    if derived_sample.library.library_selection is not None:
+                        error = f"Source sample {source_sample_obj.name} must not have a selection method applied already (Capture, ChIP-Seq)."
+                self.errors['source_sample'].append(error)
+
+                # Populate the libraries with the batch and  individual information
+                protocol = capture_batch_info['protocol']
+                process_by_protocol = capture_batch_info['process_by_protocol']
+
+                # Retrieve process
+                process_obj = process_by_protocol[protocol.id]
+
+                container_coordinates = container['coordinates']
+
+                container_parent_obj = None
+                if container['parent_barcode']:
+                    container_parent_obj, self.errors['parent_container'], self.warnings['parent_container'] = \
+                        get_container(barcode=container['parent_barcode'])
+
+                container_obj, created, self.errors['library_container'], self.warnings['library_container'] = get_or_create_container(
+                    name=container['name'],
+                    barcode=container['barcode'],
+                    kind=container['kind'],
+                    container_parent=container_parent_obj if container_parent_obj else None,
+                    coordinates=container['parent_coordinates'] if container_parent_obj else None,
+                    creation_comment=comment)
+
+                if container_obj and not created:
+                    self.warnings['library_container'] = f'Using existing container {container_obj.name}'
+
+                library_info = dict(
+                    library_selection=capture_batch_info['library_selection'],
+                    capture_date=capture_batch_info['capture_date'],
+                )
+
+                # Capture library propagate the capture to all libraries in a pool
+                protocol = capture_batch_info['protocol']
+                process_by_protocol = capture_batch_info['process_by_protocol']
+
+                # Retrieve process
+                process_obj = process_by_protocol[protocol.id]
+
                 sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
                     capture_library(process=process_obj,
                                     library_selection=library_info['library_selection'],
