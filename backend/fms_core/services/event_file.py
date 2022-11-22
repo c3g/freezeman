@@ -48,6 +48,8 @@ class EventSample:
     fms_platform_name: Union[str, None] = None
     fms_library_type: Union[str, None] = None
     fms_library_size: Union[float, None] = None
+    fms_index_set_id: Union[str, None] = None
+    fms_index_set_name: Union[str, None] = None
     fms_index_id: FMS_Id = None
     fms_index_name: Union[str, None] = None
     fms_index_sequence_3_prime: Union[List[str], None] = None
@@ -183,6 +185,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
         row.fms_index_id = index.pk
         row.fms_index_name = index.name
+
+        row.fms_index_set_id = index.index_set.id
+        row.fms_index_set_name = index.index_set.name
 
         row.fms_index_sequence_3_prime = index.list_3prime_sequences
         row.fms_index_sequence_5_prime = index.list_5prime_sequences
