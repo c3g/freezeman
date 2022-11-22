@@ -23,38 +23,38 @@ FMS_Id = Union[int, None]
 
 @dataclass
 class EventSample:
-    fms_sample_name: Union[str, None]
+    sample_name: Union[str, None]
 
-    fms_sample_id: FMS_Id = None
-    fms_derived_sample_id: FMS_Id = None
-    fms_biosample_id: FMS_Id = None
+    sample_fms_id: FMS_Id = None
+    derived_sample_fms_id: FMS_Id = None
+    biosample_fms_id: FMS_Id = None
 
     # Flowcell lane containing the sample
-    fms_container_coordinates: Union[str, None] = None
+    container_coordinates: Union[str, None] = None
 
-    fms_project_id: FMS_Id = None
-    fms_project_name: Union[str, None] = None
+    project_fms_id: FMS_Id = None
+    project_name: Union[str, None] = None
     hercules_project_id: Union[str, None] = None
     hercules_project_name: Union[str, None] = None
 
-    fms_pool_volume_ratio: Union[float, None] = None
+    pool_volume_ratio: Union[float, None] = None
 
     # individual fields
-    fms_expected_sex: Union[str, None] = None
+    expected_sex: Union[str, None] = None
     ncbi_taxon_id: Union[int, None] = None
-    fms_taxon_name: Union[str, None] = None
+    taxon_name: Union[str, None] = None
     
     # library fields
-    fms_platform_name: Union[str, None] = None
-    fms_library_type: Union[str, None] = None
-    fms_library_size: Union[float, None] = None
-    fms_index_set_id: Union[str, None] = None
-    fms_index_set_name: Union[str, None] = None
-    fms_index_id: FMS_Id = None
-    fms_index_name: Union[str, None] = None
-    fms_index_sequence_3_prime: Union[List[str], None] = None
-    fms_index_sequence_5_prime: Union[List[str], None] = None
-    fms_library_kit: Union[str, None] = None
+    platform_name: Union[str, None] = None
+    library_type: Union[str, None] = None
+    library_size: Union[float, None] = None
+    index_set_fms_id: Union[str, None] = None
+    index_set_name: Union[str, None] = None
+    index_fms_id: FMS_Id = None
+    index_name: Union[str, None] = None
+    index_sequence_3_prime: Union[List[str], None] = None
+    index_sequence_5_prime: Union[List[str], None] = None
+    library_kit: Union[str, None] = None
     
 
 @dataclass
@@ -64,15 +64,15 @@ class EventManifest:
 
     # Experiment run name and id
     run_name: str
-    fms_run_id: int
-    fms_run_start_date: Union[str, None]
+    run_fms_id: int
+    run_start_date: Union[str, None]
 
     # Flowcell / container for experiment
-    fms_container_id: int
-    fms_container_barcode: str
+    container_fms_id: int
+    container_barcode: str
 
     instrument_id: str
-    fms_instrument_type: str
+    instrument_type: str
 
     samples: List[EventSample]
 
@@ -101,12 +101,12 @@ def _generate_event_manifest(experiment_run: ExperimentRun) -> EventManifest:
     manifest : EventManifest = EventManifest(
         version=EVENT_FILE_VERSION,
         run_name=experiment_run.name or '',
-        fms_run_id=experiment_run.pk,
-        fms_run_start_date= start_date,
-        fms_container_id=experiment_run.container.pk,
-        fms_container_barcode=experiment_run.container.barcode,
+        run_fms_id=experiment_run.pk,
+        run_start_date= start_date,
+        container_fms_id=experiment_run.container.pk,
+        container_barcode=experiment_run.container.barcode,
         instrument_id=experiment_run.instrument.serial_id,
-        fms_instrument_type=instrument.type.type,
+        instrument_type=instrument.type.type,
         samples=[]
     )
 
@@ -140,57 +140,57 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
 
         # get the pool volume ratio of the sample
         derived_by_sample: DerivedBySample = DerivedBySample.objects.get(derived_sample=derived_sample, sample=pool)
-        event_sample.fms_pool_volume_ratio = float(derived_by_sample.volume_ratio)
+        event_sample.pool_volume_ratio = float(derived_by_sample.volume_ratio)
 
         event_samples.append(event_sample)
 
     return event_samples    
 
 def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> EventSample:
-    row = EventSample(fms_sample_name=sample.name, fms_sample_id=sample.pk)
+    row = EventSample(sample_name=sample.name, sample_fms_id=sample.pk)
 
     biosample: Union[Biosample, None] = derived_sample.biosample
     if biosample is None:
         raise Exception(f'Sample {sample.pk} has no biosample')
 
-    row.fms_derived_sample_id = derived_sample.pk
-    row.fms_biosample_id = biosample.pk
+    row.derived_sample_fms_id = derived_sample.pk
+    row.biosample_fms_id = biosample.pk
 
     project: Union[Project, None] = derived_sample.project
     if project is not None:
-        row.fms_project_id = project.id
-        row.fms_project_name = project.name
+        row.project_fms_id = project.id
+        row.project_name = project.name
         row.hercules_project_id = project.external_id
         row.hercules_project_name = project.external_name
 
-    row.fms_container_coordinates = sample.coordinates
+    row.container_coordinates = sample.coordinates
 
     # INDIVIDUAL
     if biosample.individual is not None:
         individual: Individual = biosample.individual
-        row.fms_expected_sex = individual.sex
+        row.expected_sex = individual.sex
 
         if individual.taxon is not None:
             row.ncbi_taxon_id = individual.taxon.ncbi_id
-            row.fms_taxon_name = individual.taxon.name
+            row.taxon_name = individual.taxon.name
 
     # LIBRARY
     if derived_sample.library is not None:
         library: Library = derived_sample.library
         index: Index = library.index
 
-        row.fms_platform_name = library.platform.name
-        row.fms_library_type = library.library_type.name
-        row.fms_library_size = float(library.library_size) if library.library_size is not None else None 
+        row.platform_name = library.platform.name
+        row.library_type = library.library_type.name
+        row.library_size = float(library.library_size) if library.library_size is not None else None 
 
-        row.fms_index_id = index.pk
-        row.fms_index_name = index.name
+        row.index_fms_id = index.pk
+        row.index_name = index.name
 
-        row.fms_index_set_id = index.index_set.id
-        row.fms_index_set_name = index.index_set.name
+        row.index_set_fms_id = index.index_set.id
+        row.index_set_name = index.index_set.name
 
-        row.fms_index_sequence_3_prime = index.list_3prime_sequences
-        row.fms_index_sequence_5_prime = index.list_5prime_sequences
+        row.index_sequence_3_prime = index.list_3prime_sequences
+        row.index_sequence_5_prime = index.list_5prime_sequences
 
         # Get the Library Preparation process that was run on the library
         # to get the Library Kit property
@@ -200,7 +200,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
                 property_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, property_type__name="Library Kit Used")
                 if property_value is not None:
                     # row.fms_library_kit = json.loads(property_value.value)
-                    row.fms_library_kit = property_value.value
+                    row.library_kit = property_value.value
             except PropertyValue.DoesNotExist:
                 pass
 
