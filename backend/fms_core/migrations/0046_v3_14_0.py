@@ -159,6 +159,11 @@ class Migration(migrations.Migration):
             name='needs_run_processing',
             field=models.BooleanField(default=False, help_text='Run processing is expected for this run type.'),
         ),
+         migrations.AddField(
+            model_name='experimentrun',
+            name='run_processing_launch_date',
+            field=models.DateTimeField(help_text='Date on which run processing was launched, if it has been launched.', null=True, blank=True),
+        ),
         migrations.AddField(
             model_name='instrument',
             name='serial_id',

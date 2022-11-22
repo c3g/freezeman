@@ -132,6 +132,7 @@ _experiment_run_filterset_fields: FiltersetFields = {
     "run_type": FK_FILTERS,
     "instrument": FK_FILTERS,
     "container": FK_FILTERS,
+    "run_processing_launch_date": FK_FILTERS,
 
     **_prefix_keys("container__", _container_filterset_fields),
     **_prefix_keys("instrument__type__", _instrument_type_filterset_fields),

@@ -1,3 +1,4 @@
+from xml.dom import NotFoundErr
 from django.core.exceptions import ValidationError
 from datetime import datetime
 from ..models import ExperimentRun
@@ -85,4 +86,15 @@ def create_experiment_run(experiment_run_name,
     if errors:
       experiment_run = None
 
+    return (experiment_run, errors, warnings)
+
+def launch_experiment_run(pk):
+    errors = []
+    warnings = []
+
+    # For now, just set the launch timestamp on the experiment run...
+    experiment_run = ExperimentRun.objects.get(id=pk)
+    experiment_run.run_processing_launch_date = datetime.now()
+    experiment_run.save()
+   
     return (experiment_run, errors, warnings)
