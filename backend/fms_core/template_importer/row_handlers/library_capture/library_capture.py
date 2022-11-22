@@ -15,7 +15,7 @@ class LibraryRowHandler(GenericRowHandler):
                           comment, container, volume):
 
         if not capture_batch_info:
-            self.errors['library_capture'] = 'No batch is associated with this capture.'
+            self.errors['library_capture'] = f"'Capture Batch ID' on sheet 'Library' does not match any on sheet 'Capture Batch'."
 
         # Calling the service creator for Samples in LibraryPreparation
         source_sample_obj, self.errors['container'], self.warnings['container'] = \
@@ -27,9 +27,14 @@ class LibraryRowHandler(GenericRowHandler):
             self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({source_sample_obj.volume})"
 
         if source_sample_obj:
+            # Add a warning if the library has failed qc
+            if any([source_sample_obj.quality_flag is False, source_sample_obj.quantity_flag is False]):
+                self.warnings["qc_flags"] = (f"Source library {source_sample_obj.name} has failed QC.")
+
             # Check if sample is not a library or a pool of libraries
             if not source_sample_obj.is_library:
                 self.errors['source_sample'] = f"Source sample {source_sample_obj.name} must be a library to be captured."
+
             # Make sure no Capture were previously done on the library
             error = []
             for derived_sample in source_sample_obj.derived_samples.all():
@@ -74,16 +79,17 @@ class LibraryRowHandler(GenericRowHandler):
             # Retrieve process
             process_obj = process_by_protocol[protocol.id]
 
-            sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
-                capture_library(process=process_obj,
-                                library_selection=library_info['library_selection'],
-                                sample_source=source_sample_obj,
-                                container_destination=container_obj,
-                                coordinates_destination=container_coordinates,
-                                volume_used=volume_used,
-                                volume_destination=volume,
-                                execution_date=library_info['capture_date'],
-                                comment=comment)
+            if not self.has_errors():
+                sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
+                    capture_library(process=process_obj,
+                                    library_selection=library_info['library_selection'],
+                                    sample_source=source_sample_obj,
+                                    container_destination=container_obj,
+                                    coordinates_destination=container_coordinates,
+                                    volume_used=volume_used,
+                                    volume_destination=volume,
+                                    execution_date=library_info['capture_date'],
+                                    comment=comment)
 
         else:
             self.errors['sample_source'] = 'Sample source is needed to capture a library.'

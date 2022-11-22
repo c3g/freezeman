@@ -68,7 +68,8 @@ class LibraryCaptureImporter(GenericImporter):
                 protocol=self.preloaded_data['protocol'],
             )
 
-            capture_batch_rows_data[capture_batch_dict['Capture Batch ID']] = capture_batch_info
+            if capture_batch_dict['Capture Batch ID']:
+                capture_batch_rows_data[capture_batch_dict['Capture Batch ID']] = capture_batch_info
 
         """
             LIBRARIES SHEET
