@@ -92,16 +92,31 @@ def create_experiment_run(experiment_run_name,
     return (experiment_run, errors, warnings)
 
 def launch_experiment_run(pk):
+    '''
+    Generates an event file for an experiment and drops it in a spool directory
+    watched by Tech Dev, which triggers run processing to be scheduled.
+
+    If the event file is generated without error then the run_processing_launch_date
+    timestamp is updated with the current date and time.
+    '''
     errors = []
     warnings = []
 
-    # For now, just set the launch timestamp on the experiment run...
-    experiment_run = ExperimentRun.objects.get(id=pk)
+    try:
+        experiment_run = ExperimentRun.objects.get(id=pk)
+    except ExperimentRun.DoesNotExist:
+        errors.append(f'Experiment run with id {pk} not found.')
 
-    with open("event_file.json", "w", encoding="utf-8") as file:
-        generate_event_file(experiment_run, file)
+    # TODO Get the spool directory path from a configuration file and write
+    # the file there (next story).
+    if experiment_run is not None:
+        try:
+            with open("event_file.json", "w", encoding="utf-8") as file:
+                generate_event_file(experiment_run, file)
 
-    experiment_run.run_processing_launch_date = timezone.now()
-    experiment_run.save()
-   
+            experiment_run.run_processing_launch_date = timezone.now()
+            experiment_run.save()
+        except Exception as e:
+            errors.append(str(e))
+               
     return (experiment_run, errors, warnings)
