@@ -13,14 +13,14 @@ from fms_core.services.index import get_or_create_index_set, create_index, creat
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_13_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v3_14_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
 
-        self.invalid_template_tests = ["Sample_submission_v3_13_0_bad_location.xlsx",
-                                       "Sample_submission_v3_13_0_dna_no_conc.xlsx",
-                                       "Sample_submission_v3_13_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v3_14_0_bad_location.xlsx",
+                                       "Sample_submission_v3_14_0_dna_no_conc.xlsx",
+                                       "Sample_submission_v3_14_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
@@ -91,6 +91,8 @@ class SampleSubmissionTestCase(TestCase):
         # Verify the library is created
         library_derived_sample = Sample.objects.get(name='Library_pcr_free').derived_sample_not_pool
         self.assertIsNotNone(library_derived_sample.library)
+        self.assertEqual(library_derived_sample.library.library_selection.name, "Capture")
+        self.assertEqual(library_derived_sample.library.library_selection.target, "Exome")
 
     def test_invalid_sample_submission(self):
         for f in self.invalid_template_tests:

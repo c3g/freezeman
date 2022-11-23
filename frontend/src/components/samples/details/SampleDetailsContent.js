@@ -281,6 +281,10 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
                 <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
               </Descriptions>
+              <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
+                <Descriptions.Item label="Library Selection Method">{library?.library_selection}</Descriptions.Item>
+                <Descriptions.Item label="Library Selection Target">{library?.library_selection_target}</Descriptions.Item>
+              </Descriptions>
             </>
           ) : null}
 
