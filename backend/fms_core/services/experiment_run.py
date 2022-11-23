@@ -91,7 +91,7 @@ def create_experiment_run(experiment_run_name,
 
     return (experiment_run, errors, warnings)
 
-def launch_experiment_run(pk):
+def start_experiment_run_processing(pk):
     '''
     Generates a run info file for an experiment and drops it in a spool directory
     watched by Tech Dev, which triggers run processing to be scheduled.

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
-from fms_core.services.experiment_run import launch_experiment_run
+from fms_core.services.experiment_run import start_experiment_run_processing
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -46,7 +46,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     @action(detail=True, methods=["patch"])
     def launch_run_processing(self, _request, pk=None):
-        experiment_run, errors, warnings = launch_experiment_run(pk)
+        experiment_run, errors, warnings = start_experiment_run_processing(pk)
 
         response = None
         if(errors):
