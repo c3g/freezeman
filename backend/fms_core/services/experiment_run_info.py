@@ -31,6 +31,7 @@ class RunInfoSample:
 
     # Flowcell lane containing the sample
     container_coordinates: Union[str, None] = None
+    lane: Union[int, None] = None
 
     project_obj_id: Obj_Id = None
     project_name: Union[str, None] = None
@@ -80,25 +81,36 @@ class RunInfo:
 RUN_INFO_FILE_VERSION = "1.0.0"
 
 def generate_run_info_file(experiment_run: ExperimentRun, file: TextIO):
-    manifest = _generate_run_info(experiment_run)
+    '''
+    Generate the run info for an experiment, to be submitted to tech dev for run processing.
 
-    # TODO after debugging, just serialize the manifest straight to the file
+    This function writes the data to the file it is given. The file must be text-based, open,
+    and writable.
+
+    The output is a RunInfo object in the JSON format.
+    '''
+    run_info = _generate_run_info(experiment_run)
+
     text_stream = StringIO()
+    _serialize_run_info(run_info, text_stream)
 
-    _serialize_run_info(manifest, text_stream)
     file.write(text_stream.getvalue())
-
     text_stream.close()
 
 def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
+    ''' 
+    Generates the run info for the experiment, including all of the derived
+    samples in the experiment.
 
+    Returns a RunInfo object.
+    '''
     instrument: Instrument = experiment_run.instrument
 
     start_date = None
     if experiment_run.start_date is not None:
         start_date = experiment_run.start_date.strftime("%Y-%m-%d")
 
-    manifest : RunInfo = RunInfo(
+    run_info : RunInfo = RunInfo(
         version=RUN_INFO_FILE_VERSION,
         run_name=experiment_run.name or '',
         run_obj_id=experiment_run.pk,
@@ -110,12 +122,13 @@ def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
         samples=[]
     )
 
-    manifest.samples = _generate_run_info_samples(experiment_run)
+    run_info.samples = _generate_run_info_samples(experiment_run)
 
-    return manifest
+    return run_info
 
 
 def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSample]:
+    ''' Generates the run info for every derived sample in the experiment. '''
     generated_rows: List[RunInfoSample] = []
    
     # Get the samples contained in the experiment run container (normally
@@ -132,6 +145,7 @@ def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSam
     return generated_rows
 
 def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[RunInfoSample]:
+    ''' Generates the run info for all of the derived samples in a pool. '''
     run_info_samples: List[RunInfoSample] = []
     
     derived_samples: Iterable[DerivedSample] = pool.derived_samples.all()
@@ -147,6 +161,9 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
     return run_info_samples    
 
 def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> RunInfoSample:
+    '''
+    Generates the data for one derived sample in the experiment.
+    '''
     row = RunInfoSample(sample_name=sample.name, sample_obj_id=sample.pk)
 
     biosample: Union[Biosample, None] = derived_sample.biosample
@@ -165,6 +182,14 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     row.container_coordinates = sample.coordinates
 
+    # Convert coordinates from A01 format to lane number.
+    row.lane = {
+        'A01': 1,
+        'A02': 2,
+        'A03': 3,
+        'A04': 4
+    }.get(sample.coordinates)
+    
     # INDIVIDUAL
     if biosample.individual is not None:
         individual: Individual = biosample.individual
@@ -178,7 +203,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     if derived_sample.library is not None:
         library: Library = derived_sample.library
         index: Index = library.index
-
+        
         row.platform_name = library.platform.name
         row.library_type = library.library_type.name
         row.library_size = float(library.library_size) if library.library_size is not None else None 
@@ -186,11 +211,12 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         row.index_obj_id = index.pk
         row.index_name = index.name
 
-        row.index_set_obj_id = index.index_set.id
-        row.index_set_name = index.index_set.name
-
         row.index_sequence_3_prime = index.list_3prime_sequences
         row.index_sequence_5_prime = index.list_5prime_sequences
+
+        if index.index_set is not None:
+            row.index_set_obj_id = index.index_set.pk
+            row.index_set_name = index.index_set.name
 
         # Get the Library Preparation process that was run on the library
         # to get the Library Kit property
@@ -199,7 +225,6 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
             try:
                 property_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, property_type__name="Library Kit Used")
                 if property_value is not None:
-                    # row.fms_library_kit = json.loads(property_value.value)
                     row.library_kit = property_value.value
             except PropertyValue.DoesNotExist:
                 pass
@@ -208,12 +233,13 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
 
 def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
-    ''' Given a library, find the Library Preparation process that was used to create the
-        library, if any, to extract the library preparation properties (eg. Library Kit).
+    ''' 
+    Given a library, find the Library Preparation process that was used to create the
+    library, if any, to extract the library preparation properties (eg. Library Kit).
 
-        Note that not all libraries will have a Library Preparation measurement,
-        since they can be imported directly into freezeman without passing the
-        Library Preparation step.
+    Note that not all libraries will have a Library Preparation measurement,
+    since they can be imported directly into freezeman without passing the
+    Library Preparation step.
     '''
     protocol: Protocol = Protocol.objects.get(name="Library Preparation")
 
@@ -232,6 +258,9 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
 
 
 def _serialize_run_info(run_info: RunInfo, stream: TextIO):
+    '''
+    Converts a RunInfo object to JSON and writes it to the given text stream.
+    '''
     file_dict = asdict(run_info)
     json.dump(file_dict, stream, indent=4)
 
