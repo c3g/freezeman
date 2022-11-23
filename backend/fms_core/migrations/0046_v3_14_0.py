@@ -209,6 +209,7 @@ class Migration(migrations.Migration):
                                             ('freezer rack 2x4', 'freezer rack 2x4'),
                                             ('freezer rack 3x4', 'freezer rack 3x4'),
                                             ('freezer rack 4x4', 'freezer rack 4x4'),
+                                            ('freezer rack 4x6', 'freezer rack 4x6'),
                                             ('freezer rack 5x4', 'freezer rack 5x4'),
                                             ('freezer rack 6x4', 'freezer rack 6x4'),
                                             ('freezer rack 7x4', 'freezer rack 7x4'),

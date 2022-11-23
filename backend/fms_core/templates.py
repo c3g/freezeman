@@ -31,7 +31,7 @@ __all__ = [
 MAX_HEADER_OFFSET = 20
 
 CONTAINER_CREATION_TEMPLATE = {
-  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'ContainerCreation',
