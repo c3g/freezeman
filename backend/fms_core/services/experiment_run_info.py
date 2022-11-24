@@ -50,7 +50,6 @@ class RunInfoSample:
     taxon_name: Union[str, None] = None
     
     # library fields
-    platform_name: Union[str, None] = None
     library_type: Union[str, None] = None
     library_size: Union[float, None] = None
     index_set_obj_id: Union[str, None] = None
@@ -76,6 +75,7 @@ class RunInfo:
     container_obj_id: int
     container_barcode: str
 
+    platform: str
     instrument_serial_number: str
     instrument_type: str
 
@@ -121,6 +121,7 @@ def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
         run_start_date= start_date,
         container_obj_id=experiment_run.container.pk,
         container_barcode=experiment_run.container.barcode,
+        platform=instrument.type.platform.name,
         instrument_serial_number=experiment_run.instrument.serial_id,
         instrument_type=instrument.type.type,
         samples=[]
@@ -205,7 +206,6 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         library: Library = derived_sample.library
         index: Index = library.index
         
-        row.platform_name = library.platform.name
         row.library_type = library.library_type.name
         row.library_size = int(library.library_size) if library.library_size is not None else None 
 
