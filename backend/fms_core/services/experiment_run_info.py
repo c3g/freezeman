@@ -24,6 +24,7 @@ Obj_Id = Union[int, None]
 @dataclass
 class RunInfoSample:
     # Biosample name, actually
+    pool_name: Union[str, None]
     sample_name: Union[str, None]
 
     derived_sample_obj_id: Obj_Id = None
@@ -170,7 +171,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     # For the sample name, we use the biosample alias, which is the name given to the
     # sample by the customer.
-    row = RunInfoSample(sample_name=biosample.alias)
+    row = RunInfoSample(sample_name=biosample.alias, pool_name=sample.name)
 
     row.derived_sample_obj_id = derived_sample.pk
     row.biosample_obj_id = biosample.pk
@@ -208,7 +209,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         
         row.platform_name = library.platform.name
         row.library_type = library.library_type.name
-        row.library_size = float(library.library_size) if library.library_size is not None else None 
+        row.library_size = int(library.library_size) if library.library_size is not None else None 
 
         row.index_obj_id = index.pk
         row.index_name = index.name
