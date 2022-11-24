@@ -2,8 +2,11 @@ from typing import Iterable, List, TextIO, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
+from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
+from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
-    Biosample, 
+    Biosample,
+    Container,
     DerivedSample, 
     DerivedBySample,
     ExperimentRun, 
@@ -186,12 +189,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     row.container_coordinates = sample.coordinates
 
     # Convert coordinates from A01 format to lane number.
-    row.lane = {
-        'A01': 1,
-        'A02': 2,
-        'A03': 3,
-        'A04': 4
-    }.get(sample.coordinates)
+    row.lane = _convert_flowcell_coordinate_to_lane_number(sample.coordinates, experiment_run.container)
     
     # INDIVIDUAL
     if biosample.individual is not None:
@@ -234,6 +232,15 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     return row
 
+def _convert_flowcell_coordinate_to_lane_number(coord: str, container: Container) -> int:
+    '''Converts a freezeman coordinate (eg. A01) to an integer flowcell lane number.'''
+
+    container_spec = CONTAINER_KIND_SPECS[container.kind]
+    if container_spec is None:
+        raise Exception(f'Cannot convert coord {coord} to lane number. No ContainerSpec found for container kind "{container.kind}".')
+
+    lane = convert_alpha_digit_coord_to_ordinal(coord, container_spec.coordinate_spec)
+    return lane
 
 def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     ''' 
