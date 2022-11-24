@@ -397,6 +397,8 @@ class FetchLibraryData(FetchData):
                     "library__platform__name",
                     "library__library_size",
                     "library__index__id",
+                    "library__library_selection__name",
+                    "library__library_selection__target",
                 )
             )
             derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
@@ -425,10 +427,12 @@ class FetchLibraryData(FetchData):
                     'creation_date': sample["creation_date"],
                     'quality_flag': sample["quality_flag"],
                     'quantity_flag': sample["quantity_flag"],
-                    'library_type': derived_sample["library__library_type__name"] if not is_pool else None, 
+                    'library_type': derived_sample["library__library_type__name"] if not is_pool else None,
                     'platform': derived_sample["library__platform__name"],
                     'library_size': derived_sample["library__library_size"] if not is_pool else None,
-                    'index': derived_sample["library__index__id"] if not is_pool else None
+                    'index': derived_sample["library__index__id"] if not is_pool else None,
+                    'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
+                    'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
                 }
                 serialized_data.append(data)
             return (serialized_data, count)
@@ -480,6 +484,8 @@ class FetchLibraryData(FetchData):
                     "library__platform__name",
                     "library__library_size",
                     "library__index__name",
+                    "library__library_selection__name",
+                    "library__library_selection__target",
                 )
             )
             derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
@@ -511,7 +517,9 @@ class FetchLibraryData(FetchData):
                     'library_type': derived_sample["library__library_type__name"] if not is_pool else None,
                     'platform': derived_sample["library__platform__name"],
                     'library_size': derived_sample["library__library_size"] if not is_pool else None,
-                    'index': derived_sample["library__index__name"] if not is_pool else None
+                    'index': derived_sample["library__index__name"] if not is_pool else None,
+                    'library_selection': derived_sample["library__library_selection__name"] if not is_pool else None,
+                    'library_selection_target': derived_sample["library__library_selection__target"] if not is_pool else None,
                 }
                 serialized_data.append(data)
             return serialized_data

@@ -61,6 +61,11 @@ const getTableColumns = (sampleKinds) => {
             sorter: true
         },
         {
+          title: "Selection Target",
+          dataIndex: "library_selection_target",
+          sorter: true
+        },
+        {
             title: "Library Size",
             dataIndex: "library_size",
             sorter: true

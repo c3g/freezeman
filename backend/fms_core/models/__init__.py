@@ -27,6 +27,7 @@ from .sequencebyindex3prime import SequenceByIndex3Prime
 from .sequencebyindex5prime import SequenceByIndex5Prime
 from .library import Library
 from .library_type import LibraryType
+from .library_selection import LibrarySelection
 from .taxon import Taxon
 from .sample_metadata import SampleMetadata
 from .id_generator import IdGenerator
@@ -63,6 +64,7 @@ __all__ = [
     "SequenceByIndex5Prime",
     "Library",
     "LibraryType",
+    "LibrarySelection",
     "Taxon",
     "IdGenerator",
     "Dataset",

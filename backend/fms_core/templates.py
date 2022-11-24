@@ -12,6 +12,8 @@ __all__ = [
     "EXPERIMENT_INFINIUM_TEMPLATE",
     "EXPERIMENT_ILLUMINA_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
+    "LIBRARY_CAPTURE_TEMPLATE",
+    "LIBRARY_CONVERSION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
@@ -29,7 +31,7 @@ __all__ = [
 MAX_HEADER_OFFSET = 20
 
 CONTAINER_CREATION_TEMPLATE = {
-  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'ContainerCreation',
@@ -109,6 +111,29 @@ INDEX_CREATION_TEMPLATE = {
           'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
       },],
   "prefill info": [],
+}
+
+LIBRARY_CAPTURE_TEMPLATE = {
+  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v3_14_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Capture Batch',
+          'headers': ['Capture Batch ID', 'Capture Type', 'Capture Date (YYYY-MM-DD)', 'Comment',
+                      'Capture Technician Name', 'Library Kit Used', 'Library Kit Lot',
+                      'Baits Used', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Capture Batch ID', 'Library Name', 'Source Container Barcode', 'Source Container Coordinates',
+                      'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
+                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
+                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Library Name", "name"),
+      ("Library", "Source Container Barcode", "container__barcode"),
+      ("Library", "Source Container Coordinates", "coordinates"),],
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
@@ -263,7 +288,7 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_13_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
@@ -271,7 +296,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
-                      'Index Set', 'Index', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
       },
       {
           "name": "PoolSubmission",

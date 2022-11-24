@@ -4,7 +4,7 @@ import datetime
 from decimal import Decimal
 
 from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
-from fms_core.services.library import (get_library_type, create_library, convert_library, update_library,
+from fms_core.services.library import (get_library_type, get_library_selection, create_library, convert_library, capture_library, update_library,
                                        convert_library_concentration_from_ngbyul_to_nm, convert_library_concentration_from_nm_to_ngbyul)
 from fms_core.services.platform import get_platform
 from fms_core.services.process import create_process
@@ -22,6 +22,8 @@ class LibraryServicesTestCase(TestCase):
         self.index_set_name = "TEST_INDEX_SET"
         self.index_name = "TEST_INDEX_1"
         self.library_type_name = "RNASeq"
+        self.library_selection_name = "ChIP-Seq"
+        self.library_selection_target = "H3K4me1"
         self.structure_name = "Nextera"
         self.platform_name = "ILLUMINA"
         self.convertion_platform_name = "DNBSEQ"
@@ -39,9 +41,17 @@ class LibraryServicesTestCase(TestCase):
 
     def test_get_library_type(self):
         library_type_obj, errors, warnings = get_library_type(self.library_type_name)
-        self.assertEqual(library_type_obj.name, self.library_type_name)
         self.assertFalse(errors)
         self.assertFalse(warnings)
+        self.assertEqual(library_type_obj.name, self.library_type_name)
+
+    def test_get_library_selection(self):
+        library_selection_obj, errors, warnings = get_library_selection(name=self.library_selection_name,
+                                                                        target=self.library_selection_target)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+        self.assertEqual(library_selection_obj.name, self.library_selection_name)
+        self.assertEqual(library_selection_obj.target, self.library_selection_target)
 
     def test_create_library(self):
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
@@ -61,9 +71,9 @@ class LibraryServicesTestCase(TestCase):
         # init
         CREATION_DATE = datetime.date(2022, 8, 15)
         EXECUTION_DATE = datetime.date(2022, 9, 15)
-        self.protocol_name = "Library Conversion"
-        self.protocol_obj = Protocol.objects.get(name=self.protocol_name)
-        process_by_protocol, _, _ = create_process(self.protocol_obj)
+        protocol_name = "Library Conversion"
+        protocol_obj = Protocol.objects.get(name=protocol_name)
+        process_by_protocol, _, _ = create_process(protocol_obj)
         platform_conversion_obj, _, _ = get_platform(self.convertion_platform_name)
         library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
                                                        index=self.index,
@@ -86,7 +96,7 @@ class LibraryServicesTestCase(TestCase):
                                                  library=library_obj,
                                                  concentration=10)
         # test
-        library_converted, errors, warnings = convert_library(process=process_by_protocol[self.protocol_obj.id],
+        library_converted, errors, warnings = convert_library(process=process_by_protocol[protocol_obj.id],
                                                               platform=platform_conversion_obj,
                                                               sample_source=sample_source,
                                                               container_destination=dst_container,
@@ -99,11 +109,61 @@ class LibraryServicesTestCase(TestCase):
         self.assertEqual(sample_source.volume, 1001-100)
         self.assertFalse(errors)
         self.assertFalse(warnings)
-        pm = ProcessMeasurement.objects.get(process=process_by_protocol[self.protocol_obj.id],
+        pm = ProcessMeasurement.objects.get(process=process_by_protocol[protocol_obj.id],
                                             source_sample=sample_source,
                                             execution_date=EXECUTION_DATE)
         self.assertIsNotNone(pm)
         sl = SampleLineage.objects.get(process_measurement=pm, parent=sample_source, child=library_converted)
+        self.assertIsNotNone(sl)
+
+    def test_capture_library(self):
+        # init
+        CREATION_DATE = datetime.date(2022, 8, 15)
+        EXECUTION_DATE = datetime.date(2022, 9, 15)
+        protocol_name = "Library Capture"
+        protocol_obj = Protocol.objects.get(name=protocol_name)
+        library_selection_obj, _, _ = get_library_selection(name="Capture", target="Exome")
+        process_by_protocol, _, _ = create_process(protocol_obj)
+
+        library_obj, errors, warnings = create_library(library_type=self.library_type_obj,
+                                                       index=self.index,
+                                                       platform=self.platform_obj,
+                                                       strandedness=DOUBLE_STRANDED,
+                                                       library_size=150)
+        src_container = Container.objects.create(barcode="TESTBARCODE1",
+                                                 name="TestName1",
+                                                 kind="tube")
+        dst_container = Container.objects.create(barcode="TESTBARCODE2",
+                                                 name="TestName2",
+                                                 kind="tube")
+        kind_dna = SampleKind.objects.get(name="DNA")
+        sample_source, _, _ = create_full_sample(name="LIBRARY_TO_CAPTURE",
+                                                 volume=1001,
+                                                 collection_site="TestSite",
+                                                 creation_date=CREATION_DATE,
+                                                 container=src_container,
+                                                 sample_kind=kind_dna,
+                                                 library=library_obj,
+                                                 concentration=10)
+        # test
+        library_captured, errors, warnings = capture_library(process=process_by_protocol[protocol_obj.id],
+                                                             library_selection=library_selection_obj,
+                                                             sample_source=sample_source,
+                                                             container_destination=dst_container,
+                                                             coordinates_destination="",
+                                                             volume_used=100,
+                                                             volume_destination=80,
+                                                             execution_date=EXECUTION_DATE,
+                                                             comment="I got you captured...")
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+        self.assertEqual(library_captured.derived_samples.first().library.library_selection, library_selection_obj)
+        self.assertEqual(sample_source.volume, 1001-100)
+        pm = ProcessMeasurement.objects.get(process=process_by_protocol[protocol_obj.id],
+                                            source_sample=sample_source,
+                                            execution_date=EXECUTION_DATE)
+        self.assertIsNotNone(pm)
+        sl = SampleLineage.objects.get(process_measurement=pm, parent=sample_source, child=library_captured)
         self.assertIsNotNone(sl)
 
     def test_update_library(self):
