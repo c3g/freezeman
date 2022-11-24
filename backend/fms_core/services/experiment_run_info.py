@@ -23,9 +23,9 @@ Obj_Id = Union[int, None]
 
 @dataclass
 class RunInfoSample:
+    # Biosample name, actually
     sample_name: Union[str, None]
 
-    sample_obj_id: Obj_Id = None
     derived_sample_obj_id: Obj_Id = None
     biosample_obj_id: Obj_Id = None
 
@@ -164,11 +164,13 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     '''
     Generates the data for one derived sample in the experiment.
     '''
-    row = RunInfoSample(sample_name=sample.name, sample_obj_id=sample.pk)
-
     biosample: Union[Biosample, None] = derived_sample.biosample
     if biosample is None:
         raise Exception(f'Sample {sample.pk} has no biosample')
+
+    # For the sample name, we use the biosample alias, which is the name given to the
+    # sample by the customer.
+    row = RunInfoSample(sample_name=biosample.alias)
 
     row.derived_sample_obj_id = derived_sample.pk
     row.biosample_obj_id = biosample.pk
