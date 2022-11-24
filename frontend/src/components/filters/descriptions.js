@@ -145,7 +145,13 @@ export const SAMPLE_FILTERS = {
       { label: "Yes", value: "true" },
       { label: "No",  value: "false" },
     ]
-  }
+  },
+  metadata: {
+    type: FILTER_TYPE.METADATA,
+    key: "metadata_name",
+    label: "Metadata Name",
+    detached:true,
+  },
 }
 
 export const CONTAINER_FILTERS = {
