@@ -1,4 +1,4 @@
-from typing import Iterable, List, TextIO, Tuple, Union
+from typing import Dict, Iterable, List, TextIO, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
@@ -17,7 +17,6 @@ from fms_core.models import (
     Process,
     ProcessMeasurement,
     Project,
-    PropertyType,
     PropertyValue,
     Protocol,
     Sample, 
@@ -64,8 +63,7 @@ class RunInfoSample:
 
     # capture fields
     capture_kit: Union[str, None] = None
-    capture_bait: Union[str, None] = None
-    capture_enzyme: Union[str, None] = None
+    capture_baits: Union[str, None] = None
     
 
 @dataclass
@@ -240,10 +238,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         # Capture
         if library.library_selection is not None:
             if library.library_selection.name == 'Capture':
-                (kit, bait, enzyme) = get_capture_details(derived_sample)
-                row.capture_kit = kit
-                row.capture_bait = bait
-                row.capture_enzyme = enzyme
+                capture_details = _get_capture_details(derived_sample)
+                row.capture_kit = capture_details['capture_kit']
+                row.capture_baits = capture_details['capture_baits']
 
     return row
 
@@ -302,10 +299,22 @@ def _find_library_capture_process(derived_sample: DerivedSample) -> Union[Proces
     return library_capture_process
     
 
-def get_capture_details(derived_sample: DerivedSample) -> Tuple[Union[str, None], Union[str, None], Union[str, None]]:
+def _get_capture_details(derived_sample: DerivedSample) -> Dict[str, Union[str, None]]:
     capture_process = _find_library_capture_process(derived_sample)
-    # if capture_measurement is not None:
-    #     capture_kit_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, )
+    
+    kit : Union[str, None] = None
+    baits : Union[str, None] = None
+    if capture_process is not None:
+        try: 
+            kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
+        except PropertyValue.DoesNotExist:
+            pass
+        try:
+            baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
+        except PropertyValue.DoesNotExist:
+            pass
+       
+    return dict(capture_kit=kit, capture_baits=baits)
 
     return (None, None, None)
 
