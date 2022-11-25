@@ -1,7 +1,5 @@
-from datetime import tzinfo
-from typing import Dict, Iterable, List, TextIO, Tuple, Union
+from typing import Dict, Iterable, List, TextIO, Union
 from dataclasses import asdict, dataclass
-from io import StringIO
 import os
 import json
 from django.conf import settings
@@ -18,9 +16,9 @@ from fms_core.models import (
     Individual,
     Instrument, 
     Library,
+    Process,
     ProcessMeasurement,
     Project,
-    PropertyType,
     PropertyValue,
     Protocol,
     Sample, 
@@ -245,10 +243,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         # Capture
         if library.library_selection is not None:
             if library.library_selection.name == 'Capture':
-                capture_details = get_capture_details(derived_sample)
-                if capture_details is not None:
-                    row.capture_kit = capture_details['capture_kit']
-                    row.capture_baits = capture_details['capture_baits']
+                capture_details = _get_capture_details(derived_sample)
+                row.capture_kit = capture_details['capture_kit']
+                row.capture_baits = capture_details['capture_baits']
 
     return row
 
@@ -287,7 +284,7 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     return library_prep
 
 
-def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[ProcessMeasurement, None]:
+def _find_library_capture_process(derived_sample: DerivedSample) -> Union[Process, None]:
     '''If this is a captured library, find the process measurement from the capture step.'''
     if derived_sample.library is None:
         return None
@@ -298,27 +295,33 @@ def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[Pr
     if derived_sample.library.library_selection.name != 'Capture':
         return None
 
-    # TODO Find the capture that created this library
-    return None
+    library_capture_process : Union[Process, None] = None
+    lineages = SampleLineage.objects.filter(
+        process_measurement__process__protocol__name="Library Capture",
+        child__derived_samples__library__id=derived_sample.library.pk)
+    if lineages:
+        library_capture_process = lineages.first().process_measurement.process
+    return library_capture_process
     
 
-def get_capture_details(derived_sample: DerivedSample) -> Dict[str, Union[str, None]]:
-    capture_measurement = _find_library_capture_measurement(derived_sample)
+def _get_capture_details(derived_sample: DerivedSample) -> Dict[str, Union[str, None]]:
+    capture_process = _find_library_capture_process(derived_sample)
+    
     kit : Union[str, None] = None
     baits : Union[str, None] = None
-    if capture_measurement is not None:
+    if capture_process is not None:
         try: 
-            kit = PropertyValue.objects.get(object_id=capture_measurement.process.pk, property_type__name='Library Kit Used').value
+            kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
         except PropertyValue.DoesNotExist:
-            # warning?
             pass
         try:
-            baits = PropertyValue.objects.get(object_id=capture_measurement.process.pk, property_type__name='Baits Used').value
+            baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
         except PropertyValue.DoesNotExist:
-            # warning?
             pass
        
-    return dict(capture_kit=kit, capture_bait=baits)
+    return dict(capture_kit=kit, capture_baits=baits)
+
+    return (None, None, None)
 
 
 def _serialize_run_info(run_info: RunInfo, stream: TextIO):

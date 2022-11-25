@@ -21,3 +21,6 @@ htmlcov/
 ~$*
 .DS_Store
 venv
+
+# default run info output folder
+lims-run-info/
