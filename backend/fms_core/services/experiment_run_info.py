@@ -2,7 +2,6 @@ from typing import Iterable, List, TextIO, Tuple, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
-from backend.fms_core.models import process_measurement
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
@@ -15,6 +14,7 @@ from fms_core.models import (
     Individual,
     Instrument, 
     Library,
+    Process,
     ProcessMeasurement,
     Project,
     PropertyType,
@@ -282,7 +282,7 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     return library_prep
 
 
-def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[ProcessMeasurement, None]:
+def _find_library_capture_process(derived_sample: DerivedSample) -> Union[Process, None]:
     '''If this is a captured library, find the process measurement from the capture step.'''
     if derived_sample.library is None:
         return None
@@ -293,12 +293,17 @@ def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[Pr
     if derived_sample.library.library_selection.name != 'Capture':
         return None
 
-    # TODO Find the capture that created this library
-    return None
+    library_capture_process = None
+    lineages = SampleLineage.objects.filter(
+        process_measurement__process__protocol__name="Library Capture",
+        child__derived_samples__library__id=derived_sample.library.pk)
+    if lineages:
+        library_capture_process = lineages.first().process_measurement.process
+    return library_capture_process
     
 
 def get_capture_details(derived_sample: DerivedSample) -> Tuple[Union[str, None], Union[str, None], Union[str, None]]:
-    capture_measurement = _find_library_capture_measurement(derived_sample)
+    capture_process = _find_library_capture_process(derived_sample)
     # if capture_measurement is not None:
     #     capture_kit_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, )
 
