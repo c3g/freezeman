@@ -39,7 +39,6 @@ const FilterMetadata = ({
 
  //Metadata Name
  const onNameChange = (name) => {
-    console.log(name)
     setMetadataName(name);
   };
 

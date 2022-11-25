@@ -12,6 +12,7 @@ from ._constants import FK_FILTERS
 class SampleMetadataViewSet(viewsets.ModelViewSet):
     queryset = SampleMetadata.objects.all()
     serializer_class = SampleMetadataSerializer
+    pagination_class = None
     permission_classes = [IsAuthenticated]
 
     filterset_fields = {
