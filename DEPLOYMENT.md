@@ -152,3 +152,5 @@ On this page we list the various steps needed for deployments. The first section
 * Version 3.3 :
   * Update uwsgi.ini file with the latest options (Process tracking, process number, ...).
   * Add a .env file in the /frontend directory using the exemple.env as a reference. Set FMS_ENV ("DEV", "QC", "PROD") in the file.
+* Version 3.14:
+  * Add FMS_RUN_INFO_PATH to env variables through uwsgi.ini

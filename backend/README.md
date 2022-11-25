@@ -44,6 +44,10 @@ Python package dependencies are listed in `requirements.txt`.
      export PG_HOST=127.0.0.1
      export PG_PORT=5432
      ```
+
+    Set a `FMS_RUN_INFO_PATH` environment variable to point to a directory where 
+    Freezeman will output run info files to trigger run processing (defaults to
+    `lims-run-info` in the project folder).
      
   3. Install the [pg_fzy](#pg_fzy) extension for the database:
   
@@ -111,6 +115,9 @@ coverage run ./manage.py test -v 2
   * Make sure to set `FMS_DEBUG=False` and `FMS_HOST=your.domain.org` in the
     production environment **for security reasons** and for the site to 
     function correctly
+
+  * Set the `FMS_RUN_INFO_PATH` variable to point to a directory where Freezeman
+    will output run info files to trigger run processing.
     
   * Configure the Postgres connection using any of the following environment
     variables, where the default value is not sufficient:

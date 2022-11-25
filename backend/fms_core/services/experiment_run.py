@@ -112,8 +112,7 @@ def start_experiment_run_processing(pk):
     # the file there (next story).
     if experiment_run is not None:
         try:
-            with open("event_file.json", "w", encoding="utf-8") as file:
-                generate_run_info_file(experiment_run, file)
+            generate_run_info_file(experiment_run)
 
             experiment_run.run_processing_launch_date = timezone.now()
             experiment_run.save()

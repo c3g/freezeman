@@ -1,8 +1,11 @@
-from typing import Iterable, List, TextIO, Tuple, Union
+from datetime import tzinfo
+from typing import Dict, Iterable, List, TextIO, Tuple, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
+import os
 import json
-from backend.fms_core.models import process_measurement
+from django.conf import settings
+from fms_core.utils import make_timestamped_filename
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
@@ -23,6 +26,7 @@ from fms_core.models import (
     Sample, 
     SampleLineage,
 )
+
 
 Obj_Id = Union[int, None]
 
@@ -64,8 +68,7 @@ class RunInfoSample:
 
     # capture fields
     capture_kit: Union[str, None] = None
-    capture_bait: Union[str, None] = None
-    capture_enzyme: Union[str, None] = None
+    capture_baits: Union[str, None] = None
     
 
 @dataclass
@@ -91,7 +94,7 @@ class RunInfo:
 
 RUN_INFO_FILE_VERSION = "1.0.0"
 
-def generate_run_info_file(experiment_run: ExperimentRun, file: TextIO):
+def generate_run_info_file(experiment_run: ExperimentRun):
     '''
     Generate the run info for an experiment, to be submitted to tech dev for run processing.
 
@@ -102,11 +105,13 @@ def generate_run_info_file(experiment_run: ExperimentRun, file: TextIO):
     '''
     run_info = _generate_run_info(experiment_run)
 
-    text_stream = StringIO()
-    _serialize_run_info(run_info, text_stream)
+    file_name_base = experiment_run.name if experiment_run.name else 'experiment_run'
+    file_name = make_timestamped_filename(file_name_base, 'json')
 
-    file.write(text_stream.getvalue())
-    text_stream.close()
+    path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
+
+    with open(path, "w", encoding="utf-8") as file:
+        _serialize_run_info(run_info, file)
 
 def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
     ''' 
@@ -240,10 +245,10 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         # Capture
         if library.library_selection is not None:
             if library.library_selection.name == 'Capture':
-                (kit, bait, enzyme) = get_capture_details(derived_sample)
-                row.capture_kit = kit
-                row.capture_bait = bait
-                row.capture_enzyme = enzyme
+                capture_details = get_capture_details(derived_sample)
+                if capture_details is not None:
+                    row.capture_kit = capture_details['capture_kit']
+                    row.capture_baits = capture_details['capture_baits']
 
     return row
 
@@ -297,12 +302,23 @@ def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[Pr
     return None
     
 
-def get_capture_details(derived_sample: DerivedSample) -> Tuple[Union[str, None], Union[str, None], Union[str, None]]:
+def get_capture_details(derived_sample: DerivedSample) -> Dict[str, Union[str, None]]:
     capture_measurement = _find_library_capture_measurement(derived_sample)
-    # if capture_measurement is not None:
-    #     capture_kit_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, )
-
-    return (None, None, None)
+    kit : Union[str, None] = None
+    baits : Union[str, None] = None
+    if capture_measurement is not None:
+        try: 
+            kit = PropertyValue.objects.get(object_id=capture_measurement.process.pk, property_type__name='Library Kit Used').value
+        except PropertyValue.DoesNotExist:
+            # warning?
+            pass
+        try:
+            baits = PropertyValue.objects.get(object_id=capture_measurement.process.pk, property_type__name='Baits Used').value
+        except PropertyValue.DoesNotExist:
+            # warning?
+            pass
+       
+    return dict(capture_kit=kit, capture_bait=baits)
 
 
 def _serialize_run_info(run_info: RunInfo, stream: TextIO):
