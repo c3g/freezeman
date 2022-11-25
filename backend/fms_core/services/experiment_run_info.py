@@ -1,7 +1,8 @@
-from typing import Iterable, List, TextIO, Union
+from typing import Iterable, List, TextIO, Tuple, Union
 from dataclasses import asdict, dataclass
 from io import StringIO
 import json
+from backend.fms_core.models import process_measurement
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
@@ -16,6 +17,7 @@ from fms_core.models import (
     Library,
     ProcessMeasurement,
     Project,
+    PropertyType,
     PropertyValue,
     Protocol,
     Sample, 
@@ -59,6 +61,11 @@ class RunInfoSample:
     index_sequence_3_prime: Union[List[str], None] = None
     index_sequence_5_prime: Union[List[str], None] = None
     library_kit: Union[str, None] = None
+
+    # capture fields
+    capture_kit: Union[str, None] = None
+    capture_bait: Union[str, None] = None
+    capture_enzyme: Union[str, None] = None
     
 
 @dataclass
@@ -230,6 +237,14 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
             except PropertyValue.DoesNotExist:
                 pass
 
+        # Capture
+        if library.library_selection is not None:
+            if library.library_selection.name == 'Capture':
+                (kit, bait, enzyme) = get_capture_details(derived_sample)
+                row.capture_kit = kit
+                row.capture_bait = bait
+                row.capture_enzyme = enzyme
+
     return row
 
 def _convert_flowcell_coordinate_to_lane_number(coord: str, container: Container) -> int:
@@ -265,6 +280,29 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
         pass
 
     return library_prep
+
+
+def _find_library_capture_measurement(derived_sample: DerivedSample) -> Union[ProcessMeasurement, None]:
+    '''If this is a captured library, find the process measurement from the capture step.'''
+    if derived_sample.library is None:
+        return None
+
+    if derived_sample.library.library_selection is None:
+        return None
+
+    if derived_sample.library.library_selection.name != 'Capture':
+        return None
+
+    # TODO Find the capture that created this library
+    return None
+    
+
+def get_capture_details(derived_sample: DerivedSample) -> Tuple[Union[str, None], Union[str, None], Union[str, None]]:
+    capture_measurement = _find_library_capture_measurement(derived_sample)
+    # if capture_measurement is not None:
+    #     capture_kit_value = PropertyValue.objects.get(object_id=lib_prep_measurement.process.pk, )
+
+    return (None, None, None)
 
 
 def _serialize_run_info(run_info: RunInfo, stream: TextIO):
