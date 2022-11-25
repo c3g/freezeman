@@ -293,7 +293,7 @@ def _find_library_capture_process(derived_sample: DerivedSample) -> Union[Proces
     if derived_sample.library.library_selection.name != 'Capture':
         return None
 
-    library_capture_process = None
+    library_capture_process : Union[Process, None] = None
     lineages = SampleLineage.objects.filter(
         process_measurement__process__protocol__name="Library Capture",
         child__derived_samples__library__id=derived_sample.library.pk)
