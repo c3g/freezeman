@@ -64,6 +64,9 @@ class RunInfoSample:
     # capture fields
     capture_kit: Union[str, None] = None
     capture_baits: Union[str, None] = None
+
+    #ChIP-Seq
+    chip_seq_mark: Union[str, None] = None
     
 
 @dataclass
@@ -241,6 +244,8 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
                 capture_details = _get_capture_details(derived_sample)
                 row.capture_kit = capture_details['capture_kit']
                 row.capture_baits = capture_details['capture_baits']
+            elif library.library_selection.name == "ChIP-Seq":
+                row.chip_seq_mark = library.library_selection.target
 
     return row
 
