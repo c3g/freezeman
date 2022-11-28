@@ -268,13 +268,32 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     since they can be imported directly into freezeman without passing the
     Library Preparation step.
     '''
-    protocol: Protocol = Protocol.objects.get(name="Library Preparation")
-
+    
     library_prep: Union[ProcessMeasurement, None] = None
     try:
+        library_to_find : Library = library
+
+        if library.library_selection is not None:
+            # If a library was captured then that generated a new library instance.
+            # We have to find the previous instance, on which the Library Prep was run.
+            try:
+                capture_protocol = Protocol.objects.get(name="Library Capture")
+                capture_lineage: SampleLineage = SampleLineage.objects.get(
+                    process_measurement__process__protocol_id=capture_protocol.pk,
+                    child__derived_samples__library__id=library.pk
+                )
+                #library_to_find = Library.objects.get(derived_sample__biosample_id=derived_sample.biosample.id)
+                # Now find the derived sample in the parent that contains the same biosample id as our library.
+                library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
+                
+            except:
+                pass
+
+        # Find the library preparation process measurement
+        protocol: Protocol = Protocol.objects.get(name="Library Preparation")
         lineage: SampleLineage = SampleLineage.objects.get(
             process_measurement__process__protocol_id=protocol.pk,
-            child__derived_samples__library__id=library.pk)
+            child__derived_samples__library__id=library_to_find.pk)
         library_prep = lineage.process_measurement
     except SampleLineage.DoesNotExist:
         pass
