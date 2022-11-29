@@ -46,7 +46,9 @@ const FilterMetadata = ({
 
  // Property Value, which applies the filter
   const onApplyFilter = (values) => {
-    onChange(item, values.fields)
+    if (values.fields){
+      onChange(item, values.fields)
+    }
   }
 
   // Reset form when filters are cleared
