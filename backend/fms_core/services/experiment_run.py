@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from datetime import datetime
 
-from fms_core.services.experiment_run_info import generate_run_info_file
+from fms_core.services.experiment_run_info import generate_run_info_file, generate_run_info
 from ..models import ExperimentRun
 
 from .process import create_process
@@ -98,6 +98,12 @@ def start_experiment_run_processing(pk):
 
     If the run info file is generated without error then the run_processing_launch_date
     timestamp is updated with the current date and time.
+
+    Args:
+        The ID of the experiment.
+
+    Returns:
+        The experiment run and a list of errors and warnings.
     '''
     errors = []
     warnings = []
@@ -108,8 +114,6 @@ def start_experiment_run_processing(pk):
     except ExperimentRun.DoesNotExist:
         errors.append(f'Experiment run with id {pk} not found.')
 
-    # TODO Get the spool directory path from a configuration file and write
-    # the file there (next story).
     if experiment_run is not None:
         try:
             generate_run_info_file(experiment_run)
@@ -120,3 +124,35 @@ def start_experiment_run_processing(pk):
             errors.append(str(e))
                
     return (experiment_run, errors, warnings)
+
+def get_run_info_for_experiment(pk):
+    '''
+    Returns a RunInfo object created for the given experiment.
+
+    This function does not modify the experiment's 'launch' status, it simply
+    generates the run info (to be downloaded by the client, for example).
+
+    Args:
+        The ID of the experiment.
+    
+    Returns:
+        RunInfo object, if successful, and a list of errors and warnings.
+    '''
+    run_info = None
+    errors = []
+    warnings = []
+
+    experiment_run = None
+    try:
+        experiment_run = ExperimentRun.objects.get(id=pk)
+    except ExperimentRun.DoesNotExist:
+        errors.append(f'Experiment run with id {pk} not found.')
+
+    if experiment_run is not None:
+        try:
+            run_info = generate_run_info(experiment_run)
+        except Exception as e:
+            errors.append(str(e))
+    
+    return (run_info, errors, [])
+

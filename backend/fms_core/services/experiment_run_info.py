@@ -104,7 +104,7 @@ def generate_run_info_file(experiment_run: ExperimentRun):
 
     The output is a RunInfo object in the JSON format.
     '''
-    run_info = _generate_run_info(experiment_run)
+    run_info = generate_run_info(experiment_run)
 
     file_name_base = experiment_run.name if experiment_run.name else 'experiment_run'
     file_name = make_timestamped_filename(file_name_base, 'json')
@@ -114,12 +114,12 @@ def generate_run_info_file(experiment_run: ExperimentRun):
     with open(path, "w", encoding="utf-8") as file:
         _serialize_run_info(run_info, file)
 
-def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
+def generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
     ''' 
     Generates the run info for the experiment, including all of the derived
     samples in the experiment.
 
-    Returns a RunInfo object.
+    Returns a RunInfo object as a dict.
     '''
     instrument: Instrument = experiment_run.instrument
 
@@ -142,7 +142,7 @@ def _generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
 
     run_info.samples = _generate_run_info_samples(experiment_run)
 
-    return run_info
+    return asdict(run_info)
 
 
 def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSample]:
