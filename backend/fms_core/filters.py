@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, SampleMetadata
 
 import django_filters
 
@@ -52,6 +52,7 @@ class SampleFilter(GenericFilter):
     derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     is_pooled = django_filters.CharFilter(method="is_pooled_filter")
+    metadata = django_filters.CharFilter(method="metadata_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
@@ -74,6 +75,16 @@ class SampleFilter(GenericFilter):
     def is_pooled_filter(self, queryset, name, values):
         bool_value = (values == 'true')
         return queryset.filter(is_pooled=bool_value)
+
+    def metadata_filter(self, queryset, name, values):
+        condition = Q()
+        # Metadata is of form: 'name1__value1, name2__value2, name2__Value3'
+        for metadatum in values.split(','):
+            if metadatum:
+                name_value = metadatum.split('__')
+                condition |= Q(name=name_value[0], value=name_value[1])
+        biosample_ids = SampleMetadata.objects.filter(condition).values('biosample_id')
+        return queryset.filter(derived_samples__biosample__in=biosample_ids)
 
     class Meta:
         model = Sample
