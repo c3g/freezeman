@@ -179,7 +179,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     '''
     biosample: Union[Biosample, None] = derived_sample.biosample
     if biosample is None:
-        raise Exception(f'Sample {sample.pk} has no biosample')
+        raise Exception(f'Sample {sample.pk} has no biosample.')
 
     # For the sample name, we use the biosample alias, which is the name given to the
     # sample by the customer.
@@ -189,11 +189,13 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     row.biosample_obj_id = biosample.pk
 
     project: Union[Project, None] = derived_sample.project
-    if project is not None:
-        row.project_obj_id = project.id
-        row.project_name = project.name
-        row.hercules_project_id = project.external_id
-        row.hercules_project_name = project.external_name
+    if project is None:
+        raise Exception(f'Sample {sample.pk} has no project.')
+    
+    row.project_obj_id = project.id
+    row.project_name = project.name
+    row.hercules_project_id = project.external_id
+    row.hercules_project_name = project.external_name
 
     row.container_coordinates = sample.coordinates
 
@@ -241,7 +243,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         # Capture
         if library.library_selection is not None:
             if library.library_selection.name == 'Capture':
-                capture_details = _get_capture_details(derived_sample)
+                capture_details = _get_capture_details(library)
                 row.capture_kit = capture_details['capture_kit']
                 row.capture_baits = capture_details['capture_baits']
             elif library.library_selection.name == "ChIP-Seq":
@@ -270,77 +272,71 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     '''
     
     library_prep: Union[ProcessMeasurement, None] = None
-    try:
-        library_to_find : Library = library
+    library_to_find : Library = library
 
-        if library.library_selection is not None:
-            # If a library was captured then that generated a new library instance.
-            # We have to find the previous instance, on which the Library Prep was run.
-            try:
-                capture_protocol = Protocol.objects.get(name="Library Capture")
-                capture_lineage: SampleLineage = SampleLineage.objects.get(
-                    process_measurement__process__protocol_id=capture_protocol.pk,
-                    child__derived_samples__library__id=library.pk
-                )
-                #library_to_find = Library.objects.get(derived_sample__biosample_id=derived_sample.biosample.id)
-                # Now find the derived sample in the parent that contains the same biosample id as our library.
-                library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
-                
-            except:
-                pass
+    capture_protocol = Protocol.objects.get(name="Library Capture")
+    library_prep_protocol: Protocol = Protocol.objects.get(name="Library Preparation")
 
-        # Find the library preparation process measurement
-        protocol: Protocol = Protocol.objects.get(name="Library Preparation")
+    if library.library_selection is not None:
+        # If a library was captured then that generated a new library instance.
+        # We have to find the previous instance, on which the Library Prep was run.
+        try:
+            capture_lineage: SampleLineage = SampleLineage.objects.get(
+                process_measurement__process__protocol_id=capture_protocol.pk,
+                child__derived_samples__library__id=library.pk
+            )
+        except SampleLineage.DoesNotExist:
+            raise Exception(f'Library Capture process not found in library lineage. Library ID: {library.pk}')
+
+        # Now find the derived sample in the parent that contains the same biosample id as our library.
+        try:
+            library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
+        except Library.DoesNotExist:
+            raise Exception(f'Cannot find library sample prior to capture. Library ID: {library.pk}')
+            
+    # Find the library preparation process measurement
+    try: 
         lineage: SampleLineage = SampleLineage.objects.get(
-            process_measurement__process__protocol_id=protocol.pk,
+            process_measurement__process__protocol_id=library_prep_protocol.pk,
             child__derived_samples__library__id=library_to_find.pk)
         library_prep = lineage.process_measurement
     except SampleLineage.DoesNotExist:
-        pass
-    except SampleLineage.MultipleObjectsReturned:
+        # A Library Preparation step does not necessarily exist. Samples submitted as libraries
+        # will not have gone through the prep step in freezeman.
         pass
 
     return library_prep
 
 
-def _find_library_capture_process(derived_sample: DerivedSample) -> Union[Process, None]:
-    '''If this is a captured library, find the process measurement from the capture step.'''
-    if derived_sample.library is None:
-        return None
-
-    if derived_sample.library.library_selection is None:
-        return None
-
-    if derived_sample.library.library_selection.name != 'Capture':
-        return None
-
+def _find_library_capture_process(captured_library: Library) -> Union[Process, None]:
+    '''Given a captured library, find the Library Capture process that produced the library.'''
     library_capture_process : Union[Process, None] = None
     lineages = SampleLineage.objects.filter(
         process_measurement__process__protocol__name="Library Capture",
-        child__derived_samples__library__id=derived_sample.library.pk)
+        child__derived_samples__library__id=captured_library.pk)
     if lineages:
         library_capture_process = lineages.first().process_measurement.process
     return library_capture_process
     
 
-def _get_capture_details(derived_sample: DerivedSample) -> Dict[str, Union[str, None]]:
-    capture_process = _find_library_capture_process(derived_sample)
-    
+def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
     kit : Union[str, None] = None
     baits : Union[str, None] = None
-    if capture_process is not None:
-        try: 
-            kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
-        except PropertyValue.DoesNotExist:
-            pass
-        try:
-            baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
-        except PropertyValue.DoesNotExist:
-            pass
+
+    capture_process = _find_library_capture_process(library)
+    if capture_process is None:
+        raise Exception(f'Cannot find Library Capture process for library. Library ID: {library.pk}')
+
+    try: 
+        kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
+    except PropertyValue.DoesNotExist:
+        pass
+    try:
+        baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
+    except PropertyValue.DoesNotExist:
+        pass
        
     return dict(capture_kit=kit, capture_baits=baits)
-
-    return (None, None, None)
 
 
 def _serialize_run_info(run_info: RunInfo, stream: TextIO):
