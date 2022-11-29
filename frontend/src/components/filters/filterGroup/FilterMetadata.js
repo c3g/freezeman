@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { connect } from "react-redux";
 import {Radio, Select, Input, Form, Button, Space} from "antd";
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
@@ -29,6 +29,7 @@ const FilterMetadata = ({
  onChange,
 }) => {
  const [metadataName, setMetadataName] = useState([]);
+ const [form] = Form.useForm();
 
  const [metadataOptions, setMetadataOptions] = useState([]);
  const onFocusMetadata = ev => { onSearchMetadata(ev.target.value) }
@@ -38,34 +39,40 @@ const FilterMetadata = ({
    })
  }
 
- //Metadata Name
+ // Metadata Name
  const onNameChange = (name) => {
     setMetadataName(name);
   };
 
- //Property Value, which applies the filter
+ // Property Value, which applies the filter
   const onApplyFilter = (values) => {
     onChange(item, values.fields)
   }
 
+  // Reset form when filters are cleared
+  useEffect(() => {
+    if (value === undefined){
+      form.resetFields()
+    }
+  }, [value])
+
  return (
    <div style={style.metadata}>
-    <Form name="dynamic_form_nest_item" autoComplete="off" onFinish={onApplyFilter}>
+    <Form form={form} onFinish={onApplyFilter}>
       <div style={{display: 'grid', marginTop: '5px', minWidth:'200px'}}>
         <FilterLabel> Metadata Filter </FilterLabel>
         <Form.List name="fields">
          {(fields, { add, remove }) => (
            <>
-             {fields.map(({ key, name, ...restField }) => (
+             {fields.map(({ key, name }) => (
                <Space key={key} style={{ display: 'flex', marginBottom: '-5px' }} align="baseline">
                  <Form.Item
-                   {...restField}
                    name={[name, 'name']}
                    rules={[{ required: true, message: 'Missing name' }]}
                  >
                    <Select
                      size='small'
-                     style={{ width: 150 }}
+                     style={{ width: 200 }}
                      placeholder="Name"
                      showSearch
                      allowClear
@@ -78,7 +85,6 @@ const FilterMetadata = ({
                    />
                  </Form.Item>
                  <Form.Item
-                   {...restField}
                    name={[name, 'value']}
                    rules={[{ required: true, message: 'Missing value' }]}
                  >
