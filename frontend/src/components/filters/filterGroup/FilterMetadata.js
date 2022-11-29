@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import { connect } from "react-redux";
-import {Radio, Select, Input} from "antd";
+import {Radio, Select, Input, Form, Button, Space} from "antd";
+import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"
@@ -43,40 +44,64 @@ const FilterMetadata = ({
   };
 
  //Property Value, which applies the filter
- const handleValueChange = ev => {
-   value = typeof ev === 'string' ? ev : ev.target.value
-   onChange(item, value, options = { metadataName: metadataName})
- }
+  const onApplyFilter = (values) => {
+    onChange(item, values.fields)
+  }
 
  return (
    <div style={style.metadata}>
-     <div style={{display: 'grid', marginTop: '5px'}}>
-       <FilterLabel> Metadata Name </FilterLabel>
-       <Select
-         size='small'
-         style={{ width: 200 }}
-         placeholder={item.placeholder}
-         showSearch
-         allowClear
-         filterOption={false}
-         options={metadataOptions}
-         onSearch={onSearchMetadata}
-         onFocus={onFocusMetadata}
-         onChange={onNameChange}
-         value={metadataName}
-       />
+    <Form name="dynamic_form_nest_item" autoComplete="off" onFinish={onApplyFilter}>
+      <div style={{display: 'grid', marginTop: '5px', minWidth:'200px'}}>
+        <FilterLabel> Metadata Filter </FilterLabel>
+        <Form.List name="fields">
+         {(fields, { add, remove }) => (
+           <>
+             {fields.map(({ key, name, ...restField }) => (
+               <Space key={key} style={{ display: 'flex', marginBottom: '-5px' }} align="baseline">
+                 <Form.Item
+                   {...restField}
+                   name={[name, 'name']}
+                   rules={[{ required: true, message: 'Missing name' }]}
+                 >
+                   <Select
+                     size='small'
+                     style={{ width: 150 }}
+                     placeholder="Name"
+                     showSearch
+                     allowClear
+                     filterOption={false}
+                     options={metadataOptions}
+                     onSearch={onSearchMetadata}
+                     onFocus={onFocusMetadata}
+                     onChange={onNameChange}
+                     value={metadataName}
+                   />
+                 </Form.Item>
+                 <Form.Item
+                   {...restField}
+                   name={[name, 'value']}
+                   rules={[{ required: true, message: 'Missing value' }]}
+                 >
+                   <Input  size='small' placeholder="Value" />
+                 </Form.Item>
+                 <MinusCircleOutlined onClick={() => remove(name)} />
+               </Space>
+             ))}
+             <Form.Item style={{marginBottom: '5px'}}>
+               <Button size='small' type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                 Add metadata field
+               </Button>
+             </Form.Item>
+           </>
+         )}
+        </Form.List>
+        <Form.Item style={{marginBottom: '5px'}}>
+          <Button size="small" type="primary" htmlType="submit">
+            Apply Filter
+          </Button>
+        </Form.Item>
      </div>
-
-     <div style={{marginLeft: '5px'}}>
-       <FilterLabel> Metadata Value </FilterLabel>
-       <Input.Group style={style.element} compact>
-         <Input
-           size='small'
-           value={value}
-           onChange={handleValueChange}
-         />
-       </Input.Group>
-     </div>
+    </Form>
    </div>
  );
 };

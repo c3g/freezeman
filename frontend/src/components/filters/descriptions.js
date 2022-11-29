@@ -148,8 +148,8 @@ export const SAMPLE_FILTERS = {
   },
   metadata: {
     type: FILTER_TYPE.METADATA,
-    key: "metadata_name",
-    label: "Metadata Name",
+    key: "metadata",
+    label: "Metadata",
     detached:true,
   },
 }

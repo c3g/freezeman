@@ -12,6 +12,7 @@ export default function serializeFilterParams(filters, descriptions) {
   };
 
   Object.keys(filters).forEach(field => {
+    console.log(filters, field)
     const value = filters[field]?.value
     const description = descriptions[field]
     let key = description.key
@@ -71,6 +72,17 @@ export default function serializeFilterParams(filters, descriptions) {
         if(value) {
           key += "__in"
           params[key] = value
+        }
+        break;
+      }
+
+      case FILTER_TYPE.METADATA:   {
+        if(value) {
+          //Serialize key-value metadata pairs in a string
+          //with the form: name1__value1, name2__value2, name2__value3, etc
+          params[key]  = value.reduce((serializedMetadata, metadata) => {
+            return serializedMetadata + metadata.name + '__' + metadata.value  + ','
+          }, '')
         }
         break;
       }
