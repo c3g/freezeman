@@ -22,7 +22,8 @@ class SampleMetadataViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def search(self, _request):
         """
-        Searches for metadata that match the given query
+        Searches for metadata names in the database
+        It returns all the unique names that match the search input
         """
         search_input = _request.GET.get("q")
 
