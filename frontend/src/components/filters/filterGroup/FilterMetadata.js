@@ -30,6 +30,7 @@ const FilterMetadata = ({
 }) => {
  const [metadataName, setMetadataName] = useState([]);
  const [form] = Form.useForm();
+ const initialValues = {fields: value}
 
  const [metadataOptions, setMetadataOptions] = useState([]);
  const onFocusMetadata = ev => { onSearchMetadata(ev.target.value) }
@@ -60,7 +61,7 @@ const FilterMetadata = ({
 
  return (
    <div style={style.metadata}>
-    <Form form={form} onFinish={onApplyFilter}>
+    <Form form={form} initialValues={initialValues} onFinish={onApplyFilter}>
       <div style={{display: 'grid', marginTop: '5px', minWidth:'200px'}}>
         <FilterLabel> Metadata Filter </FilterLabel>
         <Form.List name="fields">
