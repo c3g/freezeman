@@ -23,4 +23,4 @@ htmlcov/
 venv
 
 # default run info output folder
-lims-run-info/
+lims-run-info/*.json
