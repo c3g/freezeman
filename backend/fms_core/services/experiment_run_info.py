@@ -112,7 +112,7 @@ def generate_run_info_file(experiment_run: ExperimentRun):
     path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
 
     with open(path, "w", encoding="utf-8") as file:
-        _serialize_run_info(run_info, file)
+        json.dump(run_info, file, indent=4)
 
 def generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
     ''' 
@@ -343,12 +343,5 @@ def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
        
     return dict(capture_kit=kit, capture_baits=baits)
 
-
-def _serialize_run_info(run_info: RunInfo, stream: TextIO):
-    '''
-    Converts a RunInfo object to JSON and writes it to the given text stream.
-    '''
-    file_dict = asdict(run_info)
-    json.dump(file_dict, stream, indent=4)
 
 
