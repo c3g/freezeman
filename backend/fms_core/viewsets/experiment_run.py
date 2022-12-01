@@ -67,7 +67,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         if(errors):
             response = Response({
                 'ok': False,
-                'message': errors.join(',')
+                'message': ','.join(errors)
             })
         else:
             response = Response({
@@ -97,7 +97,7 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
         if errors:
             response = Response({
                 'ok': False,
-                'message': errors.join(',')
+                'message': ','.join(errors)
             })
         else:
             response = Response({
