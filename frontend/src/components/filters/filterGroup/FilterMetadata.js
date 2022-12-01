@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react";
 import { connect } from "react-redux";
-import {Radio, Select, Input, Form, Button, Space} from "antd";
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {Radio, Select, Input, Form, Button, Space, Tooltip} from "antd";
+import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 import FilterLabel from "./FilterLabel"
 import * as style from "./style"
@@ -87,13 +87,18 @@ const FilterMetadata = ({
                      value={metadataName}
                    />
                  </Form.Item>
+                 <Tooltip title="Leave empty for any value.">
+                    <QuestionCircleOutlined />
+                 </Tooltip>
                  <Form.Item
                    name={[name, 'value']}
-                   rules={[{ required: true, message: 'Missing value' }]}
                  >
                    <Input  size='small' placeholder="Value" />
                  </Form.Item>
-                 <MinusCircleOutlined onClick={() => remove(name)} />
+                 <Tooltip title="Remove metadata field.">
+                     <MinusCircleOutlined onClick={() => remove(name)} />
+                 </Tooltip>
+
                </Space>
              ))}
              <Form.Item style={{marginBottom: '5px'}}>
