@@ -354,17 +354,17 @@ def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
     if lineages:
         capture_process = lineages.first().process_measurement.process
 
-    if capture_process is None:
-        raise Exception(f'Cannot find Library Capture process for library. Library ID: {library.pk}')
-
-    try: 
-        kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
-    except PropertyValue.DoesNotExist:
-        pass
-    try:
-        baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
-    except PropertyValue.DoesNotExist:
-        pass
+    # Note: capture_process will be None if the user submitted captured libraries
+    # directly, without running the capture protocol in freezeman.
+    if capture_process is not None:
+        try: 
+            kit = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Library Kit Used').value
+        except PropertyValue.DoesNotExist:
+            pass
+        try:
+            baits = PropertyValue.objects.get(object_id=capture_process.pk, property_type__name='Baits Used').value
+        except PropertyValue.DoesNotExist:
+            pass
        
     return dict(capture_kit=kit, capture_baits=baits)
 
