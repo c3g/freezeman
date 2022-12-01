@@ -252,7 +252,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_METADATA_TEMPLATE = {
-  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
+  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'Metadata',

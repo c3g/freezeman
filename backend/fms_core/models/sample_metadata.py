@@ -5,14 +5,14 @@ from django.db import models
 from .sample import Biosample
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH
-from ._validators import name_validator
+from ._validators import metadata_name_validator
 
 
 @reversion.register()
 class SampleMetadata(TrackedModel):
     """ Class to store additional sample metadata. """
 
-    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[name_validator],
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, validators=[metadata_name_validator],
                             help_text="The name of the metadata.")
     value = models.CharField(max_length=2000, help_text="The value of the metadata.")
     biosample = models.ForeignKey(Biosample, on_delete=models.PROTECT, related_name='metadata',
@@ -22,3 +22,8 @@ class SampleMetadata(TrackedModel):
         constraints = [
             models.UniqueConstraint(fields=["name", "biosample"], name="unique_metadata_name_by_biosample")
         ]
+
+    def save(self, *args, **kwargs):
+        # Normalize and validate before saving, always!
+        self.full_clean()
+        super().save(*args, **kwargs)  # Save the object
