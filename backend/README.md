@@ -45,29 +45,35 @@ Python package dependencies are listed in `requirements.txt`.
      export PG_PORT=5432
      ```
 
-    Set a `FMS_RUN_INFO_PATH` environment variable to point to a directory where 
-    Freezeman will output run info files to trigger run processing (defaults to
-    `lims-run-info` in the project folder).
-     
-  3. Install the [pg_fzy](#pg_fzy) extension for the database:
+  3. By default, experiment run info files are dropped into a folder in the
+  project, `./backend/lims-run-info`. If you want to change that, you can create
+  a `FMS_RUN_INFO_PATH` environment variable pointing to a different directory.
+  For linux/Mac, this can be added to your shell configuration.
+
+      ```bash
+      FMS_RUN_INFO_PATH=~/my-lims-run-info
+      export FMS_RUN_INFO_PATH
+      ```
+    
+  4. Install the [pg_fzy](#pg_fzy) extension for the database:
   
      ```bash
      cd backend/dependencies/pg_fzy && make && sudo make install
      ```
     
-  4. Run any outstanding migrations:
+  5. Run any outstanding migrations:
   
      ```bash
      python ./manage.py migrate
      ```
     
-  5. Create an application superuser:
+  6. Create an application superuser:
   
      ```bash
      python ./manage.py createsuperuser
      ```
     
-  6. Run the development server:
+  7. Run the development server:
   
      ```bash
      python ./manage.py runserver

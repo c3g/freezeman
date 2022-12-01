@@ -1,11 +1,10 @@
-from typing import Dict, Iterable, List, TextIO, Union
+from typing import Any, Dict, Iterable, List, Union
 from dataclasses import asdict, dataclass
 
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
     Biosample,
-    Container,
     DerivedSample, 
     DerivedBySample,
     ExperimentRun, 
@@ -101,7 +100,7 @@ class RunInfo:
 RUN_INFO_FILE_VERSION = "1.0.0"
 
 
-def generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
+def generate_run_info(experiment_run: ExperimentRun) -> Dict[str, Any]:
     ''' 
     Generates the run info for the experiment, including all of the derived
     samples in the experiment.
@@ -224,9 +223,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     row.container_coordinates = sample.coordinates
 
     # Convert coordinates from A01 format to lane number.
-    container_spec = CONTAINER_KIND_SPECS[container.kind]
+    container_spec = CONTAINER_KIND_SPECS[sample.container.kind]
     if container_spec is None:
-        raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{container.kind}".')
+        raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{sample.container.kind}".')
 
     row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec)
     
@@ -350,7 +349,7 @@ def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
     capture_process : Union[Process, None] = None
     lineages = SampleLineage.objects.filter(
         process_measurement__process__protocol__name="Library Capture",
-        child__derived_samples__library__id=captured_library.pk)
+        child__derived_samples__library__id=library.pk)
     if lineages:
         capture_process = lineages.first().process_measurement.process
 
