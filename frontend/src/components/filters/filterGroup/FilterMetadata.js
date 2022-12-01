@@ -87,7 +87,7 @@ const FilterMetadata = ({
                      value={metadataName}
                    />
                  </Form.Item>
-                 <Tooltip title="Leave empty for any value.">
+                 <Tooltip title="Leave the value field empty to search for any sample with the given metadata field.">
                     <QuestionCircleOutlined />
                  </Tooltip>
                  <Form.Item
