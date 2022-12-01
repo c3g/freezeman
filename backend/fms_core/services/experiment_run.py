@@ -1,9 +1,12 @@
-from xml.dom import NotFoundErr
+from datetime import datetime
+import os
+import json
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from django.conf import settings
 
-from fms_core.services.experiment_run_info import generate_run_info_file, generate_run_info
+from fms_core.utils import make_timestamped_filename
+from fms_core.services.experiment_run_info import generate_run_info
 from ..models import ExperimentRun
 
 from .process import create_process
@@ -103,8 +106,9 @@ def start_experiment_run_processing(pk):
         The ID of the experiment.
 
     Returns:
-        The experiment run and a list of errors and warnings.
+        The path to the run info file that was created, and a list of errors and warnings.
     '''
+    run_info = None
     errors = []
     warnings = []
 
@@ -116,14 +120,27 @@ def start_experiment_run_processing(pk):
 
     if experiment_run is not None:
         try:
-            generate_run_info_file(experiment_run)
+            run_info = generate_run_info(experiment_run)
+        except Exception as err:
+            errors.append(f'An error occured while generating experiment run info. {str(err)}')
+
+    run_info_file_path = None
+    if run_info is not None:
+        try:
+            file_name_base = (experiment_run.name if experiment_run.name else 'experiment_run') + '.json'
+            file_name = make_timestamped_filename(file_name_base)
+
+            run_info_file_path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
+
+            with open(run_info_file_path, "w", encoding="utf-8") as file:
+                json.dump(run_info, file, indent=4)
 
             experiment_run.run_processing_launch_date = timezone.now()
             experiment_run.save()
         except Exception as e:
-            errors.append(str(e))
+            errors.append(f'Failed to write run info file. {str(e)}')
                
-    return (experiment_run, errors, warnings)
+    return (run_info_file_path, errors, warnings)
 
 def get_run_info_for_experiment(pk):
     '''
@@ -154,5 +171,5 @@ def get_run_info_for_experiment(pk):
         except Exception as e:
             errors.append(str(e))
     
-    return (run_info, errors, [])
+    return (run_info, errors, warnings)
 

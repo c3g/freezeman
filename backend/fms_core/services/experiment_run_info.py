@@ -1,9 +1,6 @@
 from typing import Dict, Iterable, List, TextIO, Union
 from dataclasses import asdict, dataclass
-import os
-import json
-from django.conf import settings
-from fms_core.utils import make_timestamped_filename
+
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
 from fms_core.containers import CONTAINER_KIND_SPECS
 from fms_core.models import (
@@ -30,6 +27,10 @@ Obj_Id = Union[int, None]
 
 @dataclass
 class RunInfoSample:
+    '''
+    A collection of the properties required for run processing of
+    a sample in an experiment run.
+    '''
     # Biosample name, actually
     pool_name: Union[str, None]
     sample_name: Union[str, None]
@@ -74,6 +75,10 @@ class RunInfoSample:
 
 @dataclass
 class RunInfo:
+    '''
+    A collection of the properties from an ExperimentRun that are
+    required for run processing.
+    '''
     # Manifest version (1.0.0 to start) 
     version: str
 
@@ -95,31 +100,17 @@ class RunInfo:
 
 RUN_INFO_FILE_VERSION = "1.0.0"
 
-def generate_run_info_file(experiment_run: ExperimentRun):
-    '''
-    Generate the run info for an experiment, to be submitted to tech dev for run processing.
-
-    This function writes the data to the file it is given. The file must be text-based, open,
-    and writable.
-
-    The output is a RunInfo object in the JSON format.
-    '''
-    run_info = generate_run_info(experiment_run)
-
-    file_name_base = experiment_run.name if experiment_run.name else 'experiment_run'
-    file_name = make_timestamped_filename(file_name_base, 'json')
-
-    path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
-
-    with open(path, "w", encoding="utf-8") as file:
-        json.dump(run_info, file, indent=4)
 
 def generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
     ''' 
     Generates the run info for the experiment, including all of the derived
     samples in the experiment.
 
-    Returns a RunInfo object as a dict.
+    Args:
+        `experiment_run`: An ExperimentRun object
+
+    Returns: 
+        A RunInfo object as a dict.
     '''
     instrument: Instrument = experiment_run.instrument
 
@@ -146,7 +137,15 @@ def generate_run_info(experiment_run: ExperimentRun) -> RunInfo:
 
 
 def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSample]:
-    ''' Generates the run info for every derived sample in the experiment. '''
+    ''' 
+    Generates the run info for every derived sample in the experiment.
+    
+    Args:
+        `experiment_run`: An ExperimentRun object
+
+    Returns:
+        A list of RunInfoSample objects for all of the samples in the experiment run.
+    '''
     generated_rows: List[RunInfoSample] = []
    
     # Get the samples contained in the experiment run container (normally
@@ -163,7 +162,17 @@ def _generate_run_info_samples(experiment_run: ExperimentRun) -> List[RunInfoSam
     return generated_rows
 
 def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> List[RunInfoSample]:
-    ''' Generates the run info for all of the derived samples in a pool. '''
+    '''
+    Generates the run info for all of the derived samples in a pool.
+    
+    Args:
+        `experiment_run`: An ExperimentRun object
+
+        `pool`: A pool of samples from the experiment.
+
+    Returns:
+        A list of RunInfoSample objects for the derived samples in the pool.
+    '''
     run_info_samples: List[RunInfoSample] = []
     
     derived_samples: Iterable[DerivedSample] = pool.derived_samples.all()
@@ -181,6 +190,16 @@ def _generate_pooled_samples(experiment_run: ExperimentRun, pool: Sample) -> Lis
 def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_sample: DerivedSample) -> RunInfoSample:
     '''
     Generates the data for one derived sample in the experiment.
+
+    Args:
+        `experiment_run`: An ExperimentRun object.
+
+        `sample`: The parent sample (usually a pool) of the derived sample
+
+        `derived_sample`: A DerivedSample object.
+
+    Returns:
+        A RunInfoSample object.
     '''
     biosample: Union[Biosample, None] = derived_sample.biosample
     if biosample is None:
@@ -205,7 +224,11 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     row.container_coordinates = sample.coordinates
 
     # Convert coordinates from A01 format to lane number.
-    row.lane = _convert_flowcell_coordinate_to_lane_number(sample.coordinates, experiment_run.container)
+    container_spec = CONTAINER_KIND_SPECS[container.kind]
+    if container_spec is None:
+        raise Exception(f'Cannot convert coord {sample.coordinates} to lane number. No ContainerSpec found for container kind "{container.kind}".')
+
+    row.lane = convert_alpha_digit_coord_to_ordinal(sample.coordinates, container_spec.coordinate_spec)
     
     # INDIVIDUAL
     if biosample.individual is not None:
@@ -256,16 +279,6 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     return row
 
-def _convert_flowcell_coordinate_to_lane_number(coord: str, container: Container) -> int:
-    '''Converts a freezeman coordinate (eg. A01) to an integer flowcell lane number.'''
-
-    container_spec = CONTAINER_KIND_SPECS[container.kind]
-    if container_spec is None:
-        raise Exception(f'Cannot convert coord {coord} to lane number. No ContainerSpec found for container kind "{container.kind}".')
-
-    lane = convert_alpha_digit_coord_to_ordinal(coord, container_spec.coordinate_spec)
-    return lane
-
 def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     ''' 
     Given a library, find the Library Preparation process that was used to create the
@@ -274,6 +287,12 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
     Note that not all libraries will have a Library Preparation measurement,
     since they can be imported directly into freezeman without passing the
     Library Preparation step.
+
+    Args:
+        `library`: A library, which may or may not have a Library Preparation process.
+
+    Returns:
+        A Library Preparation process, or None.
     '''
     
     library_prep: Union[ProcessMeasurement, None] = None
@@ -312,23 +331,29 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
 
     return library_prep
 
+def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
+    '''
+    Lookup up the Capture process that created a capture and return the
+    details - capture kit and capture baits.
 
-def _find_library_capture_process(captured_library: Library) -> Union[Process, None]:
-    '''Given a captured library, find the Library Capture process that produced the library.'''
-    library_capture_process : Union[Process, None] = None
+    Throws an exception if the capture process cannot be found.
+
+    Args:
+        `library`: A library with a library_selection type of "Capture"
+
+    Returns:
+        A dictionary containing capture_kit and capture_baits values.  
+    '''
+    kit : Union[str, None] = None
+    baits : Union[str, None] = None
+
+    capture_process : Union[Process, None] = None
     lineages = SampleLineage.objects.filter(
         process_measurement__process__protocol__name="Library Capture",
         child__derived_samples__library__id=captured_library.pk)
     if lineages:
-        library_capture_process = lineages.first().process_measurement.process
-    return library_capture_process
-    
+        capture_process = lineages.first().process_measurement.process
 
-def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
-    kit : Union[str, None] = None
-    baits : Union[str, None] = None
-
-    capture_process = _find_library_capture_process(library)
     if capture_process is None:
         raise Exception(f'Cannot find Library Capture process for library. Library ID: {library.pk}')
 

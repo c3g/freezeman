@@ -166,14 +166,20 @@ def make_generator(obj: Union[Any, None, Iterable[Any]]) -> Generator[Any, None,
         except TypeError:
             yield obj
 
-def make_timestamped_filename(file_name: str, extension: str) -> str:
+def make_timestamped_filename(file_name: str) -> str:
     """
     Creates a file name composed of a base file name followed by a timestamp, followed
-    by an extension, eg "MyFile_2022-11-25_08-13-45.json".
+    by the file extension, eg "MyFile_2022-11-25_08-13-45.json".
 
     The file name and timestamp are separated by an underscore.
-    The extension parameter should not include a '.', as one is inserted automatically.
+
+    Args:
+        `file_name`: A file name (or file path).
+
+    Returns:
+        A file name (or file path), with a timestamp inserted before the extension.
     """
+    name, extension = os.path.splitext(file_name)
     os.environ["TZ"] = settings.LOCAL_TZ
     time.tzset()
-    return f"{file_name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}.{extension}"
+    return f"{name}_{time.strftime('%Y-%m-%d_%H-%M-%S')}{extension}"
