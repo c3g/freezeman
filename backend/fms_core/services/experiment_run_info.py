@@ -304,19 +304,23 @@ def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     if library.library_selection is not None:
         # If a library was captured then that generated a new library instance.
         # We have to find the previous instance, on which the Library Prep was run.
+        capture_lineage : Optional[SampleLineage] = None
         try:
-            capture_lineage: SampleLineage = SampleLineage.objects.get(
+            capture_lineage = SampleLineage.objects.get(
                 process_measurement__process__protocol_id=capture_protocol.pk,
                 child__derived_samples__library__id=library.pk
             )
         except SampleLineage.DoesNotExist:
-            raise Exception(f'Library Capture process not found in library lineage. Library ID: {library.pk}')
+            # If libraries with capture are submitted directly then there
+            # won't be a capture process and thus no lineage.
+            pass
 
         # Now find the derived sample in the parent that contains the same biosample id as our library.
-        try:
-            library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
-        except Library.DoesNotExist:
-            raise Exception(f'Cannot find library sample prior to capture. Library ID: {library.pk}')
+        if capture_lineage is not None:
+            try:
+                library_to_find = Library.objects.get(derived_sample__samples=capture_lineage.parent, derived_sample__biosample=library.derived_sample.biosample)
+            except Library.DoesNotExist:
+                raise Exception(f'Cannot find library sample prior to capture. Library ID: {library.pk}')
             
     # Find the library preparation process measurement
     try: 

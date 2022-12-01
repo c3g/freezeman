@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.http import HttpResponseServerError
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
@@ -61,21 +62,15 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             On error:
             {'ok': False, message: <error message>}
         '''
-        experiment_run, errors, warnings = start_experiment_run_processing(pk)
+        _, errors, _ = start_experiment_run_processing(pk)
 
         response = None
         if(errors):
-            response = Response({
-                'ok': False,
-                'message': ','.join(errors)
-            })
+            response = HttpResponseServerError("\n".join(errors))
         else:
-            response = Response({
-                'ok': True,
-            })
-        
+            response = Response('Launched successfully')
         return response
-
+        
     @action(detail=True, methods=["get"])
     def run_info(self, _request, pk):
         '''
@@ -93,15 +88,9 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
             On error:
             {'ok': False, 'message': <the error message>}
         '''
-        run_info, errors, warnings = get_run_info_for_experiment(pk)
+        run_info, errors, _ = get_run_info_for_experiment(pk)
         if errors:
-            response = Response({
-                'ok': False,
-                'message': ','.join(errors)
-            })
+            response = HttpResponseServerError("\n".join(errors))
         else:
-            response = Response({
-                'ok': True,
-                'data': run_info
-            })
+            response = Response(run_info)
         return response
