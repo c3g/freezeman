@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 from dataclasses import asdict, dataclass
 
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
@@ -22,7 +22,8 @@ from fms_core.models import (
 )
 
 
-Obj_Id = Union[int, None]
+# Obj_Id = Optional[int]
+Obj_Id = Optional[int]
 
 @dataclass
 class RunInfoSample:
@@ -31,45 +32,45 @@ class RunInfoSample:
     a sample in an experiment run.
     '''
     # Biosample name, actually
-    pool_name: Union[str, None]
-    sample_name: Union[str, None]
+    pool_name: Optional[str]
+    sample_name: Optional[str]
 
     derived_sample_obj_id: Obj_Id = None
     biosample_obj_id: Obj_Id = None
 
     # Flowcell lane containing the sample
-    container_coordinates: Union[str, None] = None
-    lane: Union[int, None] = None
+    container_coordinates: Optional[str] = None
+    lane: Optional[int] = None
 
     project_obj_id: Obj_Id = None
-    project_name: Union[str, None] = None
-    hercules_project_id: Union[str, None] = None
-    hercules_project_name: Union[str, None] = None
+    project_name: Optional[str] = None
+    hercules_project_id: Optional[str] = None
+    hercules_project_name: Optional[str] = None
 
-    pool_volume_ratio: Union[float, None] = None
+    pool_volume_ratio: Optional[float] = None
 
     # individual fields
-    expected_sex: Union[str, None] = None
-    ncbi_taxon_id: Union[int, None] = None
-    taxon_name: Union[str, None] = None
+    expected_sex: Optional[str] = None
+    ncbi_taxon_id: Optional[int] = None
+    taxon_name: Optional[str] = None
     
     # library fields
-    library_type: Union[str, None] = None
-    library_size: Union[float, None] = None
-    index_set_obj_id: Union[str, None] = None
-    index_set_name: Union[str, None] = None
+    library_type: Optional[str] = None
+    library_size: Optional[float] = None
+    index_set_obj_id: Optional[str] = None
+    index_set_name: Optional[str] = None
     index_obj_id: Obj_Id = None
-    index_name: Union[str, None] = None
-    index_sequence_3_prime: Union[List[str], None] = None
-    index_sequence_5_prime: Union[List[str], None] = None
-    library_kit: Union[str, None] = None
+    index_name: Optional[str] = None
+    index_sequence_3_prime: Optional[List[str]] = None
+    index_sequence_5_prime: Optional[List[str]] = None
+    library_kit: Optional[str] = None
 
     # capture fields
-    capture_kit: Union[str, None] = None
-    capture_baits: Union[str, None] = None
+    capture_kit: Optional[str] = None
+    capture_baits: Optional[str] = None
 
     #ChIP-Seq
-    chip_seq_mark: Union[str, None] = None
+    chip_seq_mark: Optional[str] = None
     
 
 @dataclass
@@ -84,7 +85,7 @@ class RunInfo:
     # Experiment run name and id
     run_name: str
     run_obj_id: int
-    run_start_date: Union[str, None]
+    run_start_date: Optional[str]
 
     # Flowcell / container for experiment
     container_obj_id: int
@@ -200,7 +201,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     Returns:
         A RunInfoSample object.
     '''
-    biosample: Union[Biosample, None] = derived_sample.biosample
+    biosample: Optional[Biosample] = derived_sample.biosample
     if biosample is None:
         raise Exception(f'Sample {sample.pk} has no biosample.')
 
@@ -211,7 +212,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
     row.derived_sample_obj_id = derived_sample.pk
     row.biosample_obj_id = biosample.pk
 
-    project: Union[Project, None] = derived_sample.project
+    project: Optional[Project] = derived_sample.project
     if project is None:
         raise Exception(f'Sample {sample.pk} has no project.')
     
@@ -278,7 +279,7 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
 
     return row
 
-def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
+def _find_library_prep(library: Library) -> Optional[ProcessMeasurement]:
     ''' 
     Given a library, find the Library Preparation process that was used to create the
     library, if any, to extract the library preparation properties (eg. Library Kit).
@@ -294,7 +295,7 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
         A Library Preparation process, or None.
     '''
     
-    library_prep: Union[ProcessMeasurement, None] = None
+    library_prep: Optional[ProcessMeasurement] = None
     library_to_find : Library = library
 
     capture_protocol = Protocol.objects.get(name="Library Capture")
@@ -330,7 +331,7 @@ def _find_library_prep(library: Library) -> Union[ProcessMeasurement, None]:
 
     return library_prep
 
-def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
+def _get_capture_details(library: Library) -> Dict[str, Optional[str]]:
     '''
     Lookup up the Capture process that created a capture and return the
     details - capture kit and capture baits.
@@ -343,10 +344,10 @@ def _get_capture_details(library: Library) -> Dict[str, Union[str, None]]:
     Returns:
         A dictionary containing capture_kit and capture_baits values.  
     '''
-    kit : Union[str, None] = None
-    baits : Union[str, None] = None
+    kit : Optional[str] = None
+    baits : Optional[str] = None
 
-    capture_process : Union[Process, None] = None
+    capture_process : Optional[Process] = None
     lineages = SampleLineage.objects.filter(
         process_measurement__process__protocol__name="Library Capture",
         child__derived_samples__library__id=library.pk)
