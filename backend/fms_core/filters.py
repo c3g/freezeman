@@ -81,15 +81,15 @@ class SampleFilter(GenericFilter):
         # Metadata is of form: 'name1__value1, name2__value2, name2__Value3'
         for metadatum in values.split(','):
             if metadatum:
-                name_value = metadatum.split('__')
+                # Use the string after the first '__' as the value (even if it contains '__')
+                name_value = metadatum.split('__', 1)
                 # Check that there's at least 1 '__' that separates name and value
                 if name_value and len(name_value) > 1:
                     # Meaning value was left empty
                     if not name_value[1]:
                         condition |= Q(name=name_value[0])
-                    # Use the string after the first '__' as the value (even if it contained '__')
                     else:
-                        condition |= Q(name=name_value[0], value='__'.join(name_value[1:]))
+                        condition |= Q(name=name_value[0], value=name_value[1])
         biosample_ids = SampleMetadata.objects.filter(condition).values('biosample_id')
         return queryset.filter(derived_samples__biosample__in=biosample_ids)
 
