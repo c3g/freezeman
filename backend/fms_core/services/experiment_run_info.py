@@ -1,4 +1,4 @@
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional
 from dataclasses import asdict, dataclass
 
 from fms_core.coordinates import convert_alpha_digit_coord_to_ordinal
