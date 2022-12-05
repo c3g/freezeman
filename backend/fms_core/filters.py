@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, SampleMetadata
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
 
 import django_filters
 
@@ -77,20 +77,33 @@ class SampleFilter(GenericFilter):
         return queryset.filter(is_pooled=bool_value)
 
     def metadata_filter(self, queryset, name, values):
-        condition = Q()
-        # Metadata is of form: 'name1__value1, name2__value2, name2__Value3'
+        # Build dictionary of form {name1: [value1, value2], name2: [value1] }
+        metadata_dict = {}
         for metadatum in values.split(','):
             if metadatum:
                 # Use the string after the first '__' as the value (even if it contains '__')
                 name_value = metadatum.split('__', 1)
                 # Check that there's at least 1 '__' that separates name and value
                 if name_value and len(name_value) > 1:
-                    # Meaning value was left empty
-                    if not name_value[1]:
-                        condition |= Q(name=name_value[0])
+                    # Metadata name exists in the dict, append value
+                    if name_value[0] in metadata_dict.keys():
+                        metadata_dict[name_value[0]].append(name_value[1])
+                    # Just the metadata name is given, no value
+                    elif name_value[0] and not name_value[1]:
+                        metadata_dict[name_value[0]] = []
+                    # Metadata name is not in the dict, add first value
                     else:
-                        condition |= Q(name=name_value[0], value=name_value[1])
-        biosample_ids = SampleMetadata.objects.filter(condition).values('biosample_id')
+                        metadata_dict[name_value[0]] = [name_value[1]]
+        # Build queryset
+        biosample_qs = Biosample.objects.all()
+        for metadata_name, metadata_values in metadata_dict.items():
+            # Meaning value was left empty
+            if not metadata_values:
+                biosample_qs = biosample_qs.filter(metadata__name=metadata_name)
+            else:
+                biosample_qs = biosample_qs.filter(metadata__name=metadata_name, metadata__value__in=metadata_values)
+        # Apply filter to sample queryset
+        biosample_ids = biosample_qs.values('id')
         return queryset.filter(derived_samples__biosample__in=biosample_ids)
 
     class Meta:
