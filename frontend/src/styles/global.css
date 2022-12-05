@@ -113,6 +113,6 @@ abbr.--time {
   flex: 1;
 }
 
-.ant-cascader-menu {
-  padding-right: 15px;
+.ant-cascader-menu-item-content {
+  margin-right: 15px;
 }
