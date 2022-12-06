@@ -77,6 +77,10 @@ def create_illumina_related_objects(apps, schema_editor):
                 "type": "Illumina MiSeq",
                 "serial_id": "M03555",
             },
+            "Maurice": {
+                "type": "Illumina iSeq 100",
+                "serial_id": "FS10000133",
+            },
         }
         for name in INSTRUMENTS.keys():
             it = InstrumentType.objects.get(type=INSTRUMENTS[name]["type"])
@@ -196,6 +200,7 @@ class Migration(migrations.Migration):
                                             ('illumina-miseq-v3 flowcell', 'illumina-miseq-v3 flowcell'),
                                             ('illumina-miseq-micro flowcell', 'illumina-miseq-micro flowcell'),
                                             ('illumina-miseq-nano flowcell', 'illumina-miseq-nano flowcell'),
+                                            ('illumina-iseq-100 flowcell', 'illumina-iseq-100 flowcell'),
                                             ('tube', 'tube'), ('tube strip 2x1', 'tube strip 2x1'),
                                             ('tube strip 3x1', 'tube strip 3x1'), ('tube strip 4x1', 'tube strip 4x1'),
                                             ('tube strip 5x1', 'tube strip 5x1'), ('tube strip 6x1', 'tube strip 6x1'),
@@ -230,7 +235,7 @@ class Migration(migrations.Migration):
             'infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'illumina-novaseq-sp flowcell',
             'illumina-novaseq-s1 flowcell', 'illumina-novaseq-s2 flowcell', 'illumina-novaseq-s4 flowcell',
             'illumina-miseq-v2 flowcell', 'illumina-miseq-v3 flowcell', 'illumina-miseq-micro flowcell',
-            'illumina-miseq-nano flowcell')}, on_delete=django.db.models.deletion.PROTECT,
+            'illumina-miseq-nano flowcell', 'illumina-iseq-100 flowcell')}, on_delete=django.db.models.deletion.PROTECT,
                                        related_name='experiment_run', to='fms_core.container'),
         ),
         migrations.AlterField(
@@ -241,8 +246,8 @@ class Migration(migrations.Migration):
                 'infinium gs 24 beadchip', 'dnbseq-g400 flowcell', 'dnbseq-t7 flowcell', 'illumina-novaseq-sp flowcell',
                 'illumina-novaseq-s1 flowcell', 'illumina-novaseq-s2 flowcell', 'illumina-novaseq-s4 flowcell',
                 'illumina-miseq-v2 flowcell', 'illumina-miseq-v3 flowcell', 'illumina-miseq-micro flowcell',
-                'illumina-miseq-nano flowcell', 'tube', 'tube strip 2x1', 'tube strip 3x1', 'tube strip 4x1',
-                'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate',
+                'illumina-miseq-nano flowcell', 'illumina-iseq-100 flowcell', 'tube', 'tube strip 2x1', 'tube strip 3x1',
+                'tube strip 4x1', 'tube strip 5x1', 'tube strip 6x1', 'tube strip 7x1', 'tube strip 8x1', '96-well plate',
                 '384-well plate')}, on_delete=django.db.models.deletion.PROTECT, related_name='samples',
                                     to='fms_core.container'),
         ),
