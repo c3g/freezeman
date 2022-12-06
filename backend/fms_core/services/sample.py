@@ -751,7 +751,7 @@ def add_sample_metadata(sample, metadata):
                 else:
                     SampleMetadata.objects.create(name=name, value=value, biosample=biosample_obj)
         except ValidationError as e:
-            errors.append(';'.join(e))
+            errors.append(e)
     else:
         errors.append('Sample and metadata are required')
 
@@ -778,7 +778,7 @@ def update_sample_metadata(sample, metadata):
                 else:
                     errors.append(f'Sample [{sample.name}] does not have metadata with name [{name}].')
         except ValidationError as e:
-            errors.append(';'.join(e))
+            errors.append(e)
     else:
         errors.append('Sample and metadata are required')
 

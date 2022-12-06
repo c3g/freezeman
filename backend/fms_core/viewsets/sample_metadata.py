@@ -1,5 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from fms_core.models import SampleMetadata
 from fms_core.serializers import SampleMetadataSerializer
@@ -16,3 +18,14 @@ class SampleMetadataViewSet(viewsets.ModelViewSet):
     filterset_fields = {
         **_sample_metadata_filterset_fields
     }
+
+    @action(detail=False, methods=["get"])
+    def search(self, _request):
+        """
+        Searches for metadata names in the database
+        It returns all the unique names that match the search input
+        """
+        search_input = _request.GET.get("q")
+
+        metadata_data = SampleMetadata.objects.filter(name__icontains=search_input).distinct().values('name')
+        return Response(metadata_data)

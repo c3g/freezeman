@@ -58,7 +58,7 @@ const api = {
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
-    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}) 
+    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {})
   },
 
   runTypes: {
@@ -193,7 +193,8 @@ const api = {
   },
 
   sampleMetadata: {
-    get: options => get(`/sample-metadata/`, options)
+    get: options => get(`/sample-metadata/`, options),
+    search: (q, options) => get("/sample-metadata/search/", { q, ...options }),
   },
 
   sampleKinds: {
@@ -366,7 +367,7 @@ function attachData(response) {
   const isJSON = contentType.includes('/json')
   const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   const isZip = contentType.includes('/zip')
-  
+
   response.isJSON = isJSON
   return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
   .then(data => {

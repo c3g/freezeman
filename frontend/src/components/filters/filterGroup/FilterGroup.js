@@ -3,6 +3,7 @@ import {connect} from "react-redux";
 import FilterSelect from "./FilterSelect";
 import FilterRange from "./FilterRange";
 import FilterInput from "./FilterInput";
+import FilterMetadata from "./FilterMetadata";
 import {FILTER_TYPE} from "../../../constants";
 
 const style = {}
@@ -61,6 +62,17 @@ const FilterGroup = ({
                   key={item.key}
                   name={name}
                   item={item}
+                  value={values[item.key]?.value}
+                  onChange={onChangeFilter}
+                />
+              );
+            case FILTER_TYPE.METADATA:
+              return(
+                <FilterMetadata
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  options={optionsForSelect(item)}
                   value={values[item.key]?.value}
                   onChange={onChangeFilter}
                 />

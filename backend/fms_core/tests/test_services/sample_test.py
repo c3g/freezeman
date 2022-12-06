@@ -514,6 +514,24 @@ class SampleServicesTestCase(TestCase):
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
+    def test_add_invalid_sample_metadata(self):
+        new_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                              volume=self.TEST_SAMPLES[0]["volume"],
+                                              concentration=self.TEST_SAMPLES[0]["concentration"],
+                                              collection_site=self.TEST_SAMPLES[0]["collection_site"],
+                                              creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                              container=self.TEST_SAMPLES[0]["container"],
+                                              coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                              individual=self.TEST_SAMPLES[0]["individual"],
+                                              sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                              library=self.TEST_SAMPLES[0]["library"])
+        metadata = {
+          "TestField__Invalid": "You are a tomato.",
+        }
+        metadata_added, errors, warnings = add_sample_metadata(sample=new_sample, metadata=metadata)
+        self.assertTrue("Double underscore i.e '__' are not allowed when naming metadata fields." in errors[0].messages)
+        self.assertEqual(new_sample.derived_samples.first().biosample.metadata.all().count(), 0)
+
     def test_update_sample_metadata(self):
         new_sample, _, _ = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
                                               volume=self.TEST_SAMPLES[0]["volume"],
