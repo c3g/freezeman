@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import { connect } from "react-redux";
-import {Radio, Select, Input, Form, Button, Space, Tooltip} from "antd";
+import {Select, Input, Form, Button, Space, Tooltip} from "antd";
 import { MinusCircleOutlined, PlusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 import FilterLabel from "./FilterLabel"
@@ -8,10 +8,6 @@ import * as style from "./style"
 
 import api, { withToken } from "../../../utils/api";
 import * as Options from "../../../utils/options";
-
-const { Option } = Select;
-
-const EMPTY_VALUE = '__FILTER_SELECT_EMPTY_VALUE__'
 
 const searchMetadata = (token, input, options) =>
   withToken(token, api.sampleMetadata.search)(input, options).then(res => res.data)
@@ -23,9 +19,7 @@ const mapStateToProps = state => ({
 const FilterMetadata = ({
  token,
  item,
- name,
  value,
- options,
  onChange,
 }) => {
  const [metadataName, setMetadataName] = useState([]);
