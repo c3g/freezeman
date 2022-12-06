@@ -85,14 +85,14 @@ class SampleFilter(GenericFilter):
                 name_value = metadatum.split('__', 1)
                 # Check that there's at least 1 '__' that separates name and value
                 if name_value and len(name_value) > 1:
-                    # Metadata name exists in the dict, append value
-                    if name_value[0] in metadata_dict.keys():
-                        metadata_dict[name_value[0]].append(name_value[1])
                     # Just the metadata name is given, no value
-                    elif name_value[0] and not name_value[1]:
+                    if name_value[0] and not name_value[1]:
                         metadata_dict[name_value[0]] = []
+                    # Metadata name exists in the dict (and it is not []), append value
+                    elif name_value[0] in metadata_dict.keys() and metadata_dict[name_value[0]]:
+                        metadata_dict[name_value[0]].append(name_value[1])
                     # Metadata name is not in the dict, add first value
-                    else:
+                    elif name_value[0] not in metadata_dict.keys():
                         metadata_dict[name_value[0]] = [name_value[1]]
         # Build queryset
         biosample_qs = Biosample.objects.all()
