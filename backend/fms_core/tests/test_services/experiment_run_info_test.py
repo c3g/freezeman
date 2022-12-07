@@ -11,7 +11,6 @@ from fms_core.template_importer.importers import (
     ExperimentRunImporter
     )
 from fms_core.services.experiment_run_info import generate_run_info
-# from fms_core.services.experiment_run import start_experiment_run_processing
 from fms_core.tests.test_template_importers._utils import load_template
 from fms_core.services.project import create_project
 
@@ -50,7 +49,11 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v3_14_0.xlsx')
 
+        # MGI Experiment
         self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v3_10_0.xlsx')
+
+        # Illumina Experiment
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v3_14_0.xlsx')
        
 
     def import_template(self, importer, file):
@@ -60,7 +63,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             raise Exception(f'Failed to import template {file}')
 
 
-    def test_experiment_run_info(self):
+    def test_mgi_experiment_run(self):
         mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
         self.assertIsNotNone(mgi_experiment)
         
@@ -125,6 +128,15 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
     def assert_sample(self, run_info_sample, values_dict):
         for key in values_dict:
             self.assertEqual(run_info_sample[key], values_dict[key])
+
+    def test_illumina_experiment_run(self):
+        # This test just verifies that an illumina experiment run can be processed.
+        illumina_experiment = ExperimentRun.objects.get(name='ER-DNA-ILLUMINA-EXPERIMENT')
+        self.assertIsNotNone(illumina_experiment)
+        
+        run_info = generate_run_info(illumina_experiment)
+
+        self.assertIsNotNone(run_info)
 
 
 
