@@ -15,7 +15,7 @@ from fms_core.services.experiment_run_info import generate_run_info
 from fms_core.tests.test_template_importers._utils import load_template
 from fms_core.services.project import create_project
 
-from fms_core.models import ExperimentRun
+from fms_core.models import Biosample, ExperimentRun, IndexSet, Index
 
 from fms_core.tests.constants import create_container
 from fms_core.services import experiment_run, sample
@@ -66,9 +66,6 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         
         run_info = generate_run_info(mgi_experiment)
 
-        # TEMP: dump run info to disk
-        # start_experiment_run_processing(mgi_experiment.id)
-
         self.assertIsNotNone(run_info)
         self.assertEqual(run_info['version'], '1.0.0')
         self.assertEqual(run_info['run_name'], 'ER-RNA-MGI-EXPERIMENT')
@@ -83,14 +80,12 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertEqual(len(run_info['samples']), 2)
 
         sample_index = [index for (index, sample) in enumerate(run_info['samples']) if sample['sample_name'] == 'ER_AliasRNA1'][0]
-
-        sample = run_info['samples'][sample_index]
+        run_info_sample = run_info['samples'][sample_index]
 
         expected_values = dict(
             pool_name = "ER_Pooled_RNA",
             sample_name= "ER_AliasRNA1",
-            # derived_sample_obj_id= 647,
-            # biosample_obj_id= 380,
+            biosample_obj_id= Biosample.objects.get(alias='ER_AliasRNA1').id,
             container_coordinates= "A01",
             lane= 1,
             project_obj_id= self.project.id,
@@ -103,9 +98,9 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             taxon_name= "Homo sapiens",
             library_type= "miRNA",
             library_size= 500,
-            # index_set_obj_id= 128,
+            index_set_obj_id= IndexSet.objects.get(name='_10x_Genomics_scRNA_V1').id,
             index_set_name= "_10x_Genomics_scRNA_V1",
-            # index_obj_id= 292,
+            index_obj_id= Index.objects.get(name='SI-3A-A1').id,
             index_name= "SI-3A-A1",
             index_sequence_3_prime= [
                 ""
@@ -122,11 +117,12 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
             chip_seq_mark= None
         )
 
-        self.assert_sample(sample, expected_values)
-
+        self.assert_sample(run_info_sample, expected_values)
+        # It would be complicated to find the derived sample instance that generated a given
+        # run info sample, so I'm cheating here and just making sure that an id value was output.
+        self.assertIsNotNone(run_info_sample['derived_sample_obj_id'])
        
     def assert_sample(self, run_info_sample, values_dict):
-
         for key in values_dict:
             self.assertEqual(run_info_sample[key], values_dict[key])
 
