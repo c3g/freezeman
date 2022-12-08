@@ -1,6 +1,8 @@
 from pathlib import Path
+from os.path import exists
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from fms_core.services.experiment_run import start_experiment_run_processing, get_run_info_for_experiment
 from fms_core.template_importer.importers import (
     SampleSubmissionImporter,
     LibraryPreparationImporter,
@@ -137,6 +139,26 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         run_info = generate_run_info(illumina_experiment)
 
         self.assertIsNotNone(run_info)
+
+    def test_service_start_experiment_run_processing(self):
+        # Just verify that no exception is thrown
+        mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
+        event_file, errors, warnings = start_experiment_run_processing(mgi_experiment.id)
+        
+        self.assertTrue(exists(event_file))
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_service_get_run_info_for_experiment(self):
+        # Just verify that no exception is thrown
+        mgi_experiment = ExperimentRun.objects.get(name='ER-RNA-MGI-EXPERIMENT')
+        info, errors, warnings = get_run_info_for_experiment(mgi_experiment.id)
+
+        self.assertIsNotNone(info)
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+        
 
 
 
