@@ -248,7 +248,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
         derived_sample_data = dict(
             sample_kind_id=full_sample['sample_kind'],
-            tissue_source_id=full_sample['tissue_source']
+            tissue_source_id=full_sample['tissue_source'],
+            **(dict(experimental_group=[group.strip() for group in full_sample['experimental_group']]) if full_sample['experimental_group'] is not None else dict())
         )
 
         biosample_data = dict(

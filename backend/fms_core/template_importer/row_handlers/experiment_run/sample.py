@@ -8,17 +8,23 @@ class SampleRowHandler(GenericRowHandler):
         super().__init__()
 
 
-    def process_row_inner(self, barcode, coordinates, volume_used):
+    def process_row_inner(self, barcode, coordinates, volume_used, platform):
         # Calling the service creator for Samples in ExperimentRun
         sample, self.errors['container'], self.warnings['container'] = get_sample_from_container(barcode=barcode, coordinates=coordinates)
 
-        self.row_object = sample
+        if sample is not None:
+            self.row_object = sample
 
-        # Add a warning if the sample has failed qc
-        if any([sample.quality_flag is False, sample.quantity_flag is False]):
-            self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+            for derived_sample in sample.derived_samples.all():
+                if derived_sample.library is not None and platform != derived_sample.library.platform:
+                    self.errors["platform"].append(f"Library {derived_sample.biosample.alias} design ({derived_sample.library.platform.name}) "
+                                                f"does not match the experiment platform ({platform.name}).")
 
-        if not volume_used:
-            self.errors['volume_used'] = f"Volume used must be entered"
-        elif sample and volume_used > sample.volume:
-            self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample.volume})"
+            # Add a warning if the sample has failed qc
+            if any([sample.quality_flag is False, sample.quantity_flag is False]):
+                self.warnings["qc_flags"] = (f"Sample {sample.name} has failed QC.")
+
+            if not volume_used:
+                self.errors['volume_used'] = f"Volume used must be entered"
+            elif sample and volume_used > sample.volume:
+                self.errors['volume_used'] = f"Volume used ({volume_used}) exceeds the current volume of the sample ({sample.volume})"

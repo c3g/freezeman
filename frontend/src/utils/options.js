@@ -84,3 +84,14 @@ export function renderInstrumentType(i) {
     )
   }
 }
+
+export function renderMetadata(m) {
+  return {
+    value: m.name,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {m.name}
+      </div>
+    )
+  }
+}

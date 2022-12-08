@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset
+from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
 
 import django_filters
 
@@ -52,6 +52,7 @@ class SampleFilter(GenericFilter):
     derived_samples__project__name = django_filters.CharFilter(method="insensitive_batch_filter")
     qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
     is_pooled = django_filters.CharFilter(method="is_pooled_filter")
+    metadata = django_filters.CharFilter(method="metadata_filter")
 
     def process_measurement_properties_filter(self, queryset, name, value):
         property_values = PropertyValue.objects.filter(property_type__name='qPCR Status')
@@ -74,6 +75,36 @@ class SampleFilter(GenericFilter):
     def is_pooled_filter(self, queryset, name, values):
         bool_value = (values == 'true')
         return queryset.filter(is_pooled=bool_value)
+
+    def metadata_filter(self, queryset, name, values):
+        # Build dictionary of form {name1: [value1, value2], name2: [value1] }
+        metadata_dict = {}
+        for metadatum in values.split(','):
+            if metadatum:
+                # Use the string after the first '__' as the value (even if it contains '__')
+                name_value = metadatum.split('__', 1)
+                # Check that there's at least 1 '__' that separates name and value
+                if name_value and len(name_value) > 1:
+                    # Just the metadata name is given, no value
+                    if name_value[0] and not name_value[1]:
+                        metadata_dict[name_value[0]] = []
+                    # Metadata name exists in the dict (and it is not []), append value
+                    elif name_value[0] in metadata_dict.keys() and metadata_dict[name_value[0]]:
+                        metadata_dict[name_value[0]].append(name_value[1])
+                    # Metadata name is not in the dict, add first value
+                    elif name_value[0] not in metadata_dict.keys():
+                        metadata_dict[name_value[0]] = [name_value[1]]
+        # Build queryset
+        biosample_qs = Biosample.objects.all()
+        for metadata_name, metadata_values in metadata_dict.items():
+            # Meaning value was left empty
+            if not metadata_values:
+                biosample_qs = biosample_qs.filter(metadata__name=metadata_name)
+            else:
+                biosample_qs = biosample_qs.filter(metadata__name=metadata_name, metadata__value__in=metadata_values)
+        # Apply filter to sample queryset
+        biosample_ids = biosample_qs.values('id')
+        return queryset.filter(derived_samples__biosample__in=biosample_ids)
 
     class Meta:
         model = Sample

@@ -43,10 +43,19 @@ class ExperimentRunImporter(GenericImporter):
             self.base_errors.append(f"Property Type could not be found. {e}")
 
     def import_template_inner(self):
+        samples_sheet = self.sheets['Samples']
+        experiments_sheet = self.sheets['Experiments']
+        experiments_df = experiments_sheet.dataframe
+
+        # PRELOADING - Set values for global data
+        runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
+
+        self.initialize_data_for_template(runtype=runtype_name,
+                                          properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
+
         """
             SAMPLES SHEET
         """
-        samples_sheet = self.sheets['Samples']
         sample_rows_data = defaultdict(list)
         for i, row_data in enumerate(samples_sheet.rows):
             sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
@@ -58,7 +67,8 @@ class ExperimentRunImporter(GenericImporter):
             sample_kwargs = dict(
                 barcode=str_cast_and_normalize(row_data['Source Container Barcode']),
                 coordinates=str_cast_and_normalize(row_data['Source Container Coordinates']),
-                volume_used=sample['volume_used']
+                volume_used=sample['volume_used'],
+                platform=self.preloaded_data['run_type'].platform
             )
 
             (result, sample['sample_obj']) = self.handle_row(
@@ -73,16 +83,6 @@ class ExperimentRunImporter(GenericImporter):
         """
             EXPERIMENTS SHEET
         """
-        experiments_sheet = self.sheets['Experiments']
-        experiments_df = experiments_sheet.dataframe
-
-
-        # PRELOADING - Set values for global data
-        runtype_name = experiments_df.values[RUN_TYPE_INDEX][1]
-
-        self.initialize_data_for_template(runtype=runtype_name,
-                                          properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
-
         # Iterate through experiment rows
         for row_id, row in enumerate(experiments_sheet.rows):
             experiment_run_dict = {}

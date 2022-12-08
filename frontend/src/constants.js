@@ -8,7 +8,8 @@ export const FILTER_TYPE = {
   SELECT: "SELECT",
   INPUT: "INPUT",
   INPUT_NUMBER: "INPUT_NUMBER",
-  INPUT_OBJECT_ID: "INPUT_OBJECT_ID"  // A freezeman object ID - a positive integer value
+  INPUT_OBJECT_ID: "INPUT_OBJECT_ID",  // A freezeman object ID - a positive integer value
+  METADATA: "METADATA",
 }
 
 export const SEX = [

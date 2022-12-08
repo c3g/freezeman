@@ -14,7 +14,7 @@ from fms_core.services.sample import create_full_sample
 class SampleMetadataTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleMetadataImporter()
-        self.file = APP_DATA_ROOT / "Sample_metadata_v3_8_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_metadata_v3_14_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.sample1_name = 'SampleTestMetadata'
@@ -52,6 +52,7 @@ class SampleMetadataTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
+        print(result['base_errors'])
         self.assertEqual(result['valid'], True)
 
         # Sample 1 information tests
