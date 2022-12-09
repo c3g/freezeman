@@ -24,7 +24,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
     const dispatch = useDispatch()
 
     // Controls whether launch button and launch state is displayed
-    const [panelIsOpen, setPanelIsOpen] = useState(false)
+    const [panelIsOpen, setPanelIsOpen] = useState(!!experimentRunLaunch)
 
     const openLaunchPanel = () => {
       setPanelIsOpen(true)
@@ -82,7 +82,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing}>Relaunch Run</Button>
 
         return (
-          <Space>
+          <Space align='end'>
             {isFirstLaunch ? launchButton : relaunchButton}
           </Space>
         )
@@ -108,7 +108,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
 
     return (
         <Row align='middle' justify='center' wrap={false}>
-          <Col flex="auto">{getContents()}</Col>
+          <Col flex="auto" style={{'text-align': 'center'}}>{getContents()}</Col>
           <Col span="32px">{panelIsOpen ? closeButton : openButton}</Col>  
         </Row>
     )

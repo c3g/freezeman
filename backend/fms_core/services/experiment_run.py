@@ -1,6 +1,12 @@
-from xml.dom import NotFoundErr
-from django.core.exceptions import ValidationError
 from datetime import datetime
+import os
+import json
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+from django.conf import settings
+
+from fms_core.utils import make_timestamped_filename
+from fms_core.services.experiment_run_info import generate_run_info
 from ..models import ExperimentRun
 
 from .process import create_process
@@ -88,13 +94,82 @@ def create_experiment_run(experiment_run_name,
 
     return (experiment_run, errors, warnings)
 
-def launch_experiment_run(pk):
+def start_experiment_run_processing(pk):
+    '''
+    Generates a run info file for an experiment and drops it in a spool directory
+    watched by Tech Dev, which triggers run processing to be scheduled.
+
+    If the run info file is generated without error then the run_processing_launch_date
+    timestamp is updated with the current date and time.
+
+    Args:
+        The ID of the experiment.
+
+    Returns:
+        The path to the run info file that was created, and a list of errors and warnings.
+    '''
+    run_info = None
+    errors = []
+    warnings = []
+    
+    experiment_run = None
+    try:
+        experiment_run = ExperimentRun.objects.get(id=pk)
+    except ExperimentRun.DoesNotExist:
+        errors.append(f'Experiment run with id {pk} not found.')
+
+    if experiment_run is not None:
+        try:
+            run_info = generate_run_info(experiment_run)
+        except Exception as err:
+            errors.append(f'An error occured while generating experiment run info. {str(err)}')
+
+    run_info_file_path = None
+    if run_info is not None:
+        try:
+            file_name_base = (experiment_run.name if experiment_run.name else 'experiment_run') + '.json'
+            file_name = make_timestamped_filename(file_name_base)
+
+            run_info_file_path = os.path.join(settings.RUN_INFO_OUTPUT_PATH, file_name)
+
+            with open(run_info_file_path, "w", encoding="utf-8") as file:
+                json.dump(run_info, file, indent=4)
+
+            experiment_run.run_processing_launch_date = timezone.now()
+            experiment_run.save()
+        except Exception as e:
+            errors.append(f'Failed to write run info file. {str(e)}')
+               
+    return (run_info_file_path, errors, warnings)
+
+def get_run_info_for_experiment(pk):
+    '''
+    Returns a RunInfo object created for the given experiment.
+
+    This function does not modify the experiment's 'launch' status, it simply
+    generates the run info (to be downloaded by the client, for example).
+
+    Args:
+        The ID of the experiment.
+    
+    Returns:
+        RunInfo object, if successful, and a list of errors and warnings.
+    '''
+    run_info = None
     errors = []
     warnings = []
 
-    # For now, just set the launch timestamp on the experiment run...
-    experiment_run = ExperimentRun.objects.get(id=pk)
-    experiment_run.run_processing_launch_date = datetime.now()
-    experiment_run.save()
-   
-    return (experiment_run, errors, warnings)
+    experiment_run = None
+    try:
+        experiment_run = ExperimentRun.objects.get(id=pk)
+    except ExperimentRun.DoesNotExist:
+        errors.append(f'Experiment run with id {pk} not found.')
+
+    if experiment_run is not None:
+        try:
+            run_info = generate_run_info(experiment_run)
+        except Exception as e:
+            errors.append(str(e))
+    
+    return (run_info, errors, warnings)
+

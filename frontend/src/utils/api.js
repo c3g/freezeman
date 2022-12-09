@@ -1,6 +1,5 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import {refreshAuthToken} from "../modules/auth/actions";
 
 const api = {
   auth: {
@@ -58,7 +57,8 @@ const api = {
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
-    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {})
+    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
+    fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info`, {}),
   },
 
   runTypes: {

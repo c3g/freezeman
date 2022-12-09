@@ -9,7 +9,7 @@ import PaginatedTable from "../PaginatedTable";
 import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
-import {launchExperimentRun, listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/experimentRuns/actions";
+import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/experimentRuns/actions";
 import {EXPERIMENT_RUN_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";

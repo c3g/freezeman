@@ -58,6 +58,70 @@ def ints(end: int, pad_to: int = 0) -> CoordinateAxis:
 
     return tuple(str(i).zfill(pad_to) for i in range(1, end + 1))
 
+def is_alpha_digit_spec(spec: CoordinateSpec) -> bool:
+    '''Determines if a CoordinateSpec is for the alpha/digit style, eg "A01, B12, etc..."'''
+    if len(spec) == 2:
+        alphas = spec[0]
+        digits = spec[1]
+
+        all_alphas = ''.join(alphas).isalpha()
+        all_digits = ''.join(digits).isdigit()
+
+        return all_alphas and all_digits
+
+    return False
+
+def convert_alpha_digit_coord_to_ordinal(coord: str, spec: CoordinateSpec) -> int:
+    '''
+    Convert a coordinate with the alpha/digit style (eg. A01) to an integer value, starting at 1.
+    The coordinate spec must support this style of coordinate.
+    The coordinate is expected to be valid.
+    '''
+
+    # Coordinate must be at least two chars long (eg "A1")
+    if len(coord) < 2:
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - bad coord format.')
+    
+    # Spec must be for "A01" style coordinates.
+    if not is_alpha_digit_spec(spec):
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - CoordinateSpec does not support coordinate style.')
+    spec_letters = spec[0]
+    spec_digits = spec[1]
+    
+    # Collect the characters at the start of the coord.
+    letters = ''
+    digits = ''
+    for index in range(0, len(coord)):
+        if str(coord[index]).isalpha():
+            letters += coord[index]
+        else:
+            # Break on first digit and grab the remainder of the string
+            digits = coord[index:]
+            break
+
+    if len(letters) == 0:
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - no letters were found.')
+
+    if (len(digits) == 0):
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - no digits were found.')
+
+    alpha_offset = 0
+    try:
+        # Find the index of the letter (or letters) in the spec
+        letter_index = spec_letters.index(letters)
+        # Compute the offset of that letter (number of "rows" of length N)
+        alpha_offset = letter_index * len(spec_digits)
+    except:
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+
+    # Convert the digits to an int value
+    digit_offset = 0
+    try:
+        digit_offset = int(digits)
+    except:
+        raise CoordinateError(f'Cannot convert coord {coord} to ordinal - does not match coordinate spec.')
+
+    return alpha_offset + digit_offset
 
 def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str:
     """
