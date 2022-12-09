@@ -529,7 +529,7 @@ class SampleServicesTestCase(TestCase):
           "TestField__Invalid": "You are a tomato.",
         }
         metadata_added, errors, warnings = add_sample_metadata(sample=new_sample, metadata=metadata)
-        self.assertTrue("Double underscore i.e '__' are not allowed when naming metadata fields." in errors[0].messages)
+        self.assertTrue("Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields.. Note that double underscore i.e '__' are not allowed." in errors[0].messages)
         self.assertEqual(new_sample.derived_samples.first().biosample.metadata.all().count(), 0)
 
     def test_update_sample_metadata(self):
