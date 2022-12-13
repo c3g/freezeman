@@ -10,8 +10,8 @@ export default function FiltersWarning({ nFilters, filters, description }) {
   if (nFilters === 0)
     return null
   return (
-    <Tooltip title={<FiltersInfos filters={filters} description={description}/>}>
-      <span style={{marginTop: 12}}>
+    <Tooltip placement={'bottom'} title={<FiltersInfos filters={filters} description={description}/>}>
+      <span style={{marginTop: 12, position:'absolute', marginRight: '8rem', right: 0}}>
         <Text type="warning"
           style={{
             marginLeft: 8,

@@ -75,6 +75,17 @@ export default function serializeFilterParams(filters, descriptions) {
         break;
       }
 
+      case FILTER_TYPE.METADATA:   {
+        if(value) {
+          //Serialize key-value metadata pairs in a string
+          //with the form: name1__value1, name2__value2, name2__value3, etc
+          params[key]  = value.reduce((serializedMetadata, metadata) => {
+            return serializedMetadata + metadata.name + '__' + (metadata.value ? metadata.value : '')  + ','
+          }, '')
+        }
+        break;
+      }
+
       default: {
         throw new Error('Invalid filter type')
       }

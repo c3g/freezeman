@@ -145,7 +145,13 @@ export const SAMPLE_FILTERS = {
       { label: "Yes", value: "true" },
       { label: "No",  value: "false" },
     ]
-  }
+  },
+  metadata: {
+    type: FILTER_TYPE.METADATA,
+    key: "metadata",
+    label: "Metadata",
+    detached:true,
+  },
 }
 
 export const CONTAINER_FILTERS = {
@@ -451,6 +457,11 @@ export const LIBRARY_FILTERS = {
     key: "derived_samples__library__library_type__name",
     label: "Library Type",
   },
+  derived_samples__library__library_selection__target: {
+    type: FILTER_TYPE.INPUT,
+    key: "derived_samples__library__library_selection__target",
+    label: "Library Selection Target",
+  },
   derived_samples__library__index__name: {
     type: FILTER_TYPE.INPUT,
     key: "derived_samples__library__index__name",
@@ -617,11 +628,15 @@ export const POOLED_SAMPLES_FILTERS = {
       key: "volume_ratio",
       label: "Volume Ratio"
     },
-
     library_type: {
       type: FILTER_TYPE.INPUT,
       key: "derived_sample__library__library_type__name",
       label: "Library Type"
+    },
+    library_selection_target: {
+      type: FILTER_TYPE.INPUT,
+      key: "derived_sample__library__library_selection__target",
+      label: "Selection Target"
     },
     library_size: {
       type: FILTER_TYPE.RANGE,

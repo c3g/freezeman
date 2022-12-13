@@ -164,6 +164,8 @@ export const library = {
   project: null, // project.id
   depleted: false,
   library_type: "", // string(200)
+  library_selection: "", // string(200)
+  library_selection_target: "", // string(200)
   platform: "", // string(200)
   index: "", // string(200)
   library_size: null, // int

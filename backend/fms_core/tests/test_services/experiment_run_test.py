@@ -7,7 +7,8 @@ from fms_core.models import (
     PropertyType,
     InstrumentType,
     SampleKind,
-    ProcessMeasurement
+    ProcessMeasurement,
+    Protocol,
 )
 
 from fms_core.tests.constants import create_container
@@ -76,7 +77,9 @@ class ExperimentRunServicesTestCase(TestCase):
             "Read 1 Cycles": {"property_type_obj": "", "value": "pm kit"},
         }
 
-        for o in list(PropertyType.objects.filter(name__in=self.properties.keys())):
+        self.protocol = Protocol.objects.get(name="DNBSEQ Preparation")
+
+        for o in list(PropertyType.objects.filter(name__in=self.properties.keys(), object_id=self.protocol.id)):
             self.properties[o.name]['property_type_obj'] = o
 
     def test_experiment_run(self):

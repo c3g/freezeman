@@ -21,3 +21,6 @@ htmlcov/
 ~$*
 .DS_Store
 venv
+
+# Default run info output folder. Ignore json run info files.
+lims-run-info/*.json

@@ -144,7 +144,7 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperimentRun
-        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date')
+        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date', 'run_processing_launch_date')
 
 
 class RunTypeSerializer(serializers.ModelSerializer):
@@ -538,6 +538,8 @@ class PooledSampleSerializer(serializers.Serializer):
     index_set = serializers.CharField(read_only=True, source='derived_sample.library.index.index_set.name')
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
+    library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
     platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
 
@@ -554,7 +556,9 @@ class PooledSampleSerializer(serializers.Serializer):
             'individual_id',
             'individual_name',
             'library_size',
-            'library_type', 
+            'library_type',
+            'library_selection',
+            'library_selection_target',
             'parent_sample_id', 
             'parent_sample_name', 
             'platform',
@@ -601,6 +605,8 @@ class PooledSampleExportSerializer(serializers.Serializer):
     index_sequences_5prime = serializers.SerializerMethodField()
     library_size = serializers.DecimalField(read_only=True, max_digits=20, decimal_places=0, source='derived_sample.library.library_size')
     library_type = serializers.CharField(read_only=True, source='derived_sample.library.library_type.name')
+    library_selection = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.name')
+    library_selection_target = serializers.CharField(read_only=True, source='derived_sample.library.library_selection.target')
     platform = serializers.CharField(read_only=True, source='derived_sample.library.platform.name')
     strandedness = serializers.CharField(read_only=True, source='derived_sample.library.strandedness')
 
@@ -631,7 +637,9 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'project_id', 
             'project_name',
             'library_size',
-            'library_type', 
+            'library_type',
+            'library_selection',
+            'library_selection_target',
             'platform',
             'index_set',
             'index',

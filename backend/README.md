@@ -44,26 +44,36 @@ Python package dependencies are listed in `requirements.txt`.
      export PG_HOST=127.0.0.1
      export PG_PORT=5432
      ```
-     
-  3. Install the [pg_fzy](#pg_fzy) extension for the database:
+
+  3. By default, experiment run info files are dropped into a folder in the
+  project, `./backend/lims-run-info`. If you want to change that, you can create
+  a `FMS_RUN_INFO_PATH` environment variable pointing to a different directory.
+  For linux/Mac, this can be added to your shell configuration.
+
+      ```bash
+      FMS_RUN_INFO_PATH=~/my-lims-run-info
+      export FMS_RUN_INFO_PATH
+      ```
+    
+  4. Install the [pg_fzy](#pg_fzy) extension for the database:
   
      ```bash
      cd backend/dependencies/pg_fzy && make && sudo make install
      ```
     
-  4. Run any outstanding migrations:
+  5. Run any outstanding migrations:
   
      ```bash
      python ./manage.py migrate
      ```
     
-  5. Create an application superuser:
+  6. Create an application superuser:
   
      ```bash
      python ./manage.py createsuperuser
      ```
     
-  6. Run the development server:
+  7. Run the development server:
   
      ```bash
      python ./manage.py runserver
@@ -111,6 +121,9 @@ coverage run ./manage.py test -v 2
   * Make sure to set `FMS_DEBUG=False` and `FMS_HOST=your.domain.org` in the
     production environment **for security reasons** and for the site to 
     function correctly
+
+  * Set the `FMS_RUN_INFO_PATH` variable to point to a directory where Freezeman
+    will output run info files to trigger run processing.
     
   * Configure the Postgres connection using any of the following environment
     variables, where the default value is not sufficient:
@@ -131,7 +144,7 @@ coverage run ./manage.py test -v 2
 
 ## Database diagram
 
-[Database Schema Diagram](https://dbdiagram.io/d/60257e2080d742080a3a32af)
+[Database Schema Diagram](https://dbdiagram.io/d/6025783680d742080a3a31d7)
 
 
 ## pg_fzy

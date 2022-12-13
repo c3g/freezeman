@@ -12,9 +12,10 @@ class InstrumentServicesTestCase(TestCase):
         self.instrument_type = InstrumentType.objects.get(type="DNBSEQ-T7")
 
         self.instrument_name = "T7_Example"
+        self.instrument_serial_id = "Test101"
         self.invalid_instrument_name = "T7_Not_Created"
         self.invalid_instrument_type = "NOT_A_T7"
-        Instrument.objects.get_or_create(name=self.instrument_name, type=self.instrument_type)
+        Instrument.objects.get_or_create(name=self.instrument_name, type=self.instrument_type, serial_id=self.instrument_serial_id)
 
     def test_get_instrument(self):
         """
@@ -24,6 +25,8 @@ class InstrumentServicesTestCase(TestCase):
 
         self.assertEqual(instrument.name, self.instrument_name)
         self.assertEqual(instrument.type, self.instrument_type)
+        self.assertEqual(instrument.serial_id, self.instrument_serial_id)
+
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 

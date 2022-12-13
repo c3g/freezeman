@@ -10,7 +10,10 @@ __all__ = [
     "CONTAINER_MOVE_TEMPLATE",
     "CONTAINER_RENAME_TEMPLATE",
     "EXPERIMENT_INFINIUM_TEMPLATE",
+    "EXPERIMENT_ILLUMINA_TEMPLATE",
     "INDEX_CREATION_TEMPLATE",
+    "LIBRARY_CAPTURE_TEMPLATE",
+    "LIBRARY_CONVERSION_TEMPLATE",
     "LIBRARY_PREPARATION_TEMPLATE",
     "LIBRARY_QC_TEMPLATE",
     "NORMALIZATION_TEMPLATE",
@@ -28,7 +31,7 @@ __all__ = [
 MAX_HEADER_OFFSET = 20
 
 CONTAINER_CREATION_TEMPLATE = {
-  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_5_0.xlsx")},
+  "identity": {"description": "Template to add containers", "file": static("submission_templates/Container_creation_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'ContainerCreation',
@@ -91,6 +94,15 @@ EXPERIMENT_MGI_TEMPLATE = {
       ("Samples", "Source Container Coordinates", "coordinates"),],
 }
 
+EXPERIMENT_ILLUMINA_TEMPLATE = {
+  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_illumina_v3_14_0.xlsx")},
+  "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
+  "prefill info": [
+      ("Samples", "Source Sample Name", "name"),
+      ("Samples", "Source Container Barcode", "container__barcode"),
+      ("Samples", "Source Container Coordinates", "coordinates"),],
+}
+
 INDEX_CREATION_TEMPLATE = {
   "identity": {"description": "Template to create indices", "file": static("submission_templates/Index_creation_v3_7_0.xlsx")},
   "sheets info": [
@@ -99,6 +111,29 @@ INDEX_CREATION_TEMPLATE = {
           'headers': ['Set Name', 'Index Name', 'Index Structure', 'Index 3 Prime', 'Index 5 Prime'],
       },],
   "prefill info": [],
+}
+
+LIBRARY_CAPTURE_TEMPLATE = {
+  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v3_14_0.xlsx")},
+  "sheets info": [
+      {
+          'name': 'Capture Batch',
+          'headers': ['Capture Batch ID', 'Capture Type', 'Capture Date (YYYY-MM-DD)', 'Comment',
+                      'Capture Technician Name', 'Library Kit Used', 'Library Kit Lot',
+                      'Baits Used', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+      },
+      {
+          'name': 'Library',
+          'headers': ['Capture Batch ID', 'Library Name', 'Source Container Barcode', 'Source Container Coordinates',
+                      'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
+                      'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
+                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+      },
+  ],
+  "prefill info": [
+      ("Library", "Library Name", "name"),
+      ("Library", "Source Container Barcode", "container__barcode"),
+      ("Library", "Source Container Coordinates", "coordinates"),],
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
@@ -174,14 +209,14 @@ LIBRARY_QC_TEMPLATE = {
 }
 
 NORMALIZATION_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_10_0.xlsx")},
+  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_14_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
         'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
-                    'Destination Parent Container Coord', 'Source Depleted', 'Volume Used (uL)', 'Volume (uL)',
+                    'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Volume Used (uL)', 'Volume (uL)',
                     'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment'],
       },
   ],
@@ -189,6 +224,7 @@ NORMALIZATION_TEMPLATE = {
       ("Normalization", "Sample Name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode"),
       ("Normalization", "Source Container Coord", "coordinates"),
+      ("Normalization", "Initial Conc. (ng/uL)", "concentration"),
   ],
 }
 
@@ -216,7 +252,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
 }
 
 SAMPLE_METADATA_TEMPLATE = {
-  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_8_0.xlsx")},
+  "identity": {"description": "Template to add metadata to samples", "file": static("submission_templates/Sample_metadata_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'Metadata',
@@ -252,7 +288,7 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_13_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_14_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
@@ -260,7 +296,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
-                      'Index Set', 'Index', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
       },
       {
           "name": "PoolSubmission",

@@ -224,7 +224,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onFocus={onFocusSampleKind}
             />
           </Form.Item>
-          <Form.Item label="Tissue Source" {...props("tissue_source")} s>
+          <Form.Item label="Tissue Source" {...props("tissue_source")}>
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -275,8 +275,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           >
             <InputNumber step={0.001} />
           </Form.Item>
-          <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
-            <Select mode="tags" disabled={!isAdding} />
+          <Form.Item label="Exp. Group" {...props("experimental_group")}>
+            <Select mode="tags" />
           </Form.Item>
           <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete

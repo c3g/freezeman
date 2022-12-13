@@ -10,16 +10,17 @@ import ExportButton from "../ExportButton";
 
 import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/experimentRuns/actions";
-import {EXPERIMENT_RUN_FILTERS, SAMPLE_FILTERS} from "../filters/descriptions";
+import {EXPERIMENT_RUN_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
 import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {withContainer} from "../../utils/withItem";
 import {actionDropdown} from "../../utils/templateActions";
+import ExperimentRunLaunchCard from "./ExperimentRunLaunchCard"
 
 
-const getTableColumns = (containersByID, runTypes, instruments) => [
+const getTableColumns = (containersByID, runTypes, instruments, launchesById) => [
   {
     title: "ID",
     dataIndex: "id",
@@ -58,14 +59,6 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
       <div>{experimentRun.instrument_type}</div>,
   },
   {
-    title: "Container Name",
-    dataIndex: "container__name",
-    sorter: true,
-    render: (_, experimentRun) =>
-      (experimentRun.container &&
-        withContainer(containersByID, experimentRun.container, container => container.name, "loading...")),
-  },
-  {
     title: "Container Barcode",
     dataIndex: "container__barcode",
     sorter: true,
@@ -80,7 +73,16 @@ const getTableColumns = (containersByID, runTypes, instruments) => [
     sorter: true,
     width: 180,
   },
-
+  {
+    title: "Launch",
+    dataIndex: "run_processing_launch_date",
+    sorter: true,
+    render: (_, experimentRun) => (
+      <div style={{minWidth: "12rem"}}>
+        <ExperimentRunLaunchCard experimentRun={experimentRun} experimentRunLaunch={launchesById[experimentRun.id]}/>
+      </div>
+    )
+  },
 ];
 
 const mapStateToProps = state => ({
@@ -88,6 +90,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   experimentRunsByID: state.experimentRuns.itemsByID,
   experimentRuns: state.experimentRuns.items,
+  launchesById: state.experimentRunLaunches.launchesById,
   runTypes: state.runTypes,
   instruments: state.instruments,
   page: state.experimentRuns.page,
@@ -105,6 +108,7 @@ const ExperimentRunsListContent = ({
   containersByID,
   experimentRuns,
   experimentRunsByID,
+  launchesById,
   runTypes,
   instruments,
   isFetching,
@@ -119,13 +123,13 @@ const ExperimentRunsListContent = ({
   clearFilters,
   setSortBy,
 }) => {
+
   const listExport = () =>
     withToken(token, api.experimentRuns.listExport)
     (mergedListQueryParams(EXPERIMENT_RUN_FILTERS, filters, sortBy))
       .then(response => response.data)
 
-
-  const columns = getTableColumns(containersByID, runTypes, instruments)
+  const columns = getTableColumns(containersByID, runTypes, instruments, launchesById)
   .map(c => Object.assign(c, getFilterProps(
     c,
     EXPERIMENT_RUN_FILTERS,
