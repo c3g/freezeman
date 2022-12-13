@@ -31,6 +31,10 @@ const FiltersInfos = ({
         if (value !== "")
           return value
         throw new Error('MIN and MAX values not defined for Filter range')
+      case FILTER_TYPE.METADATA:
+        return valuesArray.reduce((metadataString, metadata) => {
+          return metadataString + metadata.name + ": " + (metadata.value ? metadata.value : "*") + ', '
+        }, '')
       default:
         return valuesArray.join(', ')
     }
@@ -38,8 +42,8 @@ const FiltersInfos = ({
 
   return (
     <>
-      {appliedFilters.map(key => (
-        <div>
+      {appliedFilters.map((key, index) => (
+        <div key={`${key}${index}`}>
           <strong>{description[key].label}: </strong>
           {getValue(key)}
         </div>

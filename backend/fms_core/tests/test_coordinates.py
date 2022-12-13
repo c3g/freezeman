@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..coordinates import CoordinateError, alphas, ints, validate_and_normalize_coordinates
+from ..coordinates import CoordinateError, alphas, convert_alpha_digit_coord_to_ordinal, ints, validate_and_normalize_coordinates
 
 
 class CoordinateTestCase(TestCase):
@@ -70,3 +70,20 @@ class CoordinateTestCase(TestCase):
         for iv in ("1A", "I12", "A13", "CC", "231", "  "):
             with self.assertRaises(CoordinateError):
                 validate_and_normalize_coordinates(iv, cs)
+
+    def test_alpha_digit_ordinal(self):
+        cs = (alphas(2), ints(10))
+
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("A01", cs), 1)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("A02", cs), 2)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("A10", cs), 10)
+
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B01", cs), 11)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B02", cs), 12)
+        self.assertEqual(convert_alpha_digit_coord_to_ordinal("B10", cs), 20)
+
+        for invalid in ("", "A", "0", "AA", "00", "A9B"):
+            with self.assertRaises(CoordinateError):
+                convert_alpha_digit_coord_to_ordinal(invalid, cs)
+        
+        

@@ -1,0 +1,89 @@
+import React from "react";
+import {connect} from "react-redux";
+import FilterSelect from "./FilterSelect";
+import FilterRange from "./FilterRange";
+import FilterInput from "./FilterInput";
+import FilterMetadata from "./FilterMetadata";
+import {FILTER_TYPE} from "../../../constants";
+
+const style = {}
+
+const mapStateToProps = state => ({
+  containersKinds: state.containerKinds.items,
+});
+
+const actionCreators = {};
+
+const FilterGroup = ({
+  descriptions,
+  values,
+  onChangeFilter,
+  containersKinds,
+}) => {
+  const optionsForSelect = (item) => {
+    switch(item.key){
+      case "kind__in":
+        return containersKinds.map(x => ({ label: x.id, value: x.id }))
+      default:
+        return item.options || []
+    }
+  }
+
+  return (
+    <div style={style}>
+      {
+        Object.entries(descriptions).map(([name, item]) => {
+          switch(item.type){
+            case FILTER_TYPE.SELECT:
+              return (
+                <FilterSelect
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  value={values[item.key]?.value}
+                  options={optionsForSelect(item)}
+                  onChange={onChangeFilter}
+                />
+              );
+            case FILTER_TYPE.INPUT:
+              return (
+                <FilterInput
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  value={values[item.key]?.value}
+                  width={item.width}
+                  onChange={onChangeFilter}
+                />
+              );
+            case FILTER_TYPE.RANGE:
+              return (
+                <FilterRange
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  value={values[item.key]?.value}
+                  onChange={onChangeFilter}
+                />
+              );
+            case FILTER_TYPE.METADATA:
+              return(
+                <FilterMetadata
+                  key={item.key}
+                  name={name}
+                  item={item}
+                  options={optionsForSelect(item)}
+                  value={values[item.key]?.value}
+                  onChange={onChangeFilter}
+                />
+              );
+            default:
+              throw new Error('Filter type not handled');
+          }
+        })
+      }
+    </div>
+  );
+};
+
+export default connect(mapStateToProps, actionCreators)(FilterGroup);

@@ -29,6 +29,7 @@ import SamplesAssociatedProjects from "../SamplesAssociatedProjects";
 import { Depletion } from "../../Depletion";
 import SampleDetailsProcessMeasurements from "./SampleDetailsProcessMeasurements";
 import SampleDetailsLineage from "./SampleDetailsLineage";
+import SampleDetailsPool from './SampleDetailsPool'
 import { get as getSample, listVersions } from "../../../modules/samples/actions";
 import { get as getLibrary } from "../../../modules/libraries/actions";
 import api, { withToken } from "../../../utils/api";
@@ -37,11 +38,10 @@ import {
   withSample,
   withIndividual,
   withProcessMeasurement,
-  withProject,
-  withLibrary,
   withIndex
 } from "../../../utils/withItem";
 import ExperimentRunsListSection from "../../shared/ExperimentRunsListSection";
+import useHashURL from "../../../hooks/useHashURL";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -129,6 +129,23 @@ const SampleDetailsContent = ({
   const quantity = library && library.quantity_ng ? parseFloat(library.quantity_ng).toFixed(3) : undefined
   const concentration_nm = library && library.concentration_nm ? parseFloat(library.concentration_nm).toFixed(3) : undefined
   const [sampleMetadata, setSampleMetadata] = useState([])
+  const [activeKey, setActiveKey] = useHashURL('overview')
+
+
+  // Navigate to a sample when the sample's node is clicked in the lineage graph.
+  const navigateToSample = (sample_id) => {
+    if (sample_id) {
+      history(`/samples/${sample_id}#lineage`)
+    }
+  }
+
+  // Navigate to a process measurement when the user clicks an edge
+  // in the lineage graph.
+  const navigateToProcess = (process_id) => {
+    if (process_id) {
+      history(`/process-measurements/${process_id}`)
+    }
+  }
 
   // TODO: This spams API requests
   if (!samplesByID[id])
@@ -178,8 +195,8 @@ const SampleDetailsContent = ({
       {error &&
         <ErrorMessage error={error} />
       }
-      <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
-        <TabPane tab="Overview" key="1" style={tabStyle}>
+      <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+        <TabPane tab="Overview" key="overview" style={tabStyle}>
           <Descriptions bordered={true} size="small">
             <Descriptions.Item label="ID">{sample.id}</Descriptions.Item>
             <Descriptions.Item label="Name">{sample.name}</Descriptions.Item>
@@ -255,13 +272,18 @@ const SampleDetailsContent = ({
                 <Descriptions.Item label="Library Type">{library?.library_type}</Descriptions.Item>
                 <Descriptions.Item label="Platform">{library?.platform}</Descriptions.Item>
                 <Descriptions.Item label="Index">
-                  <Link to={`/samples/${sample.extracted_from}`}>
+                  {library?.index && 
+                  <Link to={`/indices/${library?.index}`}>
                     {withIndex(indicesByID, library?.index, index => index.name, "Loading...")}
-                  </Link>
+                  </Link>}
                 </Descriptions.Item>
                 <Descriptions.Item label="Library Size (bp)">{library?.library_size}</Descriptions.Item>
                 <Descriptions.Item label="Concentration (nM)">{library?.concentration_nm && concentration_nm}</Descriptions.Item>
                 <Descriptions.Item label="NA Quantity (ng)">{library?.quantity_ng && quantity}</Descriptions.Item>
+              </Descriptions>
+              <Descriptions bordered={true} size="small" style={{ marginTop: "24px" }}>
+                <Descriptions.Item label="Library Selection Method">{library?.library_selection}</Descriptions.Item>
+                <Descriptions.Item label="Library Selection Target">{library?.library_selection_target}</Descriptions.Item>
               </Descriptions>
             </>
           ) : null}
@@ -301,32 +323,39 @@ const SampleDetailsContent = ({
           </Row>
         </TabPane>
 
-        <TabPane tab={`Processes (${processMeasurements.length})`} key="2" style={tabStyle}>
-          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements} />
+        <TabPane tab={`Processes (${processMeasurements.length})`} key="processes" style={tabStyle}>
+          <SampleDetailsProcessMeasurements processMeasurements={processMeasurements}/>
         </TabPane>
 
-        <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="3" style={tabStyle}>
-          <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
+        <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="experiment" style={tabStyle}>
+           <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />
         </TabPane>
 
-        <TabPane tab={"Associated Projects"} key="4" style={tabStyle}>
+        <TabPane tab={"Associated Projects"} key="associated-projects" style={tabStyle}>
           <SamplesAssociatedProjects sampleID={sample.id} />
         </TabPane>
 
-        <TabPane tab={`Metadata`} key="5" style={tabStyle}>
-          <Title level={5} style={{ marginTop: '1rem' }}> Metadata </Title>
+        <TabPane tab={`Metadata`} key="metadata" style={tabStyle}>
+          <Title level={5} style={{ marginTop: '1rem'}}> Metadata </Title>
           <Descriptions bordered={true} size="small">
             {
-              sampleMetadata.map(metadata => {
-                return <Descriptions.Item label={metadata?.name}>{metadata?.value} </Descriptions.Item>
+              sampleMetadata.map((metadata, index) => {
+                return <Descriptions.Item key={index} label={metadata?.name}>{metadata?.value} </Descriptions.Item>
               })
             }
 
           </Descriptions>
         </TabPane>
 
-        <TabPane tab={`Lineage`} key="6" style={tabStyle}>
-          <SampleDetailsLineage sample={sample} />
+        <TabPane tab={`Lineage`} key="lineage" style={tabStyle}>
+          <SampleDetailsLineage sample={sample} 
+            handleSampleClick={navigateToSample}
+            handleProcessClick={navigateToProcess}
+          />
+        </TabPane>
+
+        <TabPane tab={`Pool`} key="pool" style={tabStyle}>
+          <SampleDetailsPool sample={sample}></SampleDetailsPool>
         </TabPane>
       </Tabs>
 

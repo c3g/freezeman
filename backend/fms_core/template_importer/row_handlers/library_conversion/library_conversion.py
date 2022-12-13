@@ -23,6 +23,10 @@ class LibraryRowHandler(GenericRowHandler):
                 get_sample_from_container(barcode=library_source['barcode'], coordinates=library_source['coordinates'])
 
             if sample_source_obj:
+                # Add a warning if the sample has failed qc
+                if any([sample_source_obj.quality_flag is False, sample_source_obj.quantity_flag is False]):
+                    self.warnings["qc_flags"] = (f"Source library {sample_source_obj.name} has failed QC.")
+
                 # Populate the libraries with the batch and  individual information
                 container_coordinates = container['coordinates']
 
@@ -53,7 +57,7 @@ class LibraryRowHandler(GenericRowHandler):
                 # Retrieve process
                 process_obj = process_by_protocol[protocol.id]
 
-                library_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
+                sample_destination, self.errors['library_conversion'], self.warnings['library_conversion'] = \
                     convert_library(process=process_obj,
                                     platform=library_info['platform'],
                                     sample_source=sample_source_obj,

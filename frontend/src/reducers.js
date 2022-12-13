@@ -24,6 +24,9 @@ import {
   samples,
 } from "./modules/samples/reducers";
 import {
+  pooledSamples
+} from "./modules/pooledSamples/reducers"
+import {
   processes
 } from "./modules/processes/reducers"
 import {
@@ -40,6 +43,7 @@ import {
   instruments,
   propertyValues,
   experimentRunTemplateActions,
+  experimentRunLaunches
 } from "./modules/experimentRuns/reducers";
 import {
   projectsSummary,
@@ -96,6 +100,7 @@ const allReducers = combineReducers({
   datasets,
   datasetFiles,
   experimentRuns,
+  experimentRunLaunches,
   experimentRunTemplateActions,
   runTypes,
   individuals,
@@ -106,6 +111,7 @@ const allReducers = combineReducers({
   sampleTemplateActions,
   samplePrefillTemplates,
   samples,
+  pooledSamples,
   protocols,
   processes,
   processMeasurementsSummary,

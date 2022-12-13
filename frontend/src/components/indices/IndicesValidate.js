@@ -1,19 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { connect } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Button,
-  Form,
-  Input,
-  InputNumber,
-  Select,
   Cascader,
   Divider,
-  Typography
+  Form,
+  InputNumber,
+  Select,
+  Space
 } from "antd";
-const { Option } = Select
-const { Text } = Typography;
 import { RedoOutlined } from '@ant-design/icons';
 
 import AppPageHeader from "../AppPageHeader";
@@ -130,6 +127,10 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
         setFormErrors(err.data || {})
       })
   }
+
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
 
   /*
    * Render
@@ -282,15 +283,16 @@ const IndicesValidate = ({ token, indicesTotalCount, isFetching, list, validate 
                 }
               />
             }
-            <Button
-              type="primary"
-              htmlType="submit"
-              disabled={!allIndicesLoaded}
-              loading={validationLoading}
-              style={{ float: 'right', marginRight: '25rem' }}
-            >
-              Submit
-            </Button>
+            <Space>
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={!allIndicesLoaded}
+                loading={validationLoading}
+              >Submit</Button>
+              <Button onClick={onCancel}>Cancel</Button>
+            </Space>
+           
           </Form>
         }
       </PageContent>

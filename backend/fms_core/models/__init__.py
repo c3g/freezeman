@@ -8,7 +8,6 @@ from .individual import Individual
 from .sample import Sample
 from .sample_kind import SampleKind
 from .sample_lineage import SampleLineage
-from .sample_by_project import SampleByProject
 from .protocol import Protocol
 from .process import Process
 from .process_measurement import ProcessMeasurement
@@ -28,6 +27,7 @@ from .sequencebyindex3prime import SequenceByIndex3Prime
 from .sequencebyindex5prime import SequenceByIndex5Prime
 from .library import Library
 from .library_type import LibraryType
+from .library_selection import LibrarySelection
 from .taxon import Taxon
 from .sample_metadata import SampleMetadata
 from .id_generator import IdGenerator
@@ -44,7 +44,6 @@ __all__ = [
     "Sample",
     "SampleKind",
     "SampleLineage",
-    "SampleByProject",
     "SampleMetadata",
     "Protocol",
     "Process",
@@ -65,6 +64,7 @@ __all__ = [
     "SequenceByIndex5Prime",
     "Library",
     "LibraryType",
+    "LibrarySelection",
     "Taxon",
     "IdGenerator",
     "Dataset",

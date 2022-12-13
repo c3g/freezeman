@@ -20,6 +20,7 @@ export default function serializeFilterParams(filters, descriptions) {
       return
 
     switch (description.type) {
+
       case FILTER_TYPE.DATE_RANGE:
       case FILTER_TYPE.RANGE: {
         if (value) {
@@ -70,6 +71,17 @@ export default function serializeFilterParams(filters, descriptions) {
         if(value) {
           key += "__in"
           params[key] = value
+        }
+        break;
+      }
+
+      case FILTER_TYPE.METADATA:   {
+        if(value) {
+          //Serialize key-value metadata pairs in a string
+          //with the form: name1__value1, name2__value2, name2__value3, etc
+          params[key]  = value.reduce((serializedMetadata, metadata) => {
+            return serializedMetadata + metadata.name + '__' + (metadata.value ? metadata.value : '')  + ','
+          }, '')
         }
         break;
       }

@@ -1,3 +1,5 @@
+from django.db import models
+
 __all__ = ["STANDARD_NAME_FIELD_LENGTH"]
 
 STANDARD_NAME_FIELD_LENGTH = 200
@@ -12,8 +14,6 @@ SSDNA_MW = DSDNA_MW / 2
 INDEX_READ_FORWARD = "FORWARD"
 INDEX_READ_REVERSE = "REVERSE"
 INDEX_READ_DIRECTIONS_CHOICES = ((INDEX_READ_FORWARD, INDEX_READ_FORWARD), (INDEX_READ_REVERSE, INDEX_READ_REVERSE))
-
-from django.db import models
 
 class ReleaseStatus(models.IntegerChoices):
     AVAILABLE = 0

@@ -6,7 +6,7 @@ import datetime
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import SampleKind, SampleByProject, Taxon
+from fms_core.models import SampleKind, Taxon, DerivedSample
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
@@ -23,8 +23,9 @@ class ProjectLinkSamplesTestCase(TestCase):
         ContentType.objects.clear_cache()
 
         self.invalid_template_tests = ["Project_link_samples_v3_5_0_invalid_project.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
+                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",]
+
+        self.warning_template_tests = ["Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
                                        "Project_link_samples_v3_5_0_invalid_sample_3.xlsx",]
 
         #Projects for Link
@@ -75,17 +76,24 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        self.assertEqual(len(SampleByProject.objects.all()), 3)
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample1, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project1).exists())
-        self.assertTrue(SampleByProject.objects.filter(sample=self.sample2, project=self.project2).exists())
-        self.assertFalse(SampleByProject.objects.filter(sample=self.sample1, project=self.project2).exists())
-        self.assertFalse(SampleByProject.objects.filter(sample=self.sample3, project=self.project3).exists())
+        self.assertEqual(len(DerivedSample.objects.filter(project__isnull=False).all()), 2)
+        self.assertTrue(DerivedSample.objects.filter(samples=self.sample1, project=self.project3).exists())
+        self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
+        self.assertTrue(DerivedSample.objects.filter(samples=self.sample2, project=self.project2).exists())
+        self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
 
     def test_invalid_project_link_samples(self):
         for f in self.invalid_template_tests:
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)
+            transaction.savepoint_rollback(s)
+
+    def test_warning_project_link_samples(self):
+        for f in self.warning_template_tests:
+            s = transaction.savepoint()
+            result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            self.assertEqual(result['valid'], True)
+            self.assertEqual(len(result["result_previews"][0]["rows"][0]['warnings']), 1)
             transaction.savepoint_rollback(s)
 

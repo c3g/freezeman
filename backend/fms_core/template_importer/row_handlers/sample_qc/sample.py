@@ -22,6 +22,10 @@ class SampleQCRowHandler(GenericRowHandler):
         )
 
         if sample_obj:
+            # Check if sample is not a library or a pool of libraries
+            if sample_obj.is_library:
+                self.errors['source_sample'] = f"Source sample can't be a library or a pool of libraries."
+
             # Update sample with sample_information
             new_volume = None
             if all([sample_information['initial_volume'], sample_information['measured_volume'],
@@ -43,6 +47,10 @@ class SampleQCRowHandler(GenericRowHandler):
             _, self.errors['flags'], self.warnings['flags'] = update_qc_flags(sample=sample_obj,
                                                                               quantity_flag=sample_information['quantity_flag'],
                                                                               quality_flag=sample_information['quality_flag'])
+
+            # Add a warning if the sample has failed qc
+            if any([sample_information['quantity_flag'] == 'Failed', sample_information['quality_flag'] == 'Failed']):
+                self.warnings["flags"] = (f"QC flags of source sample {sample_obj.name} will be overwritten with a failed QC.")
 
             process_measurement_obj, self.errors['process_measurement'], self.warnings['process_measurement'] = \
                 create_process_measurement(
@@ -72,7 +80,7 @@ class SampleQCRowHandler(GenericRowHandler):
                         self.errors['instrument'] = f'Invalid instrument {type}.'
 
                 # Validate required RIN for RNA
-                if sample_obj.derived_sample_not_pool.sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
+                if sample_obj.derived_samples.first().sample_kind.name == 'RNA' and process_measurement_properties['RIN']['value'] is None:
                     self.errors['RIN'] = 'RIN has to be specified for RNA.'
 
 

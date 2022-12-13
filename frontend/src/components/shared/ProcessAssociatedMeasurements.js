@@ -84,9 +84,14 @@ const ProcessAssociatedMeasurements = ({
 }) => {
   const { id } = process;
 
-  const sample_property_types = process ? protocolsByID[process.protocol].property_types.filter((property_type) => {
-    return property_type.model === "processmeasurement"
-  }) : [];
+  
+  // Note: on page reload, protocols might still be loading while this render function is called
+  // so we can't assume that the process protocol will exist.
+  let sample_property_types = []
+  const protocol = protocolsByID[process.protocol]
+  if (protocol) {
+    sample_property_types = protocol.property_types.filter(property_type => property_type.model === "processmeasurement")
+  }
 
   const filterKey = PROCESS_MEASUREMENT_FILTERS.process.key
   

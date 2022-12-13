@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -11,9 +11,9 @@ import {
   Input,
   InputNumber,
   Select,
+  Space,
   Switch,
 } from "antd";
-const { Option } = Select
 const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
@@ -171,6 +171,10 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       .then(() => Promise.all([listTable(), summary()]))
   }
 
+  const onCancel = useCallback(() => {
+    history(-1)
+  }, [history])
+
 
   /*
    * Render
@@ -220,7 +224,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onFocus={onFocusSampleKind}
             />
           </Form.Item>
-          <Form.Item label="Tissue Source" {...props("tissue_source")} s>
+          <Form.Item label="Tissue Source" {...props("tissue_source")}>
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -271,8 +275,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           >
             <InputNumber step={0.001} />
           </Form.Item>
-          <Form.Item label="Exp. Group" {...props("experimental_group")} disabled={!isAdding}>
-            <Select mode="tags" disabled={!isAdding} />
+          <Form.Item label="Exp. Group" {...props("experimental_group")}>
+            <Select mode="tags" />
           </Form.Item>
           <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
             <AutoComplete
@@ -305,9 +309,12 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
             />
           }
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+              <Button onClick={onCancel}>Cancel</Button>
+            </Space>
           </Form.Item>
         </Form>
       </PageContent>

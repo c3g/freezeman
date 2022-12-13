@@ -13,7 +13,7 @@ import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
 import { withContainer } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
-
+import useHashURL from "../../hooks/useHashURL";
 
 const pageStyle = {
   padding: 0,
@@ -45,6 +45,7 @@ const ContainersDetailContent = ({
 }) => {
   const history = useNavigate();
   const { id } = useParams();
+  const [activeKey, setActiveKey] = useHashURL('overview')
 
   const container = containersByID[id] || {};
   // const error = container.error;
@@ -74,8 +75,8 @@ const ContainersDetailContent = ({
             </Space>
         } />
       <PageContent loading={!isLoaded && isFetching} style={pageStyle}>
-        <Tabs defaultActiveKey="1" size="large" type="card" style={tabsStyle}>
-          <TabPane tab="Overview" key="1" style={tabStyle}>
+        <Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
+          <TabPane tab="Overview" key="overview" style={tabStyle}>
             <Descriptions bordered={true} size="small">
               <Descriptions.Item label="ID" span={2}>{container.id}</Descriptions.Item>
               <Descriptions.Item label="Name" span={2}>{container.name}</Descriptions.Item>
@@ -101,7 +102,7 @@ const ContainersDetailContent = ({
             </Descriptions>
           </TabPane>
 
-          <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="2" style={tabStyle}>
+          <TabPane tab={`Experiment (${experimentRunsIDs?.length})`} key="experiment" style={tabStyle}>
 
             {containerKindsByID[container.kind] && containerKindsByID[container.kind].is_run_container ?
               <ExperimentRunsListSection experimentRunsIDs={experimentRunsIDs} />

@@ -233,3 +233,65 @@ export const experimentRuns = (
             return state;
     }
 };
+
+
+
+export const LAUNCH_STATUS = {
+    LAUNCHING: 'LAUNCHING',
+    LAUNCHED : 'LAUNCHED',
+    ERROR: 'ERROR'
+}
+
+export const experimentRunLaunches = (state = {launchesById: {}}, action) => {
+
+    const updateLaunchState = (experimentRunId, newState) => {
+        const update = {}
+        update[experimentRunId] = {
+            ...state.launchesById[experimentRunId] ?? {},
+            ...newState
+        }
+        return {
+            ...state,
+            launchesById: {
+                ...state.launchesById,
+                ...update
+            }
+        }
+    } 
+
+    switch(action.type) {
+        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.REQUEST: {
+            const experimentRunId = action.meta.experimentRunId
+            return updateLaunchState(experimentRunId, {
+                experimentRunId,
+                status: LAUNCH_STATUS.LAUNCHING
+            })
+        }
+        
+        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.RECEIVE: {
+            const experimentRunId = action.meta.experimentRunId
+            return updateLaunchState(experimentRunId, {
+                status: LAUNCH_STATUS.LAUNCHED
+            })
+        }
+
+        case EXPERIMENT_RUNS.LAUNCH_EXPERIMENT_RUN.ERROR: {
+            const experimentRunId = action.meta.experimentRunId
+            return updateLaunchState(experimentRunId, {
+                status: LAUNCH_STATUS.ERROR,
+                error: action.error
+            })
+        }
+
+        case EXPERIMENT_RUNS.FLUSH_EXPERIMENT_RUN_LAUNCH: {
+            const experimentRunId = action.data
+            const launches = {...state.launchesById}
+            delete launches[experimentRunId]
+            return {
+                ...state,
+                launchesById: launches
+            }
+        }
+    }
+    return state
+}

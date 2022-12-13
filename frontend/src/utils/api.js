@@ -1,6 +1,5 @@
 import {stringify as qs} from "querystring";
 import {API_BASE_PATH} from "../config";
-import {refreshAuthToken} from "../modules/auth/actions";
 
 const api = {
   auth: {
@@ -23,7 +22,6 @@ const api = {
     listParents: id => get(`/containers/${id}/list_parents/`),
     listChildren: id => get(`/containers/${id}/list_children/`),
     listChildrenRecursively: id => get(`/containers/${id}/list_children_recursively/`),
-    listSamples: id => get(`/containers/${id}/list_samples/`),
     summary: () => get("/containers/summary/"),
     template: {
       actions: () => get(`/containers/template_actions/`),
@@ -59,6 +57,8 @@ const api = {
       check:  (action, template) => post(`/experiment-runs/template_check/`, form({ action, template })),
       submit: (action, template) => post(`/experiment-runs/template_submit/`, form({ action, template })),
     },
+    launchRunProcessing: experimentRunId => patch(`/experiment-runs/${experimentRunId}/launch_run_processing/`, {}), 
+    fetchRunInfo: experimentRunId => get(`/experiment-runs/${experimentRunId}/run_info`, {}),
   },
 
   runTypes: {
@@ -126,6 +126,11 @@ const api = {
     list: (options, abort) => get("/platforms/", options, { abort }),
   },
 
+  pooledSamples: {
+    list: (options, abort) => get("/pooled-samples/", options, { abort }),
+    listExport: options => get("/pooled-samples/list_export/", {format: "csv", ...options}),
+  },
+
   processes: {
     get: processId => get(`/processes/${processId}/`),
     list: (options, abort) => get("/processes/", options, { abort }),
@@ -188,7 +193,8 @@ const api = {
   },
 
   sampleMetadata: {
-    get: options => get(`/sample-metadata/`, options)
+    get: options => get(`/sample-metadata/`, options),
+    search: (q, options) => get("/sample-metadata/search/", { q, ...options }),
   },
 
   sampleKinds: {
@@ -361,7 +367,7 @@ function attachData(response) {
   const isJSON = contentType.includes('/json')
   const isExcel = contentType.includes('/ms-excel') || contentType.includes('/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   const isZip = contentType.includes('/zip')
-  
+
   response.isJSON = isJSON
   return (isJSON ? response.json() : isExcel || isZip ? response.arrayBuffer() : response.text())
   .then(data => {
