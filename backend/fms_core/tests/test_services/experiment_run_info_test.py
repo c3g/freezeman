@@ -23,7 +23,7 @@ from fms_core.services import experiment_run, sample
 from datetime import datetime
 
 
-TEMPLATES_DIR = Path(__file__).parent / "templates"
+TEMPLATES_DIR = Path(__file__).parent.parent / "service-templates"
 
 PROJECT_NAME = 'TEST_PROJECT'
 EXTERNAL_PROJECT_ID = 'HERCULES_ID'
