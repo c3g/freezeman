@@ -16,4 +16,4 @@ container_barcode_validator = RegexValidator(re.compile("^[\S]{1,200}$"))
 email_validator = EmailValidator()
 sequence_validator = RegexValidator(re.compile("^[ATCGU]{0,500}$"))
 metadata_name_validator = RegexValidator(regex=re.compile(r"^(?!.*__)[a-zA-Z0-9.\-_]{1,200}$"),
-                                         message="Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields.. Note that double underscore i.e '__' are not allowed.")
+                                         message="Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields. Note that double underscores i.e '__' are not allowed.")
