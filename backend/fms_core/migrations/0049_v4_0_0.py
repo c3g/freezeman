@@ -2,7 +2,44 @@ from django.conf import settings
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.auth.models import User
+import reversion
 import re
+
+ADMIN_USERNAME = 'biobankadmin'
+
+def initialize_reference_genomes(apps, schema_editor):
+    ReferenceGenome = apps.get_model("fms_core", "ReferenceGenome")
+    Taxon = apps.get_model("fms_core", "Taxon")
+
+    REFERENCE_GENOMES = [
+        # (Assembly name, GenBank, RefSeq, taxon_id, size)
+        ("GRCh38.p14", "GCA_000001405.29", "GCF_000001405.40", 9606, 3099000000),
+        ("GRCm39", "GCA_000001635.9", "GCF_000001635.27", 10090, 2728000000),
+        ("ASM985889v3", "GCA_009858895.3", "GCF_009858895.2", 2697049, 29900),
+        ("ASM886v2", "GCA_000008865.2", "GCF_000008865.2", 562, 5595000),
+        ("ASM584v2", "GCA_000005845.2", "GCF_000005845.2", 562, 4642000),
+        ("ROS_Cfam_1.0", "GCA_014441545.1", "GCF_014441545.1", 9615, 2397000000)
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add commonly used Reference Genomes.")
+        reversion.set_user(admin_user)
+
+        for assembly_name, genbank_id, refseq_id, taxon_ncbi_id, size in REFERENCE_GENOMES:
+            taxon = Taxon.objects.get(ncbi_id=taxon_ncbi_id)
+
+            reference_genome = ReferenceGenome.objects.create(assembly_name=assembly_name,
+                                                              genbank_id=genbank_id,
+                                                              refseq_id=refseq_id,
+                                                              taxon=taxon,
+                                                              size=size,
+                                                              created_by_id=admin_user_id,
+                                                              updated_by_id=admin_user_id)
+            reversion.add_to_revision(reference_genome)
 
 
 class Migration(migrations.Migration):
@@ -21,8 +58,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('assembly_name', models.CharField(help_text='Assembly name of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
-                ('genbank', models.CharField(help_text='GenBank accession number of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
-                ('refseq', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('genbank_id', models.CharField(help_text='GenBank accession number of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('size', models.PositiveIntegerField(help_text='Number of base pairs of the reference genome.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_creation', to=settings.AUTH_USER_MODEL)),
                 ('taxon', models.ForeignKey(help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
@@ -137,5 +174,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='study',
             constraint=models.UniqueConstraint(fields=('letter', 'project_id'), name='study_letter_projectid_key'),
+        ),
+        migrations.RunPython(
+            initialize_reference_genomes,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
