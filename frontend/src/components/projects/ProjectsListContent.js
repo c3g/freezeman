@@ -127,7 +127,7 @@ const ProjectsListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="projects" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div className='filters-warning-bar'>
         <div style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}

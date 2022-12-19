@@ -4,7 +4,7 @@ import {Navigate, Route, Routes} from "react-router-dom";
 
 import ProjectsListContent from "./ProjectsListContent";
 import ProjectEditContent from "./ProjectEditContent";
-import ProjectsDetailedContent from "./ProjectsDetailedContent";
+import ProjectsDetailedContent from "./ProjectsDetailedContent.tsx";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 

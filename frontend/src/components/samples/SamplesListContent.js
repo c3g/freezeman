@@ -259,7 +259,7 @@ const SamplesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div className='filters-warning-bar'>
         <SamplesFilters style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}
