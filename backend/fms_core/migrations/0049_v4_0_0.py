@@ -126,23 +126,23 @@ def initialize_workflows(apps, schema_editor):
 
     WORKFLOWS = [
         # (name, step_names)
-        ("PCR-free Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("PCR-enriched Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("WGBS Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("RNASeq Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("miRNA Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("16S Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("18S Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("PCR-free DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("PCR-enriched Conversion DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("WGBS Conversion DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("RNASeq Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("miRNA Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("16S Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        ("18S Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("PCR-free Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-enriched Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("WGBS Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("RNASeq Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("miRNA Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("16S Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("18S Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-free DNBSEQ", "Basic DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("PCR-enriched Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("WGBS Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("RNASeq Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("miRNA Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("16S Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("18S Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         # Need to add all combinations of Capture Workflows
-        ("Ready-To-Sequence Illumina", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("Ready-To-Sequence DNBSEQ", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"])
+        ("Ready-to-Sequence Illumina", "Ready-to-Sequence", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("Ready-to-Sequence DNBSEQ", "Ready-to-Sequence", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"])
     ]
 
     with reversion.create_revision(manage_manually=True):
@@ -173,8 +173,9 @@ def initialize_workflows(apps, schema_editor):
 
                 reversion.add_to_revision(step_specification)
 
-        for name, step_names in WORKFLOWS:
+        for name, structure, step_names in WORKFLOWS:
             workflow = Workflow.objects.create(name=name,
+                                               structure=structure,
                                                created_by_id=admin_user_id,
                                                updated_by_id=admin_user_id)
             next_step_order = None
@@ -244,6 +245,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('name', models.CharField(help_text='Worflow name.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('structure', models.CharField(help_text='Worflow structure.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_workflow_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_workflow_modification', to=settings.AUTH_USER_MODEL)),
             ],
