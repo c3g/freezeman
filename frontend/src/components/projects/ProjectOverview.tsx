@@ -18,7 +18,7 @@ const ProjectOverview = ({ project }: ProjectOverviewProps) => {
 
 	return (
 		<>
-			<Title level={2}>Overview</Title>
+			{/* <Title level={2}>Overview</Title> */}
 			<Descriptions bordered={true} size="small" column={4}>
 				<Descriptions.Item label="Project" span={4}>
 					{project?.name}
