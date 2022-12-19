@@ -31,6 +31,7 @@ from .viewsets import (
     DatasetViewSet,
     DatasetFileViewSet,
     PooledSamplesViewSet,
+    WorkflowViewSet,
 )
 
 __all__ = ["router"]
@@ -66,3 +67,4 @@ router.register(r"sample-lineage", SampleLineageViewSet, basename="sample-lineag
 router.register(r"imported-files", ImportedFileViewSet, basename="imported-files")
 router.register(r"datasets", DatasetViewSet, basename="datasets")
 router.register(r"dataset-files", DatasetFileViewSet, basename="dataset-files")
+router.register(r"workflows", WorkflowViewSet)

@@ -29,7 +29,9 @@ from .models import (
     SampleMetadata,
     Sequence,
     Taxon,
-    ImportedFile
+    ImportedFile,
+    Workflow,
+    Step
 )
 
 from .models._constants import ReleaseStatus
@@ -75,7 +77,8 @@ __all__ = [
     "TaxonSerializer",
     "ImportedFileSerializer",
     "PooledSampleSerializer",
-    "PooledSampleExportSerializer"
+    "PooledSampleExportSerializer",
+    "WorkflowSerializer"
 ]
 
 
@@ -660,3 +663,18 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'pedigree',
             ]
 
+class StepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Step
+        fields = ["name"]
+
+class WorkflowSerializer(serializers.ModelSerializer):
+    steps = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Workflow
+        fields = ("id", "name", "structure", "steps")
+
+    def get_steps(self, instance):
+        steps = instance.steps.all().order_by("StepsOrder__order")
+        return StepSerializer(steps, many=True).data
