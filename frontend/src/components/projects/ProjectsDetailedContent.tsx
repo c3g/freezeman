@@ -9,11 +9,11 @@ import { get } from '../../modules/projects/actions'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
+import CreateStudy from './CreateStudy'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 
-const {TabPane} = Tabs
-
+const { TabPane } = Tabs
 
 interface ProjectsDetailedContentProps {
 	// No properties yet
@@ -24,7 +24,7 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	const { id } = useParams()
 	const dispatch = useDispatch()
 
-	const projectsByID = useSelector((state : any) => state.projects.itemsByID)
+	const projectsByID = useSelector((state: any) => state.projects.itemsByID)
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
@@ -41,13 +41,13 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 
 	const tabsStyle = {
 		marginTop: 8,
-	  }
+	}
 
 	const tabStyle: React.CSSProperties = {
-		padding: "0 24px 24px 24px",
-		overflow: "auto",
-		height: "100%",
-	  }
+		padding: '0 24px 24px 24px',
+		overflow: 'auto',
+		height: '100%',
+	}
 
 	const title = `Project ${project?.name}`
 
@@ -63,6 +63,9 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 						</TabPane>
 						<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
 							<ProjectsAssociatedSamples projectID={project.id} />
+						</TabPane>
+						<TabPane tab="+" key="add-study" style={tabStyle}>
+							<CreateStudy project={project} />
 						</TabPane>
 					</Tabs>
 				</PageContent>
