@@ -20,7 +20,7 @@ class ReferenceGenome(TrackedModel):
     genbank_id = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="GenBank accession number of the reference genome.", validators=[name_validator])
     refseq_id = models.CharField(null=True, blank=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="RefSeq identifier of the reference genome.", validators=[name_validator])
     taxon = models.ForeignKey(Taxon, on_delete=models.PROTECT, related_name="ReferenceGenomes", help_text="Reference genome used to analyze samples in the study.")
-    size = models.PositiveIntegerField(help_text="Number of base pairs of the reference genome.")
+    size = models.DecimalField(max_digits=20, decimal_places=0, help_text="Number of base pairs of the reference genome.")
 
     def __str__(self):
         return self.assembly_name

@@ -142,7 +142,7 @@ def initialize_workflows(apps, schema_editor):
         ("18S Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         # Need to add all combinations of Capture Workflows
         ("Ready-To-Sequence Illumina", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("Ready-To-Sequence DNBSEQ", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("Ready-To-Sequence DNBSEQ", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"])
     ]
 
     with reversion.create_revision(manage_manually=True):
@@ -152,21 +152,21 @@ def initialize_workflows(apps, schema_editor):
         reversion.set_comment(f"Create the basic initial workflows.")
         reversion.set_user(admin_user)
 
-        for name, protocol_name, specifications in STEPS:
-            protocol = Protocol.objects.get(name=protocol_name)
+        for step_info in STEPS:
+            protocol = Protocol.objects.get(name=step_info["protocol_name"])
 
-            step = Step.objects.create(name=name,
+            step = Step.objects.create(name=step_info["name"],
                                        protocol=protocol,
                                        created_by_id=admin_user_id,
                                        updated_by_id=admin_user_id)
             
             reversion.add_to_revision(step)
 
-            for specification in specifications:
-                step_specification = StepSpecification.objects.create(display_name=specification.display_name,
-                                                                      sheet_name=specification.sheet_name,
-                                                                      column_name=specification.column_name,
-                                                                      value=specification.value,
+            for specification in step_info["specifications"]:
+                step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
+                                                                      sheet_name=specification["sheet_name"],
+                                                                      column_name=specification["column_name"],
+                                                                      value=specification["value"],
                                                                       step=step,
                                                                       created_by_id=admin_user_id,
                                                                       updated_by_id=admin_user_id)
@@ -174,9 +174,11 @@ def initialize_workflows(apps, schema_editor):
                 reversion.add_to_revision(step_specification)
 
         for name, step_names in WORKFLOWS:
-            workflow = Workflow.objects.create(name=name)
+            workflow = Workflow.objects.create(name=name,
+                                               created_by_id=admin_user_id,
+                                               updated_by_id=admin_user_id)
             next_step_order = None
-            for i, step_name in enumerate(step_names.reverse):
+            for i, step_name in enumerate(reversed(step_names)):
                 step = Step.objects.get(name=step_name)
                 order = len(step_names) - i
                 step_order = StepOrder.objects.create(workflow=workflow,
@@ -209,7 +211,7 @@ class Migration(migrations.Migration):
                 ('synonym', models.CharField(help_text='Other name of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('genbank_id', models.CharField(help_text='GenBank accession number of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
-                ('size', models.PositiveIntegerField(help_text='Number of base pairs of the reference genome.')),
+                ('size', models.DecimalField(max_digits=20, decimal_places=0, help_text='Number of base pairs of the reference genome.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_creation', to=settings.AUTH_USER_MODEL)),
                 ('taxon', models.ForeignKey(help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_modification', to=settings.AUTH_USER_MODEL)),
