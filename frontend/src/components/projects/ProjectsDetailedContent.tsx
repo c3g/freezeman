@@ -12,6 +12,8 @@ import PageContent from '../PageContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 
+const {TabPane} = Tabs
+
 
 interface ProjectsDetailedContentProps {
 	// No properties yet
@@ -56,13 +58,12 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 			{project && (
 				<PageContent loading={isLoading} style={undefined}>
 					<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle}>
-						<Tabs.TabPane tab="Overview" key="overview" style={tabStyle}>
+						<TabPane tab="Overview" key="overview" style={tabStyle}>
 							<ProjectOverview project={project} />
-						</Tabs.TabPane>
-						<Tabs.TabPane tab="Associated Samples" key="samples" style={tabStyle}>
-							{/* <Title level={4} style={{ marginTop: '2rem' }}> Associated Samples </Title> */}
+						</TabPane>
+						<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
 							<ProjectsAssociatedSamples projectID={project.id} />
-						</Tabs.TabPane>
+						</TabPane>
 					</Tabs>
 				</PageContent>
 			)}
