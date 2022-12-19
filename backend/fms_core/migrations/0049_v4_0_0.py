@@ -13,13 +13,16 @@ def initialize_reference_genomes(apps, schema_editor):
     Taxon = apps.get_model("fms_core", "Taxon")
 
     REFERENCE_GENOMES = [
-        # (Assembly name, GenBank, RefSeq, taxon_id, size)
-        ("GRCh38.p14", "GCA_000001405.29", "GCF_000001405.40", 9606, 3099000000),
-        ("GRCm39", "GCA_000001635.9", "GCF_000001635.27", 10090, 2728000000),
-        ("ASM985889v3", "GCA_009858895.3", "GCF_009858895.2", 2697049, 29900),
-        ("ASM886v2", "GCA_000008865.2", "GCF_000008865.2", 562, 5595000),
-        ("ASM584v2", "GCA_000005845.2", "GCF_000005845.2", 562, 4642000),
-        ("ROS_Cfam_1.0", "GCA_014441545.1", "GCF_014441545.1", 9615, 2397000000)
+        # (Assembly name, synonym, GenBank, RefSeq, ncbi_id, size)
+        ("GRCh38.p14", "hg38", "GCA_000001405.29", "GCF_000001405.40", 9606, 3099441038),
+        ("GRCh37.p13", "hg19", "GCA_000001405.14", "GCF_000001405.25", 9606, 3101788170),
+        ("hs37d5", None, None, None, 9606, 3101788170),
+        ("GRCm39", "mm39", "GCA_000001635.9", "GCF_000001635.27", 10090, 2728222451),
+        ("GRCm38.p6", "mm10", "GCA_000001635.8", "GCF_000001635.26", 10090, 2730855475),
+        ("ASM985889v3", None, "GCA_009858895.3", "GCF_009858895.2", 2697049, 29903),
+        ("ASM886v2", None, "GCA_000008865.2", "GCF_000008865.2", 562, 5594605),
+        ("ASM584v2", None, "GCA_000005845.2", "GCF_000005845.2", 562, 4641652),
+        ("ROS_Cfam_1.0", None, "GCA_014441545.1", "GCF_014441545.1", 9615, 2396858295)
     ]
 
     with reversion.create_revision(manage_manually=True):
@@ -29,10 +32,11 @@ def initialize_reference_genomes(apps, schema_editor):
         reversion.set_comment(f"Add commonly used Reference Genomes.")
         reversion.set_user(admin_user)
 
-        for assembly_name, genbank_id, refseq_id, taxon_ncbi_id, size in REFERENCE_GENOMES:
+        for assembly_name, synonym, genbank_id, refseq_id, taxon_ncbi_id, size in REFERENCE_GENOMES:
             taxon = Taxon.objects.get(ncbi_id=taxon_ncbi_id)
 
             reference_genome = ReferenceGenome.objects.create(assembly_name=assembly_name,
+                                                              synonym=synonym,
                                                               genbank_id=genbank_id,
                                                               refseq_id=refseq_id,
                                                               taxon=taxon,
@@ -41,6 +45,117 @@ def initialize_reference_genomes(apps, schema_editor):
                                                               updated_by_id=admin_user_id)
             reversion.add_to_revision(reference_genome)
 
+def initialize_workflows(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+
+    STEPS = [
+        {"name": "Extraction (DNA)", "protocol_name": "Extraction",
+         "specifications": [{"display_name": "Extraction Type", "sheet_name": "ExtractionTemplate", "column_name": "Extraction Type", "value": "DNA"}]},
+        {"name": "Extraction (RNA)", "protocol_name": "Extraction",
+         "specifications": [{"display_name": "Extraction Type", "sheet_name": "ExtractionTemplate", "column_name": "Extraction Type", "value": "RNA"}]},
+        {"name": "Sample QC", "protocol_name": "Sample Quality Control",
+         "specifications": []},
+        {"name": "Normalization (Sample)", "protocol_name": "Normalization",
+         "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Robot Norm Choice", "value": "Sample Janus"}]},
+        {"name": "Normalization (Library)", "protocol_name": "Normalization",
+         "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Robot Norm Choice", "value": "Library"}]},
+        {"name": "Library Preparation (PCR-free)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-free"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (PCR-enriched)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-enriched"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (RNASeq)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "RNASeq"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (WGBS)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "WGBS"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (16S)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "16S"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (18S)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "18S"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (miRNA)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "miRNA"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (ChIP-Seq)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "ChIP-Seq"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
+        {"name": "Library Preparation (PCR-free)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-free"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (PCR-enriched)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-enriched"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (RNASeq)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "RNASeq"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (WGBS)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "WGBS"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (16S)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "16S"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (18S)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "18S"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (miRNA)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "miRNA"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library Preparation (ChIP-Seq)", "protocol_name": "Library Preparation",
+         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "ChIP-Seq"},
+                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
+        {"name": "Library QC", "protocol_name": "Library Quality Control",
+         "specifications": []},
+        {"name": "Pooling", "protocol_name": "Sample Pooling",
+         "specifications": []},
+        {"name": "Experiment Run Illumina", "protocol_name": "Illumina Preparation",
+         "specifications": []},
+        {"name": "Experiment Run DNBSEQ", "protocol_name": "DNBSEQ Preparation",
+         "specifications": []},
+        {"name": "Library Conversion", "protocol_name": "Library Conversion",
+         "specifications": []},
+        {"name": "Library Capture (MCC)", "protocol_name": "Library Capture",
+         "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "MCC"}]},
+        {"name": "Library Capture (Exome)", "protocol_name": "Library Capture",
+         "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Exome"}]},
+        {"name": "Library Capture (Panel)", "protocol_name": "Library Capture",
+         "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Panel"}]},
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Create the basic initial workflows.")
+        reversion.set_user(admin_user)
+
+        for name, protocol_name, specifications in STEPS:
+            protocol = Protocol.objects.get(name=protocol_name)
+
+            step = Step.objects.create(name=name,
+                                       protocol=protocol,
+                                       created_by_id=admin_user_id,
+                                       updated_by_id=admin_user_id)
+            
+            reversion.add_to_revision(step)
+
+            for specification in specifications:
+                step_specification = StepSpecification.objects.create(display_name=specification.display_name,
+                                                                      sheet_name=specification.sheet_name,
+                                                                      column_name=specification.column_name,
+                                                                      value=specification.value,
+                                                                      step=step,
+                                                                      created_by_id=admin_user_id,
+                                                                      updated_by_id=admin_user_id)
+
+
+                reversion.add_to_revision(step_specification)
+    
 
 class Migration(migrations.Migration):
 
@@ -58,8 +173,9 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('assembly_name', models.CharField(help_text='Assembly name of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
-                ('genbank_id', models.CharField(help_text='GenBank accession number of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
-                ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('synonym', models.CharField(help_text='Other name of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('genbank_id', models.CharField(help_text='GenBank accession number of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
+                ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('size', models.PositiveIntegerField(help_text='Number of base pairs of the reference genome.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_creation', to=settings.AUTH_USER_MODEL)),
                 ('taxon', models.ForeignKey(help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
@@ -177,6 +293,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             initialize_reference_genomes,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            initialize_workflows,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
