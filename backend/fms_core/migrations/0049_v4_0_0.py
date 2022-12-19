@@ -49,8 +49,11 @@ def initialize_workflows(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     Protocol = apps.get_model("fms_core", "Protocol")
     StepSpecification = apps.get_model("fms_core", "StepSpecification")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
 
     STEPS = [
+        # {name, protocol_name, specifications}
         {"name": "Extraction (DNA)", "protocol_name": "Extraction",
          "specifications": [{"display_name": "Extraction Type", "sheet_name": "ExtractionTemplate", "column_name": "Extraction Type", "value": "DNA"}]},
         {"name": "Extraction (RNA)", "protocol_name": "Extraction",
@@ -61,53 +64,47 @@ def initialize_workflows(apps, schema_editor):
          "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Robot Norm Choice", "value": "Sample Janus"}]},
         {"name": "Normalization (Library)", "protocol_name": "Normalization",
          "specifications": [{"display_name": "Normalization Type", "sheet_name": "Normalization", "column_name": "Robot Norm Choice", "value": "Library"}]},
-        {"name": "Library Preparation (PCR-free)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (PCR-free, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-free"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (PCR-enriched)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (PCR-enriched, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-enriched"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (RNASeq)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (RNASeq, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "RNASeq"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (WGBS)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (WGBS, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "WGBS"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (16S)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (16S, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "16S"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (18S)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (18S, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "18S"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (miRNA)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (miRNA, Illumina)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "miRNA"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (ChIP-Seq)", "protocol_name": "Library Preparation",
-         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "ChIP-Seq"},
-                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "ILLUMINA"},]},
-        {"name": "Library Preparation (PCR-free)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (PCR-free, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-free"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (PCR-enriched)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (PCR-enriched, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "PCR-enriched"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (RNASeq)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (RNASeq, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "RNASeq"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (WGBS)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (WGBS, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "WGBS"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (16S)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (16S, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "16S"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (18S)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (18S, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "18S"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (miRNA)", "protocol_name": "Library Preparation",
+        {"name": "Library Preparation (miRNA, DNBSEQ)", "protocol_name": "Library Preparation",
          "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "miRNA"},
-                            {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
-        {"name": "Library Preparation (ChIP-Seq)", "protocol_name": "Library Preparation",
-         "specifications": [{"display_name": "Library Type", "sheet_name": "Library Batch", "column_name": "Library Type", "value": "ChIP-Seq"},
                             {"display_name": "Library Platform", "sheet_name": "Library Batch", "column_name": "Platform", "value": "DNBSEQ"},]},
         {"name": "Library QC", "protocol_name": "Library Quality Control",
          "specifications": []},
@@ -125,6 +122,27 @@ def initialize_workflows(apps, schema_editor):
          "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Exome"}]},
         {"name": "Library Capture (Panel)", "protocol_name": "Library Capture",
          "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Panel"}]},
+    ]
+
+    WORKFLOWS = [
+        # (name, step_names)
+        ("PCR-free Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-enriched Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("WGBS Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("RNASeq Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("miRNA Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("16S Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("18S Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-free DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("PCR-enriched Conversion DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("WGBS Conversion DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("RNASeq Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("miRNA Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("16S Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("18S Conversion DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        # Need to add all combinations of Capture Workflows
+        ("Ready-To-Sequence Illumina", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("Ready-To-Sequence DNBSEQ", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
     ]
 
     with reversion.create_revision(manage_manually=True):
@@ -153,9 +171,24 @@ def initialize_workflows(apps, schema_editor):
                                                                       created_by_id=admin_user_id,
                                                                       updated_by_id=admin_user_id)
 
-
                 reversion.add_to_revision(step_specification)
-    
+
+        for name, step_names in WORKFLOWS:
+            workflow = Workflow.objects.create(name=name)
+            next_step_order = None
+            for i, step_name in enumerate(step_names.reverse):
+                step = Step.objects.get(name=step_name)
+                order = len(step_names) - i
+                step_order = StepOrder.objects.create(workflow=workflow,
+                                                      step=step,
+                                                      next_step_order=next_step_order,
+                                                      order=order,
+                                                      created_by_id=admin_user_id,
+                                                      updated_by_id=admin_user_id)
+                next_step_order = step_order
+
+                reversion.add_to_revision(step_order)
+
 
 class Migration(migrations.Migration):
 
@@ -261,7 +294,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('order', models.PositiveIntegerField(help_text='Ordinal value of the step in the workflow (starting at 1).')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_steporder_creation', to=settings.AUTH_USER_MODEL)),
-                ('next_step_order', models.ForeignKey(help_text='The next step following the one defined here.', on_delete=django.db.models.deletion.PROTECT, related_name='PreviousStepOrder', to='fms_core.steporder')),
+                ('next_step_order', models.ForeignKey(null=True, blank=True, help_text='The next step following the one defined here.', on_delete=django.db.models.deletion.PROTECT, related_name='PreviousStepOrder', to='fms_core.steporder')),
                 ('step', models.ForeignKey(help_text='The step of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='StepsOrder', to='fms_core.step')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_steporder_modification', to=settings.AUTH_USER_MODEL)),
                 ('workflow', models.ForeignKey(help_text='Workflow of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='StepsOrder', to='fms_core.workflow')),
