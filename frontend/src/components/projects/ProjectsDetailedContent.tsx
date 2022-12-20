@@ -64,7 +64,7 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 						<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
 							<ProjectsAssociatedSamples projectID={project.id} />
 						</TabPane>
-						<TabPane tab="+" key="add-study" style={tabStyle}>
+						<TabPane tab="Add Study" key="add-study" style={tabStyle}>
 							<CreateStudy project={project} />
 						</TabPane>
 					</Tabs>

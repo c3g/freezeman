@@ -1,0 +1,11 @@
+
+
+// .workflow-chooser {
+//     background-color: red;
+// }
+
+.ant-collapse-content-box {
+    // Remove ant's padding inside collapsible panel content boxes, which
+    // wastes space. Sadly, we have to use '!important'
+    padding: 0!important
+}
