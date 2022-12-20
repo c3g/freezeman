@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='samplemetadata',
             name='name',
-            field=models.CharField(help_text='The name of the metadata.', max_length=200, validators=[django.core.validators.RegexValidator(message="Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields.. Note that double underscore i.e '__' are not allowed.", regex=re.compile('^(?!.*__)[a-zA-Z0-9.\\-_]{1,200}$'))]),
+            field=models.CharField(help_text='The name of the metadata.', max_length=200, validators=[django.core.validators.RegexValidator(message="Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields.. Note that double underscores i.e '__' are not allowed.", regex=re.compile('^(?!.*__)[a-zA-Z0-9.\\-_]{1,200}$'))]),
         ),
     ]
