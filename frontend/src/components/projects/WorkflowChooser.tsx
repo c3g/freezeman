@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Badge, Checkbox, Col, Collapse, List, Select, Space, Table, Typography } from 'antd'
+import { Badge, Checkbox, Col, Collapse, Divider, List, Select, Space, Table, Typography } from 'antd'
 
 import { FakeWorkflow } from './FakeWorkflows'
 
@@ -10,7 +10,7 @@ const { Text } = Typography
 interface WorkflowChooserProps {
 	workflows: FakeWorkflow[]
     currentSelection?: FakeWorkflow
-	onChange: (workflow: FakeWorkflow) => void
+	onChange?: (workflow?: FakeWorkflow) => void
 }
 
 const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChooserProps) => {
@@ -26,12 +26,19 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		structuredWorkflows[structure].push(wf)
 	})
 
+	const workflowWasSelected = (workflow?: FakeWorkflow) => {
+		setSelectedWorkflow(workflow)
+		if (onChange) {
+			onChange(workflow)
+		}
+	}
+
 	const createWorkflowCard = (workflow: FakeWorkflow) => {
 		const stepNames = workflow.steps.map((step) => step.name)
 		return (
 			<Collapse accordion>
 				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
-					<List dataSource={stepNames} renderItem={(item) => {
+					<List dataSource={stepNames} size="small" renderItem={(item) => {
 						return (
 							<List.Item key={item}>{item}</List.Item>
 						)
@@ -74,11 +81,12 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 					selectedRowKeys,
 					onChange: (_, selectedRows: FakeWorkflow[]) => {
 						const selectedWorkflow = selectedRows[0] ?? undefined
-						setSelectedWorkflow(selectedWorkflow)
+						workflowWasSelected(selectedWorkflow)
 					},
 				}}
 				columns={columns}
 				pagination={false}
+				size="small"
 			></Table>
 		)
 	}
@@ -115,10 +123,11 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 				value={selectedWorkflow?.name}
 				onChange = {(workflowName) => {
 					const wf = workflows.find((wf) => wf.name === workflowName)
-					setSelectedWorkflow(wf)
+					workflowWasSelected(wf)
+
 				}}
 			></Select>
-			<Space/>
+			<Divider plain orientation='center'>Workflow Details</Divider>
 			<Collapse>{createWorkflowStructurePanels()}</Collapse>
 		</div>
 	)
