@@ -9,18 +9,19 @@ from .workflow import Workflow
 from .reference_genome import ReferenceGenome
 
 from ._utils import add_error as _add_error
+from ._validators import study_letter_validator
 
 __all__ = ["Study"]
 
 
 @reversion.register()
 class Study(TrackedModel):
-    letter = models.CharField(max_length=1, help_text="Letter ordinally chosen to identify a study.")
+    letter = models.CharField(max_length=1, help_text="Letter ordinally chosen to identify a study.", validators=[study_letter_validator])
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name="studies", help_text="Study project.")
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="studies", help_text="Workflow assigned to the study.")
     start = models.PositiveIntegerField(help_text="Index to the order of the start of the assigned workflow for this study.")
     end = models.PositiveIntegerField(help_text="Index to the order of the end of the assigned workflow for this study.")
-    reference_genome = models.ForeignKey(ReferenceGenome, on_delete=models.PROTECT, related_name="studies", help_text="Reference genome used to analyze samples in the study.")
+    reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="studies", help_text="Reference genome used to analyze samples in the study.")
 
     class Meta:
         constraints = [

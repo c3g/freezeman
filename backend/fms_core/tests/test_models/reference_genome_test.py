@@ -6,7 +6,7 @@ from fms_core.models import ReferenceGenome, Taxon
 
 class ReferenceGenomeTest(TestCase):
     def setUp(self):
-        self.taxon = Taxon.objects.get_or_create(name="Homo sapiens", ncbi_id=9606)
+        self.taxon = Taxon.objects.get(ncbi_id=9606)
         self.assembly_name_new = "TestAssembly"
         self.assembly_name_existing = "GRCh38.p14"
         self.synonym = "MyAssembly"
