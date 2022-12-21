@@ -38,6 +38,12 @@ class Study(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.start and self.end and self.start > self.end:
+            add_error("workflow", f"The start step of the workflow need to have a lower or equal order than the end step.")
+
+        if self.end and self.end > self.workflow.steps.count():
+            add_error("workflow", f"The end step cannot be after the last step of the workflow.")
+
         if errors:
             raise ValidationError(errors)
 
