@@ -13,6 +13,7 @@ __all__ = ["name_validator",
 # Barcodes can contain any character
 name_validator = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_]{1,200}$"))
 name_validator_with_spaces = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_ ]{1,200}$"))
+name_validator_with_spaces_and_parentheses = RegexValidator(re.compile(r"^[a-zA-Z0-9.\-_)( ]{1,200}$"))
 container_barcode_validator = RegexValidator(re.compile("^[\S]{1,200}$"))
 email_validator = EmailValidator()
 sequence_validator = RegexValidator(re.compile("^[ATCGU]{0,500}$"))
