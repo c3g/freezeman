@@ -31,7 +31,8 @@ from .models import (
     Taxon,
     ImportedFile,
     Workflow,
-    Step
+    Step,
+    ReferenceGenome
 )
 
 from .models._constants import ReleaseStatus
@@ -78,7 +79,8 @@ __all__ = [
     "ImportedFileSerializer",
     "PooledSampleSerializer",
     "PooledSampleExportSerializer",
-    "WorkflowSerializer"
+    "WorkflowSerializer",
+    "ReferenceGenomeSerializer"
 ]
 
 
@@ -678,3 +680,8 @@ class WorkflowSerializer(serializers.ModelSerializer):
     def get_steps(self, instance):
         steps = instance.steps.all().order_by("StepsOrder__order")
         return StepSerializer(steps, many=True).data
+
+class ReferenceGenomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReferenceGenome
+        fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")

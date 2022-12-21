@@ -237,3 +237,19 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
 }
+
+_workflow_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "structure": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_reference_genome_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "assembly_name": CATEGORICAL_FILTERS_LOOSE,
+    "synonym": CATEGORICAL_FILTERS_LOOSE,
+    "genbank_id": CATEGORICAL_FILTERS_LOOSE,
+    "refseq_id": CATEGORICAL_FILTERS_LOOSE,
+    "size": SCALAR_FILTERS,
+    **_prefix_keys("taxon__", _taxon_filterset_fields),
+}
