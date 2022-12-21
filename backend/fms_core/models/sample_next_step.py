@@ -15,7 +15,7 @@ __all__ = ["SampleNextStep"]
 
 @reversion.register()
 class SampleNextStep(TrackedModel):
-    step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The next step a sample has to complete in the study.")
+    step = models.ForeignKey(Step, null=True, blank=True, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The next step a sample has to complete in the study.")
     sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The sample queued to the workflow.")
     study = models.ForeignKey(Study, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The study using the workflow that is followed by the sample.")
 
