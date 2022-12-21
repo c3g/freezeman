@@ -19,6 +19,11 @@ class StepOrder(TrackedModel):
     order = models.PositiveIntegerField(help_text="Ordinal value of the step in the workflow (starting at 1).")
     workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="StepsOrder", help_text="Workflow of the step order.")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["order", "workflow_id"], name="steporder_order_workflowid_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
