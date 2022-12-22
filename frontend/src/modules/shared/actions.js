@@ -15,6 +15,7 @@ import ReferenceGenomes from "../referenceGenomes/actions"
 import {refreshAuthToken} from "../auth/actions";
 import Datasets from "../datasets/actions";
 import DatasetFiles from "../datasetFiles/actions"
+import Workflows from "../workflows/actions"
 
 export const fetchInitialData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
@@ -39,6 +40,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Groups.list,
         Taxons.list,
         ReferenceGenomes.list,
+        Workflows.list,
     ].map(a => dispatch(a())))
 
     await Promise.allSettled([

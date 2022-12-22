@@ -76,6 +76,7 @@ import {
 } from "./modules/importedFiles/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
+import { workflows } from "./modules/workflows/reducers";
 import {reducer as groups} from "./modules/groups";
 import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
@@ -137,6 +138,7 @@ const allReducers = combineReducers({
   groups,
   pagination,
   versions,
+  workflows,
 });
 
 export default function rootReducer(state, action) {

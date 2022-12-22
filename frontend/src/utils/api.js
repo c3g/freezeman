@@ -227,6 +227,11 @@ const api = {
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
   },
 
+  workflows: {
+    get: workflowId => get(`/workflows/${workflowId}`),
+    list: (options, abort) => get('/workflows/', options, { abort })
+  },
+
   groups: {
     list: (options, abort) => get("/groups", options, { abort }),
   },
