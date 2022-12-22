@@ -1,9 +1,8 @@
 import React from 'react'
 import { Button, Form, Input, Space } from 'antd'
-import { FakeWorkflow } from './FakeWorkflows'
 import WorkflowChooser from './WorkflowChooser'
 import { useNavigate } from 'react-router-dom'
-import { Project } from '../../models/frontend_models'
+import { Project, Workflow } from '../../models/frontend_models'
 import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 
 const { Item } = Form
@@ -13,7 +12,7 @@ const { Item } = Form
 interface CreateStudyFormProps {
     project: Project
     study?: any
-    workflows: FakeWorkflow[]
+    workflows: Workflow[]
 }
 
 const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {

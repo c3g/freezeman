@@ -1,13 +1,12 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
-import { selectProjectsByID } from '../../selectors'
+import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
 import StudyEditForm from './StudyEditForm'
 import { Typography } from 'antd'
-import {fakeWorkflows} from './FakeWorkflows'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { Project } from '../../models/frontend_models'
+import { Project, Workflow } from '../../models/frontend_models'
 
 const { Title } = Typography
 
@@ -32,6 +31,9 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
         // TODO get study from redux
     }
 
+    const workflowsByID = useSelector(selectWorkflowsByID)
+    const workflows = Object.values(workflowsByID) as Workflow[]
+
     let title : string
     if (action === 'ADD') {
         title = 'Create a Study'
@@ -44,7 +46,7 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
             <AppPageHeader title={title}/>
             <PageContent>
                 {project && 
-                    <StudyEditForm project={project} workflows={fakeWorkflows}/>
+                    <StudyEditForm project={project} workflows={workflows}/>
                 }
             </PageContent>
             

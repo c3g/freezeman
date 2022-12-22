@@ -1,23 +1,23 @@
 import React, { useState } from 'react'
 import { Badge, Checkbox, Col, Collapse, Divider, List, Select, Space, Table, Typography } from 'antd'
 
-import { FakeWorkflow } from './FakeWorkflows'
 
 import './WorkflowChooser.scss'
+import { Workflow } from '../../models/frontend_models'
 
 const { Text } = Typography
 
 interface WorkflowChooserProps {
-	workflows: FakeWorkflow[]
-    currentSelection?: FakeWorkflow
-	onChange?: (workflow?: FakeWorkflow) => void
+	workflows: Workflow[]
+    currentSelection?: Workflow
+	onChange?: (workflow?: Workflow) => void
 }
 
 const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChooserProps) => {
-	const [selectedWorkflow, setSelectedWorkflow] = useState<FakeWorkflow | undefined>(currentSelection)
+	const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | undefined>(currentSelection)
 
 	// Group the workflows by structure.
-	const structuredWorkflows: { [key: string]: FakeWorkflow[] } = {}
+	const structuredWorkflows: { [key: string]: Workflow[] } = {}
 	workflows.forEach((wf) => {
 		const structure = wf.structure
 		if (!structuredWorkflows[structure]) {
@@ -26,14 +26,14 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		structuredWorkflows[structure].push(wf)
 	})
 
-	const workflowWasSelected = (workflow?: FakeWorkflow) => {
+	const workflowWasSelected = (workflow?: Workflow) => {
 		setSelectedWorkflow(workflow)
 		if (onChange) {
 			onChange(workflow)
 		}
 	}
 
-	const createWorkflowCard = (workflow: FakeWorkflow) => {
+	const createWorkflowCard = (workflow: Workflow) => {
 		const stepNames = workflow.steps.map((step) => step.name)
 		return (
 			<Collapse accordion>
@@ -48,7 +48,7 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		)
 	}
 
-	const createWorkflowTable = (workflows: FakeWorkflow[]) => {
+	const createWorkflowTable = (workflows: Workflow[]) => {
 		const keyedWorkflows = workflows.map((wf) => {
 			return {
 				...wf,
@@ -61,7 +61,7 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 				title: 'Workflow',
 				dataIndex: 'name',
 				key: 'id',
-				render: (_: any, workflow: FakeWorkflow) => {
+				render: (_: any, workflow: Workflow) => {
 					return createWorkflowCard(workflow)
 				},
 			},
@@ -79,7 +79,7 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 				rowSelection={{
 					type: 'radio',
 					selectedRowKeys,
-					onChange: (_, selectedRows: FakeWorkflow[]) => {
+					onChange: (_, selectedRows: Workflow[]) => {
 						const selectedWorkflow = selectedRows[0] ?? undefined
 						workflowWasSelected(selectedWorkflow)
 					},

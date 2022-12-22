@@ -19,3 +19,4 @@ export const selectProjectsByID = state => state.projects.itemsByID
 export const selectReferenceGenomesByID = state => state.referenceGenomes.itemsByID
 export const selectSamplesByID = state => state.samples.itemsByID
 export const selectUsersByID = state => state.users.itemsByID
+export const selectWorkflowsByID = state => state.workflows.itemsByID
