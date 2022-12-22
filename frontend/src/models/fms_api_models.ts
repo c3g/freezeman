@@ -3,7 +3,7 @@
  */
 
 //
-type FMSId = number
+export type FMSId = number
 
 interface FMSTrackedModel {
     id: FMSId
@@ -27,7 +27,7 @@ export interface FMSProject extends FMSTrackedModel {
     // The email of the requestor of the project
     requestor_email: string
     // Targeted date to conclude the project
-    targeted_end_date?: Date
+    targeted_end_date?: string
     // The status of the project (open or closed)
     status: 'Open' | 'Closed'
     // Identifier to connect to an external system (eg. Hercules)

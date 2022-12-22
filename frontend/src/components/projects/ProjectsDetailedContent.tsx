@@ -3,6 +3,7 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import useHashURL from '../../hooks/useHashURL'
+import { Project } from '../../models/frontend_models'
 const { Title } = Typography
 
 import { get } from '../../modules/projects/actions'
@@ -28,9 +29,8 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
-
 	let isLoading = true
-	let project = {} as any
+	let project : Project | undefined = undefined
 	if (id) {
 		project = projectsByID[id]
 		if (project) {
@@ -61,15 +61,17 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 
 			{project && (
 				<PageContent loading={isLoading} style={undefined}>
-					<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
-						<TabPane tab="Overview" key="overview" style={tabStyle}>
-							<ProjectOverview project={project} />
-						</TabPane>
-						<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
-							<ProjectsAssociatedSamples projectID={project.id} />
-						</TabPane>
-						{/* TODO Add a tab for each study in the project */}
-					</Tabs>
+					{ project && 
+						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
+							<TabPane tab="Overview" key="overview" style={tabStyle}>
+								<ProjectOverview project={project} />
+							</TabPane>
+							<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
+								<ProjectsAssociatedSamples projectID={project.id} />
+							</TabPane>
+							{/* TODO Add a tab for each study in the project */}
+						</Tabs>
+					}
 				</PageContent>
 			)}
 		</>

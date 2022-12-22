@@ -7,6 +7,7 @@ import { Typography } from 'antd'
 import {fakeWorkflows} from './FakeWorkflows'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
+import { Project } from '../../models/frontend_models'
 
 const { Title } = Typography
 
@@ -16,7 +17,7 @@ interface EditStudyContentProps {
 
 const StudyEditContent = ({action} : EditStudyContentProps) => {
 
-    let project: any
+    let project: Project | undefined = undefined
     let study: any
 
     const projectId = useParams().id
@@ -42,7 +43,9 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
         <>
             <AppPageHeader title={title}/>
             <PageContent>
-                <StudyEditForm project={project} workflows={fakeWorkflows}/>
+                {project && 
+                    <StudyEditForm project={project} workflows={fakeWorkflows}/>
+                }
             </PageContent>
             
         </>

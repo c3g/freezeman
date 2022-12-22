@@ -3,13 +3,15 @@ import { Button, Form, Input, Space } from 'antd'
 import { FakeWorkflow } from './FakeWorkflows'
 import WorkflowChooser from './WorkflowChooser'
 import { useNavigate } from 'react-router-dom'
+import { Project } from '../../models/frontend_models'
+import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 
 const { Item } = Form
 
 
 
 interface CreateStudyFormProps {
-    project: any
+    project: Project
     study?: any
     workflows: FakeWorkflow[]
 }
@@ -17,6 +19,8 @@ interface CreateStudyFormProps {
 const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
 
     const navigate = useNavigate()
+
+
 
     // Create a default name for the study
 
@@ -47,8 +51,8 @@ const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
                 name="referenceGenome"
                 label = "Refererence Genome"
             >
-                {/* TODO add support for reference genome */}
-                <Input/>
+                {/* TODO pass currently selected reference genome id if editing */}
+                <ReferenceGenomeSelect/>
             </Item>
             <Item 
                 name="workflow" 

@@ -3,9 +3,10 @@ import { Descriptions, Typography } from 'antd'
 const { Title } = Typography
 
 import TrackingFieldsContent from '../TrackingFieldsContent'
+import { Project } from '../../models/frontend_models'
 
 interface ProjectOverviewProps {
-	project?: any
+	project?: Project
 }
 
 /**
