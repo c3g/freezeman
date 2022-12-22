@@ -171,6 +171,11 @@ const api = {
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 
+  referenceGenomes: {
+    get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
+    list: (options, abort) => get('/reference-genomes/', options, { abort })
+  },
+
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),

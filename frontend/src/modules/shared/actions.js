@@ -11,6 +11,7 @@ import Projects from "../projects/actions";
 import Protocols from "../protocols/actions";
 import ExperimentRuns from "../experimentRuns/actions";
 import Taxons from "../taxons/actions";
+import ReferenceGenomes from "../referenceGenomes/actions"
 import {refreshAuthToken} from "../auth/actions";
 import Datasets from "../datasets/actions";
 import DatasetFiles from "../datasetFiles/actions"
@@ -37,6 +38,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Users.listTable,
         Groups.list,
         Taxons.list,
+        ReferenceGenomes.list,
     ].map(a => dispatch(a())))
 
     await Promise.allSettled([

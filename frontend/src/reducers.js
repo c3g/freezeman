@@ -15,6 +15,7 @@ import {
 import {datasets} from "./modules/datasets/reducers";
 import {datasetFiles} from "./modules/datasetFiles/reducers";
 import {taxons} from "./modules/taxons/reducers";
+import {referenceGenomes} from './modules/referenceGenomes/reducers'
 import {individuals} from "./modules/individuals/reducers";
 import {
   sampleKinds,
@@ -105,6 +106,7 @@ const allReducers = combineReducers({
   runTypes,
   individuals,
   taxons,
+  referenceGenomes,
   instruments,
   sampleKinds,
   samplesSummary,
