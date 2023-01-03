@@ -670,7 +670,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
 class StepSerializer(serializers.ModelSerializer):
     class Meta:
         model = Step
-        fields = ["name"]
+        fields = ["id", "name", "protocol_id"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps = serializers.SerializerMethodField()
