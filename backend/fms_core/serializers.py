@@ -32,7 +32,8 @@ from .models import (
     ImportedFile,
     Workflow,
     Step,
-    ReferenceGenome
+    ReferenceGenome,
+    Study
 )
 
 from .models._constants import ReleaseStatus
@@ -80,7 +81,8 @@ __all__ = [
     "PooledSampleSerializer",
     "PooledSampleExportSerializer",
     "WorkflowSerializer",
-    "ReferenceGenomeSerializer"
+    "ReferenceGenomeSerializer",
+    "StudySerializer"
 ]
 
 
@@ -685,3 +687,8 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReferenceGenome
         fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
+
+class StudySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Study
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")

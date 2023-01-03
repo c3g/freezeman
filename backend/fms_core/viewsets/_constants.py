@@ -253,3 +253,13 @@ _reference_genome_filterset_fields: FiltersetFields = {
     "size": SCALAR_FILTERS,
     **_prefix_keys("taxon__", _taxon_filterset_fields),
 }
+
+_study_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "letter": CATEGORICAL_FILTERS_LOOSE,
+    "start": SCALAR_FILTERS,
+    "end": SCALAR_FILTERS,
+    **_prefix_keys("project__", _project_filterset_fields),
+    **_prefix_keys("workflow__", _workflow_filterset_fields),
+    **_prefix_keys("reference_genome__", _reference_genome_filterset_fields),
+}
