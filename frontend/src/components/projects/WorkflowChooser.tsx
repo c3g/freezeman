@@ -17,6 +17,9 @@ interface WorkflowChooserProps {
 const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChooserProps) => {
 	const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | undefined>(currentSelection)
 
+	// TODO Include a 'read only' mode if user is not allowed to update the selected
+	// workflow.
+
 	// Group the workflows by structure.
 	const structuredWorkflows: { [key: string]: Workflow[] } = {}
 	workflows.forEach((wf) => {
