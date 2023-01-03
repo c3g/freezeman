@@ -1,9 +1,10 @@
+import { Cascader, Collapse, Divider, List, Table, Typography } from 'antd'
 import React, { useState } from 'react'
-import { Badge, Checkbox, Col, Collapse, Divider, List, Select, Space, Table, Typography } from 'antd'
 
 
-import './WorkflowChooser.scss'
+import { DefaultOptionType } from 'antd/lib/cascader'
 import { Workflow } from '../../models/frontend_models'
+import './WorkflowChooser.scss'
 
 const { Text } = Typography
 
@@ -26,14 +27,14 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		structuredWorkflows[structure].push(wf)
 	})
 
-	const workflowWasSelected = (workflow?: Workflow) => {
+	function workflowWasSelected(workflow?: Workflow) {
 		setSelectedWorkflow(workflow)
 		if (onChange) {
 			onChange(workflow)
 		}
 	}
 
-	const createWorkflowCard = (workflow: Workflow) => {
+	function createWorkflowCard(workflow: Workflow) {
 		const stepNames = workflow.steps.map((step) => step.name)
 		return (
 			<Collapse accordion>
@@ -48,7 +49,7 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		)
 	}
 
-	const createWorkflowTable = (workflows: Workflow[]) => {
+	function createWorkflowTable(workflows: Workflow[]) {
 		const keyedWorkflows = workflows.map((wf) => {
 			return {
 				...wf,
@@ -91,7 +92,7 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		)
 	}
 
-	const createWorkflowStructurePanels = () => {
+	function createWorkflowStructurePanels() {
 		const panels: React.ReactNode[] = []
 		for (const structureName in structuredWorkflows) {
 			const workflows = structuredWorkflows[structureName]
@@ -107,26 +108,51 @@ const WorkflowChooser = ({ workflows, currentSelection, onChange }: WorkflowChoo
 		return panels
 	}
 
+	function createCascaderOptions() {
+		// Creat the cascader options data - workflows grouped by structure.
+        const options: DefaultOptionType[]= []
+        for (const structureName in structuredWorkflows) {
+            const workflows = structuredWorkflows[structureName]
+            const option = {
+                value: structureName,
+                label: structureName,
+                children: workflows.map(wf => {
+                    return {
+                        value: wf.id,
+                        label: wf.name
+                    }
+                })
+            }
+            options.push(option)
+        }
+        return options
+    }
+
+	function createCascaderValue() {
+		// Create the cascader selection, which is an array of option values to the selected workflow.
+		if (selectedWorkflow) {
+			for (const structureName in structuredWorkflows) {
+				const workflows = structuredWorkflows[structureName]
+				const index = workflows.findIndex(wf => wf.id === selectedWorkflow.id)
+				if (index !== -1) {
+					return ([structureName, selectedWorkflow.id])
+				}
+			}
+		}
+		return []
+	}
+
 	return (
 		<div className="workflow-chooser">
-			<Select
+			<Cascader 
 				showSearch
-				placeholder='Select a workflow'
-				options = {
-					workflows.map(wf => {
-						return {
-							name: wf.name,
-							value: wf.name
-						}
-					})
-				}
-				value={selectedWorkflow?.name}
-				onChange = {(workflowName) => {
-					const wf = workflows.find((wf) => wf.name === workflowName)
+				options={createCascaderOptions()} 
+				value={createCascaderValue()}
+				placeholder={'Please select a workflow'}
+				onChange = {(option) => {
+					const wf = workflows.find((wf) => wf.id === option[1])
 					workflowWasSelected(wf)
-
-				}}
-			></Select>
+				}}/>
 			<Divider plain orientation='center'>Workflow Details</Divider>
 			<Collapse>{createWorkflowStructurePanels()}</Collapse>
 		</div>

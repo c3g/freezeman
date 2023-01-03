@@ -6,7 +6,7 @@ import StudyEditForm from './StudyEditForm'
 import { Typography } from 'antd'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { Project, Workflow } from '../../models/frontend_models'
+import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
 
 const { Title } = Typography
 
@@ -18,6 +18,8 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
 
     let project: Project | undefined = undefined
     let study: any
+
+    const isCreating = action === 'ADD'
 
     const projectId = useParams().id
     if (!!projectId) {
@@ -35,10 +37,19 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
     const workflows = Object.values(workflowsByID) as Workflow[]
 
     let title : string
-    if (action === 'ADD') {
+    if (isCreating) {
         title = 'Create a Study'
     } else {
         title = `Edit ${"a Study"}`  // TODO: display study name
+    }
+
+    function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow) {
+        if (isCreating) {
+            // TODO call api to create the study
+            console.log(referenceGenome, workflow)
+        } else {
+            // TODO handle study update
+        }
     }
 
     return (
@@ -46,7 +57,7 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
             <AppPageHeader title={title}/>
             <PageContent>
                 {project && 
-                    <StudyEditForm project={project} workflows={workflows}/>
+                    <StudyEditForm project={project} workflows={workflows} isCreatingStudy={isCreating} onSubmit={handleFormSubmit}/>
                 }
             </PageContent>
             

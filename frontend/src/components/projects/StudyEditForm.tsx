@@ -2,29 +2,32 @@ import React from 'react'
 import { Button, Form, Input, Space } from 'antd'
 import WorkflowChooser from './WorkflowChooser'
 import { useNavigate } from 'react-router-dom'
-import { Project, Workflow } from '../../models/frontend_models'
+import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
 import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 
 const { Item } = Form
-
-
 
 interface CreateStudyFormProps {
     project: Project
     study?: any
     workflows: Workflow[]
+    isCreatingStudy: boolean
+    onSubmit: StudyEditCallback
 }
 
-const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
+interface FormData {
+    referenceGenome?: ReferenceGenome
+    workflow?: Workflow
+}
+
+type StudyEditCallback = (referenceGenome?: ReferenceGenome, workflow?: Workflow) => void
+
+const StudyEditForm = ({project, study, workflows, isCreatingStudy, onSubmit} : CreateStudyFormProps) => {
 
     const navigate = useNavigate()
 
-
-
-    // Create a default name for the study
-
-    function handleSubmit(values: any) {
-        console.log(values)
+    function handleSubmit(values: FormData) {
+        onSubmit(values.referenceGenome, values.workflow)
     }
 
     function handleCancel() {
@@ -39,13 +42,6 @@ const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
             layout="horizontal"
             onFinish={handleSubmit}
         >
-            <Item 
-                name="studyName"
-                label="Name" 
-                rules={[{ required: true, message: 'A study name is required.'}]}
-            >
-                <Input placeholder="Study Name" value={study?.name} />
-            </Item>
             <Item
                 name="referenceGenome"
                 label = "Refererence Genome"
@@ -58,6 +54,9 @@ const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
                 label="Workflow"
                 rules={[{ required: true, message: 'A workflow must be selected for the study.'}]}
             >
+                {/* TODO disable the workflow chooser if user is editing a study (unless we allow
+                    the user to change the workflow after the study has been created) 
+                */}
                 <WorkflowChooser workflows={workflows} currentSelection={study?.workflow}/>
             </Item>
             <Item>
@@ -66,8 +65,7 @@ const StudyEditForm = ({project, study, workflows} : CreateStudyFormProps) => {
                     <Button onClick={handleCancel}>Cancel</Button>
                 </Space>
                 
-            </Item>
-            
+            </Item> 
         </Form>
     )
 }
