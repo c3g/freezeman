@@ -29,7 +29,8 @@ from .models import (
     SampleMetadata,
     Sequence,
     Taxon,
-    ImportedFile
+    ImportedFile,
+    Study
 )
 
 from .models._constants import ReleaseStatus
@@ -660,3 +661,7 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'pedigree',
             ]
 
+class StudySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Study
+        fields = ("id", "letter", "project", "workflow", "start", "end", "reference_genome")

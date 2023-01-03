@@ -237,3 +237,13 @@ _pooled_sample_filterset_fields: FiltersetFields = {
     "derived_sample__biosample__collection_site": CATEGORICAL_FILTERS_LOOSE,
     "derived_sample__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
 }
+
+_study_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "letter": CATEGORICAL_FILTERS_LOOSE,
+    "project": FK_FILTERS,
+    "workflow": FK_FILTERS,
+    "start": CATEGORICAL_FILTERS,
+    "end": CATEGORICAL_FILTERS,
+    # Reference genome ???
+}
