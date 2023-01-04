@@ -37,3 +37,30 @@ def create_study(letter, project, workflow, start, end, reference_genome=None):
         errors = { **errors, **e.message_dict }
 
     return study, errors, warnings
+
+
+def get_study(project_obj, study_letter):
+    """
+    Retrieve a specific study for a given project. Studies are identified by a sequentially attributed capital letter.
+
+    Args:
+        `project_obj`: A project model instance.
+        `study_letter`: A capital letter matching the desired study.
+
+    Returns:
+        Tuple containing the found study model instance (if applicable, otherwise None), the error messages and the warning messages. 
+
+    """
+    study = None
+    errors = []
+    warnings = []
+
+    if project_obj and study_letter:
+        try:
+            study = Study.objects.get(project=project_obj, letter=study_letter)
+        except Study.DoesNotExist:
+            errors.append(f"Could not find a study for project {project_obj.name} and letter '{study_letter}'")
+    else:
+        errors.append(f"Both a project and a study letter are required to retrieve a study.")
+
+    return (study, errors, warnings)

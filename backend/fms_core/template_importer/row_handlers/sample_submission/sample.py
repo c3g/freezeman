@@ -6,6 +6,7 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.project_link_samples import create_link
 from fms_core.services.project import get_project
+from fms_core.services.study import get_study
 from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.individual import get_or_create_individual, get_taxon
 from fms_core.services.sample import create_full_sample
@@ -121,8 +122,12 @@ class SampleRowHandler(GenericRowHandler):
 
         # Project related section
         project_obj = None
+        study_obj = None
         if project['name']:
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
+
+            if project_obj and project['study_letter']:
+                  study_obj, self.errors['study'], self.warnings['study'] = get_study(obj_project, project['study_letter'])
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
