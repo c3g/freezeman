@@ -316,7 +316,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstep_creation', to=settings.AUTH_USER_MODEL)),
                 ('sample', models.ForeignKey(help_text='The sample queued to the workflow.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.sample')),
-                ('step', models.ForeignKey(null=True, blank=True, help_text='The next step a sample has to complete in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.step')),
+                ('step_order', models.ForeignKey(null=True, blank=True, help_text='The next step a sample has to complete in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.steporder')),
                 ('study', models.ForeignKey(help_text='The study using the workflow that is followed by the sample.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.study')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstep_modification', to=settings.AUTH_USER_MODEL)),
             ],
