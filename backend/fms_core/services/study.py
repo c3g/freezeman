@@ -44,8 +44,8 @@ def get_study(project_obj, study_letter):
     Retrieve a specific study for a given project. Studies are identified by a sequentially attributed capital letter.
 
     Args:
-        `project_obj`: A project model instance.
-        `study_letter`: A capital letter matching the desired study.
+        `project_obj`: Project model instance for the study.
+        `study_letter`: Capital letter matching the desired study.
 
     Returns:
         Tuple containing the found study model instance (if applicable, otherwise None), the error messages and the warning messages. 

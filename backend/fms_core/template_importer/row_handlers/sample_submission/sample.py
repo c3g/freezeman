@@ -5,6 +5,7 @@ from fms_core.models import Individual, Sample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.project_link_samples import create_link
+from fms_core.services.sample_next_step import queue_sample_to_study_workflow
 from fms_core.services.project import get_project
 from fms_core.services.study import get_study
 from fms_core.services.container import get_container, get_or_create_container
@@ -96,8 +97,6 @@ class SampleRowHandler(GenericRowHandler):
             except KeyError as e:
                 self.errors['tissue_source'] = [f"Tissue source {sample['tissue_source']} not found."]
 
-
-
         # Library are submitted
         library_obj = None
         is_library = any([library['library_type'], library['index'], library['platform'], library['strandedness'], library['library_size']])
@@ -127,7 +126,7 @@ class SampleRowHandler(GenericRowHandler):
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
             if project_obj and project['study_letter']:
-                  study_obj, self.errors['study'], self.warnings['study'] = get_study(obj_project, project['study_letter'])
+                  study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
@@ -172,6 +171,8 @@ class SampleRowHandler(GenericRowHandler):
             # Link sample to project if requested
             if project_obj and sample_obj:
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+                if study_obj:
+                    _, self.errors['queue_to_study'], self.warnings['queue_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj)
         # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
         elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
             self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]
