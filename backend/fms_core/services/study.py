@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import Study
 
-def create_study(letter, project, worfklow, start, end, reference_genome=None):
+def create_study(letter, project, workflow, start, end, reference_genome=None):
     study = None
     errors = {}
     warnings = {}
@@ -14,7 +14,7 @@ def create_study(letter, project, worfklow, start, end, reference_genome=None):
         errors['project'] = 'Missing project.'
         return study, errors, warnings
 
-    if not worfklow:
+    if not workflow:
         errors['workflow'] = 'Missing workflow.'
         return study, errors, warnings
 
@@ -28,11 +28,11 @@ def create_study(letter, project, worfklow, start, end, reference_genome=None):
 
     try:
         study = Study.objects.create(letter=letter,
-                                    project=project,
-                                    worfklow=worfklow,
-                                    start=start,
-                                    end=end,
-                                    reference_genome=reference_genome)
+                                     project=project,
+                                     workflow=workflow,
+                                     start=start,
+                                     end=end,
+                                     reference_genome=reference_genome)
     except ValidationError as e:
         errors = { **errors, **e.message_dict }
 
