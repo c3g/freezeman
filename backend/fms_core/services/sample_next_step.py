@@ -17,3 +17,33 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
         Tuple containing the created SampleNextStep instance (if applicable, otherwise None), the error messages and the warning messages. 
 
     """
+    sample_next_step = None
+    errors = []
+    warnings = []
+
+    if not isinstance(sample_obj, Sample):
+        errors.append(f"A valid sample instance must be provided.")
+
+    if not isinstance(study_obj, Study):
+        errors.append(f"A valid study instance must be provided.")
+
+    if order is None:
+        order = study_obj.start
+    elif order < study_obj.start or order > study_obj.end:
+        errors.append(f"Order must be a positive integer between {study_obj.start} and {study_obj.end}.")
+    
+    try:
+        step_order = StepOrder.objects.get(order=order, workflow=study_obj.workflow)
+    except StepOrder.DoesNotExist:
+        errors.append(f"No step found for the given order.")
+    
+    # Queueing to study workflow implies an existing step order.
+    # To reach past the end (step_order is None) use move_sample_to_next_step.
+    if step_order:
+        try:
+            sample_next_step = SampleNextStep.objects.create(step_order=step_order,
+                                                             sample=sample_obj,
+                                                             study=study_obj)
+        except Exception as err:
+            errors.append(err)
+    return sample_next_step, errors, warnings
