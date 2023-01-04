@@ -26,8 +26,7 @@ export const add =
 		const data = {
 			project: study.project.id,
 			workflow: study.workflow.id,
-			// reference_genome: study.referenceGenome?.id ?? '',
-            reference_genome: 'BOGUS',  // force an error
+			reference_genome: study.referenceGenome?.id ?? '',
 			letter: 'A',
 			start: 1,
 			end: study.workflow.steps.length,
