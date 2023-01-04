@@ -1,7 +1,8 @@
-// 
+import { RootState } from "./store"
 
 /*
-    Selector functions for use with the useSelector() hook from react-redux.
+    Selector functions for use with the useSelector() hook from react-redux,
+    or the useAppSelector() hook defined for the application.
     The selector function is given the redux store state and returns a
     piece of state.
 
@@ -15,8 +16,9 @@
     const projectsByID = useSelector(selectProjectsByID)
 */
 
-export const selectProjectsByID = state => state.projects.itemsByID
-export const selectReferenceGenomesByID = state => state.referenceGenomes.itemsByID
-export const selectSamplesByID = state => state.samples.itemsByID
-export const selectUsersByID = state => state.users.itemsByID
-export const selectWorkflowsByID = state => state.workflows.itemsByID
+export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
+export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID
+export const selectSamplesByID = (state: RootState) => state.samples.itemsByID
+export const selectUsersByID = (state: RootState) => state.users.itemsByID
+export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID
+export const selectStudiesByID = (state: RootState) => state.studies

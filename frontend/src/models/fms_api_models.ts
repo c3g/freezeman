@@ -1,5 +1,10 @@
 /**
  * Type definitions for the objects returned by the freezeman API.
+ * 
+ * These are the types we receive in response to api calls. The frontend
+ * then tacks on some extra properties before storing the objects in
+ * the redux state (isFetching and isLoaded). The actual types stored in redux
+ * are defined in `frontend_models.ts`.
  */
 
 //

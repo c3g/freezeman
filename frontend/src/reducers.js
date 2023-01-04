@@ -81,6 +81,7 @@ import {reducer as groups} from "./modules/groups";
 import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
+import { studies } from "./modules/studies/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -123,6 +124,7 @@ const allReducers = combineReducers({
   projectsSummary,
   projects,
   projectTemplateActions,
+  studies,
   indicesSummary,
   indices,
   indicesTemplateActions,

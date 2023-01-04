@@ -7,7 +7,7 @@
  * code that handles api responses.
  */
 
-import { FMSId, FMSProject, FMSReferenceGenome, FMSTaxon, FMSWorkflow } from "./fms_api_models"
+import { FMSId, FMSProject, FMSReferenceGenome, FMSStudy, FMSTaxon, FMSWorkflow } from "./fms_api_models"
 
 // Reducers tack on these two properties to objects that are fetched from
 // the backend when they add the objects to the store.
@@ -16,8 +16,13 @@ interface FetchedObject {
     isLoaded: boolean
 }
 
+export interface ItemsByID<T extends FetchedObject> {
+    [key: FMSId] : T
+}
+
 export type ObjectId= FMSId
 export interface Project extends FMSProject, FetchedObject {}
 export interface ReferenceGenome extends FMSReferenceGenome, FetchedObject {}
 export interface Taxon extends FMSTaxon, FetchedObject {}
 export interface Workflow extends FMSWorkflow, FetchedObject {}
+export interface Study extends FMSStudy, FetchedObject {}

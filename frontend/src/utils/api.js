@@ -211,6 +211,12 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  studies: {
+    get: studyId => get(`/studies/${studyId}/`),
+    add: study => post("/studies/", study),
+    update: study => patch(`/studies/${study.id}/`, study),
+  },
+
   taxons: {
     get: taxonId => get(`/taxons/${taxonId}/`),
     list: (options, abort) => get("/taxons/", options, { abort }),
