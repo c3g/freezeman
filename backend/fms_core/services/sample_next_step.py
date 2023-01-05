@@ -22,9 +22,11 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
     warnings = []
 
     if not isinstance(sample_obj, Sample):
+        sample_obj = None
         errors.append(f"A valid sample instance must be provided.")
 
     if not isinstance(study_obj, Study):
+        study_obj = None
         errors.append(f"A valid study instance must be provided.")
 
     if order is None:
@@ -39,7 +41,7 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
     
     # Queueing to study workflow implies an existing step order.
     # To reach past the end (step_order is None) use move_sample_to_next_step.
-    if step_order:
+    if step_order and sample_obj and study_obj and not errors:
         try:
             sample_next_step = SampleNextStep.objects.create(step_order=step_order,
                                                              sample=sample_obj,
