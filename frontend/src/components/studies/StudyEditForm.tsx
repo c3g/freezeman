@@ -1,9 +1,13 @@
 import React from 'react'
-import { Button, Form, Input, Space } from 'antd'
+import { Button, Divider, Form, Input, Space } from 'antd'
 import WorkflowChooser from './WorkflowChooser'
 import { useNavigate } from 'react-router-dom'
 import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
 import ReferenceGenomeSelect from './ReferenceGenomeSelect'
+import WorkflowCollapsableList from './WorkflowCollapsableList'
+import WorkflowStepSelector from './WorkflowStepSelector'
+import WorkflowAutoComplete from './WorkflowAutocomplete'
+import WorkflowCascadeMenu from './WorkflowCascadeMenu'
 
 const { Item } = Form
 
@@ -18,16 +22,22 @@ interface CreateStudyFormProps {
 interface FormData {
     referenceGenome?: ReferenceGenome
     workflow?: Workflow
+    stepRange?: {start?: number, end?: number}
 }
 
-type StudyEditCallback = (referenceGenome?: ReferenceGenome, workflow?: Workflow) => void
+type StudyEditCallback = (referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: {start?: number, end?:number}) => void
+
 
 const StudyEditForm = ({project, study, workflows, isCreatingStudy, onSubmit} : CreateStudyFormProps) => {
 
     const navigate = useNavigate()
 
+    const [form] = Form.useForm<FormData>()
+    const selectedWorkflow = Form.useWatch('workflow', form)
+    const stepRange = Form.useWatch('stepRange', form)
+
     function handleSubmit(values: FormData) {
-        onSubmit(values.referenceGenome, values.workflow)
+        onSubmit(values.referenceGenome, values.workflow, values.stepRange)
     }
 
     function handleCancel() {
@@ -35,7 +45,8 @@ const StudyEditForm = ({project, study, workflows, isCreatingStudy, onSubmit} : 
     }
 
     return (
-        <Form 
+        <Form
+            form={form} 
             name="edit-study"
             labelCol={{ span: 4 }}
             wrapperCol={{ span: 12 }}
@@ -57,7 +68,26 @@ const StudyEditForm = ({project, study, workflows, isCreatingStudy, onSubmit} : 
                 {/* TODO disable the workflow chooser if user is editing a study (unless we allow
                     the user to change the workflow after the study has been created) 
                 */}
-                <WorkflowChooser workflows={workflows} currentSelection={study?.workflow}/>
+                {/* <WorkflowChooser workflows={workflows} currentSelection={selectedWorkflow}/>                 */}
+                {/* <WorkflowAutoComplete workflows={workflows} selectedWorkflow={selectedWorkflow}/> */}
+                <WorkflowCascadeMenu workflows={workflows} selectedWorkflow={selectedWorkflow}/>
+            </Item>
+            <Item
+                name="stepRange"
+                label="Start and End Steps"
+            >
+                <WorkflowStepSelector 
+                    workflow={selectedWorkflow} 
+                    startStep={stepRange?.start}
+                    endStep={stepRange?.end}
+                    onChange={(start, end ) => {
+                        form.setFieldValue('stepRange', {start, end})
+                    }}
+                />
+            </Item>
+            <Item label="Workflow Details">
+                {/* <Divider plain orientation='center'>Workflow Details</Divider> */}
+			    <WorkflowCollapsableList workflows={workflows} selectedWorkflow={selectedWorkflow} onChange={(workflow) => {form.setFieldValue('workflow', workflow)}}/>
             </Item>
             <Item>
                 <Space>

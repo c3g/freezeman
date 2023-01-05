@@ -7,7 +7,7 @@ import ProjectEditContent from "./ProjectEditContent";
 import ProjectsDetailedContent from "./ProjectsDetailedContent.tsx";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
-import StudyEditContent from './StudyEditContent';
+import StudyEditContent from "../studies/StudyEditContent";
 
 const ProjectsPage = () => <PageContainer>
   <Routes>

@@ -61,9 +61,12 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
 }
 
 export interface FMSStudy extends FMSTrackedModel {
-    name: string
+    project: FMSId
+    letter: string
     reference_genome: FMSId
     workflow: FMSId
+    start: number
+    end: number
 }
 
 export interface FMSTaxon extends FMSTrackedModel {

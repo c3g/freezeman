@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
@@ -9,6 +9,7 @@ import PageContent from '../PageContent'
 import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
 import { useAppDispatch } from '../../hooks'
 import { add } from '../../modules/studies/actions'
+import { withProject } from '../../utils/withItem'
 
 const { Title } = Typography
 
@@ -24,19 +25,25 @@ interface AlertError {
 const StudyEditContent = ({action} : EditStudyContentProps) => {
 
     const [alertError, setAlertError] = useState<AlertError>()
-
-    let project: Project | undefined = undefined
+    const [project, setProject] = useState<Project>()
     let study: any
 
     const isCreating = action === 'ADD'
 
     let dispatch = useAppDispatch()
+    let projectsById = useSelector(selectProjectsByID)
+    let projectId = useParams().id
 
-    const projectId = useParams().id
-    if (!!projectId) {
-        const projectsById = useSelector(selectProjectsByID)
-        project = projectsById[projectId]
-    }
+    useEffect(() => {
+        if (projectId) {
+            const myProject = projectsById[projectId]
+            if (myProject) {
+                setProject(myProject)
+            } else {
+                withProject(projectsById, projectId, (project) => project)
+            }
+        }
+    }, [projectId, projectsById])
 
 
     const studyId = useParams().study_id
@@ -54,15 +61,18 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
         title = `Edit ${"a Study"}`  // TODO: display study name
     }
 
-    async function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow) {
+    async function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: {start?: number, end?: number}) {
         if (isCreating) {
             if (project && workflow) {
                 dispatch(add({
                     project,
                     workflow,
-                    referenceGenome
+                    referenceGenome,
+                    stepRange
                 })).catch(err => {
-                    // TODO 
+                    // TODO Move error handling code in to the form, since the error message will
+                    // contain an error and the name of the field that contained the error, so that
+                    // we can display the error message beside the form input containing the bad data.
                     setAlertError({
                         message: 'An error occured while creating the study.',
                         description: err.message

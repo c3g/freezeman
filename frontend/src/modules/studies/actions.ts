@@ -16,7 +16,7 @@ export const get = (id: number) => async (dispatch: AppDispatch, getState: () =>
 }
 
 export const add =
-	(study: { project: Project; referenceGenome?: ReferenceGenome; workflow: Workflow }) =>
+	(study: { project: Project; referenceGenome?: ReferenceGenome; workflow: Workflow, stepRange?: {start?: number, end?:number} }) =>
 	async (dispatch: AppDispatch, getState: () => RootState) => {
 		if (getState().studies.isFetching) return
 
@@ -28,8 +28,8 @@ export const add =
 			workflow: study.workflow.id,
 			reference_genome: study.referenceGenome?.id ?? '',
 			letter: 'A',
-			start: 1,
-			end: study.workflow.steps.length,
+			start: study.stepRange?.start,
+			end: study.stepRange?.end,
 		}
 
 		return await dispatch(networkAction(ADD, api.studies.add(data), { meta: {} }))
