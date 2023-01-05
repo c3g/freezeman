@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import Study
+from fms_core.models import Study, Project
 
 def create_study(letter, project, workflow, start, end, reference_genome=None):
     study = None
@@ -39,7 +39,7 @@ def create_study(letter, project, workflow, start, end, reference_genome=None):
     return study, errors, warnings
 
 
-def get_study(project_obj, study_letter):
+def get_study(project_obj: Project, study_letter: str):
     """
     Retrieve a specific study for a given project. Studies are identified by a sequentially attributed capital letter.
 
@@ -55,6 +55,9 @@ def get_study(project_obj, study_letter):
     errors = []
     warnings = []
 
+    if not isinstance(project_obj, Project):
+        errors.append(f"A valid project instance must be provided.")
+
     if project_obj and study_letter:
         try:
             study = Study.objects.get(project=project_obj, letter=study_letter)
@@ -63,4 +66,4 @@ def get_study(project_obj, study_letter):
     else:
         errors.append(f"Both a project and a study letter are required to retrieve a study.")
 
-    return (study, errors, warnings)
+    return study, errors, warnings
