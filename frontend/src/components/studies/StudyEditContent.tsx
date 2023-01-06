@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import { useAppDispatch } from '../../hooks'
+import { ApiError, isApiError } from '../../models/fms_api_models'
 import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { add } from '../../modules/studies/actions'
 import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
@@ -24,6 +25,7 @@ interface AlertError {
 
 const StudyEditContent = ({ action }: EditStudyContentProps) => {
 	const [alertError, setAlertError] = useState<AlertError>()
+	const [apiError, setApiError] = useState<ApiError>()
 	const [project, setProject] = useState<Project>()
 	let study: any
 
@@ -62,22 +64,26 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 	async function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: WorkflowStepRange) {
 		if (isCreating) {
 			if (project && workflow && stepRange) {
-				dispatch(
+				const result = await dispatch(
 					add({
 						project,
 						workflow,
 						referenceGenome,
 						stepRange,
 					})
-				).catch((err) => {
-					// TODO Move error handling code in to the form, since the error message will
-					// contain an error and the name of the field that contained the error, so that
-					// we can display the error message beside the form input containing the bad data.
-					setAlertError({
-						message: 'An error occured while creating the study.',
-						description: err.message,
-					})
+				).then(() => {
+					setApiError(undefined)
+				}).catch((err) => {
+					if (isApiError(err)) {
+						setApiError(err)
+					} else {
+						setAlertError({
+							message: 'An error occured while creating the study.',
+							description: err.message ?? 'No error message available.',
+						})
+					}
 				})
+				console.log(result)
 			}
 		} else {
 			// TODO handle study update
@@ -100,7 +106,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 					</div>
 				)}
 				{project && (
-					<StudyEditForm project={project} workflows={workflows} isCreatingStudy={isCreating} onSubmit={handleFormSubmit} />
+					<StudyEditForm project={project} workflows={workflows} isCreatingStudy={isCreating} onSubmit={handleFormSubmit} formErrors={apiError?.data}/>
 				)}
 			</PageContent>
 		</>

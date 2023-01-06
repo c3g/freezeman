@@ -7,6 +7,21 @@
  * are defined in `frontend_models.ts`.
  */
 
+/* Error type returned by the API when the frontend sends a bad request (error 400) */
+export interface ApiError {
+	data: {[key: string]: string[]} // Key-value pair, where the value is an array of error messages
+	fromAPI: boolean
+	name: string
+	status: number
+	statusText: string
+    url: string
+	message: string
+}
+
+export function isApiError(err : any): boolean {
+    return (err && err.fromAPI === true && err.name === 'APIError' && err.status === 400) 
+}
+
 //
 export type FMSId = number
 

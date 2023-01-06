@@ -1,6 +1,7 @@
 import { Button, Form, Space } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ApiError } from '../../models/fms_api_models'
 import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 import WorkflowCascadeMenu from './WorkflowCascadeMenu'
@@ -9,12 +10,17 @@ import WorkflowStepSelector from './WorkflowStepSelector'
 
 const { Item } = Form
 
+interface FormErrors {
+	[key: string] : string[]
+}
+
 interface CreateStudyFormProps {
 	project: Project
 	study?: any
 	workflows: Workflow[]
 	isCreatingStudy: boolean
 	onSubmit: StudyEditCallback
+	formErrors?: FormErrors
 }
 
 interface FormData {
@@ -25,7 +31,7 @@ interface FormData {
 
 type StudyEditCallback = (referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: WorkflowStepRange) => void
 
-const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit }: CreateStudyFormProps) => {
+const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
 	const navigate = useNavigate()
 
 	const [form] = Form.useForm<FormData>()
@@ -55,13 +61,31 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit }:
 		}
 	}
 
+	function itemValidation(key: string) {
+		if (formErrors && formErrors[key]) {
+			return {
+				validationStatus: 'error',
+				help: formErrors[key]
+			}
+		}
+		return {}
+	}
+
 	return (
 		<Form form={form} name="edit-study" labelCol={{ span: 4 }} wrapperCol={{ span: 12 }} layout="horizontal" onFinish={handleSubmit}>
-			<Item name="referenceGenome" label="Refererence Genome">
+			<Item 
+				name="referenceGenome" 
+				label="Refererence Genome"
+				{...itemValidation('reference_genome')}
+				>
 				{/* TODO pass currently selected reference genome id if editing */}
 				<ReferenceGenomeSelect />
 			</Item>
-			<Item name="workflow" label="Workflow" rules={[{ required: true, message: 'A workflow must be selected for the study.' }]}>
+			<Item 
+				name="workflow" 
+				label="Workflow" 
+				{...itemValidation('workflow')}
+				rules={[{ required: true, message: 'A workflow must be selected for the study.' }]}>
 				{/* TODO disable the workflow chooser if user is editing a study (unless we allow
                     the user to change the workflow after the study has been created) 
                 */}
@@ -70,6 +94,7 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit }:
 			<Item
 				name="stepRange"
 				label="Start and End Steps"
+				{...itemValidation('step_range')}
 				rules={[
 					{
 						required: true,
@@ -99,9 +124,7 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit }:
 				<WorkflowCollapsableList
 					workflows={workflows}
 					selectedWorkflow={selectedWorkflow}
-					onChange={(workflow) => {
-						form.setFieldValue('workflow', workflow)
-					}}
+					onChange={workflowWasSelected}
 				/>
 			</Item>
 			<Item>
