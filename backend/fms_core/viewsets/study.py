@@ -63,7 +63,7 @@ class StudyViewSet(viewsets.ModelViewSet):
                                                     reference_genome=reference_genome)
 
             for key, value in errors_service.items():
-                errors[key].appends(value)
+                errors[key].append(value)
 
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
