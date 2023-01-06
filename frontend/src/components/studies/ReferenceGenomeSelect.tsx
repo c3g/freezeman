@@ -1,11 +1,3 @@
-/*
-    options
-        - create a component that gets RG's and taxons from redux on its own
-
-        - create a function that gets the RG's and taxons and stitches them together
-
-        - 
-*/
 import React from 'react'
 import { Select } from 'antd'
 import { ObjectId, ReferenceGenome } from '../../models/frontend_models'
@@ -20,11 +12,11 @@ interface ReferenceGenomeSelectProps {
 
 /**
  * Creates a reference genome Select menu, for use as with an antd Form.Item.
- * 
+ *
  * The onChange callback is called whenever the user selects a reference genome, with the
  * selected reference genome as a parameter. Ant Design uses onChange to collect the selected
  * value for the form data.
- * 
+ *
  * @param selectedReferenceGenomeId : ObjectId  The id of a reference genome, or undefined
  * @param onChange: onChange callback function that receives a selected ReferenceGenome object as a parameter
  * @returns

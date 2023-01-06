@@ -2,16 +2,15 @@ import { Collapse, List, Table } from 'antd'
 import React, { useState } from 'react'
 import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
-
+import './WorkflowCollapsableList.scss'
 
 interface WorkflowCollapsableListProps {
-    workflows: Workflow[]
-    selectedWorkflow?: Workflow
-    onChange?: (workflow?: Workflow) => void
+	workflows: Workflow[]
+	selectedWorkflow?: Workflow
+	onChange?: (workflow?: Workflow) => void
 }
 
-const WorkflowCollapsableList = ({workflows, selectedWorkflow, onChange}: WorkflowCollapsableListProps) => {
-
+const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: WorkflowCollapsableListProps) => {
 	const structuredWorkflows = createStructuredWorkflows(workflows)
 
 	function workflowWasSelected(workflow?: Workflow) {
@@ -25,11 +24,13 @@ const WorkflowCollapsableList = ({workflows, selectedWorkflow, onChange}: Workfl
 		return (
 			<Collapse accordion>
 				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
-					<List dataSource={stepNames} size="small" renderItem={(item) => {
-						return (
-							<List.Item key={item}>{item}</List.Item>
-						)
-					}}></List>
+					<List
+						dataSource={stepNames}
+						size="small"
+						renderItem={(item) => {
+							return <List.Item key={item}>{item}</List.Item>
+						}}
+					></List>
 				</Collapse.Panel>
 			</Collapse>
 		)
@@ -94,9 +95,7 @@ const WorkflowCollapsableList = ({workflows, selectedWorkflow, onChange}: Workfl
 		return panels
 	}
 
-    return (
-        <Collapse defaultActiveKey={selectedWorkflow?.structure}>{createWorkflowStructurePanels()}</Collapse>
-    )
+	return <Collapse defaultActiveKey={selectedWorkflow?.structure}>{createWorkflowStructurePanels()}</Collapse>
 }
 
 export default WorkflowCollapsableList
