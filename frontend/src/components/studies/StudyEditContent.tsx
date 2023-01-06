@@ -6,7 +6,7 @@ import StudyEditForm from './StudyEditForm'
 import { Alert, Space, Typography } from 'antd'
 import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
-import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
+import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { useAppDispatch } from '../../hooks'
 import { add } from '../../modules/studies/actions'
 import { withProject } from '../../utils/withItem'
@@ -61,9 +61,9 @@ const StudyEditContent = ({action} : EditStudyContentProps) => {
         title = `Edit ${"a Study"}`  // TODO: display study name
     }
 
-    async function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: {start?: number, end?: number}) {
+    async function handleFormSubmit(referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: WorkflowStepRange) {
         if (isCreating) {
-            if (project && workflow) {
+            if (project && workflow && stepRange) {
                 dispatch(add({
                     project,
                     workflow,

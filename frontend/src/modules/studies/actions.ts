@@ -1,4 +1,4 @@
-import { Project, ReferenceGenome, Workflow } from '../../models/frontend_models'
+import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { AppDispatch, RootState } from '../../store'
 import { createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
@@ -16,7 +16,7 @@ export const get = (id: number) => async (dispatch: AppDispatch, getState: () =>
 }
 
 export const add =
-	(study: { project: Project; referenceGenome?: ReferenceGenome; workflow: Workflow, stepRange?: {start?: number, end?:number} }) =>
+	(study: { project: Project; referenceGenome?: ReferenceGenome; workflow: Workflow, stepRange: WorkflowStepRange }) =>
 	async (dispatch: AppDispatch, getState: () => RootState) => {
 		if (getState().studies.isFetching) return
 
@@ -27,9 +27,8 @@ export const add =
 			project: study.project.id,
 			workflow: study.workflow.id,
 			reference_genome: study.referenceGenome?.id ?? '',
-			letter: 'A',
-			start: study.stepRange?.start,
-			end: study.stepRange?.end,
+			start: study.stepRange.start,
+			end: study.stepRange.end,
 		}
 
 		return await dispatch(networkAction(ADD, api.studies.add(data), { meta: {} }))

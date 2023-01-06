@@ -26,3 +26,8 @@ export interface ReferenceGenome extends FMSReferenceGenome, FetchedObject {}
 export interface Taxon extends FMSTaxon, FetchedObject {}
 export interface Workflow extends FMSWorkflow, FetchedObject {}
 export interface Study extends FMSStudy, FetchedObject {}
+
+export interface WorkflowStepRange {
+    start: number
+    end: number
+}
