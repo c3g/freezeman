@@ -7,7 +7,6 @@ from fms_core.serializers import StudySerializer
 from fms_core.services.study import create_study
 from django.core.exceptions import ValidationError
 
-import string
 from collections import defaultdict
 
 from ._constants import _study_filterset_fields
@@ -24,10 +23,6 @@ class StudyViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         errors = defaultdict(list)
         study_data = request.data
-
-        # Generate a sequential letter by counting the number of existing studies tied to the provided project
-        study_count = Study.objects.filter(project=study_data['project']).count()
-        letter = string.ascii_uppercase[study_count]
 
         try:
             if study_data['project']:
@@ -55,8 +50,7 @@ class StudyViewSet(viewsets.ModelViewSet):
 
         if not any(bool(error) for error in errors.values()): 
             # Call create study service
-            study, errors_service, _ = create_study(letter=letter,
-                                                    project=project,
+            study, errors_service, _ = create_study(project=project,
                                                     workflow=workflow,
                                                     start=study_data['start'],
                                                     end=study_data['end'],
