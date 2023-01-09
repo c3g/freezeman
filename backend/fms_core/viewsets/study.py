@@ -7,7 +7,6 @@ from fms_core.serializers import StudySerializer
 from fms_core.services.study import create_study
 from django.core.exceptions import ValidationError
 
-import string
 from collections import defaultdict
 
 from ._constants import _study_filterset_fields
@@ -25,17 +24,13 @@ class StudyViewSet(viewsets.ModelViewSet):
         errors = defaultdict(list)
         study_data = request.data
 
-        # Generate a sequential letter by counting the number of existing studies tied to the provided project
-        study_count = Study.objects.filter(project=study_data['project']).count()
-        letter = string.ascii_uppercase[study_count]
-
         try:
             if study_data['project']:
                 project = Project.objects.get(id=study_data['project'])
             else:
                 project = None
         except Project.DoesNotExist:
-            errors['project'].append(f"Project with id {study_data['project']} does not exists.")
+            errors['project'].append(f"Project with id {study_data['project']} does not exist.")
 
         try:
             if study_data['workflow']:
@@ -43,7 +38,7 @@ class StudyViewSet(viewsets.ModelViewSet):
             else:
                 workflow = None
         except Workflow.DoesNotExist:
-            errors['workflow'].append(f"Workflow with id {study_data['workflow']} does not exists.")
+            errors['workflow'].append(f"Workflow with id {study_data['workflow']} does not exist.")
 
         try:
             if study_data['reference_genome']:
@@ -51,19 +46,18 @@ class StudyViewSet(viewsets.ModelViewSet):
             else:
                 reference_genome = None
         except ReferenceGenome.DoesNotExist:
-            errors['reference_genome'].append(f"Reference genome with id {study_data['reference_genome']} does not exists.")
+            errors['reference_genome'].append(f"Reference genome with id {study_data['reference_genome']} does not exist.")
 
         if not any(bool(error) for error in errors.values()): 
             # Call create study service
-            study, errors_service, _ = create_study(letter=letter,
-                                                    project=project,
+            study, errors_service, _ = create_study(project=project,
                                                     workflow=workflow,
                                                     start=study_data['start'],
                                                     end=study_data['end'],
                                                     reference_genome=reference_genome)
 
             for key, value in errors_service.items():
-                errors[key].appends(value)
+                errors[key].append(value)
 
         if any(bool(error) for error in errors.values()):
             raise ValidationError(errors)
