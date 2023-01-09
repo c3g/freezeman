@@ -30,7 +30,7 @@ class StudyViewSet(viewsets.ModelViewSet):
             else:
                 project = None
         except Project.DoesNotExist:
-            errors['project'].append(f"Project with id {study_data['project']} does not exists.")
+            errors['project'].append(f"Project with id {study_data['project']} does not exist.")
 
         try:
             if study_data['workflow']:
