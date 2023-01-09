@@ -130,7 +130,7 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, f
 			<Item>
 				<Space>
 					<Button type="primary" htmlType="submit">
-						Create
+						{isCreatingStudy ? 'Create' : 'Submit'}
 					</Button>
 					<Button onClick={handleCancel}>Cancel</Button>
 				</Space>

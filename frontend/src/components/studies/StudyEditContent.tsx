@@ -1,9 +1,9 @@
 import { Alert, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch } from '../../hooks'
-import { ApiError, isApiError } from '../../models/fms_api_models'
+import { ApiError, FMSStudy, FMSWorkflow, isApiError } from '../../models/fms_api_models'
 import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { add } from '../../modules/studies/actions'
 import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
@@ -24,6 +24,7 @@ interface AlertError {
 }
 
 const StudyEditContent = ({ action }: EditStudyContentProps) => {
+	const navigate = useNavigate()
 	const [alertError, setAlertError] = useState<AlertError>()
 	const [apiError, setApiError] = useState<ApiError>()
 	const [project, setProject] = useState<Project>()
@@ -71,8 +72,13 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 						referenceGenome,
 						stepRange,
 					})
-				).then(() => {
+				).then((studyData?: FMSStudy) => {
 					setApiError(undefined)
+					if (studyData?.id) {
+						// Navigate to the study page
+						const url = `/projects/${projectId}/study/${studyData.id}`
+						navigate(url)
+					}
 				}).catch((err) => {
 					if (isApiError(err)) {
 						setApiError(err)

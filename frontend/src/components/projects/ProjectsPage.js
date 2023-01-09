@@ -17,7 +17,7 @@ const ProjectsPage = () => <PageContainer>
     <Route path="/:id/update/*" element={<ProjectEditContent />}/>
     <Route path="/:id/*" element={<ProjectsDetailedContent/>}/>
     <Route path="/:id/study/add/*" element={<StudyEditContent action="ADD"/>}/>
-    <Route path="/:id/study/:study_id/*" element={<StudyEditContent action="EDIT"/>}/>
+    <Route path="/:id/study/:study_id/update" element={<StudyEditContent action="EDIT"/>}/>
     <Route path="*" element={<Navigate to="/projects/list" replace />}/>
   </Routes>
 </PageContainer>;
