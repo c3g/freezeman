@@ -25,7 +25,7 @@ export function isApiError(err : any): boolean {
 //
 export type FMSId = number
 
-interface FMSTrackedModel {
+export interface FMSTrackedModel {
     id: FMSId
     created_at: Date
     created_by: FMSId
@@ -70,16 +70,16 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
     // RefSeq identifier of the reference genome
     refseq_id?: string
     // Reference genome used to analyze samples in the study
-    taxon: FMSId
+    taxon_id: FMSId
     // Number of base pairs of the reference genome
     size: number
 }
 
 export interface FMSStudy extends FMSTrackedModel {
-    project: FMSId
+    project_id: FMSId
     letter: string
-    reference_genome: FMSId
-    workflow: FMSId
+    reference_genome_id: FMSId
+    workflow_id: FMSId
     start: number
     end: number
 }

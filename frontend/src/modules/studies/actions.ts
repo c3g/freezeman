@@ -7,6 +7,7 @@ import { projectTemplateActions } from '../projects/reducers'
 export const GET = createNetworkActionTypes('STUDIES.GET')
 export const ADD = createNetworkActionTypes('STUDIES.ADD')
 export const UPDATE = createNetworkActionTypes('STUDIES.UPDATE')
+export const LIST_PROJECT_STUDIES = createNetworkActionTypes('STUDIES.LIST_PROJECT_STUDIES')
 
 export const get = (id: number) => async (dispatch: AppDispatch, getState: () => RootState) => {
 	const study = getState().studies.itemsByID[id]
@@ -42,13 +43,25 @@ export const update =
 		return await dispatch(networkAction(UPDATE, api.studies.update(study), { meta: { id, ignoreError: 'APIError' } }))
 	}
 
+export const listProjectStudies = (projectId: number) => {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		if (getState().studies.isFetching) {
+			return
+		}
+
+		return await dispatch(networkAction(LIST_PROJECT_STUDIES, api.studies.listProjectStudies(projectId), {}))
+	}
+}
+
 export default {
 	GET,
 	ADD,
 	UPDATE,
+	LIST_PROJECT_STUDIES,
 	get,
 	add,
 	update,
+	listProjectStudies
 }
 
 // Helper to call list() after another action

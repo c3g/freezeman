@@ -7,7 +7,8 @@
  * code that handles api responses.
  */
 
-import { FMSId, FMSProject, FMSReferenceGenome, FMSStudy, FMSTaxon, FMSWorkflow } from "./fms_api_models"
+
+import { FMSId, FMSProject, FMSReferenceGenome, FMSStudy, FMSTaxon, FMSTrackedModel, FMSWorkflow } from "./fms_api_models"
 
 // Reducers tack on these two properties to objects that are fetched from
 // the backend when they add the objects to the store.
@@ -31,3 +32,37 @@ export interface WorkflowStepRange {
     start: number
     end: number
 }
+
+
+export interface PageOffset {
+    offset: number
+}
+
+export interface Filters {
+    [key: string] : {value: any}
+}
+
+export interface SortBy {
+    key: string
+    order: 'ascend' | 'descend'
+}
+
+export interface ListableReduxState<T extends FMSTrackedModel & FetchedObject> {
+    itemsByID: ItemsByID<T>
+    items: any[]
+    page: PageOffset
+    totalCount: number
+    isFetching: boolean
+    filters: Filters
+    sortBy: SortBy
+}
+
+/**
+ * itemsByID: {},
+		items: [],
+		page: { offset: 0 },
+		totalCount: 0,
+		isFetching: false,
+		filters: {},
+		sortBy: { key: undefined, order: undefined },
+ */

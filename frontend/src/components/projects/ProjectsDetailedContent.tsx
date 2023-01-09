@@ -1,15 +1,20 @@
 import { Button, Tabs, Typography } from 'antd'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
-import { Project } from '../../models/frontend_models'
+import { Project, Study } from '../../models/frontend_models'
 const { Title } = Typography
 
 import { get } from '../../modules/projects/actions'
+import { listProjectStudies } from '../../modules/studies/actions'
+import { selectProjectsByID, selectStudiesByID } from '../../selectors'
+import { RootState } from '../../store'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
+import StudyDetails from '../studies/StudyDetails'
 import CreateStudy from './CreateStudy'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
@@ -23,20 +28,38 @@ interface ProjectsDetailedContentProps {
 const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	const navigate = useNavigate()
 	const { id } = useParams()
-	const dispatch = useDispatch()
+	const dispatch = useAppDispatch()
 
-	const projectsByID = useSelector((state: any) => state.projects.itemsByID)
+	const projectID = id ? Number.parseInt(id) : undefined
+	const projectsByID = useSelector(selectProjectsByID)
+	const studiesById = useAppSelector(selectStudiesByID)
 
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
 	let isLoading = true
 	let project : Project | undefined = undefined
-	if (id) {
-		project = projectsByID[id]
+	if (projectID) {
+		project = projectsByID[projectID]
 		if (project) {
 			isLoading = false
 		} else {
 			dispatch(get(id))
+		}
+	}
+
+	useEffect(() => {
+		if (projectID) {
+			dispatch(listProjectStudies(projectID))
+		}
+	}, [id])
+
+	// Get the studies owned by this project
+	// const studies = Object.values(studiesById).filter(study => study.project_id === id)
+	const studies: Study[] = []
+	for(const key in studiesById) {
+		const study = studiesById[key]
+		if (study.project_id === projectID) {
+			studies.push(study)
 		}
 	}
 
@@ -55,6 +78,8 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	// Clicking the Add Study button navigates the user to the study creation form
 	const addStudyButton = <Button onClick={() => {navigate(`/projects/${id}/study/add`)}}>Add Study</Button>
 
+	
+
 	return (
 		<>
 			<AppPageHeader title={title} extra={<EditButton url={`/projects/${id}/update`} />} />
@@ -68,8 +93,14 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 							</TabPane>
 							<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
 								<ProjectsAssociatedSamples projectID={project.id} />
-							</TabPane>
-							{/* TODO Add a tab for each study in the project */}
+							</TabPane>	
+							{studies.map(study => {
+								return (
+									<TabPane tab={`Study ${study.letter}`} key={`study:${study.id}`} style={tabStyle}>
+										<StudyDetails studyId={study.id}/>
+									</TabPane>
+								)
+							})}
 						</Tabs>
 					}
 				</PageContent>

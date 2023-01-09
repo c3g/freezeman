@@ -1,5 +1,6 @@
 import { merge } from 'object-path-immutable'
 import { ItemsByID, Study } from '../../models/frontend_models'
+import { indexByID } from '../../utils/objects'
 
 import { resetTable } from '../../utils/reducers'
 
@@ -18,13 +19,13 @@ export const studies = (
 	state : StudiesState = {
 		itemsByID: {} as ItemsByID<Study>,
 		items: [],
-		isFetching: false,
+		isFetching: false
 	},
 	action
-) => {
+) : StudiesState => {
 	switch (action.type) {
 		case STUDIES.GET.REQUEST:
-			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true })
+			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta?.id, isFetching: true })
 		case STUDIES.GET.RECEIVE:
 			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false })
 		case STUDIES.GET.ERROR:
@@ -38,11 +39,26 @@ export const studies = (
 			return { ...state, error: action.error, isFetching: false }
 
 		case STUDIES.UPDATE.REQUEST:
-			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true })
+			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { id: action.meta?.id, isFetching: true })
 		case STUDIES.UPDATE.RECEIVE:
 			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false, versions: undefined })
 		case STUDIES.UPDATE.ERROR:
 			return merge<StudiesState>(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false })
+
+		case STUDIES.LIST_PROJECT_STUDIES.REQUEST:
+			return { ...state, isFetching: true }
+		case STUDIES.LIST_PROJECT_STUDIES.RECEIVE:
+			const results = action.data.results.map(preprocess)
+			return {
+				...state,
+				items: action.data,
+				itemsByID: indexByID(results),
+				isFetching: false
+			}
+            // const itemsByID = merge(state.itemsByID, [], indexByID(results));
+            // return { ...state, itemsByID, isFetching: false, error: undefined };
+		case STUDIES.LIST_PROJECT_STUDIES.ERROR:
+			return { ...state, isFetching: false, error: action.error, };
 	}
     return state
 }
