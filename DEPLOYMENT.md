@@ -86,6 +86,11 @@ On this page we list the various steps needed for deployments. The first section
     mkdir -p /usr/lib64/llvm5.0/bin
     ln -s /opt/rh/llvm-toolset-7/root/usr/bin/llvm-lto /usr/lib64/llvm5.0/bin/
     ```
+  * Install Node.js
+    ```
+    yum update
+    yum install nodejs -y
+    ```
   * Configure nginx
     ```
     cp /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.BKP
