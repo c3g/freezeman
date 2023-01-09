@@ -5,6 +5,10 @@ from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 from fms_core.services.sample import get_sample_from_container
 from fms_core.services.project import get_project
 from fms_core.services.project_link_samples import create_link, remove_link
+from fms_core.services.study import get_study
+from fms_core.services.sample_next_step import queue_sample_to_study_workflow
+
+from fms_core.utils import blank_str_to_none
 
 ADD_ACTION = "ADD"
 REMOVE_ACTION = "REMOVE"
@@ -34,11 +38,23 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                 link_created, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
                                                                                        project=project_obj)
 
+                # Queue sample to study if specified
+                if project['study_letter']:
+                    study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+
+                    if study_obj:
+                        study_start = project['study_start']
+                        _, self.errors['queue_to_study'], self.warnings['queue_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj, order=study_start)
+                    else:
+                        self.errors['study'] = f"Specified study {project['study_letter']} doesn't exist for project {project['name']}"
+
             # If the link doesn't exists we can't perform a remove action
             elif action['name'] == REMOVE_ACTION:
                 # Remove link object if no errors
                 link_removed, self.errors['link'], self.warnings['link'] = remove_link(sample=sample_obj,
                                                                                        project=project_obj)
+                
+                # Dequeue??? 
 
             # Action not provided or invalid
             else:

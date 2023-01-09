@@ -16,6 +16,8 @@ class ProjectLinkSamples(GenericImporter):
         for row_id, row_data in enumerate(project_link_samples_sheet.rows):
             project = {
                 'name': str_cast_and_normalize(row_data['Project Name']),
+                'study_letter': str_cast_and_normalize(row_data['Study']),
+                'study_start': str_cast_and_normalize(row_data['Study Start']),
             }
             sample = {
                 'sample_name': str_cast_and_normalize(row_data['Sample Name']),

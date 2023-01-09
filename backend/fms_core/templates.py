@@ -392,7 +392,7 @@ PROJECT_LINK_SAMPLES_TEMPLATE = {
   "sheets info": [
       {
           'name': 'ProjectLinkSamples',
-          'headers': ['Action', 'Project Name', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
+          'headers': ['Action', 'Project Name', 'Study', 'Study Start', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
       },],
   "prefill info": [
       ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode"),
