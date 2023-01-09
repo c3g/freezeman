@@ -38,7 +38,7 @@ class StudyViewSet(viewsets.ModelViewSet):
             else:
                 workflow = None
         except Workflow.DoesNotExist:
-            errors['workflow'].append(f"Workflow with id {study_data['workflow']} does not exists.")
+            errors['workflow'].append(f"Workflow with id {study_data['workflow']} does not exist.")
 
         try:
             if study_data['reference_genome']:
