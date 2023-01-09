@@ -46,7 +46,7 @@ class StudyViewSet(viewsets.ModelViewSet):
             else:
                 reference_genome = None
         except ReferenceGenome.DoesNotExist:
-            errors['reference_genome'].append(f"Reference genome with id {study_data['reference_genome']} does not exists.")
+            errors['reference_genome'].append(f"Reference genome with id {study_data['reference_genome']} does not exist.")
 
         if not any(bool(error) for error in errors.values()): 
             # Call create study service
