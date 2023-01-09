@@ -29,7 +29,11 @@ from .models import (
     SampleMetadata,
     Sequence,
     Taxon,
-    ImportedFile
+    ImportedFile,
+    Workflow,
+    Step,
+    ReferenceGenome,
+    Study
 )
 
 from .models._constants import ReleaseStatus
@@ -75,7 +79,10 @@ __all__ = [
     "TaxonSerializer",
     "ImportedFileSerializer",
     "PooledSampleSerializer",
-    "PooledSampleExportSerializer"
+    "PooledSampleExportSerializer",
+    "WorkflowSerializer",
+    "ReferenceGenomeSerializer",
+    "StudySerializer"
 ]
 
 
@@ -660,3 +667,28 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'pedigree',
             ]
 
+class StepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Step
+        fields = ["id", "name", "protocol_id"]
+
+class WorkflowSerializer(serializers.ModelSerializer):
+    steps = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Workflow
+        fields = ("id", "name", "structure", "steps")
+
+    def get_steps(self, instance):
+        steps = instance.steps.all().order_by("StepsOrder__order")
+        return StepSerializer(steps, many=True).data
+
+class ReferenceGenomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReferenceGenome
+        fields = ("id", "assembly_name", "synonym", "genbank_id", "refseq_id", "taxon_id", "size")
+
+class StudySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Study
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")
