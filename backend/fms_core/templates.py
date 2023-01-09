@@ -388,11 +388,11 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
 }
 
 PROJECT_LINK_SAMPLES_TEMPLATE = {
-  "identity": {"description": "Template to link samples to projects", "file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
+  "identity": {"description": "Template to link samples to projects", "file": static("submission_templates/Project_link_samples_v4_0_0.xlsx")},
   "sheets info": [
       {
           'name': 'ProjectLinkSamples',
-          'headers': ['Action', 'Project Name', 'Study', 'Study Start', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
+          'headers': ['Action', 'Project Name', 'Study', 'Workflow Step Start', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
       },],
   "prefill info": [
       ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode"),

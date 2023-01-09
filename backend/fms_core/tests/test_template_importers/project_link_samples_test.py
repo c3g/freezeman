@@ -19,14 +19,14 @@ from fms_core.services.project_link_samples import create_link
 class ProjectLinkSamplesTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ProjectLinkSamples()
-        self.file = APP_DATA_ROOT / "Project_link_samples_v3_5_0.xlsx"
+        self.file = APP_DATA_ROOT / "Project_link_samples_v4_0_0.xlsx"
         ContentType.objects.clear_cache()
 
-        self.invalid_template_tests = ["Project_link_samples_v3_5_0_invalid_project.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample.xlsx",]
+        self.invalid_template_tests = ["Project_link_samples_v4_0_0_invalid_project.xlsx",
+                                       "Project_link_samples_v4_0_0_invalid_sample.xlsx",]
 
-        self.warning_template_tests = ["Project_link_samples_v3_5_0_invalid_sample_2.xlsx",
-                                       "Project_link_samples_v3_5_0_invalid_sample_3.xlsx",]
+        self.warning_template_tests = ["Project_link_samples_v4_0_0_invalid_sample_2.xlsx",
+                                       "Project_link_samples_v4_0_0_invalid_sample_3.xlsx",]
 
         #Projects for Link
         self.project1_name = 'ProjectTest1'
@@ -91,8 +91,10 @@ class ProjectLinkSamplesTestCase(TestCase):
 
     def test_warning_project_link_samples(self):
         for f in self.warning_template_tests:
+            print(f)
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
+            print(result['base_errors'])
             self.assertEqual(result['valid'], True)
             self.assertEqual(len(result["result_previews"][0]["rows"][0]['warnings']), 1)
             transaction.savepoint_rollback(s)

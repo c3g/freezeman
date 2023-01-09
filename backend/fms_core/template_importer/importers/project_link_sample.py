@@ -17,7 +17,7 @@ class ProjectLinkSamples(GenericImporter):
             project = {
                 'name': str_cast_and_normalize(row_data['Project Name']),
                 'study_letter': str_cast_and_normalize(row_data['Study']),
-                'study_start': str_cast_and_normalize(row_data['Study Start']),
+                'study_start': str_cast_and_normalize(row_data['Workflow Step Start']) if row_data['Workflow Step Start'] else None,
             }
             sample = {
                 'sample_name': str_cast_and_normalize(row_data['Sample Name']),
