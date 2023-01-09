@@ -91,7 +91,7 @@ class StudyTest(TestCase):
                                      end=self.start,
                                      reference_genome=self.reference_genome)
             except ValidationError as e:
-                self.assertTrue("step_range" in e.message_dict)
+                self.assertTrue("workflow" in e.message_dict)
                 raise e
 
     def test_end_outside_range(self):
@@ -104,7 +104,7 @@ class StudyTest(TestCase):
                                      end=5,
                                      reference_genome=self.reference_genome)
             except ValidationError as e:
-                self.assertTrue("step_range" in e.message_dict)
+                self.assertTrue("workflow" in e.message_dict)
                 raise e  
 
 
