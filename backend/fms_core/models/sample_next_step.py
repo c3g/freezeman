@@ -26,6 +26,9 @@ class SampleNextStep(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
+        if self.step_order is not None and self.study is not None and (self.step_order.order > self.study.end or self.step_order.order < self.study.start):
+            add_error("step_order", f"Step order for the sample in the workflow is invalid. The order must be between {self.study.start} and {self.study.end}.")
+
         if errors:
             raise ValidationError(errors)
 

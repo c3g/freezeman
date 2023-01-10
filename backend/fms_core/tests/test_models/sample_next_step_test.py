@@ -42,13 +42,12 @@ class SampleNextStepTest(TestCase):
         self.assertIsNone(sample_next_step.step_order)
 
     def test_no_study(self):
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(Study.DoesNotExist):
             try:
                 sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
                                                                  sample=self.sample,
                                                                  study=None)
-            except ValidationError as e:
-                self.assertTrue('study' in e.message_dict)
+            except Study.DoesNotExist as e:
                 raise e
 
     def test_no_sample(self):
