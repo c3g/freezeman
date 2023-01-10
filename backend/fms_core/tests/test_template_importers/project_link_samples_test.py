@@ -91,10 +91,8 @@ class ProjectLinkSamplesTestCase(TestCase):
 
     def test_warning_project_link_samples(self):
         for f in self.warning_template_tests:
-            print(f)
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
-            print(result['base_errors'])
             self.assertEqual(result['valid'], True)
             self.assertEqual(len(result["result_previews"][0]["rows"][0]['warnings']), 1)
             transaction.savepoint_rollback(s)
