@@ -12,7 +12,7 @@ interface ReferenceGenomeDescriptionProps {
 
 const ReferenceGenomeDescription = ({referenceGenome, taxon} : ReferenceGenomeDescriptionProps) => {
     return (
-        <Descriptions bordered={true} size='small' column={4}>
+        <Descriptions bordered={true} size='small' column={6}>
             <Item label='Assembly Name' span={2}>{referenceGenome.assembly_name}</Item>
             <Item label='Synonym' span={2}>{referenceGenome.synonym}</Item>
             <Item label='GenBank ID' span={2}>{referenceGenome.genbank_id}</Item>
