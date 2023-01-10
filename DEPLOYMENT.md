@@ -88,7 +88,8 @@ On this page we list the various steps needed for deployments. The first section
     ```
   * Install Node.js
     ```
-    yum update
+    # Tested with node.js versions <=16.17.0
+    yum update
     yum install nodejs -y
     ```
   * Configure nginx
