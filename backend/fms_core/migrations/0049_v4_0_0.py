@@ -337,6 +337,10 @@ class Migration(migrations.Migration):
             model_name='steporder',
             constraint=models.UniqueConstraint(fields=('order', 'workflow_id'), name='steporder_order_workflowid_key'),
         ),
+        migrations.AddConstraint(
+            model_name='samplenextstep',
+            constraint=models.UniqueConstraint(fields=('step_order', 'sample', 'study'), name='samplenextstep_steporder_sample_study_key'),
+        ),
         migrations.RunPython(
             initialize_reference_genomes,
             reverse_code=migrations.RunPython.noop,
