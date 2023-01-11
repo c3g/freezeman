@@ -8,14 +8,10 @@ export interface StructuredWorkflows {
 	[key: string]: Workflow[]
 }
 
-export function createStructuredWorkflows(workflows: Workflow[]) {
-	const structuredWorkflows: StructuredWorkflows = {}
-	workflows.forEach((wf) => {
-		const structure = wf.structure
-		if (!structuredWorkflows[structure]) {
-			structuredWorkflows[structure] = []
-		}
-		structuredWorkflows[structure].push(wf)
-	})
-	return structuredWorkflows
+export function createStructuredWorkflows(workflows: Workflow[]): StructuredWorkflows {
+	return workflows.reduce((structure, wf) => {
+		structure[wf.structure] = structure[wf.structure] ?? []
+		structure[wf.structure].push(wf)
+		return structure
+	}, {})
 }
