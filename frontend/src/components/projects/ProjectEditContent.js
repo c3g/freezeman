@@ -16,7 +16,7 @@ const { TextArea } = Input
 import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import { add, update, listTable, summary } from "../../modules/projects/actions";
-import { project as EMPTY_PROJECT } from "../../models";
+import { project as EMPTY_PROJECT } from "../../models/empty_models";
 import { requiredRules, emailRules } from "../../constants";
 
 const mapStateToProps = state => ({

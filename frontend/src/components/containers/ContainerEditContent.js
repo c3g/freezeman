@@ -10,7 +10,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import { add, update, listTable, summary } from "../../modules/containers/actions";
-import { container as EMPTY_CONTAINER } from "../../models";
+import { container as EMPTY_CONTAINER } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, barcodeRules, nameRules } from "../../constants";
 

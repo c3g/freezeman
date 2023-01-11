@@ -11,7 +11,7 @@ import { FMSId, FMSProject, FMSReferenceGenome, FMSStudy, FMSTaxon, FMSWorkflow 
 
 // Reducers tack on these two properties to objects that are fetched from
 // the backend when they add the objects to the store.
-interface FetchedObject {
+export interface FetchedObject {
     isFetching: boolean
     isLoaded: boolean
 }
