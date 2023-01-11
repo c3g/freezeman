@@ -50,14 +50,13 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
             errors.append(err)
     return sample_next_step, errors, warnings
 
-def dequeue_sample_from_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[int, None], List[str], List[str]]:
+def dequeue_sample_from_specifc_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[Union[int, None], List[str], List[str]]:
     """
-    Deletes a SampleNextStep instance to indicate the removal of a sample from a workflow. If the order is not specified, 
-    all the samples queued in the provided study's workflow will be deleted.
+    Deletes a SampleNextStep instance to indicate the removal of a sample from a workflow at a specific step. 
     Args:
         `sample_obj`: Sample instance to be dequeued from the study workflow.
         `study_obj`: Study instance currently associated to the sample.
-        `order`: Positive integer indicating the current position of the sample in the workflow. Optional: If not given all the samples queued will be deleted.
+        `order`: Positive integer indicating the current position of the sample in the workflow.
                  
     Returns:
         Tuple containing the number of SampleNextStep instances deleted, the error messages and the warning messages. 
@@ -75,8 +74,12 @@ def dequeue_sample_from_study_workflow(sample_obj: Sample, study_obj: Study, ord
         study_obj = None
         errors.append(f"A valid study instance must be provided.")
     
+    if not order:
+        order = None
+        errors.append(f"A step order must be provided.  ")
+    
     step_order=None
-    # Dequeuing from a specific step if order is not None
+    # Dequeuing from a specific step
     if order is not None:
         try:
             step_order = StepOrder.objects.get(order=order, workflow=study_obj.workflow)
@@ -84,15 +87,41 @@ def dequeue_sample_from_study_workflow(sample_obj: Sample, study_obj: Study, ord
             errors.append(f"No step found for the given order.")
     
     # Dequeuing from study workflow by deleting the SampleNextStep instance
+    if sample_obj and study_obj and step_order and not errors:
+        try:
+            num_deleted = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj, step_order=step_order).delete()
+        except Exception as err:
+            errors.append(err)
+    return num_deleted, errors, warnings
+
+def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: Study) -> Tuple[Union[int, None], List[str], List[str]]:
+    """
+    Deletes a SampleNextStep instance to indicate the removal of a sample from a specified workflow at any step. 
+    Meaning that if the sample is queued in 2 different steps in the provided study, both instances will be deleted. 
+    Args:
+        `sample_obj`: Sample instance to be dequeued from the study workflow.
+        `study_obj`: Study instance currently associated to the sample.
+                 
+    Returns:
+        Tuple containing the number of SampleNextStep instances deleted, the error messages and the warning messages. 
+
+    """
+    dequeued = None
+    errors = []
+    warnings = []
+
+    if not isinstance(sample_obj, Sample):
+        sample_obj = None
+        errors.append(f"A valid sample instance must be provided.")
+
+    if not isinstance(study_obj, Study):
+        study_obj = None
+        errors.append(f"A valid study instance must be provided.")
+    
+    # Dequeuing from study workflow by deleting the SampleNextStep instance
     if sample_obj and study_obj and not errors:
         try:
-            # Specify step_order in filter if it is provided
-            filters = dict(
-                sample=sample_obj,
-                study=study_obj,
-                **dict(step_order=step_order) if step_order else dict()
-            )
-            num_deleted = SampleNextStep.objects.filter(filters).delete()
+            num_deleted = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj).delete()
         except Exception as err:
             errors.append(err)
     return num_deleted, errors, warnings
