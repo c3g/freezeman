@@ -19,6 +19,11 @@ class SampleNextStep(TrackedModel):
     sample = models.ForeignKey(Sample, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The sample queued to the workflow.")
     study = models.ForeignKey(Study, on_delete=models.PROTECT, related_name="SampleNextStep", help_text="The study using the workflow that is followed by the sample.")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["step_order", "sample", "study"], name="samplenextstep_steporder_sample_study_key")
+        ]
+
     def clean(self):
         super().clean()
         errors = {}
@@ -28,6 +33,9 @@ class SampleNextStep(TrackedModel):
 
         if self.step_order is not None and self.study is not None and (self.step_order.order > self.study.end or self.step_order.order < self.study.start):
             add_error("step_order", f"Step order for the sample in the workflow is invalid. The order must be between {self.study.start} and {self.study.end}.")
+
+        if self.sample and not self.sample.is_pool and self.study.project != self.sample.derived_sample_not_pool.project:
+            add_error("project", f"Samples and libraries in studies must be associated to the same project unless they are pools.")
 
         if errors:
             raise ValidationError(errors)
