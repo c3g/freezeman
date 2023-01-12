@@ -89,7 +89,7 @@ def dequeue_sample_from_specifc_step_study_workflow(sample_obj: Sample, study_ob
     # Dequeuing from study workflow by deleting the SampleNextStep instance
     if sample_obj and study_obj and step_order and not errors:
         try:
-            num_deleted = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj, step_order=step_order).delete()
+            num_deleted, _ = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj, step_order=step_order).delete()
         except Exception as err:
             errors.append(err)
     return num_deleted, errors, warnings
@@ -121,7 +121,7 @@ def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: 
     # Dequeuing from study workflow by deleting the SampleNextStep instance
     if sample_obj and study_obj and not errors:
         try:
-            num_deleted = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj).delete()
+            num_deleted, _ = SampleNextStep.objects.filter(sample=sample_obj, study=study_obj).delete()
         except Exception as err:
             errors.append(err)
     return num_deleted, errors, warnings
