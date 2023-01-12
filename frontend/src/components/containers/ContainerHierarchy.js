@@ -145,7 +145,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
               const id = withSample(context.samplesByID, sampleId, sample => sample.id, 'Loading...')
               const sample = context.samplesByID[id]
               const sampleKind = sample?.sample_kind ? context.sampleKinds.itemsByID[sample?.sample_kind]?.name : "POOL"
-              return <li>
+              return <li key={`container_sample_${sampleId}`}>
                 {sample ?
                     renderSample(sample, sampleKind) :
                     <span style={entryStyle}>

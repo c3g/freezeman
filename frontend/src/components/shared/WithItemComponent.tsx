@@ -4,65 +4,44 @@ import { FetchedObject, ItemsByID } from '../../models/frontend_models'
 import { selectSamplesByID } from '../../selectors'
 import { createWithItem, withSample } from '../../utils/withItem'
 import { Typography } from 'antd'
-import { RootState } from '../../store'
-import { FMSId } from '../../models/fms_api_models'
 
 const { Title } = Typography
 
 type WithItemFunc = ReturnType<typeof createWithItem>
-// type SelectorFunc = <T extends FetchedObject>(state: RootState) => ItemsByID<T>
+type ItemMappingFunc<T extends FetchedObject> = (item: T) => any
 
-interface WithItemRenderComponentProps<T extends FetchedObject> {
-    objectsByID: ItemsByID<T>
-    objectID: string
-    render: (item: T) => React.ReactElement
-    renderDefault?: () => React.ReactElement
+interface WithItemComponentProps<T extends FetchedObject> {
+	withItem: WithItemFunc
+	objectsByID: ItemsByID<T>
+	objectID: string
+	fn: ItemMappingFunc<T>
+	defaultValue?: any
 }
 
-function createItemRenderComponent<W extends WithItemFunc, T extends FetchedObject> (withItem : W) {
-    return ({objectsByID, objectID, render, renderDefault} : WithItemRenderComponentProps<T>) => {
-        const [object, setObject] = useState<T>()
+const WithItemComponent = <T extends FetchedObject>({ withItem, objectsByID, objectID, fn, defaultValue }: WithItemComponentProps<T>) => {
+	const [value, setValue] = useState<any>()
 
-        useEffect(() => {
-            const result = withItem(objectsByID, objectID, object => object, undefined)
-            if (result) {
-                setObject(result)
-            }
-        }, [objectsByID, objectID])
-        
-        if (object) {
-            return render(object)
-        } else {
-            if (renderDefault) {
-                return renderDefault()
-            } else {
-                return null
-            }
-        }
-    }
+	useEffect(() => {
+		const result = withItem(objectsByID, objectID, fn, defaultValue)
+		if (result) {
+			setValue(fn(result))
+		}
+	}, [objectsByID, objectID])
+
+	return value ? <>{value}</> : defaultValue ? <>{defaultValue}</> : null
 }
 
-interface Sample extends FetchedObject {
-    name: string
+const createWithItemComponent = <T extends FetchedObject>(withItem: WithItemFunc) => {
+	return (objectsByID: ItemsByID<T>, objectID: string, fn: ItemMappingFunc<T> = (item: T) => item, defaultValue: any = undefined) => {
+		return <WithItemComponent withItem={withItem} objectsByID={objectsByID} objectID={objectID} fn={fn} defaultValue={defaultValue} />
+	}
 }
 
-export const WithSampleComponent = createItemRenderComponent<typeof withSample, Sample>(withSample)
+const withSampleComponent = createWithItemComponent<Sample>(withSample)
 
+const TryWithSample = ({}) => {
+	const samplesByID = useSelector(selectSamplesByID)
+	const sampleID = 'someid'
 
-const TryItComponent = ({}) => {
-
-    const samplesByID = useSelector(selectSamplesByID)
-    const sampleID = 'someid'
-
-    return (
-        <WithSampleComponent 
-            objectsByID={samplesByID} 
-            objectID={sampleID} 
-            render={(sample) => {return (<Title>{sample.name}</Title>)}}/>
-    )
-} 
-
-
-
-
-
+	return withSampleComponent(samplesByID, sampleID, (sample) => sample.name, 'Loading...')
+}
