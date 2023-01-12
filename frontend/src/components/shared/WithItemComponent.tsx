@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { FetchedObject, ItemsByID } from '../../models/frontend_models'
+import { FetchedObject, ItemsByID, Sample } from '../../models/frontend_models'
 import { selectSamplesByID } from '../../selectors'
 import { createWithItem, withSample } from '../../utils/withItem'
 import { Typography } from 'antd'
