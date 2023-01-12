@@ -97,6 +97,11 @@ def str_cast_and_normalize_lower(s) -> Union[str, None]:
     result = str_cast_and_normalize(s)
     return result.lower() if result is not None else result
 
+def str_cast_to_int_or_none(s) -> Union[int, None]:
+    """
+    Casts a string to an int, if the string is empty it returns None.
+    """
+    return int(s) if s else None
 
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """

@@ -162,9 +162,9 @@ def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=N
     filters = dict(
         sample=sample_obj,
         study=study_obj,
-        **dict(step_order=step_order) if step_order else dict()
+        **(dict(step_order=step_order) if step_order is not None else dict())
     )
-    if SampleNextStep.objects.filter(filters).exists():
+    if SampleNextStep.objects.filter(**filters).exists():
         sample_is_queued = True
     else:
         sample_is_queued = False

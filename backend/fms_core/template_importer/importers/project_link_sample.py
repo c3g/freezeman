@@ -2,7 +2,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.project_link_samples import ProjectLinkSamplesHandler
 from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE
 
-from fms_core.utils import str_cast_and_normalize
+from fms_core.utils import str_cast_and_normalize, str_cast_to_int_or_none
 
 class ProjectLinkSamples(GenericImporter):
     SHEETS_INFO = PROJECT_LINK_SAMPLES_TEMPLATE["sheets info"]
@@ -17,7 +17,7 @@ class ProjectLinkSamples(GenericImporter):
             project = {
                 'name': str_cast_and_normalize(row_data['Project Name']),
                 'study_letter': str_cast_and_normalize(row_data['Study']),
-                'step_order': str_cast_and_normalize(row_data['Workflow Step Start']) if row_data['Workflow Step Order'] else None,
+                'step_order': str_cast_to_int_or_none(row_data['Workflow Step Order']),
             }
             sample = {
                 'sample_name': str_cast_and_normalize(row_data['Sample Name']),

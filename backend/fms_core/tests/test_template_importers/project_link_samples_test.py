@@ -6,13 +6,14 @@ import datetime
 from fms_core.template_importer.importers import ProjectLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import SampleKind, Taxon, DerivedSample
+from fms_core.models import SampleKind, Taxon, DerivedSample, Workflow, Study, SampleNextStep, StepOrder
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
 from fms_core.services.project import create_project
 from fms_core.services.project_link_samples import create_link
+from fms_core.services.sample_next_step import queue_sample_to_study_workflow
 
 
 
@@ -37,6 +38,12 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.sample1_name = 'SampleTestForLink1'
         self.sample2_name = 'SampleTestForLink2'
         self.sample3_name = 'SampleTestForUnlink'
+
+        #For studies 
+        self.study_letter1 = "A"
+        self.study_letter2 = "B"
+        self.start = 1
+        self.end = 7
 
         self.prefill_data()
 
@@ -67,8 +74,28 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.project2, _, _ = create_project(name=self.project2_name)
         self.project3, _, _ = create_project(name=self.project3_name)
 
-        #Create link manually to test REMOVE action
+        #Studies 
+        self.workflow1 = Workflow.objects.get(name="PCR-free Illumina")
+        self.workflow2 = Workflow.objects.get(name="PCR-enriched Illumina")
+        self.study1 = Study.objects.create(letter=self.study_letter1,
+                                          project=self.project1,
+                                          workflow=self.workflow1,
+                                          start=self.start,
+                                          end=self.end,
+                                          reference_genome=None)
+        
+        self.study2 = Study.objects.create(letter=self.study_letter2,
+                                          project=self.project1,
+                                          workflow=self.workflow1,
+                                          start=self.start,
+                                          end=self.end,
+                                          reference_genome=None)
+
+        #Create link manually to test REMOVE project action
         create_link(sample=self.sample3, project=self.project3)
+
+        #Queue sample manually to study 2 to test REMOVE study
+        queue_sample_to_study_workflow(sample_obj=self.sample3, study_obj=self.study2)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
@@ -81,6 +108,18 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
         self.assertTrue(DerivedSample.objects.filter(samples=self.sample2, project=self.project2).exists())
         self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
+
+        # Test that sample 1 is queued twice in the same workflow but different steps
+        self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1).count(), 2)
+
+        step_order_1 = StepOrder.objects.get(order=1, workflow=self.study1.workflow)
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1, step_order=step_order_1).exists())
+
+        step_order_2 = StepOrder.objects.get(order=3, workflow=self.study1.workflow)
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1, step_order=step_order_2).exists())
+
+        # Test that sample 3 was successfully removed from study
+        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample3, study=self.study2).exists())
 
     def test_invalid_project_link_samples(self):
         for f in self.invalid_template_tests:

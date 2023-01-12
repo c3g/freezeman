@@ -46,7 +46,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
             # Perform an add study action
             elif action['name'] == ADD_STUDY_ACTION:
                 # Make sure the sample is already associated to the project of the given study 
-                for derived_sample in sample.derived_samples.all():
+                for derived_sample in sample_obj.derived_samples.all():
                     if derived_sample.project is not None and derived_sample.project.id != project_obj.id:
                         self.errors['add_to_study'] = (f"[Sample {sample_obj.name}] is not associated to project [{project_obj.name}].")
 
@@ -80,7 +80,6 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                 # If the study is not specified, dequeue the sample from all the studies of the selected project
                 else:
                     num_dequeued = 0
-                    print(project_obj)
                     for study in project_obj.studies.all():
                          # Check if sample is queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study)
