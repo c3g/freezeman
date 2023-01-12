@@ -1,7 +1,6 @@
 import { Button, Form, Space } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiError } from '../../models/fms_api_models'
 import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 import WorkflowCascadeMenu from './WorkflowCascadeMenu'

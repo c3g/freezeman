@@ -1,23 +1,21 @@
-import { Button, Tabs, Typography } from 'antd'
+import { Button, Tabs } from 'antd'
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
 import { Project, Study } from '../../models/frontend_models'
-const { Title } = Typography
 
 import { get } from '../../modules/projects/actions'
 import { listProjectStudies } from '../../modules/studies/actions'
 import { selectProjectsByID, selectStudiesByID } from '../../selectors'
-import { RootState } from '../../store'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
 import StudyDetails from '../studies/StudyDetails'
-import CreateStudy from './CreateStudy'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
+import { createStudyTabKey} from '../studies/StudyEditContent'
 
 const { TabPane } = Tabs
 
@@ -78,8 +76,6 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	// Clicking the Add Study button navigates the user to the study creation form
 	const addStudyButton = <Button onClick={() => {navigate(`/projects/${id}/study/add`)}}>Add Study</Button>
 
-	
-
 	return (
 		<>
 			<AppPageHeader title={title} extra={<EditButton url={`/projects/${id}/update`} />} />
@@ -96,7 +92,7 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 							</TabPane>	
 							{studies.map(study => {
 								return (
-									<TabPane tab={`Study ${study.letter}`} key={`study-${study.id}`} style={tabStyle}>
+									<TabPane tab={`Study ${study.letter}`} key={createStudyTabKey(study.id)} style={tabStyle}>
 										<StudyDetails studyId={study.id}/>
 									</TabPane>
 								)

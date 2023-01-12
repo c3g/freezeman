@@ -1,9 +1,9 @@
-import { Alert, Typography } from 'antd'
+import { Alert } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppDispatch } from '../../hooks'
-import { ApiError, FMSStudy, FMSWorkflow, isApiError } from '../../models/fms_api_models'
+import { ApiError, FMSStudy, isApiError } from '../../models/fms_api_models'
 import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { add } from '../../modules/studies/actions'
 import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
@@ -12,7 +12,6 @@ import AppPageHeader from '../AppPageHeader'
 import PageContent from '../PageContent'
 import StudyEditForm from './StudyEditForm'
 
-const { Title } = Typography
 
 interface EditStudyContentProps {
 	action: 'ADD' | 'EDIT'
@@ -21,6 +20,11 @@ interface EditStudyContentProps {
 interface AlertError {
 	message: string
 	description: string
+}
+
+// Generates the string we use as a tab key in the project details page for a study.
+export function createStudyTabKey(studyId : number) {
+	return `study-${studyId}`
 }
 
 const StudyEditContent = ({ action }: EditStudyContentProps) => {
@@ -76,7 +80,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 					setApiError(undefined)
 					if (studyData?.id) {
 						// Navigate to the study page
-						const url = `/projects/${projectId}/study/${studyData.id}`
+						const url = `/projects/${projectId}#${createStudyTabKey(studyData.id)}`
 						navigate(url)
 					}
 				}).catch((err) => {

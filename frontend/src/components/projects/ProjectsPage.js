@@ -8,12 +8,8 @@ import ProjectsDetailedContent from "./ProjectsDetailedContent.tsx";
 import PageContainer from "../PageContainer";
 import ActionContent from "../ActionContent";
 import StudyEditContent from "../studies/StudyEditContent";
-import StudyDetails from "../studies/StudyDetails";
 
 const ProjectsPage = () => {
-
-  // const { study_id} = useParams()
-
   return (
     <PageContainer>
       <Routes>
