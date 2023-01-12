@@ -96,7 +96,7 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 							</TabPane>	
 							{studies.map(study => {
 								return (
-									<TabPane tab={`Study ${study.letter}`} key={`study:${study.id}`} style={tabStyle}>
+									<TabPane tab={`Study ${study.letter}`} key={`study-${study.id}`} style={tabStyle}>
 										<StudyDetails studyId={study.id}/>
 									</TabPane>
 								)

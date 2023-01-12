@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { selectProjectsByID, selectReferenceGenomesByID, selectStudiesByID, selectTaxonsByID, selectWorkflowsByID } from '../../selectors'
 import { Descriptions, Typography } from 'antd'
@@ -30,6 +31,9 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
     const [taxon, setTaxon] = useState<Taxon>()
 
     useEffect(() => {
+        if (!studyId) {
+            return
+        }
         const studyInstance = studiesById[studyId]
         if (studyInstance) {
             setStudy(studyInstance)

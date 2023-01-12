@@ -1,5 +1,4 @@
 import React from "react";
-import { useParams } from 'react-router-dom'
 
 import {Navigate, Route, Routes} from "react-router-dom";
 
@@ -13,7 +12,7 @@ import StudyDetails from "../studies/StudyDetails";
 
 const ProjectsPage = () => {
 
-  const { study_id} = useParams()
+  // const { study_id} = useParams()
 
   return (
     <PageContainer>
@@ -25,7 +24,6 @@ const ProjectsPage = () => {
         <Route path="/:id/*" element={<ProjectsDetailedContent/>}/>
         <Route path="/:id/study/add/*" element={<StudyEditContent action="ADD"/>}/>
         <Route path="/:id/study/:study_id/update" element={<StudyEditContent action="EDIT"/>}/>
-        <Route path="/:id/study/:study_id/*" element={<StudyDetails studyId={study_id}/>}/>
         <Route path="*" element={<Navigate to="/projects/list" replace />}/>
       </Routes>
     </PageContainer>
