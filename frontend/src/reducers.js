@@ -15,6 +15,7 @@ import {
 import {datasets} from "./modules/datasets/reducers";
 import {datasetFiles} from "./modules/datasetFiles/reducers";
 import {taxons} from "./modules/taxons/reducers";
+import {referenceGenomes} from './modules/referenceGenomes/reducers'
 import {individuals} from "./modules/individuals/reducers";
 import {
   sampleKinds,
@@ -75,10 +76,12 @@ import {
 } from "./modules/importedFiles/reducers";
 import {users} from "./modules/users/reducers";
 import {versions} from "./modules/versions/reducers";
+import { workflows } from "./modules/workflows/reducers";
 import {reducer as groups} from "./modules/groups";
 import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
+import { studies } from "./modules/studies/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -105,6 +108,7 @@ const allReducers = combineReducers({
   runTypes,
   individuals,
   taxons,
+  referenceGenomes,
   instruments,
   sampleKinds,
   samplesSummary,
@@ -120,6 +124,7 @@ const allReducers = combineReducers({
   projectsSummary,
   projects,
   projectTemplateActions,
+  studies,
   indicesSummary,
   indices,
   indicesTemplateActions,
@@ -135,6 +140,7 @@ const allReducers = combineReducers({
   groups,
   pagination,
   versions,
+  workflows,
 });
 
 export default function rootReducer(state, action) {

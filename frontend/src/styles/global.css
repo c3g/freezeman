@@ -116,3 +116,11 @@ abbr.--time {
 .ant-cascader-menu-item-content {
   margin-right: 15px;
 }
+
+.filters-warning-bar {
+  display: flex;
+  margin-bottom: 1rem;
+  justify-content: right;
+  align-items: baseline;
+}
+

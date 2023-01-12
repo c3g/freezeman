@@ -7,7 +7,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import { add, update, listTable } from "../../modules/individuals/actions";
-import { individual as EMPTY_INDIVIDUAL } from "../../models";
+import { individual as EMPTY_INDIVIDUAL } from "../../models/empty_models";
 import { SEX } from "../../constants";
 import api, { withToken } from "../../utils/api";
 import { requiredRules } from "../../constants";

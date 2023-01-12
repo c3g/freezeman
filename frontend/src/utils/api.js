@@ -171,6 +171,11 @@ const api = {
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 
+  referenceGenomes: {
+    get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
+    list: (options, abort) => get('/reference-genomes/', options, { abort })
+  },
+
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
@@ -206,6 +211,12 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  studies: {
+    get: studyId => get(`/studies/${studyId}/`),
+    add: study => post("/studies/", study),
+    update: study => patch(`/studies/${study.id}/`, study),
+  },
+
   taxons: {
     get: taxonId => get(`/taxons/${taxonId}/`),
     list: (options, abort) => get("/taxons/", options, { abort }),
@@ -220,6 +231,11 @@ const api = {
     list: (options, abort) => get("/users", options, { abort }),
     listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
+  },
+
+  workflows: {
+    get: workflowId => get(`/workflows/${workflowId}`),
+    list: (options, abort) => get('/workflows/', options, { abort })
   },
 
   groups: {

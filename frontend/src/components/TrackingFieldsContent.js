@@ -1,27 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {Descriptions} from "antd";
 import {withUser} from "../utils/withItem";
-import {connect} from "react-redux";
+import {useSelector} from "react-redux";
+import { selectUsersByID } from "../selectors";
 
-const mapStateToProps = state => ({
-  usersByID: state.users.itemsByID,
-});
+const TrackingFieldsContent = ({entity}) => {
 
-const actionCreators = {};
+    const usersByID = useSelector(selectUsersByID)
 
-const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`
+    const [createdBy, setCreatedBy] = useState('')
+    const [updatedBy, setUpdatedBy] = useState('')
 
-const TrackingFieldsContent = ({usersByID, entity}) => {
+    useEffect(() => {
+      const displayUser = (user) => `${user.first_name} ${user.last_name} (${user.username})`
+      if (entity) {
+        setCreatedBy(withUser(usersByID, entity.created_by, user => displayUser(user), "Loading..."))
+        setUpdatedBy(withUser(usersByID, entity.updated_by, user => displayUser(user), "Loading..."))
+      }
+    }, [usersByID, entity])
+
     return <>
         <Descriptions bordered={true} size="small" title="Tracking Details" style={{marginTop: "24px"}}>
           <Descriptions.Item label="Item created by">
-              {withUser(usersByID, entity.created_by, user => displayUser(user), "Loading...")}
+              {createdBy}
           </Descriptions.Item>
           <Descriptions.Item label="Last modification by">
-              {withUser(usersByID, entity.updated_by, user => displayUser(user), "Loading...")}
+              {updatedBy}
           </Descriptions.Item>
         </Descriptions>
     </>;
 };
 
-export default connect(mapStateToProps, actionCreators)(TrackingFieldsContent);
+export default TrackingFieldsContent
