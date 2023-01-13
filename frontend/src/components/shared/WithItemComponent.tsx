@@ -18,6 +18,11 @@ interface WithItemComponentProps<T extends FetchedObject> {
 	defaultValue?: any
 }
 
+/**
+ * 
+ * @param withItem
+ * @returns 
+ */
 const WithItemComponent = <T extends FetchedObject>({ withItem, objectsByID, objectID, fn, defaultValue }: WithItemComponentProps<T>) => {
 	const [value, setValue] = useState<any>()
 
@@ -37,7 +42,7 @@ const createWithItemComponent = <T extends FetchedObject>(withItem: WithItemFunc
 	}
 }
 
-const withSampleComponent = createWithItemComponent<Sample>(withSample)
+export const withSampleComponent = createWithItemComponent<Sample>(withSample)
 
 const TryWithSample = ({}) => {
 	const samplesByID = useSelector(selectSamplesByID)

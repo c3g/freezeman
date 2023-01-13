@@ -4,6 +4,11 @@ import { Container, FetchedObject, Individual, ItemsByID, Project, Sample, User 
 import { selectContainersByID, selectIndividualsByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
 import { createWithItem, withContainer, withIndividual, withProject, withSample, withUser } from '../../utils/withItem'
 
+/**
+ * WithItemRenderComponent
+ * 
+ * 
+ */
 
 type WithItemFunc = ReturnType<typeof createWithItem>
 type ItemRenderFunc<T extends FetchedObject> = (item: T) => React.ReactElement
@@ -58,7 +63,7 @@ export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof w
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)
 
 
-
+/*
 import { Menu, Typography } from 'antd'
 
 const { Title } = Typography
@@ -76,3 +81,4 @@ const ExampleComponent = ({sampleID}) => {
 		</Menu>
     )
 } 
+*/
