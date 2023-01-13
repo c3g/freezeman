@@ -1,25 +1,23 @@
-import React, {useRef} from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
+import { Button } from "antd";
+import React from "react";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 
+import AddButton from "../AddButton";
 import AppPageHeader from "../AppPageHeader";
+import ExportButton from "../ExportButton";
 import PageContent from "../PageContent";
 import PaginatedTable from "../PaginatedTable";
-import AddButton from "../AddButton";
-import ExportButton from "../ExportButton";
-import LinkButton from "../LinkButton";
 
-import api, {withToken}  from "../../utils/api"
+import api, { withToken } from "../../utils/api";
 
-import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "../../modules/projects/actions";
-import {actionDropdown} from "../../utils/templateActions";
-import {withContainer, withIndividual} from "../../utils/withItem";
-import {PROJECT_FILTERS} from "../filters/descriptions";
+import { clearFilters, listTable, setFilter, setFilterOption, setSortBy } from "../../modules/projects/actions";
+import mergedListQueryParams from "../../utils/mergedListQueryParams";
+import { actionDropdown } from "../../utils/templateActions";
+import { PROJECT_FILTERS } from "../filters/descriptions";
+import FiltersWarning from "../filters/FiltersWarning";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
-import FiltersWarning from "../filters/FiltersWarning";
-import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 const getTableColumns = () => [
     {

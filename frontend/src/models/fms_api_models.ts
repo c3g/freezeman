@@ -188,7 +188,6 @@ export interface FMSSequence extends FMSTrackedModel {
 export interface FMSStudy extends FMSTrackedModel {
     project_id: FMSId                   // ID of project that owns study
     letter: string                      // Study letter (eg 'A')
-    reference_genome_id?: FMSId         // ID of reference genome, if specified
     workflow_id: FMSId                  // ID of workflow associated with study
     start: number                       // Number of starting step in workflow (usually 1)
     end: number                         // Number of end step in workflow (usually the number of the last step in the workflow)

@@ -1,4 +1,3 @@
-// import { applyMiddleware, createStore, compose } from 'redux'
 import { configureStore } from '@reduxjs/toolkit'
 import { createLogger } from 'redux-logger'
 import rootReducer from './reducers'

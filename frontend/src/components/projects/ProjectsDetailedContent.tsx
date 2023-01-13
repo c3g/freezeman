@@ -17,6 +17,7 @@ import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
 import { createStudyTabKey} from '../studies/StudyEditContent'
 import { withProject } from '../../utils/withItem'
+import { useIDParam } from '../../hooks/useIDParams'
 
 const { TabPane } = Tabs
 
@@ -31,16 +32,14 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	const studiesById = useAppSelector(selectStudiesByID)
 	const [project, setProject] = useState<Project>()
 	const [isLoading, setIsLoading] = useState<boolean>(true)
-	const { id } = useParams()
 
-	const projectID = id ? Number.parseInt(id) : undefined
+	const projectID = useIDParam('id')
 	if (!projectID) {
 		return null
 	}
 	
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
-	
 	useEffect(() => {
 		const result = withProject(projectsByID, `${projectID}`, project => project)
 		if (result) {
@@ -76,11 +75,11 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	const title = `Project ${project ? project.name : ''}`
 
 	// Clicking the Add Study button navigates the user to the study creation form
-	const addStudyButton = <Button onClick={() => {navigate(`/projects/${id}/study/add`)}}>Add Study</Button>
+	const addStudyButton = <Button onClick={() => {navigate(`/projects/${`${projectID}`}/study/add`)}}>Add Study</Button>
 
 	return (
 		<>
-			<AppPageHeader title={title} extra={<EditButton url={`/projects/${id}/update`} />} />
+			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${projectID}`}/update`} />} />
 
 			{project && (
 				<PageContent loading={isLoading} style={undefined}>
