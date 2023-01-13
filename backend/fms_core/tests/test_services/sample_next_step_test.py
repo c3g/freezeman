@@ -73,7 +73,6 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(sample_next_step.step_order.order, 2)
         self.assertEqual(sample_next_step.sample, self.sample)
 
-        
         dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample, self.study, 1)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])

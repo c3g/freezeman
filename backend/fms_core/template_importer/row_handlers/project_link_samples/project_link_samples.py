@@ -52,19 +52,19 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                             _, self.errors['add_to_study'], self.warnings['add_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj, step_order)
                         else:
                             self.errors['study'] = f"Sample [{sample_obj.name}] is already queued in study [{project['study_letter']}] \
-                                of project [{project['name']}] at step [{project['step_order']}]"
+                                of project [{project['name']}] at step [{project['step_order']}]."
                     else:
-                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]"
+                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]."
 
             # Perform an add study action
             elif action['name'] == ADD_STUDY_ACTION:
-                # Make sure the sample is already associated to the project of the given study 
+                # Make sure the sample is already associated to the project of the given study. In case of pool one of the samples has to be associated to the project
                 if sample_obj.is_pool:
                     if not any([derived_sample.project == project_obj for derived_sample in sample_obj.derived_samples.all()]):
-                            self.errors['add_to_study'] = (f"[One of the samples in pool {sample_obj.name}] has to be associated to project [{project_obj.name}].")
+                            self.errors['add_to_study'] = (f"One of the samples in pool [{sample_obj.name}] has to be associated to project [{project_obj.name}].")
                 else: 
                     if sample_obj.derived_sample_not_pool.project != project_obj:
-                        self.errors['add_to_study'] = (f"[Sample {sample_obj.name}] is not associated to project [{project_obj.name}].")
+                        self.errors['add_to_study'] = (f"Sample [{sample_obj.name}] is not associated to project [{project_obj.name}].")
 
                 # Queue sample to study if specified
                 if project['study_letter']:
