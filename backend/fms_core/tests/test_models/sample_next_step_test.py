@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import SampleNextStep, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project
+from fms_core.models import (SampleNextStep, Sample, Study, Workflow, Step,
+                             StepOrder, Individual, Container, SampleKind,
+                             Project)
 from fms_core.tests.constants import create_container, create_individual, create_fullsample, create_sample_container
 
 class SampleNextStepTest(TestCase):
@@ -19,6 +21,9 @@ class SampleNextStepTest(TestCase):
         self.step = Step.objects.get(name="Extraction (DNA)")
         self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow, step=self.step)
         self.project = Project.objects.create(name="TestSampleNextStep")
+        for derived_sample in self.sample.derived_samples.all():
+            derived_sample.project_id = self.project.id
+            derived_sample.save()
         self.letter_valid = "A"
         self.start = 1
         self.end = 7
@@ -51,11 +56,10 @@ class SampleNextStepTest(TestCase):
                 raise e
 
     def test_no_sample(self):
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(Sample.DoesNotExist):
             try:
                 sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
                                                                  sample=None,
                                                                  study=self.study)
-            except ValidationError as e:
-                self.assertTrue('sample' in e.message_dict)
+            except Sample.DoesNotExist as e:
                 raise e

@@ -44,8 +44,7 @@ class SampleSubmissionTestCase(TestCase):
     def prefill_data(self):
         self.project, _, _ = create_project(name=self.project_name)
         self.workflow = Workflow.objects.get(name=self.workflow_name)
-        create_study(letter="A",
-                     project=self.project,
+        create_study(project=self.project,
                      workflow=self.workflow,
                      start=1,
                      end=8)

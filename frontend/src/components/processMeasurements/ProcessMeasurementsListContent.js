@@ -144,7 +144,7 @@ const ProcessMeasurementsListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="processes"  itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+      <div className='filters-warning-bar'>
         <FiltersWarning
           nFilters={nFilters}
           filters={filters}

@@ -20,6 +20,11 @@ class SampleNextStepServicesTestCase(TestCase):
             self.step = Step.objects.get(name="Extraction (DNA)")
             self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow, step=self.step)
             self.project = Project.objects.create(name="TestSampleNextStep")
+
+            for derived_sample in self.sample.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
             self.letter_valid = "A"
             self.start = 1
             self.end = 7

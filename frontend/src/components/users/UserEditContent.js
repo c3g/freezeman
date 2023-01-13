@@ -8,7 +8,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options"
 import { add, update, listTable } from "../../modules/users/actions";
-import { user as EMPTY_USER } from "../../models";
+import { user as EMPTY_USER } from "../../models/empty_models";
 import { requiredRules } from "../../constants";
 
 const hiddenField = {

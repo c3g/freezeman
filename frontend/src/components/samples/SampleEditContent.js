@@ -20,7 +20,7 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import * as Options from "../../utils/options";
 import { add, update, listTable, summary } from "../../modules/samples/actions";
-import { sample as EMPTY_SAMPLE } from "../../models";
+import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, nameRules } from "../../constants";
 

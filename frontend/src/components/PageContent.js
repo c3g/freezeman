@@ -7,7 +7,7 @@ const defaultStyle = {
   overflow: "auto",
 };
 
-const PageContent = ({children, style, tabs = false, loading = false}) =>
+const PageContent = ({children, style = undefined, tabs = false, loading = false}) =>
   <div
     className={'PageContent' + (tabs ? ' --with-tabs' : '')}
     style={style ? {...defaultStyle, ...style} : defaultStyle}

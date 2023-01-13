@@ -89,7 +89,7 @@ const DatasetsListContent = () => {
     return <>
         <AppPageHeader title="Datasets"/>
         <PageContent>
-        <div style={{ textAlign: 'right', marginBottom: '1em' }}>
+        <div className='filters-warning-bar'>
             <FiltersWarning
             nFilters={nFilters}
             filters={filters}

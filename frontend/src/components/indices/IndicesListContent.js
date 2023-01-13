@@ -140,7 +140,7 @@ const IndicesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="indices" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div className='filters-warning-bar'>
         <div style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}
