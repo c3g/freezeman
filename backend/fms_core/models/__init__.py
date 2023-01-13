@@ -33,6 +33,14 @@ from .sample_metadata import SampleMetadata
 from .id_generator import IdGenerator
 from .dataset import Dataset
 from .dataset_file import DatasetFile
+from .step_specification import StepSpecification
+from .workflow import Workflow
+from .step_order import StepOrder
+from .reference_genome import ReferenceGenome
+from .step import Step
+from .study import Study
+from .sample_next_step import SampleNextStep
+
 
 __all__ = [
     "Biosample",
@@ -69,4 +77,11 @@ __all__ = [
     "IdGenerator",
     "Dataset",
     "DatasetFile",
+    "StepSpecification",
+    "Workflow",
+    "StepOrder",
+    "ReferenceGenome",
+    "Step",
+    "Study",
+    "SampleNextStep",
 ]

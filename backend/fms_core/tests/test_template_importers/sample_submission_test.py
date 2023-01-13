@@ -5,22 +5,24 @@ from django.db import transaction
 from fms_core.template_importer.importers import SampleSubmissionImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
-from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Individual, DerivedSample, DerivedBySample, Workflow
 from fms_core.services.project import create_project
+from fms_core.services.study import create_study
 from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
 
 class SampleSubmissionTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleSubmissionImporter()
-        self.file = APP_DATA_ROOT / "Sample_submission_v3_14_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_submission_v4_0_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.project_name = "TEST_PROJECT"
+        self.workflow_name = "PCR-free Illumina"
 
-        self.invalid_template_tests = ["Sample_submission_v3_14_0_bad_location.xlsx",
-                                       "Sample_submission_v3_14_0_dna_no_conc.xlsx",
-                                       "Sample_submission_v3_14_0_library_without_index.xlsx",]
+        self.invalid_template_tests = ["Sample_submission_v4_0_0_bad_location.xlsx",
+                                       "Sample_submission_v4_0_0_dna_no_conc.xlsx",
+                                       "Sample_submission_v4_0_0_library_without_index.xlsx",]
 
         # Create indices
         (index_set, _, errors, warnings) = get_or_create_index_set(set_name="Agilent SureSelect XT V2 96")
@@ -40,7 +42,12 @@ class SampleSubmissionTestCase(TestCase):
         self.prefill_data()
 
     def prefill_data(self):
-        create_project(name=self.project_name)
+        self.project, _, _ = create_project(name=self.project_name)
+        self.workflow = Workflow.objects.get(name=self.workflow_name)
+        create_study(project=self.project,
+                     workflow=self.workflow,
+                     start=1,
+                     end=8)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid

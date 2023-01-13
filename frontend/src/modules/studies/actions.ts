@@ -63,11 +63,3 @@ export default {
 	update,
 	listProjectStudies
 }
-
-// Helper to call list() after another action
-// function thenList(fn) {
-//     return (...args) => async dispatch => {
-//         dispatch(fn(...args))
-//         dispatch(listTable(undefined, true))
-//     }
-// }

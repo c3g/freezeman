@@ -41,7 +41,7 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 		if (project) {
 			isLoading = false
 		} else {
-			dispatch(get(id))
+			dispatch(get(id))	// TODO - USEEFFECT
 		}
 	}
 

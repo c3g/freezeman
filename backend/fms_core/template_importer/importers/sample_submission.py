@@ -63,6 +63,7 @@ class SampleSubmissionImporter(GenericImporter):
             }
             project = {
                 'name': str_cast_and_normalize(row_data['Project']),
+                'study_letter': str_cast_and_normalize(row_data['Study']),
             }
             sample = {
                 'name': str_cast_and_normalize(row_data['Sample Name']),

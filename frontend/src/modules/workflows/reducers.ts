@@ -5,7 +5,6 @@ import { indexByID } from '../../utils/objects'
 
 import WORKFLOWS from './actions'
 
-
 export const workflows = (
 	state = {
 		itemsByID: {},
