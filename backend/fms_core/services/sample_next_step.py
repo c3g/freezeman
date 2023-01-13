@@ -136,7 +136,7 @@ def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: 
             errors.append(err)
     return num_deleted, errors, warnings
 
-def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[bool, None], List[str], List[str]]:
+def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[bool, List[str], List[str]]:
     """
     Args:
         `sample_obj`: Sample instance to look for.
