@@ -18,11 +18,15 @@ def initialize_taxons(apps, schema_editor):
     TAXON_MUS_MUSCULUS = "Mus musculus"
     TAXON_SARS_COV_2 = "Sars-Cov-2"
     TAXON_IXODES_SCAPULARIS = "Ixodes scapularis"
+    TAXON_ESCHERICHIA_COLI = "Escherichia coli"
+    TAXON_CANIS_LUPUS_FAMILIARIS = "Canis lupus familiaris"
 
     taxon_dict = { TAXON_HOMO_SAPIENS: 9606,
                    TAXON_MUS_MUSCULUS: 10090,
                    TAXON_SARS_COV_2: 2697049,
-                   TAXON_IXODES_SCAPULARIS: 6945, }
+                   TAXON_IXODES_SCAPULARIS: 6945,
+                   TAXON_ESCHERICHIA_COLI: 562,
+                   TAXON_CANIS_LUPUS_FAMILIARIS: 9615}
 
     taxon_map = {}
     

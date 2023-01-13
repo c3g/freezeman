@@ -21,6 +21,6 @@ export const selectIndividualsByID = (state: RootState) => state.individuals.ite
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID
+export const selectStudiesByID = (state: RootState) => state.studies
 export const selectUsersByID = (state: RootState) => state.users.itemsByID
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID
-export const selectStudiesByID = (state: RootState) => state.studies
