@@ -80,9 +80,9 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                             _, self.errors['add_to_study'], self.warnings['add_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj, step_order)
                         else:
                             self.errors['study'] = f"Sample [{sample_obj.name}] is already queued in study [{project['study_letter']}] \
-                                of project [{project['name']}] at step [{project['step_order']}]"
+                                of project [{project['name']}] at step [{project['step_order']}]."
                     else:
-                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]"
+                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]."
                 else:
                     self.errors['add_to_study'] = f"A study needs to be specified to be able to add the sample to a study."
 
@@ -123,15 +123,14 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                         if step_order is not None:
                             # Check if sample is queued 
                             is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
-                            
                             if is_sample_queued:
-                                num_deleted, self.errors['remove_from_study'], self.warnings['remove_from_study'] = dequeue_sample_from_specific_step_study_workflow(sample_obj, study_obj, step_order)
+                                dequeued, self.errors['remove_from_study'], self.warnings['remove_from_study'] = dequeue_sample_from_specific_step_study_workflow(sample_obj, study_obj, step_order)
                             else:
-                                self.errors['study'] = f"Sample [{sample_obj.name}] is not queued in study [{project['study_letter']}] of project [{project_obj.name}] at step [{step_order}]"
+                                self.errors['study'] = f"Sample [{sample_obj.name}] is not queued in study [{project['study_letter']}] of project [{project_obj.name}] at step [{step_order}]."
                         else:
                             self.errors['workflow_step_order'] = f"A workflow study order is needed to remove a sample from a study."
                     else:
-                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]"
+                        self.errors['study'] = f"Specified study [{project['study_letter']}] doesn't exist for project [{project['name']}]."
                 # If the study is not specified, throw an error
                 else:
                     self.errors['remove_from_study'] = f"A study has to be specified to be able to remove sample [{sample_obj.name}] from a study."

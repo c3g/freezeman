@@ -94,7 +94,8 @@ class ProjectLinkSamplesTestCase(TestCase):
         #Create link manually to test REMOVE project action
         create_link(sample=self.sample3, project=self.project3)
 
-        #Queue sample manually to study 2 to test REMOVE study
+        #Queue sample manually to study 2 to test REMOVE study (create link to bypass the project validation)
+        create_link(sample=self.sample3, project=self.project1)
         queue_sample_to_study_workflow(sample_obj=self.sample3, study_obj=self.study2)
 
     def test_import(self):
@@ -103,9 +104,9 @@ class ProjectLinkSamplesTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         #Custom tests for each template
-        self.assertEqual(len(DerivedSample.objects.filter(project__isnull=False).all()), 2)
-        self.assertTrue(DerivedSample.objects.filter(samples=self.sample1, project=self.project3).exists())
-        self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
+        self.assertEqual(len(DerivedSample.objects.filter(project__isnull=False).all()), 3)
+        self.assertFalse(DerivedSample.objects.filter(samples=self.sample1, project=self.project3).exists())
+        self.assertTrue(DerivedSample.objects.filter(samples=self.sample1, project=self.project1).exists())
         self.assertTrue(DerivedSample.objects.filter(samples=self.sample2, project=self.project2).exists())
         self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
 

@@ -51,7 +51,7 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
             errors.append(err)
     return sample_next_step, errors, warnings
 
-def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[Union[bool, None], List[str], List[str]]:
+def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[bool, List[str], List[str]]:
     """
     Deletes a SampleNextStep instance to indicate the removal of a sample from a workflow at a specific step. 
     Args:
