@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 import datetime
 
-from fms_core.template_importer.importers import ProjectLinkSamples
+from fms_core.template_importer.importers import ProjectStudyLinkSamples
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT, TEST_DATA_ROOT
 
 from fms_core.models import SampleKind, Taxon, DerivedSample, Workflow, Study, SampleNextStep, StepOrder
@@ -17,17 +17,17 @@ from fms_core.services.sample_next_step import queue_sample_to_study_workflow
 
 
 
-class ProjectLinkSamplesTestCase(TestCase):
+class ProjectStudyLinkSamplesTestCase(TestCase):
     def setUp(self) -> None:
-        self.importer = ProjectLinkSamples()
-        self.file = APP_DATA_ROOT / "Project_link_samples_v4_0_0.xlsx"
+        self.importer = ProjectStudyLinkSamples()
+        self.file = APP_DATA_ROOT / "Project_study_link_samples_v4_0_0.xlsx"
         ContentType.objects.clear_cache()
 
-        self.invalid_template_tests = ["Project_link_samples_v4_0_0_invalid_project.xlsx",
-                                       "Project_link_samples_v4_0_0_invalid_sample.xlsx",]
+        self.invalid_template_tests = ["Project_study_link_samples_v4_0_0_invalid_project.xlsx",
+                                       "Project_study_link_samples_v4_0_0_invalid_sample.xlsx",]
 
-        self.warning_template_tests = ["Project_link_samples_v4_0_0_invalid_sample_2.xlsx",
-                                       "Project_link_samples_v4_0_0_invalid_sample_3.xlsx",]
+        self.warning_template_tests = ["Project_study_link_samples_v4_0_0_invalid_sample_2.xlsx",
+                                       "Project_study_link_samples_v4_0_0_invalid_sample_3.xlsx",]
 
         #Projects for Link
         self.project1_name = 'ProjectTest1'
@@ -122,14 +122,14 @@ class ProjectLinkSamplesTestCase(TestCase):
         # Test that sample 3 was successfully removed from study
         self.assertFalse(SampleNextStep.objects.filter(sample=self.sample3, study=self.study2).exists())
 
-    def test_invalid_project_link_samples(self):
+    def test_invalid_project_study_link_samples(self):
         for f in self.invalid_template_tests:
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)
             self.assertEqual(result['valid'], False)
             transaction.savepoint_rollback(s)
 
-    def test_warning_project_link_samples(self):
+    def test_warning_project_study_link_samples(self):
         for f in self.warning_template_tests:
             s = transaction.savepoint()
             result = load_template(importer=self.importer, file=TEST_DATA_ROOT / f)

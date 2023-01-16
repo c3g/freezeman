@@ -7,7 +7,7 @@ from fms_core.services.project_link_samples import create_link, remove_link
 from fms_core.services.sample import create_full_sample
 
 
-class ProjectLinkSamplesServicesTestCase(TestCase):
+class ProjectStudyLinkSamplesServicesTestCase(TestCase):
     def setUp(self) -> None:
         # Create objects
         self.valid_sample_name = "SampleTest"

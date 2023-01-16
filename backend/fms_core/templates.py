@@ -24,7 +24,7 @@ __all__ = [
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
     "SAMPLE_SELECTION_QPCR_TEMPLATE",
-    "PROJECT_LINK_SAMPLES_TEMPLATE",
+    "PROJECT_STUDY_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
 ]
 
@@ -387,8 +387,8 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
       ("Samples", "Sample Container Coord", "coordinates"),],
 }
 
-PROJECT_LINK_SAMPLES_TEMPLATE = {
-  "identity": {"description": "Template to link samples to projects", "file": static("submission_templates/Project_link_samples_v4_0_0.xlsx")},
+PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
+  "identity": {"description": "Template to link samples to projects and studies", "file": static("submission_templates/Project_study_link_samples_v4_0_0.xlsx")},
   "sheets info": [
       {
           'name': 'ProjectLinkSamples',

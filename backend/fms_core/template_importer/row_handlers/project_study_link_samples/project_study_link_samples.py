@@ -8,12 +8,12 @@ from fms_core.services.project_link_samples import create_link, remove_link
 from fms_core.services.study import get_study
 from fms_core.services.sample_next_step import queue_sample_to_study_workflow, is_sample_queued_in_study, dequeue_sample_from_specific_step_study_workflow, dequeue_sample_from_all_steps_study_workflow
 
-ADD_PROJECT_ACTION = "ADD TO PROJECT"
+ADD_PROJECT_STUDY_ACTION = "ADD TO PROJECT AND STUDY"
 ADD_STUDY_ACTION = "ADD TO STUDY"
 REMOVE_PROJECT_ACTION = "REMOVE FROM PROJECT"
 REMOVE_STUDY_ACTION = "REMOVE FROM STUDY"
 
-class ProjectLinkSamplesHandler(GenericRowHandler):
+class ProjectStudyLinkSamplesHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
@@ -33,7 +33,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                 self.warnings['sample'].append(warning_msg)
 
             # Perform an add project and/or study action
-            if action['name'] == ADD_PROJECT_ACTION:
+            if action['name'] == ADD_PROJECT_STUDY_ACTION:
                 # Create link object if no errors
                 link_created, self.errors['link'], self.warnings['link'] = create_link(sample=sample_obj,
                                                                                        project=project_obj)
