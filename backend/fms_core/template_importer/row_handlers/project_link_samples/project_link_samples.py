@@ -44,7 +44,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
 
                     if study_obj:
                         # To avoid empty step orders
-                        step_order = project['step_order'] if project['step_order'] else 1
+                        step_order = project['step_order'] if project['step_order'] else study_obj.start
 
                         # Check if sample is already queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
@@ -72,7 +72,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
 
                     if study_obj:
                         # To avoid empty step orders
-                        step_order = project['step_order'] if project['step_order'] else 1
+                        step_order = project['step_order'] if project['step_order'] else study_obj.start
 
                         # Check if sample is already queued 
                         is_sample_queued, self.errors['sample_queued'], self.warnings['sample_queued'] = is_sample_queued_in_study(sample_obj, study_obj, step_order)
@@ -101,7 +101,7 @@ class ProjectLinkSamplesHandler(GenericRowHandler):
                         
                         if is_sample_queued:
                             # Don't specify order to be able remove all instances of sample in the study, regardless of step
-                            num_dequeued, self.errors['remove_from_study'], self.warnings['queue_to_study'] = dequeue_sample_from_all_steps_study_workflow(sample_obj, study_obj)
+                            num_dequeued, self.errors['remove_from_study'], self.warnings['queue_to_study'] = dequeue_sample_from_all_steps_study_workflow(sample_obj, study)
                             num_dequeued += num_dequeued
                     if num_dequeued > 0:
                         self.warnings['remove_project'] = f"Removing sample [{sample_obj.name}] from project [{project_obj.name}] will also remove the sample from [{project_obj.studies.all().count()}] studies."
