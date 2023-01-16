@@ -11,12 +11,17 @@ import { individual as EMPTY_INDIVIDUAL } from "../../models/empty_models";
 import { SEX } from "../../constants";
 import api, { withToken } from "../../utils/api";
 import { requiredRules } from "../../constants";
+import { ReferenceGenome } from '../../models/frontend_models'
+import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
 
 const searchTaxons = (token, input) =>
   withToken(token, api.taxons.search)(input).then(res => res.data.results)
+
+  const searchReferenceGenomes = (token, input) =>
+  withToken(token, api.referenceGenomes.search)(input).then(res => res.data.results)
 
 const toOptions = values =>
   values.map(v => ({ label: v, value: v }))
@@ -25,11 +30,12 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
   taxonsByID: state.taxons.itemsByID,
+  referenceGenomeByID: state.referenceGenomes.itemsByID,
 });
 
 const actionCreators = { add, update, listTable };
 
-const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update, listTable }) => {
+const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGenomeByID, add, update, listTable }) => {
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -98,6 +104,18 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
   }
 
   /*
+   * Reference Genome autocomplete
+   */
+
+  const [referenceGenomeOptions, setReferenceGenomeOptions] = useState(Object.values(referenceGenomesByID).map(Options.renderReferenceGenome));
+  const onFocusReferenceGenome = ev => { onSearchReferenceGenome(ev.target.value) }
+  const onSearchReferenceGenome = input => {
+    searchReferenceGenomes(token, input).then(referenceGenomes => {
+      setReferenceGenomeOptions(referenceGenomes.map(Options.renderReferenceGenome))
+    })
+  }
+
+  /*
    * Render
    */
 
@@ -143,6 +161,16 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, add, update
               onSearch={onSearchTaxon}
               onFocus={onFocusTaxon}
             />
+          <Form.Item name="referenceGenome" label="Refererence Genome" {...props('reference_genome')}>
+            <Select
+              showSearch
+              allowClear
+              filterOption={false}
+              options={referenceGenomeOptions}
+              onSearch={onSearchReferenceGenome}
+              onFocus={onFocusReferenceGenome}
+            />
+			    </Form.Item>
           </Form.Item>
           <Form.Item label="Sex" {...props("sex")}>
             <Radio.Group
@@ -216,6 +244,9 @@ function deserialize(values) {
 
   if (newValues.taxon)
     newValues.taxon = Number(newValues.taxon)
+  
+  if (newValues.reference_genome)
+    newValues.reference_genome = Number(newValues.reference_genome)
 
   return newValues
 }
@@ -227,6 +258,9 @@ function serialize(values) {
 
   if (newValues.taxon)
     newValues.taxon = Number(newValues.taxon)
+
+  if (newValues.reference_genome)
+    newValues.reference_genome = Number(newValues.reference_genome)
 
   return newValues
 }

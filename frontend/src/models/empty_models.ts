@@ -37,6 +37,7 @@ export const container = {
   export const individual = {
     name: "",
     taxon: null, // taxon.id
+    reference_genome: null, // reference_genome.id
     sex: null,
     pedigree: "",
     cohort: "",

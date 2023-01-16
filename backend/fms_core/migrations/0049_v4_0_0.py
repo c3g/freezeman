@@ -265,7 +265,6 @@ class Migration(migrations.Migration):
                 ('end', models.PositiveIntegerField(help_text='Index to the order of the end of the assigned workflow for this study.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_study_creation', to=settings.AUTH_USER_MODEL)),
                 ('project', models.ForeignKey(help_text='Study project.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.project')),
-                ('reference_genome', models.ForeignKey(null=True, blank=True, help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.referencegenome')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_study_modification', to=settings.AUTH_USER_MODEL)),
                 ('workflow', models.ForeignKey(help_text='Workflow assigned to the study.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.workflow')),
             ],
@@ -348,5 +347,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             initialize_workflows,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AddField(
+            model_name='individual',
+            name='reference_genome',
+            field=models.ForeignKey(null=True, blank=True, help_text='Reference genome used to analyze samples.', on_delete=django.db.models.deletion.PROTECT, related_name='individuals', to='fms_core.referencegenome'),
         ),
     ]
