@@ -18,6 +18,7 @@ from fms_core.services.derived_sample import inherit_derived_sample
 from fms_core.services.container import create_container, get_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.library import create_library
+from fms_core.services.project import create_project
 from fms_core.services.process import create_process
 from fms_core.services.index import get_or_create_index_set, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 
@@ -96,10 +97,13 @@ class SampleServicesTestCase(TestCase):
                                                library_size=library["library_size"])
             self.test_libraries.append(new_library)
 
+        self.project_testouille, _, _ = create_project(name="Testouille")
+        self.project_projecto, _, _ = create_project(name="Projecto")
+
         # Create samples for testing
         SUBMITTED_SAMPLES = [
-            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 10, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[0], "project": "Testouille"},
-            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": self.test_individuals[1], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[1], "project": "Projecto"},
+            {"name": "1FORPOOL1", "volume": 100, "concentration": 5, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 10, 0, 0), "container": self.test_containers[0], "coordinates": "A01", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[0], "project": self.project_testouille},
+            {"name": "2FORPOOL1", "volume": 200, "concentration": 6, "collection_site": "TestSite", "creation_date": datetime.datetime(2021, 1, 15, 0, 0), "container": self.test_containers[0], "coordinates": "A02", "individual": self.test_individuals[1], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[1], "project": self.project_projecto},
         ]
 
         self.samples = []
@@ -113,17 +117,15 @@ class SampleServicesTestCase(TestCase):
                                                   coordinates=sample["coordinates"],
                                                   individual=sample["individual"],
                                                   sample_kind=sample["sample_kind"],
-                                                  library=sample["library"])
-            for derived_sample in new_sample.derived_samples.all():
-                derived_sample.project = Project.objects.create(name=sample["project"])
-                derived_sample.save()
+                                                  library=sample["library"],
+                                                  project=sample["project"])
             self.samples.append(new_sample)
         
         # Create samples for testing
         self.TEST_SAMPLES = [
-            {"name": "TESTCREATEFULLSAMPLE", "volume": 1000, "concentration": 2, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A03", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[2], "project": "Testouille"},
-            {"name": "TESTEXTRACTSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A08", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_blood, "library": None, "project": "Testouille"},
-            {"name": "TESTPREPARELIBRARYSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A10", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": None, "project": "Testouille"},
+            {"name": "TESTCREATEFULLSAMPLE", "volume": 1000, "concentration": 2, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A03", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": self.test_libraries[2], "project": self.project_testouille},
+            {"name": "TESTEXTRACTSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A08", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_blood, "library": None, "project": self.project_testouille},
+            {"name": "TESTPREPARELIBRARYSAMPLE", "volume": 1000, "concentration": None, "collection_site": "TestSite", "creation_date": datetime.date(2021, 1, 10), "container": self.test_containers[0], "coordinates": "A10", "individual": self.test_individuals[0], "sample_kind": self.sample_kind_dna, "library": None, "project": self.project_testouille},
         ]
 
         # Create samples for testing
@@ -142,7 +144,8 @@ class SampleServicesTestCase(TestCase):
                                                           coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                                           individual=self.TEST_SAMPLES[0]["individual"],
                                                           sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                                          library=self.TEST_SAMPLES[0]["library"])
+                                                          library=self.TEST_SAMPLES[0]["library"],
+                                                          project=self.TEST_SAMPLES[0]["project"])
         self.assertEqual(new_sample.name, self.TEST_SAMPLES[0]["name"])
         self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
         self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
@@ -153,6 +156,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.derived_samples.first().biosample.individual, self.TEST_SAMPLES[0]["individual"])
         self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
         self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
+        self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
@@ -173,7 +177,8 @@ class SampleServicesTestCase(TestCase):
                                                           coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                                           individual=self.TEST_SAMPLES[0]["individual"],
                                                           sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                                          library=self.TEST_SAMPLES[0]["library"])
+                                                          library=self.TEST_SAMPLES[0]["library"],
+                                                          project=self.TEST_SAMPLES[0]["project"])
         sample, errors, warnings = update_sample(new_sample, volume=0, concentration=10, depleted=True)
         self.assertEqual(sample, new_sample)
         self.assertEqual(sample.volume, 0)
@@ -216,7 +221,8 @@ class SampleServicesTestCase(TestCase):
                                                  coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                                  individual=self.TEST_SAMPLES[0]["individual"],
                                                  sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                                 library=self.TEST_SAMPLES[0]["library"])
+                                                 library=self.TEST_SAMPLES[0]["library"],
+                                                 project=self.TEST_SAMPLES[0]["project"])
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Transfer"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -252,7 +258,9 @@ class SampleServicesTestCase(TestCase):
                                                  container=self.TEST_SAMPLES[1]["container"],
                                                  coordinates=self.TEST_SAMPLES[1]["coordinates"],
                                                  individual=self.TEST_SAMPLES[1]["individual"],
-                                                 sample_kind=self.TEST_SAMPLES[1]["sample_kind"])
+                                                 sample_kind=self.TEST_SAMPLES[1]["sample_kind"],
+                                                 project=self.TEST_SAMPLES[1]["project"]
+                                                 )
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Extraction"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -353,7 +361,8 @@ class SampleServicesTestCase(TestCase):
                                                  container=self.TEST_SAMPLES[2]["container"],
                                                  coordinates=self.TEST_SAMPLES[2]["coordinates"],
                                                  individual=self.TEST_SAMPLES[2]["individual"],
-                                                 sample_kind=self.TEST_SAMPLES[2]["sample_kind"],)
+                                                 sample_kind=self.TEST_SAMPLES[2]["sample_kind"],
+                                                 project=self.TEST_SAMPLES[2]["project"])
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Library Preparation"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -396,7 +405,8 @@ class SampleServicesTestCase(TestCase):
                                                  container=self.TEST_SAMPLES[2]["container"],
                                                  coordinates=self.TEST_SAMPLES[2]["coordinates"],
                                                  individual=self.TEST_SAMPLES[2]["individual"],
-                                                 sample_kind=self.TEST_SAMPLES[2]["sample_kind"],)
+                                                 sample_kind=self.TEST_SAMPLES[2]["sample_kind"],
+                                                 project=self.TEST_SAMPLES[2]["project"])
         EXECUTION_DATE = datetime.date(2022, 9, 15)
         protocol_name = "Library Preparation"
         protocol_obj = Protocol.objects.get(name=protocol_name)
@@ -458,7 +468,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         updated_sample, errors, warnings = update_qc_flags(sample=new_sample,
                                                            quantity_flag="Passed",
                                                            quality_flag="Failed")
@@ -478,7 +489,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         updated_sample, _, _ = update_qc_flags(sample=new_sample,
                                                quantity_flag="Passed",
                                                quality_flag="Failed")
@@ -501,7 +513,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
@@ -524,7 +537,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         metadata = {
           "TestField__Invalid": "You are a tomato.",
         }
@@ -542,7 +556,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
@@ -574,7 +589,8 @@ class SampleServicesTestCase(TestCase):
                                               coordinates=self.TEST_SAMPLES[0]["coordinates"],
                                               individual=self.TEST_SAMPLES[0]["individual"],
                                               sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
-                                              library=self.TEST_SAMPLES[0]["library"])
+                                              library=self.TEST_SAMPLES[0]["library"],
+                                              project=self.TEST_SAMPLES[0]["project"])
         metadata = {
           "TestField1": "I am a potato.",
           "TestField2": "You are a tomato.",
