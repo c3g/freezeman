@@ -31,6 +31,7 @@ from .sample_pooled import PooledSamplesViewSet
 from .workflow import WorkflowViewSet
 from .reference_genome import ReferenceGenomeViewSet
 from .study import StudyViewSet
+from .sample_next_step import SampleNextStepViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -65,5 +66,6 @@ __all__ = [
     "PooledSamplesViewSet",
     "WorkflowViewSet",
     "ReferenceGenomeViewSet",
-    "StudyViewSet"
+    "StudyViewSet",
+    "SampleNextStepViewSet"
 ]

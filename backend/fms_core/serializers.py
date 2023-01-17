@@ -33,7 +33,9 @@ from .models import (
     Workflow,
     Step,
     ReferenceGenome,
-    Study
+    Study,
+    SampleNextStep,
+    StepSpecification
 )
 
 from .models._constants import ReleaseStatus
@@ -82,7 +84,9 @@ __all__ = [
     "PooledSampleExportSerializer",
     "WorkflowSerializer",
     "ReferenceGenomeSerializer",
-    "StudySerializer"
+    "StudySerializer",
+    "SampleNextStepSerializer",
+    "StepSpecificationSerializer"
 ]
 
 
@@ -692,3 +696,13 @@ class StudySerializer(serializers.ModelSerializer):
     class Meta:
         model = Study
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")
+    
+class SampleNextStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SampleNextStep
+        fields = ("id", "step_order_id", "sample", "study")
+
+class StepSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StepSpecification
+        fields = ("id", "display_name", "sheet_name", "column_name", "value")
