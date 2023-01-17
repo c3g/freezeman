@@ -146,6 +146,19 @@ export interface FMSProject extends FMSTrackedModel {
     comment: string                     // Other relevant information about the project
 }
 
+
+export interface ProtocolPropertyType {             // Subfield of FMSProtocol
+    id: FMSId                                       // PropertyType object id
+    name: string                                    // Name of property type
+    model: 'process' | 'processmeasurement' | null  // Property model type
+}
+
+export interface FMSProtocol extends FMSTrackedModel {
+    name: string                        // Protocol name
+    child_of: FMSId[]                   // Array of parent protocol id's
+    property_types: ProtocolPropertyType[]  // Array of definitions for the properties of this protocol
+}
+
 export interface FMSReferenceGenome extends FMSTrackedModel {
     assembly_name: string               // Assembly name of the reference genome
     synonym?: string                    // Other name of the reference genome
@@ -219,4 +232,5 @@ export interface FMSWorkflow extends FMSTrackedModel {
 
 export interface WorkflowStep extends FMSTrackedModel {
     name: string                        // Step name
+    protocol_id:    FMSId               // ID of protocol associated with step
 }

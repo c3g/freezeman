@@ -1,3 +1,4 @@
+import { ItemsByID, Project, Protocol, ReferenceGenome, Sample, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { RootState } from "./store"
 
 /*
@@ -16,11 +17,12 @@ import { RootState } from "./store"
     const projectsByID = useSelector(selectProjectsByID)
 */
 
-export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
-export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID
-export const selectSamplesByID = (state: RootState) => state.samples.itemsByID
-export const selectStudiesByID = (state: RootState) => state.studies.itemsByID
-export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID
-export const selectUsersByID = (state: RootState) => state.users.itemsByID
-export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID
+export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
+export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
+export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
+export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
+export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
+export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
+export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
 

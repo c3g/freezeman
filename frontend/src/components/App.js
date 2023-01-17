@@ -43,6 +43,7 @@ import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
 import {logOut} from "../modules/auth/actions";
 import {get} from "../modules/users/actions";
 import DatasetsPage from "./datasets/DatasetsPage";
+import LabworkPage from "./labwork/LabworkPage";
 
 const { Title } = Typography;
 
@@ -108,6 +109,11 @@ const MENU_ITEMS = [
     url: "/projects",
     icon: <ProjectOutlined />,
     text: "Projects",
+  },
+  {
+    url: "/lab-work",
+    icon: <ExperimentOutlined />,
+    text: "Lab Work"
   },
   {
     url: "/indices",
@@ -255,6 +261,11 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             <Route path="/projects/*" element={
               <PrivateNavigate>
                 <ProjectsPage />
+              </PrivateNavigate>
+            } />
+            <Route path="/lab-work/*" element={
+              <PrivateNavigate>
+                <LabworkPage />
               </PrivateNavigate>
             } />
             <Route path="/indices/*" element={
