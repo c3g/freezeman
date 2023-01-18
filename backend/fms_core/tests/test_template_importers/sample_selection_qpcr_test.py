@@ -46,10 +46,10 @@ class SampleSelectionQPCRTestCase(TestCase):
         sample_kind, _ = SampleKind.objects.get_or_create(name='SWAB')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container1, errors, warnings) = create_container(barcode='CONTAINER4QPCR1', kind='Tube', name='Container4QPCR1')
-        (container2, errors, warnings) = create_container(barcode='CONTAINER4QPCR2', kind='Tube', name='Container4QPCR2')
+        container1, errors, warnings = create_container(barcode='CONTAINER4QPCR1', kind='Tube', name='Container4QPCR1')
+        container2, errors, warnings = create_container(barcode='CONTAINER4QPCR2', kind='Tube', name='Container4QPCR2')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4QPCR', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4QPCR', taxon=taxon)
 
         # self.positive_sample
         create_full_sample(name=self.positive_sample["sample_name"], volume=100, concentration=25, collection_site='TestCaseSite',

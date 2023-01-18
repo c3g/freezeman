@@ -50,12 +50,12 @@ class SampleServicesTestCase(TestCase):
         
         self.test_individuals = []
         for individual in TEST_INDIVIDUALS:
-            new_individual, _, _ = get_or_create_individual(name=individual["name"],
-                                                            alias=individual["alias"],
-                                                            sex=individual["sex"],
-                                                            taxon=Taxon.objects.get(ncbi_id=individual["taxon"]),
-                                                            pedigree=individual["pedigree"],
-                                                            cohort=individual["cohort"])
+            new_individual, _, _, _ = get_or_create_individual(name=individual["name"],
+                                                               alias=individual["alias"],
+                                                               sex=individual["sex"],
+                                                               taxon=Taxon.objects.get(ncbi_id=individual["taxon"]),
+                                                               pedigree=individual["pedigree"],
+                                                               cohort=individual["cohort"])
             self.test_individuals.append(new_individual)
 
         self.sample_kind_dna, _ = SampleKind.objects.get_or_create(name="DNA")

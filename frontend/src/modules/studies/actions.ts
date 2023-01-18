@@ -19,7 +19,7 @@ export const add =
 	(study: { project: Project, workflow: Workflow, stepRange: WorkflowStepRange }) =>
 	async (dispatch: AppDispatch, getState: () => RootState) => {
 		if (getState().studies.isFetching) return
-		
+
 		const data = {
 			project: study.project.id,
 			workflow: study.workflow.id,

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import Study, Workflow, Project, ReferenceGenome, StepOrder, Step, Protocol
+from fms_core.models import Study, Workflow, Project, StepOrder, Step, Protocol
 
 
 class StudyTest(TestCase):
@@ -12,7 +12,6 @@ class StudyTest(TestCase):
         self.project_other, _ = Project.objects.get_or_create(name="TestStudyMore")
         self.start = 1
         self.end = 2
-        self.reference_genome = ReferenceGenome.objects.get(assembly_name="GRCh38.p14")
         # build mini test workflow
         protocol1 = Protocol.objects.get(name="Extraction")
         protocol2 = Protocol.objects.get(name="Sample Quality Control")
@@ -27,8 +26,7 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=self.workflow,
                                      start=self.start,
-                                     end=self.end,
-                                     reference_genome=self.reference_genome)
+                                     end=self.end)
         self.assertEqual(study.letter, self.letter_valid)
         self.assertEqual(study.project, self.project)
 
@@ -39,8 +37,7 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=self.workflow,
                                      start=self.start,
-                                     end=self.end,
-                                     reference_genome=self.reference_genome)
+                                     end=self.end)
             except ValidationError as e:
                 self.assertTrue("letter" in e.message_dict)
                 raise e
@@ -52,8 +49,7 @@ class StudyTest(TestCase):
                                      project=None,
                                      workflow=self.workflow,
                                      start=self.start,
-                                     end=self.end,
-                                     reference_genome=self.reference_genome)
+                                     end=self.end)
             except ValidationError as e:
                 self.assertTrue("project" in e.message_dict)
                 raise e
@@ -65,22 +61,10 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=None,
                                      start=self.start,
-                                     end=self.end,
-                                     reference_genome=self.reference_genome)
+                                     end=self.end)
             except Workflow.DoesNotExist as e:
                 raise e
     
-    def test_no_reference_genome(self):
-        study = Study.objects.create(letter=self.letter_valid,
-                                     project=self.project,
-                                     workflow=self.workflow,
-                                     start=self.start,
-                                     end=self.end,
-                                     reference_genome=None)
-        self.assertEqual(study.letter, self.letter_valid)
-        self.assertEqual(study.project, self.project)
-        self.assertIsNone(study.reference_genome)
-
     def test_start_greater_than_end(self):
         with self.assertRaises(ValidationError):
             try:
@@ -88,8 +72,7 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=self.workflow,
                                      start=self.end,
-                                     end=self.start,
-                                     reference_genome=self.reference_genome)
+                                     end=self.start)
             except ValidationError as e:
                 self.assertTrue("step_range" in e.message_dict)
                 raise e
@@ -101,8 +84,7 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=self.workflow,
                                      start=self.start,
-                                     end=5,
-                                     reference_genome=self.reference_genome)
+                                     end=5)
             except ValidationError as e:
                 self.assertTrue("step_range" in e.message_dict)
                 raise e  
@@ -114,15 +96,13 @@ class StudyTest(TestCase):
                              project=self.project,
                              workflow=self.workflow,
                              start=self.start,
-                             end=self.end,
-                             reference_genome=self.reference_genome)
+                             end=self.end)
         # second study with same letter and different project is correct
         Study.objects.create(letter=self.letter_valid,
                              project=self.project_other,
                              workflow=self.workflow,
                              start=self.start,
-                             end=self.end,
-                             reference_genome=self.reference_genome)                            
+                             end=self.end)                            
         with self.assertRaises(ValidationError):
             try:
                 # third study with the same letter and same project is in error
@@ -130,8 +110,7 @@ class StudyTest(TestCase):
                                      project=self.project,
                                      workflow=self.workflow,
                                      start=self.start,
-                                     end=self.end,
-                                     reference_genome=self.reference_genome)
+                                     end=self.end)
             except ValidationError as e:
                 self.assertTrue('__all__' in e.message_dict)
                 raise e

@@ -15,8 +15,7 @@ class PlatformServicesTestCase(TestCase):
                                           project=self.project,
                                           workflow=self.workflow,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
 
     def test_get_study(self):
         """

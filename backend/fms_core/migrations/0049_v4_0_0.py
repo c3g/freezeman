@@ -214,7 +214,7 @@ class Migration(migrations.Migration):
                 ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('size', models.DecimalField(max_digits=20, decimal_places=0, help_text='Number of base pairs of the reference genome.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_creation', to=settings.AUTH_USER_MODEL)),
-                ('taxon', models.ForeignKey(help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
+                ('taxon', models.ForeignKey(help_text='Taxon associated to the reference genome.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={

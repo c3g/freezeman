@@ -52,11 +52,11 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         taxon = Taxon.objects.get(name='Homo sapiens')
         
 
-        (container1, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES1', kind='Tube', name='Container4ProjectLinkSamples1')
-        (container2, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES2', kind='Tube', name='Container4ProjectLinkSamples2')
-        (container3, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES3', kind='Tube', name='Container4ProjectLinkSamples3')
+        container1, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES1', kind='Tube', name='Container4ProjectLinkSamples1')
+        container2, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES2', kind='Tube', name='Container4ProjectLinkSamples2')
+        container3, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES3', kind='Tube', name='Container4ProjectLinkSamples3')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon=taxon)
 
         self.sample1, _, _ = create_full_sample(name=self.sample1_name, volume=100, concentration=25,
                                                 collection_site='TestCaseSite', creation_date=datetime.datetime(2021, 1, 15, 0, 0),

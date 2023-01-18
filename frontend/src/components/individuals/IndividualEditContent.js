@@ -11,8 +11,6 @@ import { individual as EMPTY_INDIVIDUAL } from "../../models/empty_models";
 import { SEX } from "../../constants";
 import api, { withToken } from "../../utils/api";
 import { requiredRules } from "../../constants";
-import { ReferenceGenome } from '../../models/frontend_models'
-import ReferenceGenomeSelect from './ReferenceGenomeSelect'
 
 const searchIndividuals = (token, input) =>
   withToken(token, api.individuals.search)(input).then(res => res.data.results)
@@ -30,12 +28,12 @@ const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   individualsByID: state.individuals.itemsByID,
   taxonsByID: state.taxons.itemsByID,
-  referenceGenomeByID: state.referenceGenomes.itemsByID,
+  referenceGenomesByID: state.referenceGenomes.itemsByID,
 });
 
 const actionCreators = { add, update, listTable };
 
-const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGenomeByID, add, update, listTable }) => {
+const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGenomesByID, add, update, listTable }) => {
   const history = useNavigate();
   const { id } = useParams();
   const isAdding = id === undefined
@@ -161,6 +159,7 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
               onSearch={onSearchTaxon}
               onFocus={onFocusTaxon}
             />
+          </Form.Item>
           <Form.Item name="referenceGenome" label="Refererence Genome" {...props('reference_genome')}>
             <Select
               showSearch
@@ -170,7 +169,6 @@ const IndividualEditContent = ({ token, individualsByID, taxonsByID, referenceGe
               onSearch={onSearchReferenceGenome}
               onFocus={onFocusReferenceGenome}
             />
-			    </Form.Item>
           </Form.Item>
           <Form.Item label="Sex" {...props("sex")}>
             <Radio.Group

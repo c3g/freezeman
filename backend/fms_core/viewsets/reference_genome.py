@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from fms_core.models import ReferenceGenome
