@@ -18,7 +18,7 @@ const searchIndividuals = (token, input) =>
 const searchTaxons = (token, input) =>
   withToken(token, api.taxons.search)(input).then(res => res.data.results)
 
-  const searchReferenceGenomes = (token, input) =>
+const searchReferenceGenomes = (token, input) =>
   withToken(token, api.referenceGenomes.search)(input).then(res => res.data.results)
 
 const toOptions = values =>

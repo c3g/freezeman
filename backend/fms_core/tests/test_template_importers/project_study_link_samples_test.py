@@ -81,15 +81,13 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
                                           project=self.project1,
                                           workflow=self.workflow1,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
         
         self.study2 = Study.objects.create(letter=self.study_letter2,
                                           project=self.project1,
                                           workflow=self.workflow1,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
 
         #Create link manually to test REMOVE project action
         create_link(sample=self.sample3, project=self.project3)
