@@ -27,16 +27,15 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
 
                 if step_obj.protocol.id in sample_next_step_by_protocol["protocols"]:
                     sample_next_step_by_protocol["protocols"][step_obj.protocol.id]["count"] += 1
-                    step = next((step for step in sample_next_step_by_protocol["protocols"][step_obj.protocol.id]["steps"] if step_obj.name in step.keys()), None)
+                    step = next((step for step in sample_next_step_by_protocol["protocols"][step_obj.protocol.id]["steps"] if step["name"] == step_obj.name), None)
                     if step:
-                        step[step_obj.name]["count"] += 1
+                        step["count"] += 1
                     else:
                         sample_next_step_by_protocol["protocols"][step_obj.protocol.id]["steps"].append(
                             {
-                                step_obj.name: {
-                                    "count": 1,
-                                    "step_specification": step_specs
-                                }
+                                "name": step_obj.name,
+                                "count": 1,
+                                "step_specifications":step_specs
                             }
                         )
                                        
@@ -46,10 +45,9 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
                         "count": 1,
                         "steps":[
                             {
-                                step_obj.name: {
-                                    "count": 1,
-                                    "step_specification":step_specs
-                                }
+                                "name": step_obj.name,
+                                "count": 1,
+                                "step_specifications":step_specs
                             }
                         ]
                     }
