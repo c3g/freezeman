@@ -52,16 +52,16 @@ class IndividualServicesTestCase(TestCase):
         taxon, _, _ = get_taxon(name=HOMO_SAPIENS_NAME)
         reference_genome, _, _ = get_reference_genome(assembly_name=TEST_GENOME)
         individual, created, errors, warnings = get_or_create_individual(name="BobLeBricoleur",
-                                                                   alias="sj1",
-                                                                   sex="M",
-                                                                   taxon=taxon,
-                                                                   pedigree="BobLeBricoleur",
-                                                                   cohort="BOBS",
-                                                                   reference_genome=reference_genome)
+                                                                         alias="sj1",
+                                                                         sex="M",
+                                                                         taxon=taxon,
+                                                                         pedigree="BobLeBricoleur",
+                                                                         cohort="BOBS",
+                                                                         reference_genome=reference_genome)
         self.assertIsNotNone(individual)
         self.assertTrue(created)
-        self.assertIsNone(errors)
-        self.assertIsNone(warnings)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
         self.assertEqual(individual.reference_genome.assembly_name, TEST_GENOME)
         self.assertEqual(individual.taxon.name, HOMO_SAPIENS_NAME)
 
@@ -89,8 +89,8 @@ class IndividualServicesTestCase(TestCase):
                                                                   
         self.assertIsNotNone(individual)
         self.assertFalse(created)
-        self.assertIsNone(errors)
-        self.assertIsNone(warnings)
+        self.assertEqual(errors, [])
+        self.assertTrue('Using existing individual' in warnings[0])
         self.assertEqual(individual.reference_genome.assembly_name, TEST_GENOME)
         self.assertEqual(individual.taxon.name, HOMO_SAPIENS_NAME)
 
@@ -118,4 +118,4 @@ class IndividualServicesTestCase(TestCase):
         self.assertIsNone(individual)
         self.assertFalse(created)
         self.assertTrue('Provided sex' in errors[0])
-        self.assertIsNone(warnings)
+        self.assertTrue('Using existing individual' in warnings[0])
