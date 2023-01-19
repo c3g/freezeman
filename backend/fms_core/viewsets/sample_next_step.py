@@ -5,11 +5,16 @@ from rest_framework.decorators import action
 
 from fms_core.models import SampleNextStep, StepSpecification
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
+from ._constants import _sample_next_step_filterset_fields
 
 class SampleNextStepViewSet(viewsets.ModelViewSet):
     queryset = SampleNextStep.objects.all()
     serializer_class = SampleNextStepSerializer
     permission_classes = [IsAuthenticated]
+
+    filterset_fields = {
+        **_sample_next_step_filterset_fields
+    }
 
     @action(detail=False, methods=["get"])
     def labwork_info(self, request, *args, **kwargs):
