@@ -698,9 +698,14 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
+    step = serializers.SerializerMethodField()
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study")
+        fields = ("id", "step_order_id", "sample", "study", "step")
+
+    def get_step(self, instance):
+        step = instance.step_order.step
+        return StepSerializer(step, many=False).data
 
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
