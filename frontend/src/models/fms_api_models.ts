@@ -71,6 +71,30 @@ export interface FMSIndividual extends FMSTrackedModel {
     father?: FMSId                      // Individual ID of father
 }
 
+export interface FMSLabworkSummary {
+    protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
+}
+
+export interface FMSLabworkProtocol {
+    protocol_name: string               // Name of protocol
+    count: number                       // Total number of samples waiting for protocol
+    steps: FMSLabworkStep[]      // The steps based on the protocol which have at least one sample waiting
+}
+
+export interface FMSLabworkStep {
+    name: string
+    count: number
+    step_specifications: FMSLabworkStepSpecification[]
+}
+
+export interface FMSLabworkStepSpecification {
+    id: number,                         // Step specification object id
+    display_name: string                // Display name for user
+    sheet_name: string                  // Template where this value is used
+    column_name: string                 // Column where the value would appear in template
+    value: string                       // String value
+}
+
 export interface FMSLibrary extends FMSTrackedModel {
     biosample_id: FMSId                 // Biosample ID
     name: string                        // Library sample name

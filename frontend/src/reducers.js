@@ -82,6 +82,7 @@ import {reducer as pagination} from "./modules/pagination";
 import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
+import { labworkSummary } from "./modules/labwork/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -141,6 +142,7 @@ const allReducers = combineReducers({
   pagination,
   versions,
   workflows,
+  labworkSummary,
 });
 
 export default function rootReducer(state, action) {

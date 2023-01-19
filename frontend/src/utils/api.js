@@ -99,6 +99,7 @@ const api = {
     listTypes: () => get("/instruments/list_types"),
   },
 
+
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
     list: (options, abort) => get("/libraries", options, { abort }),
@@ -204,6 +205,10 @@ const api = {
 
   sampleKinds: {
     list: () => get("/sample-kinds/"),
+  },
+
+  sampleNextStep: {
+    labworkSummary: () => get('/sample-next-step/labwork_info/')
   },
 
   sequences: {

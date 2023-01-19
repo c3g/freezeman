@@ -1,22 +1,19 @@
+import { Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Card, Typography } from 'antd'
-import { LabworkSummaryStep } from './LabworkModels'
+import { LabworkSummaryStep } from '../../../models/labwork_summary'
 
 interface LabworkStepProps {
 	step: LabworkSummaryStep
 }
 
-const LabworkOverviewStep = ({step} : LabworkStepProps) => {
-	// TODO Link to step page
+const LabworkOverviewStep = ({ step }: LabworkStepProps) => {
+	// TODO Link will point to protocol page once that is implemented
 	return (
-		<Card size='small'>
-			<div style={{width: "100%", display: "flex", justifyContent: "space-between"}}>
-				<Link to={'#'}>{step.name}</Link>
-				<Typography.Title level={5}>{step.count}</Typography.Title>
-			</div>
-		</Card>
-		
+		<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+			<Link to={'#'}>{step.name}</Link>
+			<Typography.Title level={5}>{step.count}</Typography.Title>
+		</div>
 	)
 }
 

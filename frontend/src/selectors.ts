@@ -1,4 +1,5 @@
 import { ItemsByID, Project, Protocol, ReferenceGenome, Sample, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { RootState } from "./store"
 
 /*
@@ -17,6 +18,7 @@ import { RootState } from "./store"
     const projectsByID = useSelector(selectProjectsByID)
 */
 
+export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
