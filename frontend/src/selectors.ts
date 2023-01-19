@@ -19,6 +19,8 @@ import { RootState } from "./store"
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID
+export const selectStudiesByID = (state: RootState) => state.studies.itemsByID
+export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID
 export const selectUsersByID = (state: RootState) => state.users.itemsByID
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID
-export const selectStudiesByID = (state: RootState) => state.studies
+

@@ -1,18 +1,23 @@
-import { Button, Tabs, Typography } from 'antd'
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { Button, Tabs } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
-import { Project } from '../../models/frontend_models'
-const { Title } = Typography
+import { Project, Study } from '../../models/frontend_models'
 
 import { get } from '../../modules/projects/actions'
+import { listProjectStudies } from '../../modules/studies/actions'
+import { selectProjectsByID, selectStudiesByID } from '../../selectors'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
-import CreateStudy from './CreateStudy'
+import StudyDetails from '../studies/StudyDetails'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
+import { createStudyTabKey} from '../studies/StudyEditContent'
+import { withProject } from '../../utils/withItem'
+import { useIDParam } from '../../hooks/useIDParams'
 
 const { TabPane } = Tabs
 
@@ -22,21 +27,38 @@ interface ProjectsDetailedContentProps {
 
 const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 	const navigate = useNavigate()
-	const { id } = useParams()
-	const dispatch = useDispatch()
+	const dispatch = useAppDispatch()
+	const projectsByID = useAppSelector(selectProjectsByID)
+	const studiesById = useAppSelector(selectStudiesByID)
+	const [project, setProject] = useState<Project>()
+	const [isLoading, setIsLoading] = useState<boolean>(true)
 
-	const projectsByID = useSelector((state: any) => state.projects.itemsByID)
-
+	const projectID = useIDParam('id')
+	if (!projectID) {
+		return null
+	}
+	
 	const [activeKey, setActiveKey] = useHashURL('overview')
 
-	let isLoading = true
-	let project : Project | undefined = undefined
-	if (id) {
-		project = projectsByID[id]
-		if (project) {
-			isLoading = false
-		} else {
-			dispatch(get(id))
+	useEffect(() => {
+		const result = withProject(projectsByID, `${projectID}`, project => project)
+		if (result) {
+			setProject(result)
+			setIsLoading(false)
+		}
+	}, [projectID, projectsByID])
+
+	useEffect(() => {
+		dispatch(listProjectStudies(projectID))
+	}, [projectID])
+
+	// Get the studies owned by this project
+	// const studies = Object.values(studiesById).filter(study => study.project_id === id)
+	const studies: Study[] = []
+	for(const key in studiesById) {
+		const study = studiesById[key]
+		if (study.project_id === projectID) {
+			studies.push(study)
 		}
 	}
 
@@ -50,14 +72,14 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 		height: '100%',
 	}
 
-	const title = `Project ${project?.name}`
+	const title = `Project ${project ? project.name : ''}`
 
 	// Clicking the Add Study button navigates the user to the study creation form
-	const addStudyButton = <Button onClick={() => {navigate(`/projects/${id}/study/add`)}}>Add Study</Button>
+	const addStudyButton = <Button onClick={() => {navigate(`/projects/${`${projectID}`}/study/add`)}}>Add Study</Button>
 
 	return (
 		<>
-			<AppPageHeader title={title} extra={<EditButton url={`/projects/${id}/update`} />} />
+			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${projectID}`}/update`} />} />
 
 			{project && (
 				<PageContent loading={isLoading} style={undefined}>
@@ -68,8 +90,14 @@ const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
 							</TabPane>
 							<TabPane tab="Associated Samples" key="samples" style={tabStyle}>
 								<ProjectsAssociatedSamples projectID={project.id} />
-							</TabPane>
-							{/* TODO Add a tab for each study in the project */}
+							</TabPane>	
+							{studies.map(study => {
+								return (
+									<TabPane tab={`Study ${study.letter}`} key={createStudyTabKey(study.id)} style={tabStyle}>
+										<StudyDetails studyId={study.id}/>
+									</TabPane>
+								)
+							})}
 						</Tabs>
 					}
 				</PageContent>
