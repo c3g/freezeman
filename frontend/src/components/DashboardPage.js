@@ -142,7 +142,7 @@ const DashboardPage = ({
               </Col>
               <Col {...STATS_COL_PROPS}>
                 {((librariesSummary.library_type_counts && Object.keys(librariesSummary.library_type_counts)) || []).map((library_type) =>
-                  <Statistic title={libraryTypesByID[library_type]?.name || "—"} value={librariesSummary.library_type_counts[library_type] || "—"} />
+                  <Statistic key={library_type} title={libraryTypesByID[library_type]?.name || "—"} value={librariesSummary.library_type_counts[library_type] || "—"} />
                 )}
                   <Statistic title={"Pooled"} value={(librariesSummary.total_count - Object.values(librariesSummary.library_type_counts || {}).reduce((sum, type_count) => sum + type_count, 0)) || "—"} />
               </Col>
@@ -162,7 +162,7 @@ const DashboardPage = ({
               </Col>
               <Col {...STATS_COL_PROPS}>
                 {((processMeasurementsSummary.protocol_counts && Object.keys(processMeasurementsSummary.protocol_counts)) || []).map((protocol) =>
-                  <Statistic title={protocolsByID[protocol]?.name} value={processMeasurementsSummary.protocol_counts[protocol] || "—"} />
+                  <Statistic key={protocol} title={protocolsByID[protocol]?.name} value={processMeasurementsSummary.protocol_counts[protocol] || "—"} />
                 )}
               </Col>
             </Row>

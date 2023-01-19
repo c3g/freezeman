@@ -55,8 +55,6 @@ export const studies = (
 				itemsByID: indexByID(results),
 				isFetching: false
 			}
-            // const itemsByID = merge(state.itemsByID, [], indexByID(results));
-            // return { ...state, itemsByID, isFetching: false, error: undefined };
 		case STUDIES.LIST_PROJECT_STUDIES.ERROR:
 			return { ...state, isFetching: false, error: action.error, };
 	}
