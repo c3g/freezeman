@@ -29,8 +29,6 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("FMS_DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = [os.environ.get("FMS_HOST", "computationalgenomics.ca")] if not DEBUG else []
-
 INTERNAL_IPS = (
     "127.0.0.1",
 ) if DEBUG else ()
@@ -164,6 +162,11 @@ EMAIL_USE_TLS       = bool(os.environ.get('FMS_EMAIL_TLS', 'False'))
 
 FMS_ENV             = os.environ.get('FMS_ENV', 'LOCAL')
 
+# Security
+ALLOWED_HOSTS = (([os.environ.get("FMS_HOST", "")] if FMS_ENV == "PROD" 
+             else [os.environ.get("FMS_HOST", ""), "localhost"]) if not DEBUG 
+             else [])
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -214,6 +217,8 @@ TEST_RUNNER = "fms_core.management.runner.PytestTestRunner"
 # Logging
 handler = {}
 logger = {}
+MAX_SIZE_LOG = 2000000000
+LOG_BACKUP_COUNT = 1
 if FMS_ENV == "PROD":
     handler = {
         "console": {
@@ -229,9 +234,11 @@ else:
     handler = {
         "file": {
             "level": "DEBUG",
-            "class": 'logging.FileHandler',
+            "class": 'logging.handlers.RotatingFileHandler',
             "filename": "fms.log",
-            "formatter": "fms"
+            "formatter": "fms",
+            "maxBytes": MAX_SIZE_LOG,
+            "backupCount": LOG_BACKUP_COUNT
         },
     }
     logger = {
