@@ -56,7 +56,7 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
     Args:
         `name`: Unique individual name given internally.
         `alias`: Optional individual name given by the client.
-        `sex`: Sex of the individual (M, F, Unknown) Unknown currently include None
+        `sex`: Sex of the individual (M, F, Unknown) Unknown currently includes None
         `taxon`: Taxon instance associated to the individual.
         `pedigree`: Name of the pedigree.
         `cohort`: Name of the cohort.
