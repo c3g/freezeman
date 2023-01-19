@@ -97,7 +97,6 @@ def str_cast_and_normalize_lower(s) -> Union[str, None]:
     result = str_cast_and_normalize(s)
     return result.lower() if result is not None else result
 
-
 def get_normalized_str(d: dict, key: str, default: str = "") -> str:
     """
     Gets a string-valued item from a dictionary using a provided key. If the

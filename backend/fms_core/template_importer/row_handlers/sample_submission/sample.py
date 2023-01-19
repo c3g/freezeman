@@ -127,6 +127,8 @@ class SampleRowHandler(GenericRowHandler):
 
             if project_obj and project['study_letter']:
                   study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+        else:
+            self.errors['project'] = [f"New samples must be assigned to a project."]
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:

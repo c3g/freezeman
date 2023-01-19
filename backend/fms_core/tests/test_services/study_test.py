@@ -58,4 +58,3 @@ class PlatformServicesTestCase(TestCase):
         self.assertEqual(study, None)
         self.assertEqual(errors['step_range'], ['The end step cannot be after the last step of the workflow.'])
         self.assertEqual(warnings, {})
-       
