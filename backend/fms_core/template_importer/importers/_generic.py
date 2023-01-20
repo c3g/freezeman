@@ -103,7 +103,7 @@ class GenericImporter():
         return import_result
 
 
-    def create_sheet_data(self, name, headers):
+    def create_sheet_data(self, name, headers, stitch_column=None):
         try:
             if self.format == ".xlsx":
                 pd_sheet = pd.read_excel(self.file, sheet_name=name, header=None)

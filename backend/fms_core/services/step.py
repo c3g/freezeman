@@ -21,7 +21,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
         Tuple with a dict {row_id, matching_step} for each sample if a match is found (otherwise None), errors and warnings.
     """
     matching_step = None
-    matching_dict = {}
+    matching_dict = defaultdict(list)
     stitch_dict = {}
     errors = []
     warnings = []
@@ -38,7 +38,6 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
     # build a row_id to stitch_value dict for each sample sheet line
     row_id_to_stitch_dict = {row_id: row_data[stitch_dict[sample_sheet_name]] for row_id, row_data in enumerate(template_sheets[sample_sheet_name].rows)}
     
-
     if len(candidate_steps) == 1:
         matching_step = candidate_steps.first()
         matching_dict = {row_id: matching_step for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
@@ -60,6 +59,12 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
                         sample_sheet_matches[row_id].append(match)
                     else: 
                         stiched_matches[stitch_value].append(match)
-            work_dict[candidate_step.id] = {row_id: sample_sheet_matches[row_id].extend(stiched_matches[row_id_to_stitch_dict[row_id]]) for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
+            work_dict[candidate_step] = {row_id: sample_sheet_matches[row_id].extend(stiched_matches[row_id_to_stitch_dict[row_id]]) for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
+        # build the return dict from work dict
+        for candidate_step, rows in work_dict.items():
+            for row_id, matches in rows.items():
+                if all(matches):
+                    matching_dict[row_id] = candidate_step
+            
         return matching_dict, errors, warnings
 
