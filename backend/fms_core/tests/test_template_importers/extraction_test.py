@@ -39,7 +39,7 @@ class ExtractionTestCase(TestCase):
                                                           creation_date=datetime.datetime(2020, 5, 21, 0, 0),
                                                           container=container, individual=individual, sample_kind=sample_kind_BLOOD)
 
-        (container_rack001, _, errors, warnings) = get_or_create_container(barcode='rack001', name='rack001', kind='tube rack 8x12')
+        container_rack001, _, errors, warnings = get_or_create_container(barcode='rack001', name='rack001', kind='tube rack 8x12')
 
         destination_containers_info = [
             {'barcode': 'tube003', 'name': 'tube003', 'kind': 'tube', 'coordinates': 'A01', 'container_parent': container_rack001},
