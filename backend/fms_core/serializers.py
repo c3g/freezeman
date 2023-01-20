@@ -672,9 +672,13 @@ class PooledSampleExportSerializer(serializers.Serializer):
             ]
 
 class StepSerializer(serializers.ModelSerializer):
+    order = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "protocol_id"]
+        fields = ["id", "name", "protocol_id", "order"]
+    
+    def get_order(self, instance):
+        return instance.order if instance.order else None
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps = serializers.SerializerMethodField(read_only=True)
@@ -683,10 +687,9 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "structure", "steps")
     
     def get_steps(self, instance):
-        steps = instance.steps.all().order_by("StepsOrder__order")
+        steps = instance.steps.all().annotate(order=F("StepsOrder__order")).order_by("StepsOrder__order")
         serialized_data =  StepSerializer(steps, many=True)
         return serialized_data.data
-
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
     class Meta:
