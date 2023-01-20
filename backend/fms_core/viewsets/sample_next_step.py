@@ -33,20 +33,19 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
             results:
                 {
                     protocols:
-                        {
+                        [{
                             name
                             count
-                            steps: {
+                            steps: [{
                                 name 
                                 count
                                 step_specifications
-                            }
+                            }]
                            
 
-                        }
+                        }]
                 }
           }
-
         """
         self.queryset = self.filter_queryset(self.get_queryset())
         # The objects that is going to be returns

@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from reversion.models import Version, Revision
-from django.db.models import Max
+from django.db.models import Max, CharField, F
 
 from .models import (
     Container,
@@ -677,11 +677,16 @@ class StepSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "protocol_id"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
-    steps = StepSerializer(read_only=True, source="step_order.step")
-
+    steps = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Workflow
         fields = ("id", "name", "structure", "steps")
+    
+    def get_steps(self, instance):
+        steps = instance.steps.all().order_by("StepsOrder__order")
+        serialized_data =  StepSerializer(steps, many=True)
+        return serialized_data.data
+
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -695,9 +700,10 @@ class StudySerializer(serializers.ModelSerializer):
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True, source="step_order.step")
+    step_order_number = serializers.IntegerField(read_only=True, source="step_order.order")
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study", "step")
+        fields = ("id", "step_order_id", "sample", "study", "step_order_number", "step")
 
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
