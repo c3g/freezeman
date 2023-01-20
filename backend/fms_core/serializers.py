@@ -690,7 +690,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "structure", "steps")
     
     def get_steps(self, instance):
-        steps = instance.steps.all().annotate(order=F("StepsOrder__order")).order_by("StepsOrder__order")
+        steps = instance.steps.all().annotate(order=F("StepsOrder__order")).order_by("order")
         serialized_data =  StepSerializer(steps, many=True)
         return serialized_data.data
 
@@ -717,7 +717,7 @@ class SampleNextStepSerializer(serializers.ModelSerializer):
             serialized_data =  StepSerializer(step)
             return serialized_data.data
         else:
-            return ""
+            return None
 
 class StepSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
