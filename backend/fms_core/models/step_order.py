@@ -14,10 +14,10 @@ __all__ = ["StepOrder"]
 
 @reversion.register()
 class StepOrder(TrackedModel):
-    step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="StepsOrder", help_text="The step of the step order.")
-    next_step_order = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="PreviousStepOrder", help_text="The next step following the one defined here.")
+    step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="steps_order", help_text="The step of the step order.")
+    next_step_order = models.ForeignKey("self", null=True, blank=True, on_delete=models.PROTECT, related_name="previous_step_order", help_text="The next step following the one defined here.")
     order = models.PositiveIntegerField(help_text="Ordinal value of the step in the workflow (starting at 1).")
-    workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="StepsOrder", help_text="Workflow of the step order.")
+    workflow = models.ForeignKey(Workflow, on_delete=models.PROTECT, related_name="steps_order", help_text="Workflow of the step order.")
 
     class Meta:
         constraints = [

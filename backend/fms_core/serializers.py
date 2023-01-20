@@ -86,7 +86,9 @@ __all__ = [
     "ReferenceGenomeSerializer",
     "StudySerializer",
     "SampleNextStepSerializer",
-    "StepSpecificationSerializer"
+    "StepSpecificationSerializer",
+    "StepSerializer",
+    "StepWithOrderSerializer"
 ]
 
 
@@ -671,7 +673,18 @@ class PooledSampleExportSerializer(serializers.Serializer):
             'pedigree',
             ]
 
+class StepSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StepSpecification
+        fields = ("id", "display_name", "sheet_name", "column_name", "value")
+
 class StepSerializer(serializers.ModelSerializer):
+    step_specifications = StepSpecificationSerializer(read_only=True, many=True)
+    class Meta:
+        model = Step
+        fields = ["id", "name", "protocol_id", "step_specifications"]
+
+class StepWithOrderSerializer(serializers.ModelSerializer):
     order = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
@@ -690,8 +703,8 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "structure", "steps")
     
     def get_steps(self, instance):
-        steps = instance.steps.all().annotate(order=F("StepsOrder__order")).order_by("order")
-        serialized_data =  StepSerializer(steps, many=True)
+        steps = instance.steps.all().annotate(order=F("steps_order__order")).order_by("order")
+        serialized_data =  StepWithOrderSerializer(steps, many=True)
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
@@ -714,12 +727,7 @@ class SampleNextStepSerializer(serializers.ModelSerializer):
         step =  instance.step_order.step if instance.step_order else None
         if step:
             setattr(step, "order", instance.step_order.order)
-            serialized_data =  StepSerializer(step)
+            serialized_data =  StepWithOrderSerializer(step)
             return serialized_data.data
         else:
             return None
-
-class StepSpecificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StepSpecification
-        fields = ("id", "display_name", "sheet_name", "column_name", "value")
