@@ -69,11 +69,13 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
           'name': 'Experiments',
           'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
                       'Instrument Name', 'Experiment Start Date', 'Comment'],
+          'stitch_column': 'Experiment Name',
       },
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
                       'Experiment Container Coordinates', 'Comment'],
+          'stitch_column': 'Experiment Name',
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
@@ -121,6 +123,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
           'headers': ['Capture Batch ID', 'Capture Type', 'Capture Date (YYYY-MM-DD)', 'Comment',
                       'Capture Technician Name', 'Library Kit Used', 'Library Kit Lot',
                       'Baits Used', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+          'stitch_column': 'Capture Batch ID',
       },
       {
           'name': 'Library',
@@ -128,6 +131,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
                       'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
                       'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+          'stitch_column': 'Capture Batch ID',
       },
   ],
   "prefill info": [
@@ -143,6 +147,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
           'name': 'Conversion Batch',
           'headers': ['Library Batch ID', 'Date (YYYY-MM-DD)', 'Platform', 'Comment',
                       'Technician Name', 'Kit Used', 'Kit Lot', 'Thermocycler Used', 'PCR Cycles'],
+          'stitch_column': 'Library Batch ID',
       },
       {
           'name': 'Library',
@@ -152,6 +157,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
                       'Destination Library Parent Container Barcode', 'Destination Library Parent Container Coordinates',
                       'Library Source Concentration (ng/uL)', 'Library Size (bp)', 'Input used for conversion (ng)',
                       'Volume Used (uL)', 'Volume (uL)', 'Comment'],
+          'stitch_column': 'Library Batch ID',
       },
   ],
   "prefill info": [
@@ -173,6 +179,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
                       'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
                       'Library Kit Used', 'Library Kit Lot', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used',
                       'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],
+          'stitch_column': 'Library Batch ID',
       },
       {
           'name': 'Library',
@@ -180,6 +187,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
                       'Index Set', 'Index', 'Strandedness', 'Comment'],
+          'stitch_column': 'Library Batch ID',
       },
   ],
   "prefill info": [
@@ -237,11 +245,13 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
+        'stitch_column': 'Pool Name',
       },
       {
         'name': 'Pools',
         'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
                     'Pool Parent Container Barcode', 'Pool Parent Container Coord', 'Seq Instrument Type'],
+        'stitch_column': 'Pool Name',
       },
   ],
   "prefill info": [
@@ -274,11 +284,13 @@ SAMPLE_POOLING_TEMPLATE = {
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
                       "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
                       "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+          "stitch_column": "Pool Name",
       },
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
                       "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+          "stitch_column": "Pool Name",
       }
   ],
   "prefill info": [
@@ -296,7 +308,8 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
-                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment'],
+          'stitch_column': 'Pool Name',
       },
       {
           "name": "PoolSubmission",
@@ -304,6 +317,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       "Container Barcode", "Pool Coord",
                       "Location Barcode", "Container Coord", "Seq Instrument Type",
                       "Reception (YYYY-MM-DD)", "Comment"],
+          "stitch_column": "Pool Name",
       },
   ],
   "prefill info": [],
