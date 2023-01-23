@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleNextStep, StepOrder, Sample, Study
+from fms_core.models import SampleNextStep, StepOrder, Sample, Study, Step
 from typing import  List, Tuple, Union
 
 def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[SampleNextStep, None], List[str], List[str]]:
@@ -206,3 +206,53 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
         samples_has_completed = False
 
     return samples_has_completed, errors, warnings
+
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, next_sample: Sample=None) -> Tuple(Union(List[SampleNextStep], None), List[str], List[str]):
+  """
+  Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
+  A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
+
+  Args:
+      `current_step`: Step instance representing the protocol being executed by the template.
+      `current_sample`: Sample instance being processed.
+      `next_sample`: Sample generated during the current_step. Default to None in which case the current_sample will be the next_sample.
+  
+  Returns:
+      Tuple containing the list of new SampleNextStep if any corresponding current SampleNextStep is found or None if an error occurs, errors and warnings.
+  """
+  new_sample_next_steps = []
+  errors = []
+  warnings = []
+
+  if not isinstance(current_step, Step):
+      errors.append(f"A valid current step instance must be provided.")
+
+  if not isinstance(current_sample, Sample):
+      errors.append(f"A valid current sample instance must be provided.")
+
+  if not errors:
+      new_sample = next_sample if next_sample is not None else current_sample
+
+      current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step_order__step=current_step)
+
+      for current_sample_next_step in current_sample_next_steps.all():
+          if SampleNextStep.objects.filter(step_order=current_sample_next_step.step_order.next_step_order,
+                                           sample=new_sample,
+                                           study=current_sample_next_step.study).exists():
+              if new_sample.is_pool:
+                  warnings.append(f"Sample {new_sample.name} is already queued for step {current_sample_next_step.step_order.next_step_order.order}"
+                                  f"of study {current_sample_next_step.study.letter} of project {current_sample_next_step.study.project.name}.")
+              else:
+                  errors.append(f"Sample {new_sample.name} is already queued for step {current_sample_next_step.step_order.next_step_order.order}"
+                                f"of study {current_sample_next_step.study.letter} of project {current_sample_next_step.study.project.name}.")
+          else:
+              next_sample_next_step = SampleNextStep.objects.create(step_order=current_sample_next_step.step_order.next_step_order,
+                                                                    sample=new_sample,
+                                                                    study=current_sample_next_step.study)
+          new_sample_next_steps.append(next_sample_next_step)
+
+  # an error will return None, no matching current_sample_next_step will return []
+  if errors:
+      new_sample_next_steps = None
+
+  return new_sample_next_steps, errors, warnings
