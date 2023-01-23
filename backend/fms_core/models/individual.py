@@ -41,7 +41,7 @@ class Individual(TrackedModel):
                                help_text="Father of the individual.")
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
-    reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="studies", help_text="Reference genome used to analyze samples.")
+    reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="individuals", help_text="Reference genome used to analyze samples.")
 
     def __str__(self):
         return self.name
