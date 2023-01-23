@@ -30,6 +30,16 @@ _taxon_filterset_fields: FiltersetFields = {
     "ncbi_id": PK_FILTERS,
 }
 
+_reference_genome_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "assembly_name": CATEGORICAL_FILTERS_LOOSE,
+    "synonym": CATEGORICAL_FILTERS_LOOSE,
+    "genbank_id": CATEGORICAL_FILTERS_LOOSE,
+    "refseq_id": CATEGORICAL_FILTERS_LOOSE,
+    "size": SCALAR_FILTERS,
+    **_prefix_keys("taxon__", _taxon_filterset_fields),
+}
+
 _individual_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
@@ -39,6 +49,7 @@ _individual_filterset_fields: FiltersetFields = {
     "mother": NULLABLE_FK_FILTERS,
     "father": NULLABLE_FK_FILTERS,
     **_prefix_keys("taxon__", _taxon_filterset_fields),
+    **_prefix_keys("reference_genome__", _reference_genome_filterset_fields),
 }
 
 _user_filterset_fields: FiltersetFields = {
@@ -242,16 +253,6 @@ _workflow_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "structure": CATEGORICAL_FILTERS_LOOSE,
-}
-
-_reference_genome_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "assembly_name": CATEGORICAL_FILTERS_LOOSE,
-    "synonym": CATEGORICAL_FILTERS_LOOSE,
-    "genbank_id": CATEGORICAL_FILTERS_LOOSE,
-    "refseq_id": CATEGORICAL_FILTERS_LOOSE,
-    "size": SCALAR_FILTERS,
-    **_prefix_keys("taxon__", _taxon_filterset_fields),
 }
 
 _study_filterset_fields: FiltersetFields = {

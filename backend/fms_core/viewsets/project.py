@@ -6,8 +6,8 @@ from django.db.models import F
 
 from fms_core.models import Project
 from fms_core.serializers import ProjectSerializer, ProjectExportSerializer
-from fms_core.template_importer.importers import ProjectLinkSamples
-from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE
+from fms_core.template_importer.importers import ProjectStudyLinkSamples
+from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _project_filterset_fields
@@ -27,10 +27,10 @@ class ProjectViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
 
     template_action_list = [
         {
-            "name": "Link Projects with Samples",
-            "description": "Upload the provided template with links between projects and samples.",
-            "template": [PROJECT_LINK_SAMPLES_TEMPLATE["identity"]],
-            "importer": ProjectLinkSamples,
+            "name": "Link Projects and Studies with Samples",
+            "description": "Upload the provided template with links between projects, studies and samples.",
+            "template": [PROJECT_STUDY_LINK_SAMPLES_TEMPLATE["identity"]],
+            "importer": ProjectStudyLinkSamples,
         }
     ]
 

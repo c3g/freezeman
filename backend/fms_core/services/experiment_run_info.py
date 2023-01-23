@@ -53,6 +53,7 @@ class RunInfoSample:
     expected_sex: Optional[str] = None
     ncbi_taxon_id: Optional[int] = None
     taxon_name: Optional[str] = None
+    reference_genome: Optional[str] = None
     
     # library fields
     library_type: Optional[str] = None
@@ -238,6 +239,9 @@ def _generate_sample(experiment_run: ExperimentRun, sample: Sample, derived_samp
         if individual.taxon is not None:
             row.ncbi_taxon_id = individual.taxon.ncbi_id
             row.taxon_name = individual.taxon.name
+        
+        if individual.reference_genome is not None:
+            row.reference_genome = individual.reference_genome.assembly_name
 
     # LIBRARY
     if derived_sample.library is not None:

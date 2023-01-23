@@ -15,8 +15,7 @@ class PlatformServicesTestCase(TestCase):
                                           project=self.project,
                                           workflow=self.workflow,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
 
     def test_get_study(self):
         """
@@ -58,4 +57,3 @@ class PlatformServicesTestCase(TestCase):
         self.assertEqual(study, None)
         self.assertEqual(errors['step_range'], ['The end step cannot be after the last step of the workflow.'])
         self.assertEqual(warnings, {})
-       

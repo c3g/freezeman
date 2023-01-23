@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from fms_core.models import Individual, Taxon
+from fms_core.models import Individual, Taxon, ReferenceGenome
 
 from ..utils import normalize_scientific_name
 
@@ -24,8 +24,52 @@ def get_taxon(name=None, ncbi_id=None):
 
     return (taxon, errors, warnings)
 
-def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None):
+def get_reference_genome(assembly_name):
+    """
+    Returns an existing reference genome matching the given assembly name.
+
+    Args:
+        `assembly_name`: Assembly name of the reference genome including patch version.
+
+    Returns:
+        Tuple including the reference genome instance if found otherwise None, the errors and the warnings.
+    """
+    reference_genome = None
+    errors = []
+    warnings = []
+
+    if assembly_name is None:
+        errors.append(f"Assembly name must be provided.")
+    else:
+        try:
+            reference_genome = ReferenceGenome.objects.get(assembly_name=assembly_name)
+        except ReferenceGenome.DoesNotExist as e:
+            errors.append(f"No reference genome identified by assembly name {assembly_name} could be found.")
+
+    return (reference_genome, errors, warnings)
+
+def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=None, cohort=None, mother=None, father=None, reference_genome=None):
+    """
+    Create or return an individual defined using the input parameters. If the sample exists using the name to get it, the given parameters are
+    validated against the instance found. Difference would result in errors. 
+
+    Args:
+        `name`: Unique individual name given internally.
+        `alias`: Optional individual name given by the client.
+        `sex`: Sex of the individual (M, F, Unknown) Unknown currently includes None
+        `taxon`: Taxon instance associated to the individual.
+        `pedigree`: Name of the pedigree.
+        `cohort`: Name of the cohort.
+        `mother`: Parent individual instance of F sex.
+        `father`: Parent individual instance of M sex.
+        `reference_genome`: Reference genome instance for that individual analysis.
+
+    Returns:
+        Tuple including the individual instance if found otherwise None, a boolean flag indicating if the individual was created,
+        the errors and the warnings.
+    """
     individual = None
+    created_entity = False
     errors = []
     warnings = []
 
@@ -56,6 +100,9 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
             if father and father != individual.father:
                 errors.append(
                     f"Provided father {father.name} does not match the individual father {individual.father.name if individual.father else ''} of the individual retrieved using the name {name}.")
+            if reference_genome and reference_genome != individual.reference_genome:
+                errors.append(
+                    f"Provided reference genome {reference_genome.assembly_name} does not match the individual reference genome {individual.reference_genome.assembly_name if individual.reference_genome else ''} of the individual retrieved using the name {name}.")
 
         except Individual.DoesNotExist:
             if taxon is not None:
@@ -69,9 +116,11 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
                     **(dict(cohort=cohort) if cohort is not None else dict()),
                     **(dict(mother=mother) if mother is not None else dict()),
                     **(dict(father=father) if father is not None else dict()),
+                    **(dict(reference_genome=reference_genome) if reference_genome is not None else dict()),
                 )
                 try:
                     individual = Individual.objects.create(**individual_data)
+                    created_entity = True
                 except ValidationError as e:
                     errors.append(';'.join(e.messages))
             else:
@@ -80,4 +129,4 @@ def get_or_create_individual(name, alias=None, sex=None, taxon=None, pedigree=No
     if errors:
         individual = None
 
-    return (individual, errors, warnings)
+    return (individual, created_entity, errors, warnings)

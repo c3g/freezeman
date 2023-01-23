@@ -173,7 +173,8 @@ const api = {
 
   referenceGenomes: {
     get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
-    list: (options, abort) => get('/reference-genomes/', options, { abort })
+    list: (options, abort) => get('/reference-genomes/', options, { abort }),
+    search: q => get("/reference-genomes/search/", { q }),
   },
 
   samples: {
@@ -215,6 +216,7 @@ const api = {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
+    listProjectStudies: projectId => get('/studies', { project__id: projectId})
   },
 
   taxons: {

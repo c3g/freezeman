@@ -1,9 +1,7 @@
 import { Button, Form, Space } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiError } from '../../models/fms_api_models'
-import { Project, ReferenceGenome, Workflow, WorkflowStepRange } from '../../models/frontend_models'
-import ReferenceGenomeSelect from './ReferenceGenomeSelect'
+import { Project, Study, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import WorkflowCascadeMenu from './WorkflowCascadeMenu'
 import WorkflowCollapsableList from './WorkflowCollapsableList'
 import WorkflowStepSelector from './WorkflowStepSelector'
@@ -16,7 +14,7 @@ interface FormErrors {
 
 interface CreateStudyFormProps {
 	project: Project
-	study?: any
+	study?: Study
 	workflows: Workflow[]
 	isCreatingStudy: boolean
 	onSubmit: StudyEditCallback
@@ -24,12 +22,11 @@ interface CreateStudyFormProps {
 }
 
 interface FormData {
-	referenceGenome?: ReferenceGenome
 	workflow?: Workflow
 	stepRange?: WorkflowStepRange
 }
 
-type StudyEditCallback = (referenceGenome?: ReferenceGenome, workflow?: Workflow, stepRange?: WorkflowStepRange) => void
+type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange) => void
 
 const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
 	const navigate = useNavigate()
@@ -39,7 +36,7 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, f
 	const stepRange = Form.useWatch<WorkflowStepRange>('stepRange', form)
 
 	function handleSubmit(values: FormData) {
-		onSubmit(values.referenceGenome, values.workflow, values.stepRange)
+		onSubmit(values.workflow, values.stepRange)
 	}
 
 	function handleCancel() {
@@ -73,14 +70,6 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, f
 
 	return (
 		<Form form={form} name="edit-study" labelCol={{ span: 4 }} wrapperCol={{ span: 12 }} layout="horizontal" onFinish={handleSubmit}>
-			<Item 
-				name="referenceGenome" 
-				label="Refererence Genome"
-				{...itemValidation('reference_genome')}
-				>
-				{/* TODO pass currently selected reference genome id if editing */}
-				<ReferenceGenomeSelect />
-			</Item>
 			<Item 
 				name="workflow" 
 				label="Workflow" 

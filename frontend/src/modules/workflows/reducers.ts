@@ -1,4 +1,5 @@
 import { merge } from 'object-path-immutable'
+import { ItemsByID, Workflow } from '../../models/frontend_models'
 
 import { indexByID } from '../../utils/objects'
 

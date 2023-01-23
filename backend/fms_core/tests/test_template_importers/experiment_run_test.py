@@ -5,11 +5,12 @@ import datetime
 from fms_core.template_importer.importers import ExperimentRunImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement, Taxon
+from fms_core.models import ExperimentRun, SampleKind, Process, PropertyValue, PropertyType, ProcessMeasurement, Taxon, Project
 
 from fms_core.services.container import create_container
 from fms_core.services.individual import get_or_create_individual
 from fms_core.services.sample import create_full_sample
+from fms_core.services.project import create_project
 
 
 class ExperimentRunInfiniumTestCase(TestCase):
@@ -29,13 +30,15 @@ class ExperimentRunInfiniumTestCase(TestCase):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRun', taxon=taxon)
+
+        project, _, _ = create_project(name='TestProject')
 
         create_full_sample(name=self.sample_name, volume=29, collection_site='site1',
                            creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
-                           individual=individual, sample_kind=sample_kind_RNA)
+                           individual=individual, sample_kind=sample_kind_RNA, project=project)
 
 
     def test_import(self):
@@ -211,19 +214,22 @@ class ExperimentRunMGITestCase(TestCase):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon=taxon)
+
+        project, _, _ = create_project(name='TestProject')
 
         create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
                            creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
-                           individual=individual, sample_kind=sample_kind_RNA)
+                           individual=individual, sample_kind=sample_kind_RNA, project=project)
 
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
         self.assertEqual(result['valid'], True)
+
 
         # Custom tests for each template
 
@@ -299,13 +305,15 @@ class ExperimentRunIlluminaTestCase(TestCase):
         sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunIllumina', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRunIllumina', taxon=taxon)
+
+        project, _, _ = create_project(name='TestProject')
 
         create_full_sample(name=self.sample_name, volume=24, collection_site='site1',
                            creation_date=datetime.datetime(2020, 5, 21, 0, 0), container=container,
-                           individual=individual, sample_kind=sample_kind_DNA)
+                           individual=individual, sample_kind=sample_kind_DNA, project=project)
 
 
     def test_import(self):

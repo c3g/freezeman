@@ -184,6 +184,7 @@ class IndividualExportSerializer(serializers.ModelSerializer):
     father_name = serializers.SerializerMethodField()
     taxon_name = serializers.SerializerMethodField()
     taxon_ncbi_id = serializers.SerializerMethodField()
+    reference_genome_assembly_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Individual
@@ -195,7 +196,8 @@ class IndividualExportSerializer(serializers.ModelSerializer):
                   "sex",
                   "cohort",
                   "taxon_name",
-                  "taxon_ncbi_id",)
+                  "taxon_ncbi_id",
+                  "reference_genome_assembly_name",)
     
     def get_father_name(self, obj):
         father = '' if obj.father is None else obj.father.name
@@ -213,6 +215,9 @@ class IndividualExportSerializer(serializers.ModelSerializer):
         ncbi_id = '' if obj.taxon is None else obj.taxon.ncbi_id
         return ncbi_id
 
+    def get_reference_genome_assembly_name(self, obj):
+        reference_genome_assembly_name = '' if obj.reference_genome is None else obj.reference_genome.assembly_name
+        return reference_genome_assembly_name
 
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
