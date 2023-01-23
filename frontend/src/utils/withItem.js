@@ -21,7 +21,7 @@ let store = undefined
 /** Initialized in src/index.js */
 export const setStore = value => { store = value }
 
-function createWithItem(type, apiType) {
+export function createWithItem(type, apiType) {
   /*
    * Create a withXxx() helpers.
    * Requests are accumulated in `ids` for `THROTTLE_DELAY`

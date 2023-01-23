@@ -12,6 +12,7 @@ import {SAMPLE_FILTERS} from "../filters/descriptions";
 import {withIndividual} from "../../utils/withItem";
 import getFilterProps from "../filters/getFilterProps";
 import {Depletion} from "../Depletion";
+import { WithIndividualRenderComponent } from "../shared/WithItemRenderComponent";
 
 const getTableColumns = (sampleKinds, individualsByID) => [
     {
@@ -45,7 +46,8 @@ const getTableColumns = (sampleKinds, individualsByID) => [
         const individual = sample.individual
         return (individual &&
           <Link to={`/individuals/${individual}`}>
-            {withIndividual(individualsByID, individual, individual => individual.cohort, "loading...")}
+            <WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={"Loading..."}/>
+            {/* {withIndividual(individualsByID, individual, individual => individual.cohort, "loading...")} */}
           </Link>)
       }
     },
