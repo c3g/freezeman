@@ -694,7 +694,7 @@ class StepWithOrderSerializer(serializers.ModelSerializer):
         if hasattr(instance, 'order'):
             return instance.order
         else:
-            return ""
+            return None
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps = serializers.SerializerMethodField(read_only=True)
@@ -704,7 +704,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
     
     def get_steps(self, instance):
         steps = instance.steps.all().annotate(order=F("steps_order__order")).order_by("order")
-        serialized_data =  StepWithOrderSerializer(steps, many=True)
+        serialized_data = StepWithOrderSerializer(steps, many=True)
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):

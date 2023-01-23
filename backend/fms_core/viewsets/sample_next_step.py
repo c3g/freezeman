@@ -57,7 +57,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
             protocol_sample_count = SampleNextStep.objects.filter(step_order__step__protocol=protocol).count()
 
             if protocol.id not in sample_next_step_by_protocol.keys():
-                # Add protocol info to the project
+                # Add protocol info to the results
                 sample_next_step_by_protocol['protocols'][protocol.id] = {
                     "name" : protocol.name, 
                     "count": protocol_sample_count,
