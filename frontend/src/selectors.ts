@@ -1,5 +1,6 @@
-import { ItemsByID, Project, Protocol, ReferenceGenome, Sample, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { ItemsByID, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
+import { StudySamplesState } from "./modules/studySamples/reducers"
 import { RootState } from "./store"
 
 /*
@@ -23,6 +24,8 @@ export const selectProjectsByID = (state: RootState) => state.projects.itemsByID
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
+export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
+export const selectStudySamples = (state: RootState) => state.studySamples as StudySamplesState
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>

@@ -208,6 +208,7 @@ const api = {
   },
 
   sampleNextStep: {
+    getStudySamples: (studyId) => get('/sample-next-step/', {study__id__in : studyId}),
     labworkSummary: () => get('/sample-next-step/labwork_info/')
   },
 

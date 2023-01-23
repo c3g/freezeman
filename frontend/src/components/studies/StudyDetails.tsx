@@ -2,10 +2,13 @@ import { Descriptions, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Project, Study, Workflow } from '../../models/frontend_models'
+import { StudySampleList } from '../../models/study_samples'
 import { get as getProject } from '../../modules/projects/actions'
 import { get as getStudy } from '../../modules/studies/actions'
+import { getStudySamples } from '../../modules/studySamples/actions'
 import { get as getWorkflow } from '../../modules/workflows/actions'
-import { selectProjectsByID, selectStudiesByID, selectWorkflowsByID } from '../../selectors'
+import { selectProjectsByID, selectStudiesByID, selectStudySamples, selectWorkflowsByID } from '../../selectors'
+import StudySamples from '../studySamples/StudySamples'
 
 const { Title, Text } = Typography
 
@@ -18,10 +21,13 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
     const projectsById = useAppSelector(selectProjectsByID)
     const studiesById = useAppSelector(selectStudiesByID)
     const workflowsById = useAppSelector(selectWorkflowsByID)
+    const studySamplesState = useAppSelector(selectStudySamples)
 
     const [study, setStudy] = useState<Study>()
     const [workflow, setWorkflow] = useState<Workflow>()
     const [project, setProject] = useState<Project>()
+
+    const [studySamples, setStudySamples] = useState<StudySampleList>()
 
     useEffect(() => {
         if (!studyId) {
@@ -49,6 +55,21 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         }
     }, [studiesById, workflowsById, projectsById])
 
+    useEffect(() => {
+        if (!studySamples) {
+            const studyState = studySamplesState[studyId]
+            if (studyState) {
+                if (studyState.isFetching) {
+                    return
+                } else {
+                    setStudySamples(studyState.data)
+                }
+            } else {
+                dispatch(getStudySamples(studyId))
+            }
+        }
+    }, [studySamplesState])
+
 
 
     return (
@@ -58,6 +79,10 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="Project" span={2}>{project?.name ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Workflow" span={2}>{workflow?.name ?? ''}</Descriptions.Item>
             </Descriptions>
+            <Title level={5} style={{marginTop: '1rem'}}>Samples</Title>
+            { studySamples && 
+                <StudySamples studySamples={studySamples}/>
+            }
         </>
         
     )

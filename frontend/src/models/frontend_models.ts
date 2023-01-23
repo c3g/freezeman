@@ -21,6 +21,7 @@ import {
 	FMSProtocol,
 	FMSReferenceGenome,
 	FMSSample,
+	FMSSampleKind,
 	FMSSequence,
 	FMSStudy,
 	FMSTaxon,
@@ -53,6 +54,7 @@ export interface Project extends Readonly<FMSProject>, FetchedObject {}
 export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}
+export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
 export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}
 export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}

@@ -83,6 +83,7 @@ import {logOut} from "./modules/auth/actions";
 import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
+import { studySamples } from "./modules/studySamples/reducers";
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -143,6 +144,7 @@ const allReducers = combineReducers({
   versions,
   workflows,
   labworkSummary,
+  studySamples,
 });
 
 export default function rootReducer(state, action) {

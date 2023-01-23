@@ -218,6 +218,21 @@ export interface FMSSample extends FMSTrackedModel {
     comment: string                     // User comment
 }
 
+export interface FMSSampleKind extends FMSTrackedModel {
+    name: string                        // Sample kind name
+    is_extracted: boolean               // Indicator to identify kinds that were extracted. Sample will have tissue source.
+    concentration_required: boolean     // Sample kind requires a concentration value for sample processing
+    molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
+}
+
+export interface FMSSampleNextStep extends FMSTrackedModel {
+    step_order_id: FMSId,
+    sample: FMSId,
+    study: FMSId,
+    step_order_number: number
+    step: WorkflowStep
+}
+
 export interface FMSSequence extends FMSTrackedModel {
     value: string
 }
@@ -254,7 +269,8 @@ export interface FMSWorkflow extends FMSTrackedModel {
     steps: WorkflowStep[]               // Workflow steps
 }
 
-export interface WorkflowStep extends FMSTrackedModel {
+export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
+    id: FMSId                           // Step ID
     name: string                        // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
