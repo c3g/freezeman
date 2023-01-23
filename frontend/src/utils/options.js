@@ -24,6 +24,13 @@ export function renderTaxon(t) {
   }
 }
 
+export function renderReferenceGenome(rg) {
+  return {
+    value: rg.id,
+    label: `${rg.assembly_name}${rg.synonym ? ` (${rg.synonym})` : ''}`,
+  }
+}
+
 export function renderIndividual(i) {
   return {
     value: i.id,

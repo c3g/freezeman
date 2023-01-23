@@ -5,6 +5,7 @@ from django.db import models
 
 from .tracked_model import TrackedModel
 from .taxon import Taxon
+from .reference_genome import ReferenceGenome
 
 from ..utils import str_cast_and_normalize
 from ._utils import add_error as _add_error
@@ -39,8 +40,8 @@ class Individual(TrackedModel):
     father = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, related_name="father_of",
                                help_text="Father of the individual.")
     cohort = models.CharField(max_length=200, blank=True, help_text="Name to group some individuals in a specific study.")
-
     alias = models.CharField(blank=True, null=True, max_length=200, help_text="Original individual name used by external client.")
+    reference_genome = models.ForeignKey(ReferenceGenome, null=True, blank=True, on_delete=models.PROTECT, related_name="studies", help_text="Reference genome used to analyze samples.")
 
     def __str__(self):
         return self.name
@@ -76,6 +77,9 @@ class Individual(TrackedModel):
 
         if self.father_id is not None and self.pedigree != self.father.pedigree:
             add_error("pedigree", "Pedigree between individual and father must match")
+
+        if self.reference_genome is not None and self.taxon_id != self.reference_genome.taxon_id:
+            add_error("reference_genome", "Reference genome must match the individual taxon.")
 
         if errors:
             raise ValidationError(errors)

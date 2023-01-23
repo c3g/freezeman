@@ -32,8 +32,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                               project=self.project,
                                               workflow=self.workflow,
                                               start=self.start,
-                                              end=self.end,
-                                              reference_genome=None)
+                                              end=self.end)
 
     def test_queue_sample_to_study_workflow_default(self):
         sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)

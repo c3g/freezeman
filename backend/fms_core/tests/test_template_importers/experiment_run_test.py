@@ -30,9 +30,9 @@ class ExperimentRunInfiniumTestCase(TestCase):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRun', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRun', taxon=taxon)
 
         project, _, _ = create_project(name='TestProject')
 
@@ -214,9 +214,9 @@ class ExperimentRunMGITestCase(TestCase):
         sample_kind_RNA, _ = SampleKind.objects.get_or_create(name='RNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRunMGI', taxon=taxon)
 
         project, _, _ = create_project(name='TestProject')
 
@@ -305,9 +305,9 @@ class ExperimentRunIlluminaTestCase(TestCase):
         sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
+        container, errors, warnings = create_container(barcode=self.container_barcode, kind='Tube', name=self.container_barcode)
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4TestExperimentRunIllumina', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4TestExperimentRunIllumina', taxon=taxon)
 
         project, _, _ = create_project(name='TestProject')
 

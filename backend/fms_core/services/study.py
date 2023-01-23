@@ -3,7 +3,7 @@ from fms_core.models import Study, Project
 
 import string
 
-def create_study(project, workflow, start, end, reference_genome=None):
+def create_study(project, workflow, start, end):
     """
      Create a study for a given project. The service generates a sequential letter that serves to identify the study.
 
@@ -12,7 +12,6 @@ def create_study(project, workflow, start, end, reference_genome=None):
          `workflow`: Workflow model instance linked to the study.
          `start`: The start step on the workflow for the study.
          `end`: The end step on the workflow for the study.
-         `reference_genome`: The reference genome for the study.
 
      Returns:
          Tuple containing the created study object (or None), the error messages and the warning messages. 
@@ -46,8 +45,7 @@ def create_study(project, workflow, start, end, reference_genome=None):
                                      project=project,
                                      workflow=workflow,
                                      start=start,
-                                     end=end,
-                                     reference_genome=reference_genome)
+                                     end=end)
     except ValidationError as e:
         errors = { **errors, **e.message_dict }
 

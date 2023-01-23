@@ -33,9 +33,9 @@ class SampleUpdateTestCase(TestCase):
         sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
         taxon = Taxon.objects.get(name='Homo sapiens')
 
-        (container, errors, warnings) = create_container(barcode='CONTAINER4SAMPLEUPDATE', kind='Tube', name='Container4SampleUpdate')
+        container, errors, warnings = create_container(barcode='CONTAINER4SAMPLEUPDATE', kind='Tube', name='Container4SampleUpdate')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4SampleUpdate', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4SampleUpdate', taxon=taxon)
 
         create_full_sample(name=self.sample_name, volume=100, concentration=25, collection_site='TestCaseSite',
                            creation_date=datetime.datetime(2021, 10, 21, 0, 0),
