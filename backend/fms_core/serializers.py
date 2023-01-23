@@ -35,7 +35,8 @@ from .models import (
     ReferenceGenome,
     Study,
     SampleNextStep,
-    StepSpecification
+    StepSpecification,
+    StepOrder
 )
 
 from .models._constants import ReleaseStatus
@@ -88,7 +89,6 @@ __all__ = [
     "SampleNextStepSerializer",
     "StepSpecificationSerializer",
     "StepSerializer",
-    "StepWithOrderSerializer"
 ]
 
 
@@ -679,22 +679,17 @@ class StepSpecificationSerializer(serializers.ModelSerializer):
         fields = ("id", "display_name", "sheet_name", "column_name", "value")
 
 class StepSerializer(serializers.ModelSerializer):
-    step_specifications = StepSpecificationSerializer(read_only=True, many=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "protocol_id", "step_specifications"]
+        fields = ["id", "name", "protocol_id"]
 
-class StepWithOrderSerializer(serializers.ModelSerializer):
-    order = serializers.SerializerMethodField(read_only=True)
+class StepOrderSerializer(serializers.ModelSerializer):
+    protocol_id = serializers.CharField(read_only=True, source='step.protocol_id')
+    step_id = serializers.CharField(read_only=True, source='step.id')
+    step_name = serializers.CharField(read_only=True, source='step.name')
     class Meta:
-        model = Step
-        fields = ["id", "name", "protocol_id", "order"]
-    
-    def get_order(self, instance):
-        if hasattr(instance, 'order'):
-            return instance.order
-        else:
-            return None
+        model = StepOrder
+        fields = ["id", "protocol_id", "step_id", "step_name", "order"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps = serializers.SerializerMethodField(read_only=True)
@@ -703,8 +698,8 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "structure", "steps")
     
     def get_steps(self, instance):
-        steps = instance.steps.all().annotate(order=F("steps_order__order")).order_by("order")
-        serialized_data = StepWithOrderSerializer(steps, many=True)
+        steps = instance.steps.all().order_by("steps_order__order")
+        serialized_data = StepSerializer(steps, many=True)
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
@@ -718,16 +713,8 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
-    step = serializers.SerializerMethodField(read_only=True)
+    step = StepSerializer(read_only=True, source="step_order.step")
+    step_order_number = serializers.IntegerField(read_only=True, source="step_order.order")
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study", "step")
-
-    def get_step(self, instance):
-        step =  instance.step_order.step if instance.step_order else None
-        if step:
-            setattr(step, "order", instance.step_order.order)
-            serialized_data =  StepWithOrderSerializer(step)
-            return serialized_data.data
-        else:
-            return None
+        fields = ("id", "step_order_id", "sample", "study", "step_order_number", "step")
