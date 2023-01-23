@@ -715,7 +715,7 @@ class ReferenceGenomeSerializer(serializers.ModelSerializer):
 class StudySerializer(serializers.ModelSerializer):
     class Meta:
         model = Study
-        fields = ("id", "letter", "project_id", "workflow_id", "start", "end", "reference_genome_id")
+        fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True, source="step_order.step")
