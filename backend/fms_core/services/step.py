@@ -59,7 +59,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
                         sample_sheet_matches[row_id].append(match)
                     else: 
                         stiched_matches[stitch_value].append(match)
-            work_dict[candidate_step] = {row_id: sample_sheet_matches[row_id].extend(stiched_matches[row_id_to_stitch_dict[row_id]]) for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
+            work_dict[candidate_step] = {row_id: sample_sheet_matches[row_id] + stiched_matches[row_id_to_stitch_dict[row_id]] for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
         # build the return dict from work dict
         for candidate_step, rows in work_dict.items():
             for row_id, matches in rows.items():

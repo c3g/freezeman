@@ -12,9 +12,9 @@ from pandas import pandas as pd
 class StepServicesTestCase(TestCase):
     def setUp(self) -> None:
         # extract sheets from library prep for test
-        self.sheet_info = templates.LIBRARY_PREPARATION_TEMPLATE["sheet_info"]
+        self.sheet_info = templates.LIBRARY_PREPARATION_TEMPLATE["sheets info"]
         self.file = APP_DATA_ROOT / "Library_preparation_v3_10_0.xlsx"
-        self.sheet = {}
+        self.sheets = {}
         for sheet in self.sheet_info:
             pd_sheet = pd.read_excel(self.file, sheet_name=sheet["name"], header=None)
             dataframe = pd_sheet.applymap(blank_and_nan_to_none).applymap(str_normalize)
