@@ -689,12 +689,12 @@ class StepSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "protocol_id"]
 
 class StepOrderSerializer(serializers.ModelSerializer):
-    protocol_id = serializers.CharField(read_only=True, source='step.protocol_id')
     step_id = serializers.CharField(read_only=True, source='step.id')
+    protocol_id = serializers.CharField(read_only=True, source='step.protocol_id')
     step_name = serializers.CharField(read_only=True, source='step.name')
     class Meta:
         model = StepOrder
-        fields = ["id", "protocol_id", "step_id", "step_name", "order"]
+        fields = ["id", "step_id", "step_name", "protocol_id", "order"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
     steps = serializers.SerializerMethodField(read_only=True)
@@ -703,8 +703,8 @@ class WorkflowSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "structure", "steps")
     
     def get_steps(self, instance):
-        steps = instance.steps.all().order_by("steps_order__order")
-        serialized_data = StepSerializer(steps, many=True)
+        steps_order = instance.steps_order.all().order_by("order")
+        serialized_data = StepOrderSerializer(steps_order, many=True)
         return serialized_data.data
 
 class ReferenceGenomeSerializer(serializers.ModelSerializer):
