@@ -263,3 +263,17 @@ _study_filterset_fields: FiltersetFields = {
     **_prefix_keys("project__", _project_filterset_fields),
     **_prefix_keys("workflow__", _workflow_filterset_fields),
 }
+
+_sample_next_step_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "study__id": PK_FILTERS,
+    "step_order__step__protocol__id": PK_FILTERS,
+    "step_order__step__id": PK_FILTERS,
+    "step_order__step__name": CATEGORICAL_FILTERS_LOOSE,
+}
+
+_step_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
+    "protocol_id": PK_FILTERS,
+}
