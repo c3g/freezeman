@@ -697,12 +697,12 @@ class StepOrderSerializer(serializers.ModelSerializer):
         fields = ["id", "step_id", "step_name", "protocol_id", "order"]
 
 class WorkflowSerializer(serializers.ModelSerializer):
-    steps = serializers.SerializerMethodField(read_only=True)
+    steps_order = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Workflow
-        fields = ("id", "name", "structure", "steps")
+        fields = ("id", "name", "structure", "steps_order")
     
-    def get_steps(self, instance):
+    def get_steps_order(self, instance):
         steps_order = instance.steps_order.all().order_by("order")
         serialized_data = StepOrderSerializer(steps_order, many=True)
         return serialized_data.data
