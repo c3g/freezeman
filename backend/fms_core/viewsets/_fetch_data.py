@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.db.models import Q, ExpressionWrapper, BooleanField
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement
+from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
@@ -328,6 +328,87 @@ class FetchSampleData(FetchData):
                 'depleted': ["No", "Yes"][sample["depleted"]],
                 'is_library': is_library,
                 'comment': sample["comment"],
+            }
+            serialized_data.append(data)
+
+        return serialized_data
+
+    def fetch_export_metadata(self, ids: List[int] =[]) -> Tuple[List, int]:
+        """
+        Function to retrieve the sample metadata to export. 
+
+        Args:
+            self: base_class(viewset) + fetch_data
+            ids: List of ids to select specific samples. Defaults to [].
+
+        Returns:
+            Returns a list of serialized sample metadata dictionary
+        """
+
+        super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
+
+        self.queryset = self.queryset.values(
+            'id',
+            'name',
+            'container__kind',
+            'container__name',
+            'container__barcode',
+            'coordinates',
+            'container__location__barcode',
+            'container__coordinates',
+            'count_derived_samples',
+            'first_derived_sample',
+        )
+        samples = {s["id"]: s for s in self.queryset}
+
+        first_derived_sample_ids = self.queryset.values_list("first_derived_sample", flat=True)
+        derived_sample_values_queryset = (
+            DerivedSample.objects
+            .filter(id__in=first_derived_sample_ids)
+            .annotate(is_library=ExpressionWrapper(Q(library__isnull=False), output_field=BooleanField()))
+            .values(
+                'id',
+                'biosample__id',
+                'biosample__alias',
+                'project__name',
+                'is_library',
+            )
+        )
+        derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
+
+        biosample_ids = derived_sample_values_queryset.values_list('biosample__id', flat=True)
+        metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
+        metadata_obj = metadata_queryset.values('biosample','name', 'value')
+
+        metadata_per_biosample = {}
+        for metadata in metadata_obj:
+            biosample = metadata['biosample']
+            if biosample in metadata_per_biosample.keys():
+                metadata_per_biosample[biosample].append(metadata)
+            else:
+                metadata_per_biosample[biosample] = [metadata] 
+
+        serialized_data = []
+        if not samples:
+            serialized_data.append({}) # Allow the returned csv file to be named instead of random name.
+        for sample in samples.values():
+            derived_sample = derived_samples[sample["first_derived_sample"]]
+            is_library = derived_sample["is_library"]
+            is_pool = sample["count_derived_samples"] > 1
+            metadata = metadata_per_biosample[derived_sample["biosample__id"]]
+            
+            data = {
+                'sample_name': sample["name"],
+                'biosample_id': derived_sample["biosample__id"] if not is_pool else None,
+                'alias': derived_sample["biosample__alias"] if not is_pool or not is_library else None,
+                'container_kind': sample["container__kind"],
+                'container_name': sample["container__name"],
+                'container_barcode': sample["container__barcode"],
+                'coordinates': sample["coordinates"],
+                'location_barcode': sample["container__location__barcode"] or "",
+                'location_coord': sample["container__coordinates"] or "",
+                'project': derived_sample["project__name"] if not is_pool else None,
+                **dict((item["name"], item["value"]) for item in metadata)
             }
             serialized_data.append(data)
 

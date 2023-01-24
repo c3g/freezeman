@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -324,14 +324,38 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         serialized_data = self.fetch_export_data()
         return Response(serialized_data)
 
+    @action(detail=False, methods=["get"])
+    def list_export_metadata(self, _request):
+        self.queryset = self.filter_queryset(self.get_queryset())
+        serialized_data = self.fetch_export_metadata()
+        return Response(serialized_data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
             fields = SampleExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        elif self.action == 'list_export_metadata':
+            fields = self.get_metadata_fields()
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
 
+    def get_metadata_fields(self):
+        # Base information fields
+        base_fields = ('sample_name', 'biosample_id', 'alias', 'container_kind', 'container_name', 
+                       'container_barcode', 'coordinates', 'location_barcode', 'location_coord', 'projects')
+
+        # Get the biosample ids of the samples belonging to the queryset
+        self.queryset = self.queryset.values('first_derived_sample')
+        first_derived_sample_ids = self.queryset.values_list("first_derived_sample", flat=True)
+        biosample_ids = DerivedSample.objects.filter(id__in=first_derived_sample_ids).values_list('biosample__id', flat=True)
+
+        # Get the names of the metadata 
+        metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
+        metadata_names = tuple(metadata_queryset.distinct().values_list('name', flat=True))
+        return base_fields + metadata_names
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):

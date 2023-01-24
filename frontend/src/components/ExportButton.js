@@ -6,7 +6,7 @@ import { DownloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { confirm } = Modal;
 
-const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
+const ExportButton = ({ exportType, exportFunction, filename, itemsCount, ...rest }) => {
   const [loading, setLoading] = useState(false);
 
   const name = filename + '_' + new Date().toISOString().slice(0, 10) + '.csv'
@@ -44,9 +44,8 @@ const ExportButton = ({ exportFunction, filename, itemsCount, ...rest }) => {
 
   }
   return (
-    <Button onClick={onClick} loading={loading} {...rest}>
-      <DownloadOutlined />
-      Export
+    <Button icon={<DownloadOutlined />} onClick={onClick} loading={loading} {...rest}>
+      Export {exportType}
     </Button>
   )
 }
