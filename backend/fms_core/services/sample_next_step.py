@@ -207,7 +207,7 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, next_sample: Sample=None) -> Tuple(Union(List[SampleNextStep], None), List[str], List[str]):
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
   """
   Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
   A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -216,6 +216,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, next_sa
       `current_step`: Step instance representing the protocol being executed by the template.
       `current_sample`: Sample instance being processed.
       `next_sample`: Sample generated during the current_step. Default to None in which case the current_sample will be the next_sample.
+      `keep_current`: Boolean that is true if we are to keep the current sample next step. False by default, indicating removal.
   
   Returns:
       Tuple containing the list of new SampleNextStep if any corresponding current SampleNextStep is found or None if an error occurs, errors and warnings.
@@ -249,6 +250,10 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, next_sa
               next_sample_next_step = SampleNextStep.objects.create(step_order=current_sample_next_step.step_order.next_step_order,
                                                                     sample=new_sample,
                                                                     study=current_sample_next_step.study)
+              # Remove old sample next step once the new one is created
+              if not keep_current and next_sample_next_step is not None:
+                  current_sample_next_step.delete()
+
           new_sample_next_steps.append(next_sample_next_step)
 
   # an error will return None, no matching current_sample_next_step will return []

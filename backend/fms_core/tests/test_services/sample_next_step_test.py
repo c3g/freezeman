@@ -3,22 +3,29 @@ from django.test import TestCase
 
 from fms_core.models import SampleNextStep, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
-from fms_core.services.sample_next_step import queue_sample_to_study_workflow, dequeue_sample_from_all_steps_study_workflow, dequeue_sample_from_specific_step_study_workflow, is_sample_queued_in_study, has_sample_completed_study
+from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
+                                                dequeue_sample_from_all_steps_study_workflow,
+                                                dequeue_sample_from_specific_step_study_workflow,
+                                                is_sample_queued_in_study,
+                                                has_sample_completed_study,
+                                                move_sample_to_next_step)
 
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
             self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
             self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
             self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
+            self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
             self.sample = create_fullsample(name="TestSampleNextStep",
                                             alias="sample1",
                                             volume=5000,
                                             individual=self.valid_individual,
                                             sample_kind=self.sample_kind_BLOOD,
                                             container=self.valid_container)
-            self.workflow = Workflow.objects.get(name="PCR-free Illumina")
+            self.workflow_pcr_free = Workflow.objects.get(name="PCR-free Illumina")
+            self.workflow_pcr_enriched = Workflow.objects.get(name="PCR-enriched Illumina")
             self.step = Step.objects.get(name="Extraction (DNA)")
-            self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow, step=self.step)
+            self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow_pcr_free, step=self.step)
             self.project = Project.objects.create(name="TestSampleNextStep")
 
             for derived_sample in self.sample.derived_samples.all():
@@ -30,7 +37,7 @@ class SampleNextStepServicesTestCase(TestCase):
             self.end = 7
             self.study = Study.objects.create(letter=self.letter_valid,
                                               project=self.project,
-                                              workflow=self.workflow,
+                                              workflow=self.workflow_pcr_free,
                                               start=self.start,
                                               end=self.end)
 
@@ -144,3 +151,80 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertFalse(has_completed)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
+
+    def test_move_sample_to_next_step(self):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        sample_in = create_fullsample(name="TestSampleNextStep_in",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container1)
+        
+        step = Step.objects.get(name="Normalization (Sample)")
+        for derived_sample in sample_in.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
+        letter_B = "B"
+        start = 3
+        end = 7
+        study_B = Study.objects.create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        letter_C = "C"
+        start = 3
+        end = 7
+        study_C = Study.objects.create(letter=letter_C,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_enriched,
+                                       start=start,
+                                       end=end)
+
+        old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+        old_sample_to_study_workflow_2, _, _ = queue_sample_to_study_workflow(sample_in, study_C)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNotNone(new_sample_next_steps)
+        self.assertEqual(new_sample_next_steps[0].step_order.step.name, "Library Preparation (PCR-free, Illumina)")
+        self.assertEqual(new_sample_next_steps[0].sample, sample_in)
+        self.assertFalse(SampleNextStep.objects.filter(id=old_sample_to_study_workflow_1.id).exists())
+        self.assertEqual(new_sample_next_steps[1].step_order.step.name, "Library Preparation (PCR-enriched, Illumina)")
+        self.assertEqual(new_sample_next_steps[1].sample, sample_in)
+        self.assertFalse(SampleNextStep.objects.filter(id=old_sample_to_study_workflow_2.id).exists())
+
+
+    def test_move_sample_to_next_step_not_queued(self):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        sample_in = create_fullsample(name="TestSampleNextStep_in",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container1)
+        
+        step = Step.objects.get(name="Library Preparation (WGBS, Illumina)")
+        for derived_sample in sample_in.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
+        letter_B = "B"
+        start = 4
+        end = 7
+        study_B = Study.objects.create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        old_sample_to_study_workflow, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNotNone(new_sample_next_steps)
+        self.assertEqual(new_sample_next_steps, [])
+        self.assertTrue(SampleNextStep.objects.filter(id=old_sample_to_study_workflow.id).exists())
