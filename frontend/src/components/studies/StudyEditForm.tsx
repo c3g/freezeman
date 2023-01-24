@@ -51,7 +51,7 @@ const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, f
 		form.setFieldValue('workflow', workflow)
 		if (workflow) {
 			const start = 1
-			const end = workflow.steps.length
+			const end = workflow.steps_order.length
 			form.setFieldValue('stepRange', { start, end })
 		} else {
 			form.setFieldValue('stepRange', undefined)

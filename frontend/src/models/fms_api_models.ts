@@ -76,7 +76,7 @@ export interface FMSLabworkSummary {
 }
 
 export interface FMSLabworkProtocol {
-    protocol_name: string               // Name of protocol
+    name: string                        // Name of protocol
     count: number                       // Total number of samples waiting for protocol
     steps: FMSLabworkStep[]      // The steps based on the protocol which have at least one sample waiting
 }
@@ -226,11 +226,18 @@ export interface FMSSampleKind extends FMSTrackedModel {
 }
 
 export interface FMSSampleNextStep extends FMSTrackedModel {
-    step_order_id: FMSId,
     sample: FMSId,
     study: FMSId,
+    step_order_id: FMSId,
     step_order_number: number
-    step: WorkflowStep
+    step: NextStep
+}
+
+// This step definition is specific to the sample-next-step api.
+export interface NextStep {
+    id: number                          // Step ID
+    name: string                        // Step name
+    protocol_id: number                 // Step's protocol id
 }
 
 export interface FMSSequence extends FMSTrackedModel {
@@ -266,11 +273,13 @@ export interface FMSUser extends FMSTrackedModel {
 export interface FMSWorkflow extends FMSTrackedModel {
     name: string                        // Workflow name
     structure: string                   // Workflow structure name
-    steps: WorkflowStep[]               // Workflow steps
+    steps_order: WorkflowStep[]         // Workflow step order objects
 }
 
 export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
-    id: FMSId                           // Step ID
-    name: string                        // Step name
+    id: FMSId                           // Step Order ID
+    order: number                       // Step order value
+    step_id : FMSId                     // Step ID
+    step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }

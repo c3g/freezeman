@@ -47,7 +47,7 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 		const fmsProtocol = fmsSummary.protocols[protocolID]
 		const protocol : LabworkSummaryProtocol = {
 			id: Number.parseInt(protocolID),
-			name: fmsProtocol.protocol_name,
+			name: fmsProtocol.name,
 			count: fmsProtocol.count,
 			groups: []
 		}

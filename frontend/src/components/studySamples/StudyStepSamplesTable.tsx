@@ -3,10 +3,16 @@ import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../hooks'
-import { ItemsByID, Sample } from '../../models/frontend_models'
+import { ItemsByID, Library, Protocol, Sample } from '../../models/frontend_models'
 import { StudySampleStep } from '../../models/study_samples'
-import { selectSamplesByID } from '../../selectors'
+import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID } from '../../selectors'
 import { withSample } from '../../utils/withItem'
+import { ProtocolNames } from '../../models/protocols'
+
+
+import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
+import LIBRARY_COLUMNS, { ObjectWithLibrary } from './LibraryTableColumns'
+
 
 interface StudyStepSamplesTableProps {
 	step: StudySampleStep
@@ -15,48 +21,64 @@ interface StudyStepSamplesTableProps {
 type DataSourceType = {sampleID: number}
 
 
-function createColumns(): ColumnsType<Sample> {
-	return [
-		{
-			title: 'ID',
-			dataIndex: 'id',
-			render: (id, sample) => <Link to={`/samples/${sample.id}`}>{id}</Link>
-		},
-		{
-			title: 'Alias',
-			dataIndex: 'alias',
-		},
-		{
-			title: 'Name',
-			dataIndex: 'name',
-			render: (name, sample) => <Link to={`/samples/${sample.id}`}>{name}</Link>
-		},
-		{
-			title: 'Container Barcode',
-			render: (_, sample) => {
-				return (
-					<></>
-				)
-			}
+function getColumnsForProtocol(protocolName: string): ColumnsType<ObjectWithSample> {
+	switch(protocolName) {
+		case ProtocolNames.Extraction: {
+			return [
+				SAMPLE_COLUMNS.ID,
+				SAMPLE_COLUMNS.KIND,
+				SAMPLE_COLUMNS.NAME,
+				SAMPLE_COLUMNS.INDIVIDUAL,
+				SAMPLE_COLUMNS.CONTAINER_NAME,
+				SAMPLE_COLUMNS.CONTAINER_BARCODE,
+				SAMPLE_COLUMNS.COORDINATES,
+				SAMPLE_COLUMNS.VOLUME,
+				SAMPLE_COLUMNS.CREATION_DATE,
+				SAMPLE_COLUMNS.DEPLETED
+			]
 		}
-	]
+		case ProtocolNames.Library_Quality_Control: {
+			return [
 
+			]
+		}
+		default:
+			return [
+				SAMPLE_COLUMNS.ID,
+				SAMPLE_COLUMNS.KIND,
+				SAMPLE_COLUMNS.NAME,
+				SAMPLE_COLUMNS.INDIVIDUAL,
+				SAMPLE_COLUMNS.CONTAINER_NAME,
+				SAMPLE_COLUMNS.CONTAINER_BARCODE,
+				SAMPLE_COLUMNS.COORDINATES,
+				SAMPLE_COLUMNS.VOLUME,
+				SAMPLE_COLUMNS.CREATION_DATE,
+				SAMPLE_COLUMNS.DEPLETED
+			]
+	}
 }
+
 
 function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 
-	const [samples, setSamples] = useState<Sample[]>()
+	const [samples, setSamples] = useState<ObjectWithSample[]>()
 
 	const samplesByID = useAppSelector(selectSamplesByID)
+	const librariesByID = useAppSelector(selectLibrariesByID)
+	const protocolsByID = useAppSelector(selectProtocolsByID)
+
+	const protocol : Protocol | undefined = protocolsByID[step.protocolID]
+	const columns = getColumnsForProtocol(protocol?.name ?? '')
 
 	useEffect(() => {
 		const availableSamples = step.samples.reduce((acc, sampleID) => {
 			const sample = samplesByID[sampleID]
+			const library = librariesByID[sampleID]
 			if (sample) {
-				acc.push(sample)
+				acc.push({sample})
 			}
 			return acc
-		}, [] as Sample[])
+		}, [] as ObjectWithSample[])
 
 		setSamples(availableSamples)
 	}, [samplesByID])
@@ -65,8 +87,8 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 	return (
 		<Table
 			dataSource={samples ?? []}
-			columns={createColumns()}
-			rowKey='id'
+			columns={columns}
+			rowKey={obj => obj.sample!.id}
 		/>
 	)
 }
