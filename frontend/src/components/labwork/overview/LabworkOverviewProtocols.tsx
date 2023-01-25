@@ -11,7 +11,7 @@ interface LabworkProtocolsProps {
 
 const LabworkOverviewProtocols = ({ summary }: LabworkProtocolsProps) => {
 	return (
-		<Collapse accordion>
+		<Collapse>
 			{summary.protocols.map((protocol) => {
 				return (
 					<Collapse.Panel key={protocol.id} header={protocol.name} extra={<Title level={4}>{protocol.count}</Title>}>

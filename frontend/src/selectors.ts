@@ -23,7 +23,7 @@ export const selectContainersByID = (state: RootState) => state.containers.items
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
-export const selectLibrariesByID = (state: RootState) => state.libraries as ItemsByID<Library>
+export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>

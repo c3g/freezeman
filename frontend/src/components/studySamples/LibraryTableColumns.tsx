@@ -67,13 +67,13 @@ const COORDINATES: TableColumnType<ObjectWithLibrary> = {
 
 const CREATION_DATE: TableColumnType<ObjectWithLibrary> = {
 	title: 'Creation Date',
-	dataIndex: ['library', 'Creation Date'],
+	dataIndex: ['library', 'creation_date'],
 }
 
-const DEPLETED: TableColumnType<Library> = {
+const DEPLETED: TableColumnType<ObjectWithLibrary> = {
 	title: 'Depleted',
 	dataIndex: ['library', 'depleted'],
-	render: (depleted) => <Depletion depleted={depleted} />,
+	render: (depleted) => depleted !== null && <Depletion depleted={depleted} />,
 }
 
 const ID: TableColumnType<ObjectWithLibrary> = {
