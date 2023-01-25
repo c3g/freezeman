@@ -7,8 +7,39 @@ import { createWithItem, withContainer, withIndex, withIndividual, withProject, 
 /**
  * WithItemRenderComponent
  * 
+ * WithItemRenderComponent is used where we need to load an object from the backend if it
+ * is not already in the redux store. It handles loading the object and when it is ready
+ * it passes the object to a render function that you provide. 
  * 
- */
+ * There specific WithXXXRenderComponent components for samples, containers, etc..
+ * 
+ * The component takes these props:
+ * 
+ * objectID: The ID of the object you want to render
+ * render: A function that takes the object as a parameter and returns a React.Element.=
+ * placeholder: A React element that is displayed as a placeholder until the object has been loaded.
+ * 
+ * Example: 
+ * 
+    import { Menu, Typography } from 'antd'
+
+    const { Title } = Typography
+
+    const ExampleComponent = ({sampleID}) => {
+
+        return (
+            <Menu>
+                <WithSampleRenderComponent 
+                    objectID={sampleID} 
+                    render={(sample) => {return (<Title>{sample.name}</Title>)}}
+                    placeholder={<Title>Loading...</Title>}
+                />
+                ... other content
+            </Menu>
+        )
+    } 
+*/
+
 
 type WithItemFunc = ReturnType<typeof createWithItem>
 type ItemRenderFunc<T extends FetchedObject> = (item: T) => React.ReactElement
@@ -63,23 +94,3 @@ export const WithProjectRenderComponent = WithItemRenderComponentFactory<typeof 
 export const WithSampleRenderComponent = WithItemRenderComponentFactory<typeof withSample, Sample>(withSample, selectSamplesByID)
 export const WithUserRenderComponent = WithItemRenderComponentFactory<typeof withUser, User>(withUser, selectUsersByID)
 
-
-/*
-import { Menu, Typography } from 'antd'
-
-const { Title } = Typography
-
-const ExampleComponent = ({sampleID}) => {
-
-    return (
-		<Menu>
-			<WithSampleRenderComponent 
-				objectID={sampleID} 
-				render={(sample) => {return (<Title>{sample.name}</Title>)}}
-				placeholder={<Title>Loading...</Title>}
-			/>
-			... other content
-		</Menu>
-    )
-} 
-*/
