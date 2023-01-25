@@ -1,8 +1,6 @@
-import { Collapse, Table, Typography } from 'antd'
+import { Collapse, Typography } from 'antd'
 import React from 'react'
-import { useAppSelector } from '../../hooks'
 import { StudySampleList } from '../../models/study_samples'
-import { selectSamplesByID } from '../../selectors'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 
 const { Title } = Typography
@@ -23,9 +21,7 @@ interface StudySamplesProps {
 }
 
 function StudySamples({studySamples} : StudySamplesProps) {
-
-	const samplesByID = useAppSelector(selectSamplesByID)
-
+	
 	return (
 		<Collapse>
 			{studySamples.steps.map(step => {

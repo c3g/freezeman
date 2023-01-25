@@ -5,7 +5,7 @@ import { Project, Study, Workflow } from '../../models/frontend_models'
 import { StudySampleList } from '../../models/study_samples'
 import { get as getProject } from '../../modules/projects/actions'
 import { get as getStudy } from '../../modules/studies/actions'
-import { getStudySamples } from '../../modules/studySamples/actions'
+import { flushStudySamples, getStudySamples } from '../../modules/studySamples/actions'
 import { get as getWorkflow } from '../../modules/workflows/actions'
 import { selectProjectsByID, selectStudiesByID, selectStudySamples, selectWorkflowsByID } from '../../selectors'
 import StudySamples from '../studySamples/StudySamples'
@@ -70,6 +70,11 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         }
     }, [studySamplesState])
 
+    useEffect(() => {
+        return () => {
+            dispatch(flushStudySamples(studyId))
+        }
+    }, [studyId])
 
 
     return (

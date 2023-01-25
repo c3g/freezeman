@@ -9,7 +9,7 @@ import { list as listSamples } from '../samples/actions'
 import { list as listLibraries } from '../libraries/actions'
 
 export const GET_STUDY_SAMPLES = createNetworkActionTypes('STUDY_SAMPLES.GET_STUDY_SAMPLES')
-
+export const FLUSH_STUDY_SAMPLES = 'STUDY_SAMPLES.FLUSH_STUDY_SAMPLES'
 
 
 export const getStudySamples = (studyID : number) => {
@@ -36,6 +36,7 @@ export const getStudySamples = (studyID : number) => {
 						"id__in": studySamples.sampleList.join(',')
 					}
 					try {
+						// TODO: Only fetch samples and libraries that are not already in the store
 						const response = await dispatch(listSamples(params))
 						if (response && Array.isArray(response.results)) {
 							// If any samples are libraries, load the libraries as well.
@@ -71,7 +72,16 @@ export const getStudySamples = (studyID : number) => {
 	return fetch
 }
 
+export function flushStudySamples(studyID: number) {
+	return {
+		type: FLUSH_STUDY_SAMPLES,
+		studyID
+	}
+}
+
 export default {
 	GET_STUDY_SAMPLES,
-	getStudySamples
+	FLUSH_STUDY_SAMPLES,
+	getStudySamples,
+	flushStudySamples
 }

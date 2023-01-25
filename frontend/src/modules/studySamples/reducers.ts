@@ -47,6 +47,13 @@ export const studySamples = (
 				return {...state, [studyID]: studySamples}
 			}
 		}
+		case STUDY_SAMPLES.FLUSH_STUDY_SAMPLES: {
+			const newState = {
+				...state
+			}
+			delete newState[action.studyID]
+			return newState
+		}
 	}
 	return state
 }
