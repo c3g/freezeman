@@ -74,6 +74,7 @@ export interface FMSIndividual extends FMSTrackedModel {
     cohort: string                      // Cohort (can be empty string)
     alias?: string                      // Alternative name for individual
     taxon: FMSId                        // Taxon ID
+    reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
 }

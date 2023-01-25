@@ -23,7 +23,7 @@ def create_link(sample=None, project=None):
             warnings.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
         else:
             if derived_sample.project is not None:
-                warnings.append(f"[Sample {sample.name}] is already associated to project [{project.name}].")
+                warnings.append(f"[Sample {sample.name}] is already associated to another project [{derived_sample.project.name}].")
             try:
                 derived_sample.project = project
                 derived_sample.save()

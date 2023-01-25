@@ -34,6 +34,8 @@ from .viewsets import (
     WorkflowViewSet,
     ReferenceGenomeViewSet,
     StudyViewSet,
+    SampleNextStepViewSet,
+    StepViewSet,
 )
 
 __all__ = ["router"]
@@ -72,3 +74,5 @@ router.register(r"dataset-files", DatasetFileViewSet, basename="dataset-files")
 router.register(r"workflows", WorkflowViewSet)
 router.register(r"reference-genomes", ReferenceGenomeViewSet)
 router.register(r"studies", StudyViewSet)
+router.register(r"sample-next-step", SampleNextStepViewSet)
+router.register(r"steps", StepViewSet)

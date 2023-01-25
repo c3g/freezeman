@@ -18,7 +18,7 @@ class StepSpecification(TrackedModel):
     display_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name used to describe the value to the user.", validators=[name_validator_with_spaces])
     sheet_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template sheet.", validators=[name_validator_with_spaces])
     column_name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name of the step template column.", validators=[name_validator_with_spaces])
-    step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="StepSpecifications", help_text="The step of the step specification.")
+    step = models.ForeignKey(Step, on_delete=models.PROTECT, related_name="step_specifications", help_text="The step of the step specification.")
     value = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Value of the step specification", validators=[name_validator_with_spaces])
 
     def __str__(self):

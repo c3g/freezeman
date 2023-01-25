@@ -126,6 +126,7 @@ def initialize_workflows(apps, schema_editor):
 
     WORKFLOWS = [
         # (name, step_names)
+        # Basic Illumina
         ("PCR-free Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("PCR-enriched Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("WGBS Illumina", "Basic Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
@@ -133,14 +134,61 @@ def initialize_workflows(apps, schema_editor):
         ("miRNA Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("16S Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("18S Illumina", "Basic Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        # Basic DNBSEQ
         ("PCR-free DNBSEQ", "Basic DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        # Conversion to DNBSEQ
         ("PCR-enriched Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         ("WGBS Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         ("RNASeq Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         ("miRNA Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         ("16S Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         ("18S Conversion DNBSEQ", "Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Library Conversion", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
-        # Need to add all combinations of Capture Workflows
+        # Capture Illumina
+        ("PCR-free Capture MCC Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-free Capture Exome Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-free Capture Panel Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-enriched Capture MCC Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-enriched Capture Exome Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("PCR-enriched Capture Panel Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("WGBS Capture MCC Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("WGBS Capture Exome Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("WGBS Capture Panel Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("RNASeq Capture MCC Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("RNASeq Capture Exome Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("RNASeq Capture Panel Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("miRNA Capture MCC Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("miRNA Capture Exome Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("miRNA Capture Panel Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("16S Capture MCC Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("16S Capture Exome Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("16S Capture Panel Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("18S Capture MCC Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("18S Capture Exome Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        ("18S Capture Panel Illumina", "Capture Illumina", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
+        # Capture DNBSEQ
+        ("PCR-free Capture MCC DNBSEQ", "Capture DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("PCR-free Capture Exome DNBSEQ", "Capture DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        ("PCR-free Capture Panel DNBSEQ", "Capture DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
+        # Capture Conversion to DNBSEQ
+        ("PCR-enriched Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("PCR-enriched Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("PCR-enriched Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("WGBS Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("WGBS Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("WGBS Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("RNASeq Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("RNASeq Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("RNASeq Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (RNASeq, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("miRNA Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("miRNA Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("miRNA Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (miRNA, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("16S Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("16S Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("16S Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (16S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("18S Capture MCC Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("18S Capture Exome Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        ("18S Capture Panel Conversion DNBSEQ", "Capture Conversion to DNBSEQ", ["Extraction (RNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (18S, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Library Conversion", "Library QC", "Experiment Run DNBSEQ"]),
+        # Ready-to-Sequence
         ("Ready-to-Sequence Illumina", "Ready-to-Sequence", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("Ready-to-Sequence DNBSEQ", "Ready-to-Sequence", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"])
     ]
@@ -214,7 +262,7 @@ class Migration(migrations.Migration):
                 ('refseq_id', models.CharField(help_text='RefSeq identifier of the reference genome.', max_length=200, null=True, blank=True, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))])),
                 ('size', models.DecimalField(max_digits=20, decimal_places=0, help_text='Number of base pairs of the reference genome.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_creation', to=settings.AUTH_USER_MODEL)),
-                ('taxon', models.ForeignKey(help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='ReferenceGenomes', to='fms_core.taxon')),
+                ('taxon', models.ForeignKey(help_text='Taxon associated to the reference genome.', on_delete=django.db.models.deletion.PROTECT, related_name='reference_genomes', to='fms_core.taxon')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_referencegenome_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -265,7 +313,6 @@ class Migration(migrations.Migration):
                 ('end', models.PositiveIntegerField(help_text='Index to the order of the end of the assigned workflow for this study.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_study_creation', to=settings.AUTH_USER_MODEL)),
                 ('project', models.ForeignKey(help_text='Study project.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.project')),
-                ('reference_genome', models.ForeignKey(null=True, blank=True, help_text='Reference genome used to analyze samples in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.referencegenome')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_study_modification', to=settings.AUTH_USER_MODEL)),
                 ('workflow', models.ForeignKey(help_text='Workflow assigned to the study.', on_delete=django.db.models.deletion.PROTECT, related_name='studies', to='fms_core.workflow')),
             ],
@@ -282,7 +329,7 @@ class Migration(migrations.Migration):
                 ('column_name', models.CharField(help_text='Name of the step template column.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
                 ('value', models.CharField(help_text='Value of the step specification', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_ ]{1,200}$'))])),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_stepspecification_creation', to=settings.AUTH_USER_MODEL)),
-                ('step', models.ForeignKey(help_text='The step of the step specification.', on_delete=django.db.models.deletion.PROTECT, related_name='StepSpecifications', to='fms_core.step')),
+                ('step', models.ForeignKey(help_text='The step of the step specification.', on_delete=django.db.models.deletion.PROTECT, related_name='step_specifications', to='fms_core.step')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_stepspecification_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -298,10 +345,10 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('order', models.PositiveIntegerField(help_text='Ordinal value of the step in the workflow (starting at 1).')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_steporder_creation', to=settings.AUTH_USER_MODEL)),
-                ('next_step_order', models.ForeignKey(null=True, blank=True, help_text='The next step following the one defined here.', on_delete=django.db.models.deletion.PROTECT, related_name='PreviousStepOrder', to='fms_core.steporder')),
-                ('step', models.ForeignKey(help_text='The step of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='StepsOrder', to='fms_core.step')),
+                ('next_step_order', models.ForeignKey(null=True, blank=True, help_text='The next step following the one defined here.', on_delete=django.db.models.deletion.PROTECT, related_name='previous_step_order', to='fms_core.steporder')),
+                ('step', models.ForeignKey(help_text='The step of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='steps_order', to='fms_core.step')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_steporder_modification', to=settings.AUTH_USER_MODEL)),
-                ('workflow', models.ForeignKey(help_text='Workflow of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='StepsOrder', to='fms_core.workflow')),
+                ('workflow', models.ForeignKey(help_text='Workflow of the step order.', on_delete=django.db.models.deletion.PROTECT, related_name='steps_order', to='fms_core.workflow')),
             ],
             options={
                 'abstract': False,
@@ -315,9 +362,9 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstep_creation', to=settings.AUTH_USER_MODEL)),
-                ('sample', models.ForeignKey(help_text='The sample queued to the workflow.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.sample')),
-                ('step_order', models.ForeignKey(null=True, blank=True, help_text='The next step a sample has to complete in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.steporder')),
-                ('study', models.ForeignKey(help_text='The study using the workflow that is followed by the sample.', on_delete=django.db.models.deletion.PROTECT, related_name='SampleNextStep', to='fms_core.study')),
+                ('sample', models.ForeignKey(help_text='The sample queued to the workflow.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step', to='fms_core.sample')),
+                ('step_order', models.ForeignKey(null=True, blank=True, help_text='The next step a sample has to complete in the study.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step', to='fms_core.steporder')),
+                ('study', models.ForeignKey(help_text='The study using the workflow that is followed by the sample.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step', to='fms_core.study')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstep_modification', to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -348,5 +395,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             initialize_workflows,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AddField(
+            model_name='individual',
+            name='reference_genome',
+            field=models.ForeignKey(null=True, blank=True, help_text='Reference genome used to analyze samples.', on_delete=django.db.models.deletion.PROTECT, related_name='individuals', to='fms_core.referencegenome'),
         ),
     ]

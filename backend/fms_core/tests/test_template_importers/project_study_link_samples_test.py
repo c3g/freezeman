@@ -52,11 +52,11 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         taxon = Taxon.objects.get(name='Homo sapiens')
         
 
-        (container1, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES1', kind='Tube', name='Container4ProjectLinkSamples1')
-        (container2, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES2', kind='Tube', name='Container4ProjectLinkSamples2')
-        (container3, errors, warnings) = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES3', kind='Tube', name='Container4ProjectLinkSamples3')
+        container1, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES1', kind='Tube', name='Container4ProjectLinkSamples1')
+        container2, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES2', kind='Tube', name='Container4ProjectLinkSamples2')
+        container3, errors, warnings = create_container(barcode='CONTAINER4PROJECTLINKSAMPLES3', kind='Tube', name='Container4ProjectLinkSamples3')
 
-        (individual, errors, warnings) = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon=taxon)
+        individual, _, errors, warnings = get_or_create_individual(name='Individual4ProjectLinkSamples', taxon=taxon)
 
         self.sample1, _, _ = create_full_sample(name=self.sample1_name, volume=100, concentration=25,
                                                 collection_site='TestCaseSite', creation_date=datetime.datetime(2021, 1, 15, 0, 0),
@@ -81,15 +81,13 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
                                           project=self.project1,
                                           workflow=self.workflow1,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
         
         self.study2 = Study.objects.create(letter=self.study_letter2,
                                           project=self.project1,
                                           workflow=self.workflow1,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
 
         #Create link manually to test REMOVE project action
         create_link(sample=self.sample3, project=self.project3)

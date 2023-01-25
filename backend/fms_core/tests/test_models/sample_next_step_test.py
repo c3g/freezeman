@@ -31,8 +31,7 @@ class SampleNextStepTest(TestCase):
                                           project=self.project,
                                           workflow=self.workflow,
                                           start=self.start,
-                                          end=self.end,
-                                          reference_genome=None)
+                                          end=self.end)
 
     def test_sample_next_step(self):
         sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,

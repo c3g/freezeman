@@ -43,6 +43,7 @@ class SampleSubmissionImporter(GenericImporter):
                 'sex': str_cast_and_normalize(row_data['Sex']),
                 'pedigree': str_cast_and_normalize(row_data['Pedigree']),
                 'taxon': input_to_integer_and_none(row_data['NCBI Taxon ID #']),
+                'reference_genome': str_cast_and_normalize(row_data['Reference Genome']),
                 'cohort': str_cast_and_normalize(row_data['Cohort']),
             }
             individual_mother = {
