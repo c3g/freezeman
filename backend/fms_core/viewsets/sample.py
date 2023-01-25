@@ -338,8 +338,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         elif self.action == 'list_export_metadata':
             # Base information fields
-            base_fields = ('alias', 'biosample_id', 'container_name', 'container_barcode', 'coordinates', 'project')
-            fields = base_fields + self.metadata_fields
+            fields = tuple(self.metadata_fields)
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
