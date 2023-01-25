@@ -1,5 +1,6 @@
 # Study Samples TODO's
 
+* The "hide empty steps" setting should apply to all study views across the app.
 * DONE Add control to filter empty steps
 * DONE Library table is very wide extends past the right edge of the Collapse panel 
 * DONE Get the study workflow and create a section for every step, even if there are no samples.
