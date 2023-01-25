@@ -1,20 +1,13 @@
-import { Table, TableColumnType } from 'antd'
+import { Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useAppSelector } from '../../hooks'
-import { ItemsByID, Library, Protocol, Sample } from '../../models/frontend_models'
+import { Protocol } from '../../models/frontend_models'
+import { ProtocolNames } from '../../models/protocols'
 import { StudySampleStep } from '../../models/study_samples'
 import { selectLibrariesByID, selectProtocolsByID, selectSamplesByID } from '../../selectors'
-import { withSample } from '../../utils/withItem'
-import { ProtocolNames } from '../../models/protocols'
-
-
-import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
 import LIBRARY_COLUMNS, { ObjectWithLibrary } from './LibraryTableColumns'
-
-
-
+import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
 
 interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
@@ -156,7 +149,6 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 
 		setSamples(availableSamples)
 	}, [samplesByID])
-
 	
 	return (
 		<Table

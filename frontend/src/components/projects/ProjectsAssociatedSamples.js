@@ -1,20 +1,14 @@
-import React, {useEffect, useState} from "react";
-import {connect} from "react-redux";
-import {Link} from "react-router-dom";
-import {Button, Tag} from "antd";
-
+import { Tag } from "antd";
+import React from "react";
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import FilteredList from "../FilteredList";
-
-import api, {withToken}  from "../../utils/api"
-
-import {listFilter, setFilterOption} from "../../modules/samples/actions";
-import {SAMPLE_FILTERS} from "../filters/descriptions";
-import {withIndividual} from "../../utils/withItem";
-import getFilterProps from "../filters/getFilterProps";
-import {Depletion} from "../Depletion";
+import { listFilter } from "../../modules/samples/actions";
+import { Depletion } from "../Depletion";
+import { SAMPLE_FILTERS } from "../filters/descriptions";
 import { WithIndividualRenderComponent } from "../shared/WithItemRenderComponent";
 
-const getTableColumns = (sampleKinds, individualsByID) => [
+const getTableColumns = (sampleKinds) => [
     {
       title: "Sample Kind",
       dataIndex: "derived_samples__sample_kind__name",
@@ -47,7 +41,6 @@ const getTableColumns = (sampleKinds, individualsByID) => [
         return (individual &&
           <Link to={`/individuals/${individual}`}>
             <WithIndividualRenderComponent objectID={individual} render={individual => <>{individual.cohort}</>} placeholder={"Loading..."}/>
-            {/* {withIndividual(individualsByID, individual, individual => individual.cohort, "loading...")} */}
           </Link>)
       }
     },
@@ -75,25 +68,21 @@ const getTableColumns = (sampleKinds, individualsByID) => [
   ];
 
 const mapStateToProps = state => ({
-  token: state.auth.tokens.access,
   sampleKinds: state.sampleKinds,
   page: state.samples.page,
   samplesByID: state.samples.itemsByID,
   samples: state.samples.filteredItems,
   totalCount: state.samples.filteredItemsCount,
-  individualsByID: state.individuals.itemsByID,
   isFetching: state.samples.isFetching,
 });
 
 const actionCreators = {listFilter};
 
 const ProjectsAssociatedSamples = ({
-  token,
   projectID,
   samplesByID,
   samples,
   totalCount,
-  individualsByID,
   sampleKinds,
   isFetching,
   page,
@@ -102,7 +91,7 @@ const ProjectsAssociatedSamples = ({
 
   const filterKey = SAMPLE_FILTERS.derived_samples__project__id.key
 
-  const columns = getTableColumns(sampleKinds, individualsByID)
+  const columns = getTableColumns(sampleKinds)
 
   return <>
     <FilteredList

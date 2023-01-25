@@ -1,9 +1,6 @@
-import { Collapse } from 'antd'
 import React from 'react'
 import { LabworkSummaryProtocol } from '../../../models/labwork_summary'
 import LabworkOverviewStepGroup from './LabworkOverviewStepGroup'
-
-const { Panel } = Collapse
 
 export interface LabworkProtocolPanelProps {
 	readonly protocol: LabworkSummaryProtocol
