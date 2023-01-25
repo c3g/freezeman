@@ -6,6 +6,17 @@ import { Depletion } from '../Depletion'
 import { QCFlag } from '../QCFlag'
 import { WithContainerRenderComponent, WithIndexRenderComponent, WithProjectRenderComponent } from '../shared/WithItemRenderComponent'
 
+/*
+	Defines a set of Ant Table column descriptors for library fields. Each column
+	is defined separately so that components can choose which columns to display
+	for a given context.
+*/
+
+
+/* 
+	To use these column descriptors, the data objects passed to the Ant table
+	must contain a property named 'library' containing a Library object.
+*/
 export interface ObjectWithLibrary {
 	library?: Library
 }
