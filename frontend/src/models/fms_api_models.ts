@@ -22,6 +22,13 @@ export function isApiError(err : any): boolean {
     return (err && err.fromAPI === true && err.name === 'APIError' && err.status === 400) 
 }
 
+export function mapToFMSId(value: string | number) {
+    if (typeof(value) === 'string') {
+        value = parseInt(value)
+    }
+    return value
+}
+
 //
 export type FMSId = number
 

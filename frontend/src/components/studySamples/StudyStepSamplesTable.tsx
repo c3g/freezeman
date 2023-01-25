@@ -163,6 +163,7 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 			dataSource={samples ?? []}
 			columns={columns}
 			rowKey={obj => obj.sample!.id}
+			style={{overflowX: 'auto'}}
 		/>
 	)
 }

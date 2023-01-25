@@ -1,9 +1,11 @@
-import { Collapse, Typography } from 'antd'
-import React from 'react'
+import { Checkbox, Collapse, Switch, Typography } from 'antd'
+import React, { useState } from 'react'
 import { StudySampleList } from '../../models/study_samples'
+import { flushExperimentRunLaunch } from '../../modules/experimentRuns/actions'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 
-const { Title } = Typography
+const { Text, Title } = Typography
+
 
 /*
 	TODO:
@@ -18,20 +20,31 @@ const { Title } = Typography
 
 interface StudySamplesProps {
 	studySamples: StudySampleList
+	hideEmptySteps: boolean
 }
 
-function StudySamples({studySamples} : StudySamplesProps) {
+function StudySamples({studySamples, hideEmptySteps} : StudySamplesProps) {
+
 	
+	
+	let renderedSteps = [...studySamples.steps]
+	if (hideEmptySteps) {
+		renderedSteps = renderedSteps.filter(step => step.samples.length > 0)
+	}
 	return (
-		<Collapse>
-			{studySamples.steps.map(step => {
-				return (
-					<Collapse.Panel key={step.stepID} header={step.stepName} extra={<Title level={5}>{step.samples.length}</Title>}>
-						<StudyStepSamplesTable step={step}/>
-					</Collapse.Panel>
-				)
-			})}
-		</Collapse>
+		<>
+			<Collapse>
+				{renderedSteps.map(step => {
+					const hasSamples = step.samples.length > 0
+					return (
+						<Collapse.Panel key={step.stepID} header={step.stepName} extra={<Title level={5}>{step.samples.length}</Title>}>
+							{hasSamples ? <StudyStepSamplesTable step={step}/> : <Text style={{margin: '1rem'}}>No samples are at this step</Text>}
+						</Collapse.Panel>
+					)
+				})}
+			</Collapse>
+		</>
+		
 	)
 }
 

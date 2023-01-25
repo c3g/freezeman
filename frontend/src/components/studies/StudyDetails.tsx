@@ -1,4 +1,4 @@
-import { Descriptions, Typography } from 'antd'
+import { Descriptions, Space, Switch, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Project, Study, Workflow } from '../../models/frontend_models'
@@ -29,6 +29,8 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
 
     const [studySamples, setStudySamples] = useState<StudySampleList>()
 
+    const [hideEmpty, setHideEmpty] = useState(false)
+
     useEffect(() => {
         if (!studyId) {
             return
@@ -53,9 +55,7 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         } else {
             dispatch(getStudy(studyId))
         }
-    }, [studiesById, workflowsById, projectsById])
 
-    useEffect(() => {
         if (!studySamples) {
             const studyState = studySamplesState[studyId]
             if (studyState) {
@@ -68,14 +68,14 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 dispatch(getStudySamples(studyId))
             }
         }
-    }, [studySamplesState])
+
+    }, [studiesById, workflowsById, projectsById, studySamplesState])
 
     useEffect(() => {
         return () => {
             dispatch(flushStudySamples(studyId))
         }
     }, [studyId])
-
 
     return (
         <>
@@ -84,9 +84,17 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="Project" span={2}>{project?.name ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Workflow" span={2}>{workflow?.name ?? ''}</Descriptions.Item>
             </Descriptions>
-            <Title level={5} style={{marginTop: '1rem'}}>Samples</Title>
+            
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingRight: '0.5rem'}}>
+                <Title level={4} style={{marginTop: '1rem'}}>Samples</Title>
+                <Space>
+                    <Text>Hide empty steps</Text>
+                    <Switch checked={hideEmpty} onChange={setHideEmpty}></Switch>
+                </Space>
+            </div>
+            
             { studySamples && 
-                <StudySamples studySamples={studySamples}/>
+                <StudySamples studySamples={studySamples} hideEmptySteps={hideEmpty}/>
             }
         </>
         

@@ -1,7 +1,7 @@
 import { FMSSample, FMSSampleNextStep } from '../../models/fms_api_models'
-import { Sample } from '../../models/frontend_models'
-import { buildStudySamples } from '../../models/study_samples'
-import { selectStudySamples } from '../../selectors'
+import { Sample, Study } from '../../models/frontend_models'
+import { buildStudySamples, buildStudySamplesFromWorkflow } from '../../models/study_samples'
+import { selectStudiesByID, selectStudySamples, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
@@ -16,8 +16,26 @@ export const getStudySamples = (studyID : number) => {
 
 	 async function fetch(dispatch: AppDispatch, getState: () => RootState) {
 		const currentState = selectStudySamples(getState())
-		const study = currentState[studyID]
-		if (study?.isFetching) {
+		const existingState = currentState[studyID]
+		if (existingState?.isFetching) {
+			return
+		}
+
+		const studiesByID = selectStudiesByID(getState())
+		const study = studiesByID[studyID]
+		if(! study) {
+			dispatch({type: GET_STUDY_SAMPLES.ERROR, error: Error(`Study ${studyID} is not loaded.`), meta: {studyID}})
+		}
+		if (study.isFetching) {
+			return
+		}
+
+		const workflowsByID = selectWorkflowsByID(getState())
+		const workflow = workflowsByID[study.workflow_id]
+		if(! workflow) {
+			dispatch({type: GET_STUDY_SAMPLES.ERROR, error: Error(`Workflow ${study.workflow_id} for study is not loaded.`), meta: {studyID}})
+		}
+		if (workflow.isFetching) {
 			return
 		}
 
@@ -28,7 +46,7 @@ export const getStudySamples = (studyID : number) => {
 			const response = await dispatch(api.sampleNextStep.getStudySamples(studyID))
 			if (response.data.results) {
 				const sampleNextSteps = response.data.results as FMSSampleNextStep[]
-				const studySamples = buildStudySamples(sampleNextSteps)
+				const studySamples = buildStudySamplesFromWorkflow(workflow, sampleNextSteps)
 
 				// Fetch the study samples
 				if (studySamples.sampleList.length > 0) {

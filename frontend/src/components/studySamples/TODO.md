@@ -1,6 +1,9 @@
 # Study Samples TODO's
 
-* Display a 'This study does not contain any samples' message instead of an empty Samples table
+* DONE Add control to filter empty steps
+* DONE Library table is very wide extends past the right edge of the Collapse panel 
+* DONE Get the study workflow and create a section for every step, even if there are no samples.
+* DONE Display a 'This study does not contain any samples' message instead of an empty Samples table
 * Improve the code for loading samples and library in the study samples action
 - check for samples and libraries in the store and only fetch the samples and libraries
 that need to be loaded.
