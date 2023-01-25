@@ -342,7 +342,7 @@ class FetchSampleData(FetchData):
             ids: List of ids to select specific samples. Defaults to [].
 
         Returns:
-            Returns a list of serialized sample metadata dictionary
+            Returns a list of serialized sample metadata dictionary and a tuple of the names of the metadata for rendering purposes
         """
 
         super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
@@ -350,13 +350,9 @@ class FetchSampleData(FetchData):
         self.queryset = self.queryset.values(
             'id',
             'name',
-            'container__kind',
             'container__name',
             'container__barcode',
             'coordinates',
-            'container__location__barcode',
-            'container__coordinates',
-            'count_derived_samples',
             'first_derived_sample',
         )
         samples = {s["id"]: s for s in self.queryset}
@@ -371,13 +367,14 @@ class FetchSampleData(FetchData):
                 'biosample__id',
                 'biosample__alias',
                 'project__name',
-                'is_library',
             )
         )
         derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
 
         biosample_ids = derived_sample_values_queryset.values_list('biosample__id', flat=True)
         metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
+        # For the renderer context
+        metadata_names = tuple(metadata_queryset.distinct().values_list('name', flat=True))
         metadata_obj = metadata_queryset.values('biosample','name', 'value')
 
         metadata_per_biosample = {}
@@ -393,26 +390,20 @@ class FetchSampleData(FetchData):
             serialized_data.append({}) # Allow the returned csv file to be named instead of random name.
         for sample in samples.values():
             derived_sample = derived_samples[sample["first_derived_sample"]]
-            is_library = derived_sample["is_library"]
-            is_pool = sample["count_derived_samples"] > 1
             metadata = metadata_per_biosample[derived_sample["biosample__id"]]
             
             data = {
-                'sample_name': sample["name"],
-                'biosample_id': derived_sample["biosample__id"] if not is_pool else None,
-                'alias': derived_sample["biosample__alias"] if not is_pool or not is_library else None,
-                'container_kind': sample["container__kind"],
+                'alias': derived_sample["biosample__alias"],
+                'biosample_id': derived_sample["biosample__id"],     
                 'container_name': sample["container__name"],
                 'container_barcode': sample["container__barcode"],
-                'coordinates': sample["coordinates"],
-                'location_barcode': sample["container__location__barcode"] or "",
-                'location_coord': sample["container__coordinates"] or "",
-                'project': derived_sample["project__name"] if not is_pool else None,
+                'coordinates': sample["coordinates"], 
+                'project': derived_sample["project__name"],
                 **dict((item["name"], item["value"]) for item in metadata)
             }
             serialized_data.append(data)
 
-        return serialized_data
+        return (metadata_names, serialized_data)
 
 
 #####################################################################################################################################################
