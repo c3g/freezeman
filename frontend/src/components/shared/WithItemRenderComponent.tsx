@@ -11,12 +11,12 @@ import { createWithItem, withContainer, withIndex, withIndividual, withProject, 
  * is not already in the redux store. It handles loading the object and when it is ready
  * it passes the object to a render function that you provide. 
  * 
- * There specific WithXXXRenderComponent components for samples, containers, etc..
+ * There are specific WithXXXRenderComponent components for samples, containers, etc...
  * 
  * The component takes these props:
  * 
- * objectID: The ID of the object you want to render
- * render: A function that takes the object as a parameter and returns a React.Element.=
+ * objectID: The ID of the object you want to render.
+ * render: A function that takes the object as a parameter and returns a React.Element.
  * placeholder: A React element that is displayed as a placeholder until the object has been loaded.
  * 
  * Example: 
