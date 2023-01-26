@@ -6,7 +6,9 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
+from .sample_next_step import move_sample_to_next_step, dequeue_sample_from_all_study_workflows_matching_step
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
+from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, REDO_STEP
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind, library=None, project=None, individual=None,
@@ -233,7 +235,8 @@ def extract_sample(process: Process,
                    coordinates_destination=None,
                    volume_destination=None,
                    source_depleted: bool=None,
-                   comment=None):
+                   comment=None,
+                   workflow=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -295,7 +298,8 @@ def extract_sample(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
         except Exception as e:
@@ -663,7 +667,8 @@ def _process_sample(process,
                     volume_ratios,
                     execution_date,
                     volume_used,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -690,6 +695,24 @@ def _process_sample(process,
                                                                                       process_measurement=process_measurement)
             errors.extend(errors_sample_lineage)
             warnings.extend(warnings_sample_lineage)
+
+            # Process the workflow action
+            if workflow is not None:
+                if workflow["step_action"] == NEXT_STEP:
+                    move_sample_to_next_step(current_step=workflow["step"],
+                                             current_sample=sample_source,
+                                             process_measurement=process_measurement,
+                                             next_sample=sample_destination,
+                                             keep_current=False)
+                elif workflow["step_action"] == DEQUEUE_SAMPLE:
+                    _, errors_dequeue, warnings_dequeue = dequeue_sample_from_all_study_workflows_matching_step(sample=sample_source,
+                                                                                                                step=workflow["step"])
+                    errors.extend(errors_dequeue)
+                    warnings.extend(warnings_dequeue)
+                elif workflow["step_action"] == REDO_STEP:
+                    warnings.append(f"Sample {sample_source.name} will not be moved to the next step of the workflow.")
+                else:
+                    pass # TODO replace with real case code
     return (sample_destination, errors, warnings)
 
 

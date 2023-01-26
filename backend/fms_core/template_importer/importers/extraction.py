@@ -1,4 +1,5 @@
 from fms_core.models import Protocol, Process, SampleKind
+from fms_core.services.step import get_step_from_template
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.extraction import ExtractionRowHandler
 from fms_core.templates import SAMPLE_EXTRACTION_TEMPLATE
@@ -18,7 +19,9 @@ class ExtractionImporter(GenericImporter):
     def initialize_data_for_template(self):
         self.preloaded_data = {'process': None, 'sample_kinds': {}}
 
-        self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Extraction"),
+        self.preloaded_data['protocol'] = Protocol.objects.get(name="Extraction")
+
+        self.preloaded_data['process'] = Process.objects.create(protocol=self.preloaded_data['protocol'],
                                                                 comment="Extracted samples (imported from template)")
 
         self.preloaded_data['sample_kinds'] = SampleKind.objects.all().in_bulk(field_name="name")
@@ -26,6 +29,9 @@ class ExtractionImporter(GenericImporter):
 
     def import_template_inner(self):
         sheet = self.sheets['ExtractionTemplate']
+
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Add the template to the process
         if self.imported_file is not None:
@@ -67,10 +73,16 @@ class ExtractionImporter(GenericImporter):
                 'process': self.preloaded_data['process']
             }
 
+            workflow = {
+                'step_action': str_cast_and_normalize(row_data['Workflow']),
+                'step': step_by_row_id[row_id]
+            }
+
             extraction_kwargs = dict(
                 source_sample=source_sample,
                 resulting_sample=resulting_sample,
                 process_measurement=process_measurement,
+                workflow=workflow,
             )
 
             (result, _) = self.handle_row(
