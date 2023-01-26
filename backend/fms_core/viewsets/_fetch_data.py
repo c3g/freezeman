@@ -389,17 +389,19 @@ class FetchSampleData(FetchData):
         metadata_names = []
         for sample in samples_by_derived.values():
             derived_sample = derived_samples[sample['derived_samples']]
-            metadata = metadata_per_biosample[derived_sample["biosample__id"]]
+            # Prevents crashing if sample has no metadata
+            biosample_id = derived_sample["biosample__id"]
+            metadata = metadata_per_biosample[biosample_id] if biosample_id in metadata_per_biosample else None
                 
             data = {
                 'alias': derived_sample["biosample__alias"],
-                'biosample_id': derived_sample["biosample__id"],  
+                'biosample_id': biosample_id ,  
                 'sample_name': sample["name"],   
                 'container_name': sample["container__name"],
                 'container_barcode': sample["container__barcode"],
                 'coordinates': sample["coordinates"], 
                 'project': derived_sample["project__name"],
-                **dict((item["name"], item["value"]) for item in metadata)
+                **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
             }
             
             metadata_names.extend([data_key for data_key in data.keys() if data_key not in metadata_names])
