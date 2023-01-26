@@ -183,6 +183,7 @@ const api = {
     update: sample => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort) => get("/samples", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
+    listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: () => get("/samples/list_collection_sites/"),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
     summary: () => get("/samples/summary/"),

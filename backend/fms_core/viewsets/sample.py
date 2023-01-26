@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -146,7 +146,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": NORMALIZATION_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
     ]
-
+    
     def get_queryset(self):
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
@@ -324,14 +324,24 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         serialized_data = self.fetch_export_data()
         return Response(serialized_data)
 
+    @action(detail=False, methods=["get"])
+    def list_export_metadata(self, _request):
+        self.queryset = self.filter_queryset(self.get_queryset())
+        self.metadata_fields, serialized_data = self.fetch_export_metadata()
+        return Response(serialized_data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
             fields = SampleExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        elif self.action == 'list_export_metadata':
+            # Base information fields
+            fields = tuple(self.metadata_fields)
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
-
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):
