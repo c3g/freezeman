@@ -355,14 +355,14 @@ SAMPLE_QC_TEMPLATE = {
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
-  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v3_10_0.xlsx")},
+  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'ExtractionTemplate',
           'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
                       'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
+                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment', 'Workflow'],
       },],
   "prefill info": [
       ("ExtractionTemplate", "Source Sample Name", "name"),
