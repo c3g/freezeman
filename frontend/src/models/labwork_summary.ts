@@ -4,7 +4,6 @@ import { FMSLabworkProtocol, FMSLabworkStep, FMSLabworkStepSpecification, FMSLab
 	Labwork Summary Module
 */
 
-
 export interface LabworkSummary {
 	protocols: LabworkSummaryProtocol[]
 }
@@ -29,8 +28,6 @@ export interface LabworkSummaryStep {
 }
 
 export interface LabworkSummaryStepSpecification extends FMSLabworkStepSpecification {}
-
-
 
 /**
  * Processes the labwork summary data received from the backend, adding step grouping.
