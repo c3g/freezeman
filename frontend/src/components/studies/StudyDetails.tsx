@@ -36,18 +36,18 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
             return
         }
         const studyInstance = studiesById[studyId]
-        if (studyInstance) {
+        if (studyInstance && !studyInstance.isFetching) {
             setStudy(studyInstance)
 
             const projectInstance = projectsById[studyInstance.project_id]
-            if (projectInstance) {
+            if (projectInstance && !projectInstance.isFetching) {
                 setProject(projectInstance)
             } else {
                 dispatch(getProject(studyInstance.project_id))
             }
 
             const workflowInstance = workflowsById[studyInstance.workflow_id]
-            if(workflowInstance) {
+            if(workflowInstance && !workflowInstance.isFetching) {
                 setWorkflow(workflowInstance)
             } else {
                 dispatch(getWorkflow(studyInstance.workflow_id))
@@ -59,9 +59,7 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         if (!studySamples) {
             const studyState = studySamplesState[studyId]
             if (studyState) {
-                if (studyState.isFetching) {
-                    return
-                } else {
+                if (!studyState.isFetching) {
                     setStudySamples(studyState.data)
                 }
             } else {
@@ -77,12 +75,37 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         }
     }, [studyId])
 
+
+    const getStartStep = () => {
+        if (study && workflow) {
+            const startStep = workflow.steps_order.find(step_order => step_order.order === study.start)
+            if (startStep) {
+                return  `${study.start} - ${startStep.step_name}`
+            }
+        }
+        return null
+    }
+
+    const getEndStep = () => {
+        if (study && workflow) {
+            const endStep = workflow.steps_order.find(step_order => step_order.order === study.end)
+            if (endStep) {
+                return  `${study.end} - ${endStep.step_name}`
+            }
+        }
+        return null
+    }
+
+
+
     return (
         <>
             <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
             <Descriptions bordered={true} size="small" column={4}>
                 <Descriptions.Item label="Project" span={2}>{project?.name ?? ''}</Descriptions.Item>
                 <Descriptions.Item label="Workflow" span={2}>{workflow?.name ?? ''}</Descriptions.Item>
+                <Descriptions.Item label="Start Step" span={2}>{getStartStep()}</Descriptions.Item>
+                <Descriptions.Item label="End Step" span={2}>{getEndStep()}</Descriptions.Item>
             </Descriptions>
             
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingRight: '0.5rem'}}>

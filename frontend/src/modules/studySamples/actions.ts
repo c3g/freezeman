@@ -1,9 +1,8 @@
 import { FMSSample, FMSSampleNextStep } from '../../models/fms_api_models'
-import { Sample, Study } from '../../models/frontend_models'
-import { buildStudySamples, buildStudySamplesFromWorkflow } from '../../models/study_samples'
+import { buildStudySamplesFromWorkflow } from '../../models/study_samples'
 import { selectStudiesByID, selectStudySamples, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
-import { createNetworkActionTypes, networkAction } from '../../utils/actions'
+import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
 import { list as listSamples } from '../samples/actions'
 import { list as listLibraries } from '../libraries/actions'
@@ -46,7 +45,7 @@ export const getStudySamples = (studyID : number) => {
 			const response = await dispatch(api.sampleNextStep.getStudySamples(studyID))
 			if (response.data.results) {
 				const sampleNextSteps = response.data.results as FMSSampleNextStep[]
-				const studySamples = buildStudySamplesFromWorkflow(workflow, sampleNextSteps)
+				const studySamples = buildStudySamplesFromWorkflow(study, workflow, sampleNextSteps)
 
 				// Fetch the study samples
 				if (studySamples.sampleList.length > 0) {
@@ -82,9 +81,6 @@ export const getStudySamples = (studyID : number) => {
 		} catch(err) {
 			dispatch({type: GET_STUDY_SAMPLES.ERROR, error: err, meta: {studyID}})
 		}
-
-
-
 	}
 
 	return fetch
@@ -101,5 +97,5 @@ export default {
 	GET_STUDY_SAMPLES,
 	FLUSH_STUDY_SAMPLES,
 	getStudySamples,
-	flushStudySamples
+	flushStudySamples,
 }

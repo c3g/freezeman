@@ -1,7 +1,5 @@
-import { FetchedState } from "../modules/common"
-import { FMSId, FMSSampleNextStep, mapToFMSId } from "./fms_api_models"
-import { selectProtocolsByID } from "../selectors"
-import { Workflow } from "./frontend_models"
+import { FMSId, FMSSampleNextStep } from "./fms_api_models"
+import { Study, Workflow } from "./frontend_models"
 
 export interface StudySampleList {
 	sampleList: FMSId[]
@@ -16,20 +14,22 @@ export interface StudySampleStep {
 	samples: FMSId[]				// List of samples at step
 }
 
-export function buildStudySamplesFromWorkflow(workflow: Workflow, sampleNextSteps: FMSSampleNextStep[]) : StudySampleList {
+export function buildStudySamplesFromWorkflow(study: Study, workflow: Workflow, sampleNextSteps: FMSSampleNextStep[]) : StudySampleList {
 	const sampleList : FMSId[] = []
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
-	// Create the list of study steps from the workflow
+	// Create the list of study steps from the workflow, starting and ending at the steps defined in the study.
 	workflow.steps_order.forEach(stepOrder => {
-		const step : StudySampleStep = {
-			stepID: stepOrder.step_id,
-			stepName: stepOrder.step_name,
-			stepOrder: stepOrder.order,
-			protocolID: stepOrder.protocol_id,
-			samples: []
+		if (stepOrder.order >= study.start && stepOrder.order <= study.end) {
+			const step : StudySampleStep = {
+				stepID: stepOrder.step_id,
+				stepName: stepOrder.step_name,
+				stepOrder: stepOrder.order,
+				protocolID: stepOrder.protocol_id,
+				samples: []
+			}
+			stepMap.set(step.stepID, step)
 		}
-		stepMap.set(step.stepID, step)
 	}) 
 
 	// Insert the sample ID's into the steps
@@ -41,7 +41,7 @@ export function buildStudySamplesFromWorkflow(workflow: Workflow, sampleNextStep
 			step.samples.push(sampleNextStep.sample)
 			sampleList.push(sampleNextStep.sample)
 		} else {
-			console.warn(`A study sample was ignored (ID: ${sampleNextStep.sample}). It is at step "${sampleNextStep.step.name}" which is not a step in the ${workflow.name} workflow.`)
+			console.warn(`A study sample was ignored (ID: ${sampleNextStep.sample}). It is at step "${sampleNextStep.step.name}" which is not a step in the study's ${workflow.name} workflow.`)
 		}
 	})
 
@@ -54,34 +54,4 @@ export function buildStudySamplesFromWorkflow(workflow: Workflow, sampleNextStep
 	}
 }
 
-export function buildStudySamples(sampleNextSteps: FMSSampleNextStep[]): StudySampleList {
-	const sampleList : FMSId[] = []
-	const stepMap = new Map<FMSId, StudySampleStep>()
-
-	// Group samples by step and return a list of steps that each contain a list of samples
-	sampleNextSteps.forEach(sampleNextStep => {
-		let studySampleStep = stepMap.get(sampleNextStep.step.id)
-		if (!studySampleStep) {
-			studySampleStep = {
-				stepID: sampleNextStep.step.id,
-				stepName: sampleNextStep.step.name,
-				stepOrder: sampleNextStep.step_order_number,
-				protocolID: sampleNextStep.step.protocol_id,
-				samples: []
-			}
-			stepMap.set(sampleNextStep.step.id, studySampleStep)
-		}
-		studySampleStep.samples.push(sampleNextStep.sample)
-		sampleList.push(sampleNextStep.sample)
-	})
-
-	// Return the steps in the step order
-	const steps = Array.from(stepMap.values()).sort((a, b) => a.stepOrder - b.stepOrder)
-
-	return {
-		sampleList,
-		steps
-	}
-
-}
 
