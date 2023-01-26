@@ -23,10 +23,10 @@ export function buildStudySamplesFromWorkflow(workflow: Workflow, sampleNextStep
 	// Create the list of study steps from the workflow
 	workflow.steps_order.forEach(stepOrder => {
 		const step : StudySampleStep = {
-			stepID: mapToFMSId(stepOrder.step_id),
+			stepID: stepOrder.step_id,
 			stepName: stepOrder.step_name,
 			stepOrder: stepOrder.order,
-			protocolID: mapToFMSId(stepOrder.protocol_id),
+			protocolID: stepOrder.protocol_id,
 			samples: []
 		}
 		stepMap.set(step.stepID, step)
