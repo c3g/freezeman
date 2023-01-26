@@ -7,7 +7,7 @@ const getFlagContent = (flags) => {
   return  (
     <div>
       {Object.entries(flags).map(([name, value]) => {
-        return <p> {name} : {value ? "passed" : "failed"} </p>
+        return <p key={`${name}/${value}`}> {name} : {value ? "passed" : "failed"} </p>
       })}
     </div>
   )

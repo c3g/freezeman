@@ -18,8 +18,10 @@ import {
 	FMSPlatform,
 	FMSPooledSample,
 	FMSProject,
+	FMSProtocol,
 	FMSReferenceGenome,
 	FMSSample,
+	FMSSampleKind,
 	FMSSequence,
 	FMSStudy,
 	FMSTaxon,
@@ -38,23 +40,26 @@ export interface ItemsByID<T extends FetchedObject> {
 	[key: FMSId]: T
 }
 
+
 export type ObjectId = FMSId
-export interface Container extends FMSContainer, FetchedObject {}
-export interface ImportedFile extends FMSImportedFile, FetchedObject {}
-export interface Index extends FMSIndex, FetchedObject {}
-export interface Individual extends FMSIndividual, FetchedObject {}
-export interface Library extends FMSLibrary, FetchedObject {}
-export interface LibraryType extends FMSLibraryType, FetchedObject {}
-export interface Platform extends FMSPlatform, FetchedObject {}
-export interface PooledSample extends FMSPooledSample, FetchedObject {}
-export interface Project extends FMSProject, FetchedObject {}
-export interface ReferenceGenome extends FMSReferenceGenome, FetchedObject {}
-export interface Sample extends FMSSample, FetchedObject {}
-export interface Sequence extends FMSSequence, FetchedObject {}
-export interface Study extends FMSStudy, FetchedObject {}
-export interface Taxon extends FMSTaxon, FetchedObject {}
-export interface User extends FMSUser, FetchedObject {}
-export interface Workflow extends FMSWorkflow, FetchedObject {}
+export interface Container extends Readonly<FMSContainer>, FetchedObject {}
+export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {}
+export interface Index extends Readonly<FMSIndex>, FetchedObject {}
+export interface Individual extends Readonly<FMSIndividual>, FetchedObject {}
+export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
+export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
+export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}
+export interface PooledSample extends Readonly<FMSPooledSample>, FetchedObject {}
+export interface Project extends Readonly<FMSProject>, FetchedObject {}
+export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
+export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
+export interface Sample extends Readonly<FMSSample>, FetchedObject {}
+export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
+export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}
+export interface Study extends Readonly<FMSStudy>, FetchedObject {}
+export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
+export interface User extends Readonly<FMSUser>, FetchedObject {}
+export interface Workflow extends Readonly<FMSWorkflow>, FetchedObject {}
 
 export interface WorkflowStepRange {
 	start: number

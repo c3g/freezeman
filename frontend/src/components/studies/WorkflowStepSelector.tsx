@@ -17,7 +17,7 @@ const WorkflowStepSelector = ({ workflow, startStep, endStep, onChange }: Workfl
 
 	useEffect(() => {
 		if (workflow) {
-			const options = workflow.steps.map((step, index) => ({ value: index + 1, label: step.name }))
+			const options = workflow.steps_order.map((step, index) => ({ value: index + 1, label: step.step_name }))
 			setStepOptions(options)
 		} else {
 			setStepOptions([])

@@ -22,6 +22,13 @@ export function isApiError(err : any): boolean {
     return (err && err.fromAPI === true && err.name === 'APIError' && err.status === 400) 
 }
 
+export function mapToFMSId(value: string | number) {
+    if (typeof(value) === 'string') {
+        value = parseInt(value)
+    }
+    return value
+}
+
 //
 export type FMSId = number
 
@@ -70,6 +77,30 @@ export interface FMSIndividual extends FMSTrackedModel {
     reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
+}
+
+export interface FMSLabworkSummary {
+    protocols: {[key: string] : FMSLabworkProtocol}  // key: protocol object ID
+}
+
+export interface FMSLabworkProtocol {
+    name: string                        // Name of protocol
+    count: number                       // Total number of samples waiting for protocol
+    steps: FMSLabworkStep[]      // The steps based on the protocol which have at least one sample waiting
+}
+
+export interface FMSLabworkStep {
+    name: string
+    count: number
+    step_specifications: FMSLabworkStepSpecification[]
+}
+
+export interface FMSLabworkStepSpecification {
+    id: number,                         // Step specification object id
+    display_name: string                // Display name for user
+    sheet_name: string                  // Template where this value is used
+    column_name: string                 // Column where the value would appear in template
+    value: string                       // String value
 }
 
 export interface FMSLibrary extends FMSTrackedModel {
@@ -147,6 +178,19 @@ export interface FMSProject extends FMSTrackedModel {
     comment: string                     // Other relevant information about the project
 }
 
+
+export interface ProtocolPropertyType {             // Subfield of FMSProtocol
+    id: FMSId                                       // PropertyType object id
+    name: string                                    // Name of property type
+    model: 'process' | 'processmeasurement' | null  // Property model type
+}
+
+export interface FMSProtocol extends FMSTrackedModel {
+    name: string                        // Protocol name
+    child_of: FMSId[]                   // Array of parent protocol id's
+    property_types: ProtocolPropertyType[]  // Array of definitions for the properties of this protocol
+}
+
 export interface FMSReferenceGenome extends FMSTrackedModel {
     assembly_name: string               // Assembly name of the reference genome
     synonym?: string                    // Other name of the reference genome
@@ -182,6 +226,28 @@ export interface FMSSample extends FMSTrackedModel {
     comment: string                     // User comment
 }
 
+export interface FMSSampleKind extends FMSTrackedModel {
+    name: string                        // Sample kind name
+    is_extracted: boolean               // Indicator to identify kinds that were extracted. Sample will have tissue source.
+    concentration_required: boolean     // Sample kind requires a concentration value for sample processing
+    molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
+}
+
+export interface FMSSampleNextStep extends FMSTrackedModel {
+    sample: FMSId,
+    study: FMSId,
+    step_order_id: FMSId,
+    step_order_number: number
+    step: NextStep
+}
+
+// This step definition is specific to the sample-next-step api.
+export interface NextStep {
+    id: number                          // Step ID
+    name: string                        // Step name
+    protocol_id: number                 // Step's protocol id
+}
+
 export interface FMSSequence extends FMSTrackedModel {
     value: string
 }
@@ -215,9 +281,13 @@ export interface FMSUser extends FMSTrackedModel {
 export interface FMSWorkflow extends FMSTrackedModel {
     name: string                        // Workflow name
     structure: string                   // Workflow structure name
-    steps: WorkflowStep[]               // Workflow steps
+    steps_order: WorkflowStep[]         // Workflow step order objects
 }
 
-export interface WorkflowStep extends FMSTrackedModel {
-    name: string                        // Step name
+export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
+    id: FMSId                           // Step Order ID
+    order: number                       // Step order value
+    step_id : FMSId                     // Step ID
+    step_name: string                   // Step name
+    protocol_id:    FMSId               // ID of protocol associated with step
 }

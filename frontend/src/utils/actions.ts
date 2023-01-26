@@ -1,6 +1,5 @@
-import { AnyAction, ThunkAction } from '@reduxjs/toolkit'
-import { T } from 'rambda/_ts-toolbelt/src/ts-toolbelt';
-import { AppDispatch, RootState } from '../store';
+import { ThunkAction } from '@reduxjs/toolkit';
+import { AppDispatch } from '../store';
 
 export interface NetworkActionTypes {
     REQUEST: string
@@ -14,7 +13,6 @@ export const createNetworkActionTypes = (name : string) : NetworkActionTypes => 
     ERROR: `${name}.ERROR`,
   });
   
-
 export interface NetworkActionOptions {
     // A function that transforms the data received from the backend before returning it to the caller.
     transform?: (data: any) => any
