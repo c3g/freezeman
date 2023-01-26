@@ -75,41 +75,27 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         }
     }, [studyId])
 
-
-    const getStartStep = () => {
-        if (study && workflow) {
-            const startStep = workflow.steps_order.find(step_order => step_order.order === study.start)
-            if (startStep) {
-                return  `${study.start} - ${startStep.step_name}`
+    function getStepWithOrder(order?: number) {
+        if (order && study && workflow) {
+            const step = workflow.steps_order.find(step_order => step_order.order === order)
+            if (step) {
+                return  `${order} - ${step.step_name}`
             }
         }
         return null
     }
-
-    const getEndStep = () => {
-        if (study && workflow) {
-            const endStep = workflow.steps_order.find(step_order => step_order.order === study.end)
-            if (endStep) {
-                return  `${study.end} - ${endStep.step_name}`
-            }
-        }
-        return null
-    }
-
-
 
     return (
         <>
             <Title level={4}>{`Study ${study?.letter ?? ''}`}</Title>
             <Descriptions bordered={true} size="small" column={4}>
-                <Descriptions.Item label="Project" span={2}>{project?.name ?? ''}</Descriptions.Item>
-                <Descriptions.Item label="Workflow" span={2}>{workflow?.name ?? ''}</Descriptions.Item>
-                <Descriptions.Item label="Start Step" span={2}>{getStartStep()}</Descriptions.Item>
-                <Descriptions.Item label="End Step" span={2}>{getEndStep()}</Descriptions.Item>
+                <Descriptions.Item label="Workflow" span={4}>{workflow?.name ?? ''}</Descriptions.Item>
+                <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
+                <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
             </Descriptions>
             
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingRight: '0.5rem'}}>
-                <Title level={4} style={{marginTop: '1rem'}}>Samples</Title>
+                <Title level={4} style={{marginTop: '1.5rem'}}>Samples</Title>
                 <Space>
                     <Text>Hide empty steps</Text>
                     <Switch checked={hideEmpty} onChange={setHideEmpty}></Switch>
