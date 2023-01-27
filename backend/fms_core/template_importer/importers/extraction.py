@@ -17,7 +17,7 @@ class ExtractionImporter(GenericImporter):
 
 
     def initialize_data_for_template(self):
-        self.preloaded_data = {'process': None, 'sample_kinds': {}}
+        self.preloaded_data = {'protocol': None, 'process': None, 'sample_kinds': {}}
 
         self.preloaded_data['protocol'] = Protocol.objects.get(name="Extraction")
 
@@ -26,11 +26,10 @@ class ExtractionImporter(GenericImporter):
 
         self.preloaded_data['sample_kinds'] = SampleKind.objects.all().in_bulk(field_name="name")
 
-
     def import_template_inner(self):
         sheet = self.sheets['ExtractionTemplate']
 
-        # Identify for each row of the matching workflow step 
+        # Identify for each row of the matching workflow step
         step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
         self.base_errors.extend(errors)
 
