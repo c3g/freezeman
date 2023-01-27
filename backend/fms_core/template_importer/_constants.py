@@ -9,4 +9,4 @@ INDEX_COLLISION_THRESHOLD = 0
 # Workflow step actions
 NEXT_STEP = "Step complete - Move to next step"
 DEQUEUE_SAMPLE = "Sample failed - Remove sample from study workflow"
-REDO_STEP = "Step incomplete - Keep sample on the current step (redo)"
+IGNORE_WORKFLOW = "Ignore workflow - Do not register as part of a workflow"

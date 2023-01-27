@@ -30,6 +30,7 @@ class ExtractionImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['ExtractionTemplate']
 
+        # Identify for each row of the matching workflow step 
         step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
         self.base_errors.extend(errors)
 
