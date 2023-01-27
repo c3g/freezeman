@@ -1,14 +1,17 @@
+import datetime
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import SampleNextStep, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project
+from fms_core.models import SampleNextStep, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project, Protocol, Process, ProcessMeasurement
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
 from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 dequeue_sample_from_all_steps_study_workflow,
                                                 dequeue_sample_from_specific_step_study_workflow,
                                                 is_sample_queued_in_study,
                                                 has_sample_completed_study,
-                                                move_sample_to_next_step)
+                                                move_sample_to_next_step,
+                                                dequeue_sample_from_all_study_workflows_matching_step)
 
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
@@ -184,9 +187,16 @@ class SampleNextStepServicesTestCase(TestCase):
                                        start=start,
                                        end=end)
 
+        protocol = Protocol.objects.get(name="Library Preparation")
+        process = Process.objects.create(protocol=protocol)
+        process_measurement = ProcessMeasurement.objects.create(process=process,
+                                                                source_sample=sample_in,
+                                                                execution_date=datetime.date(2021, 1, 10),
+                                                                volume_used=10)
+
         old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
         old_sample_to_study_workflow_2, _, _ = queue_sample_to_study_workflow(sample_in, study_C)
-        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in, process_measurement)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertIsNotNone(new_sample_next_steps)
@@ -220,11 +230,47 @@ class SampleNextStepServicesTestCase(TestCase):
                                        workflow=self.workflow_pcr_free,
                                        start=start,
                                        end=end)
+        protocol = Protocol.objects.get(name="Library Preparation")
+        process = Process.objects.create(protocol=protocol)
+        process_measurement = ProcessMeasurement.objects.create(process=process,
+                                                                source_sample=sample_in,
+                                                                execution_date=datetime.date(2021, 1, 10),
+                                                                volume_used=10)
 
         old_sample_to_study_workflow, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
-        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in, process_measurement)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertIsNotNone(new_sample_next_steps)
         self.assertEqual(new_sample_next_steps, [])
         self.assertTrue(SampleNextStep.objects.filter(id=old_sample_to_study_workflow.id).exists())
+
+    def test_dequeue_sample_from_all_study_workflows_matching_step(self):
+        letter_B = "B"
+        start = 1
+        end = 7
+        second_study = Study.objects.create(letter=letter_B,
+                                            project=self.project,
+                                            workflow=self.workflow_pcr_enriched,
+                                            start=start,
+                                            end=end)
+        # Basic case
+        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step_order.step)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertEqual(count, 1)
+        self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_1.id).exists())
+        # More than one (include warning)
+        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
+        sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample, second_study)
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step_order.step)
+        self.assertEqual(errors, [])
+        self.assertTrue("You are about to remove it from all study workflows." in warnings[0])
+        self.assertEqual(count, 2)
+        self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_1.id).exists())
+        self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_2.id).exists())
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step_order.step)
+        self.assertEqual(errors, [])
+        self.assertTrue("does not appear to to be queued" in warnings[0])
+        self.assertEqual(count, 0)
