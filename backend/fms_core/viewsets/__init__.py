@@ -28,6 +28,11 @@ from .imported_file import ImportedFileViewSet
 from .dataset import DatasetViewSet
 from .dataset_file import DatasetFileViewSet
 from .sample_pooled import PooledSamplesViewSet
+from .workflow import WorkflowViewSet
+from .reference_genome import ReferenceGenomeViewSet
+from .study import StudyViewSet
+from .sample_next_step import SampleNextStepViewSet
+from .step import StepViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -59,5 +64,10 @@ __all__ = [
     "SampleLineageViewSet",
     "DatasetViewSet",
     "DatasetFileViewSet",
-    "PooledSamplesViewSet"
+    "PooledSamplesViewSet",
+    "WorkflowViewSet",
+    "ReferenceGenomeViewSet",
+    "StudyViewSet",
+    "SampleNextStepViewSet",
+    "StepViewSet",
 ]

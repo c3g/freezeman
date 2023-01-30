@@ -5,7 +5,7 @@ from collections import defaultdict
 from django.db.models import Q, ExpressionWrapper, BooleanField
 
 from fms.settings import REST_FRAMEWORK
-from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement
+from fms_core.models import Sample, DerivedSample, SampleLineage, ProcessMeasurement, SampleMetadata
 from fms_core.services.library import convert_library_concentration_from_ngbyul_to_nm
 
 from ..utils import decimal_rounded_to_precision
@@ -332,6 +332,82 @@ class FetchSampleData(FetchData):
             serialized_data.append(data)
 
         return serialized_data
+
+    def fetch_export_metadata(self, ids: List[int] =[]) -> Tuple[List, int]:
+        """
+        Function to retrieve the sample metadata to export. 
+
+        Args:
+            self: base_class(viewset) + fetch_data
+            ids: List of ids to select specific samples. Defaults to [].
+
+        Returns:
+            Returns a list of serialized sample metadata dictionary and a tuple of the names of the metadata for rendering purposes
+        """
+
+        super().fetch_export_data(ids) # Initialize queryset by calling base abstract function
+
+        self.queryset = self.queryset.values(
+            'id',
+            'name',
+            'container__name',
+            'container__barcode',
+            'coordinates',
+            'derived_samples'
+        )
+        samples_by_derived = {s["derived_samples"]: s for s in self.queryset}
+
+        derived_sample_values_queryset = (
+            DerivedSample.objects
+            .filter(id__in=samples_by_derived.keys())
+            .values(
+                'id',
+                'biosample__id',
+                'biosample__alias',
+                'project__name',
+            )
+        )
+
+        derived_samples = {ds["id"]: ds for ds in derived_sample_values_queryset}
+
+        biosample_ids = derived_sample_values_queryset.values_list('biosample__id', flat=True)
+        metadata_queryset = SampleMetadata.objects.filter(biosample_id__in=biosample_ids)
+        metadata_obj = metadata_queryset.values('biosample','name', 'value')
+
+        metadata_per_biosample = {}
+        for metadata in metadata_obj:
+            biosample = metadata['biosample']
+            if biosample in metadata_per_biosample.keys():
+                metadata_per_biosample[biosample].append(metadata)
+            else:
+                metadata_per_biosample[biosample] = [metadata] 
+
+        serialized_data = []
+        if not samples_by_derived:
+            serialized_data.append({}) # Allow the returned csv file to be named instead of random name.
+        # For the renderer context
+        metadata_names = []
+        for sample in samples_by_derived.values():
+            derived_sample = derived_samples[sample['derived_samples']]
+            # Prevents crashing if sample has no metadata
+            biosample_id = derived_sample["biosample__id"]
+            metadata = metadata_per_biosample[biosample_id] if biosample_id in metadata_per_biosample else None
+                
+            data = {
+                'alias': derived_sample["biosample__alias"],
+                'biosample_id': biosample_id ,  
+                'sample_name': sample["name"],   
+                'container_name': sample["container__name"],
+                'container_barcode': sample["container__barcode"],
+                'coordinates': sample["coordinates"], 
+                'project': derived_sample["project__name"],
+                **(dict((item["name"], item["value"]) for item in metadata) if metadata else dict())
+            }
+            
+            metadata_names.extend([data_key for data_key in data.keys() if data_key not in metadata_names])
+            serialized_data.append(data)
+
+        return (metadata_names, serialized_data)
 
 
 #####################################################################################################################################################

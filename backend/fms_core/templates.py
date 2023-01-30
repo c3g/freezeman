@@ -24,7 +24,7 @@ __all__ = [
     "SAMPLE_TRANSFER_TEMPLATE",
     "SAMPLE_QC_TEMPLATE",
     "SAMPLE_SELECTION_QPCR_TEMPLATE",
-    "PROJECT_LINK_SAMPLES_TEMPLATE",
+    "PROJECT_STUDY_LINK_SAMPLES_TEMPLATE",
     "MAX_HEADER_OFFSET"
 ]
 
@@ -288,13 +288,13 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v3_14_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_0_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
           'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
-                      'Location Barcode', 'Container Coord', 'Project', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
-                      'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Volume (uL)', 'Conc. (ng/uL)',
+                      'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
+                      'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
                       'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
       },
@@ -387,12 +387,12 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
       ("Samples", "Sample Container Coord", "coordinates"),],
 }
 
-PROJECT_LINK_SAMPLES_TEMPLATE = {
-  "identity": {"description": "Template to link samples to projects", "file": static("submission_templates/Project_link_samples_v3_5_0.xlsx")},
+PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
+  "identity": {"description": "Template to link samples to projects and studies", "file": static("submission_templates/Project_study_link_samples_v4_0_0.xlsx")},
   "sheets info": [
       {
           'name': 'ProjectLinkSamples',
-          'headers': ['Action', 'Project Name', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
+          'headers': ['Action', 'Project Name', 'Study', 'Workflow Step Order', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coord'],
       },],
   "prefill info": [
       ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode"),

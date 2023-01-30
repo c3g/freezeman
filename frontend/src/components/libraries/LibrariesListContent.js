@@ -286,25 +286,27 @@ const LibrariesListContent = ({
       <ExportButton key='export' exportFunction={listExport} filename="libraries" itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ float: 'right', textAlign: 'right', marginBottom: '1rem' }}>
-        <FiltersWarning
-          nFilters={nFilters}
-          filters={filters}
-          description={LIBRARY_FILTERS}
-        />
-        <Button
-          style={{ margin: 6 }}
-          disabled={nFilters === 0}
-          onClick={localClearFilters}
-        >
-          Clear Filters
-        </Button>
+      <div style={{display: 'flex', justifyContent: 'space-between'}}>
+          <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginTop:6}}>
+            <Radio.Button value={TOGGLE_OPTIONS.LIBRARIES}> Libraries </Radio.Button>
+            <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
+            <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
+          </Radio.Group>
+        <div className='filters-warning-bar'>
+          <FiltersWarning
+            nFilters={nFilters}
+            filters={filters}
+            description={LIBRARY_FILTERS}
+          />
+          <Button
+            style={{ margin: 6 }}
+            disabled={nFilters === 0}
+            onClick={localClearFilters}
+          >
+            Clear Filters
+          </Button>
+        </div>
       </div>
-      <Radio.Group disabled={isFetching} value={toggleOption} onChange={handleToggleOptionChange} style={{marginTop:6}}>
-         <Radio.Button value={TOGGLE_OPTIONS.LIBRARIES}> Libraries </Radio.Button>
-         <Radio.Button value={TOGGLE_OPTIONS.POOLS}> Pools </Radio.Button>
-         <Radio.Button value={TOGGLE_OPTIONS.ALL}> All </Radio.Button>
-      </Radio.Group>
       <PaginatedTable
         columns={columns}
         items={libraries}

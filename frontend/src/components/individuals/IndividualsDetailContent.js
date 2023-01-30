@@ -9,18 +9,19 @@ import AppPageHeader from "../AppPageHeader";
 import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
-import { withIndividual, withTaxon } from "../../utils/withItem";
+import { withIndividual, withTaxon, withReferenceGenome } from "../../utils/withItem";
 import { get } from "../../modules/individuals/actions";
 
 const mapStateToProps = state => ({
     individualsByID: state.individuals.itemsByID,
     taxonsByID: state.taxons.itemsByID,
+    referenceGenomesByID: state.referenceGenomes.itemsByID,
 });
 
 const mapDispatchToProps = dispatch =>
     bindActionCreators({ get }, dispatch);
 
-const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
+const IndividualsDetailContent = ({ individualsByID, taxonsByID, referenceGenomesByID, get }) => {
     const history = useNavigate();
     const { id } = useParams();
     const isLoaded = id in individualsByID;
@@ -43,7 +44,6 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
                 <Descriptions.Item label="ID">{individual.id}</Descriptions.Item>
                 <Descriptions.Item label="Name">{individual.name}</Descriptions.Item>
                 <Descriptions.Item label="Alias">{individual.alias}</Descriptions.Item>
-                <Descriptions.Item label="Taxon"><em>{individual.taxon && withTaxon(taxonsByID, individual.taxon, taxon => taxon.name, "Loading...")}</em></Descriptions.Item>
                 <Descriptions.Item label="Sex">{individual.sex}</Descriptions.Item>
                 <Descriptions.Item label="Cohort">{individual.cohort}</Descriptions.Item>
                 <Descriptions.Item label="Pedigree">{individual.pedigree}</Descriptions.Item>
@@ -65,6 +65,8 @@ const IndividualsDetailContent = ({ individualsByID, taxonsByID, get }) => {
                         ) :
                         "—"}
                 </Descriptions.Item>
+                <Descriptions.Item label="Taxon"><em>{individual.taxon && withTaxon(taxonsByID, individual.taxon, taxon => taxon.name, "Loading...")}</em></Descriptions.Item>
+                <Descriptions.Item label="Reference Genome">{individual.reference_genome && withReferenceGenome(referenceGenomesByID, individual.reference_genome, reference_genome => reference_genome.assembly_name, "Loading...")}</Descriptions.Item>
             </Descriptions>
             <TrackingFieldsContent entity={individual} />
         </PageContent>

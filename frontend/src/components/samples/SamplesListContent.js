@@ -10,6 +10,7 @@ import {Depletion} from "../Depletion";
 import {QCFlag} from "../QCFlag";
 import AddButton from "../AddButton";
 import ExportButton from "../ExportButton";
+import ExportDropdown from "../ExportDropdown"
 
 import api, {withToken}  from "../../utils/api"
 
@@ -208,6 +209,11 @@ const SamplesListContent = ({
     withToken(token, api.samples.listExport)
     (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
       .then(response => response.data)
+  
+  const listExportMetadata = () =>
+    withToken(token, api.samples.listExportMetadata)
+    (mergedListQueryParams(SAMPLE_FILTERS, filters, sortBy))
+      .then(response => response.data)
 
   const prefillTemplate = ({template}) =>
     withToken(token, api.samples.prefill.request)
@@ -256,10 +262,10 @@ const SamplesListContent = ({
       <AddButton key='add' url="/samples/add" />,
       actionDropdown("/samples", actions),
       prefillTemplatesToButtonDropdown(prefillTemplate, totalCount, prefills),
-      <ExportButton key='export' exportFunction={listExport} filename="samples" itemsCount={totalCount}/>,
+      <ExportDropdown key='export' listExport={listExport} listExportMetadata={listExportMetadata} itemsCount={totalCount}/>,
     ]}/>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1em' }}>
+      <div className='filters-warning-bar'>
         <SamplesFilters style={{ flex: 1 }} />
         <FiltersWarning
           nFilters={nFilters}

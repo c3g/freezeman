@@ -85,7 +85,7 @@ const FilteredList = ({
 
   return <>
     <PageContent>
-      <div style={{ display: 'flex', textAlign: 'right', marginBottom: '1rem' }}>
+      <div className='filters-warning-bar'>
         <FiltersWarning
           nFilters={nFiltersForWarning}
           filters={filtersForWarning}

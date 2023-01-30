@@ -6,14 +6,14 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
 from fms_core.template_importer.importers import SampleSelectionQPCRImporter, LibraryPreparationImporter, ExperimentRunImporter, NormalizationImporter, NormalizationPlanningImporter
 
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE, SAMPLE_SUBMISSION_TEMPLATE, SAMPLE_UPDATE_TEMPLATE, SAMPLE_QC_TEMPLATE, LIBRARY_PREPARATION_TEMPLATE
-from fms_core.templates import PROJECT_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
+from fms_core.templates import PROJECT_STUDY_LINK_SAMPLES_TEMPLATE, SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_TRANSFER_TEMPLATE, SAMPLE_SELECTION_QPCR_TEMPLATE, SAMPLE_METADATA_TEMPLATE, NORMALIZATION_TEMPLATE
 from fms_core.templates import EXPERIMENT_INFINIUM_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, _list_keys, versions_detail
@@ -136,7 +136,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": SAMPLE_UPDATE_TEMPLATE},
         {"template": SAMPLE_QC_TEMPLATE},
         {"template": SAMPLE_SELECTION_QPCR_TEMPLATE},
-        {"template": PROJECT_LINK_SAMPLES_TEMPLATE},
+        {"template": PROJECT_STUDY_LINK_SAMPLES_TEMPLATE},
         {"template": SAMPLE_EXTRACTION_TEMPLATE},
         {"template": SAMPLE_TRANSFER_TEMPLATE},
         {"template": LIBRARY_PREPARATION_TEMPLATE},
@@ -146,7 +146,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         {"template": NORMALIZATION_TEMPLATE},
         {"template": SAMPLE_POOLING_TEMPLATE},
     ]
-
+    
     def get_queryset(self):
         container_barcode = self.request.query_params.get('container__barcode__recursive')
         container_name = self.request.query_params.get('container__name__recursive')
@@ -324,14 +324,24 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         serialized_data = self.fetch_export_data()
         return Response(serialized_data)
 
+    @action(detail=False, methods=["get"])
+    def list_export_metadata(self, _request):
+        self.queryset = self.filter_queryset(self.get_queryset())
+        self.metadata_fields, serialized_data = self.fetch_export_metadata()
+        return Response(serialized_data)
+
     def get_renderer_context(self):
         context = super().get_renderer_context()
         if self.action == 'list_export':
             fields = SampleExportSerializer.Meta.fields
             context['header'] = fields
             context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
+        elif self.action == 'list_export_metadata':
+            # Base information fields
+            fields = tuple(self.metadata_fields)
+            context['header'] = fields
+            context['labels'] = {i: i.replace('_', ' ').capitalize() for i in fields}
         return context
-
 
     @action(detail=False, methods=["get"])
     def summary(self, _request):

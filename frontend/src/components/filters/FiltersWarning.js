@@ -11,7 +11,7 @@ export default function FiltersWarning({ nFilters, filters, description }) {
     return null
   return (
     <Tooltip placement={'bottom'} title={<FiltersInfos filters={filters} description={description}/>}>
-      <span style={{marginTop: 12, position:'absolute', marginRight: '8rem', right: 0}}>
+      <span style={{marginRight: '1rem'}}>
         <Text type="warning"
           style={{
             marginLeft: 8,

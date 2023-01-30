@@ -41,7 +41,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(IndexCreationImporter(), 'Index_creation_v3_7_0.xlsx')
 
-        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v3_14_0.xlsx')
+        self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_0_0.xlsx')
         
         self.import_template(LibraryPreparationImporter(), 'Library_preparation_v3_10_0.xlsx')
 

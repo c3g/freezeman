@@ -5,9 +5,11 @@ from fms_core.models import Individual, Sample
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 from fms_core.services.project_link_samples import create_link
+from fms_core.services.sample_next_step import queue_sample_to_study_workflow
 from fms_core.services.project import get_project
+from fms_core.services.study import get_study
 from fms_core.services.container import get_container, get_or_create_container
-from fms_core.services.individual import get_or_create_individual, get_taxon
+from fms_core.services.individual import get_or_create_individual, get_taxon, get_reference_genome
 from fms_core.services.sample import create_full_sample
 from fms_core.services.library import get_library_type, get_library_selection, create_library
 from fms_core.services.platform import get_platform
@@ -26,21 +28,27 @@ class SampleRowHandler(GenericRowHandler):
         if individual['taxon']:
             taxon_obj, self.errors['taxon'], self.warnings['taxon'] = get_taxon(ncbi_id=individual['taxon'])
 
+        reference_genome_obj = None
+        if individual['reference_genome']:
+            reference_genome_obj, self.errors['reference_genome'], self.warnings['reference_genome'] = get_reference_genome(assembly_name=individual['reference_genome'])
+
         mother_obj = None
         if individual_mother['name']:
-            mother_obj, self.errors['individual_mother'], self.warnings['individual_mother'] = \
+            mother_obj, _, self.errors['individual_mother'], self.warnings['individual_mother'] = \
                 get_or_create_individual(name=individual_mother['name'],
                                          taxon=taxon_obj,
                                          sex=Individual.SEX_FEMALE,
-                                         pedigree=individual["pedigree"])
+                                         pedigree=individual["pedigree"],
+                                         reference_genome=reference_genome_obj)
 
         father_obj = None
         if individual_father['name']:
-            father_obj, self.errors['individual_father'], self.warnings['individual_father'] = \
+            father_obj, _, self.errors['individual_father'], self.warnings['individual_father'] = \
                 get_or_create_individual(name=individual_father['name'],
                                          taxon=taxon_obj,
                                          sex=Individual.SEX_MALE,
-                                         pedigree=individual["pedigree"])
+                                         pedigree=individual["pedigree"],
+                                         reference_genome=reference_genome_obj)
 
         individual_obj = None
         need_individual = any([individual["taxon"],
@@ -48,6 +56,7 @@ class SampleRowHandler(GenericRowHandler):
                                individual["pedigree"],
                                individual["cohort"],
                                individual["alias"],
+                               individual["reference_genome"],
                                mother_obj,
                                father_obj])
         # When the individual name is not provided any field that is stored on the individual need to raise an error.
@@ -64,20 +73,25 @@ class SampleRowHandler(GenericRowHandler):
                 self.errors['individual'].append(f"Individual cohort requires an individual name to be provided to be saved.")
             if individual["alias"]:
                 self.errors['individual'].append(f"Individual alias requires an individual name to be provided to be saved.")
+            if individual["reference_genome"]:
+                self.errors['individual'].append(f"Individual reference genome requires an individual name to be provided to be saved.")
             if mother_obj:
                 self.errors['individual'].append(f"Individual mother requires an individual name to be provided to be saved.")
             if father_obj:
                 self.errors['individual'].append(f"Individual father requires an individual name to be provided to be saved.")
         elif individual["name"]:
-            individual_obj, self.errors['individual'], self.warnings['individual'] = \
+            individual_obj, created, self.errors['individual'], self.warnings['individual'] = \
                 get_or_create_individual(name=individual['name'],
                                          alias=individual['alias'],
                                          taxon=taxon_obj,
                                          sex=individual['sex'],
                                          pedigree=individual['pedigree'],
                                          cohort=individual['cohort'],
+                                         reference_genome=reference_genome_obj,
                                          mother=mother_obj,
                                          father=father_obj)
+            if not created:
+                self.warnings['individual'].append(f'Individual already exists and was not created.')
         else:
             self.warnings['individual'].append(f'Sample is not tied to any individual.')
 
@@ -94,8 +108,6 @@ class SampleRowHandler(GenericRowHandler):
                 tissue_source_obj = sample_kind_objects_by_name[sample['tissue_source']]
             except KeyError as e:
                 self.errors['tissue_source'] = [f"Tissue source {sample['tissue_source']} not found."]
-
-
 
         # Library are submitted
         library_obj = None
@@ -121,8 +133,14 @@ class SampleRowHandler(GenericRowHandler):
 
         # Project related section
         project_obj = None
+        study_obj = None
         if project['name']:
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
+
+            if project_obj and project['study_letter']:
+                  study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+        else:
+            self.errors['project'] = [f"New samples must be assigned to a project."]
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
@@ -167,6 +185,8 @@ class SampleRowHandler(GenericRowHandler):
             # Link sample to project if requested
             if project_obj and sample_obj:
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
+                if study_obj:
+                    _, self.errors['queue_to_study'], self.warnings['queue_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj)
         # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
         elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
             self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]

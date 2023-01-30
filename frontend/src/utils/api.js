@@ -99,6 +99,7 @@ const api = {
     listTypes: () => get("/instruments/list_types"),
   },
 
+
   libraries: {
     get: libraryId => get(`/libraries/${libraryId}/`),
     list: (options, abort) => get("/libraries", options, { abort }),
@@ -171,12 +172,19 @@ const api = {
     list:  (options, abort) => get("/protocols/", options, { abort }),
   },
 
+  referenceGenomes: {
+    get: referenceGenomeId => get(`/reference-genomes/${referenceGenomeId}`),
+    list: (options, abort) => get('/reference-genomes/', options, { abort }),
+    search: q => get("/reference-genomes/search/", { q }),
+  },
+
   samples: {
     get: sampleId => get(`/samples/${sampleId}/`),
     add: sample => post("/samples/", sample),
     update: sample => patch(`/samples/${sample.id}/`, sample),
     list: (options, abort) => get("/samples", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
+    listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
     listCollectionSites: () => get("/samples/list_collection_sites/"),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
     summary: () => get("/samples/summary/"),
@@ -201,9 +209,21 @@ const api = {
     list: () => get("/sample-kinds/"),
   },
 
+  sampleNextStep: {
+    getStudySamples: (studyId) => get('/sample-next-step/', {study__id__in : studyId}),
+    labworkSummary: () => get('/sample-next-step/labwork_info/')
+  },
+
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
     list: (options, abort) => get("/sequences/", options, { abort }),
+  },
+
+  studies: {
+    get: studyId => get(`/studies/${studyId}/`),
+    add: study => post("/studies/", study),
+    update: study => patch(`/studies/${study.id}/`, study),
+    listProjectStudies: projectId => get('/studies', { project__id: projectId})
   },
 
   taxons: {
@@ -220,6 +240,11 @@ const api = {
     list: (options, abort) => get("/users", options, { abort }),
     listRevisions: (userId, options = {}) => get(`/revisions`, { user_id: userId, ...options }),
     listVersions: (userId, options = {}) => get(`/versions`, { revision__user: userId, ...options }),
+  },
+
+  workflows: {
+    get: workflowId => get(`/workflows/${workflowId}`),
+    list: (options, abort) => get('/workflows/', options, { abort })
   },
 
   groups: {
