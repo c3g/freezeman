@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import SampleNextStep, StepOrder, Sample, Study, Step, ProcessMeasurement, StudyStepOrderByMeasurement
+from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 from typing import  List, Tuple, Union
 
 def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[SampleNextStep, None], List[str], List[str]]:
@@ -310,3 +311,41 @@ def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: 
         warnings.append(f"Sample {sample.name} is queued to step {step.name} for {removed_count} studies. You are about to remove it from all study workflows.")
 
     return removed_count, errors, warnings
+
+def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
+    """
+    Execute the workflow action listed in the template.
+
+    Args:
+        workflow_action: String defining the action to complete on the sample workflow after template submission.
+        step: Step instance defining the current step executed by the template
+        current_sample: Sample instance being processed by the template (input).
+        process_measurement: Process measurement associated to the template recording the sample transition.
+        next_sample: Sample instance being created by the template (output). Defaults to None.
+
+    Returns:
+        Tuple listing the errors and warnings.
+    """
+    errors = []
+    warnings = []
+
+    if workflow_action == NEXT_STEP:
+        move_sample_to_next_step(current_step=step,
+                                 current_sample=current_sample,
+                                 process_measurement=process_measurement,
+                                 next_sample=next_sample,
+                                 keep_current=False)
+    elif workflow_action == DEQUEUE_SAMPLE:
+        _, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(sample=current_sample,
+                                                                                    step=step)
+    elif workflow_action == IGNORE_WORKFLOW:
+        warnings.append(f"Sample {current_sample.name} current process will not be recorded as part of a workflow.")
+    else:
+        move_sample_to_next_step(current_step=step,
+                                 current_sample=current_sample,
+                                 process_measurement=process_measurement,
+                                 next_sample=next_sample,
+                                 keep_current=False)
+        warnings.append(f"Without explicit action, the current process of sample {current_sample.name} will be recorded as part of its workflow.")
+    
+    return errors, warnings

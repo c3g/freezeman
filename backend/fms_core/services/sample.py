@@ -6,9 +6,8 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
-from .sample_next_step import move_sample_to_next_step, dequeue_sample_from_all_study_workflows_matching_step
+from .sample_next_step import execute_workflow_action
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
-from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 
 def create_full_sample(name, volume, collection_site, creation_date,
                        container, sample_kind, library=None, project=None, individual=None,
@@ -698,27 +697,14 @@ def _process_sample(process,
 
             # Process the workflow action
             if workflow is not None:
-                if workflow["step_action"] == NEXT_STEP:
-                    move_sample_to_next_step(current_step=workflow["step"],
-                                             current_sample=sample_source,
-                                             process_measurement=process_measurement,
-                                             next_sample=sample_destination,
-                                             keep_current=False)
-                elif workflow["step_action"] == DEQUEUE_SAMPLE:
-                    _, errors_dequeue, warnings_dequeue = dequeue_sample_from_all_study_workflows_matching_step(sample=sample_source,
-                                                                                                                step=workflow["step"])
-                    errors.extend(errors_dequeue)
-                    warnings.extend(warnings_dequeue)
-                elif workflow["step_action"] == IGNORE_WORKFLOW:
-                    warnings.append(f"Sample {sample_source.name} current process will not be recorded as part of a workflow.")
-                else:
-                    move_sample_to_next_step(current_step=workflow["step"],
-                                             current_sample=sample_source,
-                                             process_measurement=process_measurement,
-                                             next_sample=sample_destination,
-                                             keep_current=False)
-                    warnings.append(f"Without explicit action, the current process of sample {sample_source.name} will be recorded as part of its workflow.")
-                    
+                errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                             step=workflow["step"],
+                                                                             current_sample=sample_source,
+                                                                             process_measurement=process_measurement,
+                                                                             next_sample=sample_destination)
+                errors.extend(errors_workflow)
+                warnings.extend(warnings_workflow)
+
     return (sample_destination, errors, warnings)
 
 

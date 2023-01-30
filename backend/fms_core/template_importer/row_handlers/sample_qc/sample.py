@@ -6,6 +6,7 @@ from fms_core.services.sample import get_sample_from_container, update_sample
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
 from fms_core.services.sample import update_qc_flags
+from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core.models import InstrumentType
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
@@ -15,7 +16,7 @@ class SampleQCRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, sample, sample_information, process_measurement, process_measurement_properties):
+    def process_row_inner(self, sample, sample_information, process_measurement, process_measurement_properties, workflow):
         sample_obj, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(
             barcode=sample['container']['barcode'],
             coordinates=sample['coordinates'],
@@ -66,6 +67,12 @@ class SampleQCRowHandler(GenericRowHandler):
                 properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                     process_measurement_properties,
                     process_measurement_obj)
+
+                # Process the workflow action
+                self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                                             step=workflow["step"],
+                                                                                             current_sample=sample_obj,
+                                                                                             process_measurement=process_measurement_obj)
 
             if process_measurement_obj and properties_obj:
                 # Validate instruments according to platform

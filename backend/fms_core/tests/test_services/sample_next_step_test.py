@@ -11,7 +11,9 @@ from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 is_sample_queued_in_study,
                                                 has_sample_completed_study,
                                                 move_sample_to_next_step,
-                                                dequeue_sample_from_all_study_workflows_matching_step)
+                                                dequeue_sample_from_all_study_workflows_matching_step,
+                                                execute_workflow_action)
+from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
@@ -274,3 +276,71 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertTrue("does not appear to to be queued" in warnings[0])
         self.assertEqual(count, 0)
+
+    def test_execute_workflow_action(self):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        container2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_2', barcode='T123456_2'))
+        sample_in = create_fullsample(name="TestSampleNextStep_in",
+                                      alias="TestSampleNextStep_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_BLOOD,
+                                      container=container1)
+
+        sample_out = create_fullsample(name="TestSampleNextStep_out",
+                                      alias="TestSampleNextStep_out",
+                                      volume=1000,
+                                      concentration=10,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container2)
+        
+        step_1 = Step.objects.get(name="Extraction (DNA)")
+        for derived_sample in sample_in.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+
+        for derived_sample in sample_out.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
+        letter_B = "B"
+        start = 1
+        end = 7
+        study_B = Study.objects.create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        protocol_1 = Protocol.objects.get(name="Extraction")
+        process_1 = Process.objects.create(protocol=protocol_1)
+        process_measurement_1 = ProcessMeasurement.objects.create(process=process_1,
+                                                                  source_sample=sample_in,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=5000)
+
+        old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+        errors, warnings = execute_workflow_action(workflow_action=NEXT_STEP,
+                                                   step=step_1,
+                                                   current_sample=sample_in,
+                                                   process_measurement=process_measurement_1,
+                                                   next_sample=sample_out)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        step_2 = Step.objects.get(name="Sample QC")
+        protocol_2 = Protocol.objects.get(name="Sample Quality Control")
+        process_2 = Process.objects.create(protocol=protocol_2)
+        process_measurement_2 = ProcessMeasurement.objects.create(process=process_2,
+                                                                  source_sample=sample_out,
+                                                                  execution_date=datetime.date(2021, 1, 10),
+                                                                  volume_used=2)
+        errors, warnings = execute_workflow_action(workflow_action=DEQUEUE_SAMPLE,
+                                                   step=step_2,
+                                                   current_sample=sample_out,
+                                                   process_measurement=process_measurement_2)
+        
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
