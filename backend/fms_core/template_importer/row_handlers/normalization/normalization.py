@@ -6,7 +6,7 @@ from fms_core.services.container import get_container, get_or_create_container
 from fms_core.services.sample import get_sample_from_container, transfer_sample, update_sample, validate_normalization
 from fms_core.services.property_value import create_process_measurement_properties
 from fms_core.services.library import convert_library_concentration_from_nm_to_ngbyul
-
+from fms_core.services.sample_next_step import execute_workflow_action
 
 class NormalizationRowHandler(GenericRowHandler):
     """
@@ -16,7 +16,7 @@ class NormalizationRowHandler(GenericRowHandler):
              The errors and warnings of the row in question after validation.
     """
 
-    def process_row_inner(self, source_sample, destination_sample, process_measurement, process_measurement_properties):
+    def process_row_inner(self, source_sample, destination_sample, process_measurement, process_measurement_properties, workflow):
         # Check case when both concentrations are given or none are given
         if destination_sample['concentration_nm'] is None and destination_sample['concentration_ngul'] is None:
             self.errors['concentration'] = 'A concentration in either nM or ng/uL must be specified.'
@@ -97,6 +97,13 @@ class NormalizationRowHandler(GenericRowHandler):
                         'properties'] = create_process_measurement_properties(
                         process_measurement_properties,
                         process_measurement_obj)
+
+                    # Process the workflow action
+                    self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                                                 step=workflow["step"],
+                                                                                                 current_sample=source_sample_obj,
+                                                                                                 process_measurement=process_measurement_obj,
+                                                                                                 next_sample=resulting_sample)
                 else:
                     self.errors['process_measurement'] = 'Could not create the process measurement.'
 

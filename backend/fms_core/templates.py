@@ -217,7 +217,7 @@ LIBRARY_QC_TEMPLATE = {
 }
 
 NORMALIZATION_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_14_0.xlsx")},
+  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v4_1_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
@@ -225,7 +225,7 @@ NORMALIZATION_TEMPLATE = {
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
                     'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Volume Used (uL)', 'Volume (uL)',
-                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment'],
+                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
       },
   ],
   "prefill info": [

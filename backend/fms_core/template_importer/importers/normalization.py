@@ -2,6 +2,7 @@ from fms_core.models import Protocol, Process, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.normalization import NormalizationRowHandler
 from fms_core.templates import NORMALIZATION_TEMPLATE
+from fms_core.services.step import get_step_from_template
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, check_truth_like
 
@@ -25,15 +26,15 @@ class NormalizationImporter(GenericImporter):
 
     def initialize_data_for_template(self):
         # Get protocol for Normalization, which is used for samples and libraries
-        protocol = Protocol.objects.get(name='Normalization')
+        self.preloaded_data['protocol'] = Protocol.objects.get(name='Normalization')
 
-        self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
+        self.preloaded_data['process'] = Process.objects.create(protocol=self.preloaded_data['protocol'],
                                                                 comment="Normalization (imported from template)")
 
         # Preload PropertyType objects for the sample qc in a dictionary for faster access
         try:
             self.preloaded_data['process_properties'] = {property.name: {'property_type_obj': property} for property in
-                                                         list(PropertyType.objects.filter(object_id=protocol.id))}
+                                                         list(PropertyType.objects.filter(object_id=self.preloaded_data['protocol'].id))}
 
             # Make sure every property has a value property, even if it is not used.
             # Otherwise create_process_measurement_properties will raise an exception when
@@ -45,6 +46,10 @@ class NormalizationImporter(GenericImporter):
 
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
+
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Add the template to the process
         if self.imported_file is not None:
@@ -85,11 +90,17 @@ class NormalizationImporter(GenericImporter):
                 'process': self.preloaded_data['process']
             }
 
+            workflow = {
+                'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                'step': step_by_row_id[row_id]
+            }
+
             normalization_kwargs = dict(
                 source_sample=source_sample,
                 destination_sample=destination_sample,
                 process_measurement=process_measurement,
                 process_measurement_properties=process_measurement_properties,
+                workflow=workflow,
             )
 
             (result, _) = self.handle_row(
