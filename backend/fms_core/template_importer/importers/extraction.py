@@ -74,7 +74,7 @@ class ExtractionImporter(GenericImporter):
             }
 
             workflow = {
-                'step_action': str_cast_and_normalize(row_data['Workflow']),
+                'step_action': str_cast_and_normalize(row_data['Workflow Action']),
                 'step': step_by_row_id[row_id]
             }
 
