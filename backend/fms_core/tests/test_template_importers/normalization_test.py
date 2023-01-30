@@ -105,7 +105,6 @@ class NormalizationTestCase(TestCase):
     def test_import(self):
         # Basic test for all templates - checks that template is valid
         result = load_template(importer=self.importer, file=self.file)
-        print(result)
         self.assertEqual(result['valid'], True)
 
         # Source sample 1 tests

@@ -56,7 +56,12 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
             for step_specification in candidate_step.step_specifications.all():
                 sheet = template_sheets[step_specification.sheet_name]
                 for row_id, row_data in enumerate(sheet.rows):
-                    match = (str_cast_and_normalize(row_data[step_specification.column_name]).upper() == step_specification.value.upper())
+                    template_step_specification = str_cast_and_normalize(row_data[step_specification.column_name])
+                    if isinstance(template_step_specification, str):
+                        match = (template_step_specification.upper() == step_specification.value.upper())
+                    else:
+                        match = False
+                        errors.append(f"The specification field [{step_specification.column_name}] is empty.")
                     if step_specification.sheet_name == sample_sheet_name:
                         sample_sheet_matches[row_id].append(match)
                     else:

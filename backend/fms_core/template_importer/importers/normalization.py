@@ -47,6 +47,9 @@ class NormalizationImporter(GenericImporter):
     def import_template_inner(self):
         sheet = self.sheets['Normalization']
 
+        if all(row_data["Type"] for row_data in sheet.rows) and len(set(row_data["Type"] for row_data in sheet.rows)) != 1:
+            self.base_errors.append(f"All normalization type in the template need to be identical and not empty.")
+
         # Identify for each row of the matching workflow step
         step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
         self.base_errors.extend(errors)
