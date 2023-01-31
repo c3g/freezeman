@@ -331,7 +331,9 @@ def pool_samples(process: Process,
                        "Source Container Coordinate",
                        "Source Depleted",
                        "Volume Used",
-                       "Comment"}
+                       "Comment",
+                       "Workflow"}
+                      Workflow contains step_action and step to manage workflow.
         pool_name: the name given to the pool by the user (sample.name).
         container_destination: a container object that will receive the pool.
         coordinates_destination: the coordinate on the container where the pool is stored.
@@ -434,6 +436,15 @@ def pool_samples(process: Process,
                                                                                               process_measurement=process_measurement)
                     errors.extend(errors_sample_lineage)
                     warnings.extend(warnings_sample_lineage)
+
+                    if sample.get("workflow", None) is not None:
+                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=sample["workflow"]["step_action"],
+                                                                                     step=sample["workflow"]["step"],
+                                                                                     current_sample=source_sample,
+                                                                                     process_measurement=process_measurement,
+                                                                                     next_sample=sample_destination)
+                        errors.extend(errors_workflow)
+                        warnings.extend(warnings_workflow)
 
     return sample_destination, errors, warnings
 

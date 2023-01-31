@@ -261,8 +261,8 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
 
             # Create the entry in study_steporder_by_measurement
             StudyStepOrderByMeasurement.objects.create(study=current_sample_next_step.study,
-                                                      step_order=current_sample_next_step.step_order,
-                                                      process_measurement=process_measurement)
+                                                       step_order=current_sample_next_step.step_order,
+                                                       process_measurement=process_measurement)
 
             # Remove old sample next step once the new one is created
             if not keep_current:

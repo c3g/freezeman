@@ -47,7 +47,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v3_13_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_1_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v3_14_0.xlsx')
 
@@ -157,20 +157,3 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(info)
         self.assertFalse(errors)
         self.assertFalse(warnings)
-
-        
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-
