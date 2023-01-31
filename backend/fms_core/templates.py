@@ -141,7 +141,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
-  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v3_10_0.xlsx")},
+  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Conversion Batch',
@@ -156,7 +156,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
                       'Destination Library Container Name', 'Destination Library Container Kind',
                       'Destination Library Parent Container Barcode', 'Destination Library Parent Container Coordinates',
                       'Library Source Concentration (ng/uL)', 'Library Size (bp)', 'Input used for conversion (ng)',
-                      'Volume Used (uL)', 'Volume (uL)', 'Comment'],
+                      'Volume Used (uL)', 'Volume (uL)', 'Comment', 'Workflow Action'],
           'stitch_column': 'Library Batch ID',
       },
   ],
