@@ -171,7 +171,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
-  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_10_0.xlsx")},
+  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Library Batch',
@@ -186,7 +186,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
           'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
-                      'Index Set', 'Index', 'Strandedness', 'Comment'],
+                      'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
           'stitch_column': 'Library Batch ID',
       },
   ],

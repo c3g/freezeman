@@ -13,7 +13,7 @@ class StepServicesTestCase(TestCase):
     def setUp(self) -> None:
         # extract sheets from library prep for test
         self.sheet_info = templates.LIBRARY_PREPARATION_TEMPLATE["sheets info"]
-        self.file = APP_DATA_ROOT / "Library_preparation_v3_10_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_preparation_v4_1_0.xlsx"
         self.sheets = {}
         for sheet in self.sheet_info:
             pd_sheet = pd.read_excel(self.file, sheet_name=sheet["name"], header=None)

@@ -564,7 +564,8 @@ def prepare_library(process: Process,
                     execution_date: datetime.date,
                     coordinates_destination=None,
                     volume_destination=None,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     """
     Converts a sample into a library or a pool of samples into a pool of libraries.
 
@@ -579,6 +580,7 @@ def prepare_library(process: Process,
         `coordinates_destination`: The coordinates of the sample destination.
         `volume_destination`: The final volume of the sample (uL).
         `comment`: Extra comments to attach to the process.
+        `workflow`: Information about the workflow step and action. Default to None when no action related to workflow is needed.
 
     Returns:
         The resulting sample or None if errors were encountered. Errors and warnings.
@@ -649,7 +651,8 @@ def prepare_library(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 

@@ -43,7 +43,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_0_0.xlsx')
         
-        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v3_10_0.xlsx')
+        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_1_0.xlsx')
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
         
