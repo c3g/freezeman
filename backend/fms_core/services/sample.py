@@ -437,9 +437,9 @@ def pool_samples(process: Process,
                     errors.extend(errors_sample_lineage)
                     warnings.extend(warnings_sample_lineage)
 
-                    if sample.get("workflow", None) is not None:
-                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=sample["workflow"]["step_action"],
-                                                                                     step=sample["workflow"]["step"],
+                    if sample.get("Workflow", None) is not None:
+                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=sample["Workflow"]["step_action"],
+                                                                                     step=sample["Workflow"]["step"],
                                                                                      current_sample=source_sample,
                                                                                      process_measurement=process_measurement,
                                                                                      next_sample=sample_destination)
