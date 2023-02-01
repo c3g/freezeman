@@ -49,7 +49,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         
         self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_1_0.xlsx')
 
-        self.import_template(LibraryCaptureImporter(), 'Library_capture_v3_14_0.xlsx')
+        self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
 
         # MGI Experiment
         self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v3_10_0.xlsx')

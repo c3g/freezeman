@@ -116,7 +116,7 @@ INDEX_CREATION_TEMPLATE = {
 }
 
 LIBRARY_CAPTURE_TEMPLATE = {
-  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v3_14_0.xlsx")},
+  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Capture Batch',
@@ -130,7 +130,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
           'headers': ['Capture Batch ID', 'Library Name', 'Source Container Barcode', 'Source Container Coordinates',
                       'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
-                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment', 'Workflow Action'],
           'stitch_column': 'Capture Batch ID',
       },
   ],
