@@ -164,7 +164,8 @@ def transfer_sample(process: Process,
                     coordinates_destination=None,
                     volume_destination=None,
                     source_depleted: bool=None,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     sample_destination=None
     errors = []
     warnings = []
@@ -214,7 +215,8 @@ def transfer_sample(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 

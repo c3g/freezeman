@@ -1,6 +1,49 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.auth.models import User
+import reversion
+
+ADMIN_USERNAME = 'biobankadmin'
+
+def additional_step(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    StepSpecification = apps.get_model("fms_core", "StepSpecification")
+
+    STEPS = [
+        # {name, protocol_name, specifications}
+        {"name": "Experiment Run Infinium", "protocol_name": "Illumina Infinium Preparation",
+         "specifications": []},
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add an additional step for Illumina Infinium Preparation.")
+        reversion.set_user(admin_user)
+
+        for step_info in STEPS:
+            protocol = Protocol.objects.get(name=step_info["protocol_name"])
+
+            step = Step.objects.create(name=step_info["name"],
+                                       protocol=protocol,
+                                       created_by_id=admin_user_id,
+                                       updated_by_id=admin_user_id)
+            
+            reversion.add_to_revision(step)
+
+            for specification in step_info["specifications"]:
+                step_specification = StepSpecification.objects.create(display_name=specification["display_name"],
+                                                                      sheet_name=specification["sheet_name"],
+                                                                      column_name=specification["column_name"],
+                                                                      value=specification["value"],
+                                                                      step=step,
+                                                                      created_by_id=admin_user_id,
+                                                                      updated_by_id=admin_user_id)
+
+                reversion.add_to_revision(step_specification)
 
 
 class Migration(migrations.Migration):
@@ -28,5 +71,9 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='studysteporderbymeasurement',
             constraint=models.UniqueConstraint(fields=('study', 'step_order', 'process_measurement'), name='studysteporderbymeasurement_study_steporder_processmeasurement_key'),
+        ),
+        migrations.RunPython(
+            additional_step,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

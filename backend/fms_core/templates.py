@@ -74,12 +74,12 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                      'Experiment Container Coordinates', 'Comment'],
+                      'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
           'stitch_column': 'Experiment Name',
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
-  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -88,7 +88,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
-  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -97,7 +97,7 @@ EXPERIMENT_MGI_TEMPLATE = {
 }
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
-  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_illumina_v3_14_0.xlsx")},
+  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_illumina_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
