@@ -6,6 +6,7 @@ from fms_core.services.sample import update_sample, get_sample_from_container
 from fms_core.services.process_measurement import create_process_measurement
 from fms_core.services.property_value import create_process_measurement_properties
 from fms_core.services.library import update_library, convert_library_concentration_from_nm_to_ngbyul
+from fms_core.services.sample_next_step import execute_workflow_action
 from fms_core.template_importer.row_handlers._generic import GenericRowHandler
 
 INSTRUMENT_PROPERTIES = ['Quality Instrument', 'Quantity Instrument']
@@ -15,7 +16,7 @@ class LibraryQCRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, sample_container, measures, process, process_measurement, process_measurement_properties):
+    def process_row_inner(self, sample_container, measures, process, process_measurement, process_measurement_properties, workflow):
 
         barcode = sample_container['container_barcode']
         coordinates = sample_container['container_coord']
@@ -159,3 +160,9 @@ class LibraryQCRowHandler(GenericRowHandler):
             properties_obj, self.errors['properties'], self.warnings['properties'] = create_process_measurement_properties(
                 process_measurement_properties,
                 process_measurement_obj)
+
+            # Process the workflow action
+            self.errors['workflow'], self.warnings['workflow'] = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                                         step=workflow["step"],
+                                                                                         current_sample=source_sample_obj,
+                                                                                         process_measurement=process_measurement_obj)

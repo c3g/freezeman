@@ -40,6 +40,7 @@ from .reference_genome import ReferenceGenome
 from .step import Step
 from .study import Study
 from .sample_next_step import SampleNextStep
+from .study_steporder_by_measurement import StudyStepOrderByMeasurement
 
 
 __all__ = [
@@ -84,4 +85,5 @@ __all__ = [
     "Step",
     "Study",
     "SampleNextStep",
+    "StudyStepOrderByMeasurement",
 ]

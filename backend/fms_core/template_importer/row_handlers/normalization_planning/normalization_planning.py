@@ -139,6 +139,7 @@ class NormalizationPlanningRowHandler(GenericRowHandler):
 
             if not self.has_errors():
                 self.row_object = {
+                    'Type': '',
                     'Source Sample': source_sample_obj,
                     'Sample Name': source_sample['name'],
                     'Source Container Barcode': source_sample['container']['barcode'],

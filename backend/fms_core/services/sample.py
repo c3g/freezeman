@@ -6,6 +6,7 @@ from fms_core.models import Biosample, DerivedSample, DerivedBySample, Sample, C
 from .process_measurement import create_process_measurement
 from .sample_lineage import create_sample_lineage
 from .derived_sample import inherit_derived_sample
+from .sample_next_step import execute_workflow_action
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 
 def create_full_sample(name, volume, collection_site, creation_date,
@@ -163,7 +164,8 @@ def transfer_sample(process: Process,
                     coordinates_destination=None,
                     volume_destination=None,
                     source_depleted: bool=None,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     sample_destination=None
     errors = []
     warnings = []
@@ -213,7 +215,8 @@ def transfer_sample(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 
@@ -233,7 +236,8 @@ def extract_sample(process: Process,
                    coordinates_destination=None,
                    volume_destination=None,
                    source_depleted: bool=None,
-                   comment=None):
+                   comment=None,
+                   workflow=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -295,7 +299,8 @@ def extract_sample(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
         except Exception as e:
@@ -328,7 +333,9 @@ def pool_samples(process: Process,
                        "Source Container Coordinate",
                        "Source Depleted",
                        "Volume Used",
-                       "Comment"}
+                       "Comment",
+                       "Workflow"}
+                      Workflow contains step_action and step to manage workflow.
         pool_name: the name given to the pool by the user (sample.name).
         container_destination: a container object that will receive the pool.
         coordinates_destination: the coordinate on the container where the pool is stored.
@@ -431,6 +438,15 @@ def pool_samples(process: Process,
                                                                                               process_measurement=process_measurement)
                     errors.extend(errors_sample_lineage)
                     warnings.extend(warnings_sample_lineage)
+
+                    if sample.get("Workflow", None) is not None:
+                        errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=sample["Workflow"]["step_action"],
+                                                                                     step=sample["Workflow"]["step"],
+                                                                                     current_sample=source_sample,
+                                                                                     process_measurement=process_measurement,
+                                                                                     next_sample=sample_destination)
+                        errors.extend(errors_workflow)
+                        warnings.extend(warnings_workflow)
 
     return sample_destination, errors, warnings
 
@@ -561,7 +577,8 @@ def prepare_library(process: Process,
                     execution_date: datetime.date,
                     coordinates_destination=None,
                     volume_destination=None,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     """
     Converts a sample into a library or a pool of samples into a pool of libraries.
 
@@ -576,6 +593,7 @@ def prepare_library(process: Process,
         `coordinates_destination`: The coordinates of the sample destination.
         `volume_destination`: The final volume of the sample (uL).
         `comment`: Extra comments to attach to the process.
+        `workflow`: Information about the workflow step and action. Default to None when no action related to workflow is needed.
 
     Returns:
         The resulting sample or None if errors were encountered. Errors and warnings.
@@ -646,7 +664,8 @@ def prepare_library(process: Process,
                                                                                    volume_ratios,
                                                                                    execution_date,
                                                                                    volume_used,
-                                                                                   comment)
+                                                                                   comment,
+                                                                                   workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
 
@@ -663,7 +682,8 @@ def _process_sample(process,
                     volume_ratios,
                     execution_date,
                     volume_used,
-                    comment=None):
+                    comment=None,
+                    workflow=None):
     sample_destination = None
     errors = []
     warnings = []
@@ -690,6 +710,17 @@ def _process_sample(process,
                                                                                       process_measurement=process_measurement)
             errors.extend(errors_sample_lineage)
             warnings.extend(warnings_sample_lineage)
+
+            # Process the workflow action
+            if workflow is not None:
+                errors_workflow, warnings_workflow = execute_workflow_action(workflow_action=workflow["step_action"],
+                                                                             step=workflow["step"],
+                                                                             current_sample=sample_source,
+                                                                             process_measurement=process_measurement,
+                                                                             next_sample=sample_destination)
+                errors.extend(errors_workflow)
+                warnings.extend(warnings_workflow)
+
     return (sample_destination, errors, warnings)
 
 

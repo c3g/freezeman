@@ -43,19 +43,19 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(SampleSubmissionImporter(), 'Sample_submission_v4_0_0.xlsx')
         
-        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v3_10_0.xlsx')
+        self.import_template(LibraryPreparationImporter(), 'Library_preparation_v4_1_0.xlsx')
 
-        self.import_template(LibraryQCImporter(), 'Library_QC_v3_9_0.xlsx')
+        self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v3_13_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_1_0.xlsx')
 
-        self.import_template(LibraryCaptureImporter(), 'Library_capture_v3_14_0.xlsx')
+        self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
 
         # MGI Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v3_10_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_MGI_v4_1_0.xlsx')
 
         # Illumina Experiment
-        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v3_14_0.xlsx')
+        self.import_template(ExperimentRunImporter(), 'Experiment_run_illumina_v4_1_0.xlsx')
        
 
     def import_template(self, importer, file):
@@ -157,20 +157,3 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
         self.assertIsNotNone(info)
         self.assertFalse(errors)
         self.assertFalse(warnings)
-
-        
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
-

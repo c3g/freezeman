@@ -7,7 +7,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, source_sample, pool, volume_used, comment):
+    def process_row_inner(self, source_sample, pool, volume_used, comment, workflow):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 
@@ -48,4 +48,5 @@ class SamplesToPoolRowHandler(GenericRowHandler):
             "Source Depleted": source_sample["depleted"],
             "Volume Used": volume_used,
             "Comment": comment,
+            "Workflow": workflow,
         }

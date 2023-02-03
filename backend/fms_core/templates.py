@@ -69,15 +69,17 @@ EXPERIMENT_RUN_TEMPLATE_SHEET_INFO = [
           'name': 'Experiments',
           'headers': ['Experiment Name', 'Experiment Container Barcode', 'Experiment Container Kind',
                       'Instrument Name', 'Experiment Start Date', 'Comment'],
+          'stitch_column': 'Experiment Name',
       },
       {
           'name': 'Samples',
           'headers': ['Experiment Name', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coordinates', 'Source Sample Volume Used',
-                      'Experiment Container Coordinates', 'Comment'],
+                      'Experiment Container Coordinates', 'Comment', 'Workflow Action'],
+          'stitch_column': 'Experiment Name',
       },]
 
 EXPERIMENT_INFINIUM_TEMPLATE = {
-  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add Infinium experiments", "file": static("submission_templates/Experiment_Infinium_24_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -86,7 +88,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
-  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v3_10_0.xlsx")},
+  "identity": {"description": "Template to add MGI experiments", "file": static("submission_templates/Experiment_run_MGI_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -95,7 +97,7 @@ EXPERIMENT_MGI_TEMPLATE = {
 }
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
-  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_illumina_v3_14_0.xlsx")},
+  "identity": {"description": "Template to add Illumina experiments", "file": static("submission_templates/Experiment_run_illumina_v4_1_0.xlsx")},
   "sheets info": EXPERIMENT_RUN_TEMPLATE_SHEET_INFO,
   "prefill info": [
       ("Samples", "Source Sample Name", "name"),
@@ -114,20 +116,22 @@ INDEX_CREATION_TEMPLATE = {
 }
 
 LIBRARY_CAPTURE_TEMPLATE = {
-  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v3_14_0.xlsx")},
+  "identity": {"description": "Template to prepare captured libraries", "file": static("submission_templates/Library_capture_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Capture Batch',
           'headers': ['Capture Batch ID', 'Capture Type', 'Capture Date (YYYY-MM-DD)', 'Comment',
                       'Capture Technician Name', 'Library Kit Used', 'Library Kit Lot',
                       'Baits Used', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used', 'PCR Enzyme Lot'],
+          'stitch_column': 'Capture Batch ID',
       },
       {
           'name': 'Library',
           'headers': ['Capture Batch ID', 'Library Name', 'Source Container Barcode', 'Source Container Coordinates',
                       'Destination Container Barcode', 'Destination Container Coordinates',  'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coordinates',
-                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment'],
+                      'Source Volume Used (uL)', 'Destination Volume (uL)', 'Comment', 'Workflow Action'],
+          'stitch_column': 'Capture Batch ID',
       },
   ],
   "prefill info": [
@@ -137,12 +141,13 @@ LIBRARY_CAPTURE_TEMPLATE = {
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
-  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v3_10_0.xlsx")},
+  "identity": {"description": "Template to convert libraries", "file": static("submission_templates/Library_conversion_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Conversion Batch',
           'headers': ['Library Batch ID', 'Date (YYYY-MM-DD)', 'Platform', 'Comment',
                       'Technician Name', 'Kit Used', 'Kit Lot', 'Thermocycler Used', 'PCR Cycles'],
+          'stitch_column': 'Library Batch ID',
       },
       {
           'name': 'Library',
@@ -151,7 +156,8 @@ LIBRARY_CONVERSION_TEMPLATE = {
                       'Destination Library Container Name', 'Destination Library Container Kind',
                       'Destination Library Parent Container Barcode', 'Destination Library Parent Container Coordinates',
                       'Library Source Concentration (ng/uL)', 'Library Size (bp)', 'Input used for conversion (ng)',
-                      'Volume Used (uL)', 'Volume (uL)', 'Comment'],
+                      'Volume Used (uL)', 'Volume (uL)', 'Comment', 'Workflow Action'],
+          'stitch_column': 'Library Batch ID',
       },
   ],
   "prefill info": [
@@ -165,7 +171,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
 }
 
 LIBRARY_PREPARATION_TEMPLATE = {
-  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v3_10_0.xlsx")},
+  "identity": {"description": "Template to prepare libraries", "file": static("submission_templates/Library_preparation_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'Library Batch',
@@ -173,13 +179,15 @@ LIBRARY_PREPARATION_TEMPLATE = {
                       'Library Technician Name', 'Shearing Technician Name', 'Shearing Method', 'Shearing Size (bp)',
                       'Library Kit Used', 'Library Kit Lot', 'Thermocycler Used', 'PCR Cycles', 'PCR Enzyme Used',
                       'PCR Enzyme Lot', 'EZ-96 DNA Methylation-Gold MagPrep Lot'],
+          'stitch_column': 'Library Batch ID',
       },
       {
           'name': 'Library',
           'headers': ['Library Batch ID', 'Sample Name', 'Sample Container Barcode', 'Sample Container Coordinates', 'Library Container Barcode',
                       'Library Container Coordinates',  'Library Container Name', 'Library Container Kind', 'Library Parent Container Barcode',
                       'Library Parent Container Coordinates', 'Sample Volume Used (uL)', 'Library Volume (uL)',
-                      'Index Set', 'Index', 'Strandedness', 'Comment'],
+                      'Index Set', 'Index', 'Strandedness', 'Comment', 'Workflow Action'],
+          'stitch_column': 'Library Batch ID',
       },
   ],
   "prefill info": [
@@ -189,14 +197,14 @@ LIBRARY_PREPARATION_TEMPLATE = {
 }
 
 LIBRARY_QC_TEMPLATE = {
-  "identity": {"description": "Template to perform library quality control", "file": static("submission_templates/Library_QC_v3_9_0.xlsx")},
+  "identity": {"description": "Template to perform library quality control", "file": static("submission_templates/Library_QC_v4_1_0.xlsx")},
   "sheets info": [
       {
         'name': 'LibraryQC',
         'headers': ['Library Name', 'Library Container Barcode', 'Library Container Coord', 'Initial Volume (uL)',
                     'Measured Volume (uL)', 'Volume Used (uL)', 'Strandedness', 'Library size (bp)', 'Concentration (nM)',
                     'Concentration (ng/uL)', 'NA Quantity (ng)', 'Quality Instrument', 'Quality Flag',
-                    'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment'],
+                    'Quantity Instrument', 'Quantity Flag', 'QC Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
       },
   ],
   "prefill info": [
@@ -209,15 +217,15 @@ LIBRARY_QC_TEMPLATE = {
 }
 
 NORMALIZATION_TEMPLATE = {
-  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v3_14_0.xlsx")},
+  "identity": {"description": "Template to perform normalization", "file": static("submission_templates/Normalization_v4_1_0.xlsx")},
   "sheets info": [
       {
         'name': 'Normalization',
-        'headers': ['Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
+        'headers': ['Type', 'Sample Name', 'Source Container Barcode', 'Source Container Coord', 'Robot Source Container', 'Robot Source Coord',
                     'Destination Container Barcode', 'Destination Container Coord', 'Robot Destination Container', 'Robot Destination Coord',
                     'Destination Container Name', 'Destination Container Kind', 'Destination Parent Container Barcode',
                     'Destination Parent Container Coord', 'Source Depleted', 'Initial Conc. (ng/uL)', 'Volume Used (uL)', 'Volume (uL)',
-                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment'],
+                    'Conc. (ng/uL)', 'Conc. (nM)', 'Normalization Date (YYYY-MM-DD)', 'Comment', 'Workflow Action'],
       },
   ],
   "prefill info": [
@@ -237,11 +245,13 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
+        'stitch_column': 'Pool Name',
       },
       {
         'name': 'Pools',
         'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
                     'Pool Parent Container Barcode', 'Pool Parent Container Coord', 'Seq Instrument Type'],
+        'stitch_column': 'Pool Name',
       },
   ],
   "prefill info": [
@@ -267,18 +277,20 @@ SAMPLE_METADATA_TEMPLATE = {
 }
 
 SAMPLE_POOLING_TEMPLATE = {
-  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v3_13_0.xlsx")},
+  "identity": {"description": "Template to pool samples and libraries", "file": static("submission_templates/Sample_pooling_v4_1_0.xlsx")},
   "sheets info": [
       {
           "name": "Pools",
           "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
                       "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
                       "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
+          "stitch_column": "Pool Name",
       },
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment"],
+                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment", "Workflow Action"],
+          "stitch_column": "Pool Name",
       }
   ],
   "prefill info": [
@@ -296,7 +308,8 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
-                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment']
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment'],
+          'stitch_column': 'Pool Name',
       },
       {
           "name": "PoolSubmission",
@@ -304,6 +317,7 @@ SAMPLE_SUBMISSION_TEMPLATE = {
                       "Container Barcode", "Pool Coord",
                       "Location Barcode", "Container Coord", "Seq Instrument Type",
                       "Reception (YYYY-MM-DD)", "Comment"],
+          "stitch_column": "Pool Name",
       },
   ],
   "prefill info": [],
@@ -324,14 +338,14 @@ SAMPLE_UPDATE_TEMPLATE = {
 }
 
 SAMPLE_QC_TEMPLATE = {
-  "identity": {"description": "Template to perform sample quality control", "file": static("submission_templates/Sample_QC_v3_10_0.xlsx")},
+  "identity": {"description": "Template to perform sample quality control", "file": static("submission_templates/Sample_QC_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleQC',
           'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
                       'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
                       'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                      'Quantity Flag', 'QC Date', 'Comment']
+                      'Quantity Flag', 'QC Date', 'Comment', 'Workflow Action']
       },],
   "prefill info": [
       ("SampleQC", "Sample Name", "name"),
@@ -341,14 +355,14 @@ SAMPLE_QC_TEMPLATE = {
 }
 
 SAMPLE_EXTRACTION_TEMPLATE = {
-  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v3_10_0.xlsx")},
+  "identity": {"description": "Template to extract NA from samples", "file": static("submission_templates/Sample_extraction_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'ExtractionTemplate',
           'headers': ['Extraction Type', 'Volume Used (uL)', 'Source Sample Name', 'Source Container Barcode', 'Source Container Coord',
                       'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name',
                       'Destination Container Kind', 'Destination Parent Container Barcode', 'Destination Parent Container Coord',
-                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment'],
+                      'Volume (uL)', 'Conc. (ng/uL)', 'Source Depleted', 'Extraction Date', 'Comment', 'Workflow Action'],
       },],
   "prefill info": [
       ("ExtractionTemplate", "Source Sample Name", "name"),

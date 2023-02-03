@@ -4,6 +4,7 @@ from fms_core.template_importer.row_handlers.experiment_run import ExperimentRun
 from fms_core.templates import EXPERIMENT_RUN_TEMPLATE_SHEET_INFO
 from collections import defaultdict
 from datetime import datetime
+from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
@@ -19,7 +20,7 @@ class ExperimentRunImporter(GenericImporter):
 
 
     def initialize_data_for_template(self, runtype, properties):
-        self.preloaded_data = {'run_type': {}, 'protocols_dict': {}, 'property_types_by_name': {}}
+        self.preloaded_data = {'run_type': {}, 'protocol': None, 'protocols_dict': {}, 'property_types_by_name': {}}
 
         # Preload RunType and Protocols dict
         try:
@@ -35,6 +36,7 @@ class ExperimentRunImporter(GenericImporter):
         try:
             run_protocols_ids = []
             for protocol_parent, children_protocol in self.preloaded_data['protocols_dict'].items():
+                self.preloaded_data['protocol'] = protocol_parent
                 run_protocols_ids.append(protocol_parent.id)
                 for child_protocol in children_protocol:
                     run_protocols_ids.append(child_protocol.id)
@@ -53,6 +55,10 @@ class ExperimentRunImporter(GenericImporter):
         self.initialize_data_for_template(runtype=runtype_name,
                                           properties=experiments_df.values[experiments_sheet.header_row_nb][self.properties_starting_index:].tolist())
 
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
+
         """
             SAMPLES SHEET
         """
@@ -61,7 +67,11 @@ class ExperimentRunImporter(GenericImporter):
             sample = {'experiment_name': str_cast_and_normalize(row_data['Experiment Name']),
                       'volume_used': float_to_decimal_and_none(row_data['Source Sample Volume Used']),
                       'experiment_container_coordinates': str_cast_and_normalize(row_data['Experiment Container Coordinates']),
-                      'comment': str_cast_and_normalize(row_data['Comment'])
+                      'comment': str_cast_and_normalize(row_data['Comment']),
+                      'workflow':
+                          {'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                           'step': step_by_row_id[i]
+                          },
                       }
 
             sample_kwargs = dict(

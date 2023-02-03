@@ -19,7 +19,7 @@ from fms_core.services.index import get_or_create_index_set, create_index
 class LibraryCaptureTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = LibraryCaptureImporter()
-        self.file = APP_DATA_ROOT / "Library_capture_v3_14_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_capture_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.source_sample_name_1 = 'lib_pcr_free'

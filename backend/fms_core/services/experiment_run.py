@@ -71,6 +71,7 @@ def create_experiment_run(experiment_run_name,
             volume_used = sample_info['volume_used']
             container_coordinates = sample_info['experiment_container_coordinates']
             comment = sample_info['comment']
+            workflow = sample_info.get('workflow', None)
             volume_destination = 0  # prevents this sample from being re-used or re-transferred afterwards
 
             sample_destination, transfer_errors, transfer_warnings = transfer_sample(process=experiment_run.process,
@@ -80,7 +81,8 @@ def create_experiment_run(experiment_run_name,
                                                                                      execution_date=start_date,
                                                                                      coordinates_destination=container_coordinates,
                                                                                      volume_destination=volume_destination,
-                                                                                     comment=comment)
+                                                                                     comment=comment,
+                                                                                     workflow=workflow)
 
             if sample_destination:
                 sample_destination.depleted = True # deplete destination sample

@@ -3,6 +3,7 @@ from fms_core.models import Process, Protocol, PropertyType
 from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_qc import SampleQCRowHandler
 from fms_core.templates import SAMPLE_QC_TEMPLATE
+from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize
 
@@ -29,7 +30,7 @@ class SampleQCImporter(GenericImporter):
         protocol = Protocol.objects.get(name='Sample Quality Control')
 
         #Preload data
-        self.preloaded_data = {'process': None, 'process_properties': {}}
+        self.preloaded_data = {'process': None, 'protocol': protocol, 'process_properties': {}}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
                                                                 comment='Sample Quality Control (imported from template)')
@@ -43,6 +44,10 @@ class SampleQCImporter(GenericImporter):
 
     def import_template_inner(self):
         sample_qc_sheet = self.sheets['SampleQC']
+
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Add the template to the process
         if self.imported_file is not None:
@@ -76,11 +81,17 @@ class SampleQCImporter(GenericImporter):
                 'comment': str_cast_and_normalize(row_data['Comment']),
             }
 
+            workflow = {
+                'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                'step': step_by_row_id[row_id]
+            }
+
             sample_qc_kwargs = dict(
                 sample=sample,
                 sample_information=sample_information,
                 process_measurement=process_measurement,
                 process_measurement_properties=process_measurement_properties,
+                workflow=workflow,
             )
 
             (result, _) = self.handle_row(
