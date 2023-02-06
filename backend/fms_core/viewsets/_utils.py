@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Tuple, Union, List
 from tablib import Dataset
 from django.db.models import Func
 from wsgiref.util import FileWrapper
@@ -14,7 +14,8 @@ import json
 import os
 
 from fms_core.serializers import VersionSerializer
-from fms_core.template_prefiller.prefiller import PrefillTemplate
+from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
+from fms_core.models import Sample
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -205,4 +206,75 @@ class TemplatePrefillsMixin:
             return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
         
         return response
+
+
+class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
+    @classmethod
+    def _prepare_prefill_dicts(cls, template, queryset) -> List:
+        # Virtual method for dicts building. Surdefine in child class to specify.
+        return []
+
+    @action(detail=False, methods=["get"])
+    def prefill_template(self, request):
+        """
+        Endpoint off of the parent viewset for filling up the requested template using a field dict and returning it.
+        """
+        template_id = request.GET.get("template")
+
+        try:
+            template = self.template_prefill_list[int(template_id)]["template"]
+        except (KeyError, ValueError):
+            # If the template index is out of bounds or not int-castable, return an error.
+            return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
+
+        queryset = self.filter_queryset(self.get_queryset())
+        try:
+            rows_dicts = self._prepare_prefill_dicts(template, queryset)
+            prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
+        except Exception as err:
+            return HttpResponseBadRequest(json.dumps({"detail": str(err)}), content_type="application/json")
         
+        try:
+            response = HttpResponse(content=prefilled_template)
+            response["Content-Type"] = "application/ms-excel"
+            response["Content-Disposition"] = "attachment; filename=" + template["identity"]["file"]
+        except Exception as err:
+            return HttpResponseBadRequest(json.dumps({"detail": f"Failure to attach the prefilled template to the response."}), content_type="application/json")
+        
+        return response
+
+class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
+    @classmethod
+    def _prepare_prefill_dicts(cls, template, queryset) -> List:
+        rows_dicts = []
+        dict_sheets_rows_dicts = {sheet.name: [] for sheet in template["sheets info"]} # Initialize each sheet list
+
+        # get sample sheet : the first one that is not a batch sheet
+        sample_sheets = sheet["name"] if not sheet["batch"] for sheet in template["sheets info"]
+        sample_sheet_name = sample_sheet_list.pop() # get only a single name
+
+        dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
+
+        step_dict = {}
+        for sample, step in queryset.values("sample", "step"):
+            new_step = False
+            sample_row_dict = {}
+            batch_row_dict = {}
+            # Use sample to extract the sample information guided by the template definition prefill info.
+            for sheet_name, column_name, _, attribute in template["prefill info"]:
+                value = getattr(Sample.objects.filter(id=sample).first(), attribute)
+                sample_row_dict[column_name] = value
+            # Use step to extract specifications and attach it to the correct sheet and column
+            for spec in step.get("step_specifications", []):
+                if spec["sheet_name"] == sample_sheet_name:
+                    sample_row_dict[spec["column_name"]] = spec["value"]
+                else:
+                    sample_row_dict[dict_stitch[spec["sheet_name"]]] = step["name"]
+                    if not step_dict.get(step["id"], None):
+                        batch_row_dict[dict_stitch[spec["sheet_name"]]] = step["name"]
+                        batch_row_dict[spec["column_name"]] = spec["value"]
+                        new_step = True
+            if new_step:
+                step_dict[step["id"]] = step
+
+             

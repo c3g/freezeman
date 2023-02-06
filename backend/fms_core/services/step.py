@@ -27,9 +27,9 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
     warnings = []
     candidate_steps = Step.objects.filter(protocol=protocol).all()
 
-    # get sample sheet : the one with most rows
-    row_tupple = [(sheet_name, len(template_sheet.rows)) for sheet_name, template_sheet in template_sheets.items()]
-    sample_sheet_name = sorted(row_tupple, key=lambda x: x[1])[-1][0]
+    # get sample sheet : the first one that is not a batch sheet
+    sample_sheets = sheet["name"] if not sheet["batch"] for sheet in template_sheet_definition
+    sample_sheet_name = sample_sheet_list.pop() # get only a single name
 
     # build stitch column dict from template sheet definition
     if all(sheet.get("stitch_column", False) for sheet in template_sheet_definition):
