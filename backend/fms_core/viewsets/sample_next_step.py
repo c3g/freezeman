@@ -3,9 +3,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
+from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin
+from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
-from ._constants import _sample_next_step_filterset_fields
+from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
+                                LIBRARY_PREPARATION_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
+                                LIBRARY_CONVERSION_TEMPLATE, EXPERIMENT_ILLUMINA_TEMPLATE, EXPERIMENT_MGI_TEMPLATE, EXPERIMENT_INFINIUM_TEMPLATE)
+from fms_core.template_importer.importers import (ExtractionImporter, SampleQCImporter, NormalizationPlanningImporter, NormalizationImporter,
+                                                  LibraryPreparationImporter, LibraryQCImporter, SamplePoolingImporter, LibraryCaptureImporter,
+                                                  LibraryConversionImporter, ExperimentRunImporter)
 
 class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsLabWorkMixin):
     queryset = SampleNextStep.objects.all()

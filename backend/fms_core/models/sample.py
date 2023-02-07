@@ -151,9 +151,9 @@ class Sample(TrackedModel):
             return None
         elif self.is_library:  # Library strandedness is defined during preparation
             return self.derived_samples.first().library.strandedness
-        elif self.derived_samples.first().biosample.kind.same = "DNA": # Default strandedness of a DNA sample
+        elif self.derived_samples.first().biosample.kind.same == "DNA": # Default strandedness of a DNA sample
             return DOUBLE_STRANDED
-        elif self.derived_samples.first().biosample.kind.same = "RNA": # Default strandedness of an RNA sample
+        elif self.derived_samples.first().biosample.kind.same == "RNA": # Default strandedness of an RNA sample
             return SINGLE_STRANDED
         else: # Otherwise it is likely a non-extracted sample.
             return None

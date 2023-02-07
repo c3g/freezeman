@@ -28,7 +28,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
     candidate_steps = Step.objects.filter(protocol=protocol).all()
 
     # get sample sheet : the first one that is not a batch sheet
-    sample_sheets = sheet["name"] if not sheet["batch"] for sheet in template_sheet_definition
+    sample_sheets = [sheet["name"] for sheet in template_sheet_definition if not sheet.get("batch", False)]
     sample_sheet_name = sample_sheet_list.pop() # get only a single name
 
     # build stitch column dict from template sheet definition

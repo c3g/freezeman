@@ -15,7 +15,7 @@ import os
 
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
-from fms_core.models import Sample
+from fms_core.models import Sample, Protocol
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -84,15 +84,29 @@ class TemplateActionsMixin:
         actions, converting paths to URIs for better RESTyness.
         """
         actions_list = []
-        for action in self.template_action_list:  # Make a list out of the actions
-            action_dict = {}
-            for (key, value) in action.items(): # For each action build an dict with the key values other than importer
-                if key != "importer":
-                    if key == "template":
-                        for template in value:
-                            template["file"] = request.build_absolute_uri(template["file"]) # Return the file as an URI
-                    action_dict[key] = value
-            actions_list.append(action_dict)
+        protocol = None
+        protocol_id = request.GET.get("protocol")
+        if protocol_id:
+            protocol = Protocol.objects.filter(id=protocol_id).first()
+        for i, action in enumerate(self.template_action_list):  # Make a list out of the actions
+            list_templates = []
+            for template in action["template"]:
+                current_template_protocol_name = template.get("protocol", None)
+                if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
+                    pass
+                else:
+                    template["file"] = request.build_absolute_uri(template["file"]) # Return the file as an URI
+                    list_templates.append(template)
+            if len(list_templates) > 0:
+                action_dict = {}
+                action_dict["id"] = i
+                for (key, value) in action.items(): # For each action build an dict with the key values other than importer
+                    if key != "importer":
+                        if key == "template":
+                            action_dict[key] = list_templates
+                        else:
+                            action_dict[key] = value
+                actions_list.append(action_dict)
         return Response(actions_list)
 
     @action(detail=False, methods=["post"])
@@ -170,10 +184,19 @@ class TemplatePrefillsMixin:
         Endpoint off of the parent viewset for listing available template prefills.
         """
         templates_list = []
-        for template in self.template_prefill_list:  # Make a list out of the prefilable templates
-            template_dict = {}
-            template_dict["description"] = template["template"]["identity"]["description"]
-            templates_list.append(template_dict)
+        protocol = None
+        protocol_id = request.GET.get("protocol")
+        if protocol_id:
+            protocol = Protocol.objects.filter(id=protocol_id).first()
+        for i, template in enumerate(self.template_prefill_list):  # Make a list out of the prefilable templates
+            current_template_protocol_name = template["template"]["identity"].get("protocol", None)
+            if protocol and current_template_protocol_name and protocol.name != current_template_protocol_name:
+                pass
+            else:
+                template_dict = {}
+                template_dict["id"] = i
+                template_dict["description"] = template["template"]["identity"]["description"]
+                templates_list.append(template_dict)
         return Response(templates_list)
 
     @action(detail=False, methods=["get"])
@@ -246,17 +269,17 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
 class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
     def _prepare_prefill_dicts(cls, template, queryset) -> List:
+        # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
         rows_dicts = []
-        dict_sheets_rows_dicts = {sheet.name: [] for sheet in template["sheets info"]} # Initialize each sheet list
+        dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
-        # get sample sheet : the first one that is not a batch sheet
-        sample_sheets = sheet["name"] if not sheet["batch"] for sheet in template["sheets info"]
-        sample_sheet_name = sample_sheet_list.pop() # get only a single name
-
+        # Dictionary to indentify the sample sheet and the batch sheet
+        dict_batch_sheet = {sheet["batch"]: sheet["name"] for sheet in template["sheets info"]}
+        # Dictionary to map a sheet to its stitch column
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
 
         step_dict = {}
-        for sample, step in queryset.values("sample", "step"):
+        for sample, step in queryset.values("sample", "step_order__step"):
             new_step = False
             sample_row_dict = {}
             batch_row_dict = {}
@@ -266,7 +289,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                 sample_row_dict[column_name] = value
             # Use step to extract specifications and attach it to the correct sheet and column
             for spec in step.get("step_specifications", []):
-                if spec["sheet_name"] == sample_sheet_name:
+                if spec["sheet_name"] == dict_batch_sheet[True]:
                     sample_row_dict[spec["column_name"]] = spec["value"]
                 else:
                     sample_row_dict[dict_stitch[spec["sheet_name"]]] = step["name"]
@@ -276,5 +299,9 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                         new_step = True
             if new_step:
                 step_dict[step["id"]] = step
+            # Append current rows to the dict
+            dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
+            if batch_row_dict:
+                dict_sheets_rows_dicts[dict_batch_sheet[True]].append(batch_row_dict)
 
-             
+        return [dict_sheets_rows_dicts[sheet["name"]] for sheet in template["sheets info"]]

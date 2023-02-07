@@ -386,7 +386,7 @@ SAMPLE_UPDATE_TEMPLATE = {
       {
           'name': 'SampleUpdate',
           'headers': ['Sample Name', 'Container Barcode', 'Coord (if plate)', 'New Volume (uL)', 'Delta Volume (uL)',
-                      'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment']
+                      'New Conc. (ng/uL)', 'Depleted', 'Update Date', 'Update Comment'],
           'batch': False,
       },
   ],
@@ -407,7 +407,7 @@ SAMPLE_QC_TEMPLATE = {
           'headers': ['Sample Name', 'Sample Container Barcode', 'Sample Container Coord', 'Initial Volume (uL)',
                       'Measured Volume (uL)', 'Volume Used (uL)', 'Concentration (ng/uL)', 'NA Quantity (ng)',
                       'RIN (for RNA only)', 'Quality Instrument', 'Quality Flag', 'Quantity Instrument',
-                      'Quantity Flag', 'QC Date', 'Comment', 'Workflow Action']
+                      'Quantity Flag', 'QC Date', 'Comment', 'Workflow Action'],
           'batch': False,
       },
   ],
