@@ -15,7 +15,7 @@ import os
 
 from fms_core.serializers import VersionSerializer
 from fms_core.template_prefiller.prefiller import PrefillTemplate, PrefillTemplateFromDict
-from fms_core.models import Sample, Protocol
+from fms_core.models import Sample, Protocol, Step
 
 def versions_detail(obj):
     versions = Version.objects.get_for_object(obj)
@@ -250,7 +250,7 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             # If the template index is out of bounds or not int-castable, return an error.
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset()).filter(step_order__isnull=False)
         try:
             rows_dicts = self._prepare_prefill_dicts(template, queryset)
             prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
@@ -270,7 +270,6 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
     @classmethod
     def _prepare_prefill_dicts(cls, template, queryset) -> List:
         # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
-        rows_dicts = []
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
         # Dictionary to indentify the sample sheet and the batch sheet
@@ -279,26 +278,30 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
 
         step_dict = {}
-        for sample, step in queryset.values("sample", "step_order__step"):
+        for sample_id, step_id in queryset.values_list("sample", "step_order__step"):
             new_step = False
             sample_row_dict = {}
             batch_row_dict = {}
             # Use sample to extract the sample information guided by the template definition prefill info.
+            sample = Sample.objects.get(id=sample_id)
             for sheet_name, column_name, _, attribute in template["prefill info"]:
-                value = getattr(Sample.objects.filter(id=sample).first(), attribute)
+                value = getattr(sample, attribute)
                 sample_row_dict[column_name] = value
             # Use step to extract specifications and attach it to the correct sheet and column
-            for spec in step.get("step_specifications", []):
-                if spec["sheet_name"] == dict_batch_sheet[True]:
-                    sample_row_dict[spec["column_name"]] = spec["value"]
+            step = Step.objects.get(id=step_id)
+            for spec in step.step_specifications.all():
+                if spec.sheet_name == dict_batch_sheet.get(False, spec.sheet_name): # Sheet defaults to sample sheet
+                    sample_row_dict[spec.column_name] = spec.value
                 else:
-                    sample_row_dict[dict_stitch[spec["sheet_name"]]] = step["name"]
-                    if not step_dict.get(step["id"], None):
-                        batch_row_dict[dict_stitch[spec["sheet_name"]]] = step["name"]
-                        batch_row_dict[spec["column_name"]] = spec["value"]
+                    if dict_stitch.get(spec.sheet_name, None):
+                        sample_row_dict[dict_stitch[spec.sheet_name]] = step.name # User will need to split batches further if needed
+                    if not step_dict.get(step.id, None):
+                        if dict_stitch.get(spec.sheet_name, None):
+                            batch_row_dict[dict_stitch[spec.sheet_name]] = step.name # User will need to split batches further if needed
+                        batch_row_dict[spec.column_name] = spec.value
                         new_step = True
             if new_step:
-                step_dict[step["id"]] = step
+                step_dict[step.id] = step
             # Append current rows to the dict
             dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
             if batch_row_dict:
