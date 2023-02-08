@@ -28,6 +28,7 @@ import IndividualsPage from "./individuals/IndividualsPage";
 import IndicesPage from "./indices/IndicesPage";
 import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
 import ProcessesPage from "./processes/ProcessesPage";
+import LabworkPage from "./labwork/LabworkPage"
 import ProjectsPage from "./projects/ProjectsPage";
 import ProfilePage from "./profile/ProfilePage";
 import UsersPage from "./users/UsersPage";
@@ -109,12 +110,11 @@ const MENU_ITEMS = [
     icon: <ProjectOutlined />,
     text: "Projects",
   },
-  // DISABLED UNTIL THIS FEATURE IS READY TO SHIP
-  // {
-  //   url: "/lab-work",
-  //   icon: <ExperimentOutlined />,
-  //   text: "Lab Work"
-  // },
+  {
+     url: "/lab-work",
+     icon: <ExperimentOutlined />,
+     text: "Lab Work"
+  },
   {
     url: "/indices",
     icon: <BarcodeOutlined />,
@@ -263,12 +263,11 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
                 <ProjectsPage />
               </PrivateNavigate>
             } />
-            {/* DISABLED UNTIL THIS FEATURE IS READY TO SHIP
-              <Route path="/lab-work/*" element={
+            <Route path="/lab-work/*" element={
               <PrivateNavigate>
                 <LabworkPage />
               </PrivateNavigate>
-            } /> */}
+            } />
             <Route path="/indices/*" element={
               <PrivateNavigate>
                 <IndicesPage />

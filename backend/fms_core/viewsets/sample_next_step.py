@@ -54,7 +54,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
         # Iterate through protocols
         for protocol in Protocol.objects.filter(steps__steps_order__sample_next_step__isnull=False):
             # Get the sample count waiting for this protocol
-            protocol_sample_count = SampleNextStep.objects.filter(step_order__step__protocol=protocol).count()
+            protocol_sample_count = SampleNextStep.objects.filter(step_order__step__protocol=protocol).values_list("step_order__step", "sample").distinct().count()
 
             if protocol.id not in sample_next_step_by_protocol.keys():
                 # Add protocol info to the results
@@ -67,7 +67,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet):
                 # Iterate through the objects within the protocol
                 for step in Step.objects.filter(protocol=protocol):
                     # Get the precise count of sample for the specific step within the protocol and the specifications
-                    step_sample_count = SampleNextStep.objects.filter(step_order__step=step).count()
+                    step_sample_count = SampleNextStep.objects.filter(step_order__step=step).values_list("step_order__step", "sample").distinct().count()
                     step_specifications = StepSpecification.objects.filter(step=step)
                     step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
 
