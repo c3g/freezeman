@@ -742,7 +742,11 @@ def update_qc_flags(sample, quantity_flag, quality_flag):
     try:
         # Update the QC flags for the given sample
         if quantity_flag and quality_flag:
+            if sample.quantity_flag is not None and sample.quantity_flag != (quantity_flag == 'Passed'):
+                warnings.append(f"Sample {sample.name} quantity flag will be changed to {quantity_flag}.")
             sample.quantity_flag = (quantity_flag == 'Passed')
+            if sample.quality_flag is not None and sample.quality_flag != (quality_flag == 'Passed'):
+                warnings.append(f"Sample {sample.name} quality flag will be changed to {quality_flag}.")
             sample.quality_flag = (quality_flag == 'Passed')
             sample.save()
         else:
