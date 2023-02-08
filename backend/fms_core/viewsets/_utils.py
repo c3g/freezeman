@@ -278,7 +278,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
 
         step_dict = {}
-        for sample_id, step_id in queryset.values_list("sample", "step_order__step"):
+        for sample_id, step_id in queryset.values_list("sample", "step_order__step").distinct():
             new_step = False
             sample_row_dict = {}
             batch_row_dict = {}

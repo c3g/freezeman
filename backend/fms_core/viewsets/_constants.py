@@ -272,6 +272,7 @@ _step_filterset_fields: FiltersetFields = {
 
 _sample_next_step_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
+    "sample__id": PK_FILTERS,
     "studies__id": PK_FILTERS,
     **_prefix_keys("step__", _step_filterset_fields),
 }
