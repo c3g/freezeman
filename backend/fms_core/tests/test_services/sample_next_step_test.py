@@ -3,7 +3,7 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import SampleNextStep, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project, Protocol, Process, ProcessMeasurement
+from fms_core.models import SampleNextStep, SampleNextStepByStudy, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project, Protocol, Process, ProcessMeasurement
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
 from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 dequeue_sample_from_all_steps_study_workflow,
@@ -52,7 +52,7 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(warnings, [])
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         self.assertEqual(sample_next_step.step_order.order, 1)
-        self.assertEqual(sample_next_step.study, self.study)
+        self.assertTrue(SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, study=self.study).exists())
 
     def test_queue_sample_to_valid_step(self):
         sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 3)
@@ -80,7 +80,7 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertTrue(dequeued)
-        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample, study=self.study).exists())
+        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample, studies=self.study).exists())
     
     def test_dequeue_sample_from_invalid_step(self):
         # Queue sample first and test it
@@ -135,7 +135,8 @@ class SampleNextStepServicesTestCase(TestCase):
 
     def test_has_sample_completed_workflow_in_study(self):
         # Test valid completetion
-        sample_next_step = SampleNextStep.objects.create(sample=self.sample, study=self.study)
+        sample_next_step = SampleNextStep.objects.create(sample=self.sample)
+        SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, study=self.study)
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         self.assertEqual(sample_next_step.step_order, None)
         self.assertEqual(sample_next_step.sample, self.sample)

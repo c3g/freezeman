@@ -720,6 +720,7 @@ class StudySerializer(serializers.ModelSerializer):
 class SampleNextStepSerializer(serializers.ModelSerializer):
     step = StepSerializer(read_only=True, source="step_order.step")
     step_order_number = serializers.IntegerField(read_only=True, source="step_order.order")
+    studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study", "step_order_number", "step")
+        fields = ("id", "step_order_id", "sample", "studies", "step_order_number", "step")

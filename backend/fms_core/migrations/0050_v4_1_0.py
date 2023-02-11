@@ -76,4 +76,38 @@ class Migration(migrations.Migration):
             additional_step,
             reverse_code=migrations.RunPython.noop,
         ),
+        migrations.RemoveConstraint(
+            model_name='samplenextstep',
+            name='samplenextstep_steporder_sample_study_key',
+        ),
+        migrations.RemoveField(
+            model_name='samplenextstep',
+            name='study',
+        ),
+        migrations.CreateModel(
+            name='SampleNextStepByStudy',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
+                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
+                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
+                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstepbystudy_creation', to=settings.AUTH_USER_MODEL)),
+                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstepbystudy_modification', to=settings.AUTH_USER_MODEL)),
+                ('study', models.ForeignKey(help_text='Study associated to the sample next step instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_steps_by_study', to='fms_core.study')),
+                ('sample_next_step', models.ForeignKey(help_text='Sample next step associated to the study instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step_by_studies', to='fms_core.samplenextstep')),
+            ],
+        ),
+        migrations.AddConstraint(
+            model_name='samplenextstepbystudy',
+            constraint=models.UniqueConstraint(fields=('study_id', 'sample_next_step_id'), name='samplenextstepbystudy_studyid_samplenextstepid_key'),
+        ),
+        migrations.AddConstraint(
+            model_name='samplenextstep',
+            constraint=models.UniqueConstraint(fields=('step_order_id', 'sample_id'), name='samplenextstep_steporderid_sampleid_key'),
+        ),
+        migrations.AddField(
+            model_name='samplenextstep',
+            name='studies',
+            field=models.ManyToManyField(blank=True, related_name='sample_next_steps', through='fms_core.SampleNextStepByStudy', to='fms_core.Study'),
+        ),
     ]

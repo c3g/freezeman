@@ -78,16 +78,16 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         self.workflow1 = Workflow.objects.get(name="PCR-free Illumina")
         self.workflow2 = Workflow.objects.get(name="PCR-enriched Illumina")
         self.study1 = Study.objects.create(letter=self.study_letter1,
-                                          project=self.project1,
-                                          workflow=self.workflow1,
-                                          start=self.start,
-                                          end=self.end)
+                                           project=self.project1,
+                                           workflow=self.workflow1,
+                                           start=self.start,
+                                           end=self.end)
         
         self.study2 = Study.objects.create(letter=self.study_letter2,
-                                          project=self.project1,
-                                          workflow=self.workflow1,
-                                          start=self.start,
-                                          end=self.end)
+                                           project=self.project1,
+                                           workflow=self.workflow1,
+                                           start=self.start,
+                                           end=self.end)
 
         #Create link manually to test REMOVE project action
         create_link(sample=self.sample3, project=self.project3)
@@ -109,16 +109,16 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         self.assertFalse(DerivedSample.objects.filter(samples=self.sample3, project=self.project3).exists())
 
         # Test that sample 1 is queued twice in the same workflow but different steps
-        self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1).count(), 2)
+        self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1).count(), 2)
 
         step_order_1 = StepOrder.objects.get(order=1, workflow=self.study1.workflow)
-        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1, step_order=step_order_1).exists())
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1, step_order=step_order_1).exists())
 
         step_order_2 = StepOrder.objects.get(order=3, workflow=self.study1.workflow)
-        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, study=self.study1, step_order=step_order_2).exists())
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1, step_order=step_order_2).exists())
 
         # Test that sample 3 was successfully removed from study
-        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample3, study=self.study2).exists())
+        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample3, studies=self.study2).exists())
 
     def test_invalid_project_study_link_samples(self):
         for f in self.invalid_template_tests:

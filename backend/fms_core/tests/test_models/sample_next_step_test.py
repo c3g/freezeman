@@ -24,41 +24,21 @@ class SampleNextStepTest(TestCase):
         for derived_sample in self.sample.derived_samples.all():
             derived_sample.project_id = self.project.id
             derived_sample.save()
-        self.letter_valid = "A"
-        self.start = 1
-        self.end = 7
-        self.study = Study.objects.create(letter=self.letter_valid,
-                                          project=self.project,
-                                          workflow=self.workflow,
-                                          start=self.start,
-                                          end=self.end)
 
     def test_sample_next_step(self):
         sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
-                                                         sample=self.sample,
-                                                         study=self.study)
+                                                         sample=self.sample)
         self.assertEqual(sample_next_step.step_order, self.step_order)
 
     def test_no_step_order(self):
         sample_next_step = SampleNextStep.objects.create(step_order=None,
-                                                         sample=self.sample,
-                                                         study=self.study)
+                                                         sample=self.sample)
         self.assertIsNone(sample_next_step.step_order)
 
-    def test_no_study(self):
-        with self.assertRaises(Study.DoesNotExist):
-            try:
-                sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
-                                                                 sample=self.sample,
-                                                                 study=None)
-            except Study.DoesNotExist as e:
-                raise e
-
     def test_no_sample(self):
-        with self.assertRaises(Sample.DoesNotExist):
+        with self.assertRaises(ValidationError):
             try:
                 sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
-                                                                 sample=None,
-                                                                 study=self.study)
-            except Sample.DoesNotExist as e:
+                                                                 sample=None)
+            except ValidationError as e:
                 raise e
