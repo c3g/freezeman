@@ -266,7 +266,7 @@ _study_filterset_fields: FiltersetFields = {
 
 _sample_next_step_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "study__id": PK_FILTERS,
+    "studies__id": PK_FILTERS,
     "step_order__step__protocol__id": PK_FILTERS,
     "step_order__step__id": PK_FILTERS,
     "step_order__step__name": CATEGORICAL_FILTERS_LOOSE,
