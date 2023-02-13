@@ -39,10 +39,11 @@ class SampleNextStepByStudyTest(TestCase):
                                           end=self.end)
 
     def test_sample_next_step_by_study(self):
-        sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
+        sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
                                                          sample=self.sample)                                                         
-        self.assertEqual(sample_next_step.step_order, self.step_order)
+        self.assertEqual(sample_next_step.step, self.step_valid)
         sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                         step_order=self.step_order,
                                                                          study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study, SampleNextStepByStudy))
 
@@ -50,55 +51,85 @@ class SampleNextStepByStudyTest(TestCase):
         with self.assertRaises(SampleNextStep.DoesNotExist):
             try:
                 sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=None,
+                                                                                 step_order=self.step_order,
                                                                                  study=self.study)
             except SampleNextStep.DoesNotExist as e:
                 raise e
 
     def test_no_study(self):
-        sample_next_step = SampleNextStep.objects.create(step_order=self.step_order,
+        sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
                                                          sample=self.sample)                                                         
-        self.assertEqual(sample_next_step.step_order, self.step_order)
+        self.assertEqual(sample_next_step.step, self.step_valid)
         with self.assertRaises(Study.DoesNotExist):
             try:
                 sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=self.step_order,
                                                                                  study=None)
             except Study.DoesNotExist as e:
                 raise e
 
-    def test_step_order_before(self):
-        sample_next_step = SampleNextStep.objects.create(step_order=self.step_order_before,
+    def test_no_step_order(self):
+        sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
                                                          sample=self.sample)                                                         
-        self.assertEqual(sample_next_step.step_order, self.step_order_before)
+        self.assertEqual(sample_next_step.step, self.step_valid)
+        with self.assertRaises(StepOrder.DoesNotExist):
+            try:
+                sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=None,
+                                                                                 study=self.study)
+            except StepOrder.DoesNotExist as e:
+                raise e
+
+    def test_step_order_before(self):
+        sample_next_step = SampleNextStep.objects.create(step=self.step_before,
+                                                         sample=self.sample)                                                         
+        self.assertEqual(sample_next_step.step, self.step_before)
         with self.assertRaises(ValidationError):
             try:
                 sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=self.step_order_before,
                                                                                  study=self.study)
             except ValidationError as e:
                 self.assertTrue('step_order' in e.message_dict)                                            
                 raise e
 
     def test_step_order_after(self):
-        sample_next_step = SampleNextStep.objects.create(step_order=self.step_order_after,
+        sample_next_step = SampleNextStep.objects.create(step=self.step_after,
                                                          sample=self.sample)                                                         
-        self.assertEqual(sample_next_step.step_order, self.step_order_after)
+        self.assertEqual(sample_next_step.step, self.step_after)
         with self.assertRaises(ValidationError):
             try:
                 sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=self.step_order_after,
                                                                                  study=self.study)
             except ValidationError as e:
                 self.assertTrue('step_order' in e.message_dict)                                            
+                raise e
+
+    def test_wrong_step(self):
+        sample_next_step = SampleNextStep.objects.create(step=self.step_before,
+                                                         sample=self.sample)                                                         
+        self.assertEqual(sample_next_step.step, self.step_before)
+        with self.assertRaises(ValidationError):
+            try:
+                sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=self.step_order,
+                                                                                 study=self.study)
+            except ValidationError as e:
+                self.assertTrue('step' in e.message_dict)                                            
                 raise e
 
     def test_wrong_project(self):
         for derived_sample in self.sample.derived_samples.all():
             derived_sample.project_id = self.project_other.id
             derived_sample.save()
-        sample_next_step = SampleNextStep.objects.create(step_order=self.step_order_after,
+        sample_next_step = SampleNextStep.objects.create(step=self.step_valid,
                                                          sample=self.sample)                                                         
-        self.assertEqual(sample_next_step.step_order, self.step_order_after)
+        self.assertEqual(sample_next_step.step, self.step_valid)
         with self.assertRaises(ValidationError):
             try:
                 sample_next_step_by_study = SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                                                 step_order=self.step_order,
                                                                                  study=self.study)
             except ValidationError as e:
                 self.assertTrue('project' in e.message_dict)                                            

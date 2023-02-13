@@ -45,10 +45,11 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
     # To reach past the end (step_order is None) use move_sample_to_next_step.
     if step_order and sample_obj and study_obj and not errors:
         try:
-            sample_next_step = SampleNextStep.objects.create(step_order=step_order,
+            sample_next_step = SampleNextStep.objects.create(step=step_order.step,
                                                              sample=sample_obj)
             if sample_next_step is not None:
                 SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
+                                                     step_order=step_order,
                                                      study=study_obj)
         except Exception as err:
             errors.append(err)
@@ -94,15 +95,16 @@ def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_o
     if sample_obj and study_obj and not errors:
         try:
             # identify the sample next step instance
-            sample_next_step_instance = SampleNextStep.objects.filter(sample=sample_obj, step_order=step_order).first()
+            sample_next_step_instance = SampleNextStep.objects.filter(sample=sample_obj, step=step_order.step).first()
             if sample_next_step_instance:
                 # identify the sample next step by study instance
                 sample_next_step_by_study_instance = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step_instance,
+                                                                                          step_order=step_order,
                                                                                           study=study_obj).first()
                 if sample_next_step_by_study_instance:
-                    is_last_study = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step_instance).count() < 2
+                    is_last_queue = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step_instance).count() < 2
                     sample_next_step_by_study_instance.delete()
-                    if is_last_study:
+                    if is_last_queue:
                         sample_next_step_instance.delete()
                     dequeued = True
                 else:
@@ -142,13 +144,13 @@ def dequeue_sample_from_all_steps_study_workflow(sample_obj: Sample, study_obj: 
         try:
             sample_next_step_instances_to_delete = SampleNextStep.objects.filter(sample=sample_obj)
             for sample_next_step in sample_next_step_instances_to_delete:
-                # identify the sample next step by study instance
-                sample_next_step_by_study_instance = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step,
-                                                                                          study=study_obj).first()
-                if sample_next_step_by_study_instance:
-                    is_last_study = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step).count() < 2
+                # identify the sample next steps by study instance
+                sample_next_step_by_study_instances = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step,
+                                                                                           study=study_obj)
+                for sample_next_step_by_study_instance in sample_next_step_by_study_instances.all():
+                    is_last_queue = SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step).count() < 2
                     sample_next_step_by_study_instance.delete()
-                    if is_last_study:
+                    if is_last_queue:
                         sample_next_step.delete()
                     num_deleted += 1
         except Exception as err:
@@ -188,7 +190,7 @@ def is_sample_queued_in_study(sample_obj: Sample, study_obj: Study, order: int=N
     filters = dict(
         sample=sample_obj,
         studies=study_obj,
-        **(dict(step_order=step_order) if step_order is not None else dict())
+        **(dict(sample_next_step_by_study__step_order=step_order) if step_order is not None else dict())
     )
     if SampleNextStep.objects.filter(**filters).exists():
         sample_is_queued = True
@@ -217,12 +219,18 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
     if not isinstance(study_obj, Study):
         study_obj = None
         errors.append(f"A valid study instance must be provided.")
-    
-    # If the sample has completed the workflow, the step order should be None
-    if SampleNextStep.objects.filter(sample=sample_obj, studies=study_obj, step_order=None).exists():
-        samples_has_completed = True
-    else:
-        samples_has_completed = False
+
+    if not errors:
+        try:
+            step_order = StepOrder.objects.get(order=study_obj.end, workflow=study_obj.workflow)
+        except StepOrder.DoesNotExist:
+            errors.append(f"No step found for the given order.")
+
+        # If the sample has completed the workflow, the step order should be None
+        if StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__child=sample_obj, study=study_obj, step_order=step_order).exists():
+            samples_has_completed = True
+        else:
+            samples_has_completed = False
 
     return samples_has_completed, errors, warnings
 
@@ -257,38 +265,41 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
     if not errors:
         new_sample = next_sample if next_sample is not None else current_sample
 
-        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step_order__step=current_step)
+        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
 
         for current_sample_next_step in current_sample_next_steps.all():
-            for study in current_sample_next_step.studies.all() :
+            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
                 next_sample_next_step = None
-                next_step_order = current_sample_next_step.step_order.next_step_order \
-                                  if current_sample_next_step.step_order.next_step_order.order <= study.end \
+                study = sample_next_step_by_study.study
+                current_step_order = sample_next_step_by_study.step_order
+                next_step_order = current_step_order.next_step_order \
+                                  if current_step_order.next_step_order.order <= study.end \
                                   else None
-                try:
-                    if SampleNextStep.objects.filter(step_order=next_step_order, sample=new_sample).exists():
-                        next_sample_next_step = SampleNextStep.objects.get(step_order=next_step_order, sample=new_sample)
-                        if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study).exists():
-                            SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study)
-                        elif new_sample.is_pool:
-                            warnings.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
-                                            f"of study {study.letter} of project {study.project.name}.")
+                if next_step_order is not None:
+                    try:
+                        if SampleNextStep.objects.filter(step=next_step_order.step, sample=new_sample).exists():
+                            next_sample_next_step = SampleNextStep.objects.get(step=next_step_order.step, sample=new_sample)
+                            if not SampleNextStepByStudy.objects.filter(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order).exists():
+                                SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
+                            elif new_sample.is_pool:
+                                warnings.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
+                                                f"of study {study.letter} of project {study.project.name}.")
+                            else:
+                                errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
+                                              f"of study {study.letter} of project {study.project.name}.")
                         else:
-                            errors.append(f"Sample {new_sample.name} is already queued for step {next_step_order.order if next_step_order is not None else ''} "
-                                          f"of study {study.letter} of project {study.project.name}.")
-                    else:
-                        next_sample_next_step = SampleNextStep.objects.create(step_order=next_step_order,
-                                                                              sample=new_sample)
-                        if next_sample_next_step is not None:
-                            SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study)
-                            new_sample_next_steps.append(next_sample_next_step)
-                except Exception as err:
-                    errors.append(f"Failed to create new sample next step instance.")
+                            next_sample_next_step = SampleNextStep.objects.create(step=next_step_order.step,
+                                                                                  sample=new_sample)
+                            if next_sample_next_step is not None:
+                                SampleNextStepByStudy.objects.create(sample_next_step=next_sample_next_step, study=study, step_order=next_step_order)
+                                new_sample_next_steps.append(next_sample_next_step)
+                    except Exception as err:
+                        errors.append(f"Failed to create new sample next step instance.")
                 try:
                     # Create the entry in study_steporder_by_measurement
                     StudyStepOrderByMeasurement.objects.create(study=study,
-                                                              step_order=current_sample_next_step.step_order,
-                                                              process_measurement=process_measurement)
+                                                               step_order=current_step_order,
+                                                               process_measurement=process_measurement)
                 except Exception as err:
                     errors.append(f"Failed to create StudyStepOrderByMeasurement.")
             try:
@@ -328,10 +339,10 @@ def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: 
     if not isinstance(step, Step):
         errors.append(f"A valid step instance must be provided.")
 
-    queued_sample_next_steps = SampleNextStep.objects.filter(sample=sample, step_order__step=step)
+    queued_sample_next_steps = SampleNextStep.objects.filter(sample=sample, step=step)
 
     for queued_sample_next_step in queued_sample_next_steps.all():
-        for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=queued_sample_next_step):
+        for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=queued_sample_next_step).all():
             try:
                 sample_next_step_by_study.delete()
                 removed_count += 1

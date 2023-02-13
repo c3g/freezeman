@@ -84,6 +84,16 @@ class Migration(migrations.Migration):
             model_name='samplenextstep',
             name='study',
         ),
+        migrations.RemoveField(
+            model_name='samplenextstep',
+            name='step_order',
+        ),
+        migrations.AddField(
+            model_name='samplenextstep',
+            name='step',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='samples_next_step', to='fms_core.step',
+                                    help_text='The next step a sample has to complete in the study.'),
+        ),
         migrations.CreateModel(
             name='SampleNextStepByStudy',
             fields=[
@@ -93,17 +103,18 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstepbystudy_creation', to=settings.AUTH_USER_MODEL)),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplenextstepbystudy_modification', to=settings.AUTH_USER_MODEL)),
-                ('study', models.ForeignKey(help_text='Study associated to the sample next step instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_steps_by_study', to='fms_core.study')),
-                ('sample_next_step', models.ForeignKey(help_text='Sample next step associated to the study instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step_by_studies', to='fms_core.samplenextstep')),
+                ('study', models.ForeignKey(help_text='Study associated to the sample next step instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step_by_study', to='fms_core.study')),
+                ('step_order', models.ForeignKey(help_text='Step order for the sample queued to a given study.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step_by_study', to='fms_core.steporder')),
+                ('sample_next_step', models.ForeignKey(help_text='Sample next step associated to the study instance.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_step_by_study', to='fms_core.samplenextstep')),
             ],
         ),
         migrations.AddConstraint(
             model_name='samplenextstepbystudy',
-            constraint=models.UniqueConstraint(fields=('study_id', 'sample_next_step_id'), name='samplenextstepbystudy_studyid_samplenextstepid_key'),
+            constraint=models.UniqueConstraint(fields=('study_id', 'step_order_id', 'sample_next_step_id'), name='samplenextstepbystudy_studyid_steporderid_samplenextstepid_key'),
         ),
         migrations.AddConstraint(
             model_name='samplenextstep',
-            constraint=models.UniqueConstraint(fields=('step_order_id', 'sample_id'), name='samplenextstep_steporderid_sampleid_key'),
+            constraint=models.UniqueConstraint(fields=('step_id', 'sample_id'), name='samplenextstep_stepid_sampleid_key'),
         ),
         migrations.AddField(
             model_name='samplenextstep',

@@ -13,14 +13,16 @@ __all__ = ["SampleNextStepByStudy"]
 
 @reversion.register()
 class SampleNextStepByStudy(TrackedModel):
-    study = models.ForeignKey("Study", on_delete=models.PROTECT, related_name="sample_next_steps_by_study",
+    study = models.ForeignKey("Study", on_delete=models.PROTECT, related_name="sample_next_step_by_study",
                               help_text='Study associated to the sample next step instance.')
-    sample_next_step = models.ForeignKey("SampleNextStep", on_delete=models.PROTECT, related_name="sample_next_step_by_studies",
+    step_order = models.ForeignKey("StepOrder", on_delete=models.PROTECT, related_name="sample_next_step_by_study",
+                                   help_text='Step order for the sample queued to a given study.')
+    sample_next_step = models.ForeignKey("SampleNextStep", on_delete=models.PROTECT, related_name="sample_next_step_by_study",
                                          help_text='Sample next step associated to the study instance.')
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["study_id", "sample_next_step_id"], name="samplenextstepbystudy_studyid_samplenextstepid_key")
+            models.UniqueConstraint(fields=["study_id", "step_order_id", "sample_next_step_id"], name="samplenextstepbystudy_studyid_steporderid_samplenextstepid_key")
         ]
 
     def clean(self):
@@ -30,8 +32,11 @@ class SampleNextStepByStudy(TrackedModel):
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
 
-        if self.sample_next_step is not None and self.sample_next_step.step_order is not None and \
-        (self.sample_next_step.step_order.order > self.study.end or self.sample_next_step.step_order.order < self.study.start):
+        if self.sample_next_step is not None and self.step_order is not None and self.step_order.step != self.sample_next_step.step:
+            add_error("step", f"Step must match between sample next step and step order.")
+
+        if self.step_order is not None and \
+        (self.step_order.order > self.study.end or self.step_order.order < self.study.start):
             add_error("step_order", f"Step order for the sample in the workflow is invalid. The order must be between {self.study.start} and {self.study.end}.")
 
         if self.sample_next_step is not None and self.sample_next_step.sample is not None and \
