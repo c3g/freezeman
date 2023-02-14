@@ -6,6 +6,25 @@ import reversion
 
 ADMIN_USERNAME = 'biobankadmin'
 
+def add_qpcr_instrument_type(apps, schema_editor):
+    Platform = apps.get_model("fms_core", "Platform")
+    InstrumentType = apps.get_model("fms_core", "InstrumentType")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Add a new library QC instrument : qPCR.")
+        reversion.set_user(admin_user)
+        platform_qc = Platform.objects.get(name="Quality Control")
+        instrument_type = InstrumentType.objects.create(type="qPCR",
+                                                        platform_id=platform_qc.id,
+                                                        index_read_3_prime="FORWARD",
+                                                        index_read_5_prime="FORWARD",
+                                                        created_by_id=admin_user_id,
+                                                        updated_by_id=admin_user_id)
+        reversion.add_to_revision(instrument_type)
+
 def additional_step(apps, schema_editor):
     Step = apps.get_model("fms_core", "Step")
     Protocol = apps.get_model("fms_core", "Protocol")
@@ -74,6 +93,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             additional_step,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            add_qpcr_instrument_type,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
