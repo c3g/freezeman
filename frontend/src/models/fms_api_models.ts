@@ -235,7 +235,7 @@ export interface FMSSampleKind extends FMSTrackedModel {
 
 export interface FMSSampleNextStep extends FMSTrackedModel {
     sample: FMSId,
-    studies: FMSId,
+    studies: FMSId[],
     step: NextStep
 }
 
