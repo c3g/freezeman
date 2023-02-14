@@ -119,6 +119,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='samplenextstep',
             name='studies',
-            field=models.ManyToManyField(blank=True, related_name='sample_next_steps', through='fms_core.SampleNextStepByStudy', to='fms_core.Study'),
+            field=models.ManyToManyField(blank=True, related_name='samples_next_steps', through='fms_core.SampleNextStepByStudy', to='fms_core.Study'),
         ),
     ]
