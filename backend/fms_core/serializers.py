@@ -684,9 +684,15 @@ class StepSpecificationSerializer(serializers.ModelSerializer):
         fields = ("id", "display_name", "sheet_name", "column_name", "value")
 
 class StepSerializer(serializers.ModelSerializer):
+    step_specifications = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "protocol_id"]
+        fields = ["id", "name", "protocol_id", "step_specifications"]
+    
+    def get_step_specifications(self, instance):
+        step_specifications = instance.step_specifications.all()
+        serialized_data = StepSpecificationSerializer(step_specifications, many=True)
+        return serialized_data.data
 
 class StepOrderSerializer(serializers.ModelSerializer):
     step_id = serializers.IntegerField(read_only=True, source='step.id')
