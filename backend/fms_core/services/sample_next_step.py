@@ -42,11 +42,13 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
         errors.append(f"No step found for the given order.")
     
     # Queueing to study workflow implies an existing step order.
-    # To reach past the end (step_order is None) use move_sample_to_next_step.
     if step_order and sample_obj and study_obj and not errors:
         try:
-            sample_next_step = SampleNextStep.objects.create(step=step_order.step,
-                                                             sample=sample_obj)
+            if not SampleNextStep.objects.filter(step=step_order.step, sample=sample_obj).exists():
+                sample_next_step = SampleNextStep.objects.create(step=step_order.step,
+                                                                 sample=sample_obj)
+            else:
+                sample_next_step = SampleNextStep.objects.get(step=step_order.step, sample=sample_obj)
             if sample_next_step is not None:
                 SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
                                                      step_order=step_order,
@@ -227,7 +229,13 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
             errors.append(f"No step found for the given order.")
 
         # If the sample has completed the workflow, the step order should be None
-        if StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__child=sample_obj, study=study_obj, step_order=step_order).exists():
+        if StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                                      study=study_obj, 
+                                                      step_order=step_order).exists() \
+        or StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                                      process_measurement__source_sample=sample_obj,
+                                                      study=study_obj,
+                                                      step_order=step_order).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False

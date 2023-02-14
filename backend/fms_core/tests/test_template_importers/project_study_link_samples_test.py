@@ -112,10 +112,14 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1).count(), 2)
 
         step_order_1 = StepOrder.objects.get(order=1, workflow=self.study1.workflow)
-        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1, step_order=step_order_1).exists())
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1,
+                                                      sample_next_step_by_study__study=self.study1,
+                                                      sample_next_step_by_study__step_order=step_order_1).exists())
 
         step_order_2 = StepOrder.objects.get(order=3, workflow=self.study1.workflow)
-        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1, step_order=step_order_2).exists())
+        self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1,
+                                                      sample_next_step_by_study__study=self.study1,
+                                                      sample_next_step_by_study__step_order=step_order_2).exists())
 
         # Test that sample 3 was successfully removed from study
         self.assertFalse(SampleNextStep.objects.filter(sample=self.sample3, studies=self.study2).exists())
