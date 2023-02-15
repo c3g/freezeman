@@ -1,4 +1,4 @@
-import { FMSLabworkProtocol, FMSLabworkStep, FMSLabworkStepSpecification, FMSLabworkSummary } from './fms_api_models'
+import { FMSId, FMSLabworkProtocol, FMSLabworkStep, FMSLabworkStepSpecification, FMSLabworkSummary } from './fms_api_models'
 
 /*
 	Labwork Summary Module
@@ -22,6 +22,7 @@ export interface LabworkStepGroup {
 }
 
 export interface LabworkSummaryStep {
+	id: number
 	name: string
 	count: number
 	specifications: LabworkSummaryStepSpecification[]
@@ -51,6 +52,7 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 
 		const steps = fmsProtocol.steps.map(fmsStep => {
 			const step: LabworkSummaryStep = {
+				id: fmsStep.id,
 				name: fmsStep.name,
 				count: fmsStep.count,
 				specifications: [...fmsStep.step_specifications]
@@ -111,6 +113,9 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 		}		
 
 		result.protocols.push(protocol)
+
+		// TODO : sort the protocols? By which criteria? Ideally it would match the basic
+		// order of steps in the workflows somehow.
 	}
 
 	return result
@@ -136,4 +141,20 @@ function addGroupIfNotEmpty(protocol: LabworkSummaryProtocol, group: LabworkStep
 	if (group.steps.length > 0) {
 		protocol.groups.push(group)
 	}
+}
+
+export function findStepInSummary(summary: LabworkSummary, stepID: FMSId) {
+	for (const protocol of summary.protocols) {
+		for (const group of protocol.groups) {
+			const foundStep = group.steps.find(step => step.id === stepID)
+			if (foundStep) {
+				return {
+					protocol,
+					group,
+					step: foundStep
+				}
+			}
+		}
+	}
+	return undefined
 }

@@ -90,9 +90,10 @@ export interface FMSLabworkProtocol {
 }
 
 export interface FMSLabworkStep {
-    name: string
-    count: number
-    step_specifications: FMSLabworkStepSpecification[]
+    id: FMSId                           // Step ID
+    name: string                        // Step name
+    count: number                       // Number of samples queued at step
+    step_specifications: FMSLabworkStepSpecification[]  // Step specifications
 }
 
 export interface FMSLabworkStepSpecification {

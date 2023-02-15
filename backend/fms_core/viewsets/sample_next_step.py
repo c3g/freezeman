@@ -160,6 +160,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
                     # Add step information to the protocol
                     sample_next_step_by_protocol['protocols'][protocol.id]["steps"].append({
+                        "id": step.id,
                         "name" : step.name, 
                         "count": step_sample_count,
                         "step_specifications": step_specifications

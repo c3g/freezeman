@@ -1,3 +1,4 @@
+import { FLUSH } from 'redux-persist'
 import { processFMSLabworkSummary } from '../../models/labwork_summary'
 import { selectLabworkSummaryState } from '../../selectors'
 import { createNetworkActionTypes } from '../../utils/actions'
@@ -5,6 +6,7 @@ import api from '../../utils/api'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
 export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'
+export const FLUSH_LABWORK_SUMMARY = 'SAMPLE-NEXT-STEP.FLUSH_LABWORK_SUMMARY'
 
 
 export const getLabworkSummary = () => async (dispatch, getState) => {
@@ -37,9 +39,17 @@ export const setHideEmptyProtocols = (hide: boolean) => {
 	}
 }
 
+export const flushLabworkSummary = () => {
+	return {
+		type: FLUSH_LABWORK_SUMMARY
+	}
+}
+
 export default {
 	GET_LABWORK_SUMMARY,
-	HIDE_EMPTY_PROTOCOLS: SET_HIDE_EMPTY_PROTOCOLS,
+	SET_HIDE_EMPTY_PROTOCOLS,
+	FLUSH_LABWORK_SUMMARY,
 	getLabworkSummary,
 	setHideEmptyProtocols,
+	flushLabworkSummary,
 }
