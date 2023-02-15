@@ -41,6 +41,7 @@ from .step import Step
 from .study import Study
 from .sample_next_step import SampleNextStep
 from .study_steporder_by_measurement import StudyStepOrderByMeasurement
+from .sample_next_step_by_study import SampleNextStepByStudy
 
 
 __all__ = [
@@ -85,5 +86,6 @@ __all__ = [
     "Step",
     "Study",
     "SampleNextStep",
+    "SampleNextStepByStudy",
     "StudyStepOrderByMeasurement",
 ]

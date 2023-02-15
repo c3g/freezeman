@@ -724,8 +724,8 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
-    step = StepSerializer(read_only=True, source="step_order.step")
-    step_order_number = serializers.IntegerField(read_only=True, source="step_order.order")
+    step = StepSerializer(read_only=True)
+    studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study", "step_order_number", "step")
+        fields = ("id", "sample", "step", "studies")
