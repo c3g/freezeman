@@ -26,17 +26,16 @@ class ProjectStudyLinkSamplesServicesTestCase(TestCase):
                                                   )
 
         self.project, errors, warnings = create_project(name=self.valid_project_name,
-                                                   principal_investigator=self.principal_investigator,
-                                                   status=self.valid_status,
-                                                   targeted_end_date=self.valid_target_end_date)
+                                                        principal_investigator=self.principal_investigator,
+                                                        status=self.valid_status,
+                                                        targeted_end_date=self.valid_target_end_date)
 
         self.full_sample, errors, warnings = create_full_sample(name=self.valid_sample_name,
-                                                           volume=20,
-                                                           collection_site="TestCollectionSite",
-                                                           container=self.test_container,
-                                                           sample_kind=self.sk_BLOOD,
-                                                           creation_date="2022-01-01"
-                                                           )
+                                                                volume=20,
+                                                                collection_site="TestCollectionSite",
+                                                                container=self.test_container,
+                                                                sample_kind=self.sk_BLOOD,
+                                                                creation_date="2022-01-01")
 
     def test_create_valid_link(self):
         link_created, errors, warnings = create_link(self.full_sample, self.project)

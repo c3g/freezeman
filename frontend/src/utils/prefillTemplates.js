@@ -1,9 +1,8 @@
 import React from "react";
-import {Link} from "react-router-dom";
 
 import PrefillTemplateButton from "../components/PrefillTemplateButton";
 
-import {Button, Menu, Dropdown, Modal} from "antd";
+import {Button, Menu, Dropdown} from "antd";
 import {EditOutlined, ExperimentOutlined, ExportOutlined, PlusOutlined, LinkOutlined, CheckCircleOutlined, DownloadOutlined, SelectOutlined, DotChartOutlined} from "@ant-design/icons";
 
 export const templateIcon = t => {
@@ -27,8 +26,8 @@ export const templateIcon = t => {
 export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, prefills) => {
   const prefillChoiceMenu = (
     <Menu>
-      { prefills && prefills.items && prefills.items.map((prefill, i) =>
-          <Menu.Item key={i.toString()}>
+      { prefills && prefills.items && prefills.items.map((prefill) =>
+          <Menu.Item key={prefill.id.toString()}>
             <PrefillTemplateButton
               style={{border:0}}
               key='export'
@@ -36,7 +35,7 @@ export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, pr
               filename={prefill.description}
               description={prefill.description}
               itemsCount={totalCount}
-              template={i}
+              template={prefill.id}
               icon={(templateIcon(prefill))}
             />
           </Menu.Item>)

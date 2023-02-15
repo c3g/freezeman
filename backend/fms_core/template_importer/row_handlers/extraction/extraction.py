@@ -9,7 +9,7 @@ class ExtractionRowHandler(GenericRowHandler):
         super().__init__()
 
 
-    def process_row_inner(self, source_sample, resulting_sample, process_measurement):
+    def process_row_inner(self, source_sample, resulting_sample, process_measurement, workflow):
         # Containers
         destination_container_dict = resulting_sample['container']
 
@@ -41,6 +41,7 @@ class ExtractionRowHandler(GenericRowHandler):
                                coordinates_destination=resulting_sample['coordinates'],
                                volume_destination=resulting_sample['volume'],
                                source_depleted=check_truth_like(source_sample['depleted']) if source_sample['depleted'] else None,
-                               comment=process_measurement['comment'])
+                               comment=process_measurement['comment'],
+                               workflow=workflow)
         else:
             self.errors['source_sample'] = f"Source sample can't be a pool."

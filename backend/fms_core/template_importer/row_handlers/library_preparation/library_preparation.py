@@ -12,7 +12,7 @@ class LibraryRowHandler(GenericRowHandler):
         super().__init__()
 
     def process_row_inner(self, library_batch_info, source_sample, volume_used,
-                          comment, container, volume, index, strandedness):
+                          comment, container, volume, index, strandedness, workflow):
 
         if not library_batch_info:
             self.errors['library_preparation'] = 'No batch is associated with this library.'
@@ -87,6 +87,7 @@ class LibraryRowHandler(GenericRowHandler):
                                 execution_date=library_info['library_date'],
                                 coordinates_destination=container_coordinates,
                                 volume_destination=volume,
-                                comment=comment)
+                                comment=comment,
+                                workflow=workflow)
         else:
             self.errors['sample_source'] = 'Sample source is needed to prepare a library.'

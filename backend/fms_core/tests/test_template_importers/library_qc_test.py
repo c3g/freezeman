@@ -231,7 +231,7 @@ class LibraryQCTestCase(TestCase):
     def setUp(self) -> None:
         """ Test initialization """
         self.importer = LibraryQCImporter()
-        self.file = APP_DATA_ROOT / "Library_QC_v3_9_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_QC_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.prefill_data()

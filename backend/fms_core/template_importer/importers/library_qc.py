@@ -4,13 +4,14 @@ from collections import defaultdict
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize
 from fms_core.models import PropertyType, Protocol, Process
+from fms_core.services.step import get_step_from_template
 from ._generic import GenericImporter
 from fms_core.templates import LIBRARY_QC_TEMPLATE
 from fms_core.template_importer.row_handlers.library_preparation import LibraryRowHandler, LibraryBatchRowHandler
 from fms_core.template_importer.row_handlers.library_qc.library_qc import LibraryQCRowHandler
 
 
-PROPERTIES_STARTING_INDEX = 5 #TODO verify that this index is correct
+PROPERTIES_STARTING_INDEX = 5
 
 class LibraryQCImporter(GenericImporter):
     SHEETS_INFO = LIBRARY_QC_TEMPLATE['sheets info']
@@ -24,8 +25,8 @@ class LibraryQCImporter(GenericImporter):
         #Get protocol for SampleQC, which is used for samples and libraries
         protocol = Protocol.objects.get(name='Library Quality Control')
 
-         #Preload data
-        self.preloaded_data = {'process': None, 'process_properties': {}}
+        #Preload data
+        self.preloaded_data = {'process': None, 'protocol': protocol, 'process_properties': {}}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=protocol,
                                                                 comment='Library Quality Control (imported from template)')
@@ -40,6 +41,10 @@ class LibraryQCImporter(GenericImporter):
 
     def import_template_inner(self):
         libraries_sheet = self.sheets['LibraryQC']
+
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Add the template to the process
         if self.imported_file is not None:
@@ -78,12 +83,18 @@ class LibraryQCImporter(GenericImporter):
                 'comment': str_cast_and_normalize(row_data['Comment']),
             }
 
+            workflow = {
+                'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                'step': step_by_row_id[row_id]
+            }
+
             library_qc_kwargs = dict(
                 sample_container = sample_container,
                 measures = measures,
                 process = self.preloaded_data['process'],
                 process_measurement = process_measurement,
                 process_measurement_properties = process_measurement_properties,
+                workflow = workflow,
             )
 
             (result, _) = self.handle_row(

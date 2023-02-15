@@ -12,7 +12,7 @@ class LibraryRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, library_batch_info, library_source, volume_used, comment, container, volume):
+    def process_row_inner(self, library_batch_info, library_source, volume_used, comment, container, volume, workflow):
 
         if not library_batch_info:
             self.errors['library_conversion'] = 'No batch is associated with this library.'
@@ -66,6 +66,7 @@ class LibraryRowHandler(GenericRowHandler):
                                     volume_used=volume_used,
                                     volume_destination=volume,
                                     execution_date=library_info['execution_date'],
-                                    comment=comment)
+                                    comment=comment,
+                                    workflow=workflow)
             else:
                 self.errors['library_source'] = 'Library source is needed to convert a library.'
