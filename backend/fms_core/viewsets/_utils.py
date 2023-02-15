@@ -250,7 +250,7 @@ class TemplatePrefillsWithDictMixin(TemplatePrefillsMixin):
             # If the template index is out of bounds or not int-castable, return an error.
             return HttpResponseBadRequest(json.dumps({"detail": f"Template {template_id} not found"}), content_type="application/json")
 
-        queryset = self.filter_queryset(self.get_queryset()).filter(step_order__isnull=False)
+        queryset = self.filter_queryset(self.get_queryset())
         try:
             rows_dicts = self._prepare_prefill_dicts(template, queryset)
             prefilled_template = PrefillTemplateFromDict(template, rows_dicts)
@@ -278,7 +278,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
 
         step_dict = {}
-        for sample_id, step_id in queryset.values_list("sample", "step_order__step").distinct():
+        for sample_id, step_id in queryset.values_list("sample", "step").distinct():
             new_step = False
             sample_row_dict = {}
             batch_row_dict = {}
