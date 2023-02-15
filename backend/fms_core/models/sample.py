@@ -22,7 +22,7 @@ from .derived_sample import DerivedSample
 from .derived_by_sample import DerivedBySample
 from .biosample import Biosample
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, SINGLE_STRANDED, DOUBLE_STRANDED
 from ._utils import add_error as _add_error
 from ._validators import name_validator
 
@@ -141,6 +141,22 @@ class Sample(TrackedModel):
     def quantity_in_ng(self) -> Decimal:
         return self.concentration * self.volume if self.concentration is not None else None
 
+    @property
+    def library_size(self) -> Decimal:
+        return self.derived_samples.first().library.library_size if not self.is_pool and self.is_library else None
+
+    @property
+    def strandedness(self) -> Optional[str]:
+        if self.is_pool: # Pools may contain multiple strandedness
+            return None
+        elif self.is_library:  # Library strandedness is defined during preparation
+            return self.derived_samples.first().library.strandedness
+        elif self.derived_samples.first().biosample.kind.same == "DNA": # Default strandedness of a DNA sample
+            return DOUBLE_STRANDED
+        elif self.derived_samples.first().biosample.kind.same == "RNA": # Default strandedness of an RNA sample
+            return SINGLE_STRANDED
+        else: # Otherwise it is likely a non-extracted sample.
+            return None
 
     # Representations
 
