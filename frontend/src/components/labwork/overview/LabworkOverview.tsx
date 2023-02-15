@@ -11,6 +11,7 @@ const { Title } = Typography
 
 const LabworkOverview = () => {
 	const [loading, setLoading] = useState(false)
+	const [showEmpty, setShowEmpty] = useState(true)
 	const labworkSummaryState = useAppSelector(selectLabworkSummaryState)
 	const dispatch = useAppDispatch()
 
@@ -30,7 +31,7 @@ const LabworkOverview = () => {
 			<AppPageHeader title="Lab Work" />				
 			<PageContent loading={loading} style={{maxWidth: '50rem'} as any}>
 				{labworkSummaryState.summary && 
-					<LabworkOverviewProtocols summary={labworkSummaryState.summary}/>
+					<LabworkOverviewProtocols summary={labworkSummaryState.summary} hideEmptyProtocols={labworkSummaryState.hideEmptyProtocols}/>
 				}
 			</PageContent>
 		</>
