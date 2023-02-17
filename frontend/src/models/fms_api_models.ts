@@ -7,6 +7,8 @@
  * are defined in `frontend_models.ts`.
  */
 
+import { FetchedObject } from "./frontend_models"
+
 /* Error type returned by the API when the frontend sends a bad request (error 400) */
 export interface ApiError {
 	data: {[key: string]: string[]} // Key-value pair, where the value is an array of error messages
@@ -32,7 +34,14 @@ export function mapToFMSId(value: string | number) {
 //
 export type FMSId = number
 
-interface FMSTrackedModel {
+export interface FMSPagedResultsReponse<T> {
+    count: number   // The number of objects returned
+    next?: string   // A url that will fetch the next page of results, or null if there are no more results.
+    prev?: string   // A url that will fetch the previous page of results, or null if there are no more results.
+    results: T[]    // An array of objects that were requested
+}
+
+export interface FMSTrackedModel {
     id: FMSId                           // Unique ID of object in database
     created_at: string                  // Timestamp object was created (eg. "2020-05-22T19:29:44.578672Z")
     created_by: FMSId                   // ID of user that created object
@@ -235,9 +244,10 @@ export interface FMSSampleKind extends FMSTrackedModel {
 }
 
 export interface FMSSampleNextStep extends FMSTrackedModel {
-    sample: FMSId,
-    studies: FMSId[],
-    step: NextStep
+    id: FMSId                           // The SampleNextStep id
+    sample: FMSId,                      // The sample id
+    studies: FMSId[],                   // The studies that include the sample
+    step: NextStep                      // The step definition
 }
 
 // This step definition is specific to the sample-next-step api.
@@ -245,6 +255,7 @@ export interface NextStep {
     id: number                          // Step ID
     name: string                        // Step name
     protocol_id: number                 // Step's protocol id
+    step_specifications: FMSLabworkStepSpecification[]     // Specifications for the step
 }
 
 export interface FMSSequence extends FMSTrackedModel {

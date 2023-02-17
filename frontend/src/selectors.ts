@@ -22,6 +22,7 @@ import { RootState } from "./store"
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
+export const selectLabworkStepsState = (state: RootState) => state.labworkSteps
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
@@ -35,4 +36,6 @@ export const selectStudiesByID = (state: RootState) => state.studies.itemsByID a
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
+
+export const selectPageSize = (state: RootState) => state.pagination.pageSize
 

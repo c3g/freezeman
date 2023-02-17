@@ -22,9 +22,11 @@ import {
 	FMSReferenceGenome,
 	FMSSample,
 	FMSSampleKind,
+	FMSSampleNextStep,
 	FMSSequence,
 	FMSStudy,
 	FMSTaxon,
+	FMSTrackedModel,
 	FMSUser,
 	FMSWorkflow,
 } from './fms_api_models'
@@ -36,8 +38,47 @@ export interface FetchedObject {
 	isLoaded: boolean
 }
 
-export interface ItemsByID<T extends FetchedObject> {
+export interface ItemsByID<T extends FMSTrackedModel> {
 	[key: FMSId]: T
+}
+
+export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsByID<T> {
+	const itemsByID : ItemsByID<T> = {}
+	items.forEach(item => {
+		itemsByID[item.id] = item
+	})
+	return items
+}
+
+
+export interface PagedItems<T extends FMSTrackedModel> {
+	isFetching: boolean
+	error?: any
+	itemsByID: ItemsByID<T>
+	items: FMSId[]
+	totalCount: number
+	filters: {
+		[key : string] : {
+			value: string | {
+				min?: string | number
+				max?: string | number
+			}
+			options?: {
+				exactMatch?: boolean
+				recursiveMatch?: boolean
+			}
+		}
+	}
+	sortBy: {
+		key?: string
+		order?: 'ascend' | 'descend'
+	}
+	page?: {
+		pageNumber?: number		// Move to using page number instead of offset
+		offset?: number
+		limit?: number
+		ignoreError?: string
+	}
 }
 
 
@@ -55,6 +96,7 @@ export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
+export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}
 export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}
 export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
