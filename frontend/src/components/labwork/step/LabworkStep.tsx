@@ -1,4 +1,4 @@
-import { Button, Col, Row, Typography } from 'antd'
+import { Button, Col, Row, Tabs, Typography } from 'antd'
 import React from 'react'
 import { Protocol } from '../../../models/frontend_models'
 import { LabworkSummaryStep } from '../../../models/labwork_summary'
@@ -31,7 +31,15 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 				</Row>
 			</AppPageHeader>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.displayedSamples}/>
+				<Tabs defaultActiveKey='samples'>
+					<Tabs.TabPane tab='Samples' key='samples'>
+						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.displayedSamples}/>
+					</Tabs.TabPane>
+					<Tabs.TabPane tab='Selection' key='selection'>
+						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.selectedSamples}/>
+					</Tabs.TabPane>
+				</Tabs>
+				<Button type='primary'>Prefill Template</Button>
 			</PageContent>
 		</>
 	)
