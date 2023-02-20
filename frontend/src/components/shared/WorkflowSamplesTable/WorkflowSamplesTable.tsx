@@ -1,4 +1,4 @@
-import { Table } from 'antd'
+import { Table, TableColumnsType, TableColumnType } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import React, { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
@@ -12,7 +12,7 @@ import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
 
 interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
-function getColumnsForStep(stepName: string, protocol: Protocol): ColumnsType<SampleAndLibrary> {
+function getColumnsForStep(stepName: string, protocol: Protocol): TableColumnsType<SampleAndLibrary> {
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
@@ -122,17 +122,21 @@ interface WorkflowSamplesTableProps {
 	sampleIDs: FMSId[]
 	stepName: string
 	protocol: Protocol
+	prefixColumn?: TableColumnType<any>		// This allow us to insert a custom column as the firt column in the table - used for selection checkboxes.
 }
 
 // TODO port StudySamples component to use this table.
-function WorkflowSamplesTable({sampleIDs, stepName, protocol} : WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({sampleIDs, stepName, protocol, prefixColumn} : WorkflowSamplesTableProps) {
 
-	const [samples, setSamples] = useState<SampleAndLibrary[]>()
+	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 
 	const columns = getColumnsForStep(stepName, protocol)
+	if (prefixColumn) {
+		columns.unshift(prefixColumn)
+	}
 
 	useEffect(() => {
 		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
@@ -149,7 +153,7 @@ function WorkflowSamplesTable({sampleIDs, stepName, protocol} : WorkflowSamplesT
 		}, [] as SampleAndLibrary[])
 
 		setSamples(availableSamples)
-	}, [samplesByID, librariesByID])
+	}, [samplesByID, librariesByID, sampleIDs])
 	
 	return (
 		<Table

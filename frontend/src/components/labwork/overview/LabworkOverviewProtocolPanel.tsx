@@ -4,13 +4,14 @@ import LabworkOverviewStepGroup from './LabworkOverviewStepGroup'
 
 export interface LabworkProtocolPanelProps {
 	readonly protocol: LabworkSummaryProtocol
+	readonly hideEmptySteps: boolean
 }
 
-const LabworkOverviewProtocolPanel = ({ protocol }: LabworkProtocolPanelProps) => {
+const LabworkOverviewProtocolPanel = ({ protocol, hideEmptySteps }: LabworkProtocolPanelProps) => {
 	return (
 		<>
 			{protocol.groups.map((group) => (
-				<LabworkOverviewStepGroup key={`${protocol.name}-${group.name ?? 'default'}`} group={group} />
+				<LabworkOverviewStepGroup key={`${protocol.name}-${group.name ?? 'default'}`} group={group} hideEmptySteps={hideEmptySteps}/>
 			))}
 		</>
 	)

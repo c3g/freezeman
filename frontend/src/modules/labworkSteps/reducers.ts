@@ -125,6 +125,38 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { meta, error } = action
 			return handleListError(state, meta.stepID, error)
 		}
+		case ACTIONS.SELECT_SAMPLES: {
+			const { stepID, sampleIDs } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if(!stepSamples) {
+				return state
+			}
+			const newSelection = [...stepSamples.selectedSamples]
+			sampleIDs.forEach(id => {
+				if (!newSelection.includes(id)) {
+					newSelection.push(id)
+				}
+			})
+
+			const newStepSamples : LabworkStepSamples = {
+				...stepSamples,
+				selectedSamples: newSelection
+			}
+			return updateStepSamples(state, newStepSamples)
+		}
+		case ACTIONS.DESELECT_SAMPLES: {
+			const { stepID, sampleIDs } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if(!stepSamples) {
+				return state
+			}
+			const newSelection = [...stepSamples.selectedSamples].filter(id => !sampleIDs.includes(id))
+			const newStepSamples : LabworkStepSamples = {
+				...stepSamples,
+				selectedSamples: newSelection
+			}
+			return updateStepSamples(state, newStepSamples)
+		}
 		case ACTIONS.FLUSH_SAMPLES_AT_STEP: {
 			const { stepID } = action
 			const newState = {

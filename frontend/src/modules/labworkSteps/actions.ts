@@ -18,9 +18,11 @@ import { selectPageSize } from "../../selectors"
 //	Deselect all samples
 
 const LIST = createNetworkActionTypes('LABWORK_STEP')
+const SELECT_SAMPLES = 'SAMPLES_AT_STEP:SELECT_SAMPLES'
+const DESELECT_SAMPLES = 'SAMPLES_AT_STEP:DESELECT_SAMPLES'
 const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 
-function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
+export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
 		// Get the next page of SampleNextSteps 
 		const limit = selectPageSize(getState())
@@ -44,7 +46,23 @@ function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	}
 }
 
-function flushSamplesAtStep(stepID: FMSId) {
+export function selectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+	return {
+		type: SELECT_SAMPLES,
+		stepID,
+		sampleIDs
+	}
+}
+
+export function deselectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+	return {
+		type: DESELECT_SAMPLES,
+		stepID,
+		sampleIDs
+	}
+}
+
+export function flushSamplesAtStep(stepID: FMSId) {
 	return {
 		type: FLUSH_SAMPLES_AT_STEP,
 		stepID
@@ -53,7 +71,11 @@ function flushSamplesAtStep(stepID: FMSId) {
 
 export default {
 	LIST,
+	SELECT_SAMPLES,
+	DESELECT_SAMPLES,
 	FLUSH_SAMPLES_AT_STEP,
 	loadSamplesAtStep,
+	selectStepSamples,
+	deselectStepSamples,
 	flushSamplesAtStep,
 }

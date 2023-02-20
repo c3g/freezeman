@@ -18,9 +18,16 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 	// If hideEmptyProtocols is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
 	let protocols = summary.protocols
+
+	// Sort protocols by name (the endpoint returns them in random order)
+	protocols = protocols.sort((a, b) => a.name.localeCompare(b.name))
+
 	if (hideEmptyProtocols) {
 		protocols = protocols.filter(protocol => protocol.count > 0)
 	}
+
+
+
 	return (
 		<>
 			<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -31,7 +38,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 				{protocols.map((protocol) => {
 					return (
 						<Collapse.Panel key={protocol.id} header={protocol.name} extra={<Title level={4}>{protocol.count}</Title>}>
-							<LabworkOverviewProtocolPanel protocol={protocol} />
+							<LabworkOverviewProtocolPanel protocol={protocol} hideEmptySteps={hideEmptyProtocols}/>
 						</Collapse.Panel>
 					)
 				})}
