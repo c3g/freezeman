@@ -96,8 +96,6 @@ def initialize_workflows(apps, schema_editor):
          "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "MCC"}]},
         {"name": "Library Capture (Exome)", "protocol_name": "Library Capture",
          "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Exome"}]},
-        {"name": "Library Capture (Panel)", "protocol_name": "Library Capture",
-         "specifications": [{"display_name": "Capture Type", "sheet_name": "Capture Batch", "column_name": "Capture Type", "value": "Panel"}]},
     ]
 
     WORKFLOWS = [
@@ -111,9 +109,7 @@ def initialize_workflows(apps, schema_editor):
         # Basic DNBSEQ
         ("PCR-free DNBSEQ", "Basic DNBSEQ", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, DNBSEQ)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run DNBSEQ"]),
         # Capture Illumina
-        ("PCR-free Capture Panel Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-free, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("PCR-enriched Capture Exome Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Exome)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
-        ("PCR-enriched Capture Panel Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (PCR-enriched, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (Panel)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         ("WGBS Capture MCC Illumina", "Capture Illumina", ["Extraction (DNA)", "Sample QC", "Normalization (Sample)", "Library Preparation (WGBS, Illumina)", "Library QC", "Normalization (Library)", "Pooling", "Library Capture (MCC)", "Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
         # Ready-to-Sequence
         ("Ready-to-Sequence Illumina", "Ready-to-Sequence", ["Library QC", "Normalization (Library)", "Pooling", "Experiment Run Illumina"]),
