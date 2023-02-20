@@ -233,10 +233,16 @@ export interface FMSSampleKind extends FMSTrackedModel {
     molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
 }
 
-export interface FMSSampleNextStep extends FMSTrackedModel {
+export interface FMSSampleNextStepByStudy extends FMSTrackedModel {
     sample: FMSId,
-    studies: FMSId[],
-    step: NextStep
+    study: FMSId,
+    step_order: FMSId
+}
+
+export interface FMSSampleNextStep extends FMSTrackedModel {
+  sample: FMSId,
+  studies: FMSId[],
+  step: NextStep
 }
 
 // This step definition is specific to the sample-next-step api.

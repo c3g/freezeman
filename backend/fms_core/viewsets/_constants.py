@@ -276,3 +276,18 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "studies__id": PK_FILTERS,
     **_prefix_keys("step__", _step_filterset_fields),
 }
+
+_step_order_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "next_step_order__id": PK_FILTERS,
+    "order": SCALAR_FILTERS,
+    **_prefix_keys("step__", _step_filterset_fields),
+    **_prefix_keys("workflow__", _workflow_filterset_fields),
+}
+
+_sample_next_step_by_study_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    **_prefix_keys("study__", _study_filterset_fields),
+    **_prefix_keys("step_order__", _step_order_filterset_fields),
+    **_prefix_keys("sample_next_step__", _sample_next_step_filterset_fields),
+}
