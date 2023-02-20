@@ -1,5 +1,5 @@
 import { Button, Checkbox, Col, Row, TableColumnType, Tabs, Typography } from 'antd'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol } from '../../../models/frontend_models'
@@ -48,18 +48,18 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 	const samplesCheckboxColumn = createSelectionColumn()
 	const selectionCheckboxColumn = createSelectionColumn()
 
+	function handlePrefillTemplate() {
+		// Generate a prefilled template containing the list of selected values.
+		// If successful, flush the current selection?
+	}
+
 	return (
 		<>
 			<AppPageHeader title={protocol.name}>
-				<Row>
-					<Col span={6}>
-						<Title level={5}>{`(${step.name})`}</Title>
-					</Col>
-					<Col span={12}></Col>
-					<Col span={6} >
-						<Button type='primary'>Submit Template</Button>
-					</Col>
-				</Row>
+				<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
+					<Title level={5}>{`${step.name}`}</Title>
+					<Button type='primary'>Submit Template</Button>
+				</div>
 			</AppPageHeader>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey='samples'>
@@ -70,7 +70,11 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.selectedSamples} prefixColumn={selectionCheckboxColumn}/>
 					</Tabs.TabPane>
 				</Tabs>
-				<Button type='primary'>Prefill Template</Button>
+				<div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: '1em'}}>
+					<Button type='primary' disabled={stepSamples.selectedSamples.length === 0} onClick={handlePrefillTemplate}>Prefill Template</Button>
+					<Text>{`${stepSamples.selectedSamples.length} selected`}</Text>
+				</div>
+				
 			</PageContent>
 		</>
 	)
