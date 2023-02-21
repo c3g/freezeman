@@ -4,6 +4,7 @@ import Sample from "../samples/actions.js"
 import api from "../../utils/api"
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import { selectPageSize } from "../../selectors"
+import { LabworkPrefilledTemplateDescriptor } from "./models"
 
 // Actions
 // 	Set step and template info
@@ -21,6 +22,8 @@ const LIST = createNetworkActionTypes('LABWORK_STEP')
 const SELECT_SAMPLES = 'SAMPLES_AT_STEP:SELECT_SAMPLES'
 const DESELECT_SAMPLES = 'SAMPLES_AT_STEP:DESELECT_SAMPLES'
 const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
+const LIST_TEMPLATES = createNetworkActionTypes('SAMPLES_AT_STEP:LOAD_TEMPLATES')
+
 
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
@@ -45,6 +48,20 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 		}
 	}
 }
+
+export function listTemplates(stepID: FMSId, protocolID: FMSId) {
+	return async (dispatch, getState) => {
+		const options = {
+			meta: {
+				stepID,
+				protocolID,
+			}
+		}
+		const response : LabworkPrefilledTemplateDescriptor[] = await dispatch(networkAction(LIST_TEMPLATES, api.sampleNextStep.prefill.templates(protocolID), options))
+		return response
+	}
+}
+
 
 export function selectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 	return {
@@ -74,8 +91,10 @@ export default {
 	SELECT_SAMPLES,
 	DESELECT_SAMPLES,
 	FLUSH_SAMPLES_AT_STEP,
+	LIST_TEMPLATES,
 	loadSamplesAtStep,
 	selectStepSamples,
 	deselectStepSamples,
 	flushSamplesAtStep,
+	listTemplates,
 }

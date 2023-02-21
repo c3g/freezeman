@@ -9,6 +9,10 @@ import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { selectStepSamples, deselectStepSamples } from '../../../modules/labworkSteps/actions'
+import api from '../../../utils/api'
+import { downloadFromFile } from '../../../utils/download'
+import { buildSubmitTemplatesURL } from '../../../modules/labworkSteps/services'
+import { useNavigate } from 'react-router-dom'
 
 const { Title, Text } = Typography
 
@@ -22,6 +26,7 @@ interface LabworkStepPageProps {
 const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPageProps) => {
 
 	const dispatch = useAppDispatch()
+	const navigate = useNavigate()
 
 	function createSelectionColumn() {
 		// Add a special "Selected" column  
@@ -48,9 +53,40 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 	const samplesCheckboxColumn = createSelectionColumn()
 	const selectionCheckboxColumn = createSelectionColumn()
 
-	function handlePrefillTemplate() {
+	const canPrefill = stepSamples.prefill.templates.length > 0 && stepSamples.selectedSamples.length > 0
+	async function handlePrefillTemplate() {
 		// Generate a prefilled template containing the list of selected values.
 		// If successful, flush the current selection?
+		// TODO : support user selected templates
+		if (stepSamples.prefill.templates.length === 0) {
+			return
+		}
+		const templateDescriptor = stepSamples.prefill.templates[0]
+
+		try {
+			const result = await dispatch(api.sampleNextStep.prefill.request(templateDescriptor.id, step.id, stepSamples.selectedSamples))
+			if (result) {
+				downloadFromFile(result.filename, result.data)
+			}
+		} catch(err) {
+			console.error(err)
+		}
+	}
+
+	const x = () =>{
+		return 'a'
+	}
+
+
+
+	// TODO support multiple templates...
+	const submitTemplateUrl = stepSamples.prefill.templates.length ? buildSubmitTemplatesURL(protocol, stepSamples.prefill.templates[0]) : undefined
+	const canSubmit = !!submitTemplateUrl
+
+	function handleSubmitTemplate() {
+		if (submitTemplateUrl) {
+			navigate(submitTemplateUrl)
+		}
 	}
 
 	return (
@@ -58,7 +94,7 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 			<AppPageHeader title={protocol.name}>
 				<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
 					<Title level={5}>{`${step.name}`}</Title>
-					<Button type='primary'>Submit Template</Button>
+					<Button type='primary' disabled={!canSubmit} onClick={handleSubmitTemplate}>Submit Template</Button>
 				</div>
 			</AppPageHeader>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
@@ -71,7 +107,7 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 					</Tabs.TabPane>
 				</Tabs>
 				<div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: '1em'}}>
-					<Button type='primary' disabled={stepSamples.selectedSamples.length === 0} onClick={handlePrefillTemplate}>Prefill Template</Button>
+					<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate}>Prefill Template</Button>
 					<Text>{`${stepSamples.selectedSamples.length} selected`}</Text>
 				</div>
 				

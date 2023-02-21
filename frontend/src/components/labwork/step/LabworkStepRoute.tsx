@@ -50,6 +50,12 @@ const LabworkStepRoute = (props: {}) => {
 		}
 	}, [labworkStepsState])
 
+	useEffect(() => {
+		if (stepID && protocol && labworkStepSamples &&  labworkStepSamples.prefill.templates.length === 0 && !labworkStepSamples.prefill.isFetching && !labworkStepSamples.prefill.error) {
+			dispatch(LABWORK_STEPS_ACTIONS.listTemplates(stepID, protocol.id))
+		}
+	}, [labworkStepsState, labworkStepSamples])
+
 	return (
 		stepID && labworkSummaryState && step && protocol && labworkStepSamples &&
 		<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples} loading={labworkSummaryState.isFetching}/>

@@ -43,6 +43,10 @@ function handleListRequest(state: LabworkStepsState, stepID: FMSId): LabworkStep
 			},
 			displayedSamples: [],
 			selectedSamples: [],
+			prefill: {
+				isFetching: false,
+				templates: []
+			}
 		}
 	} else {
 		stepSamples = {
@@ -124,6 +128,49 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 		case ACTIONS.LIST.ERROR: {
 			const { meta, error } = action
 			return handleListError(state, meta.stepID, error)
+		}
+		case ACTIONS.LIST_TEMPLATES.REQUEST: {
+			const { stepID } = action.meta
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				state = updateStepSamples(state, {
+					...stepSamples,
+					prefill: {
+						isFetching: true,
+						templates: [],
+					}
+				})
+			}
+			return state
+		}
+		case ACTIONS.LIST_TEMPLATES.RECEIVE: {
+			const { stepID } = action.meta
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				state = updateStepSamples(state, {
+					...stepSamples,
+					prefill: {
+						isFetching: false,
+						templates: [...action.data],
+					}
+				})
+			}
+			return state
+		}
+		case ACTIONS.LIST_TEMPLATES.ERROR: {
+			const { stepID } = action.meta
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				state = updateStepSamples(state, {
+					...stepSamples,
+					prefill: {
+						isFetching: false,
+						templates: [],
+						error: action.error
+					}
+				})
+			}
+			return state
 		}
 		case ACTIONS.SELECT_SAMPLES: {
 			const { stepID, sampleIDs } = action
