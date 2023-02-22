@@ -208,6 +208,7 @@ class SampleRowHandler(GenericRowHandler):
             "experimental_group": sample['experimental_group'],
             "library": library_obj,
             "project": project_obj,
+            "study": study_obj,
             # Pool relation info
             "volume": sample['volume'],
         }

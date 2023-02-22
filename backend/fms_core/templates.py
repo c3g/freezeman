@@ -368,10 +368,9 @@ SAMPLE_SUBMISSION_TEMPLATE = {
       },
       {
           "name": "PoolSubmission",
-          "headers": ["Pool Name", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord",
-                      "Location Barcode", "Container Coord", "Seq Instrument Type",
-                      "Reception (YYYY-MM-DD)", "Comment"],
+          "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
+                      "Container Barcode", "Pool Coord", "Location Barcode", 
+                      "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },
