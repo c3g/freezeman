@@ -210,8 +210,12 @@ const api = {
   },
 
   sampleNextStep: {
-    getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
     labworkSummary: () => get('/sample-next-step/labwork_info/')
+  },
+
+  sampleNextStepByStudy: {
+    getStudySamples: (studyId) => get('/sample-next-step-by-study/', {study__id__in : studyId}),
+    remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
 
   sequences: {
@@ -337,6 +341,9 @@ function patch(route, body, options) {
   return apiFetch('PATCH', route, body, options);
 }
 
+function remove(route, body, options) {
+  return apiFetch('DELETE', route, body, options);
+}
 
 function createAPIError(response) {
   let data = response.data;

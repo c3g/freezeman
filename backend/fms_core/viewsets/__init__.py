@@ -33,6 +33,7 @@ from .reference_genome import ReferenceGenomeViewSet
 from .study import StudyViewSet
 from .sample_next_step import SampleNextStepViewSet
 from .step import StepViewSet
+from .sample_next_step_by_study import SampleNextStepByStudyViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -70,4 +71,5 @@ __all__ = [
     "StudyViewSet",
     "SampleNextStepViewSet",
     "StepViewSet",
+    "SampleNextStepByStudyViewSet",
 ]
