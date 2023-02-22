@@ -95,22 +95,14 @@ export interface FMSLabworkSummary {
 export interface FMSLabworkProtocol {
     name: string                        // Name of protocol
     count: number                       // Total number of samples waiting for protocol
-    steps: FMSLabworkStep[]      // The steps based on the protocol which have at least one sample waiting
+    steps: FMSLabworkStep[]             // The steps based on the protocol which have at least one sample waiting
 }
 
 export interface FMSLabworkStep {
     id: FMSId                           // Step ID
     name: string                        // Step name
     count: number                       // Number of samples queued at step
-    step_specifications: FMSLabworkStepSpecification[]  // Step specifications
-}
-
-export interface FMSLabworkStepSpecification {
-    id: number,                         // Step specification object id
-    display_name: string                // Display name for user
-    sheet_name: string                  // Template where this value is used
-    column_name: string                 // Column where the value would appear in template
-    value: string                       // String value
+    step_specifications: FMSStepSpecification[]  // Step specifications
 }
 
 export interface FMSLibrary extends FMSTrackedModel {
@@ -244,18 +236,22 @@ export interface FMSSampleKind extends FMSTrackedModel {
 }
 
 export interface FMSSampleNextStep extends FMSTrackedModel {
-    id: FMSId                           // The SampleNextStep id
     sample: FMSId,                      // The sample id
     studies: FMSId[],                   // The studies that include the sample
-    step: NextStep                      // The step definition
+    step: FMSStep                      // The step definition
 }
 
-// This step definition is specific to the sample-next-step api.
-export interface NextStep {
-    id: number                          // Step ID
-    name: string                        // Step name
-    protocol_id: number                 // Step's protocol id
-    step_specifications: FMSLabworkStepSpecification[]     // Specifications for the step
+export interface FMSStep extends FMSTrackedModel {
+    name: string
+    protocol_id: FMSId
+    step_specifications: FMSStepSpecification[]
+}
+
+export interface FMSStepSpecification extends FMSTrackedModel {
+    display_name: string
+    sheet_name: string
+    column_name: string
+    value: string
 }
 
 export interface FMSSequence extends FMSTrackedModel {

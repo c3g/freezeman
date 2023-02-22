@@ -4,7 +4,7 @@ import Sample from "../samples/actions.js"
 import api from "../../utils/api"
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import { selectPageSize } from "../../selectors"
-import { LabworkPrefilledTemplateDescriptor } from "./models"
+import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from "./models"
 
 // Actions
 // 	Set step and template info
@@ -18,12 +18,20 @@ import { LabworkPrefilledTemplateDescriptor } from "./models"
 //	Select all samples
 //	Deselect all samples
 
+const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 const LIST = createNetworkActionTypes('LABWORK_STEP')
 const SELECT_SAMPLES = 'SAMPLES_AT_STEP:SELECT_SAMPLES'
 const DESELECT_SAMPLES = 'SAMPLES_AT_STEP:DESELECT_SAMPLES'
 const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 const LIST_TEMPLATES = createNetworkActionTypes('SAMPLES_AT_STEP:LOAD_TEMPLATES')
 
+
+// Initialize the redux state for samples at step
+export function initSamplesAtStep(stepID: FMSId) {
+	return async (dispath, getState) => {
+		 
+	}
+}
 
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {

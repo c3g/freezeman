@@ -1,10 +1,10 @@
-import { Button, Checkbox, Col, Row, TableColumnType, Tabs, Typography } from 'antd'
-import React, { useMemo, useState } from 'react'
+import { Button, Checkbox, Col, Row, Select, TableColumnType, Tabs, Typography } from 'antd'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol } from '../../../models/frontend_models'
 import { LabworkSummaryStep } from '../../../models/labwork_summary'
-import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
@@ -23,11 +23,18 @@ interface LabworkStepPageProps {
 	loading: boolean
 }
 
-const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPageProps) => {
+interface SelectedTemplate {
+	template: LabworkPrefilledTemplateDescriptor
+	submissionURL?: string
+}
 
+const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPageProps) => {
+	const [currentError, setCurrentError] = useState<string>()
+	const [selectedTemplate, setSelectedTemplate] = useState<SelectedTemplate>()
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
+	// Create the selection checkbox columns for the two tables
 	function createSelectionColumn() {
 		// Add a special "Selected" column  
 		const selectionColumn : TableColumnType<any> = {
@@ -49,45 +56,47 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 		}
 		return selectionColumn
 	}
-
 	const samplesCheckboxColumn = createSelectionColumn()
 	const selectionCheckboxColumn = createSelectionColumn()
 
-	const canPrefill = stepSamples.prefill.templates.length > 0 && stepSamples.selectedSamples.length > 0
-	async function handlePrefillTemplate() {
-		// Generate a prefilled template containing the list of selected values.
-		// If successful, flush the current selection?
-		// TODO : support user selected templates
-		if (stepSamples.prefill.templates.length === 0) {
-			return
-		}
-		const templateDescriptor = stepSamples.prefill.templates[0]
-
-		try {
-			const result = await dispatch(api.sampleNextStep.prefill.request(templateDescriptor.id, step.id, stepSamples.selectedSamples))
-			if (result) {
-				downloadFromFile(result.filename, result.data)
+	// Set the currently selected template to the first template available, not already set.
+	useEffect(() => {
+		if(!selectedTemplate) {
+			if (stepSamples.prefill.templates.length > 0) {
+				const template = stepSamples.prefill.templates[0]
+				const submissionURL = buildSubmitTemplatesURL(protocol, template)
+				setSelectedTemplate({template, submissionURL})
 			}
-		} catch(err) {
-			console.error(err)
+		}
+	}, [stepSamples])
+
+	// Handle the prefill template button
+	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
+
+	async function handlePrefillTemplate() {
+		// Generate a prefilled template containing the list of selected values.		
+		if (selectedTemplate) {
+			try {
+				const result = await dispatch(api.sampleNextStep.prefill.request(selectedTemplate.template.id, step.id, stepSamples.selectedSamples))
+				if (result) {
+					downloadFromFile(result.filename, result.data)
+				}
+			} catch(err) {
+				console.error(err)
+			}
 		}
 	}
-
-	const x = () =>{
-		return 'a'
-	}
-
-
-
-	// TODO support multiple templates...
-	const submitTemplateUrl = stepSamples.prefill.templates.length ? buildSubmitTemplatesURL(protocol, stepSamples.prefill.templates[0]) : undefined
-	const canSubmit = !!submitTemplateUrl
+	
+	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
 	function handleSubmitTemplate() {
-		if (submitTemplateUrl) {
-			navigate(submitTemplateUrl)
+		if (selectedTemplate && selectedTemplate.submissionURL) {
+			navigate(selectedTemplate.submissionURL)
 		}
 	}
+
+	// Display the number of selected samples in the tab title
+	const selectedTabTitle= `Selection (${stepSamples.selectedSamples.length})`
 
 	return (
 		<>
@@ -102,13 +111,35 @@ const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPagePr
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.displayedSamples} prefixColumn={samplesCheckboxColumn}/>
 					</Tabs.TabPane>
-					<Tabs.TabPane tab='Selection' key='selection'>
+					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
 						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.selectedSamples} prefixColumn={selectionCheckboxColumn}/>
 					</Tabs.TabPane>
 				</Tabs>
 				<div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: '1em'}}>
 					<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate}>Prefill Template</Button>
-					<Text>{`${stepSamples.selectedSamples.length} selected`}</Text>
+					{stepSamples.prefill.templates.length > 1 &&
+						<Select 
+							defaultActiveFirstOption
+							style={{width: '24em'}}
+							value={selectedTemplate?.template.id ?? 0}
+							options={stepSamples.prefill.templates.map(template => {
+								return {
+									value: template.id,
+									label: template.description
+								}
+							})}
+							onChange={value => {
+								const template = stepSamples.prefill.templates.find(template => template.id === value)
+								if (template) {
+									const submissionURL = buildSubmitTemplatesURL(protocol, template)
+									setSelectedTemplate({
+										template, submissionURL
+									})
+								}
+							}}
+						/>
+					}
+					<Text>{`${stepSamples.selectedSamples.length} samples selected`}</Text>
 				</div>
 				
 			</PageContent>

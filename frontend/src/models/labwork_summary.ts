@@ -1,4 +1,4 @@
-import { FMSId, FMSLabworkProtocol, FMSLabworkStep, FMSLabworkStepSpecification, FMSLabworkSummary } from './fms_api_models'
+import { FMSId, FMSLabworkProtocol, FMSStep, FMSStepSpecification, FMSLabworkSummary } from './fms_api_models'
 
 /*
 	Labwork Summary Module
@@ -22,13 +22,11 @@ export interface LabworkStepGroup {
 }
 
 export interface LabworkSummaryStep {
-	id: number
-	name: string
-	count: number
-	specifications: LabworkSummaryStepSpecification[]
+	id: number						// Step ID
+	name: string					// Step name
+	count: number					// Number of samples at step
+	specifications: FMSStepSpecification[]	// Step specifications
 }
-
-export interface LabworkSummaryStepSpecification extends FMSLabworkStepSpecification {}
 
 /**
  * Processes the labwork summary data received from the backend, adding step grouping.

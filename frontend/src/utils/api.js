@@ -224,6 +224,10 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  steps: {
+    list: (options, abort) => get('/steps/', options, { abort} ),
+  },
+
   studies: {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
