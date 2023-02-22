@@ -1,64 +1,70 @@
-import { Typography } from 'antd'
-import React, { useEffect } from 'react'
+import { Spin, Typography } from 'antd'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
-import { findStepInSummary, LabworkSummaryProtocol, LabworkSummaryStep } from '../../../models/labwork_summary'
-import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
-import { selectLabworkStepsState, selectLabworkSummaryState, selectProtocolsByID } from '../../../selectors'
-import LabworkStep from './LabworkStep'
+import { Protocol, Step } from '../../../models/frontend_models'
 import LABWORK_STEPS_ACTIONS from '../../../modules/labworkSteps/actions'
-import { FMSId } from '../../../models/fms_api_models'
-import { Protocol } from '../../../models/frontend_models'
+import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import { selectLabworkStepsState, selectLabworkSummaryState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
+import LabworkStep from './LabworkStep'
 
 const { Title } = Typography
 
-// The page that lists the samples ready for processing by a given
-// protocol and allows the user to select the samples and generate
-// a prefilled template.
-
+/* 
+	LabworkStepRoute is responsible for loading all of the labwork step samples
+	data. Once loaded, it renders a LabworkStep component to display the data.
+*/
 const LabworkStepRoute = (props: {}) => {
 	const stepIDParam = useParams().stepID
 	const labworkSummaryState = useAppSelector(selectLabworkSummaryState)
 	const labworkStepsState = useAppSelector(selectLabworkStepsState)
 	const protocolsByID = useAppSelector(selectProtocolsByID)
+	const stepsByID = useAppSelector(selectStepsByID)
 	const dispatch = useAppDispatch()
 
-	let stepID: FMSId | undefined
-	let step: LabworkSummaryStep | undefined
-	let protocol: Protocol | undefined
-	let labworkStepSamples: LabworkStepSamples | undefined
+	const [step, setStep] = useState<Step>()
+	const [protocol, setProtocol] = useState<Protocol>()
+	const [labworkStepSamples, setLabworkStepSamples] = useState<LabworkStepSamples>()
 
-	if (stepIDParam) {
-		stepID = parseInt(stepIDParam)
-		if (labworkSummaryState.summary) {
-			// Find the protocol containing the step
-			const result = findStepInSummary(labworkSummaryState.summary, stepID)
-			if (result) {
-				step = result.step
-				protocol = protocolsByID[result.protocol.id]
+	// Bail if the step ID is missing from the URL - there's a problem.
+	if(!stepIDParam) {
+		console.error(`stepID parameter is missing from step page url`)
+		return null
+	}
+	const stepID = parseInt(stepIDParam)
+
+	useEffect(() => {
+		if(! step) {
+			const foundStep = stepsByID[stepID]
+			if(foundStep) {
+				setStep(foundStep)
 			}
 		}
-	}
+	}, [stepsByID])
 
-	if (stepID) {
-		labworkStepSamples = labworkStepsState.steps[stepID]
-	}
+	useEffect(() => {
+		if(step && !protocol) {
+			const foundProtocol = protocolsByID[step.protocol_id]
+			if(foundProtocol) {
+				setProtocol(foundProtocol)
+			}
+		}
+	}, [step, protocolsByID])
 	
 	useEffect(() => {
-		if (stepID && !labworkStepSamples) {
-			dispatch(LABWORK_STEPS_ACTIONS.loadSamplesAtStep(stepID, 1))
+		if(step && protocol) {
+			const foundLabwork = labworkStepsState.steps[stepID]
+			if(foundLabwork) {
+				setLabworkStepSamples(foundLabwork)
+			} else {
+				dispatch(LABWORK_STEPS_ACTIONS.initSamplesAtStep(stepID))
+			}
 		}
-	}, [labworkStepsState])
-
-	useEffect(() => {
-		if (stepID && protocol && labworkStepSamples &&  labworkStepSamples.prefill.templates.length === 0 && !labworkStepSamples.prefill.isFetching && !labworkStepSamples.prefill.error) {
-			dispatch(LABWORK_STEPS_ACTIONS.listTemplates(stepID, protocol.id))
-		}
-	}, [labworkStepsState, labworkStepSamples])
+	}, [step, protocol, labworkStepsState])
 
 	return (
-		stepID && labworkSummaryState && step && protocol && labworkStepSamples &&
-		<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples} loading={labworkSummaryState.isFetching}/>
+		step && protocol && labworkStepSamples &&
+		<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples}/>
 	)	
 }
 

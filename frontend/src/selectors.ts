@@ -32,6 +32,7 @@ export const selectSamplesByID = (state: RootState) => state.samples.itemsByID a
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesById as StudySamplesByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
+export const selectStepsByID = (state: RootState) => state.steps.itemsByID
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>

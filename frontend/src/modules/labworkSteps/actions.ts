@@ -3,7 +3,7 @@ import Sample from "../samples/actions.js"
 
 import api from "../../utils/api"
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
-import { selectPageSize } from "../../selectors"
+import { selectPageSize, selectProtocolsByID, selectStepsByID } from "../../selectors"
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from "./models"
 
 // Actions
@@ -23,13 +23,39 @@ const LIST = createNetworkActionTypes('LABWORK_STEP')
 const SELECT_SAMPLES = 'SAMPLES_AT_STEP:SELECT_SAMPLES'
 const DESELECT_SAMPLES = 'SAMPLES_AT_STEP:DESELECT_SAMPLES'
 const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
-const LIST_TEMPLATES = createNetworkActionTypes('SAMPLES_AT_STEP:LOAD_TEMPLATES')
+// const LIST_TEMPLATES = createNetworkActionTypes('SAMPLES_AT_STEP:LOAD_TEMPLATES')
 
 
 // Initialize the redux state for samples at step
 export function initSamplesAtStep(stepID: FMSId) {
-	return async (dispath, getState) => {
-		 
+	return async (dispatch, getState) => { 
+		const stepsByID = selectStepsByID(getState())
+		const protocolsByID = selectProtocolsByID(getState())
+
+		const step = stepsByID[stepID]
+		if (!step) {
+			throw Error(`Step with ID ${stepID} could not be found in store.`)
+		}
+
+		const protocol = protocolsByID[step.protocol_id]
+		if(! protocol) {
+			throw Error(`Protocol with ID ${step.protocol_id} from step ${step.name} could not be found in store.`)
+		} 
+
+		const templates = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
+		if (templates && templates.data.length > 0) {
+			// dispatch an action to init the state for this step
+			await dispatch({
+				type: INIT_SAMPLES_AT_STEP,
+				stepID,
+				templates
+			})
+
+			await dispatch(loadSamplesAtStep(stepID, 1))
+		} else {
+			throw Error(`Failed to fetch templates for step ${step.name} and protocol ${protocol.name}`)
+		}
+
 	}
 }
 
@@ -57,18 +83,18 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	}
 }
 
-export function listTemplates(stepID: FMSId, protocolID: FMSId) {
-	return async (dispatch, getState) => {
-		const options = {
-			meta: {
-				stepID,
-				protocolID,
-			}
-		}
-		const response : LabworkPrefilledTemplateDescriptor[] = await dispatch(networkAction(LIST_TEMPLATES, api.sampleNextStep.prefill.templates(protocolID), options))
-		return response
-	}
-}
+// export function listTemplates(stepID: FMSId, protocolID: FMSId) {
+// 	return async (dispatch, getState) => {
+// 		const options = {
+// 			meta: {
+// 				stepID,
+// 				protocolID,
+// 			}
+// 		}
+// 		const response : LabworkPrefilledTemplateDescriptor[] = await dispatch(networkAction(LIST_TEMPLATES, api.sampleNextStep.prefill.templates(protocolID), options))
+// 		return response
+// 	}
+// }
 
 
 export function selectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
@@ -95,14 +121,16 @@ export function flushSamplesAtStep(stepID: FMSId) {
 }
 
 export default {
+	INIT_SAMPLES_AT_STEP,
 	LIST,
 	SELECT_SAMPLES,
 	DESELECT_SAMPLES,
 	FLUSH_SAMPLES_AT_STEP,
-	LIST_TEMPLATES,
+	// LIST_TEMPLATES,
+	initSamplesAtStep,
 	loadSamplesAtStep,
 	selectStepSamples,
 	deselectStepSamples,
 	flushSamplesAtStep,
-	listTemplates,
+	// listTemplates,
 }

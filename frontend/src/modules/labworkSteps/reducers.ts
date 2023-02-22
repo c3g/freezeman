@@ -29,26 +29,7 @@ function updateStepSamples(state: LabworkStepsState, step: LabworkStepSamples) {
 
 function handleListRequest(state: LabworkStepsState, stepID: FMSId): LabworkStepsState {
 	let stepSamples: LabworkStepSamples = state.steps[stepID]
-	if (stepSamples === undefined) {
-		// If this is the first time this step is requested then initialize a state for the step.
-		stepSamples = {
-			stepID,
-			pagedItems: {
-				itemsByID: {},
-				isFetching: true,
-				items: [],
-				totalCount: 0,
-				filters: {},
-				sortBy: {},
-			},
-			displayedSamples: [],
-			selectedSamples: [],
-			prefill: {
-				isFetching: false,
-				templates: []
-			}
-		}
-	} else {
+	if (stepSamples) {
 		stepSamples = {
 			...stepSamples,
 			pagedItems: {
@@ -57,9 +38,8 @@ function handleListRequest(state: LabworkStepsState, stepID: FMSId): LabworkStep
 				error: undefined,
 			},
 		}
-	}
-	state = updateStepSamples(state, stepSamples)
-
+		state = updateStepSamples(state, stepSamples)
+	} 
 	return state
 }
 
@@ -70,7 +50,6 @@ function handleListReceive(
 	totalCount: number,
 	sampleNextSteps: SampleNextStep[]
 ) {
-	// TODO : just use immer?
 	let stepSamples: LabworkStepSamples = state.steps[stepID]
 	if (stepSamples) {
 		stepSamples = {
@@ -117,6 +96,30 @@ function handleListError(state: LabworkStepsState, stepID: FMSId, error: any) {
 
 export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: AnyAction) => {
 	switch (action.type) {
+		case ACTIONS.INIT_SAMPLES_AT_STEP: {
+			const { stepID, templates } = action
+			const stepSamples: LabworkStepSamples = {
+				stepID,
+				pagedItems: {
+					isFetching: false,
+					error: undefined,
+					totalCount: 0,
+					items: [],
+					itemsByID: {},
+					page: {
+						pageNumber: 0
+					},
+					filters: {},
+					sortBy: {}
+				},
+				displayedSamples: [],
+				selectedSamples: [],
+				prefill: {
+					templates
+				}
+			}
+			return updateStepSamples(state, stepSamples)
+		}
 		case ACTIONS.LIST.REQUEST: {
 			const { meta } = action
 			return handleListRequest(state, meta.stepID)
@@ -129,49 +132,49 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { meta, error } = action
 			return handleListError(state, meta.stepID, error)
 		}
-		case ACTIONS.LIST_TEMPLATES.REQUEST: {
-			const { stepID } = action.meta
-			const stepSamples = getStepSamplesByID(state, stepID)
-			if (stepSamples) {
-				state = updateStepSamples(state, {
-					...stepSamples,
-					prefill: {
-						isFetching: true,
-						templates: [],
-					}
-				})
-			}
-			return state
-		}
-		case ACTIONS.LIST_TEMPLATES.RECEIVE: {
-			const { stepID } = action.meta
-			const stepSamples = getStepSamplesByID(state, stepID)
-			if (stepSamples) {
-				state = updateStepSamples(state, {
-					...stepSamples,
-					prefill: {
-						isFetching: false,
-						templates: [...action.data],
-					}
-				})
-			}
-			return state
-		}
-		case ACTIONS.LIST_TEMPLATES.ERROR: {
-			const { stepID } = action.meta
-			const stepSamples = getStepSamplesByID(state, stepID)
-			if (stepSamples) {
-				state = updateStepSamples(state, {
-					...stepSamples,
-					prefill: {
-						isFetching: false,
-						templates: [],
-						error: action.error
-					}
-				})
-			}
-			return state
-		}
+		// case ACTIONS.LIST_TEMPLATES.REQUEST: {
+		// 	const { stepID } = action.meta
+		// 	const stepSamples = getStepSamplesByID(state, stepID)
+		// 	if (stepSamples) {
+		// 		state = updateStepSamples(state, {
+		// 			...stepSamples,
+		// 			prefill: {
+		// 				isFetching: true,
+		// 				templates: [],
+		// 			}
+		// 		})
+		// 	}
+		// 	return state
+		// }
+		// case ACTIONS.LIST_TEMPLATES.RECEIVE: {
+		// 	const { stepID } = action.meta
+		// 	const stepSamples = getStepSamplesByID(state, stepID)
+		// 	if (stepSamples) {
+		// 		state = updateStepSamples(state, {
+		// 			...stepSamples,
+		// 			prefill: {
+		// 				isFetching: false,
+		// 				templates: [...action.data],
+		// 			}
+		// 		})
+		// 	}
+		// 	return state
+		// }
+		// case ACTIONS.LIST_TEMPLATES.ERROR: {
+		// 	const { stepID } = action.meta
+		// 	const stepSamples = getStepSamplesByID(state, stepID)
+		// 	if (stepSamples) {
+		// 		state = updateStepSamples(state, {
+		// 			...stepSamples,
+		// 			prefill: {
+		// 				isFetching: false,
+		// 				templates: [],
+		// 				error: action.error
+		// 			}
+		// 		})
+		// 	}
+		// 	return state
+		// }
 		case ACTIONS.SELECT_SAMPLES: {
 			const { stepID, sampleIDs } = action
 			const stepSamples = getStepSamplesByID(state, stepID)

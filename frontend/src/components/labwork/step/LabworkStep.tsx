@@ -1,8 +1,8 @@
 import { Button, Checkbox, Col, Row, Select, TableColumnType, Tabs, Typography } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useAppDispatch } from '../../../hooks'
-import { FMSId } from '../../../models/fms_api_models'
-import { Protocol } from '../../../models/frontend_models'
+import { FMSId, FMSStep } from '../../../models/fms_api_models'
+import { Protocol, Step } from '../../../models/frontend_models'
 import { LabworkSummaryStep } from '../../../models/labwork_summary'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import AppPageHeader from '../../AppPageHeader'
@@ -18,9 +18,8 @@ const { Title, Text } = Typography
 
 interface LabworkStepPageProps {
 	protocol: Protocol
-	step: LabworkSummaryStep
+	step: Step
 	stepSamples: LabworkStepSamples
-	loading: boolean
 }
 
 interface SelectedTemplate {
@@ -28,7 +27,7 @@ interface SelectedTemplate {
 	submissionURL?: string
 }
 
-const LabworkStep = ({ protocol, step, stepSamples, loading }: LabworkStepPageProps) => {
+const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [currentError, setCurrentError] = useState<string>()
 	const [selectedTemplate, setSelectedTemplate] = useState<SelectedTemplate>()
 	const dispatch = useAppDispatch()

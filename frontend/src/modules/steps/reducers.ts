@@ -15,7 +15,7 @@ const INITIAL_STATE = {
 	itemsByID: {}
 }
 
-export const steps = (state: StepsState = INITIAL_STATE, action: AnyAction) => {
+export const steps = (state: StepsState = INITIAL_STATE, action: AnyAction) : StepsState => {
 	switch(action.type) {
 		case ACTIONS.LIST.REQUEST: {
 			return {

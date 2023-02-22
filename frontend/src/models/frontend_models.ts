@@ -24,6 +24,7 @@ import {
 	FMSSampleKind,
 	FMSSampleNextStep,
 	FMSSequence,
+	FMSStep,
 	FMSStudy,
 	FMSTaxon,
 	FMSTrackedModel,
@@ -47,7 +48,7 @@ export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsBy
 	items.forEach(item => {
 		itemsByID[item.id] = item
 	})
-	return items
+	return itemsByID
 }
 
 
@@ -98,6 +99,7 @@ export interface Sample extends Readonly<FMSSample>, FetchedObject {}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
 export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}
 export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}
+export interface Step extends Readonly<FMSStep> {}
 export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
 export interface User extends Readonly<FMSUser>, FetchedObject {}
