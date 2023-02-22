@@ -3,6 +3,7 @@ from django.db import models
 __all__ = ["STANDARD_NAME_FIELD_LENGTH"]
 
 STANDARD_NAME_FIELD_LENGTH = 200
+STANDARD_COORDINATE_NAME_FIELD_LENGTH = 10 # Leaving extra length for eventual containers with large number of positions
 STANDARD_FILE_PATH_LENGTH = 4096
 STANDARD_SEQUENCE_FIELD_LENGTH = 500
 PROJECT_STATUS_CHOICES = ["Open", "Closed"]

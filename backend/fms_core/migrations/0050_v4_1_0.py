@@ -140,6 +140,11 @@ class Migration(migrations.Migration):
             name='studies',
             field=models.ManyToManyField(blank=True, related_name='samples_next_steps', through='fms_core.SampleNextStepByStudy', to='fms_core.Study'),
         ),
+        migrations.AlterField(
+            model_name='samplenextstep',
+            name='sample',
+            field=models.ForeignKey(help_text='The sample queued to workflows.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_steps', to='fms_core.sample'),
+        ),
         migrations.RunPython(
             add_qpcr_instrument_type,
             reverse_code=migrations.RunPython.noop,
