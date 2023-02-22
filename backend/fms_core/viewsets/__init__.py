@@ -34,6 +34,7 @@ from .study import StudyViewSet
 from .sample_next_step import SampleNextStepViewSet
 from .step import StepViewSet
 from .sample_next_step_by_study import SampleNextStepByStudyViewSet
+from .step_history import StepHistoryViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -72,4 +73,5 @@ __all__ = [
     "SampleNextStepViewSet",
     "StepViewSet",
     "SampleNextStepByStudyViewSet",
+    "StepHistoryViewSet",
 ]
