@@ -291,3 +291,10 @@ _sample_next_step_by_study_filterset_fields: FiltersetFields = {
     **_prefix_keys("step_order__", _step_order_filterset_fields),
     **_prefix_keys("sample_next_step__", _sample_next_step_filterset_fields),
 }
+
+_stephistory_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    **_prefix_keys("study__", _study_filterset_fields),
+    **_prefix_keys("step_order__", _step_order_filterset_fields),
+    **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
+}

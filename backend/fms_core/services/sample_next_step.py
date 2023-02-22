@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StudyStepOrderByMeasurement
+from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 from typing import  List, Tuple, Union
 
@@ -230,13 +230,13 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
             errors.append(f"No step found for the given order.")
 
         # If the sample has completed the workflow, the step order should be None
-        if StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                                      study=study_obj, 
-                                                      step_order=step_order).exists() \
-        or StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
-                                                      process_measurement__source_sample=sample_obj,
-                                                      study=study_obj,
-                                                      step_order=step_order).exists():
+        if StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                      study=study_obj, 
+                                      step_order=step_order).exists() \
+        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                      process_measurement__source_sample=sample_obj,
+                                      study=study_obj,
+                                      step_order=step_order).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
@@ -306,11 +306,11 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                         errors.append(f"Failed to create new sample next step instance.")
                 try:
                     # Create the entry in study_steporder_by_measurement
-                    StudyStepOrderByMeasurement.objects.create(study=study,
-                                                               step_order=current_step_order,
-                                                               process_measurement=process_measurement)
+                    StepHistory.objects.create(study=study,
+                                               step_order=current_step_order,
+                                               process_measurement=process_measurement)
                 except Exception as err:
-                    errors.append(f"Failed to create StudyStepOrderByMeasurement.")
+                    errors.append(f"Failed to create StepHistory.")
             try:
                 # Remove old sample next step once the new one is created
                 if not keep_current:
