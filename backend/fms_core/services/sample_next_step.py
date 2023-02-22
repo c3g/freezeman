@@ -5,8 +5,8 @@ from typing import  List, Tuple, Union
 
 def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[SampleNextStep, None], List[str], List[str]]:
     """
-    Create a SampleNextStep instance to indicate the position of a sample in a study workflow. The order of insertion defaults to
-    the start order of the study workflow.
+    Create a SampleNextStepByStudy instance to indicate the position of a sample in a study workflow. Also creates a SampleNextStep instance if none exists.
+    The order of insertion defaults to the start order of the study workflow.
 
     Args:
         `sample_obj`: Sample instance to queue to the study workflow.
@@ -50,9 +50,10 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
             else:
                 sample_next_step = SampleNextStep.objects.get(step=step_order.step, sample=sample_obj)
             if sample_next_step is not None:
-                SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
-                                                     step_order=step_order,
-                                                     study=study_obj)
+                if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, step_order=step_order, study=study_obj).exists():
+                    SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study_obj)
+                else:
+                    warnings.append(f"Sample {sample_obj.name} already queued to this study's workflow.")
         except Exception as err:
             errors.append(err)
     return sample_next_step, errors, warnings
