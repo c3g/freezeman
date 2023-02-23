@@ -8,6 +8,7 @@ export interface LabworkStepsState {
 export interface LabworkPrefilledTemplateDescriptor {
 	id: number
 	description: string
+	submissionURL?: string
 }
 
 export interface LabworkStepSamples {

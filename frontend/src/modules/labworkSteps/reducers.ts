@@ -1,8 +1,8 @@
 import { AnyAction } from 'redux'
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
-import ACTIONS from './actions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
+import { LIST, INIT_SAMPLES_AT_STEP, DESELECT_SAMPLES,SELECT_SAMPLES, FLUSH_SAMPLES_AT_STEP } from './actions'
 
 const INTIAL_STATE: LabworkStepsState = {
 	steps: {},
@@ -96,7 +96,7 @@ function handleListError(state: LabworkStepsState, stepID: FMSId, error: any) {
 
 export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: AnyAction) => {
 	switch (action.type) {
-		case ACTIONS.INIT_SAMPLES_AT_STEP: {
+		case INIT_SAMPLES_AT_STEP: {
 			const { stepID, templates } = action
 			const stepSamples: LabworkStepSamples = {
 				stepID,
@@ -120,62 +120,19 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			}
 			return updateStepSamples(state, stepSamples)
 		}
-		case ACTIONS.LIST.REQUEST: {
+		case LIST.REQUEST: {
 			const { meta } = action
 			return handleListRequest(state, meta.stepID)
 		}
-		case ACTIONS.LIST.RECEIVE: {
+		case LIST.RECEIVE: {
 			const { meta, data } = action
 			return handleListReceive(state, meta.stepID, meta.pageNumber, data.count, data.results)
 		}
-		case ACTIONS.LIST.ERROR: {
+		case LIST.ERROR: {
 			const { meta, error } = action
 			return handleListError(state, meta.stepID, error)
 		}
-		// case ACTIONS.LIST_TEMPLATES.REQUEST: {
-		// 	const { stepID } = action.meta
-		// 	const stepSamples = getStepSamplesByID(state, stepID)
-		// 	if (stepSamples) {
-		// 		state = updateStepSamples(state, {
-		// 			...stepSamples,
-		// 			prefill: {
-		// 				isFetching: true,
-		// 				templates: [],
-		// 			}
-		// 		})
-		// 	}
-		// 	return state
-		// }
-		// case ACTIONS.LIST_TEMPLATES.RECEIVE: {
-		// 	const { stepID } = action.meta
-		// 	const stepSamples = getStepSamplesByID(state, stepID)
-		// 	if (stepSamples) {
-		// 		state = updateStepSamples(state, {
-		// 			...stepSamples,
-		// 			prefill: {
-		// 				isFetching: false,
-		// 				templates: [...action.data],
-		// 			}
-		// 		})
-		// 	}
-		// 	return state
-		// }
-		// case ACTIONS.LIST_TEMPLATES.ERROR: {
-		// 	const { stepID } = action.meta
-		// 	const stepSamples = getStepSamplesByID(state, stepID)
-		// 	if (stepSamples) {
-		// 		state = updateStepSamples(state, {
-		// 			...stepSamples,
-		// 			prefill: {
-		// 				isFetching: false,
-		// 				templates: [],
-		// 				error: action.error
-		// 			}
-		// 		})
-		// 	}
-		// 	return state
-		// }
-		case ACTIONS.SELECT_SAMPLES: {
+		case SELECT_SAMPLES: {
 			const { stepID, sampleIDs } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if(!stepSamples) {
@@ -194,7 +151,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			}
 			return updateStepSamples(state, newStepSamples)
 		}
-		case ACTIONS.DESELECT_SAMPLES: {
+		case DESELECT_SAMPLES: {
 			const { stepID, sampleIDs } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if(!stepSamples) {
@@ -207,7 +164,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			}
 			return updateStepSamples(state, newStepSamples)
 		}
-		case ACTIONS.FLUSH_SAMPLES_AT_STEP: {
+		case FLUSH_SAMPLES_AT_STEP: {
 			const { stepID } = action
 			const newState = {
 				...state,

@@ -19,7 +19,7 @@ const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStep
 
 	return (
 		<div style={{ padding: '1rem' }}>
-			{renderNamedGroup && <Title level={4}>{group.name}</Title>}
+			{renderNamedGroup && <Title level={5}>{group.name}</Title>}
 			<List
 				size="small"
 				dataSource={listData}

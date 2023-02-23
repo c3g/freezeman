@@ -1,9 +1,9 @@
-import { Spin, Typography } from 'antd'
+import { Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { Protocol, Step } from '../../../models/frontend_models'
-import LABWORK_STEPS_ACTIONS from '../../../modules/labworkSteps/actions'
+import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { selectLabworkStepsState, selectLabworkSummaryState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
@@ -57,7 +57,7 @@ const LabworkStepRoute = (props: {}) => {
 			if(foundLabwork) {
 				setLabworkStepSamples(foundLabwork)
 			} else {
-				dispatch(LABWORK_STEPS_ACTIONS.initSamplesAtStep(stepID))
+				dispatch(initSamplesAtStep(stepID))
 			}
 		}
 	}, [step, protocol, labworkStepsState])

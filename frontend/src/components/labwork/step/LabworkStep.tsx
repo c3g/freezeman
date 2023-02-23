@@ -1,18 +1,15 @@
-import { Button, Checkbox, Col, Row, Select, TableColumnType, Tabs, Typography } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Button, Checkbox, Select, TableColumnType, Tabs, Typography } from 'antd'
+import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
-import { FMSId, FMSStep } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { LabworkSummaryStep } from '../../../models/labwork_summary'
+import { deselectStepSamples, selectStepSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import api from '../../../utils/api'
+import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
-import { selectStepSamples, deselectStepSamples } from '../../../modules/labworkSteps/actions'
-import api from '../../../utils/api'
-import { downloadFromFile } from '../../../utils/download'
-import { buildSubmitTemplatesURL } from '../../../modules/labworkSteps/services'
-import { useNavigate } from 'react-router-dom'
 
 const { Title, Text } = Typography
 
@@ -22,14 +19,9 @@ interface LabworkStepPageProps {
 	stepSamples: LabworkStepSamples
 }
 
-interface SelectedTemplate {
-	template: LabworkPrefilledTemplateDescriptor
-	submissionURL?: string
-}
-
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [currentError, setCurrentError] = useState<string>()
-	const [selectedTemplate, setSelectedTemplate] = useState<SelectedTemplate>()
+	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
@@ -63,8 +55,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		if(!selectedTemplate) {
 			if (stepSamples.prefill.templates.length > 0) {
 				const template = stepSamples.prefill.templates[0]
-				const submissionURL = buildSubmitTemplatesURL(protocol, template)
-				setSelectedTemplate({template, submissionURL})
+				//const submissionURL = buildSubmitTemplatesURL(protocol, template)
+				setSelectedTemplate(template)
 			}
 		}
 	}, [stepSamples])
@@ -76,7 +68,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		// Generate a prefilled template containing the list of selected values.		
 		if (selectedTemplate) {
 			try {
-				const result = await dispatch(api.sampleNextStep.prefill.request(selectedTemplate.template.id, step.id, stepSamples.selectedSamples))
+				const result = await dispatch(api.sampleNextStep.prefill.request(selectedTemplate.id, step.id, stepSamples.selectedSamples))
 				if (result) {
 					downloadFromFile(result.filename, result.data)
 				}
@@ -120,7 +112,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						<Select 
 							defaultActiveFirstOption
 							style={{width: '24em'}}
-							value={selectedTemplate?.template.id ?? 0}
+							value={selectedTemplate?.id ?? 0}
 							options={stepSamples.prefill.templates.map(template => {
 								return {
 									value: template.id,
@@ -130,10 +122,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							onChange={value => {
 								const template = stepSamples.prefill.templates.find(template => template.id === value)
 								if (template) {
-									const submissionURL = buildSubmitTemplatesURL(protocol, template)
-									setSelectedTemplate({
-										template, submissionURL
-									})
+									setSelectedTemplate(template)
 								}
 							}}
 						/>

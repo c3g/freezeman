@@ -25,11 +25,15 @@ export const selectIndividualsByID = (state: RootState) => state.individuals.ite
 export const selectLabworkStepsState = (state: RootState) => state.labworkSteps
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
+export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
+export const selectPageSize = (state: RootState) => state.pagination.pageSize
+export const selectProcessMeasurementTemplateActions = (state: RootState) => state.processMeasurementTemplateActions
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
+export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesById as StudySamplesByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
@@ -38,5 +42,10 @@ export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as 
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
 
-export const selectPageSize = (state: RootState) => state.pagination.pageSize
+
+
+
+
+
+
 

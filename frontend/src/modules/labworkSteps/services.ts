@@ -1,20 +1,7 @@
-import { FMSId } from "../../models/fms_api_models"
-import { LabworkPrefilledTemplateDescriptor } from "./models"
-import store, { RootState } from "../../store"
 import { Protocol } from "../../models/frontend_models"
-import { match } from "rambda"
-
-function selectProcessMeasurementTemplateActions(state: RootState) {
-	return state.processMeasurementTemplateActions
-}
-
-function selectSampleTemplateActions(state: RootState) {
-	return state.sampleTemplateActions
-}
-
-function selectLibraryTemplateActions(state: RootState) {
-	return state.libraryTemplateActions
-}
+import { LabworkPrefilledTemplateDescriptor } from "./models"
+import { selectProcessMeasurementTemplateActions, selectSampleTemplateActions, selectLibraryTemplateActions } from '../../selectors'
+import { RootState } from "../../store"
 
 interface TemplateAction {
 	id: number
@@ -27,7 +14,7 @@ interface TemplateAction {
 	}[]
 }
 
-export function buildSubmitTemplatesURL(protocol: Protocol, templateDescriptor: LabworkPrefilledTemplateDescriptor) : string | undefined {
+export function buildSubmitTemplatesURL(state: RootState, protocol: Protocol, templateDescriptor: LabworkPrefilledTemplateDescriptor) : string | undefined {
 
 	function findMatchingAction(templateActions: TemplateAction[], protocolName: string, templateDescription: string) {
 		const matchingAction = templateActions.find(action => {
@@ -40,21 +27,21 @@ export function buildSubmitTemplatesURL(protocol: Protocol, templateDescriptor: 
 	let matchingAction : TemplateAction | undefined
 
 	// Try to find process measurement action.
-	const processActions = selectProcessMeasurementTemplateActions(store.getState())
+	const processActions = selectProcessMeasurementTemplateActions(state)
 	matchingAction = findMatchingAction(processActions.items, protocol.name, templateDescriptor.description)
 	if (matchingAction) {
 		return `/process-measurements/actions/${matchingAction.id}`
 	}
 
 	// Try to find sample action
-	const sampleActions = selectSampleTemplateActions(store.getState())
+	const sampleActions = selectSampleTemplateActions(state)
 	matchingAction = findMatchingAction(sampleActions.items, protocol.name, templateDescriptor.description)
 	if (matchingAction) {
 		return `/samples/actions/${matchingAction.id}`
 	}
 
 	// Try to find library action
-	const libraryActions = selectLibraryTemplateActions(store.getState())
+	const libraryActions = selectLibraryTemplateActions(state)
 	matchingAction = findMatchingAction(libraryActions.items, protocol.name, templateDescriptor.description)
 	if (matchingAction) {
 		return `/libraries/actions/${matchingAction.id}`
