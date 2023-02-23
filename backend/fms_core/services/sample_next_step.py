@@ -282,7 +282,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                 study = sample_next_step_by_study.study
                 current_step_order = sample_next_step_by_study.step_order
                 next_step_order = current_step_order.next_step_order \
-                                  if current_step_order.next_step_order.order <= study.end \
+                                  if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
                                   else None
                 if next_step_order is not None:
                     try:
