@@ -477,7 +477,7 @@ def pool_submitted_samples(samples_info,
                        "experimental_group",
                        "library",
                        "project",
-                       "study",
+                       "studies",
                        "volume"}
 
         pool_name: the name given to the pool by the user.
@@ -567,9 +567,8 @@ def pool_submitted_samples(samples_info,
                 except Exception as e:
                     errors.append(e)
 
-            if sample['study'] is not None:
-                _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, sample['study'])
-                
+            for study_obj in sample['studies']:
+                _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, study_obj)
                 errors.extend(errors_study)
                 warnings.extend(warnings_study)
 
