@@ -1,6 +1,7 @@
 import { TableColumnsType } from 'antd'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
+import { getStepSpecificationValue } from '../../../modules/steps/services'
 import LIBRARY_COLUMNS, { ObjectWithLibrary } from './LibraryTableColumns'
 import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
 
@@ -98,8 +99,8 @@ export function getColumnsForStep(step: Step, protocol: Protocol): TableColumnsT
 			return DEFAULT_LIBRARY_COLUMNS
 		}
 		case ProtocolNames.Normalization: {
-			// TODO Use step specification to distinguish sample vs. library
-			if (step.name.includes('(Library)')) {
+			const type = getStepSpecificationValue(step, 'Normalization Type')
+			if (type === 'Library') {
 				return DEFAULT_LIBRARY_COLUMNS
 			} else {
 				return DEFAULT_SAMPLE_COLUMNS
