@@ -5,10 +5,12 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "npx webpack --watch --mode development",
-    "build": "npx webpack --mode production",
-    "build-dev": "npx webpack --mode development",
-    "start": "npx webpack-dev-server --mode development"
+    "watch": "webpack --watch --mode development",
+    "build": "webpack --mode production",
+    "build-dev": "webpack --mode development",
+    "lint": "eslint . --ext .ts",
+    "start": "webpack-dev-server --mode development",
+    "dev": "npm run lint --quiet && start"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,8 @@
   "dependencies": {
     "@ant-design/icons": "^4.2.1",
     "@types/redux-logger": "^3.0.9",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
     "antd": "4.22.7",
     "bowser": "^2.11.0",
     "cheerio": "^1.0.0-rc.9",
