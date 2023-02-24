@@ -1,12 +1,12 @@
 from django.core.exceptions import ValidationError
-from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StudyStepOrderByMeasurement
+from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 from typing import  List, Tuple, Union
 
 def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[SampleNextStep, None], List[str], List[str]]:
     """
-    Create a SampleNextStep instance to indicate the position of a sample in a study workflow. The order of insertion defaults to
-    the start order of the study workflow.
+    Create a SampleNextStepByStudy instance to indicate the position of a sample in a study workflow. Also creates a SampleNextStep instance if none exists.
+    The order of insertion defaults to the start order of the study workflow.
 
     Args:
         `sample_obj`: Sample instance to queue to the study workflow.
@@ -50,9 +50,10 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
             else:
                 sample_next_step = SampleNextStep.objects.get(step=step_order.step, sample=sample_obj)
             if sample_next_step is not None:
-                SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step,
-                                                     step_order=step_order,
-                                                     study=study_obj)
+                if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, step_order=step_order, study=study_obj).exists():
+                    SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study_obj)
+                else:
+                    warnings.append(f"Sample {sample_obj.name} already queued to this study's workflow.")
         except Exception as err:
             errors.append(err)
     return sample_next_step, errors, warnings
@@ -229,13 +230,13 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
             errors.append(f"No step found for the given order.")
 
         # If the sample has completed the workflow, the step order should be None
-        if StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
-                                                      study=study_obj, 
-                                                      step_order=step_order).exists() \
-        or StudyStepOrderByMeasurement.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
-                                                      process_measurement__source_sample=sample_obj,
-                                                      study=study_obj,
-                                                      step_order=step_order).exists():
+        if StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
+                                      study=study_obj, 
+                                      step_order=step_order).exists() \
+        or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
+                                      process_measurement__source_sample=sample_obj,
+                                      study=study_obj,
+                                      step_order=step_order).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
@@ -281,7 +282,7 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                 study = sample_next_step_by_study.study
                 current_step_order = sample_next_step_by_study.step_order
                 next_step_order = current_step_order.next_step_order \
-                                  if current_step_order.next_step_order.order <= study.end \
+                                  if current_step_order.next_step_order and current_step_order.next_step_order.order <= study.end \
                                   else None
                 if next_step_order is not None:
                     try:
@@ -305,11 +306,11 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                         errors.append(f"Failed to create new sample next step instance.")
                 try:
                     # Create the entry in study_steporder_by_measurement
-                    StudyStepOrderByMeasurement.objects.create(study=study,
-                                                               step_order=current_step_order,
-                                                               process_measurement=process_measurement)
+                    StepHistory.objects.create(study=study,
+                                               step_order=current_step_order,
+                                               process_measurement=process_measurement)
                 except Exception as err:
-                    errors.append(f"Failed to create StudyStepOrderByMeasurement.")
+                    errors.append(f"Failed to create StepHistory.")
             try:
                 # Remove old sample next step once the new one is created
                 if not keep_current:

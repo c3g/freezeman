@@ -55,3 +55,9 @@ class SampleTest(TestCase):
                                                                                         barcode=f'Barcode_{i}'))
             sample_in_invalid_container_kind = Sample(**create_sample(container=invalid_container_kind))
             self.assertRaises(ValidationError, sample_in_invalid_container_kind.full_clean)
+
+    def test_no_volume_depletion(self):
+        sample = Sample.objects.create(**create_sample(volume=0, container=self.valid_container, comment="This is a sample."))
+        self.assertEqual(Sample.objects.count(), 1)
+        self.assertEqual(sample.is_depleted, "yes")
+        self.assertEqual(sample.volume, Decimal("0"))

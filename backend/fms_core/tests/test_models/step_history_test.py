@@ -3,10 +3,10 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import StudyStepOrderByMeasurement, Protocol, Step, StepOrder,Workflow, Project, Study, Container, Sample, Process, ProcessMeasurement
+from fms_core.models import StepHistory, Protocol, Step, StepOrder,Workflow, Project, Study, Container, Sample, Process, ProcessMeasurement
 from fms_core.tests.constants import create_sample, create_sample_container
 
-class StudyStepOrderByMeasurementTest(TestCase):
+class StepHistoryTest(TestCase):
     def setUp(self):
         protocol1 = Protocol.objects.get(name="Extraction")
         self.step1, _ = Step.objects.get_or_create(name="Extraction (test)", protocol=protocol1)
@@ -40,24 +40,24 @@ class StudyStepOrderByMeasurementTest(TestCase):
                                                                      volume_used=None,
                                                                      comment="Test comment",
                                                                      execution_date=datetime.datetime.today())
-    def test_study_steporder_by_measurement(self):
-        study_steporder_by_measurement = StudyStepOrderByMeasurement.objects.create(study=self.study,
-                                                                                    step_order=self.step_order_1,
-                                                                                    process_measurement=self.process_measurement)
-        self.assertIsNotNone(study_steporder_by_measurement)
-        self.assertEqual(study_steporder_by_measurement.step_order.step.name, "Extraction (test)")
-        self.assertEqual(study_steporder_by_measurement.study.letter, "A")
-        self.assertEqual(study_steporder_by_measurement.process_measurement.source_sample, self.source_sample)
+    def test_step_history(self):
+        step_history = StepHistory.objects.create(study=self.study,
+                                                  step_order=self.step_order_1,
+                                                  process_measurement=self.process_measurement)
+        self.assertIsNotNone(step_history)
+        self.assertEqual(step_history.step_order.step.name, "Extraction (test)")
+        self.assertEqual(step_history.study.letter, "A")
+        self.assertEqual(step_history.process_measurement.source_sample, self.source_sample)
 
-    def test_study_steporder_by_measurement_duplicate(self):
-        study_steporder_by_measurement = StudyStepOrderByMeasurement.objects.create(study=self.study,
-                                                                                    step_order=self.step_order_1,
-                                                                                    process_measurement=self.process_measurement)
+    def test_step_history_duplicate(self):
+        step_history = StepHistory.objects.create(study=self.study,
+                                                  step_order=self.step_order_1,
+                                                  process_measurement=self.process_measurement)
         with self.assertRaises(ValidationError):
             try:
-                study_steporder_by_measurement_duplicate = StudyStepOrderByMeasurement.objects.create(study=self.study,
-                                                                                                      step_order=self.step_order_1,
-                                                                                                      process_measurement=self.process_measurement)
+                step_history_duplicate = StepHistory.objects.create(study=self.study,
+                                                                    step_order=self.step_order_1,
+                                                                    process_measurement=self.process_measurement)
             except ValidationError as err:
-                self.assertEqual(err.message_dict["__all__"], ["Study step order by measurement with this Study, Step order and Process measurement already exists."])
+                self.assertEqual(err.message_dict["__all__"], ["Step history with this Study, Step order and Process measurement already exists."])
                 raise err

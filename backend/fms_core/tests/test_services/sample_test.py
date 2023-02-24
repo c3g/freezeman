@@ -130,8 +130,8 @@ class SampleServicesTestCase(TestCase):
 
         # Create samples for testing
         self.SUBMITTED_SAMPLES_TO_POOL = [
-            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "volume": Decimal(10), "experimental_group": None},
-            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "volume": Decimal(30), "experimental_group": None},
+            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "study": None, "volume": Decimal(10), "experimental_group": None},
+            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "study": None, "volume": Decimal(30), "experimental_group": None},
         ]
 
     def test_create_full_sample(self):

@@ -36,7 +36,9 @@ from .models import (
     Study,
     SampleNextStep,
     StepSpecification,
-    StepOrder
+    StepOrder,
+    SampleNextStepByStudy,
+    StepHistory,
 )
 
 from .models._constants import ReleaseStatus
@@ -89,6 +91,8 @@ __all__ = [
     "SampleNextStepSerializer",
     "StepSpecificationSerializer",
     "StepSerializer",
+    "SampleNextStepByStudySerializer",
+    "StepHistorySerializer",
 ]
 
 
@@ -729,3 +733,15 @@ class SampleNextStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleNextStep
         fields = ("id", "sample", "step", "studies")
+
+class SampleNextStepByStudySerializer(serializers.ModelSerializer):
+    sample = serializers.IntegerField(read_only=True, source='sample_next_step.sample.id')
+    class Meta:
+        model = SampleNextStepByStudy
+        fields = ("id", "sample", "step_order", "study")
+
+class StepHistorySerializer(serializers.ModelSerializer):
+    sample = serializers.IntegerField(read_only=True, source='process_measurement.source_sample_id')
+    class Meta:
+        model = StepHistory
+        fields = ("id", "study", "step_order", "process_measurement", "sample")

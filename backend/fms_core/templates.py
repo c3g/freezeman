@@ -354,24 +354,23 @@ SAMPLE_POOLING_TEMPLATE = {
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
-  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_0_0.xlsx")},
+  "identity": {"description": "Template to add samples", "file": static("submission_templates/Sample_submission_v4_1_0.xlsx")},
   "sheets info": [
       {
           'name': 'SampleSubmission',
-          'headers': ['Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
+          'headers': ['Reception (YYYY-MM-DD)', 'Sample Kind', 'Sample Name', 'Alias', 'Container Kind', 'Container Name', 'Container Barcode', 'Sample Coord',
                       'Location Barcode', 'Container Coord', 'Project', 'Study', 'Experimental Group','NCBI Taxon ID #','Individual ID', 'Individual Alias',
                       'Cohort', 'Sex', 'Pedigree', 'Mother ID', 'Father ID', 'Reference Genome', 'Volume (uL)', 'Conc. (ng/uL)',
                       'Collection Site', 'Tissue Source', 'Library Type', 'Platform', 'Strandedness', 'Library Size (bp)',
-                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Reception (YYYY-MM-DD)', 'Comment'],
+                      'Index Set', 'Index', 'Selection', 'Selection Target', 'Pool Name', 'Comment'],
           'stitch_column': 'Pool Name',
           'batch': False,
       },
       {
           "name": "PoolSubmission",
-          "headers": ["Pool Name", "Container Kind", "Container Name",
-                      "Container Barcode", "Pool Coord",
-                      "Location Barcode", "Container Coord", "Seq Instrument Type",
-                      "Reception (YYYY-MM-DD)", "Comment"],
+          "headers": ["Pool Name", "Reception (YYYY-MM-DD)", "Container Kind", "Container Name",
+                      "Container Barcode", "Pool Coord", "Location Barcode", 
+                      "Container Coord", "Seq Instrument Type", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
       },

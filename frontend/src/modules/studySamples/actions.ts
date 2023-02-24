@@ -1,4 +1,4 @@
-import { FMSSample, FMSSampleNextStep } from '../../models/fms_api_models'
+import { FMSSample, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
 import { buildStudySamplesFromWorkflow } from '../../models/study_samples'
 import { selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
@@ -43,10 +43,10 @@ export const getStudySamples = (studyID : number) => {
 
 		// Get the study samples
 		try {
-			const response = await dispatch(api.sampleNextStep.getStudySamples(studyID))
+			const response = await dispatch(api.sampleNextStepByStudy.getStudySamples(studyID))
 			if (response.data.results) {
-				const sampleNextSteps = response.data.results as FMSSampleNextStep[]
-				const studySamples = buildStudySamplesFromWorkflow(study, workflow, sampleNextSteps)
+				const sampleNextStepsByStudy = response.data.results as FMSSampleNextStepByStudy[]
+				const studySamples = buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy)
 
 				// Fetch the study samples
 				if (studySamples.sampleList.length > 0) {
