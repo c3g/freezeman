@@ -63,8 +63,10 @@ const LabworkStepRoute = (props: {}) => {
 	}, [step, protocol, labworkStepsState])
 
 	return (
-		step && protocol && labworkStepSamples &&
-		<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples}/>
+		step && protocol && labworkStepSamples ?
+			<LabworkStep protocol={protocol} step={step} stepSamples={labworkStepSamples}/>
+		: 
+			null
 	)	
 }
 

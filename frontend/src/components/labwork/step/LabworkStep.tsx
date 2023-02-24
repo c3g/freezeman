@@ -9,6 +9,7 @@ import api from '../../../utils/api'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
+import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Title, Text } = Typography
@@ -49,6 +50,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}
 	const samplesCheckboxColumn = createSelectionColumn()
 	const selectionCheckboxColumn = createSelectionColumn()
+
+	const columnsForSamplesTable = [samplesCheckboxColumn, ...getColumnsForStep(step, protocol)]
+	const columnsForSelectedSamplesTable = [selectionCheckboxColumn, ...getColumnsForStep(step, protocol)]
 
 	// Set the currently selected template to the first template available, not already set.
 	useEffect(() => {
@@ -100,10 +104,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey='samples'>
 					<Tabs.TabPane tab='Samples' key='samples'>
-						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.displayedSamples} prefixColumn={samplesCheckboxColumn}/>
+						<WorkflowSamplesTable sampleIDs={stepSamples.displayedSamples} columns={columnsForSamplesTable}/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
-						<WorkflowSamplesTable stepName={step.name} protocol={protocol} sampleIDs={stepSamples.selectedSamples} prefixColumn={selectionCheckboxColumn}/>
+						<WorkflowSamplesTable sampleIDs={stepSamples.selectedSamples} columns={columnsForSelectedSamplesTable}/>
 					</Tabs.TabPane>
 				</Tabs>
 				<div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: '1em'}}>
