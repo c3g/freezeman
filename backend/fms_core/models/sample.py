@@ -187,6 +187,10 @@ class Sample(TrackedModel):
         if self.volume is not None and self.volume < Decimal("0"):
             add_error("volume", "Current volume must be positive.")
 
+        # Set depleted when volume = 0
+        if self.volume is not None and self.volume == Decimal("0"):
+            self.depleted = True
+
         # Make sure the creation date is not in the future 
         if is_date_or_time_after_today(self.creation_date):
             add_error("creation_date", f'creation_date ({self.creation_date}) cannot be after the current date.')
