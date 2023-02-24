@@ -3,7 +3,7 @@ import api from "../../utils/api"
 
 const LIST = createNetworkActionTypes('STEPS.LIST')
 
-export const list = (options) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
         api.steps.list(params),

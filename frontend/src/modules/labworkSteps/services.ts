@@ -18,7 +18,7 @@ export function buildSubmitTemplatesURL(state: RootState, protocol: Protocol, te
 
 	function findMatchingAction(templateActions: TemplateAction[], protocolName: string, templateDescription: string) {
 		const matchingAction = templateActions.find(action => {
-			const matchingTemplate = action.template.find(template => template.protocol === protocol.name && template.description === templateDescriptor.description)
+			const matchingTemplate = action.template.find(template => template.protocol === protocolName && template.description === templateDescription)
 			return !!matchingTemplate
 		})
 		return matchingAction

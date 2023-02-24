@@ -1,6 +1,6 @@
 import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
-import { StudySamplesByID, StudySamplesState } from "./modules/studySamples/reducers"
+import { StudySamplesByID } from "./modules/studySamples/reducers"
 import { RootState } from "./store"
 
 /*

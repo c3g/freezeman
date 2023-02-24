@@ -1,4 +1,3 @@
-import { FLUSH } from 'redux-persist'
 import { processFMSLabworkSummary } from '../../models/labwork_summary'
 import { selectLabworkSummaryState } from '../../selectors'
 import { createNetworkActionTypes } from '../../utils/actions'

@@ -1,7 +1,6 @@
 import { AnyAction } from "redux"
 import { FMSStep } from "../../models/fms_api_models"
 import { createItemsByID, ItemsByID } from "../../models/frontend_models"
-import { RootState } from "../../store"
 import ACTIONS from './actions'
 
 export interface StepsState {

@@ -68,7 +68,7 @@ export const studySamples = (
 
 		case STUDY_SAMPLES.GET_STUDY_SAMPLES.ERROR: {
 			const studyID = action.meta.studyID
-			let studySamples = state.studySamplesById[studyID]
+			const studySamples = state.studySamplesById[studyID]
 			if (studySamples) {
 				return {
 					...state,
@@ -82,6 +82,7 @@ export const studySamples = (
 					}
 				}
 			}
+			break
 		}
 		case STUDY_SAMPLES.FLUSH_STUDY_SAMPLES: {
 			const newState = {

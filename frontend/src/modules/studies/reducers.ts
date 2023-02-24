@@ -47,7 +47,7 @@ export const studies = (
 
 		case STUDIES.LIST_PROJECT_STUDIES.REQUEST:
 			return { ...state, isFetching: true }
-		case STUDIES.LIST_PROJECT_STUDIES.RECEIVE:
+		case STUDIES.LIST_PROJECT_STUDIES.RECEIVE: {
 			const results = action.data.results.map(preprocess)
 			return {
 				...state,
@@ -55,6 +55,7 @@ export const studies = (
 				itemsByID: indexByID(results),
 				isFetching: false
 			}
+		}
 		case STUDIES.LIST_PROJECT_STUDIES.ERROR:
 			return { ...state, isFetching: false, error: action.error, };
 	}

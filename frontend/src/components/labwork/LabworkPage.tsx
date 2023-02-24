@@ -19,7 +19,7 @@ const LabworkPage = () => {
 		if (labworkSummaryState.summary) {
 			setLoading(false)
 		} else {
-			if (!labworkSummaryState.isFetching) {
+			if (!loading && !labworkSummaryState.isFetching) {
 				setLoading(true)
 				dispatch(getLabworkSummary())
 			}

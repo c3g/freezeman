@@ -1,4 +1,4 @@
-import { FMSId, FMSLabworkProtocol, FMSStep, FMSStepSpecification, FMSLabworkSummary } from './fms_api_models'
+import { FMSId, FMSLabworkSummary, FMSStepSpecification } from './fms_api_models'
 
 /*
 	Labwork Summary Module
@@ -99,7 +99,7 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 					return groupA.name.localeCompare(groupB.name)
 				})
 
-			for (const group of groups.values()) {
+			for (const group of sortedGroups) {
 				addGroupIfNotEmpty(protocol, group)
 			}
 		} else {
@@ -125,14 +125,6 @@ function getSpecifiedValue(step: LabworkSummaryStep, displayName: string) {
 		return spec.value
 	}
 	return undefined
-}
-
-function hasSpecification(step: LabworkSummaryStep, displayName: string) {
-	return step.specifications.some(spec => spec.display_name === displayName)
-}
-
-function hasSpecifiedValue(step: LabworkSummaryStep, displayName: string, value: string) {
-	return step.specifications.some(spec => spec.display_name === displayName && spec.value === value)
 }
 
 function addGroupIfNotEmpty(protocol: LabworkSummaryProtocol, group: LabworkStepGroup) {

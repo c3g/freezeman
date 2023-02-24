@@ -7,8 +7,6 @@
  * are defined in `frontend_models.ts`.
  */
 
-import { FetchedObject } from "./frontend_models"
-
 /* Error type returned by the API when the frontend sends a bad request (error 400) */
 export interface ApiError {
 	data: {[key: string]: string[]} // Key-value pair, where the value is an array of error messages
