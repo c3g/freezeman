@@ -2,7 +2,7 @@ import { AnyAction } from 'redux'
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { LabworkStepSamples, LabworkStepsState } from './models'
-import { LIST, INIT_SAMPLES_AT_STEP, DESELECT_SAMPLES,SELECT_SAMPLES, FLUSH_SAMPLES_AT_STEP } from './actions'
+import { LIST, INIT_SAMPLES_AT_STEP, FLUSH_SAMPLES_AT_STEP, SET_SELECTED_SAMPLES } from './actions'
 
 const INTIAL_STATE: LabworkStepsState = {
 	steps: {},
@@ -132,35 +132,15 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const { meta, error } = action
 			return handleListError(state, meta.stepID, error)
 		}
-		case SELECT_SAMPLES: {
+		case SET_SELECTED_SAMPLES: {
 			const { stepID, sampleIDs } = action
 			const stepSamples = getStepSamplesByID(state, stepID)
 			if(!stepSamples) {
 				return state
 			}
-			const newSelection = [...stepSamples.selectedSamples]
-			sampleIDs.forEach(id => {
-				if (!newSelection.includes(id)) {
-					newSelection.push(id)
-				}
-			})
-
 			const newStepSamples : LabworkStepSamples = {
 				...stepSamples,
-				selectedSamples: newSelection
-			}
-			return updateStepSamples(state, newStepSamples)
-		}
-		case DESELECT_SAMPLES: {
-			const { stepID, sampleIDs } = action
-			const stepSamples = getStepSamplesByID(state, stepID)
-			if(!stepSamples) {
-				return state
-			}
-			const newSelection = [...stepSamples.selectedSamples].filter(id => !sampleIDs.includes(id))
-			const newStepSamples : LabworkStepSamples = {
-				...stepSamples,
-				selectedSamples: newSelection
+				selectedSamples: sampleIDs
 			}
 			return updateStepSamples(state, newStepSamples)
 		}

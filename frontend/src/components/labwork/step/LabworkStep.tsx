@@ -1,9 +1,10 @@
-import { Button, Checkbox, Select, TableColumnType, Tabs, Typography } from 'antd'
+import { Button, Select, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
+import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { deselectStepSamples, selectStepSamples } from '../../../modules/labworkSteps/actions'
+import { setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import api from '../../../utils/api'
 import { downloadFromFile } from '../../../utils/download'
@@ -21,38 +22,12 @@ interface LabworkStepPageProps {
 }
 
 const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
-	const [currentError, setCurrentError] = useState<string>()
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// Create the selection checkbox columns for the two tables
-	function createSelectionColumn() {
-		// Add a special "Selected" column  
-		const selectionColumn : TableColumnType<any> = {
-			title: 'Selected',
-			render: (value, item) => {
-				const sampleID = item.sample.id
-				const selected = stepSamples.selectedSamples.includes(sampleID)
-				return (
-					<Checkbox checked={selected} onChange={event => {
-						const checked = event.target.checked
-						if (checked) {
-							dispatch(selectStepSamples(step.id, [sampleID]))
-						} else {
-							dispatch(deselectStepSamples(step.id, [sampleID]))
-						}
-					}}/>
-				)
-			}
-		}
-		return selectionColumn
-	}
-	const samplesCheckboxColumn = createSelectionColumn()
-	const selectionCheckboxColumn = createSelectionColumn()
-
-	const columnsForSamplesTable = [samplesCheckboxColumn, ...getColumnsForStep(step, protocol)]
-	const columnsForSelectedSamplesTable = [selectionCheckboxColumn, ...getColumnsForStep(step, protocol)]
+	const columnsForSamplesTable = [...getColumnsForStep(step, protocol)]
+	const columnsForSelectedSamplesTable = [...getColumnsForStep(step, protocol)]
 
 	// Set the currently selected template to the first template available, not already set.
 	useEffect(() => {
@@ -82,12 +57,27 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}
 	
+	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
 	function handleSubmitTemplate() {
 		if (selectedTemplate && selectedTemplate.submissionURL) {
 			navigate(selectedTemplate.submissionURL)
 		}
+	}
+
+	// Selection handler for sample selection checkboxes
+	const selectionProps = {
+		selectedSampleIDs: stepSamples.selectedSamples,
+		onSelectionChanged: (selectedSamples) => {
+			const ids = selectedSamples.reduce((acc, selected) => {
+				if (selected.sample) {
+					acc.push(selected.sample.id)
+				}
+				return acc
+			}, [] as FMSId[])
+			dispatch(setSelectedSamples(step.id, ids))
+		},
 	}
 
 	// Display the number of selected samples in the tab title
@@ -104,10 +94,17 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey='samples'>
 					<Tabs.TabPane tab='Samples' key='samples'>
-						<WorkflowSamplesTable sampleIDs={stepSamples.displayedSamples} columns={columnsForSamplesTable}/>
+						<WorkflowSamplesTable 
+							sampleIDs={stepSamples.displayedSamples} 
+							columns={columnsForSamplesTable}
+							selection={selectionProps}
+							/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
-						<WorkflowSamplesTable sampleIDs={stepSamples.selectedSamples} columns={columnsForSelectedSamplesTable}/>
+						<WorkflowSamplesTable 
+							sampleIDs={stepSamples.selectedSamples}
+							columns={columnsForSelectedSamplesTable}
+							selection={selectionProps}/>
 					</Tabs.TabPane>
 				</Tabs>
 				<div style={{display: 'flex', justifyContent: 'flex-start', alignItems: 'baseline', gap: '1em'}}>

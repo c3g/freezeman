@@ -9,8 +9,7 @@ import { buildSubmitTemplatesURL } from "./services"
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
-export const SELECT_SAMPLES = 'SAMPLES_AT_STEP:SELECT_SAMPLES'
-export const DESELECT_SAMPLES = 'SAMPLES_AT_STEP:DESELECT_SAMPLES'
+export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 
 // Initialize the redux state for samples at step
@@ -76,17 +75,9 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	}
 }
 
-export function selectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
+export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 	return {
-		type: SELECT_SAMPLES,
-		stepID,
-		sampleIDs
-	}
-}
-
-export function deselectStepSamples(stepID: FMSId, sampleIDs: FMSId[]) {
-	return {
-		type: DESELECT_SAMPLES,
+		type: SET_SELECTED_SAMPLES,
 		stepID,
 		sampleIDs
 	}
@@ -98,16 +89,3 @@ export function flushSamplesAtStep(stepID: FMSId) {
 		stepID
 	}
 }
-
-// export default {
-// 	INIT_SAMPLES_AT_STEP,
-// 	LIST,
-// 	SELECT_SAMPLES,
-// 	DESELECT_SAMPLES,
-// 	FLUSH_SAMPLES_AT_STEP,
-// 	initSamplesAtStep,
-// 	loadSamplesAtStep,
-// 	selectStepSamples,
-// 	deselectStepSamples,
-// 	flushSamplesAtStep,
-// }
