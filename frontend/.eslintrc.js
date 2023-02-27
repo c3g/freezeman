@@ -24,6 +24,7 @@ module.exports = {
     "rules": {
         "react/prop-types": "off",
         "no-mixed-spaces-and-tabs": "off",
+        "@typescript-eslint/no-empty-interface": "off",
         "@typescript-eslint/no-explicit-any": "off",
     },
 }

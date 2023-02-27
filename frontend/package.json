@@ -10,7 +10,7 @@
     "build-dev": "webpack --mode development",
     "lint": "eslint . --ext .ts",
     "start": "webpack-dev-server --mode development",
-    "dev": "npm run lint --quiet && start"
+    "dev": "npm run lint --quiet && npm run start"
   },
   "repository": {
     "type": "git",
