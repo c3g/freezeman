@@ -1,7 +1,7 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState } from "react";
 import {connect} from "react-redux";
 import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
-import {Layout, Menu, Typography} from "antd";
+import {Layout, Menu, Spin, Typography} from "antd";
 import {
   AuditOutlined,
   DashboardOutlined,
@@ -15,6 +15,7 @@ import {
   BarcodeOutlined,
   HddOutlined,
   FileZipOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 
 import JumpBar from "./JumpBar";
@@ -44,6 +45,9 @@ import {logOut} from "../modules/auth/actions";
 import {get} from "../modules/users/actions";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { setAppInitialized } from "../modules/app/actions";
+import { selectAppInitialzed } from "../selectors";
  
 
 const { Title } = Typography;
@@ -139,7 +143,7 @@ const colorStyle = {
 
 const titleStyle = {
   ...colorStyle,
-  width: "100%",
+  // width: "100%",
   fontWeight: 900,
   fontSize: "18px",
   lineHeight: "unset",
@@ -155,9 +159,18 @@ export const mapStateToProps = state => ({
 export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
 
 const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
+
+  const dispatch = useAppDispatch()
+  const isInitialized = useAppSelector(selectAppInitialzed)
+
   useEffect(() => {
+    async function loadInitialData() {
+      await fetchInitialData()
+      dispatch(setAppInitialized())
+    }
+
+    loadInitialData()
     const interval = setInterval(fetchSummariesData, 30000);
-    fetchInitialData();
     return () => clearInterval(interval);
   }, []);
 
@@ -174,6 +187,8 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
   // Logout the user after 12 hours in all cases where the tab stays open
   useUserInputExpiration(logOut, 12 * hour);
 
+  const loadingIcon = <SyncOutlined style={{fontSize: '22px', color: 'white'}} spin/>
+
   return (
     <Layout style={{height: "100vh"}}>
       <Layout>
@@ -187,16 +202,25 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             width={224}
             style={{overflow: 'auto'}}
           >
+            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
               <Title style={titleStyle} className="App__title">
                 <div>
                   <b>F</b><span>reeze</span><b>M</b><span>an</span>
                 </div>
               </Title>
-              {isLoggedIn &&
+              { // Display a spinner while the initial data is being fetched at startup 
+                !isInitialized &&
+                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <Spin size="small" indicator={loadingIcon}/>
+                  </div>
+              }
+            </div>
+            {isLoggedIn &&
                 <div className='App__jumpBar'>
                   <JumpBar />
                 </div>
               }
+              
               <Menu
                 theme="dark"
                 mode="inline"

@@ -19,6 +19,7 @@ import { RootState } from "./store"
     const projectsByID = useSelector(selectProjectsByID)
 */
 
+export const selectAppInitialzed = (state: RootState) => state.app.initialized
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID

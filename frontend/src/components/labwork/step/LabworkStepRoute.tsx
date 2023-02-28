@@ -1,22 +1,20 @@
-import { Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
-import { selectLabworkStepsState, selectLabworkSummaryState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
+import { selectAppInitialzed, selectLabworkStepsState, selectProtocolsByID, selectStepsByID } from '../../../selectors'
 import LabworkStep from './LabworkStep'
 
-const { Title } = Typography
 
 /* 
 	LabworkStepRoute is responsible for loading all of the labwork step samples
 	data. Once loaded, it renders a LabworkStep component to display the data.
 */
-const LabworkStepRoute = (props: {}) => {
+const LabworkStepRoute = () => {
 	const stepIDParam = useParams().stepID
-	const labworkSummaryState = useAppSelector(selectLabworkSummaryState)
+	const appInitialized = useAppSelector(selectAppInitialzed)
 	const labworkStepsState = useAppSelector(selectLabworkStepsState)
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
@@ -34,13 +32,15 @@ const LabworkStepRoute = (props: {}) => {
 	const stepID = parseInt(stepIDParam)
 
 	useEffect(() => {
-		if(! step) {
-			const foundStep = stepsByID[stepID]
-			if(foundStep) {
-				setStep(foundStep)
+		if (appInitialized) {
+			if(! step) {
+				const foundStep = stepsByID[stepID]
+				if(foundStep) {
+					setStep(foundStep)
+				}
 			}
 		}
-	}, [stepsByID])
+	}, [appInitialized, stepsByID])
 
 	useEffect(() => {
 		if(step && !protocol) {

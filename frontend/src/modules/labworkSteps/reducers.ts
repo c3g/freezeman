@@ -2,7 +2,8 @@ import { AnyAction } from 'redux'
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { LabworkStepSamples, LabworkStepsState } from './models'
-import { LIST, INIT_SAMPLES_AT_STEP, FLUSH_SAMPLES_AT_STEP, SET_SELECTED_SAMPLES } from './actions'
+import { LIST, LIST_TEMPLATE_ACTIONS, INIT_SAMPLES_AT_STEP, FLUSH_SAMPLES_AT_STEP, SET_SELECTED_SAMPLES } from './actions'
+import { templateActionsReducerFactory } from '../../utils/templateActions'
 
 const INTIAL_STATE: LabworkStepsState = {
 	steps: {},
@@ -155,3 +156,5 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 	}
 	return state
 }
+
+export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS})

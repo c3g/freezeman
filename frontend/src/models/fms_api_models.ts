@@ -275,6 +275,18 @@ export interface FMSTaxon extends FMSTrackedModel {
     ncbi_id: number                     // Numerical identifier used by the NCBI taxonomy catalog
 }
 
+// Template action description
+export interface FMSTemplateAction {
+	id: number                          // Action ID (not an FMSId, just a number)
+	name: string                        // Action name
+	description: string                 // Action description
+	template: {                         // List of templates
+		description: string             // Template description
+		file: string                    // Template file path
+		protocol?: string               // Protocol associated with template (if any)
+	}[]
+}
+
 export interface FMSUser extends FMSTrackedModel {
     // The user model is defined by Django
     username: string                    // Django user name

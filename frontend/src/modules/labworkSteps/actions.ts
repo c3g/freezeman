@@ -1,16 +1,19 @@
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
-import Sample from "../samples/actions.js"
-import api from "../../utils/api"
-import { createNetworkActionTypes, networkAction } from "../../utils/actions"
+import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, FMSTemplateAction } from "../../models/fms_api_models"
 import { selectPageSize, selectProtocolsByID, selectStepsByID } from "../../selectors"
+import { RootState } from "../../store"
+import { createNetworkActionTypes, networkAction } from "../../utils/actions"
+import api from "../../utils/api"
+import Sample from "../samples/actions.js"
 import { LabworkPrefilledTemplateDescriptor } from "./models"
-import { buildSubmitTemplatesURL } from "./services"
 
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
 export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
+export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
+
+const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 
 // Initialize the redux state for samples at step
 export function initSamplesAtStep(stepID: FMSId) {
@@ -18,36 +21,49 @@ export function initSamplesAtStep(stepID: FMSId) {
 		const stepsByID = selectStepsByID(getState())
 		const protocolsByID = selectProtocolsByID(getState())
 
+		// Get the step by step ID from redux
 		const step = stepsByID[stepID]
 		if (!step) {
 			throw Error(`Step with ID ${stepID} could not be found in store.`)
 		}
 
+		// Get the step's protocol
 		const protocol = protocolsByID[step.protocol_id]
 		if(! protocol) {
 			throw Error(`Protocol with ID ${step.protocol_id} from step ${step.name} could not be found in store.`)
-		} 
+		}
+		
+		// Request the list of template actions for the protocol
+		const templateActions = selectSampleNextStepTemplateActions(getState())
 
+		// Request the list of templates for the protocol
 		const templatesResponse = await dispatch(api.sampleNextStep.prefill.templates(protocol.id))
-		if (templatesResponse && templatesResponse.data.length > 0) {
-			// dispatch an action to init the state for this step
-			await dispatch({
-				type: INIT_SAMPLES_AT_STEP,
-				stepID,
-				templates: templatesResponse.data.map((templateItem : LabworkPrefilledTemplateDescriptor) => {
-					const submissionURL = buildSubmitTemplatesURL(getState(), protocol, templateItem)
-					return {
-						...templateItem,
-						submissionURL
-					}
-				})
+
+		// Convert templates to a list of template descriptors, which include a 'Submit Templates' url.
+		const templates = templatesResponse.data.map((templateItem: LabworkPrefilledTemplateDescriptor) => {
+
+			// Find the action ID for the template
+			const templateAction = templateActions.find((action) => {
+				const matchedTemplate = action.template.find(actionTemplate => actionTemplate.description === templateItem.description)
+				return !!matchedTemplate
 			})
 
-			await dispatch(loadSamplesAtStep(stepID, 1))
-		} else {
-			throw Error(`Failed to fetch templates for step ${step.name} and protocol ${protocol.name}`)
-		}
+			const submissionURL = templateAction ? `actions/${templateAction.id}` : undefined
+			return {
+				...templateItem,
+				submissionURL
+			}
+		})
 
+		// dispatch an action to init the state for this step
+		await dispatch({
+			type: INIT_SAMPLES_AT_STEP,
+			stepID,
+			templates
+		})
+
+		// Now load the samples for the step
+		await dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 
@@ -89,3 +105,8 @@ export function flushSamplesAtStep(stepID: FMSId) {
 		stepID
 	}
 }
+
+export const listTemplateActions = () => (dispatch, getState) => {
+    if (getState().sampleNextStepTemplateActions.isFetching) return;
+    return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.sampleNextStep.template.actions()));
+};

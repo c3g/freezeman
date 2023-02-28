@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { flushLabworkSummary, getLabworkSummary } from '../../modules/labwork/actions'
 import { selectLabworkSummaryState } from '../../selectors'
+import ActionContent from '../ActionContent'
 import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
 import LabworkStepRoute from './step/LabworkStepRoute'
@@ -39,6 +40,7 @@ const LabworkPage = () => {
 			<Routes>
 				<Route path="*" element={<LabworkOverviewRoute />} />
 				<Route path="step/:stepID/*" element={<LabworkStepRoute />} />
+				<Route path="step/:stepID/actions/:action/*" element={<ActionContent templateType="sampleNextStep" />}/>
 			</Routes>
 		</PageContainer>
 	)

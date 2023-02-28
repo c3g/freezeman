@@ -216,7 +216,12 @@ const api = {
     prefill: {
       templates: (protocolId) => get('/sample-next-step/list_prefills', {protocol: protocolId}),
       request: (templateID, stepID, selectedSampleIDs) => get('/sample-next-step/prefill_template/', {template: templateID, step__id__in: stepID, sample__id__in: selectedSampleIDs.join(',')})
-    }
+    },
+    template: {
+      actions: () => get(`/sample-next-step/template_actions/`),
+      check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
+    },
   },
 
   sampleNextStepByStudy: {
