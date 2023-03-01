@@ -1,10 +1,10 @@
-import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep, FMSTemplateAction } from "../../models/fms_api_models"
-import { selectPageSize, selectProtocolsByID, selectStepsByID } from "../../selectors"
-import { RootState } from "../../store"
+import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
+import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import Sample from "../samples/actions.js"
 import { LabworkPrefilledTemplateDescriptor } from "./models"
+import { refreshSelectedSamplesAtStep } from "./services"
 
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
@@ -13,7 +13,6 @@ export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
 
-const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 
 // Initialize the redux state for samples at step
 export function initSamplesAtStep(stepID: FMSId) {
@@ -78,7 +77,8 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 			offset,
 			meta : {
 				stepID,
-				pageNumber
+				pageNumber,
+				limit
 			}
 		}
 		const response : FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, {}), options))
@@ -91,12 +91,34 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	}
 }
 
+export function refreshSamplesAtStep(stepID: FMSId) {
+	return async (dispatch, getState) => {
+		const token = selectToken(getState())
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (token && step) {
+			const pageNumber = step.pagedItems.page?.pageNumber ?? 1
+			dispatch(loadSamplesAtStep(stepID, pageNumber))
+
+			// TODO: Remove selected samples that are no longer at this step ??
+			if (step.selectedSamples.length > 0) {
+				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples)
+				dispatch(setSelectedSamples(stepID, refreshedSelection))
+			}
+		}
+	}
+}
+
 export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 	return {
 		type: SET_SELECTED_SAMPLES,
 		stepID,
 		sampleIDs
 	}
+}
+
+export function clearSelectedSamples(stepID: FMSId) {
+	return setSelectedSamples(stepID, [])
 }
 
 export function flushSamplesAtStep(stepID: FMSId) {

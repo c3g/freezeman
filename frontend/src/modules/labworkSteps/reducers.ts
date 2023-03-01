@@ -48,9 +48,27 @@ function handleListReceive(
 	state: LabworkStepsState,
 	stepID: FMSId,
 	pageNumber: number,
+	pageSize: number,
 	totalCount: number,
 	sampleNextSteps: SampleNextStep[]
 ) {
+	// Adjust page number if the total number of items doesn't reach that page,
+	// which can happen if we refresh the list of samples.
+	if (pageSize > 0) {
+		let numPages = 0
+		if (totalCount > 0) {
+			if (totalCount < pageSize) {
+				numPages = 1
+			} else {
+				numPages = totalCount / pageSize
+			}
+		}
+		
+		if (pageNumber > numPages) {
+			pageNumber = numPages
+		}
+	}
+	
 	let stepSamples: LabworkStepSamples = state.steps[stepID]
 	if (stepSamples) {
 		stepSamples = {
@@ -127,7 +145,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 		}
 		case LIST.RECEIVE: {
 			const { meta, data } = action
-			return handleListReceive(state, meta.stepID, meta.pageNumber, data.count, data.results)
+			return handleListReceive(state, meta.stepID, meta.pageNumber, meta.limit, data.count, data.results)
 		}
 		case LIST.ERROR: {
 			const { meta, error } = action
@@ -150,7 +168,7 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			const newState = {
 				...state,
 			}
-			delete newState[stepID]
+			delete newState.steps[stepID]
 			return newState
 		}
 	}

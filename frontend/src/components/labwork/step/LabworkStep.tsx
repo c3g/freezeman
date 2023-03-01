@@ -1,10 +1,11 @@
-import { Button, Select, Space, Tabs, Typography } from 'antd'
+import { SyncOutlined } from '@ant-design/icons'
+import { Button, Select, Space, Tabs } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import api from '../../../utils/api'
 import { downloadFromFile } from '../../../utils/download'
@@ -13,7 +14,6 @@ import PageContent from '../../PageContent'
 import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
-const { Title } = Typography
 
 interface LabworkStepPageProps {
 	protocol: Protocol
@@ -41,6 +41,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}, [stepSamples])
 
+	const canRefresh = true
+	function handleRefresh() {
+		dispatch(refreshSamplesAtStep(step.id))
+	}
+
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
 
@@ -62,6 +67,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
 	function handleSubmitTemplate() {
+		dispatch(flushSamplesAtStep(step.id))
 		if (selectedTemplate && selectedTemplate.submissionURL) {
 			navigate(selectedTemplate.submissionURL)
 		}
@@ -81,41 +87,52 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		},
 	}
 
+	const canClearSelection = stepSamples.selectedSamples.length !== 0
+	function handleClearSelection() {
+		dispatch(clearSelectedSamples(step.id))
+	}
+
 	// Display the number of selected samples in the tab title
-	const selectedTabTitle= `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
+	// const selectedTabTitle= `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
+	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
+
+	const buttonBar = (
+		<Space>
+			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
+			<Button type='primary' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
+			<Button icon={<SyncOutlined/>}title='Refresh the list of samples' disabled={!canRefresh} onClick={() => handleRefresh()}>Refresh</Button>
+		</Space>
+	)
 
 	return (
 		<>
-			<AppPageHeader title={protocol.name}>
-				<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'space-between'}}>
-					<Title level={5}>{`${step.name}`}</Title>
-					<Space>
-						{stepSamples.prefill.templates.length > 1 &&
-							<Select 
-								defaultActiveFirstOption
-								style={{width: '24em'}}
-								value={selectedTemplate?.id ?? 0}
-								options={stepSamples.prefill.templates.map(template => {
-									return {
-										value: template.id,
-										label: template.description
-									}
-								})}
-								onChange={value => {
-									const template = stepSamples.prefill.templates.find(template => template.id === value)
-									if (template) {
-										setSelectedTemplate(template)
-									}
-								}}
-							/>
-						}
-						<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate}>Prefill Template</Button>
-						<Button type='primary' disabled={!canSubmit} onClick={handleSubmitTemplate}>Submit Template</Button>
-					</Space>
+			<AppPageHeader title={step.name} extra={buttonBar}>
+				<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'left'}}>
+					{stepSamples.prefill.templates.length > 1 &&
+						<Select 
+							defaultActiveFirstOption
+							style={{width: '24em'}}
+							value={selectedTemplate?.id ?? 0}
+							options={stepSamples.prefill.templates.map(template => {
+								return {
+									value: template.id,
+									label: template.description
+								}
+							})}
+							onChange={value => {
+								const template = stepSamples.prefill.templates.find(template => template.id === value)
+								if (template) {
+									setSelectedTemplate(template)
+								}
+							}}
+						/>
+					}
 				</div>
 			</AppPageHeader>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
-				<Tabs defaultActiveKey='samples'>
+				<Tabs defaultActiveKey='samples' tabBarExtraContent={
+					<Button onClick={() => handleClearSelection()} disabled={!canClearSelection} title='Deselect all samples'>Clear Selection</Button>
+				}>
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.displayedSamples} 

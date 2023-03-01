@@ -34,12 +34,14 @@ export const selectProtocolsByID = (state: RootState) => state.protocols.itemsBy
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
+export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
 export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesById as StudySamplesByID
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
+export const selectToken = (state: RootState) => state.auth.tokens.access
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
 

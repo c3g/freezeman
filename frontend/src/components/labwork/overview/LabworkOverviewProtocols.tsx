@@ -1,9 +1,10 @@
-import { Collapse, Switch, Typography } from 'antd'
+import { Button, Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { LabworkSummary } from '../../../models/labwork_summary'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
-import { setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { refreshLabworkSummary, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { SyncOutlined } from '@ant-design/icons'
 
 const { Text, Title } = Typography
 
@@ -32,7 +33,14 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 		<>
 			<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
 				<Title level={2}>Protocols</Title>
-				<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
+				<Space>
+					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
+					<Button icon={<SyncOutlined/>} onClick={
+						() => {
+							dispatch(refreshLabworkSummary())
+						}
+					} title='Update with the latest state of the samples in the lab'>Refresh</Button>
+				</Space>
 			</div>
 			<Collapse>
 				{protocols.map((protocol) => {

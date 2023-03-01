@@ -31,6 +31,13 @@ export const getLabworkSummary = () => async (dispatch, getState) => {
 	}
 }
 
+export const refreshLabworkSummary = () => {
+	// Right now, there is no difference between getting the initial labwork
+	// summary and refreshing the summary. This action exists in case we need
+	// a different behaviour for refreshing in the future.
+	return getLabworkSummary()
+}
+
 export const setHideEmptyProtocols = (hide: boolean) => {
 	return {
 		type: SET_HIDE_EMPTY_PROTOCOLS,
