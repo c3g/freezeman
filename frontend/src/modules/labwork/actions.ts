@@ -1,7 +1,7 @@
-import { processFMSLabworkSummary } from '../../models/labwork_summary'
 import { selectLabworkSummaryState } from '../../selectors'
 import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
+import { processFMSLabworkSummary } from './services'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
 export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'

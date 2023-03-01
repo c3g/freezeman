@@ -144,26 +144,31 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             protocol_sample_count = SampleNextStep.objects.filter(step__protocol=protocol).count()
 
             if protocol.id not in sample_next_step_by_protocol.keys():
-                # Add protocol info to the results
-                sample_next_step_by_protocol['protocols'][protocol.id] = {
-                    "name" : protocol.name, 
-                    "count": protocol_sample_count,
-                    "steps": []
-                }
 
-                # Iterate through the objects within the protocol
-                for step in Step.objects.filter(protocol=protocol):
-                    # Get the precise count of sample for the specific step within the protocol and the specifications
-                    step_sample_count = SampleNextStep.objects.filter(step=step).count()
-                    step_specifications = StepSpecification.objects.filter(step=step)
-                    step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
+                protocolSteps = Step.objects.filter(protocol=protocol)
+                
+                # Some protocols have no associated steps, so don't include those in labwork info.
+                if protocolSteps.count() > 0:
+                    # Add protocol info to the results
+                    sample_next_step_by_protocol['protocols'][protocol.id] = {
+                        "name" : protocol.name, 
+                        "count": protocol_sample_count,
+                        "steps": []
+                    }
 
-                    # Add step information to the protocol
-                    sample_next_step_by_protocol['protocols'][protocol.id]["steps"].append({
-                        "id": step.id,
-                        "name" : step.name, 
-                        "count": step_sample_count,
-                        "step_specifications": step_specifications
-                    })
+                    # Iterate through the objects within the protocol
+                    for step in protocolSteps:
+                        # Get the precise count of sample for the specific step within the protocol and the specifications
+                        step_sample_count = SampleNextStep.objects.filter(step=step).count()
+                        step_specifications = StepSpecification.objects.filter(step=step)
+                        step_specifications = StepSpecificationSerializer(step_specifications, many=True).data
+
+                        # Add step information to the protocol
+                        sample_next_step_by_protocol['protocols'][protocol.id]["steps"].append({
+                            "id": step.id,
+                            "name" : step.name, 
+                            "count": step_sample_count,
+                            "step_specifications": step_specifications
+                        })
 
         return Response({"results": sample_next_step_by_protocol})
