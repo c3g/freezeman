@@ -1,5 +1,5 @@
 import { SyncOutlined } from '@ant-design/icons'
-import { Button, Select, Space, Tabs } from 'antd'
+import { Button, Select, Space, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
@@ -14,6 +14,7 @@ import PageContent from '../../PageContent'
 import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
+const { Text } = Typography
 
 interface LabworkStepPageProps {
 	protocol: Protocol
@@ -93,13 +94,12 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	}
 
 	// Display the number of selected samples in the tab title
-	// const selectedTabTitle= `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
 
 	const buttonBar = (
 		<Space>
 			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
-			<Button type='primary' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
+			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
 			<Button icon={<SyncOutlined/>}title='Refresh the list of samples' disabled={!canRefresh} onClick={() => handleRefresh()}>Refresh</Button>
 		</Space>
 	)
@@ -107,27 +107,30 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	return (
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar}>
-				<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'left'}}>
-					{stepSamples.prefill.templates.length > 1 &&
-						<Select 
-							defaultActiveFirstOption
-							style={{width: '24em'}}
-							value={selectedTemplate?.id ?? 0}
-							options={stepSamples.prefill.templates.map(template => {
-								return {
-									value: template.id,
-									label: template.description
-								}
-							})}
-							onChange={value => {
-								const template = stepSamples.prefill.templates.find(template => template.id === value)
-								if (template) {
-									setSelectedTemplate(template)
-								}
-							}}
-						/>
-					}
-				</div>
+				{stepSamples.prefill.templates.length > 1 &&
+					<div style={{display: 'flex', alignItems: 'baseline', justifyContent: 'left'}}>
+						<Space>
+							<Text strong>Template:</Text>
+								<Select 
+									defaultActiveFirstOption
+									style={{width: '24em'}}
+									value={selectedTemplate?.id ?? 0}
+									options={stepSamples.prefill.templates.map(template => {
+										return {
+											value: template.id,
+											label: template.description
+										}
+									})}
+									onChange={value => {
+										const template = stepSamples.prefill.templates.find(template => template.id === value)
+										if (template) {
+											setSelectedTemplate(template)
+										}
+									}}
+								/>
+						</Space>
+					</div>
+				}		
 			</AppPageHeader>
 			<PageContent loading={stepSamples.pagedItems.isFetching} >
 				<Tabs defaultActiveKey='samples' tabBarExtraContent={
