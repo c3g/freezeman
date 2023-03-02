@@ -4,7 +4,7 @@ import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import api from "../../utils/api"
 import Sample from "../samples/actions.js"
 import { LabworkPrefilledTemplateDescriptor } from "./models"
-import { refreshSelectedSamplesAtStep } from "./services"
+import { PREFILLED_TEMPLATE_DEFAULT_ORDERING, refreshSelectedSamplesAtStep } from "./services"
 
 
 export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
@@ -109,6 +109,30 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 	}
 }
 
+/**
+ * When changes the current selection of samples we need to ask the backend to sort the samples
+ * for us according to the current sorting criteria. This ensures that when the user generates
+ * a prefilled template, the samples will be listed in the template in the same order.
+ * 
+ * This also has the side-effect of removing any samples from the selection that are no longer
+ * at the specified workflow step.
+ * 
+ * @param stepID : Step ID
+ * @param sampleIDs : List of selected sample ID's
+ * @returns 
+ */
+export function updateSelectedSamplesAtStep(stepID: FMSId, sampleIDs: FMSId[]) {
+	return async (dispatch, getState) => {
+		const token = selectToken(getState())
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (token && step) {
+			const sortedSelection = await refreshSelectedSamplesAtStep(token, stepID, sampleIDs)
+			dispatch(setSelectedSamples(stepID, sortedSelection))
+		}
+	}
+}
+
 export function setSelectedSamples(stepID: FMSId, sampleIDs: FMSId[]) {
 	return {
 		type: SET_SELECTED_SAMPLES,
@@ -131,4 +155,26 @@ export function flushSamplesAtStep(stepID: FMSId) {
 export const listTemplateActions = () => (dispatch, getState) => {
     if (getState().sampleNextStepTemplateActions.isFetching) return;
     return dispatch(networkAction(LIST_TEMPLATE_ACTIONS, api.sampleNextStep.template.actions()));
-};
+}
+
+/**
+ * Request a prefilled template for a step, containing a list selected samples.
+ * @param templateID Template ID from sample-next-step templates
+ * @param stepID Step ID
+ * @returns 
+ */
+export const requestPrefilledTemplate = (templateID : FMSId, stepID: FMSId) => {
+	return async (dispatch, getState) => {
+		const labworkStepsState = selectLabworkStepsState(getState())
+		const step = labworkStepsState.steps[stepID]
+		if (step) {
+			const options = {
+				step__id__in: stepID, 
+				sample__id__in: step.selectedSamples.join(','),
+				ordering: PREFILLED_TEMPLATE_DEFAULT_ORDERING,
+			}
+			const fileData = await dispatch(api.sampleNextStep.prefill.request(templateID, options))
+			return fileData
+		}
+	}
+}

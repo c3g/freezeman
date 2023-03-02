@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin
+from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
 from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
@@ -21,6 +21,11 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
     filterset_fields = {
         **_sample_next_step_filterset_fields
+    }
+    ordering_fields = {
+        *_list_keys(_sample_next_step_filterset_fields),
+        "sample__container__barcode",
+        "sample__coordinates",
     }
 
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.

@@ -5,9 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, setSelectedSamples } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
-import api from '../../../utils/api'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
@@ -54,7 +53,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		// Generate a prefilled template containing the list of selected values.		
 		if (selectedTemplate) {
 			try {
-				const result = await dispatch(api.sampleNextStep.prefill.request(selectedTemplate.id, step.id, stepSamples.selectedSamples))
+				const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
 				if (result) {
 					downloadFromFile(result.filename, result.data)
 				}
@@ -84,7 +83,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				}
 				return acc
 			}, [] as FMSId[])
-			dispatch(setSelectedSamples(step.id, ids))
+			dispatch(updateSelectedSamplesAtStep(step.id, ids))
 		},
 	}
 

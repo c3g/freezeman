@@ -82,6 +82,11 @@ export interface PagedItems<T extends FMSTrackedModel> {
 	}
 }
 
+export interface SortBy {
+	key: string
+	order: 'ascend' | 'descend'
+}
+
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
