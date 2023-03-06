@@ -230,7 +230,7 @@ class SamplePoolingTestCase(TestCase):
         self.source_sample_12, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL6", alias="SOURCESAMPLE1POOL6", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0), individual=self.same_individual,
-                                container=self.container, coordinates="B01", sample_kind=self.DNA_sample_kind, library=self.library_2, project=self.project)
+                               container=self.container, coordinates="B01", sample_kind=self.DNA_sample_kind, library=self.library_2, project=self.project)
 
         self.source_sample_13, _, _ = \
             create_full_sample(name="SOURCESAMPLE2POOL6", alias="SOURCESAMPLE2POOL6", volume=self.source_sample_initial_volume, concentration=25,

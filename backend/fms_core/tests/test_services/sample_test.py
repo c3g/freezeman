@@ -160,6 +160,32 @@ class SampleServicesTestCase(TestCase):
         self.assertFalse(errors)
         self.assertFalse(warnings)
 
+    def test_create_full_sample_without_collection_site(self):
+        new_sample, errors, warnings = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                                          volume=self.TEST_SAMPLES[0]["volume"],
+                                                          concentration=self.TEST_SAMPLES[0]["concentration"],
+                                                          collection_site=None,
+                                                          creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                                          container=self.TEST_SAMPLES[0]["container"],
+                                                          coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                                          individual=self.TEST_SAMPLES[0]["individual"],
+                                                          sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                                          library=self.TEST_SAMPLES[0]["library"],
+                                                          project=self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.name, self.TEST_SAMPLES[0]["name"])
+        self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
+        self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
+        self.assertIsNone(new_sample.derived_samples.first().biosample.collection_site)
+        self.assertEqual(new_sample.creation_date, self.TEST_SAMPLES[0]["creation_date"])
+        self.assertEqual(new_sample.container, self.TEST_SAMPLES[0]["container"])
+        self.assertEqual(new_sample.coordinates, self.TEST_SAMPLES[0]["coordinates"])
+        self.assertEqual(new_sample.derived_samples.first().biosample.individual, self.TEST_SAMPLES[0]["individual"])
+        self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
+        self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
+        self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
     def test_get_sample_from_container(self):
         sample, errors, warnings = get_sample_from_container(self.samples[0].container.barcode, self.samples[0].coordinates)
         self.assertEqual(sample, self.samples[0])
