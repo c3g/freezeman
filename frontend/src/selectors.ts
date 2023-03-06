@@ -1,5 +1,6 @@
 import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
+import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID } from "./modules/studySamples/reducers"
 import { RootState } from "./store"
 
@@ -23,7 +24,7 @@ export const selectAppInitialzed = (state: RootState) => state.app.initialized
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
-export const selectLabworkStepsState = (state: RootState) => state.labworkSteps
+export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions

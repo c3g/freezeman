@@ -21,7 +21,14 @@ export interface ObjectWithSample {
 	sample?: Sample
 }
 
-const ID: TableColumnType<ObjectWithSample> = {
+export interface IdentifiedTableColumnType<T> extends TableColumnType<T> {
+	columnID: string
+}
+
+export type SampleColumn = IdentifiedTableColumnType<ObjectWithSample>
+
+const ID: SampleColumn = {
+	columnID: 'ID',
 	title: 'ID',
 	dataIndex: ['sample', 'id'],
 	render: (_, { sample }) =>
@@ -32,13 +39,15 @@ const ID: TableColumnType<ObjectWithSample> = {
 		),
 }
 
-const KIND: TableColumnType<ObjectWithSample> = {
+const KIND: SampleColumn = {
+	columnID: 'KIND',
 	title: 'Kind',
 	dataIndex: ['sample', 'sample_kind'],
 	render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
 }
 
-const NAME: TableColumnType<ObjectWithSample> = {
+const NAME: SampleColumn = {
+	columnID: 'NAME',
 	title: 'Name',
 	dataIndex: ['sample', 'name'],
 	render: (name, { sample }) =>
@@ -54,7 +63,8 @@ const NAME: TableColumnType<ObjectWithSample> = {
 		),
 }
 
-const INDIVIDUAL: TableColumnType<ObjectWithSample> = {
+const INDIVIDUAL: SampleColumn = {
+	columnID: 'INDIVIDUAL',
 	title: 'Individual',
 	dataIndex: ['sample', 'individual'],
 	render: (_, { sample }) => {
@@ -69,7 +79,8 @@ const INDIVIDUAL: TableColumnType<ObjectWithSample> = {
 	},
 }
 
-const CONTAINER_NAME: TableColumnType<ObjectWithSample> = {
+const CONTAINER_NAME: SampleColumn = {
+	columnID: 'CONTAINER_NAME',
 	title: 'Container Name',
 	dataIndex: ['sample', 'container'],
 	render: (_, { sample }) => {
@@ -86,7 +97,8 @@ const CONTAINER_NAME: TableColumnType<ObjectWithSample> = {
 	},
 }
 
-const CONTAINER_BARCODE: TableColumnType<ObjectWithSample> = {
+const CONTAINER_BARCODE: SampleColumn = {
+	columnID: 'CONTAINER_BARCODE',
 	title: 'Container Barcode',
 	dataIndex: ['sample', 'container'],
 	render: (_, { sample }) => {
@@ -103,19 +115,22 @@ const CONTAINER_BARCODE: TableColumnType<ObjectWithSample> = {
 	},
 }
 
-const COORDINATES: TableColumnType<ObjectWithSample> = {
+const COORDINATES: SampleColumn = {
+	columnID: 'COORDINATES',
 	title: 'Coords',
 	dataIndex: ['sample', 'coordinates'],
 }
 
-const VOLUME: TableColumnType<ObjectWithSample> = {
+const VOLUME: SampleColumn = {
+	columnID: 'VOLUME',
 	title: 'Vol. (µL)',
 	dataIndex: ['sample', 'volume'],
 	align: 'right',
 	className: 'table-column-numbers',
 }
 
-const CONCENTRATION: TableColumnType<ObjectWithSample> = {
+const CONCENTRATION: SampleColumn = {
+	columnID: 'CONCENTRATION',
 	title: 'Conc. (ng/µL)',
 	dataIndex: ['sample', 'concentration'],
 	align: 'right',
@@ -123,7 +138,8 @@ const CONCENTRATION: TableColumnType<ObjectWithSample> = {
 	render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
 }
 
-const QC_FLAG: TableColumnType<ObjectWithSample> = {
+const QC_FLAG: SampleColumn = {
+	columnID: 'QC_FLAG',
 	title: 'QC Flag',
 	dataIndex: ['sample', 'qc_flag'],
 	render: (_, { sample }) => {
@@ -137,12 +153,14 @@ const QC_FLAG: TableColumnType<ObjectWithSample> = {
 	},
 }
 
-const CREATION_DATE: TableColumnType<ObjectWithSample> = {
+const CREATION_DATE: SampleColumn = {
+	columnID: 'CREATION_DATE',
 	title: 'Creation Date',
 	dataIndex: ['sample', 'creation_date'],
 }
 
-const DEPLETED: TableColumnType<ObjectWithSample> = {
+const DEPLETED: SampleColumn = {
+	columnID: 'DEPLETED',
 	title: 'Depleted',
 	dataIndex: ['sample', 'depleted'],
 	render: (depleted) => <Depletion depleted={depleted} />,

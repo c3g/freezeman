@@ -22,6 +22,7 @@ module.exports = {
     // Ignore dot '.' files in project folder
     "ignorePatterns": ["\.*"],
     "rules": {
+        "no-empty": "warn",
         "react/prop-types": "off",
         "no-mixed-spaces-and-tabs": "off",
         "@typescript-eslint/no-empty-interface": "off",

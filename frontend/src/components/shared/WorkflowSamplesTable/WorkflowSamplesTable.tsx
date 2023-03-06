@@ -1,16 +1,19 @@
-import { Table, TableColumnsType } from 'antd'
+import { Table } from 'antd'
 import { RowSelectMethod, TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
+import { getFilterPropsForDescription } from '../../filters/getFilterProps'
 import { SampleAndLibrary } from './ColumnSets'
+import { IdentifiedTableColumnType } from './SampleTableColumns'
+import SAMPLE_COLUMN_FILTERS from './SampleTableFilters'
 
 
 
 interface WorkflowSamplesTableProps {
 	sampleIDs: FMSId[]
-	columns: TableColumnsType<SampleAndLibrary>
+	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	selection?: {
 		selectedSampleIDs: FMSId[]
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
@@ -57,6 +60,23 @@ function WorkflowSamplesTable({sampleIDs, columns, selection} : WorkflowSamplesT
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}
+
+	// const setFilter = (...args) => { console.log('set filter', args)}
+	// const setFilterOption = (...args) => { console.log('set filter option', args)}
+
+	// // Attach filters to columns
+	// const filteredColumns = columns.map(column => {
+	// 	const description = SAMPLE_COLUMN_FILTERS[column.columnID]
+	// 	if (description) {
+	// 		const props = getFilterPropsForDescription(column, description, undefined, setFilter, setFilterOption)
+	// 		return {
+	// 			...column,
+	// 			...props
+	// 		}
+	// 	} else {
+	// 		return column
+	// 	}
+	// })
 	
 	return (
 		<Table

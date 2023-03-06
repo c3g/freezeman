@@ -1,7 +1,11 @@
+from django.db.models import Q, When, Case, BooleanField
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
+
+from fms_core.filters import SampleNextStepFilter
+
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
@@ -27,6 +31,17 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         "sample__container__barcode",
         "sample__coordinates",
     }
+
+    filter_class = SampleNextStepFilter
+
+    queryset = queryset.annotate(
+        qc_flag=Case(
+            When(Q(sample__quality_flag=True) & Q(sample__quantity_flag=True), then=True),
+            When(Q(sample__quality_flag=False) | Q(sample__quantity_flag=False), then=False),
+            default=None,
+            output_field=BooleanField()
+        )
+    )
 
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.
     template_action_list = [

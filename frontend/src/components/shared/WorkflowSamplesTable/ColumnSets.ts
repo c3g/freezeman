@@ -3,7 +3,7 @@ import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'
 import LIBRARY_COLUMNS, { ObjectWithLibrary } from './LibraryTableColumns'
-import SAMPLE_COLUMNS, { ObjectWithSample } from './SampleTableColumns'
+import SAMPLE_COLUMNS, { IdentifiedTableColumnType, ObjectWithSample } from './SampleTableColumns'
 
 export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
@@ -11,7 +11,7 @@ export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 	Returns the default set of columns that should be used to display samples/libraries
 	for a given protocol and step.
 */
-export function getColumnsForStep(step: Step, protocol: Protocol): TableColumnsType<SampleAndLibrary> {
+export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTableColumnType<SampleAndLibrary>[] {
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,

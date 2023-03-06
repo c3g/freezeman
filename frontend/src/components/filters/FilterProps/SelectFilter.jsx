@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 import { Select } from 'antd'
 
-const SelectFilter = ({value, title, options, dataIndex, setFilter, confirm, visible}) => {
+const SelectFilter = ({value, title, options, filterKey, setFilter, confirm, visible, description}) => {
 
     const selectRef = useRef()
 
     const onSearch = (value) => {
-      setFilter(dataIndex, value.length === 0 ? undefined : value)
+      setFilter(filterKey, value.length === 0 ? undefined : value, description)
     }
   
     const onKeyDown = (ev, confirm) => {

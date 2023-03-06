@@ -1,17 +1,24 @@
-import { SyncOutlined } from '@ant-design/icons'
-import { Button, Select, Space, Tabs, Typography } from 'antd'
+import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
+import { Button, Select, Space, TableColumnType, Tabs, Typography } from 'antd'
+import { filter } from 'rambda'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '../../../hooks'
+import { FILTER_TYPE } from '../../../constants'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
+import { SAMPLE_FILTERS } from '../../filters/descriptions'
+import { FilterOptions, FilterSet, FilterValueType, SetFilterFunc } from '../../shared/WorkflowSamplesTable/getFilterProps'
 import PageContent from '../../PageContent'
-import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
+import { getColumnsForStep, SampleAndLibrary } from '../../shared/WorkflowSamplesTable/ColumnSets'
+import { mergeColumnsAndFilters } from '../../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
+import SAMPLE_COLUMN_FILTERS, { SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableFilters'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
+import { FilterDescription } from '../../../models/paged_items'
 
 const { Text } = Typography
 
@@ -26,7 +33,28 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	const columnsForSamplesTable = [...getColumnsForStep(step, protocol)]
+	function handleSetFilter(filterKey: string, value: FilterValueType, description: FilterDescription) {
+		if(typeof description === 'undefined') {
+			return
+		}
+		dispatch(setFilter(step.id, description, value))
+	}
+
+	function handleSetFilterOptions(filterKey: string, property: string, value: boolean, description: FilterDescription) {
+		if(typeof description === 'undefined') {
+			return
+		}
+		dispatch(setFilterOptions(step.id, description, {[property]: value}))
+	}
+
+	const columnsForSamplesTable = mergeColumnsAndFilters(
+		getColumnsForStep(step, protocol), 
+		SAMPLE_COLUMN_FILTERS,
+		SAMPLE_NEXT_STEP_FILTER_KEYS,
+		stepSamples.pagedItems.filters, 
+		handleSetFilter, 
+		handleSetFilterOptions)
+
 	const columnsForSelectedSamplesTable = [...getColumnsForStep(step, protocol)]
 
 	// Set the currently selected template to the first template available, not already set.
@@ -147,6 +175,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							sampleIDs={stepSamples.selectedSamples}
 							columns={columnsForSelectedSamplesTable}
 							selection={selectionProps}/>
+						<Space><InfoCircleOutlined/><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
 					</Tabs.TabPane>
 				</Tabs>
 			</PageContent>

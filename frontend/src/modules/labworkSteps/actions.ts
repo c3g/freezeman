@@ -1,4 +1,6 @@
+import serializeFilterParamsWithDescriptions from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { FMSId, FMSPagedResultsReponse, FMSSampleNextStep } from "../../models/fms_api_models"
+import { FilterDescription, FilterOptions, FilterValue } from "../../models/paged_items"
 import { selectLabworkStepsState, selectPageSize, selectProtocolsByID, selectSampleNextStepTemplateActions, selectStepsByID, selectToken } from "../../selectors"
 import { createNetworkActionTypes, networkAction } from "../../utils/actions"
 import api from "../../utils/api"
@@ -11,6 +13,9 @@ export const INIT_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:INIT_SAMPLES_AT_STEP'
 export const LIST = createNetworkActionTypes('LABWORK_STEP')
 export const SET_SELECTED_SAMPLES = 'SAMPLES_AT_STEP:SET_SELECTED_SAMPLES'
 export const FLUSH_SAMPLES_AT_STEP = 'SAMPLES_AT_STEP:LOAD_SAMPLES_AT_STEP'
+export const SET_FILTER = 'SAMPLES_AT_STEP:SET_FILTER'
+export const SET_FILTER_OPTION = 'SAMPLES_AT_STEP:SET_FILTER_OPTION'
+export const CLEAR_FILTERS = 'SAMPLES_AT_STEP:CLEAR_FILTERS'
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
 
 
@@ -68,10 +73,17 @@ export function initSamplesAtStep(stepID: FMSId) {
 
 export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 	return async (dispatch, getState) => {
+		const labworkState = selectLabworkStepsState(getState())
+		const stepSamples = labworkState.steps[stepID]
+		if (!stepSamples) {
+			throw new Error(`No step samples state found for step ID "${stepID}"`)
+		}
+
+
 		// Get the next page of SampleNextSteps 
 		const limit = selectPageSize(getState())
 		const offset = limit * (pageNumber - 1)
-
+		const serializedFilters = serializeFilterParamsWithDescriptions(stepSamples.pagedItems.filters)
 		const options = {
 			limit,
 			offset,
@@ -81,7 +93,7 @@ export function loadSamplesAtStep(stepID: FMSId, pageNumber: number) {
 				limit
 			}
 		}
-		const response : FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, {}), options))
+		const response : FMSPagedResultsReponse<FMSSampleNextStep> = await dispatch(networkAction(LIST, api.sampleNextStep.listSamplesAtStep(stepID, serializedFilters), options))
 		if (response.count > 0) {
 			// Load the associated samples/libraries
 			const sampleIDs = response.results.map(nextStep => nextStep.sample)
@@ -149,6 +161,43 @@ export function flushSamplesAtStep(stepID: FMSId) {
 	return {
 		type: FLUSH_SAMPLES_AT_STEP,
 		stepID
+	}
+}
+
+export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue) {
+	return (dispatch, getState) => {
+		dispatch({
+			type: SET_FILTER,
+			stepID,
+			value,
+			description
+		})
+		// Reset the sample list
+		dispatch(loadSamplesAtStep(stepID, 1))
+	}
+}
+
+export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions) {
+	return (dispatch, getState) => {
+		dispatch({
+			type: SET_FILTER_OPTION,
+			stepID,
+			options,
+			description
+		})
+		// Reset the sample list
+		dispatch(loadSamplesAtStep(stepID, 1))
+	}
+}
+
+export function clearFilters(stepID: FMSId) {
+	return (dispatch, getState) => {
+		dispatch({
+			type: CLEAR_FILTERS,
+			stepID
+		})
+		// Reset the sample list
+		dispatch(loadSamplesAtStep(stepID, 1))
 	}
 }
 

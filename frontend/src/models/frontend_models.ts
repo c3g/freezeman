@@ -51,43 +51,6 @@ export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsBy
 	return itemsByID
 }
 
-
-export interface PagedItems<T extends FMSTrackedModel> {
-	isFetching: boolean
-	error?: any
-	itemsByID: ItemsByID<T>
-	items: FMSId[]
-	totalCount: number
-	filters: {
-		[key : string] : {
-			value: string | {
-				min?: string | number
-				max?: string | number
-			}
-			options?: {
-				exactMatch?: boolean
-				recursiveMatch?: boolean
-			}
-		}
-	}
-	sortBy: {
-		key?: string
-		order?: 'ascend' | 'descend'
-	}
-	page?: {
-		pageNumber?: number		// Move to using page number instead of offset
-		offset?: number
-		limit?: number
-		ignoreError?: string
-	}
-}
-
-export interface SortBy {
-	key: string
-	order: 'ascend' | 'descend'
-}
-
-
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
 export interface ImportedFile extends Readonly<FMSImportedFile>, FetchedObject {}

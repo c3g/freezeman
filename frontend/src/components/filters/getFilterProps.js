@@ -52,10 +52,10 @@ function isValidInteger(value) {
 
 
 function getInputFilterProps(column, descriptions, filters, setFilter, setFilterOption) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
-  const options = filters[dataIndex]?.options;
+  const filterKey = column.dataIndex;
+  const description = descriptions[filterKey];
+  const value = filters[filterKey]?.value;
+  const options = filters[filterKey]?.options;
 
   return ({
     filterIcon: getFilterIcon(Boolean(value)),
@@ -64,7 +64,7 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
         value,
         options,
         description,
-        dataIndex,
+        filterKey,
         setFilter,
         setFilterOption,
         confirm,
@@ -76,15 +76,15 @@ function getInputFilterProps(column, descriptions, filters, setFilter, setFilter
 }
 
 function getInputNumberFilterProps(column, descriptions, filters, setFilter, setFilterOption, validationFunc) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
+  const filterKey = column.dataIndex;
+  const description = descriptions[filterKey];
+  const value = filters[filterKey]?.value;
 
   return ({
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm, visible }) => {
       const props = {
-        value, validationFunc, description, dataIndex, setFilter, confirm, visible
+        value, validationFunc, description, filterKey, setFilter, confirm, visible
       }
       return <InputNumberFilter {...props}/>
     }
@@ -92,9 +92,9 @@ function getInputNumberFilterProps(column, descriptions, filters, setFilter, set
 }
 
 function getSelectFilterProps(column, descriptions, filters, setFilter) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value;
+  const filterKey = column.dataIndex;
+  const description = descriptions[filterKey];
+  const value = filters[filterKey]?.value;
   const options = description.options || column.options || []
   const title = column.title
 
@@ -102,7 +102,7 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm, visible }) => {
       const props = {
-        value,  title, options, dataIndex, setFilter, confirm, visible
+        value,  title, options, filterKey, setFilter, confirm, visible
       }
       return <SelectFilter {...props}/>
     },
@@ -110,16 +110,16 @@ function getSelectFilterProps(column, descriptions, filters, setFilter) {
 }
 
 function getRadioFilterProps(column, descriptions, filters, setFilter) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
-  const value = filters[dataIndex]?.value
+  const filterKey = column.dataIndex;
+  const description = descriptions[filterKey];
+  const value = filters[filterKey]?.value
   const options = description.options || column.options || []
 
   return ({
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm, visible }) => {
       const props = {
-        value, options, description, dataIndex, setFilter, confirm, visible
+        value, options, description, filterKey, setFilter, confirm, visible
       }
 
       return <RadioFilter {...props} />
@@ -128,10 +128,10 @@ function getRadioFilterProps(column, descriptions, filters, setFilter) {
 }
 
 function getRangeFilterProps(column, descriptions, filters, setFilter) {
-  const dataIndex = column.dataIndex;
-  const description = descriptions[dataIndex];
+  const filterKey = column.dataIndex;
+  const description = descriptions[filterKey];
   const defaultMin = description.defaultMin ?? 0
-  const value = filters[dataIndex]?.value;
+  const value = filters[filterKey]?.value;
   const minValue = value?.min
   const maxValue = value?.max
 
@@ -142,7 +142,7 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
         minValue,
         defaultMin,
         maxValue,
-        dataIndex,
+        filterKey,
         setFilter,
         confirm,
         visible
@@ -154,8 +154,8 @@ function getRangeFilterProps(column, descriptions, filters, setFilter) {
 }
 
 function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
-  const dataIndex = column.dataIndex;
-  const value = filters[dataIndex]?.value
+  const filterKey = column.dataIndex;
+  const value = filters[filterKey]?.value
   const minValue = value && nullize(value.min) && moment(value.min)
   const maxValue = value && nullize(value.max) && moment(value.max)
 
@@ -163,7 +163,7 @@ function getDateRangeFilterProps(column, descriptions, filters, setFilter) {
     filterIcon: getFilterIcon(Boolean(value)),
     filterDropdown: ({ confirm, visible }) => {
       const props = {
-        minValue, maxValue, dataIndex, setFilter, confirm, visible
+        minValue, maxValue, filterKey, setFilter, confirm, visible
       }
       return <DateRangeFilter {...props} />
     }

@@ -1,5 +1,6 @@
 import { FMSId } from "../../models/fms_api_models"
-import { PagedItems, SampleNextStep } from "../../models/frontend_models"
+import { SampleNextStep } from "../../models/frontend_models"
+import { PagedItems } from "../../models/paged_items"
 
 export interface LabworkStepsState {
 	steps: {[key: FMSId] : LabworkStepSamples}			// key is a Step ID

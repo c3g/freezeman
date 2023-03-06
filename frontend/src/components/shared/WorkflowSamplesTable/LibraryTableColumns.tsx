@@ -1,10 +1,10 @@
-import { TableColumnType } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Library } from '../../../models/frontend_models'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import { WithContainerRenderComponent, WithIndexRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
+import { IdentifiedTableColumnType } from './SampleTableColumns'
 
 /*
 	Defines a set of Ant Table column descriptors for library fields. Each column
@@ -21,7 +21,10 @@ export interface ObjectWithLibrary {
 	library?: Library
 }
 
-const CONCENTRATION_NM: TableColumnType<ObjectWithLibrary> = {
+export type LibraryColumn = IdentifiedTableColumnType<ObjectWithLibrary>
+
+const CONCENTRATION_NM: LibraryColumn = {
+	columnID: 'LIB_CONCENTRATION_NM',
 	title: 'Conc. (nM)',
 	dataIndex: ['library', 'concentration_nm'],
 	align: 'right',
@@ -29,7 +32,8 @@ const CONCENTRATION_NM: TableColumnType<ObjectWithLibrary> = {
 	render: (conc) => conc && parseFloat(conc).toFixed(3),
 }
 
-const CONCENTRATION: TableColumnType<ObjectWithLibrary> = {
+const CONCENTRATION: LibraryColumn = {
+	columnID: 'LIB_CONCENTRATION',
 	title: 'Conc. (ng/µL)',
 	dataIndex: ['library', 'concentration'],
 	align: 'right',
@@ -37,7 +41,8 @@ const CONCENTRATION: TableColumnType<ObjectWithLibrary> = {
 	render: (conc) => conc && parseFloat(conc).toFixed(3),
 }
 
-const CONTAINER_BARCODE: TableColumnType<ObjectWithLibrary> = {
+const CONTAINER_BARCODE: LibraryColumn = {
+	columnID: 'LIB_CONTAINER_BARCODE',
 	title: 'Container Barcode',
 	dataIndex: 'container',
 	render: (_, { library }) => {
@@ -54,7 +59,8 @@ const CONTAINER_BARCODE: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const CONTAINER_NAME: TableColumnType<ObjectWithLibrary> = {
+const CONTAINER_NAME: LibraryColumn = {
+	columnID: 'LIB_CONTAINER_NAME',
 	title: 'Container Name',
 	dataIndex: 'container',
 	render: (_, { library }) => {
@@ -71,23 +77,27 @@ const CONTAINER_NAME: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const COORDINATES: TableColumnType<ObjectWithLibrary> = {
+const COORDINATES: LibraryColumn = {
+	columnID: 'LIB_COORDINATES',
 	title: 'Coords',
 	dataIndex: ['library', 'coordinates'],
 }
 
-const CREATION_DATE: TableColumnType<ObjectWithLibrary> = {
+const CREATION_DATE: LibraryColumn = {
+	columnID: 'LIB_CREATION_DATE',
 	title: 'Creation Date',
 	dataIndex: ['library', 'creation_date'],
 }
 
-const DEPLETED: TableColumnType<ObjectWithLibrary> = {
+const DEPLETED: LibraryColumn = {
+	columnID: 'LIB_DEPLETED',
 	title: 'Depleted',
 	dataIndex: ['library', 'depleted'],
 	render: (depleted) => depleted !== null && <Depletion depleted={depleted} />,
 }
 
-const ID: TableColumnType<ObjectWithLibrary> = {
+const ID: LibraryColumn = {
+	columnID: 'LIB_ID',
 	title: 'ID',
 	dataIndex: 'id',
 	render: (_, { library }) =>
@@ -98,7 +108,8 @@ const ID: TableColumnType<ObjectWithLibrary> = {
 		),
 }
 
-const INDEX: TableColumnType<ObjectWithLibrary> = {
+const INDEX: LibraryColumn = {
+	columnID: 'LIB_INDEX',
 	title: 'Index',
 	dataIndex: ['library', 'index'],
 	render: (_, { library }) => {
@@ -115,7 +126,8 @@ const INDEX: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const LIBRARY_SIZE: TableColumnType<ObjectWithLibrary> = {
+const LIBRARY_SIZE: LibraryColumn = {
+	columnID: 'LIB_LIBRARY_SIZE',
 	title: 'Library Size',
 	dataIndex: ['library', 'library_size'],
 	align: 'right',
@@ -123,13 +135,15 @@ const LIBRARY_SIZE: TableColumnType<ObjectWithLibrary> = {
 	render: (_, { library }) => library && library.library_size && <span>{library.library_size}</span>,
 }
 
-const LIBRARY_TYPE: TableColumnType<ObjectWithLibrary> = {
+const LIBRARY_TYPE: LibraryColumn = {
+	columnID: 'LIB_LIBRARY_TYPE',
 	title: 'Library Type',
 	dataIndex: ['library', 'library_type'],
 	render: (_, { library }) => library && library.library_type && <span>{library.library_type}</span>,
 }
 
-const NA_QUANTITY: TableColumnType<ObjectWithLibrary> = {
+const NA_QUANTITY: LibraryColumn = {
+	columnID: 'LIB_NA_QUANTITY',
 	title: 'NA Qty (ng)',
 	dataIndex: ['library', 'quantity_ng'],
 	align: 'right',
@@ -137,7 +151,8 @@ const NA_QUANTITY: TableColumnType<ObjectWithLibrary> = {
 	render: (qty) => qty && parseFloat(qty).toFixed(3),
 }
 
-const NAME: TableColumnType<ObjectWithLibrary> = {
+const NAME: LibraryColumn = {
+	columnID: 'LIB_NAME',
 	title: 'Name',
 	dataIndex: 'name',
 	render: (_, { library }) =>
@@ -148,7 +163,8 @@ const NAME: TableColumnType<ObjectWithLibrary> = {
 		),
 }
 
-const PLATFORM: TableColumnType<ObjectWithLibrary> = {
+const PLATFORM: LibraryColumn = {
+	columnID: 'LIB_PLATFORM',
 	title: 'Platform',
 	dataIndex: 'platform',
 	render: (_, { library }) => {
@@ -156,7 +172,8 @@ const PLATFORM: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const PROJECT: TableColumnType<ObjectWithLibrary> = {
+const PROJECT: LibraryColumn = {
+	columnID: 'LIB_PROJECT',
 	title: 'Project',
 	dataIndex: 'project',
 	render: (_, { library }) => {
@@ -173,7 +190,8 @@ const PROJECT: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const QC_FLAG: TableColumnType<ObjectWithLibrary> = {
+const QC_FLAG: LibraryColumn = {
+	columnID: 'LIB_QC_FLAG',
 	title: 'QC Flag',
 	dataIndex: 'qc_flag',
 	render: (_, { library }) => {
@@ -185,13 +203,15 @@ const QC_FLAG: TableColumnType<ObjectWithLibrary> = {
 	},
 }
 
-const SELECTION_TARGET: TableColumnType<ObjectWithLibrary> = {
+const SELECTION_TARGET: LibraryColumn = {
+	columnID: 'LIB_SELECTION_TARGET',
 	title: 'Selection Target',
 	dataIndex: ['library', 'library_selection_target'],
 	render: (_, { library }) => library && library.library_selection_target && <span>{library.library_selection_target}</span>,
 }
 
-const VOLUME: TableColumnType<ObjectWithLibrary> = {
+const VOLUME: LibraryColumn = {
+	columnID: 'LIB_VOLUME',
 	title: 'Vol. (µL)',
 	dataIndex: ['library', 'volume'],
 	align: 'right',

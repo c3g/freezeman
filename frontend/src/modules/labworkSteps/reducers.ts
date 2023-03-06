@@ -1,9 +1,10 @@
 import { AnyAction } from 'redux'
+import { clearFiltersReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
-import { LabworkStepSamples, LabworkStepsState } from './models'
-import { LIST, LIST_TEMPLATE_ACTIONS, INIT_SAMPLES_AT_STEP, FLUSH_SAMPLES_AT_STEP, SET_SELECTED_SAMPLES } from './actions'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES } from './actions'
+import { LabworkStepSamples, LabworkStepsState } from './models'
 
 const INTIAL_STATE: LabworkStepsState = {
 	steps: {},
@@ -171,8 +172,56 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 			delete newState.steps[stepID]
 			return newState
 		}
+
+		case SET_FILTER: {
+			const { stepID, value, description} = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				const filters = setFilterReducer(stepSamples.pagedItems.filters, description, value)
+				return updateStepSamples(state, {
+					...stepSamples,
+					pagedItems: {
+						...stepSamples.pagedItems,
+						filters
+					}
+				})
+			}
+			break
+		}
+
+		case SET_FILTER_OPTION: {
+			const { stepID, options, description } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				const filters = setFilterOptionsReducer(stepSamples.pagedItems.filters, description, options)
+				return updateStepSamples(state, {
+					...stepSamples,
+					pagedItems: {
+						...stepSamples.pagedItems,
+						filters
+					}
+				})
+			}
+			break
+		}
+
+		case CLEAR_FILTERS: {
+			const { stepID } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				const filters = clearFiltersReducer()
+				return updateStepSamples(state, {
+					...stepSamples,
+					pagedItems: {
+						...stepSamples.pagedItems,
+						filters
+					}
+				})
+			}
+		}
 	}
 	return state
 }
+
 
 export const sampleNextStepTemplateActions = templateActionsReducerFactory({LIST_TEMPLATE_ACTIONS})
