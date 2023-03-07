@@ -1,10 +1,9 @@
-import { Cascader, Typography } from 'antd'
+import { Cascader } from 'antd'
 import { DefaultOptionType } from 'antd/lib/cascader'
 import React from 'react'
 import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 
-const { Text } = Typography
 
 interface WorkflowCascadeMenuProps {
 	workflows: Workflow[]

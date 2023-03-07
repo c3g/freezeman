@@ -1,4 +1,4 @@
-import { Checkbox, TableColumnType } from 'antd'
+import { TableColumnType } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Sample } from '../../../models/frontend_models'

@@ -165,7 +165,7 @@ export function flushSamplesAtStep(stepID: FMSId) {
 }
 
 export function setFilter(stepID: FMSId, description: FilterDescription, value: FilterValue) {
-	return (dispatch, getState) => {
+	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER,
 			stepID,
@@ -178,7 +178,7 @@ export function setFilter(stepID: FMSId, description: FilterDescription, value: 
 }
 
 export function setFilterOptions(stepID: FMSId, description: FilterDescription, options: FilterOptions) {
-	return (dispatch, getState) => {
+	return (dispatch) => {
 		dispatch({
 			type: SET_FILTER_OPTION,
 			stepID,
@@ -191,7 +191,7 @@ export function setFilterOptions(stepID: FMSId, description: FilterDescription, 
 }
 
 export function clearFilters(stepID: FMSId) {
-	return (dispatch, getState) => {
+	return (dispatch) => {
 		dispatch({
 			type: CLEAR_FILTERS,
 			stepID

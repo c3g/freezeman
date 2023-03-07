@@ -1,12 +1,12 @@
+import { SyncOutlined } from '@ant-design/icons'
 import { Button, Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppDispatch } from '../../../hooks'
 import { LabworkSummary } from '../../../models/labwork_summary'
-import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 import { refreshLabworkSummary, setHideEmptyProtocols } from '../../../modules/labwork/actions'
-import { SyncOutlined } from '@ant-design/icons'
+import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
-const { Text, Title } = Typography
+const { Title } = Typography
 
 interface LabworkProtocolsProps {
 	summary: LabworkSummary,

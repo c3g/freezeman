@@ -1,4 +1,3 @@
-import { TableColumnsType } from 'antd'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'

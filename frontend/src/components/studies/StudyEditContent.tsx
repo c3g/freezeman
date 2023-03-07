@@ -1,11 +1,11 @@
 import { Alert } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../hooks'
 import { useIDParam } from '../../hooks/useIDParams'
 import { ApiError, FMSStudy, isApiError } from '../../models/fms_api_models'
-import { ItemsByID, Project, Study, Workflow, WorkflowStepRange } from '../../models/frontend_models'
+import { ItemsByID, Project, Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import { add } from '../../modules/studies/actions'
 import { selectProjectsByID, selectWorkflowsByID } from '../../selectors'
 import { withProject } from '../../utils/withItem'
@@ -30,16 +30,15 @@ export function createStudyTabKey(studyId : number) {
 
 const StudyEditContent = ({ action }: EditStudyContentProps) => {
 	const navigate = useNavigate()
-	let dispatch = useAppDispatch()
+	const dispatch = useAppDispatch()
 
 	const [alertError, setAlertError] = useState<AlertError>()
 	const [apiError, setApiError] = useState<ApiError>()
 	const [project, setProject] = useState<Project>()
-	let study: Study
 
 	const isCreating = action === 'ADD'
 	
-	let projectsById : ItemsByID<Project> = useSelector(selectProjectsByID)
+	const projectsById : ItemsByID<Project> = useSelector(selectProjectsByID)
 
 
 	const projectId = useIDParam('id')
@@ -47,8 +46,6 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 		return null
 	}
 	
-	const studyID = useIDParam('study_id')
-
 	useEffect(() => {
 		if (projectId) {
 			const myProject = projectsById[projectId]
@@ -121,7 +118,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 					</div>
 				)}
 				{project && (
-					<StudyEditForm project={project} workflows={workflows} isCreatingStudy={isCreating} onSubmit={handleFormSubmit} formErrors={apiError?.data}/>
+					<StudyEditForm workflows={workflows} isCreatingStudy={isCreating} onSubmit={handleFormSubmit} formErrors={apiError?.data}/>
 				)}
 			</PageContent>
 		</>

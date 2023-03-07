@@ -1,14 +1,9 @@
-import { Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
-import { getLabworkSummary } from '../../../modules/labwork/actions'
+import React from 'react'
 import { LabworkSummaryState } from '../../../modules/labwork/reducers'
-import { selectLabworkSummaryState } from '../../../selectors'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import LabworkOverviewProtocols from './LabworkOverviewProtocols'
 
-const { Title } = Typography
 
 interface LabworkOverviewProps {
 	state: LabworkSummaryState

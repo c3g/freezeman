@@ -1,24 +1,20 @@
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Button, Select, Space, TableColumnType, Tabs, Typography } from 'antd'
-import { filter } from 'rambda'
+import { Button, Select, Space, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FILTER_TYPE } from '../../../constants'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
+import { FilterDescription, FilterValue } from '../../../models/paged_items'
 import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
-import { SAMPLE_FILTERS } from '../../filters/descriptions'
-import { FilterOptions, FilterSet, FilterValueType, SetFilterFunc } from '../../shared/WorkflowSamplesTable/getFilterProps'
 import PageContent from '../../PageContent'
-import { getColumnsForStep, SampleAndLibrary } from '../../shared/WorkflowSamplesTable/ColumnSets'
+import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import { mergeColumnsAndFilters } from '../../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
 import SAMPLE_COLUMN_FILTERS, { SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableFilters'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
-import { FilterDescription } from '../../../models/paged_items'
 
 const { Text } = Typography
 
@@ -33,7 +29,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	function handleSetFilter(filterKey: string, value: FilterValueType, description: FilterDescription) {
+	function handleSetFilter(filterKey: string, value: FilterValue, description: FilterDescription) {
 		if(typeof description === 'undefined') {
 			return
 		}

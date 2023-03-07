@@ -4,10 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
-import { getFilterPropsForDescription } from '../../filters/getFilterProps'
 import { SampleAndLibrary } from './ColumnSets'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
-import SAMPLE_COLUMN_FILTERS from './SampleTableFilters'
 
 
 
@@ -60,30 +58,13 @@ function WorkflowSamplesTable({sampleIDs, columns, selection} : WorkflowSamplesT
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}
-
-	// const setFilter = (...args) => { console.log('set filter', args)}
-	// const setFilterOption = (...args) => { console.log('set filter option', args)}
-
-	// // Attach filters to columns
-	// const filteredColumns = columns.map(column => {
-	// 	const description = SAMPLE_COLUMN_FILTERS[column.columnID]
-	// 	if (description) {
-	// 		const props = getFilterPropsForDescription(column, description, undefined, setFilter, setFilterOption)
-	// 		return {
-	// 			...column,
-	// 			...props
-	// 		}
-	// 	} else {
-	// 		return column
-	// 	}
-	// })
 	
 	return (
 		<Table
 			rowSelection={rowSelection}
 			dataSource={samples ?? []}
 			columns={columns}
-			rowKey={obj => obj.sample!.id}
+			rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
 			style={{overflowX: 'auto'}}
 		/>
 	)

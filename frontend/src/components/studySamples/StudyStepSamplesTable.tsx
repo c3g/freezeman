@@ -155,7 +155,7 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 		<Table
 			dataSource={samples ?? []}
 			columns={columns}
-			rowKey={obj => obj.sample!.id}
+			rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
 			style={{overflowX: 'auto'}}
 		/>
 	)

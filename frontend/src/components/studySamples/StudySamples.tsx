@@ -1,7 +1,6 @@
-import { Checkbox, Collapse, Switch, Typography } from 'antd'
-import React, { useState } from 'react'
+import { Collapse, Typography } from 'antd'
+import React from 'react'
 import { StudySampleList } from '../../models/study_samples'
-import { flushExperimentRunLaunch } from '../../modules/experimentRuns/actions'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 
 const { Text, Title } = Typography

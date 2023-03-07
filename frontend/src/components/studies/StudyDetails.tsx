@@ -1,9 +1,8 @@
 import { Descriptions, Space, Switch, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
-import { Project, Study, Workflow } from '../../models/frontend_models'
+import { Study, Workflow } from '../../models/frontend_models'
 import { StudySampleList } from '../../models/study_samples'
-import { get as getProject } from '../../modules/projects/actions'
 import { get as getStudy } from '../../modules/studies/actions'
 import { flushStudySamples, getStudySamples, setHideEmptySteps } from '../../modules/studySamples/actions'
 import { get as getWorkflow } from '../../modules/workflows/actions'
@@ -25,7 +24,6 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
 
     const [study, setStudy] = useState<Study>()
     const [workflow, setWorkflow] = useState<Workflow>()
-    const [project, setProject] = useState<Project>()
     const [studySamples, setStudySamples] = useState<StudySampleList>()
 
     const hideEmpty = useAppSelector(selectHideEmptySteps)
@@ -37,13 +35,6 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         const studyInstance = studiesById[studyId]
         if (studyInstance && !studyInstance.isFetching) {
             setStudy(studyInstance)
-
-            const projectInstance = projectsById[studyInstance.project_id]
-            if (projectInstance && !projectInstance.isFetching) {
-                setProject(projectInstance)
-            } else {
-                dispatch(getProject(studyInstance.project_id))
-            }
 
             const workflowInstance = workflowsById[studyInstance.workflow_id]
             if(workflowInstance && !workflowInstance.isFetching) {
