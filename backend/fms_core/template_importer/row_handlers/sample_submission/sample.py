@@ -149,12 +149,7 @@ class SampleRowHandler(GenericRowHandler):
             self.errors['project'] = [f"New samples must be assigned to a project."]
 
         # Continue creating the sample objects if this sample is not associated with a pool
-        if library['pool_name'] is None:
-            # Check concentration fields given sample_kind (moved from sample and DerivedBySample because information unavailable until multiple relations created)
-            if sample['concentration'] is None and sample_kind_obj.concentration_required:
-                self.errors['concentration'] = [f"Concentration must be specified for a submitted sample if the sample_kind is DNA."]
-
-
+        if library['pool_name'] is None:            
             # Check if there's a sample with the same name
             if Sample.objects.filter(name__iexact=sample['name']).exists():
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
