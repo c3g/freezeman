@@ -1,9 +1,11 @@
 import { Table } from 'antd'
 import { RowSelectMethod, TableRowSelection } from 'antd/lib/table/interface'
+import { filter } from 'rambda'
 import React, { useEffect, useState } from 'react'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
-import { FilterDescription, FilterDescriptionSet, FilterKeySet, FilterSet, FilterValue, SetFilterFunc, SetFilterOptionFunc } from '../../../models/paged_items'
+import { Sample } from '../../../models/frontend_models'
+import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from '../../../models/paged_items'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 import { SampleAndLibrary } from './ColumnSets'
 import { mergeColumnsAndFilters } from './MergeColumnsAndFilters'
@@ -28,6 +30,7 @@ interface WorkflowSamplesTableProps {
 // TODO port StudySamples component to use this table.
 function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, selection} : WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
+	const [tableColumns, setTableColumns] = useState<IdentifiedTableColumnType<SampleAndLibrary>[]>()
 
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
@@ -49,14 +52,19 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 		setSamples(availableSamples)
 	}, [samplesByID, librariesByID, sampleIDs])
 
-	// TODO : store the merged columns in local state?
-	const mergedColumns = mergeColumnsAndFilters(
-		columns, 
-		filterDefinitions ?? {},
-		filterKeys ?? {},
-		filters ?? {}, 
-		setFilter ?? (() => {/*noop*/}), 
-		setFilterOptions ?? (() => {/*noop*/}))
+	useEffect(() => {
+		const mergedColumns = mergeColumnsAndFilters(
+			columns, 
+			filterDefinitions ?? {},
+			filterKeys ?? {},
+			filters ?? {}, 
+			setFilter ?? (() => {/*noop*/}), 
+			setFilterOptions ?? (() => {/*noop*/}))
+		setTableColumns(mergedColumns)
+	}, [filters])
+
+	// Ideally, we would do this once
+	
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if(selection) {
@@ -74,13 +82,17 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 	}
 	
 	return (
-		<Table
-			rowSelection={rowSelection}
-			dataSource={samples ?? []}
-			columns={mergedColumns}
-			rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-			style={{overflowX: 'auto'}}
-		/>
+		<>
+			{tableColumns && 
+				<Table
+					rowSelection={rowSelection}
+					dataSource={samples ?? []}
+					columns={tableColumns}
+					rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
+					style={{overflowX: 'auto'}}
+				/>
+			}
+		</>
 	)
 }
 

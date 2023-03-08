@@ -4,14 +4,14 @@ import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilter
 import { IdentifiedTableColumnType } from "./SampleTableColumns"
 
 
-export function mergeColumnsAndFilters(
-	columns: IdentifiedTableColumnType<any>[], 
+export function mergeColumnsAndFilters<T>(
+	columns: IdentifiedTableColumnType<T>[], 
 	filterDescriptions: FilterDescriptionSet, 
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
 	setFilter : SetFilterFunc,
 	setFilterOption : SetFilterOptionFunc
-	) {
+	) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {
 		const columnID = column.columnID
 		let filter = filterDescriptions[columnID]
