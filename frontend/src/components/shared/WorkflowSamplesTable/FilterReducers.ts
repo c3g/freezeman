@@ -1,4 +1,4 @@
-import { FilterDescription, FilterOptions, FilterSet, FilterValue } from "../../../models/paged_items"
+import { FilterDescription, FilterOptions, FilterSet, FilterSetting, FilterValue } from "../../../models/paged_items"
 
 
 export function setFilterReducer(filterSet: FilterSet, description: FilterDescription, value: FilterValue): FilterSet {
@@ -14,11 +14,15 @@ export function setFilterReducer(filterSet: FilterSet, description: FilterDescri
 	}
 }
 
-export function setFilterOptionsReducer(filterSet: FilterSet, description: FilterDescription, options: FilterOptions) {
+export function setFilterOptionsReducer(filterSet: FilterSet, description: FilterDescription, options: FilterOptions): FilterSet {
 	const { key } = description
-	const filter = {
-		...filterSet[key],
-		options,
+	const oldFilter = filterSet[key]
+	const filter: FilterSetting = {
+		...oldFilter,
+		options: {
+			...oldFilter?.options,
+			...options
+		},
 		description
 	}
 	return {

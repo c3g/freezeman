@@ -34,8 +34,7 @@ export type FilterValidationFunc = (string) => boolean
 
 
 export interface FilterOptions {
-  exactMatch?: boolean
-  recursiveMatch?: boolean
+	[key: string]: boolean
 }
 
 // 1. Add filter description to redux
