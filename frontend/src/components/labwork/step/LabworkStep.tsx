@@ -12,8 +12,8 @@ import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
 import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
-import { mergeColumnsAndFilters } from '../../shared/WorkflowSamplesTable/MergeColumnsAndFilters'
-import SAMPLE_COLUMN_FILTERS, { SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableFilters'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
+import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
 import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Text } = Typography
@@ -42,16 +42,6 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 		dispatch(setFilterOptions(step.id, description, {[property]: value}))
 	}
-
-	const columnsForSamplesTable = mergeColumnsAndFilters(
-		getColumnsForStep(step, protocol), 
-		SAMPLE_COLUMN_FILTERS,
-		SAMPLE_NEXT_STEP_FILTER_KEYS,
-		stepSamples.pagedItems.filters, 
-		handleSetFilter, 
-		handleSetFilterOptions)
-
-	const columnsForSelectedSamplesTable = [...getColumnsForStep(step, protocol)]
 
 	// Set the currently selected template to the first template available, not already set.
 	useEffect(() => {
@@ -162,14 +152,25 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.displayedSamples} 
-							columns={columnsForSamplesTable}
+							columns={getColumnsForStep(step, protocol)}
+							filterDefinitions={{...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS}}
+							filterKeys={{...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}}
+							filters={stepSamples.pagedItems.filters}
+							setFilter={handleSetFilter}
+							setFilterOptions={handleSetFilterOptions}
 							selection={selectionProps}
 							/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
+						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.selectedSamples}
-							columns={columnsForSelectedSamplesTable}
+							columns={getColumnsForStep(step, protocol)}
+							filterDefinitions={{}}
+							filterKeys={{}}
+							filters={{}}
+							setFilter={() => {/*NOOP*/}}
+							setFilterOptions={() => {/*NOOP*/}}
 							selection={selectionProps}/>
 						<Space><InfoCircleOutlined/><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
 					</Tabs.TabPane>

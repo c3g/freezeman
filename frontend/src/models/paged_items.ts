@@ -28,8 +28,8 @@ export type MetadataFilterValue = {name: string, value?: string}[]
 
 export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilterValue | MetadataFilterValue | undefined
 
-export type SetFilterFunc = (filterKey: string, value: FilterValue) => void
-export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean) => void
+export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
+export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type FilterValidationFunc = (string) => boolean
 
 
@@ -54,6 +54,11 @@ export interface FilterSet {
 export interface SortBy {
 	key?: string
 	order?: 'ascend' | 'descend'
+}
+
+// Maps column ID's to filter key string (django keys)
+export interface FilterKeySet {
+	[key: string] : string
 }
 
 export interface PagedItems<T extends FMSTrackedModel> {

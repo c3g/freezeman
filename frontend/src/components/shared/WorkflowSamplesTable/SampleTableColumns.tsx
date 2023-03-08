@@ -1,7 +1,9 @@
 import { TableColumnType } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { FILTER_TYPE } from '../../../constants'
 import { Sample } from '../../../models/frontend_models'
+import { FilterDescription } from '../../../models/paged_items'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import SampleKindTag from '../../SampleKindTag'
@@ -27,158 +29,273 @@ export interface IdentifiedTableColumnType<T> extends TableColumnType<T> {
 
 export type SampleColumn = IdentifiedTableColumnType<ObjectWithSample>
 
-const ID: SampleColumn = {
-	columnID: 'ID',
-	title: 'ID',
-	dataIndex: ['sample', 'id'],
-	render: (_, { sample }) =>
-		sample && (
-			<Link to={`/samples/${sample.id}`}>
-				<div>{sample.id}</div>
-			</Link>
-		),
+export enum SampleColumnID {
+	ID = 'ID',
+	KIND = 'KIND',
+	NAME = 'NAME',
+	INDIVIDUAL = 'INDIVIDUAL',
+	CONTAINER_NAME = 'CONTAINER_NAME',
+	CONTAINER_BARCODE = 'CONTAINER_BARCODE',
+	COORDINATES = 'COORDINATES',
+	VOLUME = 'VOLUME',
+	CONCENTRATION = 'CONCENTRATION',
+	QC_FLAG = 'QC_FLAG',
+	CREATION_DATE = 'CREATION_DATE',
+	DEPLETED = 'DEPLETED',
+	// IS_POOLED = 'IS_POOLED',
 }
 
-const KIND: SampleColumn = {
-	columnID: 'KIND',
-	title: 'Kind',
-	dataIndex: ['sample', 'sample_kind'],
-	render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
-}
-
-const NAME: SampleColumn = {
-	columnID: 'NAME',
-	title: 'Name',
-	dataIndex: ['sample', 'name'],
-	render: (name, { sample }) =>
-		sample && (
-			<Link to={`/samples/${sample.id}`}>
-				<div>{name}</div>
-				{sample.alias && (
-					<div>
-						<small>alias: {sample.alias}</small>
-					</div>
-				)}
-			</Link>
-		),
-}
-
-const INDIVIDUAL: SampleColumn = {
-	columnID: 'INDIVIDUAL',
-	title: 'Individual',
-	dataIndex: ['sample', 'individual'],
-	render: (_, { sample }) => {
-		return (
-			sample &&
-			sample.individual && (
-				<Link to={`/individuals/${sample.individual}`}>
-					<WithIndividualRenderComponent objectID={sample.individual} render={(individual) => <span>{individual.name}</span>} />
+export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
+	[SampleColumnID.ID]: {
+		columnID: SampleColumnID.ID,
+		title: 'ID',
+		dataIndex: ['sample', 'id'],
+		render: (_, { sample }) =>
+			sample && (
+				<Link to={`/samples/${sample.id}`}>
+					<div>{sample.id}</div>
 				</Link>
-			)
-		)
+			),
 	},
-}
 
-const CONTAINER_NAME: SampleColumn = {
-	columnID: 'CONTAINER_NAME',
-	title: 'Container Name',
-	dataIndex: ['sample', 'container'],
-	render: (_, { sample }) => {
-		return (
-			sample &&
-			sample.container && (
-				<WithContainerRenderComponent
-					objectID={sample.container}
-					placeholder={<span>loading...</span>}
-					render={(container) => <span>{container.name}</span>}
-				/>
-			)
-		)
+	[SampleColumnID.KIND]: {
+		columnID: SampleColumnID.KIND,
+		title: 'Kind',
+		dataIndex: ['sample', 'sample_kind'],
+		render: (_, { sample }) => sample && <SampleKindTag sampleKindID={sample.sample_kind} />,
 	},
-}
 
-const CONTAINER_BARCODE: SampleColumn = {
-	columnID: 'CONTAINER_BARCODE',
-	title: 'Container Barcode',
-	dataIndex: ['sample', 'container'],
-	render: (_, { sample }) => {
-		return (
-			sample &&
-			sample.container && (
-				<WithContainerRenderComponent
-					objectID={sample.container}
-					placeholder={<span>loading...</span>}
-					render={(container) => <Link to={`/containers/${sample.container}`}>{container.barcode}</Link>}
-				/>
-			)
-		)
+	[SampleColumnID.NAME]: {
+		columnID: SampleColumnID.NAME,
+		title: 'Name',
+		dataIndex: ['sample', 'name'],
+		render: (name, { sample }) =>
+			sample && (
+				<Link to={`/samples/${sample.id}`}>
+					<div>{name}</div>
+					{sample.alias && (
+						<div>
+							<small>alias: {sample.alias}</small>
+						</div>
+					)}
+				</Link>
+			),
 	},
-}
 
-const COORDINATES: SampleColumn = {
-	columnID: 'COORDINATES',
-	title: 'Coords',
-	dataIndex: ['sample', 'coordinates'],
-}
+	[SampleColumnID.INDIVIDUAL]: {
+		columnID: SampleColumnID.INDIVIDUAL,
+		title: 'Individual',
+		dataIndex: ['sample', 'individual'],
+		render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.individual && (
+					<Link to={`/individuals/${sample.individual}`}>
+						<WithIndividualRenderComponent
+							objectID={sample.individual}
+							render={(individual) => <span>{individual.name}</span>}
+						/>
+					</Link>
+				)
+			)
+		},
+	},
 
-const VOLUME: SampleColumn = {
-	columnID: 'VOLUME',
-	title: 'Vol. (µL)',
-	dataIndex: ['sample', 'volume'],
-	align: 'right',
-	className: 'table-column-numbers',
-}
+	[SampleColumnID.CONTAINER_NAME]: {
+		columnID: SampleColumnID.CONTAINER_NAME,
+		title: 'Container Name',
+		dataIndex: ['sample', 'container'],
+		render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.container && (
+					<WithContainerRenderComponent
+						objectID={sample.container}
+						placeholder={<span>loading...</span>}
+						render={(container) => <span>{container.name}</span>}
+					/>
+				)
+			)
+		},
+	},
 
-const CONCENTRATION: SampleColumn = {
-	columnID: 'CONCENTRATION',
-	title: 'Conc. (ng/µL)',
-	dataIndex: ['sample', 'concentration'],
-	align: 'right',
-	className: 'table-column-numbers',
-	render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
-}
+	[SampleColumnID.CONTAINER_BARCODE]: {
+		columnID: SampleColumnID.CONTAINER_BARCODE,
+		title: 'Container Barcode',
+		dataIndex: ['sample', 'container'],
+		render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.container && (
+					<WithContainerRenderComponent
+						objectID={sample.container}
+						placeholder={<span>loading...</span>}
+						render={(container) => <Link to={`/containers/${sample.container}`}>{container.barcode}</Link>}
+					/>
+				)
+			)
+		},
+	},
 
-const QC_FLAG: SampleColumn = {
-	columnID: 'QC_FLAG',
-	title: 'QC Flag',
-	dataIndex: ['sample', 'qc_flag'],
-	render: (_, { sample }) => {
-		if (sample) {
-			const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag }
-			if (flags.quantity !== null && flags.quality !== null) {
-				return <QCFlag flags={flags} />
+	[SampleColumnID.COORDINATES]: {
+		columnID: SampleColumnID.COORDINATES,
+		title: 'Coords',
+		dataIndex: ['sample', 'coordinates'],
+	},
+
+	[SampleColumnID.VOLUME]: {
+		columnID: SampleColumnID.VOLUME,
+		title: 'Vol. (µL)',
+		dataIndex: ['sample', 'volume'],
+		align: 'right',
+		className: 'table-column-numbers',
+	},
+
+	[SampleColumnID.CONCENTRATION]: {
+		columnID: SampleColumnID.CONCENTRATION,
+		title: 'Conc. (ng/µL)',
+		dataIndex: ['sample', 'concentration'],
+		align: 'right',
+		className: 'table-column-numbers',
+		render: (conc) => (conc !== null ? parseFloat(conc).toFixed(3) : null),
+	},
+
+	[SampleColumnID.QC_FLAG]: {
+		columnID: SampleColumnID.QC_FLAG,
+		title: 'QC Flag',
+		dataIndex: ['sample', 'qc_flag'],
+		render: (_, { sample }) => {
+			if (sample) {
+				const flags = { quantity: sample.quantity_flag, quality: sample.quality_flag }
+				if (flags.quantity !== null && flags.quality !== null) {
+					return <QCFlag flags={flags} />
+				}
 			}
-		}
-		return null
+			return null
+		},
+	},
+
+	[SampleColumnID.CREATION_DATE]: {
+		columnID: SampleColumnID.CREATION_DATE,
+		title: 'Creation Date',
+		dataIndex: ['sample', 'creation_date'],
+	},
+
+	[SampleColumnID.DEPLETED]: {
+		columnID: SampleColumnID.DEPLETED,
+		title: 'Depleted',
+		dataIndex: ['sample', 'depleted'],
+		render: (depleted) => <Depletion depleted={depleted} />,
 	},
 }
 
-const CREATION_DATE: SampleColumn = {
-	columnID: 'CREATION_DATE',
-	title: 'Creation Date',
-	dataIndex: ['sample', 'creation_date'],
+/**
+ * Defines the set of filters that can be applied to sample columns.
+ *
+ * The object keys in the set map to the 'columnID' property of the column definition.
+ *
+ * Filter keys are defined separately, as they change depending on which endpoint
+ * is being used to retrieve samples.
+ */
+
+export const UNDEFINED_FILTER_KEY = 'UNDEFINED_FILTER_KEY'
+
+export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription } = {
+	// Object keys map to column "columnID" properties, to match columns to filters.
+	[SampleColumnID.ID]: {
+		type: FILTER_TYPE.INPUT_OBJECT_ID,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Sample ID',
+	},
+	[SampleColumnID.KIND]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Type',
+		mode: 'multiple',
+		placeholder: 'All',
+	},
+	[SampleColumnID.NAME]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Name',
+		batch: true,
+	},
+	[SampleColumnID.INDIVIDUAL]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Individual Name',
+	},
+	[SampleColumnID.CONTAINER_NAME]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Container Name',
+		recursive: true,
+	},
+	[SampleColumnID.CONTAINER_BARCODE]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Container Barcode',
+		recursive: true,
+		batch: true,
+	},
+	[SampleColumnID.COORDINATES]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Coordinates',
+	},
+	[SampleColumnID.VOLUME]: {
+		type: FILTER_TYPE.RANGE,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Volume',
+	},
+	[SampleColumnID.CONCENTRATION]: {
+		type: FILTER_TYPE.RANGE,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Concentration',
+	},
+	[SampleColumnID.CREATION_DATE]: {
+		type: FILTER_TYPE.DATE_RANGE,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Creation Date',
+	},
+	[SampleColumnID.DEPLETED]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Depleted',
+		placeholder: 'All',
+		options: [
+			{ label: 'Yes', value: 'true' },
+			{ label: 'No', value: 'false' },
+		],
+	},
+	[SampleColumnID.QC_FLAG]: {
+		type: FILTER_TYPE.SELECT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'QC Flag',
+		placeholder: 'All',
+		mode: 'multiple',
+		options: [
+			{ label: 'None', value: 'None' },
+			{ label: 'Passed', value: 'true' },
+			{ label: 'Failed', value: 'false' },
+		],
+	},
 }
 
-const DEPLETED: SampleColumn = {
-	columnID: 'DEPLETED',
-	title: 'Depleted',
-	dataIndex: ['sample', 'depleted'],
-	render: (depleted) => <Depletion depleted={depleted} />,
+/**
+ * Defines the filter keys used for filtering samples using the sample-next-step endpoint.
+ */
+export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } = {
+	[SampleColumnID.ID]: 'sample__id',
+	[SampleColumnID.KIND]: 'sample__derived_samples__sample_kind__name',
+	[SampleColumnID.NAME]: 'sample__name',
+	[SampleColumnID.INDIVIDUAL]: 'sample__derived_samples__biosample__individual__name',
+	[SampleColumnID.CONTAINER_NAME]: 'sample__container__name',
+	[SampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
+	[SampleColumnID.COORDINATES]: 'sample__coordinates',
+	[SampleColumnID.VOLUME]: 'sample__volume',
+	[SampleColumnID.CONCENTRATION]: 'sample__concentration',
+	[SampleColumnID.CREATION_DATE]: 'sample__creation_date',
+	[SampleColumnID.DEPLETED]: 'sample__depleted',
+	[SampleColumnID.QC_FLAG]: 'qc_flag',
 }
-
-const SAMPLE_COLUMNS = {
-	ID,
-	KIND,
-	NAME,
-	INDIVIDUAL,
-	CONTAINER_NAME,
-	CONTAINER_BARCODE,
-	COORDINATES,
-	VOLUME,
-	CONCENTRATION,
-	QC_FLAG,
-	CREATION_DATE,
-	DEPLETED,
-}
-
-export default SAMPLE_COLUMNS

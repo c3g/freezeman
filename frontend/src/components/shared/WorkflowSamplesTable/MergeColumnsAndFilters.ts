@@ -1,6 +1,7 @@
-import { FilterDescriptionSet, FilterSet, getFilterPropsForDescription, SetFilterFunc, SetFilterOptionFunc } from "./getFilterProps"
+import { getFilterPropsForDescription } from "./getFilterPropsTS"
+import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from "../../../models/paged_items"
+
 import { IdentifiedTableColumnType } from "./SampleTableColumns"
-import { FilterKeySet } from "./SampleTableFilters"
 
 
 export function mergeColumnsAndFilters(
