@@ -1,4 +1,4 @@
-from django.db.models import Q, When, Case, BooleanField
+from django.db.models import F, Q, When, Case, BooleanField
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -41,6 +41,10 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             default=None,
             output_field=BooleanField()
         )
+    )
+
+    queryset = queryset.annotate(
+        quantity_ng=F('sample__concentration')*F('sample__volume')
     )
 
     # Template actions will need to be filtered by the frontend on the basis of the template -> protocol which contains the protocol name.

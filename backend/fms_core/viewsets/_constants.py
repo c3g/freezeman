@@ -284,6 +284,12 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__concentration": SCALAR_FILTERS,
     "sample__creation_date": DATE_FILTERS,
     "sample__depleted": ["exact"],
+    "sample__derived_samples__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__library_selection__target": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__platform__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__project__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__library_size": SCALAR_FILTERS,
     **_prefix_keys("step__", _step_filterset_fields),
 }
 
