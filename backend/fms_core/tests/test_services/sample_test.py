@@ -317,7 +317,7 @@ class SampleServicesTestCase(TestCase):
                                               samples_info=samples_info,
                                               pool_name=POOL_NAME,
                                               container_destination=self.test_containers[2],
-                                              coordinates_destination="",
+                                              coordinates_destination=None,
                                               execution_date=EXECUTION_DATE)
 
         self.assertFalse(errors)
@@ -329,7 +329,7 @@ class SampleServicesTestCase(TestCase):
         self.assertIn(self.samples[0], [sample for sample in pool.parents.all()])
         self.assertIn(self.samples[1], [sample for sample in pool.parents.all()])
         self.assertEqual(pool.container, self.test_containers[2])
-        self.assertEqual(pool.coordinates, "")
+        self.assertIsNone(pool.coordinates)
         self.assertEqual(pool.creation_date, EXECUTION_DATE)
 
         derived_sample_1 = DerivedSample.objects.get(derived_by_samples__sample__id=self.samples[0].id)
@@ -641,7 +641,7 @@ class SampleServicesTestCase(TestCase):
         pool, errors, warnings = pool_submitted_samples(samples_info=self.SUBMITTED_SAMPLES_TO_POOL,
                                                         pool_name=POOL_NAME,
                                                         container_destination=self.test_containers[2],
-                                                        coordinates_destination="",
+                                                        coordinates_destination=None,
                                                         reception_date=EXECUTION_DATE,
                                                         comment="Submitted Pool")
 
@@ -652,7 +652,7 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(pool.volume, Decimal("40"))
         self.assertIsNone(pool.concentration)
         self.assertEqual(pool.container, self.test_containers[2])
-        self.assertEqual(pool.coordinates, "")
+        self.assertIsNone(pool.coordinates)
         self.assertEqual(pool.creation_date, EXECUTION_DATE)
         self.assertEqual(pool.comment, "Submitted Pool")
 

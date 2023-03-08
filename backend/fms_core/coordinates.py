@@ -131,23 +131,29 @@ def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str
 
     # TODO: Handle padded 0s?
 
-    c = unicodedata.normalize("NFC", coords.strip())
+    if coords is None and not spec.requires_coordinates:
+        return coords
 
     coordinate_regex_str = "^" + "".join(f"({'|'.join(s)})" for s in spec) + "$"
-    coordinate_regex = re.compile(coordinate_regex_str)
 
-    if not coordinate_regex.match(c):
-        raise CoordinateError(f"Invalid coordinates {c} specified for coordinate system {coordinate_regex_str}")
+    if coords is None:
+        raise CoordinateError(f"Coordinates must be specified specified for coordinate system {coordinate_regex_str}")
+    else:
+        coordinate_regex = re.compile(coordinate_regex_str)
+        c = unicodedata.normalize("NFC", coords.strip())
 
-    return c
+        if not coordinate_regex.match(c):
+            raise CoordinateError(f"Invalid coordinates {c} specified for coordinate system {coordinate_regex_str}")
+
+        return c
 
 
 def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container"):
     """
     Check for coordinate overlap with existing child containers/samples of the
-    parent using a queryset, assuming that the queried model has a coordinates
+    parent using a queryset, assuming that the queried model has a coordinate
     field which specifies possibly-overlapping item locations.
     """
-    existing = queryset.exclude(pk=obj.pk).get(coordinates=obj.coordinates)
+    existing = queryset.exclude(pk=obj.pk).get(coordinate=obj.coordinate)
     raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing} at "
-                          f"coordinates {obj.coordinates}")
+                          f"coordinates {obj.coordinate.name}")

@@ -209,7 +209,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 creation_date=full_sample_data['creation_date'],
                 container_id=full_sample_data['container'],
                 **(dict(comment=full_sample_data['comment']) if full_sample_data['comment'] is not None else dict()),
-                **(dict(coordinates=full_sample_data['coordinates']) if full_sample_data[
+                **(dict(coordinate=full_sample_data['coordinates']) if full_sample_data[
                                                                             'coordinates'] is not None else dict()),
                 **(dict(concentration=full_sample_data['concentration']) if full_sample_data[
                                                                                 'concentration'] is not None else dict()),
@@ -242,7 +242,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
             creation_date=full_sample['creation_date'],
             container_id=full_sample['container'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
-            **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
+            **(dict(coordinate=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
             **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 

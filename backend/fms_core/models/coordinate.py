@@ -20,7 +20,7 @@ class Coordinate(TrackedModel):
     column = models.PositiveIntegerField(help_text="Numeric value of the container coordinate column.")
     row = models.PositiveIntegerField(help_text="Numeric value of the container coordinate row.")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     def clean(self):

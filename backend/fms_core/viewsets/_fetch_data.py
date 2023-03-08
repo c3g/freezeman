@@ -216,21 +216,23 @@ class FetchSampleData(FetchData):
         samples_with_full_location = tuple()
         if sample_ids: # Query crashes on empty tuple
             samples_with_full_location = Sample.objects.raw('''WITH RECURSIVE container_hierarchy(id, parent, coordinates, full_location) AS (                                                   
-                                                               SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') '
-                                                               FROM fms_core_container AS container 
+                                                               SELECT container.id, container.location_id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') '
+                                                               FROM fms_core_container AS container
+                                                               JOIN fms_core_coordinate AS coordinate ON coordinate.id=container.coordinate_id
                                                                WHERE container.location_id IS NULL
 
                                                                UNION ALL
 
-                                                               SELECT container.id, container.location_id, container.coordinates, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
+                                                               SELECT container.id, container.location_id, coordinate.name, container.barcode::varchar || ' (' || container.kind::varchar || ') ' || 
                                                                CASE 
-                                                               WHEN (container.coordinates = '') THEN ''
-                                                               ELSE 'at ' || container.coordinates::varchar || ' '
+                                                               WHEN (container.coordinate_id IS NULL) THEN ''
+                                                               ELSE 'at ' || coordinate.name::varchar || ' '
                                                                END
 
                                                                || 'in ' ||container_hierarchy.full_location::varchar
                                                                FROM container_hierarchy
-                                                               JOIN fms_core_container AS container  ON container_hierarchy.id=container.location_id
+                                                               JOIN fms_core_container AS container ON container_hierarchy.id=container.location_id
+                                                               JOIN fms_core_coordinate AS coordinate ON coordinate.id=container.coordinate_id
                                                                ) 
 
                                                                SELECT sample.id AS id, full_location FROM container_hierarchy JOIN fms_core_sample AS sample ON sample.container_id=container_hierarchy.id 

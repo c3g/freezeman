@@ -37,8 +37,7 @@ class CoordinateTestCase(TestCase):
 
     def test_empty_coords(self):
         cs = ()
-        self.assertEqual(validate_and_normalize_coordinates("", cs), "")
-        self.assertEqual(validate_and_normalize_coordinates("  ", cs), "")
+        self.assertEqual(validate_and_normalize_coordinates(None, cs), None)
 
         for iv in ("A1", "1 ", " Z"):
             with self.assertRaises(CoordinateError):

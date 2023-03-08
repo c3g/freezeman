@@ -10,6 +10,10 @@ ADMIN_USERNAME = 'biobankadmin'
 
 def initialize_coordinates(apps, schema_editor):
     Coordinate = apps.get_model("fms_core", "Coordinate")
+    Sample = apps.get_model("fms_core", "Sample")
+    Container = apps.get_model("fms_core", "Container")
+
+    coords_to_pk = {}
 
     with reversion.create_revision(manage_manually=True):
         admin_user = User.objects.get(username=ADMIN_USERNAME)
@@ -25,7 +29,20 @@ def initialize_coordinates(apps, schema_editor):
                                                        column=column,
                                                        created_by_id=admin_user_id,
                                                        updated_by_id=admin_user_id)
+                coords_to_pk[coordinate.name] = coordinate.id
                 reversion.add_to_revision(coordinate)
+        
+        for coord, fk in coords_to_pk.items():
+            # Bulk updates ... will not update the revisions 
+            Sample.objects.filter(coordinates=coord).update(coordinate_id=fk)
+            Container.objects.filter(coordinates=coord).update(coordinate_id=fk)
+
+    # Quick check to make sure all coordinates were allocated
+    assert Sample.objects.exclude(coordinates__exact="").filter(coordinate__isnull=True).count() == 0
+    assert Sample.objects.filter(coordinates__exact="", coordinate__isnull=False).count() == 0
+    assert Container.objects.exclude(coordinates__exact="").filter(coordinate__isnull=True).count() == 0
+    assert Container.objects.filter(coordinates__exact="", coordinate__isnull=False).count() == 0
+
 
 class Migration(migrations.Migration):
 
@@ -52,8 +69,34 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.AddField(
+            model_name='container',
+            name='coordinate',
+            field=models.ForeignKey(blank=True, help_text='Coordinates of this container within the parent container.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='containers', to='fms_core.coordinate'),
+        ),
+        migrations.AddField(
+            model_name='sample',
+            name='coordinate',
+            field=models.ForeignKey(blank=True, help_text='Coordinates of the sample in a sample holding container. Only applicable for containers that directly store samples with coordinates, e.g. plates.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='samples', to='fms_core.coordinate'),
+        ),
         migrations.RunPython(
             initialize_coordinates,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterUniqueTogether(
+            name='sample',
+            unique_together={},
+        ),
+        migrations.AddConstraint(
+            model_name='sample',
+            constraint=models.UniqueConstraint(fields=('container', 'coordinate'), name='sample_container_coordinate_key'),
+        ),
+        migrations.RemoveField(
+            model_name='container',
+            name='coordinates',
+        ),
+        migrations.RemoveField(
+            model_name='sample',
+            name='coordinates',
         ),
     ]

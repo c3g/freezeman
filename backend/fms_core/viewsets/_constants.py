@@ -13,12 +13,19 @@ DATE_FILTERS = [*SCALAR_FILTERS, "year", "month", "week", "week_day", "day"]
 
 FiltersetFields = Dict[str, List[str]]
 
+_coordinate_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": FREE_TEXT_FILTERS,
+    "row": SCALAR_FILTERS,
+    "column": SCALAR_FILTERS,
+}
+
 _container_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": FREE_TEXT_FILTERS,
     "barcode": FREE_TEXT_FILTERS,
     "kind": CATEGORICAL_FILTERS,
-    "coordinates": FREE_TEXT_FILTERS,
+    **_prefix_keys("coordinate__", _coordinate_filterset_fields),
     "comment": FREE_TEXT_FILTERS,
     "update_comment": FREE_TEXT_FILTERS,
     "location": NULLABLE_FK_FILTERS,
@@ -79,7 +86,7 @@ _sample_filterset_fields: FiltersetFields = {
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
     "creation_date": DATE_FILTERS,
-    "coordinates": FREE_TEXT_FILTERS,
+    **_prefix_keys("coordinate__", _coordinate_filterset_fields),
     "comment": FREE_TEXT_FILTERS,
 
     "container": FK_FILTERS,  # PK
@@ -204,7 +211,7 @@ _library_filterset_fields: FiltersetFields = {
     "concentration": SCALAR_FILTERS,
     "depleted": ["exact"],
     "creation_date": DATE_FILTERS,
-    "coordinates": FREE_TEXT_FILTERS,
+    **_prefix_keys("coordinate__", _coordinate_filterset_fields),
 
     "container": FK_FILTERS,  # PK
     **_prefix_keys("container__", _container_filterset_fields),
