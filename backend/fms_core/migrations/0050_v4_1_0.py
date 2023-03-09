@@ -190,4 +190,9 @@ class Migration(migrations.Migration):
             name='sample',
             field=models.ForeignKey(help_text='The sample queued to workflows.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_steps', to='fms_core.sample'),
         ),
+        migrations.AlterField(
+            model_name='biosample',
+            name='collection_site',
+            field=models.CharField(blank=True, help_text='The facility designated for the collection of samples.', max_length=200, null=True),
+        ),
     ]

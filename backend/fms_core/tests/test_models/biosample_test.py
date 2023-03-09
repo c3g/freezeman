@@ -25,16 +25,22 @@ class BiosampleTest(TestCase):
         self.assertIsNone(biosample.individual_father)
 
     def test_no_individual(self):
-        biosample_no_individual = Biosample.objects.create(**create_biosample(individual=None))
+        biosample_no_individual = Biosample.objects.create(**create_biosample())
 
         self.assertEqual(biosample_no_individual.alias, "53")
         self.assertEqual(biosample_no_individual.collection_site, "Site1")
         self.assertIsNone(biosample_no_individual.individual)
+    
+    def test_no_collection_site(self):
+        biosample_no_collection_site = Biosample.objects.create(**create_biosample(individual=self.valid_individual, collection_site=None))
+
+        self.assertEqual(biosample_no_collection_site.alias, "53")
+        self.assertIsNone(biosample_no_collection_site.collection_site)
 
     def test_no_alias(self):
         with self.assertRaises(ValidationError):
             try:
-                biosample_no_alias = Biosample.objects.create(collection_site="TestCollectionSite")
+                biosample_no_alias = Biosample.objects.create()
             except ValidationError as e:
                 self.assertTrue("alias" in e.message_dict)
                 raise e
