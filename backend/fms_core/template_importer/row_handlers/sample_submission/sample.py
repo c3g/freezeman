@@ -149,7 +149,7 @@ class SampleRowHandler(GenericRowHandler):
             self.errors['project'] = [f"New samples must be assigned to a project."]
 
         # Continue creating the sample objects if this sample is not associated with a pool
-        if library['pool_name'] is None:            
+        if library['pool_name'] is None:
             # Check if there's a sample with the same name
             if Sample.objects.filter(name__iexact=sample['name']).exists():
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
