@@ -59,7 +59,7 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
             except Exception as err:
                 errors.append(err)
         else:
-            errors.append(f"Step {step_order.step.name} expected {SampleType[step_order.step.expected_sample_type].label} but Sample {sample_obj.name} does not match that sample type.")
+            errors.append(f"Step {step_order.step.name} of study {study_obj.letter} expected {SampleType[step_order.step.expected_sample_type].label} but Sample {sample_obj.name} does not match that sample type.")
     return sample_next_step, errors, warnings
 
 def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[bool, List[str], List[str]]:
