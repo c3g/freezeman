@@ -296,6 +296,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 
 /**
  * Defines the filter keys used for filtering samples using the sample-next-step endpoint.
+ * Filter keys are merged into the filter definition when a table's columns are configured.
  */
 export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } = {
 	[SampleColumnID.ID]: 'sample__id',
