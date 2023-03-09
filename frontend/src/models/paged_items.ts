@@ -31,6 +31,7 @@ export type FilterValue = StringFilterValue | StringArrayFilterValue | RangeFilt
 export type SetFilterFunc = (filterKey: string, value: FilterValue, description: FilterDescription) => void
 export type SetFilterOptionFunc = (filterKey: string, propertyName: string, value: boolean, description: FilterDescription) => void
 export type FilterValidationFunc = (string) => boolean
+export type SetSortByFunc = (sortBy: SortBy) => void
 
 
 export interface FilterOptions {

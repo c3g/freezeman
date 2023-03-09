@@ -1,26 +1,33 @@
-import { Table } from 'antd'
+import { Pagination, Table, TableProps } from 'antd'
 import { RowSelectMethod, TableRowSelection } from 'antd/lib/table/interface'
-import { filter } from 'rambda'
 import React, { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
-import { Sample } from '../../../models/frontend_models'
-import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc } from '../../../models/paged_items'
+import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 import { SampleAndLibrary } from './ColumnSets'
-import { mergeColumnsAndFilters } from './MergeColumnsAndFilters'
+import { addFiltersToColumns } from './MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
 
-
+export interface PaginationParameters {
+	pageNumber: number
+	pageSize: number
+	totalCount: number
+	onChangePageNumber: (pageNumber : number) => void
+	onChangePageSize: (newPageSize: number) => void
+}
 
 interface WorkflowSamplesTableProps {
 	sampleIDs: FMSId[]
-	columns: IdentifiedTableColumnType<SampleAndLibrary>[],
-	filterDefinitions?: FilterDescriptionSet,
-	filterKeys?: FilterKeySet,
-	filters?: FilterSet,
-	setFilter?: SetFilterFunc,
-	setFilterOptions?: SetFilterOptionFunc,
+	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	filterDefinitions?: FilterDescriptionSet
+	filterKeys?: FilterKeySet
+	filters?: FilterSet
+	setFilter?: SetFilterFunc
+	setFilterOptions?: SetFilterOptionFunc
+	sortBy?: SortBy
+	setSortBy?: SetSortByFunc
+	pagination?: PaginationParameters
 	selection?: {
 		selectedSampleIDs: FMSId[]
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
@@ -28,7 +35,7 @@ interface WorkflowSamplesTableProps {
 }
 
 // TODO port StudySamples component to use this table.
-function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, selection} : WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection} : WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [tableColumns, setTableColumns] = useState<IdentifiedTableColumnType<SampleAndLibrary>[]>()
 
@@ -53,13 +60,17 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 	}, [samplesByID, librariesByID, sampleIDs])
 
 	useEffect(() => {
-		const mergedColumns = mergeColumnsAndFilters(
+		// Only construct the table columns when necessary.
+		// Ideally the columns would only need to be built once, but part of the process
+		// includes setting filter values in the filter components, so this code has
+		// be run whenever the filters change.
+		const mergedColumns = addFiltersToColumns(
 			columns, 
 			filterDefinitions ?? {},
 			filterKeys ?? {},
 			filters ?? {}, 
-			setFilter ?? (() => {/*noop*/}), 
-			setFilterOptions ?? (() => {/*noop*/}))
+			setFilter, 
+			setFilterOptions)
 		setTableColumns(mergedColumns)
 	}, [filters])
 
@@ -80,17 +91,51 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}
+
+
+
+	const handleTableOnChange: TableProps<any>['onChange'] = (pagination, filters, sorterResult) => {
+		if( setSortBy) {
+			if(! Array.isArray(sorterResult)) {
+				const sorter = sorterResult
+				const key = sorter.columnKey?.toString()
+				const order = sorter.order ?? undefined
+				if (key) {
+					if (sortBy === undefined || key !== sortBy.key || order !== sortBy.order) {
+						setSortBy({key, order})
+					}
+				}
+			}
+		}
+	}
 	
 	return (
 		<>
 			{tableColumns && 
-				<Table
-					rowSelection={rowSelection}
-					dataSource={samples ?? []}
-					columns={tableColumns}
-					rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
-					style={{overflowX: 'auto'}}
-				/>
+				<>
+					<Table
+						rowSelection={rowSelection}
+						dataSource={samples ?? []}
+						columns={tableColumns}
+						rowKey={obj => obj.sample?.id ?? 'BAD_SAMPLE_KEY'}
+						style={{overflowX: 'auto'}}
+						onChange={handleTableOnChange}
+						pagination={pagination ? false : undefined}
+					/>
+					{ pagination && 
+						<Pagination
+							className="ant-table-pagination ant-table-pagination-right"
+							showSizeChanger={true}
+							showQuickJumper={true}
+							showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+							current={pagination.pageNumber}
+							pageSize={pagination.pageSize}
+							total={pagination.totalCount}
+							onChange={(pageNumber) => pagination.onChangePageNumber(pageNumber)}
+							onShowSizeChange={(current, newPageSize) => pagination.onChangePageSize(newPageSize)}
+						/>
+					}
+				</>
 			}
 		</>
 	)

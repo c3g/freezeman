@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
-import { FilterDescription, FilterValue } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
+import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSortBy, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
@@ -14,7 +14,8 @@ import PageContent from '../../PageContent'
 import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
 import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
-import WorkflowSamplesTable from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
+import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
+import { setPageSize } from '../../../modules/pagination'
 
 const { Text } = Typography
 
@@ -28,6 +29,18 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const [selectedTemplate, setSelectedTemplate] = useState<LabworkPrefilledTemplateDescriptor>()
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
+
+	// Set the currently selected template to the first template available, not already set.
+	useEffect(() => {
+		if(!selectedTemplate) {
+			if (stepSamples.prefill.templates.length > 0) {
+				const template = stepSamples.prefill.templates[0]
+				setSelectedTemplate(template)
+			} else {
+				console.error('No templates are associated with step!')
+			}
+		}
+	}, [stepSamples])
 
 	function handleSetFilter(filterKey: string, value: FilterValue, description: FilterDescription) {
 		if(typeof description === 'undefined') {
@@ -43,17 +56,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		dispatch(setFilterOptions(step.id, description, {[property]: value}))
 	}
 
-	// Set the currently selected template to the first template available, not already set.
-	useEffect(() => {
-		if(!selectedTemplate) {
-			if (stepSamples.prefill.templates.length > 0) {
-				const template = stepSamples.prefill.templates[0]
-				setSelectedTemplate(template)
-			} else {
-				console.error('No templates are associated with step!')
-			}
-		}
-	}, [stepSamples])
+	function handleSetSortBy(sortBy: SortBy) {
+		dispatch(setSortBy(step.id, sortBy))
+	}
 
 	const canRefresh = true
 	function handleRefresh() {
@@ -117,6 +122,23 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		</Space>
 	)
 
+	function handlePageNumber(pageNumber: number) {
+		dispatch(loadSamplesAtStep(step.id, pageNumber))
+	}
+
+	function handlePageSize(pageSize: number) {
+		dispatch(setPageSize(pageSize))
+		dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
+	}
+
+	const pagination: PaginationParameters = {
+		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,
+		totalCount: stepSamples.pagedItems.totalCount,
+		pageSize: stepSamples.pagedItems.page?.limit ?? 10,
+		onChangePageNumber: handlePageNumber,
+		onChangePageSize: handlePageSize
+	}
+
 	return (
 		<>
 			<AppPageHeader title={step.name} extra={buttonBar}>
@@ -159,7 +181,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							setFilter={handleSetFilter}
 							setFilterOptions={handleSetFilterOptions}
 							selection={selectionProps}
-							/>
+							setSortBy={handleSetSortBy}
+							pagination={pagination}
+						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
 						{/* Selection table does not allow filtering or sorting */}
@@ -171,7 +195,8 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 							filters={{}}
 							setFilter={() => {/*NOOP*/}}
 							setFilterOptions={() => {/*NOOP*/}}
-							selection={selectionProps}/>
+							selection={selectionProps}
+						/>
 						<Space><InfoCircleOutlined/><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
 					</Tabs.TabPane>
 				</Tabs>

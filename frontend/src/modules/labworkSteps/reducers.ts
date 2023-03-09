@@ -3,7 +3,7 @@ import { clearFiltersReducer, setFilterOptionsReducer, setFilterReducer } from '
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
-import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES } from './actions'
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SORT_BY } from './actions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
 
 const INTIAL_STATE: LabworkStepsState = {
@@ -45,6 +45,19 @@ function handleListRequest(state: LabworkStepsState, stepID: FMSId): LabworkStep
 	return state
 }
 
+function adjustPageNumber(currentPageNumber: number, pageSize: number, totalCount: number): number {
+	let pageNumber = currentPageNumber
+	if(totalCount === 0 || pageSize === 0) {
+		pageNumber = 1
+	} else {
+		const numPages = Math.ceil(totalCount / pageSize)
+		if (pageNumber > numPages) {
+			pageNumber = numPages
+		} 
+	}
+	return pageNumber
+}
+
 function handleListReceive(
 	state: LabworkStepsState,
 	stepID: FMSId,
@@ -54,21 +67,9 @@ function handleListReceive(
 	sampleNextSteps: SampleNextStep[]
 ) {
 	// Adjust page number if the total number of items doesn't reach that page,
-	// which can happen if we refresh the list of samples.
-	if (pageSize > 0) {
-		let numPages = 0
-		if (totalCount > 0) {
-			if (totalCount < pageSize) {
-				numPages = 1
-			} else {
-				numPages = totalCount / pageSize
-			}
-		}
-		
-		if (pageNumber > numPages) {
-			pageNumber = numPages
-		}
-	}
+	// which can happen if we refresh the list of samples and some samples are no longer
+	// at the step.
+	pageNumber = adjustPageNumber(pageNumber, pageSize, totalCount)
 	
 	let stepSamples: LabworkStepSamples = state.steps[stepID]
 	if (stepSamples) {
@@ -87,6 +88,7 @@ function handleListReceive(
 				page: {
 					...stepSamples.pagedItems.page,
 					pageNumber,
+					limit: pageSize,
 				},
 			},
 		}
@@ -218,6 +220,25 @@ export const labworkSteps = (state: LabworkStepsState = INTIAL_STATE, action: An
 					}
 				})
 			}
+			break
+		}
+
+		case SET_SORT_BY: {
+			const { stepID, sortBy } = action
+			const stepSamples = getStepSamplesByID(state, stepID)
+			if (stepSamples) {
+				return updateStepSamples(state, {
+					...stepSamples,
+					pagedItems: {
+						...stepSamples.pagedItems,
+						sortBy: {
+							key: sortBy.key,
+							order: sortBy.order
+						}
+					}
+				})
+			}
+			break
 		}
 	}
 	return state

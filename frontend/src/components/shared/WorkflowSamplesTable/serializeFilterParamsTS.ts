@@ -10,6 +10,7 @@ import {
 	isStringArrayFilterValue,
 	isStringFilterValue,
 	MetadataFilterValue,
+	SortBy,
 } from '../../../models/paged_items'
 
 export default function serializeFilterParamsWithDescriptions(filters: FilterSet) {
@@ -98,4 +99,16 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 	})
 
 	return params
+}
+
+export function serializeSortByParams(sortBy: SortBy) {
+	if (sortBy && sortBy.key && sortBy.order) {
+		const prefixByOrder = {
+			'ascend': '',
+			'descend': '-',
+		}
+		const prefix = prefixByOrder[sortBy.order]
+		return prefix + sortBy.key
+	}
+	return undefined
 }

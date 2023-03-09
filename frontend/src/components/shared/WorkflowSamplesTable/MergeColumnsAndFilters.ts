@@ -3,14 +3,26 @@ import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilter
 
 import { IdentifiedTableColumnType } from "./SampleTableColumns"
 
-
-export function mergeColumnsAndFilters<T>(
+/**
+ * Construct the columns for an antd table. This code takes column definitions and
+ * adds filtering support to the columns.
+ * 
+ * Note that copies of the columns are returned - the original columns are not modified.
+ * @param columns 				// Basic antd column definition
+ * @param filterDescriptions 	// Filter definitions
+ * @param filterKeys 			// Filter keys (filtering keys sent to django viewset endpoint)
+ * @param filters 				// Current filter values, from redux
+ * @param setFilter 			// Function to set a filter value (called by filter components)
+ * @param setFilterOption 		// Function to set a filter option
+ * @returns 
+ */
+export function addFiltersToColumns<T>(
 	columns: IdentifiedTableColumnType<T>[], 
 	filterDescriptions: FilterDescriptionSet, 
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
-	setFilter : SetFilterFunc,
-	setFilterOption : SetFilterOptionFunc
+	setFilter : SetFilterFunc = () => {/* noop */},
+	setFilterOption : SetFilterOptionFunc = () => {/* noop */}
 	) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {
 		const columnID = column.columnID
@@ -32,7 +44,8 @@ export function mergeColumnsAndFilters<T>(
 
 			return {
 				...column,
-				...props
+				...props,
+				key			// Column key needs to be set for sortBy functionality
 			}
 		}
 		return column
