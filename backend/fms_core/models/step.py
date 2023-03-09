@@ -6,7 +6,7 @@ from django.db import models
 from .tracked_model import TrackedModel
 from .protocol import Protocol
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, SampleType
 from ._validators import name_validator_with_spaces_and_parentheses
 from ._utils import add_error as _add_error
 
@@ -17,6 +17,7 @@ __all__ = ["Step"]
 class Step(TrackedModel):
     name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Step name.", validators=[name_validator_with_spaces_and_parentheses])
     protocol = models.ForeignKey(Protocol, on_delete=models.PROTECT, related_name="steps", help_text="Protocol for the step.")
+    expected_sample_type = models.CharField(choices=SampleType.choices, default=SampleType.ANY, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="The acceptable sample type for the step.")
 
     def __str__(self):
         return self.name

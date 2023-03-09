@@ -4,6 +4,8 @@ import django.db.models.deletion
 from django.contrib.auth.models import User
 import reversion
 
+from fms_core.models._constants import SampleType
+
 ADMIN_USERNAME = 'biobankadmin'
 
 def add_qpcr_instrument_type(apps, schema_editor):
@@ -63,6 +65,45 @@ def additional_step(apps, schema_editor):
                                                                       updated_by_id=admin_user_id)
 
                 reversion.add_to_revision(step_specification)
+
+def initialize_step_expected_sample_type(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+
+    STEPS = [
+        {"name": "Extraction (DNA)", "expected_type": SampleType.UNEXTRACTED_SAMPLE},
+        {"name": "Extraction (RNA)", "expected_type": SampleType.UNEXTRACTED_SAMPLE},
+        {"name": "Sample QC", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Normalization (Sample)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Normalization (Library)", "expected_type": SampleType.LIBRARY},
+        {"name": "Library Preparation (PCR-free, Illumina)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library Preparation (PCR-enriched, Illumina)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library Preparation (RNASeq, Illumina)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library Preparation (WGBS, Illumina)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library Preparation (miRNA, Illumina)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library Preparation (PCR-free, DNBSEQ)", "expected_type": SampleType.EXTRACTED_SAMPLE},
+        {"name": "Library QC", "expected_type": SampleType.LIBRARY},
+        {"name": "Pooling", "expected_type": SampleType.LIBRARY},
+        {"name": "Experiment Run Illumina", "expected_type": SampleType.LIBRARY},
+        {"name": "Experiment Run DNBSEQ", "expected_type": SampleType.LIBRARY},
+        {"name": "Library Conversion (DNBSEQ)", "expected_type": SampleType.LIBRARY},
+        {"name": "Library Capture (MCC)", "expected_type": SampleType.LIBRARY},
+        {"name": "Library Capture (Exome)", "expected_type": SampleType.LIBRARY},
+        {"name": "Experiment Run Infinium", "expected_type": SampleType.EXTRACTED_SAMPLE},
+    ]
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Set for each step an appropriate expected sample type.")
+        reversion.set_user(admin_user)
+
+        for step_sample_type in STEPS:
+            step = Step.objects.get(name=step_sample_type["name"])
+            step.expected_sample_type = step_sample_type["expected_type"]
+            step.save()
+
+            reversion.add_to_revision(step)
 
 
 class Migration(migrations.Migration):
@@ -143,5 +184,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             add_qpcr_instrument_type,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='samplenextstep',
+            name='sample',
+            field=models.ForeignKey(help_text='The sample queued to workflows.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_next_steps', to='fms_core.sample'),
         ),
     ]

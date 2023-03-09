@@ -7,6 +7,7 @@ from .tracked_model import TrackedModel
 from .step_order import Step
 from .sample import Sample
 from .study import Study
+from ._constants import SampleType
 
 from ._utils import add_error as _add_error
 
@@ -30,6 +31,10 @@ class SampleNextStep(TrackedModel):
 
         def add_error(field: str, error: str):
             _add_error(errors, field, ValidationError(error))
+
+        # Validate that the sample belong on the step
+        if not self.sample.matches_sample_type(self.step.expected_sample_type):
+            add_error("expected_sample_type", f"Sample {self.sample.name} cannot be queued to the step {self.step.name} which expect {SampleType[self.step.expected_sample_type].label}")
 
         if errors:
             raise ValidationError(errors)

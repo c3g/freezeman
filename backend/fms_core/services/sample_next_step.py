@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
 from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
 from typing import  List, Tuple, Union
+from fms_core.models._constants import SampleType
 
 def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: int=None) -> Tuple[Union[SampleNextStep, None], List[str], List[str]]:
     """
@@ -43,19 +44,22 @@ def queue_sample_to_study_workflow(sample_obj: Sample, study_obj: Study, order: 
     
     # Queueing to study workflow implies an existing step order.
     if step_order and sample_obj and study_obj and not errors:
-        try:
-            if not SampleNextStep.objects.filter(step=step_order.step, sample=sample_obj).exists():
-                sample_next_step = SampleNextStep.objects.create(step=step_order.step,
-                                                                 sample=sample_obj)
-            else:
-                sample_next_step = SampleNextStep.objects.get(step=step_order.step, sample=sample_obj)
-            if sample_next_step is not None:
-                if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, step_order=step_order, study=study_obj).exists():
-                    SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study_obj)
+        if sample_obj.matches_sample_type(step_order.step.expected_sample_type):
+            try:
+                if not SampleNextStep.objects.filter(step=step_order.step, sample=sample_obj).exists():
+                    sample_next_step = SampleNextStep.objects.create(step=step_order.step,
+                                                                    sample=sample_obj)
                 else:
-                    warnings.append(f"Sample {sample_obj.name} already queued to this study's workflow.")
-        except Exception as err:
-            errors.append(err)
+                    sample_next_step = SampleNextStep.objects.get(step=step_order.step, sample=sample_obj)
+                if sample_next_step is not None:
+                    if not SampleNextStepByStudy.objects.filter(sample_next_step=sample_next_step, step_order=step_order, study=study_obj).exists():
+                        SampleNextStepByStudy.objects.create(sample_next_step=sample_next_step, step_order=step_order, study=study_obj)
+                    else:
+                        warnings.append(f"Sample {sample_obj.name} already queued to this study's workflow.")
+            except Exception as err:
+                errors.append(err)
+        else:
+            errors.append(f"Step {step_order.step.name} of study {study_obj.letter} expected {SampleType[step_order.step.expected_sample_type].label} but Sample {sample_obj.name} does not match that sample type.")
     return sample_next_step, errors, warnings
 
 def dequeue_sample_from_specific_step_study_workflow(sample_obj: Sample, study_obj: Study, order: int) -> Tuple[bool, List[str], List[str]]:
