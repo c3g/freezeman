@@ -47,7 +47,7 @@ class FullSampleTest(TestCase):
         self.assertEqual(sample.container_kind, "tube")
         self.assertEqual(sample.container_name, "TestTube01")
         self.assertIsNone(sample.container_location)
-        self.assertEqual(sample.context_sensitive_coordinates, "")
+        self.assertIsNone(sample.context_sensitive_coordinates)
         self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
         self.assertEqual(sample.comment, "")
 

@@ -22,9 +22,10 @@ def initialize_coordinates(apps, schema_editor):
         reversion.set_comment(f"Initialize coordinates currently used for containers.")
         reversion.set_user(admin_user)
 
-        for row in range(1, 17):          # 384 well-plate has 16 row
-            for column in range(1, 25):   # 384 well-plate has 24 columns
-                coordinate = Coordinate.objects.create(name=chr(row+64)+f"{column:02}",  # Uses Capitalized letters and zero-pad column to 2 pos
+        # Create all coordinates for a square matrix using all possible letters. Spec will decide if they are valid for a container.
+        for row in range(0, 26):          # 384 well-plate has 16 row, but there is a 21 row box
+            for column in range(0, 26):   # 384 well-plate has 24 columns
+                coordinate = Coordinate.objects.create(name=chr(row+65)+f"{column+1:02}",  # Uses Capitalized letters and zero-pad column to 2 pos
                                                        row=row,
                                                        column=column,
                                                        created_by_id=admin_user_id,

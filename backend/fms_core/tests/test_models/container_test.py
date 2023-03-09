@@ -65,8 +65,7 @@ class ContainerTest(TestCase):
     def test_coordinates_without_location(self):
         with self.assertRaises(ValidationError):
             try:
-                c = create_container(barcode="Barcode001")
-                c["coordinates"] = "A01"
+                c = create_container(barcode="Barcode001", coordinates="A01")
                 Container.objects.create(**c)
             except ValidationError as e:
                 self.assertIn("coordinates", e.message_dict)
@@ -78,7 +77,7 @@ class ContainerTest(TestCase):
             Container.objects.create(**create_container(
                 barcode="Barcode002",
                 location=parent_container,
-                coordinates="Z99",
+                coordinates="Z22",
                 kind="tube",
             ))
 

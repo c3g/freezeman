@@ -131,7 +131,7 @@ def validate_and_normalize_coordinates(coords: str, spec: CoordinateSpec) -> str
 
     # TODO: Handle padded 0s?
 
-    if coords is None and not spec.requires_coordinates:
+    if coords is None and spec == (): # empty tuple spec means no coordinates are required
         return coords
 
     coordinate_regex_str = "^" + "".join(f"({'|'.join(s)})" for s in spec) + "$"
@@ -155,5 +155,5 @@ def check_coordinate_overlap(queryset, obj, parent, obj_type: str = "container")
     field which specifies possibly-overlapping item locations.
     """
     existing = queryset.exclude(pk=obj.pk).get(coordinate=obj.coordinate)
-    raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing} at "
-                          f"coordinates {obj.coordinate.name}")
+    raise CoordinateError(f"Parent container {parent} already contains {obj_type} {existing}"
+                          f"{f' at coordinates {obj.coordinate.name}' if obj.coordinate is not None else ''}")

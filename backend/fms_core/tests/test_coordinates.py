@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..coordinates import CoordinateError, alphas, convert_alpha_digit_coord_to_ordinal, ints, validate_and_normalize_coordinates
+from ..coordinates import CoordinateSpec, CoordinateError, alphas, convert_alpha_digit_coord_to_ordinal, ints, validate_and_normalize_coordinates
 
 
 class CoordinateTestCase(TestCase):
@@ -37,7 +37,7 @@ class CoordinateTestCase(TestCase):
 
     def test_empty_coords(self):
         cs = ()
-        self.assertEqual(validate_and_normalize_coordinates(None, cs), None)
+        self.assertIsNone(validate_and_normalize_coordinates(None, cs))
 
         for iv in ("A1", "1 ", " Z"):
             with self.assertRaises(CoordinateError):

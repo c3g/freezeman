@@ -200,7 +200,7 @@ def transfer_sample(process: Process,
             coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
             sample_destination_data = dict(
                 container_id=container_destination.id,
-                coordinate=coordinate_destination if coordinate_destination is not None else None,
+                coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 volume=volume_destination if volume_destination is not None else volume_used,
                 depleted=False
