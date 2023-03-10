@@ -14,6 +14,7 @@ import { IdentifiedTableColumnType } from "./SampleTableColumns"
  * @param filters 				// Current filter values, from redux
  * @param setFilter 			// Function to set a filter value (called by filter components)
  * @param setFilterOption 		// Function to set a filter option
+ * @param addSorter				// If true, every column with a filter will include sorting controls.
  * @returns 
  */
 export function addFiltersToColumns<T>(
@@ -22,7 +23,8 @@ export function addFiltersToColumns<T>(
 	filterKeys: FilterKeySet,
 	filters: FilterSet,
 	setFilter : SetFilterFunc = () => {/* noop */},
-	setFilterOption : SetFilterOptionFunc = () => {/* noop */}
+	setFilterOption : SetFilterOptionFunc = () => {/* noop */},
+	addSorter = true
 	) : IdentifiedTableColumnType<T>[]{
 	const mergedColumns = columns.map(column => {
 		const columnID = column.columnID
@@ -45,6 +47,7 @@ export function addFiltersToColumns<T>(
 			return {
 				...column,
 				...props,
+				sorter: addSorter,
 				key			// Column key needs to be set for sortBy functionality
 			}
 		}
