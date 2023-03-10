@@ -74,15 +74,12 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 		setTableColumns(mergedColumns)
 	}, [filters])
 
-	// Ideally, we would do this once
-	
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
 	if(selection) {
 		rowSelection = {
 			type: 'checkbox',
-			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[], info: {type: RowSelectMethod}) => {
-				console.log(selectedRows, info)
+			onChange: (selectedRowKeys: React.Key[], selectedRows: SampleAndLibrary[]) => {
 				selection.onSelectionChanged(selectedRows)				
 			},
 			getCheckboxProps: (record: SampleAndLibrary) => ({
@@ -91,8 +88,6 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 			selectedRowKeys: [...selection.selectedSampleIDs]
 		}
 	}
-
-
 
 	const handleTableOnChange: TableProps<any>['onChange'] = (pagination, filters, sorterResult) => {
 		if( setSortBy) {

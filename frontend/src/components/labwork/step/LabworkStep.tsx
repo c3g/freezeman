@@ -92,17 +92,41 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		}
 	}
 
+	// When the user selects or deselects samples in the table, the table gives us the new selection.
+	// The selection, however, only covers the page of samples that are currently displayed in the table.
+	// It does not include samples that were selected on any other page of samples.
+	// This function takes the complete list of selected samples, and merges the selection from the current
+	// page of samples into it.
+	function mergeSelectionChange(totalSelection: FMSId[], displayedSamples: FMSId[], selectedSampleIDs: FMSId[]): FMSId[] {
+
+		let mergedSelection = [...totalSelection]
+
+		// Add selected samples to merged selection unless they are already included in the merged selection.
+		selectedSampleIDs.forEach(id => {
+			if (!mergedSelection.includes(id)) {
+				mergedSelection.push(id)
+			}
+		})
+
+		// Remove any samples that are no longer selected in the table from the merged selection, if present.
+		const unselectedSampleIDs = displayedSamples.filter(id => !selectedSampleIDs.includes(id))
+		mergedSelection = mergedSelection.filter(id => !unselectedSampleIDs.includes(id))
+
+		return mergedSelection
+	}
+
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
 		onSelectionChanged: (selectedSamples) => {
-			const ids = selectedSamples.reduce((acc, selected) => {
+			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
 					acc.push(selected.sample.id)
 				}
 				return acc
 			}, [] as FMSId[])
-			dispatch(updateSelectedSamplesAtStep(step.id, ids))
+			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
+			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
 		},
 	}
 

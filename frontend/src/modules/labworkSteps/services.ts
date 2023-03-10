@@ -28,6 +28,3 @@ export async function refreshSelectedSamplesAtStep(token: string, stepID: FMSId,
 	
 	return []
 }
-
-
-

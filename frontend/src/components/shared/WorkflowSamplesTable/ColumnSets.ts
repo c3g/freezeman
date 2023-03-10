@@ -1,8 +1,8 @@
 import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'
-import { LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from './LibraryTableColumns'
-import { IdentifiedTableColumnType, ObjectWithSample, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
+import { LibraryColumn, LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from './LibraryTableColumns'
+import { IdentifiedTableColumnType, ObjectWithSample, SampleColumn, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
 
 export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
@@ -77,43 +77,59 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 		SAMPLE_COLUMNS.DEPLETED
 	]
 
+	let columnsForStep: (SampleColumn | LibraryColumn)[] = DEFAULT_SAMPLE_COLUMNS
+
 	switch(protocol.name) {
 		case ProtocolNames.Extraction: {
-			return PRE_QC_SAMPLE_COLUMNS
+			columnsForStep = PRE_QC_SAMPLE_COLUMNS
+			break
 		}
 		case ProtocolNames.Sample_Quality_Control: {
-			return PRE_QC_SAMPLE_COLUMNS
+			columnsForStep = PRE_QC_SAMPLE_COLUMNS
+			break
 		}
 		case ProtocolNames.Sample_Pooling: {
-			return DEFAULT_SAMPLE_COLUMNS
+			columnsForStep = DEFAULT_SAMPLE_COLUMNS
+			break
 		}
 		case ProtocolNames.Library_Preparation: {
-			return DEFAULT_SAMPLE_COLUMNS
+			columnsForStep = DEFAULT_SAMPLE_COLUMNS
+			break
 		}
 		case ProtocolNames.Library_Quality_Control: {
-			return PRE_QC_LIBRARY_COLUMNS
+			columnsForStep = PRE_QC_LIBRARY_COLUMNS
+			break
 		}
 		case ProtocolNames.Library_Capture: {
-			return DEFAULT_LIBRARY_COLUMNS
+			columnsForStep = DEFAULT_LIBRARY_COLUMNS
+			break
 		}
 		case ProtocolNames.Library_Conversion: {
-			return DEFAULT_LIBRARY_COLUMNS
+			columnsForStep = DEFAULT_LIBRARY_COLUMNS
+			break
 		}
 		case ProtocolNames.Normalization: {
 			const type = getStepSpecificationValue(step, 'Normalization Type')
 			if (type === 'Library') {
-				return DEFAULT_LIBRARY_COLUMNS
+				columnsForStep = DEFAULT_LIBRARY_COLUMNS
 			} else {
-				return DEFAULT_SAMPLE_COLUMNS
+				columnsForStep = DEFAULT_SAMPLE_COLUMNS
 			}
+			break
 		}
 		case ProtocolNames.DNBSEQ_Preparation: {
-			return EXPERIMENT_COLUMNS
+			columnsForStep = EXPERIMENT_COLUMNS
+			break
 		}
 		case ProtocolNames.Illumina_Preparation: {
-			return EXPERIMENT_COLUMNS
+			columnsForStep = EXPERIMENT_COLUMNS
+			break
 		}
-		default:
-			return DEFAULT_SAMPLE_COLUMNS
+		default: {
+			columnsForStep = DEFAULT_SAMPLE_COLUMNS
+		}
 	}
+
+	// Return a copy of the array.
+	return [...columnsForStep]
 }
