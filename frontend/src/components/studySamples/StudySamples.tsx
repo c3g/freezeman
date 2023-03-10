@@ -1,5 +1,6 @@
 import { Collapse, Typography } from 'antd'
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { StudySampleList } from '../../models/study_samples'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 
@@ -21,7 +22,7 @@ function StudySamples({ studySamples, hideEmptySteps }: StudySamplesProps) {
 				{renderedSteps.map((step) => {
 					const hasSamples = step.samples.length > 0
 					return (
-						<Collapse.Panel key={step.stepOrderID} header={`${step.stepName}`} extra={<Title level={4} style={{margin: '0'}}>{step.samples.length}</Title>}>
+						<Collapse.Panel key={step.stepOrderID} header={<Link to={`/lab-work/step/${step.stepID}`}>{step.stepName}</Link>} extra={<Title level={4} style={{margin: '0'}}>{step.samples.length}</Title>}>
 							{hasSamples ? (
 								<StudyStepSamplesTable step={step} />
 							) : (
