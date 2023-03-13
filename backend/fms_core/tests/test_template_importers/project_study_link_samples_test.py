@@ -42,7 +42,7 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         #For studies 
         self.study_letter1 = "A"
         self.study_letter2 = "B"
-        self.start = 1
+        self.start = 2
         self.end = 7
 
         self.prefill_data()
@@ -111,7 +111,7 @@ class ProjectStudyLinkSamplesTestCase(TestCase):
         # Test that sample 1 is queued twice in the same workflow but different steps
         self.assertEqual(SampleNextStep.objects.filter(sample=self.sample1, studies=self.study1).count(), 2)
 
-        step_order_1 = StepOrder.objects.get(order=1, workflow=self.study1.workflow)
+        step_order_1 = StepOrder.objects.get(order=2, workflow=self.study1.workflow)
         self.assertTrue(SampleNextStep.objects.filter(sample=self.sample1,
                                                       sample_next_step_by_study__study=self.study1,
                                                       sample_next_step_by_study__step_order=step_order_1).exists())

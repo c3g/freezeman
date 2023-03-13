@@ -33,7 +33,7 @@ class SampleNextStep(TrackedModel):
             _add_error(errors, field, ValidationError(error))
 
         # Validate that the sample belong on the step
-        if not self.sample.matches_sample_type(self.step.expected_sample_type):
+        if self.sample_id is not None and self.step_id is not None and not self.sample.matches_sample_type(self.step.expected_sample_type):
             add_error("expected_sample_type", f"Sample {self.sample.name} cannot be queued to the step {self.step.name} which expect {SampleType[self.step.expected_sample_type].label}")
 
         if errors:

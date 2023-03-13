@@ -18,28 +18,39 @@ from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGN
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
             self.valid_individual = Individual.objects.create(**create_individual(individual_name='jdoe'))
-            self.valid_container = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
+            self.valid_container_1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01', barcode='T123456'))
+            self.valid_container_2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube02', barcode='T1234568'))
             self.sample_kind_BLOOD, _ = SampleKind.objects.get_or_create(name="BLOOD", is_extracted=False, concentration_required=False)
             self.sample_kind_DNA, _ = SampleKind.objects.get_or_create(name="DNA", is_extracted=True, concentration_required=True)
-            self.sample = create_fullsample(name="TestSampleNextStep",
-                                            alias="sample1",
-                                            volume=5000,
-                                            individual=self.valid_individual,
-                                            sample_kind=self.sample_kind_BLOOD,
-                                            container=self.valid_container)
+            self.sample_BLOOD = create_fullsample(name="TestSampleNextStep",
+                                                  alias="sample1",
+                                                  volume=5000,
+                                                  individual=self.valid_individual,
+                                                  sample_kind=self.sample_kind_BLOOD,
+                                                  container=self.valid_container_1)
+            self.sample_DNA = create_fullsample(name="TestSampleNextStep",
+                                                alias="sample1",
+                                                volume=5000,
+                                                individual=self.valid_individual,
+                                                sample_kind=self.sample_kind_DNA,
+                                                container=self.valid_container_2)
             self.workflow_pcr_free = Workflow.objects.get(name="PCR-free Illumina")
             self.workflow_pcr_enriched = Workflow.objects.get(name="PCR-enriched Illumina")
             self.step = Step.objects.get(name="Extraction (DNA)")
             self.step_order = StepOrder.objects.get(order=1, workflow=self.workflow_pcr_free, step=self.step)
             self.project = Project.objects.create(name="TestSampleNextStep")
 
-            for derived_sample in self.sample.derived_samples.all():
+            for derived_sample in self.sample_BLOOD.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+
+            for derived_sample in self.sample_DNA.derived_samples.all():
                 derived_sample.project_id = self.project.id
                 derived_sample.save()
                 
             self.letter_valid = "A"
             self.start = 1
-            self.end = 7
+            self.end = 3
             self.study = Study.objects.create(letter=self.letter_valid,
                                               project=self.project,
                                               workflow=self.workflow_pcr_free,
@@ -47,7 +58,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                               end=self.end)
 
     def test_queue_sample_to_study_workflow_default(self):
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
@@ -56,91 +67,91 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(sample_next_step_by_study.step_order.order, 1)
 
     def test_queue_sample_to_valid_step(self):
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 3)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 3)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, step_order__step=sample_next_step.step, study=self.study)
         self.assertEqual(sample_next_step_by_study.step_order.order, 3)
-        self.assertEqual(sample_next_step.sample, self.sample)
+        self.assertEqual(sample_next_step.sample, self.sample_DNA)
 
     def test_queue_sample_to_invalid_step(self):
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 8)
-        self.assertEqual(errors, ["Order must be a positive integer between 1 and 7."])
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 4)
+        self.assertEqual(errors, ["Order must be a positive integer between 1 and 3."])
         self.assertEqual(warnings, [])
         self.assertIsNone(sample_next_step)
 
     def test_dequeue_sample_from_valid_step(self):
         # Queue sample first
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, step_order__step=sample_next_step.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study, SampleNextStepByStudy))
         self.assertEqual(sample_next_step_by_study.step_order.order, 1)
-        self.assertEqual(sample_next_step.sample, self.sample)
+        self.assertEqual(sample_next_step.sample, self.sample_BLOOD)
         
         # Dequeue sample
-        dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample, self.study, 1)
+        dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample_BLOOD, self.study, 1)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertTrue(dequeued)
-        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample, studies=self.study).exists())
+        self.assertFalse(SampleNextStep.objects.filter(sample=self.sample_BLOOD, studies=self.study).exists())
     
     def test_dequeue_sample_from_invalid_step(self):
         # Queue sample first and test it
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 2)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, step_order__step=sample_next_step.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study, SampleNextStepByStudy))
-        self.assertEqual(sample_next_step_by_study.step_order.order, 2)
-        self.assertEqual(sample_next_step.sample, self.sample)
+        self.assertEqual(sample_next_step_by_study.step_order.order, 1)
+        self.assertEqual(sample_next_step.sample, self.sample_BLOOD)
 
-        dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample, self.study, 1)
+        dequeued, errors, warnings = dequeue_sample_from_specific_step_study_workflow(self.sample_BLOOD, self.study, 2)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertFalse(dequeued)
 
     def test_dequeue_sample_from_multiple_steps(self):
         # Queue sample first and test it
-        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 1)
+        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 2)
         self.assertTrue(isinstance(sample_next_step_1, SampleNextStep))
         sample_next_step_by_study_1 = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step_1, step_order__step=sample_next_step_1.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study_1, SampleNextStepByStudy))
-        self.assertEqual(sample_next_step_by_study_1.step_order.order, 1)
-        self.assertEqual(sample_next_step_1.sample, self.sample)
+        self.assertEqual(sample_next_step_by_study_1.step_order.order, 2)
+        self.assertEqual(sample_next_step_1.sample, self.sample_DNA)
         
-        sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 2)
+        sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 3)
         self.assertTrue(isinstance(sample_next_step_2, SampleNextStep))
         sample_next_step_by_study_2 = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step_2, step_order__step=sample_next_step_2.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study_2, SampleNextStepByStudy))
-        self.assertEqual(sample_next_step_by_study_2.step_order.order, 2)
-        self.assertEqual(sample_next_step_2.sample, self.sample)
+        self.assertEqual(sample_next_step_by_study_2.step_order.order, 3)
+        self.assertEqual(sample_next_step_2.sample, self.sample_DNA)
         
-        num_dequeued, errors, warnings = dequeue_sample_from_all_steps_study_workflow(self.sample, self.study)
+        num_dequeued, errors, warnings = dequeue_sample_from_all_steps_study_workflow(self.sample_DNA, self.study)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(num_dequeued, 2)
     
     def test_is_sample_queued_in_study(self):
         # Test valid queueing
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 3)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 3)
         self.assertTrue(isinstance(sample_next_step, SampleNextStep))
         sample_next_step_by_study = SampleNextStepByStudy.objects.get(sample_next_step=sample_next_step, step_order__step=sample_next_step.step, study=self.study)
         self.assertTrue(isinstance(sample_next_step_by_study, SampleNextStepByStudy))
         self.assertEqual(sample_next_step_by_study.step_order.order, 3)
-        self.assertEqual(sample_next_step.sample, self.sample)
+        self.assertEqual(sample_next_step.sample, self.sample_DNA)
 
-        is_queued, errors, warnings = is_sample_queued_in_study(self.sample, self.study, 3)
+        is_queued, errors, warnings = is_sample_queued_in_study(self.sample_DNA, self.study, 3)
         self.assertTrue(is_queued)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
 
     def test_is_sample_queued_in_invalid_study(self):
         # Test invalid queueing
-        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study, 10)
+        sample_next_step, errors, warnings = queue_sample_to_study_workflow(self.sample_DNA, self.study, 10)
         self.assertEqual(sample_next_step, None)
 
-        is_queued, errors, warnings = is_sample_queued_in_study(self.sample, self.study)
+        is_queued, errors, warnings = is_sample_queued_in_study(self.sample_DNA, self.study)
         self.assertFalse(is_queued)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
@@ -321,22 +332,22 @@ class SampleNextStepServicesTestCase(TestCase):
                                             start=start,
                                             end=end)
         # Basic case
-        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
-        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step)
+        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample_BLOOD, sample_next_step_1.step)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertEqual(count, 1)
         self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_1.id).exists())
         # More than one (include warning)
-        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample, self.study)
-        sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample, second_study)
-        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step)
+        sample_next_step_1, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, self.study)
+        sample_next_step_2, errors, warnings = queue_sample_to_study_workflow(self.sample_BLOOD, second_study)
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample_BLOOD, sample_next_step_1.step)
         self.assertEqual(errors, [])
         self.assertTrue("You are about to remove it from all study workflows." in warnings[0])
         self.assertEqual(count, 2)
         self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_1.id).exists())
         self.assertFalse(SampleNextStep.objects.filter(id=sample_next_step_2.id).exists())
-        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample, sample_next_step_1.step)
+        count, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(self.sample_BLOOD, sample_next_step_1.step)
         self.assertEqual(errors, [])
         self.assertTrue("does not appear to to be queued" in warnings[0])
         self.assertEqual(count, 0)
