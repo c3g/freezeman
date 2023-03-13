@@ -305,3 +305,10 @@ _stephistory_filterset_fields: FiltersetFields = {
     **_prefix_keys("step_order__", _step_order_filterset_fields),
     **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }
+
+_coordinate_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "name": CATEGORICAL_FILTERS,
+    "column": SCALAR_FILTERS,
+    "row": SCALAR_FILTERS,
+}

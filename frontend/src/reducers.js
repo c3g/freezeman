@@ -84,6 +84,7 @@ import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
+import {coordinates} from "./modules/coordinates/reducers"
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -145,6 +146,7 @@ const allReducers = combineReducers({
   workflows,
   labworkSummary,
   studySamples,
+  coordinates,
 });
 
 export default function rootReducer(state, action) {

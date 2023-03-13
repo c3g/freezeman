@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import {get, listChildren} from "../../modules/containers/actions";
 import platform, * as PLATFORM from "../../utils/platform";
-import {withSample} from "../../utils/withItem";
+import {withSample, withCoordinate} from "../../utils/withItem";
 
 const {Text} = Typography;
 
@@ -76,7 +76,7 @@ const renderEntry = content =>
     {content}
   </span>;
 
-const renderSample = (sample, sampleKind) => {
+const renderSample = (sample, sampleKind, coordinatesByID) => {
   return (
     <span style={entryStyle}>
        <Link to={`/samples/${sample.id}`} onClick={onClick}>
@@ -86,8 +86,8 @@ const renderSample = (sample, sampleKind) => {
          }
          {' '}
         <b>{sample.name}</b> sample ({sampleKind}){' '}
-        {sample.coordinates &&
-          `@ ${sample.coordinates}`
+        {sample.coordinate &&
+          `@ ${withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "Loading...")}`
         }
       </Link>
     </span>
@@ -97,12 +97,13 @@ const renderSample = (sample, sampleKind) => {
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   samplesByID: state.samples.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
   sampleKinds: state.sampleKinds,
 });
 
 const actionCreators = {get, listChildren};
 
-const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds, listChildren}) => {
+const ContainerHierarchy = ({container, containersByID, samplesByID, coordinatesByID, sampleKinds, listChildren}) => {
 
   const [explodedKeys, setExplodedKeys] = useState({});
   useEffect(() => { setExplodedKeys({}) }, [container?.id]);
@@ -113,6 +114,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
   const context = {
     containersByID,
     samplesByID,
+    coordinatesByID,
     sampleKinds,
     explodedKeys,
   }
@@ -128,9 +130,9 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
               `(${container.children.length} children)`
               }
             </Text>{' '}
-            {container.coordinates &&
+            {container.coordinate &&
             <Text type="secondary">
-              @ {container.coordinates}
+              @ {withCoordinate(coordinatesByID, container.coordinate, coordinate => coordinate.name, "Loading...")}
             </Text>
             }
             <Text type="secondary">
@@ -147,7 +149,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
               const sampleKind = sample?.sample_kind ? context.sampleKinds.itemsByID[sample?.sample_kind]?.name : "POOL"
               return <li key={`container_sample_${sampleId}`}>
                 {sample ?
-                    renderSample(sample, sampleKind) :
+                    renderSample(sample, sampleKind, coordinatesByID) :
                     <span style={entryStyle}>
                       <Link to={`/samples/${sampleId}`} onClick={onClick}> Sample </Link> {' '}
                       <Text type="secondary">
@@ -195,7 +197,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, sampleKinds
         });
       }
       else {
-        otherChildren.sort((a, b) => compareCoordinates(context.containersByID[a], context.containersByID[b]))
+        otherChildren.sort((a, b) => compareCoordinates(context.coordinatesByID[context.containersByID[a]], context.coordinatesByID[context.containersByID[b]]))
         children.push(...otherChildren.map(containerId =>
           buildContainerTreeFromPath(context, [containerId])
         ).flat());
@@ -265,9 +267,9 @@ export default connect(mapStateToProps, actionCreators)(ContainerHierarchy);
 function compareCoordinates(a, b) {
   if (!a || a.isFetching || !b || b.isFetching)
     return +1
-  if (a.coordinates && !b.coordinates)
+  if (a && !b)
     return -1
-  if (b.coordinates && !a.coordinates)
+  if (b && !a)
     return +1
-  return a.coordinates.localeCompare(b.coordinates)
+  return a.name.localeCompare(b.name)
 }
