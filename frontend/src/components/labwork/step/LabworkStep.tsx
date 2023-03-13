@@ -1,12 +1,12 @@
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
-import { Button, Select, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Select, Space, Tabs, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSortBy, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
@@ -211,6 +211,17 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						/>
 					</Tabs.TabPane>
 					<Tabs.TabPane tab={selectedTabTitle} key='selection'>
+						{ stepSamples.showSelectionChangedWarning && 
+							<Alert
+								type='warning'
+								message='Selection has changed'
+								description={`Some samples were removed from the selection because they are no longer at the ${step.name} step.`}
+								closable={true}
+								showIcon={true}
+								onClose={() => dispatch(showSelectionChangedMessage(step.id, false))}
+								style={{marginBottom: '1em'}}
+							/>
+						}
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.selectedSamples}

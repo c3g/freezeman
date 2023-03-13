@@ -18,6 +18,9 @@ export const SET_FILTER_OPTION = 'SAMPLES_AT_STEP:SET_FILTER_OPTION'
 export const CLEAR_FILTERS = 'SAMPLES_AT_STEP:CLEAR_FILTERS'
 export const SET_SORT_BY = 'SAMPLES_AT_STEP:SET_SORT_BY'
 export const LIST_TEMPLATE_ACTIONS = createNetworkActionTypes("SAMPLES_AT_STEP.LIST_TEMPLATE_ACTIONS")
+export const SHOW_SELECTION_CHANGED_MESSAGE = 'SAMPLES_AT_STEP:SHOW_SELECTION_CHANGED_MESSAGE'
+
+
 
 
 // Initialize the redux state for samples at step
@@ -120,6 +123,7 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 			if (step.selectedSamples.length > 0) {
 				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples)
 				if (refreshedSelection.length !== step.selectedSamples.length) {
+					dispatch(showSelectionChangedMessage(stepID, true))
 					dispatch(setSelectedSamples(stepID, refreshedSelection))
 				}
 			}
@@ -244,3 +248,18 @@ export const requestPrefilledTemplate = (templateID : FMSId, stepID: FMSId) => {
 		}
 	}
 }
+
+/**
+ * This flag is set if any selected samples are removed from the user's selection after
+ * a refresh, so that we can let the user know that their selection has changed.
+ * @param stepID 
+ * @returns 
+ */
+export function showSelectionChangedMessage(stepID: FMSId, show: boolean) {
+	return {
+		type: SHOW_SELECTION_CHANGED_MESSAGE,
+		stepID,
+		show
+	}
+}
+
