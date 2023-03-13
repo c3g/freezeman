@@ -1,6 +1,6 @@
 import { FMSSample, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
 import { buildStudySamplesFromWorkflow } from '../../models/study_samples'
-import { selectStudiesByID, selectStudySamples, selectWorkflowsByID } from '../../selectors'
+import { selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
@@ -9,12 +9,13 @@ import { list as listLibraries } from '../libraries/actions'
 
 export const GET_STUDY_SAMPLES = createNetworkActionTypes('STUDY_SAMPLES.GET_STUDY_SAMPLES')
 export const FLUSH_STUDY_SAMPLES = 'STUDY_SAMPLES.FLUSH_STUDY_SAMPLES'
+export const SET_HIDE_EMPTY_STEPS = 'STUDY_SAMPLES.SET_HIDE_EMPTY_STEPS'
 
 
 export const getStudySamples = (studyID : number) => {
 
 	 async function fetch(dispatch: AppDispatch, getState: () => RootState) {
-		const currentState = selectStudySamples(getState())
+		const currentState = selectStudySamplesByID(getState())
 		const existingState = currentState[studyID]
 		if (existingState?.isFetching) {
 			return
@@ -93,9 +94,18 @@ export function flushStudySamples(studyID: number) {
 	}
 }
 
+export function setHideEmptySteps(hide: boolean) {
+	return {
+		type: SET_HIDE_EMPTY_STEPS,
+		hideEmptySteps: hide
+	}
+}
+
 export default {
 	GET_STUDY_SAMPLES,
 	FLUSH_STUDY_SAMPLES,
+	SET_HIDE_EMPTY_STEPS,
 	getStudySamples,
 	flushStudySamples,
+	setHideEmptySteps,
 }

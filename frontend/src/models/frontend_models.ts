@@ -22,9 +22,12 @@ import {
 	FMSReferenceGenome,
 	FMSSample,
 	FMSSampleKind,
+	FMSSampleNextStep,
 	FMSSequence,
+	FMSStep,
 	FMSStudy,
 	FMSTaxon,
+	FMSTrackedModel,
 	FMSUser,
 	FMSWorkflow,
 } from './fms_api_models'
@@ -36,10 +39,17 @@ export interface FetchedObject {
 	isLoaded: boolean
 }
 
-export interface ItemsByID<T extends FetchedObject> {
+export interface ItemsByID<T extends FMSTrackedModel> {
 	[key: FMSId]: T
 }
 
+export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsByID<T> {
+	const itemsByID : ItemsByID<T> = {}
+	items.forEach(item => {
+		itemsByID[item.id] = item
+	})
+	return itemsByID
+}
 
 export type ObjectId = FMSId
 export interface Container extends Readonly<FMSContainer>, FetchedObject {}
@@ -55,7 +65,9 @@ export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}
 export interface SampleKind extends Readonly<FMSSampleKind>, FetchedObject {}
+export interface SampleNextStep extends Readonly<FMSSampleNextStep>, FetchedObject {}
 export interface Sequence extends Readonly<FMSSequence>, FetchedObject {}
+export interface Step extends Readonly<FMSStep> {}
 export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
 export interface User extends Readonly<FMSUser>, FetchedObject {}

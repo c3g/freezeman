@@ -9,7 +9,6 @@ import {Provider} from "react-redux";
 import {BrowserRouter} from "react-router-dom";
 
 import "./utils/platform";
-// import configureStore from "./store";
 import { setStore } from "./utils/withItem.js";
 import App from "./components/App";
 
@@ -18,7 +17,6 @@ import "./styles/antd-adjustments.scss";
 
 import store from './store'
 
-// const store = configureStore({});
 const persistor = persistStore(store);
 setStore(store);
 

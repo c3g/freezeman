@@ -3,12 +3,12 @@ import { Switch, Tooltip } from 'antd'
 import DebouncedInput from './DebouncedInput'
 
 
-const InputFilter = ({value, options, description, dataIndex, setFilter, setFilterOption, confirm, visible}) => {
+const InputFilter = ({value, options, description, filterKey, setFilter, setFilterOption, confirm, visible}) => {
 
     const inputRef = useRef()
 
     const onSearch = value => {
-      setFilter(dataIndex, value)
+      setFilter(filterKey, value, description)
     }
   
     const onKeyDown = (ev, confirm) => {
@@ -17,12 +17,12 @@ const InputFilter = ({value, options, description, dataIndex, setFilter, setFilt
     }
   
     const onToggleSwitch = (key, checked )=> {
-      setFilterOption(dataIndex, key, checked)
+      setFilterOption(filterKey, key, checked, description)
     }
   
     const onChangeRecursive = checked => {
       onToggleSwitch( 'recursiveMatch', checked)
-      setFilterOption(dataIndex, 'exactMatch', checked)
+      setFilterOption(filterKey, 'exactMatch', checked, description)
     }
   
     useEffect(() => {

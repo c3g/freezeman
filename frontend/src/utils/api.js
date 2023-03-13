@@ -210,7 +210,18 @@ const api = {
   },
 
   sampleNextStep: {
-    labworkSummary: () => get('/sample-next-step/labwork_info/')
+    getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
+    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {...options, step__id__in: stepId}),
+    labworkSummary: () => get('/sample-next-step/labwork_info/'),
+    prefill: {
+      templates: (protocolId) => get('/sample-next-step/list_prefills', {protocol: protocolId}),
+      request: (templateID, options) => get('/sample-next-step/prefill_template/', {template: templateID, ...options})
+    },
+    template: {
+      actions: () => get(`/sample-next-step/template_actions/`),
+      check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
+    },
   },
 
   sampleNextStepByStudy: {
@@ -221,6 +232,10 @@ const api = {
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
     list: (options, abort) => get("/sequences/", options, { abort }),
+  },
+
+  steps: {
+    list: (options, abort) => get('/steps/', options, { abort} ),
   },
 
   studies: {

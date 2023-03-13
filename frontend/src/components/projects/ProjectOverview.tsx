@@ -1,9 +1,8 @@
+import { Descriptions } from 'antd'
 import React from 'react'
-import { Descriptions, Typography } from 'antd'
-const { Title } = Typography
 
-import TrackingFieldsContent from '../TrackingFieldsContent'
 import { Project } from '../../models/frontend_models'
+import TrackingFieldsContent from '../TrackingFieldsContent'
 
 interface ProjectOverviewProps {
 	project?: Project
@@ -15,8 +14,6 @@ interface ProjectOverviewProps {
  * @returns
  */
 const ProjectOverview = ({ project }: ProjectOverviewProps) => {
-	const title = `Project ${project?.name ?? ''}`
-
 	return (
 		<>
 			<Descriptions bordered={true} size="small" column={4}>

@@ -5,6 +5,7 @@ import storage from "redux-persist/lib/storage";
 import {notification} from "antd";
 
 import {auth} from "./modules/auth/reducers";
+import { app } from "./modules/app/reducers";
 import {
   containerKinds,
   containersSummary,
@@ -84,6 +85,8 @@ import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
+import { labworkSteps, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
+import { steps } from './modules/steps/reducers'
 
 const AUTH_PERSIST_CONFIG = {
   key: "auth",
@@ -97,6 +100,7 @@ const recentMessages = new Set();
 
 const allReducers = combineReducers({
   auth: persistReducer(AUTH_PERSIST_CONFIG, auth),
+  app,
   containerKinds,
   containersSummary,
   containerTemplateActions,
@@ -145,6 +149,9 @@ const allReducers = combineReducers({
   workflows,
   labworkSummary,
   studySamples,
+  labworkSteps,
+  sampleNextStepTemplateActions,
+  steps,
 });
 
 export default function rootReducer(state, action) {

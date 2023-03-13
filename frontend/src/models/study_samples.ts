@@ -9,7 +9,7 @@ export interface StudySampleList {
 export interface StudySampleStep {
 	stepID:	FMSId					// step ID
 	stepName: string				// step name
-  stepOrderID: FMSId      // step order ID
+  	stepOrderID: FMSId      // step order ID
 	stepOrder: number				// step order
 	protocolID: FMSId				// protocol ID
 	samples: FMSId[]				// List of samples at step
