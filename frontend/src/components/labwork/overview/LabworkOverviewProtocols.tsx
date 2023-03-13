@@ -3,7 +3,7 @@ import { Button, Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
 import { useAppDispatch } from '../../../hooks'
 import { LabworkSummary } from '../../../models/labwork_summary'
-import { refreshLabworkSummary, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
 const { Title } = Typography
@@ -27,8 +27,6 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 		protocols = protocols.filter(protocol => protocol.count > 0)
 	}
 
-
-
 	return (
 		<>
 			<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -37,7 +35,8 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
 					<Button icon={<SyncOutlined/>} onClick={
 						() => {
-							dispatch(refreshLabworkSummary())
+							// Refreshes labwork and step samples states
+							dispatch(refreshLabwork())
 						}
 					} title='Update with the latest state of the samples in the lab'>Refresh</Button>
 				</Space>
@@ -52,7 +51,6 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 				})}
 			</Collapse>
 		</>
-		
 	)
 }
 

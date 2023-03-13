@@ -1,53 +1,45 @@
-import React, {useEffect, useState } from "react";
-import {connect} from "react-redux";
-import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
-import {Layout, Menu, Spin, Typography} from "antd";
 import {
-  AuditOutlined,
-  DashboardOutlined,
-  ExperimentOutlined,
-  LogoutOutlined,
-  TableOutlined,
+  AuditOutlined, BarcodeOutlined, DashboardOutlined,
+  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SyncOutlined, TableOutlined,
   TeamOutlined,
-  UserOutlined,
-  InfoCircleOutlined,
-  ProjectOutlined,
-  BarcodeOutlined,
-  HddOutlined,
-  FileZipOutlined,
-  SyncOutlined,
+  UserOutlined
 } from "@ant-design/icons";
+import { Layout, Menu, Spin, Typography } from "antd";
+import React, { useEffect } from "react";
+import { connect } from "react-redux";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import JumpBar from "./JumpBar";
-import LoginPage from "./login/LoginPage";
+import About from "./About";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
-import SamplesPage from "./samples/SamplesPage";
-import LibrariesPage from "./libraries/LibrariesPage";
-import IndividualsPage from "./individuals/IndividualsPage";
 import IndicesPage from "./indices/IndicesPage";
-import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
+import IndividualsPage from "./individuals/IndividualsPage";
+import JumpBar from "./JumpBar";
+import LibrariesPage from "./libraries/LibrariesPage";
+import LoginPage from "./login/LoginPage";
 import ProcessesPage from "./processes/ProcessesPage";
-import ProjectsPage from "./projects/ProjectsPage";
+import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "./profile/ProfilePage";
+import ProjectsPage from "./projects/ProjectsPage";
+import SamplesPage from "./samples/SamplesPage";
 import UsersPage from "./users/UsersPage";
-import About from "./About";
 
 import PrivateNavigate from "./PrivateNavigate";
 
+import { matchingMenuKeys, renderMenuItem } from "../utils/menus";
+import { hour } from "../utils/time";
 import useUserInputExpiration from "../utils/useUserInputExpiration";
-import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {hour} from "../utils/time";
 
-import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
-import {logOut} from "../modules/auth/actions";
-import {get} from "../modules/users/actions";
-import DatasetsPage from "./datasets/DatasetsPage";
-import LabworkPage from "./labwork/LabworkPage";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
-import { selectAppInitialzed } from "../selectors";
+import { logOut } from "../modules/auth/actions";
+import { refreshLabwork } from "../modules/labwork/actions";
+import { fetchInitialData, fetchSummariesData } from "../modules/shared/actions";
+import { get } from "../modules/users/actions";
+import { selectAppInitialzed, selectAuthTokenAccess } from "../selectors";
+import DatasetsPage from "./datasets/DatasetsPage";
+import LabworkPage from "./labwork/LabworkPage";
  
 
 const { Title } = Typography;
@@ -155,21 +147,27 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
+export const actionCreators = {logOut, get};
 
-const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
+const App = ({userID, usersByID, logOut, get}) => {
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
+  const tokenAccess = useAppSelector(selectAuthTokenAccess)
 
   useEffect(() => {
     async function loadInitialData() {
-      await fetchInitialData()
+      await dispatch(fetchInitialData())
       dispatch(setAppInitialized())
     }
 
     loadInitialData()
-    const interval = setInterval(fetchSummariesData, 30000);
+    const interval = setInterval(() => {
+      dispatch(fetchSummariesData())
+      if (tokenAccess) {
+        dispatch(refreshLabwork())
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 

@@ -122,3 +122,36 @@ export function findStepInSummary(summary: LabworkSummary, stepID: FMSId) {
 	}
 	return undefined
 }
+
+/**
+ * Compare a new labwork summary with an old summary, looking for any steps where the step's
+ * sample count has changed.
+ * 
+ * Returns a list of step ID's for those steps whose counts have changed.
+ * @param oldSummary 
+ * @param newSummary 
+ * @returns 
+ */
+export function findChangedStepsInSummary(oldSummary: LabworkSummary, newSummary: LabworkSummary) {
+
+	// If there are any protocols in the new summary that were not in the old summary then
+	// consider them changed as well.
+	const changedStepIDs : FMSId[] = []
+
+	for(const protocol of newSummary.protocols) {
+		for (const group of protocol.groups) {
+			for(const step of group.steps) {
+				const found = findStepInSummary(oldSummary, step.id)
+				if (found) {
+					const oldStep = found.step
+					if (oldStep.count !== step.count) {
+						// Step count has changed - add it to the list of changed steps
+						changedStepIDs.push(step.id)
+					}
+				}
+			}
+		}
+	}
+
+	return changedStepIDs
+}

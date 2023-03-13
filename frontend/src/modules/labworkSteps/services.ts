@@ -6,6 +6,22 @@ import api, { withToken } from "../../utils/api"
  
 export const PREFILLED_TEMPLATE_DEFAULT_ORDERING = 'sample__container__barcode,sample__coordinates'
 
+/**
+ * Refresh the list of selected samples in a labwork step.
+ * 
+ * Samples may change workflow step at any time, as other users in the lab could be changing samples in the workflow.
+ * 
+ * This function sends the list of selected samples to the backend, and the backend returns whichever samples
+ * are still at the expected step. If any samples have changed step (or have been removed from a study) then
+ * they will be removed from the list.
+ * 
+ * The samples are returned in sorted order.
+ * 
+ * @param token 
+ * @param stepID 
+ * @param sampleIDs 
+ * @returns 
+ */
 export async function refreshSelectedSamplesAtStep(token: string, stepID: FMSId, sampleIDs: FMSId[]) {
 	if (sampleIDs.length > 0) {
 		try {

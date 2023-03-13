@@ -117,10 +117,11 @@ export function refreshSamplesAtStep(stepID: FMSId) {
 			const pageNumber = step.pagedItems.page?.pageNumber ?? 1
 			dispatch(loadSamplesAtStep(stepID, pageNumber))
 
-			// TODO: Remove selected samples that are no longer at this step ??
 			if (step.selectedSamples.length > 0) {
 				const refreshedSelection = await refreshSelectedSamplesAtStep(token, stepID, step.selectedSamples)
-				dispatch(setSelectedSamples(stepID, refreshedSelection))
+				if (refreshedSelection.length !== step.selectedSamples.length) {
+					dispatch(setSelectedSamples(stepID, refreshedSelection))
+				}
 			}
 		}
 	}
