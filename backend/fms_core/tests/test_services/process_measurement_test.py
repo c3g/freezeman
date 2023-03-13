@@ -17,16 +17,14 @@ class ProcessMeasurementTestCase(TestCase):
 
         self.test_container = Container.objects.create(barcode="TESTBARCODECHILD",
                                                        name="TestChildName",
-                                                       kind="tube"
-                                                       )
+                                                       kind="tube")
 
         self.source_sample, errors, warnings = create_full_sample(name="TestSampleSource",
-                                                                       volume=20,
-                                                                       collection_site="TestCollectionSite",
-                                                                       container=self.test_container,
-                                                                       sample_kind=self.sk_DNA,
-                                                                       creation_date="2022-01-01"
-                                                                       )
+                                                                  volume=20,
+                                                                  collection_site="TestCollectionSite",
+                                                                  container=self.test_container,
+                                                                  sample_kind=self.sk_DNA,
+                                                                  creation_date="2022-01-01")
 
     def test_create_process_measurement(self):
         process_measurement, errors, warnings = create_process_measurement(process=self.process_extraction,

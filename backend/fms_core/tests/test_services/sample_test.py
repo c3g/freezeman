@@ -134,8 +134,8 @@ class SampleServicesTestCase(TestCase):
 
         # Create samples for testing
         self.SUBMITTED_SAMPLES_TO_POOL = [
-            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "study": None, "volume": Decimal(10), "experimental_group": None},
-            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "study": None, "volume": Decimal(30), "experimental_group": None},
+            {"alias": "Alias1", "individual": self.test_individuals[0], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[4], "project": None, "studies": [], "volume": Decimal(10), "experimental_group": None},
+            {"alias": "Alias2", "individual": self.test_individuals[1], "collection_site": "TestSite", "sample_kind": self.sample_kind_dna, "tissue_source": self.sample_kind_blood, "library": self.test_libraries[5], "project": None, "studies": [], "volume": Decimal(30), "experimental_group": None},
         ]
 
     def test_create_full_sample(self):
@@ -154,6 +154,32 @@ class SampleServicesTestCase(TestCase):
         self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
         self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
         self.assertEqual(new_sample.derived_samples.first().biosample.collection_site, self.TEST_SAMPLES[0]["collection_site"])
+        self.assertEqual(new_sample.creation_date, self.TEST_SAMPLES[0]["creation_date"])
+        self.assertEqual(new_sample.container, self.TEST_SAMPLES[0]["container"])
+        self.assertEqual(new_sample.coordinates, self.TEST_SAMPLES[0]["coordinates"])
+        self.assertEqual(new_sample.derived_samples.first().biosample.individual, self.TEST_SAMPLES[0]["individual"])
+        self.assertEqual(new_sample.derived_samples.first().sample_kind, self.TEST_SAMPLES[0]["sample_kind"])
+        self.assertEqual(new_sample.derived_samples.first().library, self.TEST_SAMPLES[0]["library"])
+        self.assertEqual(new_sample.derived_samples.first().project, self.TEST_SAMPLES[0]["project"])
+        self.assertFalse(errors)
+        self.assertFalse(warnings)
+
+    def test_create_full_sample_without_collection_site(self):
+        new_sample, errors, warnings = create_full_sample(name=self.TEST_SAMPLES[0]["name"],
+                                                          volume=self.TEST_SAMPLES[0]["volume"],
+                                                          concentration=self.TEST_SAMPLES[0]["concentration"],
+                                                          collection_site=None,
+                                                          creation_date=self.TEST_SAMPLES[0]["creation_date"],
+                                                          container=self.TEST_SAMPLES[0]["container"],
+                                                          coordinates=self.TEST_SAMPLES[0]["coordinates"],
+                                                          individual=self.TEST_SAMPLES[0]["individual"],
+                                                          sample_kind=self.TEST_SAMPLES[0]["sample_kind"],
+                                                          library=self.TEST_SAMPLES[0]["library"],
+                                                          project=self.TEST_SAMPLES[0]["project"])
+        self.assertEqual(new_sample.name, self.TEST_SAMPLES[0]["name"])
+        self.assertEqual(new_sample.volume, self.TEST_SAMPLES[0]["volume"])
+        self.assertEqual(new_sample.concentration, self.TEST_SAMPLES[0]["concentration"])
+        self.assertIsNone(new_sample.derived_samples.first().biosample.collection_site)
         self.assertEqual(new_sample.creation_date, self.TEST_SAMPLES[0]["creation_date"])
         self.assertEqual(new_sample.container, self.TEST_SAMPLES[0]["container"])
         self.assertEqual(new_sample.coordinates, self.TEST_SAMPLES[0]["coordinates"])

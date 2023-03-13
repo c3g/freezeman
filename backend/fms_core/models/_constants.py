@@ -20,3 +20,11 @@ class ReleaseStatus(models.IntegerChoices):
     AVAILABLE = 0
     RELEASED = 1
     BLOCKED = 2
+
+class SampleType(models.TextChoices):
+    ANY = "ANY", "Any"
+    UNEXTRACTED_SAMPLE = "UNEXTRACTED_SAMPLE", "Unextracted sample"
+    EXTRACTED_SAMPLE = "EXTRACTED_SAMPLE", "Extracted sample"
+    SAMPLE = "SAMPLE", "Sample"     # Not library implied
+    LIBRARY = "LIBRARY", "Library"
+    POOLED_LIBRARY = "POOL", "Pooled library"

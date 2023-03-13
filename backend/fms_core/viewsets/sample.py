@@ -184,9 +184,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         full_sample_data = request.data
 
         biosample_data = dict(
-            collection_site=full_sample_data['collection_site'],
-            **(dict(individual_id=full_sample_data['individual']) if full_sample_data[
-                                                                         'individual'] is not None else dict()),
+            **(dict(collection_site=full_sample_data['collection_site']) if full_sample_data['collection_site'] is not None else dict()),
+            **(dict(individual_id=full_sample_data['individual']) if full_sample_data['individual'] is not None else dict()),
             **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else dict()),
         )
 
@@ -255,7 +254,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         biosample_data = dict(
             alias=full_sample['alias'],
             individual_id=full_sample['individual'],
-            collection_site=full_sample['collection_site']
+            **(dict(collection_site=full_sample['collection_site']) if full_sample['collection_site'] is not None else dict()),
         )
 
         # Retrieve the sample to update
@@ -353,8 +352,11 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
     @action(detail=False, methods=["get"])
     def list_collection_sites(self, _request):
-        samples_data = Biosample.objects.filter().distinct("collection_site")
-        collection_sites = [s.collection_site for s in samples_data]
+        filtered_site = _request.GET.get("filter")
+        biosample_queryset = Biosample.objects.all()
+        if filtered_site is not None:
+            biosample_queryset = biosample_queryset.filter(collection_site__icontains=filtered_site)
+        collection_sites = biosample_queryset.distinct("collection_site").values_list("collection_site", flat=True)
         return Response(collection_sites)
 
     @action(detail=False, methods=["get"])

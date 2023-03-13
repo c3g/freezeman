@@ -9,8 +9,8 @@ from .derived_sample import inherit_derived_sample
 from .sample_next_step import execute_workflow_action, queue_sample_to_study_workflow
 from ..utils import RE_SEPARATOR, float_to_decimal, is_date_or_time_after_today, decimal_rounded_to_precision
 
-def create_full_sample(name, volume, collection_site, creation_date,
-                       container, sample_kind, library=None, project=None, individual=None,
+def create_full_sample(name, volume, creation_date, container, sample_kind,
+                       collection_site=None, library=None, project=None, individual=None,
                        coordinates=None, alias=None, concentration=None, tissue_source=None,
                        experimental_group=None, comment=None):
     sample = None
@@ -24,8 +24,6 @@ def create_full_sample(name, volume, collection_site, creation_date,
         errors.append(f"Sample creation requires a name.")
     if not volume:
         errors.append(f"Sample creation requires a volume.")
-    if not collection_site:
-        errors.append(f"Sample creation requires a collection site.")
     if not creation_date:
         errors.append(f"Sample creation requires a creation date.")
     if not sample_kind:
@@ -36,7 +34,7 @@ def create_full_sample(name, volume, collection_site, creation_date,
 
     if not errors:
         biosample_data = dict(
-            collection_site=collection_site,
+            **(dict(collection_site=collection_site) if collection_site is not None else dict()),
             **(dict(individual=individual) if individual is not None else dict()),
             **(dict(alias=alias) if alias else dict(alias=name)),
         )
@@ -488,7 +486,7 @@ def pool_submitted_samples(samples_info,
                        "experimental_group",
                        "library",
                        "project",
-                       "study",
+                       "studies",
                        "volume"}
 
         pool_name: the name given to the pool by the user.
@@ -551,7 +549,7 @@ def pool_submitted_samples(samples_info,
 
                 # Create Derived Samples and Biosamples for each sample
                 biosample_data = dict(
-                    collection_site=sample['collection_site'],
+                    **(dict(collection_site=sample['collection_site']) if sample['collection_site'] is not None else dict()),
                     **(dict(individual=sample['individual']) if sample['individual'] is not None else dict()),
                     **(dict(alias=sample['alias']) if sample['alias'] is not None else dict()),
                 )
@@ -583,9 +581,8 @@ def pool_submitted_samples(samples_info,
                 except Exception as e:
                     errors.append(e)
 
-            if sample['study'] is not None:
-                _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, sample['study'])
-                
+            for study_obj in sample['studies']:
+                _, errors_study, warnings_study = queue_sample_to_study_workflow(pool_sample_obj, study_obj)
                 errors.extend(errors_study)
                 warnings.extend(warnings_study)
 

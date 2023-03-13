@@ -23,11 +23,11 @@ def create_sample_container(kind, name, barcode, coordinates=None, location=None
         comment=''
     )
 
-def create_biosample(individual, **kwargs):
+def create_biosample(individual=None, collection_site="Site1", **kwargs):
     return {
         "alias": "53",
         "individual": individual,
-        "collection_site": "Site1",
+        "collection_site": collection_site,
         **kwargs
     }
 
