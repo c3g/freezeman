@@ -45,11 +45,3 @@ export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as 
 export const selectToken = (state: RootState) => state.auth.tokens.access
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
-
-
-
-
-
-
-
-

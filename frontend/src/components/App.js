@@ -81,6 +81,16 @@ const MENU_ITEMS = [
     text: "Dashboard",
   },
   {
+    url: "/lab-work",
+    icon: <ExperimentOutlined />,
+    text: "Lab Work"
+  },
+  {
+    url: "/projects",
+    icon: <ProjectOutlined />,
+    text: "Projects",
+  },
+  {
     url: "/containers",
     icon: <TableOutlined />,
     text: "Containers",
@@ -111,16 +121,6 @@ const MENU_ITEMS = [
     text: "Experiments",
   },
   {
-    url: "/projects",
-    icon: <ProjectOutlined />,
-    text: "Projects",
-  },
-  {
-    url: "/lab-work",
-    icon: <ExperimentOutlined />,
-    text: "Lab Work"
-  },
-  {
     url: "/indices",
     icon: <BarcodeOutlined />,
     text: "Indices",
@@ -143,7 +143,6 @@ const colorStyle = {
 
 const titleStyle = {
   ...colorStyle,
-  // width: "100%",
   fontWeight: 900,
   fontSize: "18px",
   lineHeight: "unset",

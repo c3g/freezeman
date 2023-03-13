@@ -16,6 +16,7 @@ import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../share
 import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { setPageSize } from '../../../modules/pagination'
+import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 
 const { Text } = Typography
 
@@ -158,7 +159,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const pagination: PaginationParameters = {
 		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,
 		totalCount: stepSamples.pagedItems.totalCount,
-		pageSize: stepSamples.pagedItems.page?.limit ?? 10,
+		pageSize: stepSamples.pagedItems.page?.limit ?? DEFAULT_PAGINATION_LIMIT,
 		onChangePageNumber: handlePageNumber,
 		onChangePageSize: handlePageSize
 	}

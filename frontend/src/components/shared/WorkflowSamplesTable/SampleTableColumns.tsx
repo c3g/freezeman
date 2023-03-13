@@ -42,7 +42,6 @@ export enum SampleColumnID {
 	QC_FLAG = 'QC_FLAG',
 	CREATION_DATE = 'CREATION_DATE',
 	DEPLETED = 'DEPLETED',
-	// IS_POOLED = 'IS_POOLED',
 }
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
