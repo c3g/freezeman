@@ -48,6 +48,10 @@ class SampleSubmissionTestCase(TestCase):
                      workflow=self.workflow,
                      start=1,
                      end=8)
+        create_study(project=self.project,
+                     workflow=self.workflow,
+                     start=2,
+                     end=8)
 
     def test_import(self):
         # Basic test for all templates - checks that template is valid
