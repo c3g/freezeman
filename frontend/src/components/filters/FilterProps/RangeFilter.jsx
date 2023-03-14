@@ -3,16 +3,16 @@ import {Button, Input, InputNumber, Space } from 'antd'
 import {SearchOutlined} from "@ant-design/icons"
 import { nullize } from '../../../utils/nullize'
 
-const RangeFilterComponent = ({minValue, defaultMin, maxValue, dataIndex, setFilter, confirm, visible}) => {
+const RangeFilterComponent = ({minValue, defaultMin, maxValue, filterKey, setFilter, confirm, visible, description}) => {
 
     const inputRef = useRef()
 
     const onSearch = (values) => {
-      setFilter(dataIndex, values)
+      setFilter(filterKey, values, description)
     }
   
     const onReset = () => {
-      setFilter(dataIndex, undefined)
+      setFilter(filterKey, undefined, description)
     };
   
     const onKeyDown = (ev, confirm) => {

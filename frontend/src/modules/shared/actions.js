@@ -17,6 +17,8 @@ import {refreshAuthToken} from "../auth/actions";
 import Datasets from "../datasets/actions";
 import DatasetFiles from "../datasetFiles/actions"
 import Workflows from "../workflows/actions"
+import Steps from '../steps/actions'
+import * as SampleNextStep from '../labworkSteps/actions'
 
 export const fetchInitialData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
@@ -42,6 +44,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         Groups.list,
         Taxons.list,
         ReferenceGenomes.list,
+        Steps.list,
         Workflows.list,
     ].map(a => dispatch(a())))
 
@@ -67,6 +70,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
         ProcessMeasurements.listTemplateActions,
         ExperimentRuns.listTemplateActions,
         Projects.listTemplateActions,
+        SampleNextStep.listTemplateActions,
         Samples.listPrefillTemplates,
         Libraries.listPrefillTemplates,
         Containers.listPrefillTemplates,

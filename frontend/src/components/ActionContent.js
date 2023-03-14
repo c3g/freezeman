@@ -25,6 +25,7 @@ const checkRequests = {
   experimentRun: api.experimentRuns.template.check,
   project: api.projects.template.check,
   index: api.indices.template.check,
+  sampleNextStep: api.sampleNextStep.template.check,
 }
 
 const submitRequests = {
@@ -35,6 +36,7 @@ const submitRequests = {
   experimentRun: api.experimentRuns.template.submit,
   project: api.projects.template.submit,
   index: api.indices.template.submit,
+  sampleNextStep: api.sampleNextStep.template.submit
 }
 
 const ActionContent = ({token, templateType, templateActions}) => {
@@ -99,6 +101,7 @@ const mapStateToProps = state => ({
     experimentRun: state.experimentRunTemplateActions,
     project: state.projectTemplateActions,
     index: state.indicesTemplateActions,
+    sampleNextStep: state.sampleNextStepTemplateActions,
   },
 });
 
@@ -107,7 +110,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 ActionContent.propTypes = {
-  templateType: PropTypes.oneOf(["container", "sample", "processMeasurement", "experimentRun", "project", "index", "library"]).isRequired,
+  templateType: PropTypes.oneOf(["container", "sample", "processMeasurement", "experimentRun", "project", "index", "library", "sampleNextStep"]).isRequired,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ActionContent);

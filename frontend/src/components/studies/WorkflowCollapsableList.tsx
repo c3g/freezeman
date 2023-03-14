@@ -1,5 +1,5 @@
 import { Collapse, List, Table } from 'antd'
-import React, { useState } from 'react'
+import React from 'react'
 import { Workflow } from '../../models/frontend_models'
 import { createStructuredWorkflows } from './StructuredWorkflows'
 import './WorkflowCollapsableList.scss'
@@ -83,7 +83,6 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 		const panels: React.ReactNode[] = []
 		for (const structureName in structuredWorkflows) {
 			const workflows = structuredWorkflows[structureName]
-			const workflowNames = workflows.map((wf) => wf.name)
 
 			const table = createWorkflowTable(workflows)
 			panels.push(

@@ -1,5 +1,7 @@
 from django.db.models import Q
 
+from fms_core.models.sample_next_step import SampleNextStep
+
 from .models import Container, DerivedBySample, Index, Individual, Sample, PropertyValue, Dataset, Biosample
 
 import django_filters
@@ -13,6 +15,7 @@ from .viewsets._constants import (
     _library_filterset_fields,
     _dataset_filterset_fields,
     _pooled_sample_filterset_fields,
+    _sample_next_step_filterset_fields,
 )
 
 from .viewsets._utils import _prefix_keys
@@ -183,3 +186,31 @@ class PooledSamplesFilter(GenericFilter):
     class Meta:
         model = DerivedBySample
         fields = _pooled_sample_filterset_fields
+
+class SampleNextStepFilter(GenericFilter):
+
+    qc_flag__in = django_filters.CharFilter(method="qc_flag_filter")
+    quantity_ng__lte = django_filters.NumberFilter(method="quantity_ng_lte_filter")
+    quantity_ng__gte = django_filters.NumberFilter(method="quantity_ng_gte_filter")
+
+    def qc_flag_filter(self, queryset, name, values):
+        condition = Q()
+        for value in values.split(','):
+            if value == "None":
+                bool_value = None
+            else:
+                bool_value = (value == 'true')
+            condition |= Q(qc_flag=bool_value)
+        return queryset.filter(condition)
+    
+    def quantity_ng_lte_filter(self, queryset, name, value):
+        condition = Q(quantity_ng__lte=value)
+        return queryset.filter(condition)
+    
+    def quantity_ng_gte_filter(self, queryset, name, value):
+        condition = Q(quantity_ng__gte=value)
+        return queryset.filter(condition)
+
+    class Meta:
+        model = SampleNextStep
+        fields = _sample_next_step_filterset_fields

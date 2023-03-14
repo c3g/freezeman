@@ -1,7 +1,7 @@
 import { Button, Form, Space } from 'antd'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Project, Study, Workflow, WorkflowStepRange } from '../../models/frontend_models'
+import { Workflow, WorkflowStepRange } from '../../models/frontend_models'
 import WorkflowCascadeMenu from './WorkflowCascadeMenu'
 import WorkflowCollapsableList from './WorkflowCollapsableList'
 import WorkflowStepSelector from './WorkflowStepSelector'
@@ -13,8 +13,6 @@ interface FormErrors {
 }
 
 interface CreateStudyFormProps {
-	project: Project
-	study?: Study
 	workflows: Workflow[]
 	isCreatingStudy: boolean
 	onSubmit: StudyEditCallback
@@ -28,7 +26,7 @@ interface FormData {
 
 type StudyEditCallback = (workflow?: Workflow, stepRange?: WorkflowStepRange) => void
 
-const StudyEditForm = ({ project, study, workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
+const StudyEditForm = ({ workflows, isCreatingStudy, onSubmit, formErrors }: CreateStudyFormProps) => {
 	const navigate = useNavigate()
 
 	const [form] = Form.useForm<FormData>()

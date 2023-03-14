@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { Container, FetchedObject, Individual, ItemsByID, Project, Sample } from '../../models/frontend_models'
-import { selectSamplesByID } from '../../selectors'
+import { FMSTrackedModel } from '../../models/fms_api_models'
+import { Container, Individual, ItemsByID, Project, Sample } from '../../models/frontend_models'
 import { createWithItem, withContainer, withIndividual, withProject, withSample } from '../../utils/withItem'
-import { Typography } from 'antd'
 
 /**
  * WithItemComponent
@@ -36,12 +34,10 @@ import { Typography } from 'antd'
 
 
 
-const { Title } = Typography
-
 type WithItemFunc = ReturnType<typeof createWithItem>
-type ItemMappingFunc<T extends FetchedObject> = (item: T) => any
+type ItemMappingFunc<T extends FMSTrackedModel> = (item: T) => any
 
-interface WithItemComponentProps<T extends FetchedObject> {
+interface WithItemComponentProps<T extends FMSTrackedModel> {
 	withItem: WithItemFunc
 	objectsByID: ItemsByID<T>
 	objectID: string
@@ -54,7 +50,7 @@ interface WithItemComponentProps<T extends FetchedObject> {
  * @param withItem
  * @returns 
  */
-const WithItemComponent = <T extends FetchedObject>({ withItem, objectsByID, objectID, fn, defaultValue }: WithItemComponentProps<T>) => {
+const WithItemComponent = <T extends FMSTrackedModel>({ withItem, objectsByID, objectID, fn, defaultValue }: WithItemComponentProps<T>) => {
 	const [value, setValue] = useState<any>()
 
 	useEffect(() => {
@@ -67,10 +63,19 @@ const WithItemComponent = <T extends FetchedObject>({ withItem, objectsByID, obj
 	return value ? <>{value}</> : defaultValue ? <>{defaultValue}</> : null
 }
 
-const createWithItemComponent = <T extends FetchedObject>(withItem: WithItemFunc) => {
-	return (objectsByID: ItemsByID<T>, objectID: string, fn: ItemMappingFunc<T> = (item: T) => item, defaultValue: any = undefined) => {
-		return <WithItemComponent withItem={withItem} objectsByID={objectsByID} objectID={objectID} fn={fn} defaultValue={defaultValue} />
-	}
+const createWithItemComponent = <T extends FMSTrackedModel>(withItem: WithItemFunc) => {
+
+	// The parent function is also considered a React component by the compiler/linter
+	// and needs to be a named function.
+	function WithItemComponentParent(
+		objectsByID: ItemsByID<T>, 
+		objectID: string, 
+		fn: ItemMappingFunc<T> = (item: T) => item, 
+		defaultValue: any = undefined) {
+			return <WithItemComponent withItem={withItem} objectsByID={objectsByID} objectID={objectID} fn={fn} defaultValue={defaultValue} />
+		}
+
+	return WithItemComponentParent
 }
 
 export const withSampleComponent = createWithItemComponent<Sample>(withSample)

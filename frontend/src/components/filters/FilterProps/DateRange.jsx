@@ -6,16 +6,16 @@ import { nullize } from '../../../utils/nullize'
 
 const { RangePicker } = DatePicker
 
-const DateRangeFilter = ({minValue, maxValue, dataIndex, setFilter, confirm, visible}) => {
+const DateRangeFilter = ({minValue, maxValue, filterKey, setFilter, confirm, visible, description}) => {
 
     const dateRangeRef = useRef()
 
     const onSearch = (values) => {
-      setFilter(dataIndex, values)
+      setFilter(filterKey, values, description)
     }
   
     const onReset = () => {
-      setFilter(dataIndex, undefined)
+      setFilter(filterKey, undefined, description)
     };
   
     const onKeyDown = (ev, confirm) => {

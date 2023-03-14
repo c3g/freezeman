@@ -1,48 +1,46 @@
-import React, {useEffect} from "react";
-import {connect} from "react-redux";
-import {Navigate, Route, Routes, useLocation, useNavigate} from "react-router-dom";
-import {Layout, Menu, Typography} from "antd";
 import {
-  AuditOutlined,
-  DashboardOutlined,
-  ExperimentOutlined,
-  LogoutOutlined,
-  TableOutlined,
+  AuditOutlined, BarcodeOutlined, DashboardOutlined,
+  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SyncOutlined, TableOutlined,
   TeamOutlined,
-  UserOutlined,
-  InfoCircleOutlined,
-  ProjectOutlined,
-  BarcodeOutlined,
-  HddOutlined,
-  FileZipOutlined,
+  UserOutlined
 } from "@ant-design/icons";
+import { Layout, Menu, Spin, Typography } from "antd";
+import React, { useEffect } from "react";
+import { connect } from "react-redux";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
-import JumpBar from "./JumpBar";
-import LoginPage from "./login/LoginPage";
+import About from "./About";
 import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
-import SamplesPage from "./samples/SamplesPage";
-import LibrariesPage from "./libraries/LibrariesPage";
-import IndividualsPage from "./individuals/IndividualsPage";
 import IndicesPage from "./indices/IndicesPage";
-import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
+import IndividualsPage from "./individuals/IndividualsPage";
+import JumpBar from "./JumpBar";
+import LibrariesPage from "./libraries/LibrariesPage";
+import LoginPage from "./login/LoginPage";
 import ProcessesPage from "./processes/ProcessesPage";
-import ProjectsPage from "./projects/ProjectsPage";
+import ProcessMeasurementsPage from "./processMeasurements/ProcessMeasurementsPage";
 import ProfilePage from "./profile/ProfilePage";
+import ProjectsPage from "./projects/ProjectsPage";
+import SamplesPage from "./samples/SamplesPage";
 import UsersPage from "./users/UsersPage";
-import About from "./About";
 
 import PrivateNavigate from "./PrivateNavigate";
 
+import { matchingMenuKeys, renderMenuItem } from "../utils/menus";
+import { hour } from "../utils/time";
 import useUserInputExpiration from "../utils/useUserInputExpiration";
-import {matchingMenuKeys, renderMenuItem} from "../utils/menus";
-import {hour} from "../utils/time";
 
-import {fetchInitialData, fetchSummariesData} from "../modules/shared/actions";
-import {logOut} from "../modules/auth/actions";
-import {get} from "../modules/users/actions";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { setAppInitialized } from "../modules/app/actions";
+import { logOut } from "../modules/auth/actions";
+import { refreshLabwork } from "../modules/labwork/actions";
+import { fetchInitialData, fetchSummariesData } from "../modules/shared/actions";
+import { get } from "../modules/users/actions";
+import { selectAppInitialzed, selectAuthTokenAccess } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
+import LabworkPage from "./labwork/LabworkPage";
+ 
 
 const { Title } = Typography;
 
@@ -75,6 +73,16 @@ const MENU_ITEMS = [
     text: "Dashboard",
   },
   {
+    url: "/lab-work",
+    icon: <ExperimentOutlined />,
+    text: "Lab Work"
+  },
+  {
+    url: "/projects",
+    icon: <ProjectOutlined />,
+    text: "Projects",
+  },
+  {
     url: "/containers",
     icon: <TableOutlined />,
     text: "Containers",
@@ -105,17 +113,6 @@ const MENU_ITEMS = [
     text: "Experiments",
   },
   {
-    url: "/projects",
-    icon: <ProjectOutlined />,
-    text: "Projects",
-  },
-  // DISABLED UNTIL THIS FEATURE IS READY TO SHIP
-  // {
-  //   url: "/lab-work",
-  //   icon: <ExperimentOutlined />,
-  //   text: "Lab Work"
-  // },
-  {
     url: "/indices",
     icon: <BarcodeOutlined />,
     text: "Indices",
@@ -138,7 +135,6 @@ const colorStyle = {
 
 const titleStyle = {
   ...colorStyle,
-  width: "100%",
   fontWeight: 900,
   fontSize: "18px",
   lineHeight: "unset",
@@ -151,12 +147,27 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {fetchInitialData, fetchSummariesData, logOut, get};
+export const actionCreators = {logOut, get};
 
-const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, get}) => {
+const App = ({userID, usersByID, logOut, get}) => {
+
+  const dispatch = useAppDispatch()
+  const isInitialized = useAppSelector(selectAppInitialzed)
+  const tokenAccess = useAppSelector(selectAuthTokenAccess)
+
   useEffect(() => {
-    const interval = setInterval(fetchSummariesData, 30000);
-    fetchInitialData();
+    async function loadInitialData() {
+      await dispatch(fetchInitialData())
+      dispatch(setAppInitialized())
+    }
+
+    loadInitialData()
+    const interval = setInterval(() => {
+      dispatch(fetchSummariesData())
+      if (tokenAccess) {
+        dispatch(refreshLabwork())
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -173,6 +184,8 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
   // Logout the user after 12 hours in all cases where the tab stays open
   useUserInputExpiration(logOut, 12 * hour);
 
+  const loadingIcon = <SyncOutlined style={{fontSize: '22px', color: 'white'}} spin/>
+
   return (
     <Layout style={{height: "100vh"}}>
       <Layout>
@@ -186,16 +199,25 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
             width={224}
             style={{overflow: 'auto'}}
           >
+            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
               <Title style={titleStyle} className="App__title">
                 <div>
                   <b>F</b><span>reeze</span><b>M</b><span>an</span>
                 </div>
               </Title>
-              {isLoggedIn &&
+              { // Display a spinner while the initial data is being fetched at startup 
+                !isInitialized &&
+                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                    <Spin size="small" indicator={loadingIcon}/>
+                  </div>
+              }
+            </div>
+            {isLoggedIn &&
                 <div className='App__jumpBar'>
                   <JumpBar />
                 </div>
               }
+              
               <Menu
                 theme="dark"
                 mode="inline"
@@ -263,12 +285,11 @@ const App = ({userID, usersByID, logOut, fetchInitialData, fetchSummariesData, g
                 <ProjectsPage />
               </PrivateNavigate>
             } />
-            {/* DISABLED UNTIL THIS FEATURE IS READY TO SHIP
-              <Route path="/lab-work/*" element={
+            <Route path="/lab-work/*" element={
               <PrivateNavigate>
                 <LabworkPage />
               </PrivateNavigate>
-            } /> */}
+            } />
             <Route path="/indices/*" element={
               <PrivateNavigate>
                 <IndicesPage />
