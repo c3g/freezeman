@@ -9,7 +9,7 @@ from fms_core.filters import SampleNextStepFilter
 
 from ._utils import TemplateActionsMixin, TemplatePrefillsLabWorkMixin, _list_keys
 from ._constants import _sample_next_step_filterset_fields
-from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step
+from fms_core.models import SampleNextStep, StepSpecification, Protocol, Step, Workflow
 from fms_core.serializers import SampleNextStepSerializer, StepSpecificationSerializer
 from fms_core.templates import (SAMPLE_EXTRACTION_TEMPLATE, SAMPLE_QC_TEMPLATE, NORMALIZATION_PLANNING_TEMPLATE, NORMALIZATION_TEMPLATE,
                                 LIBRARY_PREPARATION_TEMPLATE, LIBRARY_QC_TEMPLATE, SAMPLE_POOLING_TEMPLATE, LIBRARY_CAPTURE_TEMPLATE,
@@ -170,6 +170,12 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
             if protocol.id not in sample_next_step_by_protocol.keys():
 
                 protocolSteps = Step.objects.filter(protocol=protocol)
+
+                # Make sure that at least one workflow uses one of the steps for this protocol, since
+                # labwork doesn't need protocols that are not used by any workflow (Infinium...)
+                workflows = Workflow.objects.filter(steps__in=protocolSteps)
+                if (workflows.count() == 0):
+                    continue
                 
                 # Some protocols have no associated steps, so don't include those in labwork info.
                 if protocolSteps.count() > 0:

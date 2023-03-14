@@ -1,9 +1,10 @@
 import { SyncOutlined } from '@ant-design/icons'
 import { Button, Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { LabworkSummary } from '../../../models/labwork_summary'
 import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { selectWorkflowsByID } from '../../../selectors'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
 const { Title } = Typography
@@ -15,13 +16,13 @@ interface LabworkProtocolsProps {
 
 const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtocolsProps) => {
 	const dispatch = useAppDispatch()
+	const workflowsByID = useAppSelector(selectWorkflowsByID)
 
 	// If hideEmptyProtocols is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
 	let protocols = summary.protocols
 
-	// Sort protocols by name (the endpoint returns them in random order)
-	protocols = protocols.sort((a, b) => a.name.localeCompare(b.name))
+	const workflows = Object.values(workflowsByID)
 
 	if (hideEmptyProtocols) {
 		protocols = protocols.filter(protocol => protocol.count > 0)
