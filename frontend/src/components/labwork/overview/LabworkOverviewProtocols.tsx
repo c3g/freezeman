@@ -1,27 +1,29 @@
 import { SyncOutlined } from '@ant-design/icons'
 import { Button, Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
-import { useAppDispatch } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { LabworkSummary } from '../../../models/labwork_summary'
 import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { selectWorkflowsByID } from '../../../selectors'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
 const { Title } = Typography
 
 interface LabworkProtocolsProps {
 	summary: LabworkSummary,
-	hideEmptyProtocols: boolean
+	hideEmptyProtocols: boolean,
+	refreshing: boolean
 }
 
-const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtocolsProps) => {
+const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: LabworkProtocolsProps) => {
 	const dispatch = useAppDispatch()
+	const workflowsByID = useAppSelector(selectWorkflowsByID)
 
 	// If hideEmptyProtocols is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
 	let protocols = summary.protocols
 
-	// Sort protocols by name (the endpoint returns them in random order)
-	protocols = protocols.sort((a, b) => a.name.localeCompare(b.name))
+	const workflows = Object.values(workflowsByID)
 
 	if (hideEmptyProtocols) {
 		protocols = protocols.filter(protocol => protocol.count > 0)
@@ -33,7 +35,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 				<Title level={2}>Protocols</Title>
 				<Space>
 					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
-					<Button icon={<SyncOutlined/>} onClick={
+					<Button icon={<SyncOutlined spin={refreshing}/>} disabled={refreshing} onClick={
 						() => {
 							// Refreshes labwork and step samples states
 							dispatch(refreshLabwork())

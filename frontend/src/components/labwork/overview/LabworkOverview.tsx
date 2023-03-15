@@ -10,12 +10,17 @@ interface LabworkOverviewProps {
 }
 
 const LabworkOverview = ({state} : LabworkOverviewProps) => {	
+
+	// Only display loading indicator on initial load, not during every refresh.
+	const loading = state.isFetching && !state.summary
+	const refreshing = state.isFetching
 	return (
 		<>
-			<AppPageHeader title="Lab Work" />				
-			<PageContent loading={state.isFetching} style={{maxWidth: '50rem'} as any}>
+			<AppPageHeader title="Lab Work" />
+
+			<PageContent loading={loading} style={{maxWidth: '50rem'} as any}>
 				{state.summary && 
-					<LabworkOverviewProtocols summary={state.summary} hideEmptyProtocols={state.hideEmptyProtocols}/>
+					<LabworkOverviewProtocols summary={state.summary} hideEmptyProtocols={state.hideEmptyProtocols} refreshing={refreshing}/>
 				}
 			</PageContent>
 		</>

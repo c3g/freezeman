@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { flushLabworkSummary, getLabworkSummary } from '../../modules/labwork/actions'
-import { selectLabworkSummaryState } from '../../selectors'
+import { selectAppInitialzed, selectLabworkSummaryState } from '../../selectors'
 import ActionContent from '../ActionContent'
 import PageContainer from '../PageContainer'
 import LabworkOverviewRoute from './overview/LabworkOverviewRoute'
@@ -14,18 +14,21 @@ const LabworkPage = () => {
 	// is loaded no matter which route is selected.
 	const [loading, setLoading] = useState(false)
 	const labworkSummaryState = useAppSelector(selectLabworkSummaryState)
+	const appInitialized = useAppSelector(selectAppInitialzed)
 	const dispatch = useAppDispatch()
 
 	useEffect(() => {
 		if (labworkSummaryState.summary) {
 			setLoading(false)
 		} else {
-			if (!loading && !labworkSummaryState.isFetching) {
+			// The summary can't be loaded until the workflow definitions have been loaded during
+			// app initialization.
+			if (!loading && appInitialized && !labworkSummaryState.isFetching) {
 				setLoading(true)
 				dispatch(getLabworkSummary())
 			}
 		}
-	}, [labworkSummaryState])
+	}, [appInitialized, labworkSummaryState])
 
 	useEffect(() => {
 		// Flush the labwork state when the user navigates away from the

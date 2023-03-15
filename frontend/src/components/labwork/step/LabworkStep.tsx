@@ -61,7 +61,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		dispatch(setSortBy(step.id, sortBy))
 	}
 
-	const canRefresh = true
+	const isRefreshing = stepSamples.pagedItems.isFetching
 	function handleRefresh() {
 		dispatch(refreshSamplesAtStep(step.id))
 	}
@@ -143,7 +143,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		<Space>
 			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
-			<Button icon={<SyncOutlined/>}title='Refresh the list of samples' disabled={!canRefresh} onClick={() => handleRefresh()}>Refresh</Button>
+			<Button icon={<SyncOutlined spin={isRefreshing}/>}title='Refresh the list of samples' disabled={isRefreshing} onClick={() => handleRefresh()}>Refresh</Button>
 		</Space>
 	)
 

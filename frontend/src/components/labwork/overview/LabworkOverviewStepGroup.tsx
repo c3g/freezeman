@@ -11,7 +11,7 @@ interface LabworkOverviewStepGroupProps {
 }
 
 const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStepGroupProps) => {
-	const renderNamedGroup = group.defaultGroup === false && group.steps.length > 1 && !!group.name
+	const renderNamedGroup = group.defaultGroup === false && !!group.name
 	let listData = group.steps
 	if (hideEmptySteps) {
 		listData = listData.filter(step => step.count > 0)
