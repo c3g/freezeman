@@ -208,10 +208,8 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
                 creation_date=full_sample_data['creation_date'],
                 container_id=full_sample_data['container'],
                 **(dict(comment=full_sample_data['comment']) if full_sample_data['comment'] is not None else dict()),
-                **(dict(coordinate=full_sample_data['coordinates']) if full_sample_data[
-                                                                            'coordinates'] is not None else dict()),
-                **(dict(concentration=full_sample_data['concentration']) if full_sample_data[
-                                                                                'concentration'] is not None else dict()),
+                **(dict(coordinate=full_sample_data['coordinates']) if full_sample_data['coordinates'] is not None else dict()),
+                **(dict(concentration=full_sample_data['concentration']) if full_sample_data['concentration'] is not None else dict()),
             )
 
             sample = Sample.objects.create(**sample_data)

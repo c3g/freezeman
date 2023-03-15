@@ -309,8 +309,13 @@ export interface FMSWorkflow extends FMSTrackedModel {
 export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
     id: FMSId                           // Step Order ID
     order: number                       // Step order value
-    step_id : FMSId                     // Step ID
+    step_id: FMSId                     // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
 
+export interface FMSCoordinate extends FMSTrackedModel {
+  name: string                       // Coordinates
+  column: number                     // Column ordinal starting at 0
+  row: number                        // Row ordinal starting at 0
+}

@@ -24,7 +24,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const getTableColumns = (samplesByID, containersByID, coordinatesByID,containerKinds) => [
+const getTableColumns = (samplesByID, containersByID, coordinatesByID, containerKinds) => [
     {
       title: "ID",
       dataIndex: "id",

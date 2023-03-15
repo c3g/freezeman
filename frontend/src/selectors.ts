@@ -1,4 +1,4 @@
-import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow, Coordinate } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID } from "./modules/studySamples/reducers"
@@ -47,3 +47,4 @@ export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as 
 export const selectToken = (state: RootState) => state.auth.tokens.access
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
+export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>

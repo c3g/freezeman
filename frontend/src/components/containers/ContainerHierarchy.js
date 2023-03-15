@@ -197,7 +197,7 @@ const ContainerHierarchy = ({container, containersByID, samplesByID, coordinates
         });
       }
       else {
-        otherChildren.sort((a, b) => compareCoordinates(context.coordinatesByID[context.containersByID[a]], context.coordinatesByID[context.containersByID[b]]))
+        otherChildren.sort((a, b) => compareCoordinates(context.coordinatesByID[context.containersByID[a].coordinate], context.coordinatesByID[context.containersByID[b].coordinate]))
         children.push(...otherChildren.map(containerId =>
           buildContainerTreeFromPath(context, [containerId])
         ).flat());

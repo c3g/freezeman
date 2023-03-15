@@ -30,6 +30,7 @@ import {
 	FMSTrackedModel,
 	FMSUser,
 	FMSWorkflow,
+  FMSCoordinate,
 } from './fms_api_models'
 
 // Reducers tack on these two properties to objects that are fetched from
@@ -72,6 +73,7 @@ export interface Study extends Readonly<FMSStudy>, FetchedObject {}
 export interface Taxon extends Readonly<FMSTaxon>, FetchedObject {}
 export interface User extends Readonly<FMSUser>, FetchedObject {}
 export interface Workflow extends Readonly<FMSWorkflow>, FetchedObject {}
+export interface Coordinate extends Readonly<FMSCoordinate>, FetchedObject {}
 
 export interface WorkflowStepRange {
 	start: number

@@ -15,9 +15,9 @@ FiltersetFields = Dict[str, List[str]]
 
 _coordinate_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
-    "name": FREE_TEXT_FILTERS,
-    "row": SCALAR_FILTERS,
+    "name": CATEGORICAL_FILTERS_LOOSE,
     "column": SCALAR_FILTERS,
+    "row": SCALAR_FILTERS,
 }
 
 _container_filterset_fields: FiltersetFields = {
@@ -286,7 +286,7 @@ _sample_next_step_filterset_fields: FiltersetFields = {
     "sample__derived_samples__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__name": CATEGORICAL_FILTERS_LOOSE,
     "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
-    "sample__coordinates": CATEGORICAL_FILTERS_LOOSE,
+    **_prefix_keys("sample__coordinate__", _coordinate_filterset_fields),
     "sample__volume": SCALAR_FILTERS,
     "sample__concentration": SCALAR_FILTERS,
     "sample__creation_date": DATE_FILTERS,
@@ -322,9 +322,3 @@ _stephistory_filterset_fields: FiltersetFields = {
     **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }
 
-_coordinate_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "name": CATEGORICAL_FILTERS,
-    "column": SCALAR_FILTERS,
-    "row": SCALAR_FILTERS,
-}
