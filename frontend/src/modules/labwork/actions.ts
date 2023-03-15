@@ -1,4 +1,4 @@
-import { selectLabworkSummaryState } from '../../selectors'
+import { selectLabworkSummaryState, selectProtocolsByID, selectWorkflowsByID } from '../../selectors'
 import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
 import { refreshSamplesAtStep } from '../labworkSteps/actions'
@@ -17,9 +17,11 @@ export const getLabworkSummary = () => async (dispatch, getState) => {
 
 	dispatch({type: GET_LABWORK_SUMMARY.REQUEST})
 
+	const workflows = Object.values(selectWorkflowsByID(getState()))
+
 	try {
 		const response = await dispatch(api.sampleNextStep.labworkSummary())
-		const summary = processFMSLabworkSummary(response.data.results)
+		const summary = processFMSLabworkSummary(response.data.results, workflows)
 		dispatch({
 			type: GET_LABWORK_SUMMARY.RECEIVE,
 			data: summary
