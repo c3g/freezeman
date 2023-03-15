@@ -61,6 +61,12 @@ export interface FMSContainer extends FMSTrackedModel {
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
 }
 
+export interface FMSCoordinate extends FMSTrackedModel {
+  name: string                       // Coordinates
+  column: number                     // Column ordinal starting at 0
+  row: number                        // Row ordinal starting at 0
+}
+
 export interface FMSImportedFile {
     filename: string,                   // Name of file 
     location: string,                   // Path to file (including file name)
@@ -312,10 +318,4 @@ export interface WorkflowStep {         // Not a tracked model - just a simple s
     step_id: FMSId                     // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
-}
-
-export interface FMSCoordinate extends FMSTrackedModel {
-  name: string                       // Coordinates
-  column: number                     // Column ordinal starting at 0
-  row: number                        // Row ordinal starting at 0
 }
