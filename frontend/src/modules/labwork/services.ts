@@ -36,8 +36,8 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 		if (protocol.name === 'Library Preparation') {
 
 			// Create a group for each platform
-			const groups = new Map<string, LabworkStepGroup>()
-			groups.set('UNKNOWN', {
+			const groupsMap = new Map<string, LabworkStepGroup>()
+			groupsMap.set('UNKNOWN', {
 				defaultGroup: false,
 				name: 'UNKNOWN',
 				steps: []
@@ -48,16 +48,16 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 				let group
 				const platform = getSpecifiedValue(step, 'Library Platform')
 				if (platform) {
-					if (!groups.has(platform)) {
-						groups.set(platform, {
+					if (!groupsMap.has(platform)) {
+						groupsMap.set(platform, {
 							defaultGroup: false,
 							name: platform,
 							steps: []
 						})
 					}
-					group = groups.get(platform)
+					group = groupsMap.get(platform)
 				} else {
-					group = groups.get('UNKNOWN')
+					group = groupsMap.get('UNKNOWN')
 				}
 				if (group) {
 					group.steps.push(step)
@@ -65,7 +65,7 @@ export function processFMSLabworkSummary(fmsSummary: FMSLabworkSummary): Labwork
 			}
 
 			// Sort the groups by group name (since the order of items in the map is random)
-			const sortedGroups =  [...groups.values()]
+			const sortedGroups =  [...groupsMap.values()]
 				.sort((groupA, groupB) => {
 					if (!groupA.name || !groupB.name) {
 						return 0
