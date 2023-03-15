@@ -173,8 +173,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
 
                 # Make sure that at least one workflow uses one of the steps for this protocol, since
                 # labwork doesn't need protocols that are not used by any workflow (Infinium...)
-                workflows = Workflow.objects.filter(steps__in=protocolSteps)
-                if (workflows.count() == 0):
+                if not Workflow.objects.filter(steps__in=protocolSteps).exists():
                     continue
                 
                 # Some protocols have no associated steps, so don't include those in labwork info.
