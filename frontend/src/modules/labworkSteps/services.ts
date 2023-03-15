@@ -4,7 +4,7 @@ import api, { withToken } from "../../utils/api"
 // Default sorting keys for a prefilled template. By default, the lab wants samples grouped
 // by plate and sorted by coordinate.
  
-export const PREFILLED_TEMPLATE_DEFAULT_ORDERING = 'sample__container__barcode,sample__coordinates'
+export const PREFILLED_TEMPLATE_DEFAULT_ORDERING = 'sample__container__barcode,sample__coordinate__column'
 
 /**
  * Refresh the list of selected samples in a labwork step.

@@ -204,7 +204,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Form.Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
             <Input />
           </Form.Item>
-          <Form.Item label="Alias" {...props("alias")}>
+          <Form.Item label="Alias" {...props("alias")} extra="Defaults to the name if left empty.">
             <Input />
           </Form.Item>
           <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
@@ -261,7 +261,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Form.Item
             label="Conc. (ng/µL)"
             {...props("concentration")}
-            extra="Concentration in ng/µL. Required for nucleic acid samples."
+            extra="Concentration in ng/µL."
           >
             <InputNumber step={0.001} />
           </Form.Item>

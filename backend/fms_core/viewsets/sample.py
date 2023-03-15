@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -186,7 +186,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         biosample_data = dict(
             **(dict(collection_site=full_sample_data['collection_site']) if full_sample_data['collection_site'] is not None else dict()),
             **(dict(individual_id=full_sample_data['individual']) if full_sample_data['individual'] is not None else dict()),
-            **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else dict()),
+            **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else full_sample_data['name']),
         )
 
         try:
@@ -202,13 +202,15 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
+            coordinate = Coordinate.objects.get(name=full_sample_data['coordinates'])
+
             sample_data = dict(
                 name=full_sample_data['name'],
                 volume=full_sample_data['volume'],
                 creation_date=full_sample_data['creation_date'],
                 container_id=full_sample_data['container'],
                 **(dict(comment=full_sample_data['comment']) if full_sample_data['comment'] is not None else dict()),
-                **(dict(coordinate=full_sample_data['coordinates']) if full_sample_data['coordinates'] is not None else dict()),
+                **(dict(coordinate=coordinate) if full_sample_data['coordinates'] is not None else dict()),
                 **(dict(concentration=full_sample_data['concentration']) if full_sample_data['concentration'] is not None else dict()),
             )
 
