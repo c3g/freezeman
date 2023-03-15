@@ -11,10 +11,11 @@ const { Title } = Typography
 
 interface LabworkProtocolsProps {
 	summary: LabworkSummary,
-	hideEmptyProtocols: boolean
+	hideEmptyProtocols: boolean,
+	refreshing: boolean
 }
 
-const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtocolsProps) => {
+const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: LabworkProtocolsProps) => {
 	const dispatch = useAppDispatch()
 	const workflowsByID = useAppSelector(selectWorkflowsByID)
 
@@ -34,7 +35,7 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols }: LabworkProtoc
 				<Title level={2}>Protocols</Title>
 				<Space>
 					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
-					<Button icon={<SyncOutlined/>} onClick={
+					<Button icon={<SyncOutlined spin={refreshing}/>} disabled={refreshing} onClick={
 						() => {
 							// Refreshes labwork and step samples states
 							dispatch(refreshLabwork())
