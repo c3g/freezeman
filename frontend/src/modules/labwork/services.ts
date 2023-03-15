@@ -229,15 +229,16 @@ function getSortedProtocolsFromWorkflows(workflows: Workflow[]): FMSId[] {
 		// if A is normally before or after B in the sort order.
 		if (entriesA && entriesB) {
 			for(const entryA of entriesA) {
-				// Find and occurence of B in the same workflow as A
-				const entryB = entriesB.find(entry => entry.workflowID === entryA.workflowID)
-				if (entryB) {
+				// The same protocol can appear multiple times, so we have to check each instance
+				// of B in the workflow
+				const allBEntriesInWorkflow = entriesB.filter(entry => entry.workflowID === entryA.workflowID)
+				allBEntriesInWorkflow.forEach(entryB => {
 					if (entryA.stepOrder < entryB.stepOrder) {
 						numBefore++
 					} else {
 						numAfter++
 					}
-				}
+				})
 			}
 
 			// If numBefore and numberAfter are both zero then there was no case where both A and B
@@ -247,7 +248,7 @@ function getSortedProtocolsFromWorkflows(workflows: Workflow[]): FMSId[] {
 			// The idea is to figure out if the protocol appears near the beginning of workflows or near
 			// the end. Without this, rarely used protocols tend to end up at the top of the list 
 			// (eg DBNSEQ Preparation).
-			if (numBefore === 0 && numAfter === 0) {
+			if (numBefore === 0 && numAfter === 0 && entriesA.length > 0 && entriesB.length > 0) {
 				const distanceA = entriesA.reduce((acc, entry) => {
 					return acc + (entry.stepOrder / entry.numSteps)
 				}, 0) / entriesA.length
