@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from fms_core.containers import PARENT_CONTAINER_KINDS, SAMPLE_CONTAINER_KINDS
 from fms_core.models import Container, Sample
 from fms_core.filters import ContainerFilter
+from ._constants import _container_filterset_fields
 
 from fms_core.template_importer.importers import ContainerCreationImporter, ContainerRenameImporter, ContainerMoveImporter
 
@@ -21,14 +22,18 @@ from fms_core.templates import (
     CONTAINER_RENAME_TEMPLATE,
 )
 
-from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail
+from ._utils import TemplateActionsMixin, TemplatePrefillsMixin, versions_detail, _list_keys
 
 class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefillsMixin):
     queryset = Container.objects.select_related("location").prefetch_related("children",
                           Prefetch('samples', queryset=Sample.objects.order_by('coordinate__column'))).all().distinct()
 
     serializer_class = ContainerSerializer
-    filter_class = ContainerFilter
+    filterset_class = ContainerFilter
+
+    ordering_fields = (
+        *_list_keys(_container_filterset_fields),
+    )
 
     template_action_list = [
         {
@@ -136,20 +141,23 @@ class ContainerViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePref
         is_sample_holding = _request.GET.get("sample_holding") == 'true'
         is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        if is_exact_match:
-            query = Q(barcode=search_input)
-            query.add(Q(name=search_input), Q.OR)
-            query.add(Q(id=search_input), Q.OR)
+        if search_input:
+            if is_exact_match:
+                query = Q(barcode=search_input)
+                query.add(Q(name=search_input), Q.OR)
+                query.add(Q(id=search_input), Q.OR)
+            else:
+                query = Q(barcode__icontains=search_input)
+                query.add(Q(name__icontains=search_input), Q.OR)
+                query.add(Q(id__icontains=search_input), Q.OR)
+            if is_parent:
+                query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
+            if is_sample_holding:
+                query.add(Q(kind__in=SAMPLE_CONTAINER_KINDS), Q.AND)
+            containers_data = Container.objects.filter(query)
         else:
-            query = Q(barcode__icontains=search_input)
-            query.add(Q(name__icontains=search_input), Q.OR)
-            query.add(Q(id__icontains=search_input), Q.OR)
-        if is_parent:
-            query.add(Q(kind__in=PARENT_CONTAINER_KINDS), Q.AND)
-        if is_sample_holding:
-            query.add(Q(kind__in=SAMPLE_CONTAINER_KINDS), Q.AND)
+            containers_data = Container.objects.all()
 
-        containers_data = Container.objects.filter(query)
         page = self.paginate_queryset(containers_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

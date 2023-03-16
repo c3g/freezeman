@@ -22,7 +22,7 @@ from collections import defaultdict
 class IndexViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     queryset = Index.objects.all().distinct()
     serializer_class = IndexSerializer
-    filter_class = IndexFilter
+    filterset_class = IndexFilter
 
     ordering_fields = (
         *_list_keys(_index_filterset_fields),

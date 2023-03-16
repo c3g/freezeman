@@ -55,6 +55,18 @@ export function renderSampleKind(sk) {
   }
 }
 
+export function renderCoordinate(c) {
+  return {
+    value: c.id,
+    label: (
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {c.name}
+        <Text type="secondary">Row : {c.row + 1}, Column : {c.column + 1}</Text>
+      </div>
+    )
+  }
+}
+
 export function renderContainer(c) {
   return {
     value: c.id,

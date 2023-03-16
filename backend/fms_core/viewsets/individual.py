@@ -20,7 +20,7 @@ class IndividualViewSet(viewsets.ModelViewSet):
     ordering_fields = (
         *_list_keys(_individual_filterset_fields),
     )
-    filter_class = IndividualFilter
+    filterset_class = IndividualFilter
 
     # noinspection PyUnusedLocal
     @action(detail=True, methods=["get"])
@@ -48,14 +48,16 @@ class IndividualViewSet(viewsets.ModelViewSet):
         search_input = _request.GET.get("q")
         is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        if is_exact_match:
-            query = Q(id=search_input)
-            query.add(Q(name=search_input), Q.OR)
+        if search_input:
+            if is_exact_match:
+                query = Q(id=search_input)
+                query.add(Q(name=search_input), Q.OR)
+            else:
+                query = Q(id__icontains=search_input)
+                query.add(Q(name__startswith=search_input), Q.OR)
+            individuals_data = Individual.objects.filter(query)
         else:
-            query = Q(id__icontains=search_input)
-            query.add(Q(name__startswith=search_input), Q.OR)
-
-        individuals_data = Individual.objects.filter(query)
+            individuals_data = Individual.objects.all()
         page = self.paginate_queryset(individuals_data)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

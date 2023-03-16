@@ -31,7 +31,6 @@ CoordinateSpec = Union[Tuple[()], Tuple[CoordinateAxis], Tuple[CoordinateAxis, C
 class CoordinateError(Exception):
     pass
 
-
 def alphas(end: int) -> CoordinateAxis:
     """
     Generates a tuple of alphabet-derived values for a coordiante axis.

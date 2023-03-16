@@ -39,6 +39,7 @@ const api = {
   coordinates: {
     get: coordinateId => get(`/coordinates/${coordinateId}/`),
     list: (options, abort) => get("/coordinates/", options, { abort }),
+    search: (q, options) => get("/coordinates/search/", { q, ...options }),
   },
 
   datasets: {

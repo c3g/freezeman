@@ -37,7 +37,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         **_dataset_filterset_fields,
     }
 
-    filter_class = DatasetFilter
+    filterset_class = DatasetFilter
 
     @action(detail=False, methods=["post"])
     def add_run_processing(self, request, *args, **kwargs):

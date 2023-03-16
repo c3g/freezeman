@@ -74,4 +74,4 @@ class PooledSamplesViewSet(viewsets.ModelViewSet):
         serializer = PooledSampleExportSerializer(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
 
-    filter_class = PooledSamplesFilter
+    filterset_class = PooledSamplesFilter

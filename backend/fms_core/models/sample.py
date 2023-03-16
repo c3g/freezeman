@@ -238,7 +238,7 @@ class Sample(TrackedModel):
                         try:
                             parent_spec.validate_and_normalize_coordinates(self.coordinate.name)
                         except CoordinateError as e:
-                            add_error("container", str(e))
+                            add_error("coordinate", str(e))
                     else:
                         add_error("container", f"Parent container of kind {self.container.kind} requires coordinates.")
                 elif self.coordinate is not None:
@@ -255,7 +255,7 @@ class Sample(TrackedModel):
                 try:
                     check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
                 except CoordinateError as e:
-                    add_error("container", str(e))
+                    add_error("coordinate", str(e))
                 except Sample.DoesNotExist:
                     # Fine, the coordinates are free to use.
                     pass
