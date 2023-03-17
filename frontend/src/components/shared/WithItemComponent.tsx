@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { FMSTrackedModel } from '../../models/fms_api_models'
-import { Coordinate, Container, Individual, ItemsByID, Project, Sample } from '../../models/frontend_models'
-import { createWithItem, withCoordinate, withContainer, withIndividual, withProject, withSample } from '../../utils/withItem'
+import { Container, Individual, ItemsByID, Project, Sample } from '../../models/frontend_models'
+import { createWithItem, withContainer, withIndividual, withProject, withSample } from '../../utils/withItem'
 
 /**
  * WithItemComponent
@@ -78,7 +78,6 @@ const createWithItemComponent = <T extends FMSTrackedModel>(withItem: WithItemFu
 	return WithItemComponentParent
 }
 
-export const withCoordinateComponent = createWithItemComponent<Coordinate>(withCoordinate)
 export const withSampleComponent = createWithItemComponent<Sample>(withSample)
 export const withContainerComponent = createWithItemComponent<Container>(withContainer)
 export const withProjectComponent = createWithItemComponent<Project>(withProject)
