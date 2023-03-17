@@ -156,6 +156,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, { exact_match: true })
     onSearchContainer(newData.container, { exact_match: true })
+    onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
@@ -199,6 +200,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
   const isTissueEnabled = formData?.sample_kind && sampleKind(formData?.sample_kind).is_extracted
+  const isCoordRequired = formData?.container
 
   return (
     <>
@@ -261,6 +263,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Select
               showSearch
               allowClear
+              disabled={!isCoordRequired}
               filterOption={false}
               options={coordinateOptions}
               onSearch={onSearchCoordinate}
@@ -358,8 +361,10 @@ function deserialize(values) {
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
+
   if (newValues.creation_date)
     newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+
   return newValues
 }
 
@@ -385,7 +390,7 @@ function serialize(values) {
     newValues.container = Number(newValues.container)
 
   if (!newValues.coordinate)
-    newValues.coordinate = Number(newValues.coordinate)
+    newValues.coordinate = null
 
   if (!newValues.comment)
     newValues.comment = ''

@@ -68,7 +68,7 @@ class Container(TrackedModel):
         self.normalize()
 
         if self.coordinate is not None and self.location is None:
-            add_error("coordinates", "Cannot specify coordinates in non-specified container")
+            add_error("coordinate", "Cannot specify coordinates in non-specified container")
 
         if self.location is not None:
             if self.location.barcode == self.barcode:
@@ -80,27 +80,27 @@ class Container(TrackedModel):
                     add_error("location",
                               f"Parent container kind {parent_spec.container_kind_id} cannot hold container kind {self.kind}")
 
-                if not errors.get("coordinates") and not errors.get("location"):
+                if not errors.get("coordinate") and not errors.get("location"):
                     if parent_spec.requires_coordinates:
                         if self.coordinate is not None:
                             # Validate coordinates against parent container spec (coordinate exists but might not belong to that spec).
                             try:
                                 parent_spec.validate_and_normalize_coordinates(self.coordinate.name)
                             except CoordinateError as e:
-                                add_error("coordinates", str(e))
+                                add_error("coordinate", str(e))
                         else:
-                            add_error("coordinates", f"Parent container of kind {self.location.kind} requires coordinates.")
+                            add_error("coordinate", f"Parent container of kind {self.location.kind} requires coordinates.")
                     elif self.coordinate is not None:
-                        add_error("coordinates", f"Parent container of kind {self.location.kind} does not require coordinates.")
+                        add_error("coordinate", f"Parent container of kind {self.location.kind} does not require coordinates.")
 
                         
 
-                if not errors.get("coordinates") and not errors.get("location") and not parent_spec.coordinate_overlap_allowed:
+                if not errors.get("coordinate") and not errors.get("location") and not parent_spec.coordinate_overlap_allowed:
                     # Check for coordinate overlap with existing child containers of the parent
                     try:
                         check_coordinate_overlap(self.location.children, self, self.location)
                     except CoordinateError as e:
-                        add_error("coordinates", str(e))
+                        add_error("coordinate", str(e))
                     except Container.DoesNotExist:
                         # Fine, the coordinates are free to use.
                         pass

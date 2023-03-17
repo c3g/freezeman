@@ -42,7 +42,7 @@ class SampleTest(TestCase):
                     # Should not be able to create a sample in the same place
                     Sample.objects.create(**create_sample(container=plate_container, coordinates="A11", name="test_sample_02"))
                 except ValidationError as e:
-                    self.assertIn("container", e.message_dict)
+                    self.assertIn("coordinate", e.message_dict)
                     raise e
 
         self.assertEqual(Sample.objects.count(), 2)

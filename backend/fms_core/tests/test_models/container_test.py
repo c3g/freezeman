@@ -52,7 +52,7 @@ class ContainerTest(TestCase):
                 Container.objects.create(**create_container(location=rack, barcode='R123458', coordinates="A01",
                                                             kind="tube", name="tube02"))
             except ValidationError as e:
-                self.assertIn("coordinates", e.message_dict)
+                self.assertIn("coordinate", e.message_dict)
                 raise e
 
     def test_non_existent_parent(self):
@@ -68,7 +68,7 @@ class ContainerTest(TestCase):
                 c = create_container(barcode="Barcode001", coordinates="A01")
                 Container.objects.create(**c)
             except ValidationError as e:
-                self.assertIn("coordinates", e.message_dict)
+                self.assertIn("coordinate", e.message_dict)
                 raise e
 
     def test_invalid_parent_coordinates(self):
