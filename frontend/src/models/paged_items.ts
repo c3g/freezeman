@@ -1,7 +1,13 @@
+import { RootState } from "../store"
 import { FMSId, FMSTrackedModel } from "./fms_api_models"
 import { ItemsByID } from "./frontend_models"
 
 // Models for paged items, used in redux to hold lists of objects
+
+export interface FilterOption {
+	label: string
+	value: string
+}
 
 export interface FilterDescription {
 	type: string
@@ -11,7 +17,8 @@ export interface FilterDescription {
 	recursive?: boolean
 	batch?: boolean
 	placeholder?: string
-	options?: { label: string; value: string }[]
+	options?: FilterOption[]
+	dynamicOptions?: () => FilterOption[]	// A function that generates options when the filter is initialized.
 	width?: number
 	detached?: boolean
 	defaultMin?: number

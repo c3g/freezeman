@@ -1,6 +1,6 @@
 import { Pagination, Table, TableProps } from 'antd'
-import { RowSelectMethod, TableRowSelection } from 'antd/lib/table/interface'
-import React, { useEffect, useState } from 'react'
+import { TableRowSelection } from 'antd/lib/table/interface'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
@@ -34,11 +34,8 @@ interface WorkflowSamplesTableProps {
 	}
 }
 
-// TODO port StudySamples component to use this table.
 function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection} : WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
-	const [tableColumns, setTableColumns] = useState<IdentifiedTableColumnType<SampleAndLibrary>[]>()
-
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
 
@@ -59,11 +56,8 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 		setSamples(availableSamples)
 	}, [samplesByID, librariesByID, sampleIDs])
 
-	useEffect(() => {
-		// Only construct the table columns when necessary.
-		// Ideally the columns would only need to be built once, but part of the process
-		// includes setting filter values in the filter components, so this code has
-		// be run whenever the filters change.
+
+	const tableColumns = useMemo(() => {
 		const mergedColumns = addFiltersToColumns(
 			columns, 
 			filterDefinitions ?? {},
@@ -71,8 +65,8 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 			filters ?? {}, 
 			setFilter, 
 			setFilterOptions)
-		setTableColumns(mergedColumns)
-	}, [filters])
+		return mergedColumns
+	}, [filterDefinitions, filterKeys, filters])
 
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
