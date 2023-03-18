@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import DebouncedInput from './DebouncedInput'
 
-const InputNumberFilter = ({value, validationFunc, description, dataIndex, setFilter, confirm, visible}) => {
+const InputNumberFilter = ({value, validationFunc, description, filterKey, setFilter, confirm, visible}) => {
 
     const [isValid, setIsValid] = useState(true)
     const inputRef = useRef()
@@ -12,14 +12,14 @@ const InputNumberFilter = ({value, validationFunc, description, dataIndex, setFi
       // This is to avoid sending bad requests with garbage values to the backend.
       if (typeof(validationFunc) === 'function') {
         if (value.length === 0 || validationFunc(value)) {
-          setFilter(dataIndex, value)
+          setFilter(filterKey, value, description)
           setIsValid(true)
         } else {
           setIsValid(false)
         }
       } else {
         // If no validation function is provided then just call setFilter with the value.
-        setFilter(dataIndex, value)
+        setFilter(filterKey, value, description)
       }
     }
   

@@ -7,15 +7,19 @@ const { Title } = Typography
 
 interface LabworkOverviewStepGroupProps {
 	group: LabworkStepGroup
+	hideEmptySteps: boolean
 }
 
-const LabworkOverviewStepGroup = ({ group }: LabworkOverviewStepGroupProps) => {
-	const renderNamedGroup = group.defaultGroup === false && group.steps.length > 1 && !!group.name
-	const listData = group.steps
+const LabworkOverviewStepGroup = ({ group, hideEmptySteps }: LabworkOverviewStepGroupProps) => {
+	const renderNamedGroup = group.defaultGroup === false && !!group.name
+	let listData = group.steps
+	if (hideEmptySteps) {
+		listData = listData.filter(step => step.count > 0)
+	}
 
 	return (
 		<div style={{ padding: '1rem' }}>
-			{renderNamedGroup && <Title level={4}>{group.name}</Title>}
+			{renderNamedGroup && <Title level={5}>{group.name}</Title>}
 			<List
 				size="small"
 				dataSource={listData}

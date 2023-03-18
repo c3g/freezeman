@@ -26,8 +26,8 @@ export const actionIcon = a => {
 };
 
 export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
-  (actions.items || []).map((a, i) =>
-    <Link key={i.toString()} to={`${urlBase}/actions/${i}/`}>
+  (actions.items || []).map((a) =>
+    <Link key={a.id.toString()} to={`${urlBase}/actions/${a.id}/`}>
       <Button icon={actionIcon(a)} {...(fullWidth ? {style: {width:"100%"}} : {})}>{a.name}</Button>
     </Link>
   );
@@ -36,11 +36,11 @@ export const actionDropdown = (urlBase, actions, fullWidth=false) => {
   const history = useNavigate();
   const actionMenu = (
     <Menu>
-      { actions.items ? actions.items.map((a, i) =>
-          <Menu.Item key={i.toString()}>
+      { actions.items ? actions.items.map((a) =>
+          <Menu.Item key={a.id.toString()}>
             <Button
               icon={actionIcon(a)}
-              onClick={() => history(`${urlBase}/actions/${i}/`)}
+              onClick={() => history(`${urlBase}/actions/${a.id}/`)}
               {...(fullWidth ? {style:{width:"100%", border:0}} : {style:{border:0}})}
             >
               {a.name}

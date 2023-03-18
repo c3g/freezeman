@@ -35,19 +35,9 @@ const searchContainers = (token, input, options) =>
 const searchIndividuals = (token, input, options) =>
   withToken(token, api.individuals.search)(input, options).then(res => res.data.results)
 
-let collectionSites = undefined
-const listCollectionSites = (token) => {
-  if (collectionSites)
-    return Promise.resolve(collectionSites)
-  collectionSites = withToken(token, api.samples.listCollectionSites)()
-    .then(res => res.data)
-    .then(sites => {
-      collectionSites = sites
-      return collectionSites
-    })
-  return collectionSites
-}
-
+const listCollectionSites = (token, input) =>
+  withToken(token, api.samples.listCollectionSites)(input).then(res => res.data)
+    
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
@@ -68,9 +58,9 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
    */
 
   const [siteOptions, setSiteOptions] = useState([]);
-  const onFocusSite = onSearchSite
-  const onSearchSite = () => {
-    listCollectionSites(token).then(sites => {
+  const onFocusSite = ev => { onSearchSite(ev.target.value) }
+  const onSearchSite = (input) => {
+    listCollectionSites(token, input).then(sites => {
       setSiteOptions(sites.map(Options.render))
     })
   }
@@ -278,7 +268,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Form.Item label="Exp. Group" {...props("experimental_group")}>
             <Select mode="tags" />
           </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")} rules={requiredRules}>
+          <Form.Item label="Collection Site" {...props("collection_site")}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}

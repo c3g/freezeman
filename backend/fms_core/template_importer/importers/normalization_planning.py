@@ -198,6 +198,8 @@ class NormalizationPlanningImporter(GenericImporter):
         TUBE = "tube"
         DILUENT = "Water"   # This is an hardcoded value for Biomek config file
         DILUENT_WELL = "4"  # This is an hardcoded value for Biomek config file
+        SAMPLE_TYPE = "Sample"
+        LIBRARY_TYPE = "Library"
 
         if norm_choice == LIBRARY_CHOICE:
             ROBOT_SRC_PREFIX = "Source"
@@ -307,6 +309,8 @@ class NormalizationPlanningImporter(GenericImporter):
             # Add robot src coord to the sorted rows_data
             output_row_data["Robot Source Coord"] = convert_to_numerical_robot_coord(get_source_container_spec(output_row_data, container_dict),
                                                                                      get_source_container_coord(output_row_data, container_dict))
+            # Add type to the rows_data
+            output_row_data["Type"] = LIBRARY_TYPE if norm_choice == LIBRARY_CHOICE else SAMPLE_TYPE
 
         ##################### Ordering and setup of the pooling data ###########################
         mapping_pool_containers = {}

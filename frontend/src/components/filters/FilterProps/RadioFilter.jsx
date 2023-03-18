@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { Radio } from 'antd'
 
-const RadioFilter = ({value, options, description, dataIndex, setFilter, confirm, visible}) => {
+const RadioFilter = ({value, options, description, filterKey, setFilter, confirm, visible}) => {
 
     const EMPTY_VALUE = '__EMPTY_VALUE__'
 
@@ -10,7 +10,7 @@ const RadioFilter = ({value, options, description, dataIndex, setFilter, confirm
     const onSearch = (ev, confirm) => {
       const value = typeof ev === 'string' ? ev : ev.target.value
       const storeValue = value === EMPTY_VALUE ? undefined : value
-      setFilter(dataIndex, storeValue)
+      setFilter(filterKey, storeValue, description)
       confirm()
     }
   

@@ -3,6 +3,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.sample_pooling import SamplesToPoolRowHandler, PoolsRowHandler
 from fms_core.templates import SAMPLE_POOLING_TEMPLATE
 from collections import defaultdict
+from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower, check_truth_like
 
@@ -20,6 +21,10 @@ class SamplePoolingImporter(GenericImporter):
         pools_dict = defaultdict(list)
         samplestopool_sheet = self.sheets['SamplesToPool']
         pools_sheet = self.sheets['Pools']
+
+         # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         """
             SamplesToPool SHEET
@@ -41,6 +46,10 @@ class SamplePoolingImporter(GenericImporter):
                 },
                 "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
                 "comment": str_cast_and_normalize(row_data["Comment"]),
+                "workflow":
+                    {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),
+                     "step": step_by_row_id[i]
+                    },
             }
 
             (result, row_object) = self.handle_row(

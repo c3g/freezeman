@@ -231,7 +231,7 @@ class LibraryQCTestCase(TestCase):
     def setUp(self) -> None:
         """ Test initialization """
         self.importer = LibraryQCImporter()
-        self.file = APP_DATA_ROOT / "Library_QC_v3_9_0.xlsx"
+        self.file = APP_DATA_ROOT / "Library_QC_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.prefill_data()
@@ -315,10 +315,9 @@ class LibraryQCTestCase(TestCase):
         (library, errors, warnings) = create_library(index=index, library_type=library_type, platform=platform, strandedness=data.strandedness)
 
         # sample
-        (sample, errors, warnings) = create_full_sample(
-            name=data.name, volume=data.initial_volume, concentration=data.concentration,
-            collection_site=data.collection_site, creation_date=data.creation_date,
-            container=container, coordinates=data.coord, sample_kind=sample_kind, library=library)
+        (sample, errors, warnings) = create_full_sample(name=data.name, volume=data.initial_volume, concentration=data.concentration,
+                                                        collection_site=data.collection_site, creation_date=data.creation_date,
+                                                        container=container, coordinates=data.coord, sample_kind=sample_kind, library=library)
 
         return sample
 

@@ -185,7 +185,7 @@ const api = {
     list: (options, abort) => get("/samples", options, { abort }),
     listExport: options => get("/samples/list_export/", {format: "csv", ...options}),
     listExportMetadata: options => get("/samples/list_export_metadata/", {format: "csv", ...options}),
-    listCollectionSites: () => get("/samples/list_collection_sites/"),
+    listCollectionSites: (filter) => get("/samples/list_collection_sites/", { filter }),
     listVersions: sampleId => get(`/samples/${sampleId}/versions/`),
     summary: () => get("/samples/summary/"),
     template: {
@@ -210,13 +210,32 @@ const api = {
   },
 
   sampleNextStep: {
-    getStudySamples: (studyId) => get('/sample-next-step/', {study__id__in : studyId}),
-    labworkSummary: () => get('/sample-next-step/labwork_info/')
+    getStudySamples: (studyId) => get('/sample-next-step/', {studies__id__in : studyId}),
+    listSamplesAtStep: (stepId, options) => get('/sample-next-step/', {...options, step__id__in: stepId}),
+    labworkSummary: () => get('/sample-next-step/labwork_info/'),
+    prefill: {
+      templates: (protocolId) => get('/sample-next-step/list_prefills', {protocol: protocolId}),
+      request: (templateID, options) => get('/sample-next-step/prefill_template/', {template: templateID, ...options})
+    },
+    template: {
+      actions: () => get(`/sample-next-step/template_actions/`),
+      check:  (action, template) => post(`/sample-next-step/template_check/`, form({ action, template })),
+      submit: (action, template) => post(`/sample-next-step/template_submit/`, form({ action, template })),
+    },
+  },
+
+  sampleNextStepByStudy: {
+    getStudySamples: (studyId) => get('/sample-next-step-by-study/', {study__id__in : studyId}),
+    remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
 
   sequences: {
     get: sequenceId => get(`/sequences/${sequenceId}/`),
     list: (options, abort) => get("/sequences/", options, { abort }),
+  },
+
+  steps: {
+    list: (options, abort) => get('/steps/', options, { abort} ),
   },
 
   studies: {
@@ -337,6 +356,9 @@ function patch(route, body, options) {
   return apiFetch('PATCH', route, body, options);
 }
 
+function remove(route, body, options) {
+  return apiFetch('DELETE', route, body, options);
+}
 
 function createAPIError(response) {
   let data = response.data;

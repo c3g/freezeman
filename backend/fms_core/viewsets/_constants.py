@@ -264,16 +264,53 @@ _study_filterset_fields: FiltersetFields = {
     **_prefix_keys("workflow__", _workflow_filterset_fields),
 }
 
-_sample_next_step_filterset_fields: FiltersetFields = {
-    "id": PK_FILTERS,
-    "study__id": PK_FILTERS,
-    "step_order__step__protocol__id": PK_FILTERS,
-    "step_order__step__id": PK_FILTERS,
-    "step_order__step__name": CATEGORICAL_FILTERS_LOOSE,
-}
-
 _step_filterset_fields: FiltersetFields = {
     "id": PK_FILTERS,
     "name": CATEGORICAL_FILTERS_LOOSE,
     "protocol_id": PK_FILTERS,
+}
+
+_sample_next_step_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "sample__id": PK_FILTERS,
+    "studies__id": PK_FILTERS,
+    "sample__derived_samples__sample_kind__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__biosample__individual__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__container__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__container__barcode": CATEGORICAL_FILTERS_LOOSE,
+    "sample__coordinates": CATEGORICAL_FILTERS_LOOSE,
+    "sample__volume": SCALAR_FILTERS,
+    "sample__concentration": SCALAR_FILTERS,
+    "sample__creation_date": DATE_FILTERS,
+    "sample__depleted": ["exact"],
+    "sample__derived_samples__library__library_type__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__library_selection__target": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__index__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__platform__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__project__name": CATEGORICAL_FILTERS_LOOSE,
+    "sample__derived_samples__library__library_size": SCALAR_FILTERS,
+    **_prefix_keys("step__", _step_filterset_fields),
+}
+
+_step_order_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    "next_step_order__id": PK_FILTERS,
+    "order": SCALAR_FILTERS,
+    **_prefix_keys("step__", _step_filterset_fields),
+    **_prefix_keys("workflow__", _workflow_filterset_fields),
+}
+
+_sample_next_step_by_study_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    **_prefix_keys("study__", _study_filterset_fields),
+    **_prefix_keys("step_order__", _step_order_filterset_fields),
+    **_prefix_keys("sample_next_step__", _sample_next_step_filterset_fields),
+}
+
+_stephistory_filterset_fields: FiltersetFields = {
+    "id": PK_FILTERS,
+    **_prefix_keys("study__", _study_filterset_fields),
+    **_prefix_keys("step_order__", _step_order_filterset_fields),
+    **_prefix_keys("process_measurement__", _process_measurement_filterset_fields),
 }

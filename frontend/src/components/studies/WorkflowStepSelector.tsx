@@ -1,9 +1,8 @@
-import { Select, Typography } from 'antd'
+import { Select } from 'antd'
 import { DefaultOptionType } from 'antd/lib/select'
 import React, { useEffect, useState } from 'react'
 import { Workflow, WorkflowStepRange } from '../../models/frontend_models'
 
-const Text = Typography.Text
 
 interface WorkflowStepSelectorProps {
 	workflow?: Workflow

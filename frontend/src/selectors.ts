@@ -1,6 +1,7 @@
 import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
-import { StudySamplesState } from "./modules/studySamples/reducers"
+import { LabworkStepsState } from "./modules/labworkSteps/models"
+import { StudySamplesByID } from "./modules/studySamples/reducers"
 import { RootState } from "./store"
 
 /*
@@ -19,19 +20,30 @@ import { RootState } from "./store"
     const projectsByID = useSelector(selectProjectsByID)
 */
 
+export const selectAppInitialzed = (state: RootState) => state.app.initialized
+export const selectAuthState = (state: RootState) => state.auth
+export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
 export const selectIndividualsByID = (state: RootState) => state.individuals.itemsByID
+export const selectLabworkStepsState = (state: RootState) => state.labworkSteps as LabworkStepsState
 export const selectLabworkSummaryState = (state: RootState) => state.labworkSummary as LabworkSummaryState
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
+export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
+export const selectPageSize = (state: RootState) => state.pagination.pageSize
+export const selectProcessMeasurementTemplateActions = (state: RootState) => state.processMeasurementTemplateActions
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
-export const selectStudySamples = (state: RootState) => state.studySamples as StudySamplesState
+export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
+export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
+export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesById as StudySamplesByID
+export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
+export const selectStepsByID = (state: RootState) => state.steps.itemsByID
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
+export const selectToken = (state: RootState) => state.auth.tokens.access
 export const selectUsersByID = (state: RootState) => state.users.itemsByID as ItemsByID<User>
 export const selectWorkflowsByID = (state: RootState) => state.workflows.itemsByID as ItemsByID<Workflow>
-

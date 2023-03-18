@@ -89,14 +89,14 @@ class NormalizationplanningTestCase(TestCase):
             container, _, _ = get_container(barcode=info['container_barcode'])
 
             sample, _, _ = create_full_sample(name=info['name'],
-                               volume=info['volume'],
-                               concentration=info['conc.'],
-                               collection_site='site1',
-                               creation_date=datetime(2022, 7, 5, 0, 0),
-                               container=container,
-                               coordinates=info['coordinates'],
-                               sample_kind=sample_kind_DNA,
-                               library=info['library'])
+                                              volume=info['volume'],
+                                              concentration=info['conc.'],
+                                              collection_site='site1',
+                                              creation_date=datetime(2022, 7, 5, 0, 0),
+                                              container=container,
+                                              coordinates=info['coordinates'],
+                                              sample_kind=sample_kind_DNA,
+                                              library=info['library'])
 
     def test_import(self):
         for file in self.files:

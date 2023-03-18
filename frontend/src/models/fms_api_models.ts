@@ -32,7 +32,14 @@ export function mapToFMSId(value: string | number) {
 //
 export type FMSId = number
 
-interface FMSTrackedModel {
+export interface FMSPagedResultsReponse<T> {
+    count: number   // The number of objects returned
+    next?: string   // A url that will fetch the next page of results, or null if there are no more results.
+    prev?: string   // A url that will fetch the previous page of results, or null if there are no more results.
+    results: T[]    // An array of objects that were requested
+}
+
+export interface FMSTrackedModel {
     id: FMSId                           // Unique ID of object in database
     created_at: string                  // Timestamp object was created (eg. "2020-05-22T19:29:44.578672Z")
     created_by: FMSId                   // ID of user that created object
@@ -86,21 +93,14 @@ export interface FMSLabworkSummary {
 export interface FMSLabworkProtocol {
     name: string                        // Name of protocol
     count: number                       // Total number of samples waiting for protocol
-    steps: FMSLabworkStep[]      // The steps based on the protocol which have at least one sample waiting
+    steps: FMSLabworkStep[]             // The steps based on the protocol which have at least one sample waiting
 }
 
 export interface FMSLabworkStep {
-    name: string
-    count: number
-    step_specifications: FMSLabworkStepSpecification[]
-}
-
-export interface FMSLabworkStepSpecification {
-    id: number,                         // Step specification object id
-    display_name: string                // Display name for user
-    sheet_name: string                  // Template where this value is used
-    column_name: string                 // Column where the value would appear in template
-    value: string                       // String value
+    id: FMSId                           // Step ID
+    name: string                        // Step name
+    count: number                       // Number of samples queued at step
+    step_specifications: FMSStepSpecification[]  // Step specifications
 }
 
 export interface FMSLibrary extends FMSTrackedModel {
@@ -233,19 +233,29 @@ export interface FMSSampleKind extends FMSTrackedModel {
     molecule_ontology_curie?: string    // SO ontology term to describe a molecule, such as ‘SO:0000991’ (‘genomic_DNA’)
 }
 
-export interface FMSSampleNextStep extends FMSTrackedModel {
+export interface FMSSampleNextStepByStudy extends FMSTrackedModel {
     sample: FMSId,
     study: FMSId,
-    step_order_id: FMSId,
-    step_order_number: number
-    step: NextStep
+    step_order: FMSId
 }
 
-// This step definition is specific to the sample-next-step api.
-export interface NextStep {
-    id: number                          // Step ID
-    name: string                        // Step name
-    protocol_id: number                 // Step's protocol id
+export interface FMSSampleNextStep extends FMSTrackedModel {
+  sample: FMSId,
+  studies: FMSId[],
+  step: FMSStep
+}
+
+export interface FMSStep extends FMSTrackedModel {
+    name: string
+    protocol_id: FMSId
+    step_specifications: FMSStepSpecification[]
+}
+
+export interface FMSStepSpecification extends FMSTrackedModel {
+    display_name: string
+    sheet_name: string
+    column_name: string
+    value: string
 }
 
 export interface FMSSequence extends FMSTrackedModel {
@@ -263,6 +273,18 @@ export interface FMSStudy extends FMSTrackedModel {
 export interface FMSTaxon extends FMSTrackedModel {
     name: string                        // Taxon scientific name
     ncbi_id: number                     // Numerical identifier used by the NCBI taxonomy catalog
+}
+
+// Template action description
+export interface FMSTemplateAction {
+	id: number                          // Action ID (not an FMSId, just a number)
+	name: string                        // Action name
+	description: string                 // Action description
+	template: {                         // List of templates
+		description: string             // Template description
+		file: string                    // Template file path
+		protocol?: string               // Protocol associated with template (if any)
+	}[]
 }
 
 export interface FMSUser extends FMSTrackedModel {
@@ -291,3 +313,4 @@ export interface WorkflowStep {         // Not a tracked model - just a simple s
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
+

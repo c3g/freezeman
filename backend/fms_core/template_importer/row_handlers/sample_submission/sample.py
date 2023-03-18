@@ -133,22 +133,23 @@ class SampleRowHandler(GenericRowHandler):
 
         # Project related section
         project_obj = None
-        study_obj = None
+        studies_obj = []
         if project['name']:
             project_obj, self.errors['project'], self.warnings['project'] = get_project(project['name'])
 
             if project_obj and project['study_letter']:
-                  study_obj, self.errors['study'], self.warnings['study'] = get_study(project_obj, project['study_letter'])
+                  study_letters = [s.strip() for s in project['study_letter'].split("-") if s != ""]
+                  for study_letter in study_letters:
+                      study, study_errors, study_warnings = get_study(project_obj, study_letter)
+                      self.errors['study'].extend(study_errors)
+                      self.warnings['study'].extend(study_warnings)
+                      if study is not None:
+                          studies_obj.append(study)
         else:
             self.errors['project'] = [f"New samples must be assigned to a project."]
 
         # Continue creating the sample objects if this sample is not associated with a pool
         if library['pool_name'] is None:
-            # Check concentration fields given sample_kind (moved from sample and DerivedBySample because information unavailable until multiple relations created)
-            if sample['concentration'] is None and sample_kind_obj.concentration_required:
-                self.errors['concentration'] = [f"Concentration must be specified for a submitted sample if the sample_kind is DNA."]
-
-
             # Check if there's a sample with the same name
             if Sample.objects.filter(name__iexact=sample['name']).exists():
                 # Output different warnings depending on whether the name is an exact match or a case insensitive match
@@ -185,8 +186,11 @@ class SampleRowHandler(GenericRowHandler):
             # Link sample to project if requested
             if project_obj and sample_obj:
                 _, self.errors['project_link'], self.warnings['project_link'] = create_link(sample=sample_obj, project=project_obj)
-                if study_obj:
-                    _, self.errors['queue_to_study'], self.warnings['queue_to_study'] = queue_sample_to_study_workflow(sample_obj, study_obj)
+                for study_obj in studies_obj:
+                    _, queue_errors, queue_warnings  = queue_sample_to_study_workflow(sample_obj, study_obj)
+                    self.errors['queue_to_study'].extend(queue_errors)
+                    self.warnings['queue_to_study'].extend(queue_warnings)
+
         # If this sample belongs to a pool but the library obj was not created or sizeless raise an error
         elif library['pool_name'] and (not library_obj or library_obj.library_size is None):
             self.errors['pooling'] = [f"A valid library with a measured library size is necessary to pool this sample."]
@@ -208,6 +212,7 @@ class SampleRowHandler(GenericRowHandler):
             "experimental_group": sample['experimental_group'],
             "library": library_obj,
             "project": project_obj,
+            "studies": studies_obj,
             # Pool relation info
             "volume": sample['volume'],
         }

@@ -13,7 +13,7 @@ export const get = (id : ObjectId )=> async (dispatch, getState) => {
     return await dispatch(networkAction(GET, api.workflows.get(id), { meta: { id } }));
 };
 
-export const list = (options) => async (dispatch, getState) => {
+export const list = (options) => async (dispatch) => {
     const params = { limit: 100000, ...options }
     return await dispatch(networkAction(LIST,
         api.workflows.list(params),

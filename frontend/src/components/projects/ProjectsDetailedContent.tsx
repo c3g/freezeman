@@ -1,31 +1,26 @@
 import { Button, Tabs } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
 import { Project, Study } from '../../models/frontend_models'
 
-import { get } from '../../modules/projects/actions'
+import { useIDParam } from '../../hooks/useIDParams'
 import { listProjectStudies } from '../../modules/studies/actions'
 import { selectProjectsByID, selectStudiesByID } from '../../selectors'
+import { withProject } from '../../utils/withItem'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
 import StudyDetails from '../studies/StudyDetails'
+import { createStudyTabKey } from '../studies/StudyEditContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
-import { createStudyTabKey} from '../studies/StudyEditContent'
-import { withProject } from '../../utils/withItem'
-import { useIDParam } from '../../hooks/useIDParams'
 
 const { TabPane } = Tabs
 
-interface ProjectsDetailedContentProps {
-	// No properties yet
-}
 
-const ProjectsDetailedContent = ({}: ProjectsDetailedContentProps) => {
+const ProjectsDetailedContent = () => {
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 	const projectsByID = useAppSelector(selectProjectsByID)

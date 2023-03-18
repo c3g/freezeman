@@ -41,7 +41,7 @@ class GenericImporter():
         else:
             for sheet_info in self.SHEETS_INFO:
                 sheet_name = sheet_info['name']
-                sheet_created = self.create_sheet_data(**sheet_info)
+                sheet_created = self.create_sheet_data(name=sheet_name, headers=sheet_info["headers"] )
 
                 if sheet_created is not None and sheet_created.base_errors:
                     self.base_errors += sheet_created.base_errors

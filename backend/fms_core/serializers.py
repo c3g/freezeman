@@ -36,7 +36,9 @@ from .models import (
     Study,
     SampleNextStep,
     StepSpecification,
-    StepOrder
+    StepOrder,
+    SampleNextStepByStudy,
+    StepHistory,
 )
 
 from .models._constants import ReleaseStatus
@@ -89,6 +91,8 @@ __all__ = [
     "SampleNextStepSerializer",
     "StepSpecificationSerializer",
     "StepSerializer",
+    "SampleNextStepByStudySerializer",
+    "StepHistorySerializer",
 ]
 
 
@@ -684,9 +688,15 @@ class StepSpecificationSerializer(serializers.ModelSerializer):
         fields = ("id", "display_name", "sheet_name", "column_name", "value")
 
 class StepSerializer(serializers.ModelSerializer):
+    step_specifications = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = Step
-        fields = ["id", "name", "protocol_id"]
+        fields = ["id", "name", "protocol_id", "step_specifications"]
+
+    def get_step_specifications(self, instance):
+        step_specifications = instance.step_specifications.all()
+        serialized_data = StepSpecificationSerializer(step_specifications, many=True)
+        return serialized_data.data
 
 class StepOrderSerializer(serializers.ModelSerializer):
     step_id = serializers.IntegerField(read_only=True, source='step.id')
@@ -718,8 +728,20 @@ class StudySerializer(serializers.ModelSerializer):
         fields = ("id", "letter", "project_id", "workflow_id", "start", "end")
     
 class SampleNextStepSerializer(serializers.ModelSerializer):
-    step = StepSerializer(read_only=True, source="step_order.step")
-    step_order_number = serializers.IntegerField(read_only=True, source="step_order.order")
+    step = StepSerializer(read_only=True)
+    studies = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     class Meta:
         model = SampleNextStep
-        fields = ("id", "step_order_id", "sample", "study", "step_order_number", "step")
+        fields = ("id", "sample", "step", "studies")
+
+class SampleNextStepByStudySerializer(serializers.ModelSerializer):
+    sample = serializers.IntegerField(read_only=True, source='sample_next_step.sample.id')
+    class Meta:
+        model = SampleNextStepByStudy
+        fields = ("id", "sample", "step_order", "study")
+
+class StepHistorySerializer(serializers.ModelSerializer):
+    sample = serializers.IntegerField(read_only=True, source='process_measurement.source_sample_id')
+    class Meta:
+        model = StepHistory
+        fields = ("id", "study", "step_order", "process_measurement", "sample")

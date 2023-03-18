@@ -12,7 +12,7 @@ class LibraryRowHandler(GenericRowHandler):
         super().__init__()
 
     def process_row_inner(self, capture_batch_info, source_sample, volume_used,
-                          comment, container, volume):
+                          comment, container, volume, workflow):
 
         if not capture_batch_info:
             self.errors['library_capture'] = f"'Capture Batch ID' on sheet 'Library' does not match any on sheet 'Capture Batch'."
@@ -89,7 +89,8 @@ class LibraryRowHandler(GenericRowHandler):
                                     volume_used=volume_used,
                                     volume_destination=volume,
                                     execution_date=library_info['capture_date'],
-                                    comment=comment)
+                                    comment=comment,
+                                    workflow=workflow)
 
         else:
             self.errors['sample_source'] = 'Sample source is needed to capture a library.'

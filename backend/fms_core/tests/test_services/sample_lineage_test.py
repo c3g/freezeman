@@ -16,21 +16,18 @@ class SampleLineageServicesTestCase(TestCase):
 
         self.test_container_parent = Container.objects.create(barcode="TESTBARCODEPARENT",
                                                               name="TestParentName",
-                                                              kind="tube"
-                                                              )
+                                                              kind="tube")
 
         self.test_container_child = Container.objects.create(barcode="TESTBARCODECHILD",
                                                              name="TestChildName",
-                                                             kind="tube"
-                                                             )
+                                                             kind="tube")
 
         self.full_sample_parent, errors, warnings = create_full_sample(name=self.sample_parent_name,
                                                                        volume=20,
                                                                        collection_site="TestCollectionSite",
                                                                        container=self.test_container_parent,
                                                                        sample_kind=self.sk_BLOOD,
-                                                                       creation_date="2022-01-01"
-                                                                       )
+                                                                       creation_date="2022-01-01")
 
         self.full_sample_child, errors, warnings = create_full_sample(name=self.sample_child_name,
                                                                       volume=20,
@@ -39,8 +36,7 @@ class SampleLineageServicesTestCase(TestCase):
                                                                       concentration=20,
                                                                       tissue_source=self.sk_BLOOD,
                                                                       sample_kind=self.sk_DNA,
-                                                                      creation_date="2022-01-01"
-                                                                      )
+                                                                      creation_date="2022-01-01")
 
         self.protocol_extraction = Protocol.objects.get(name="Extraction")
         self.process = Process.objects.create(protocol=self.protocol_extraction)

@@ -21,12 +21,12 @@ from fms_core.services.project import create_project
 class SamplePoolingTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SamplePoolingImporter()
-        self.file = APP_DATA_ROOT / "Sample_pooling_v3_13_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_pooling_v4_1_0.xlsx"
 
-        self.invalid_template_tests = ["Sample_pooling_v3_13_0_different_individuals.xlsx",
-                                       "Sample_pooling_v3_13_0_different_kinds.xlsx",
-                                       "Sample_pooling_v3_13_0_different_types.xlsx",
-                                       "Sample_pooling_v3_13_0_missing_library_size.xlsx"]
+        self.invalid_template_tests = ["Sample_pooling_v4_1_0_different_individuals.xlsx",
+                                       "Sample_pooling_v4_1_0_different_kinds.xlsx",
+                                       "Sample_pooling_v4_1_0_different_types.xlsx",
+                                       "Sample_pooling_v4_1_0_missing_library_size.xlsx"]
 
         self.DNA_sample_kind, _ = SampleKind.objects.get_or_create(name='DNA')
         self.RNA_sample_kind, _ = SampleKind.objects.get_or_create(name="RNA")
@@ -230,7 +230,7 @@ class SamplePoolingTestCase(TestCase):
         self.source_sample_12, _, _ = \
             create_full_sample(name="SOURCESAMPLE1POOL6", alias="SOURCESAMPLE1POOL6", volume=self.source_sample_initial_volume, concentration=25,
                                collection_site="PoolSite4", creation_date=datetime(2022, 9, 13, 0, 0), individual=self.same_individual,
-                                container=self.container, coordinates="B01", sample_kind=self.DNA_sample_kind, library=self.library_2, project=self.project)
+                               container=self.container, coordinates="B01", sample_kind=self.DNA_sample_kind, library=self.library_2, project=self.project)
 
         self.source_sample_13, _, _ = \
             create_full_sample(name="SOURCESAMPLE2POOL6", alias="SOURCESAMPLE2POOL6", volume=self.source_sample_initial_volume, concentration=25,

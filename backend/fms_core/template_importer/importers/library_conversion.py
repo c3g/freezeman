@@ -5,6 +5,7 @@ from ._generic import GenericImporter
 from fms_core.template_importer.row_handlers.library_conversion import LibraryRowHandler, LibraryBatchRowHandler
 from fms_core.templates import LIBRARY_CONVERSION_TEMPLATE
 from collections import defaultdict
+from fms_core.services.step import get_step_from_template
 from .._utils import float_to_decimal_and_none, input_to_date_and_none
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
 
@@ -36,6 +37,10 @@ class LibraryConversionImporter(GenericImporter):
             LIBRARY BATCH SHEET
         """
         library_batch_sheet = self.sheets['Conversion Batch']
+
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Iterate through libraries rows
         library_batch_rows_data = defaultdict(list)
@@ -92,6 +97,10 @@ class LibraryConversionImporter(GenericImporter):
                      'parent_coordinates': str_cast_and_normalize(row_data['Destination Library Parent Container Coordinates'])
                      },
                 'volume': float_to_decimal_and_none(row_data['Volume (uL)']),
+                'workflow':
+                    {'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                     'step': step_by_row_id[i]
+                    },
                  }
 
             (result, _) = self.handle_row(

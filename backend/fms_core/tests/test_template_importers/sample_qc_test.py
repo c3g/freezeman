@@ -16,7 +16,7 @@ from fms_core.services.sample import create_full_sample, pool_samples
 class SampleQCTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = SampleQCImporter()
-        self.file = APP_DATA_ROOT / "Sample_QC_v3_10_0.xlsx"
+        self.file = APP_DATA_ROOT / "Sample_QC_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.sample_name = 'SampleTestQC'

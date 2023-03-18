@@ -108,7 +108,8 @@ def get_normalized_str(d: dict, key: str, default: str = "") -> str:
 def is_date_or_time_after_today(date: datetime.datetime) -> Union[bool, None]: 
     if not isinstance(date, datetime.date):
         return None
-    return datetime.datetime.combine(date, datetime.datetime.min.time()) > datetime.datetime.now()
+    date_as_string = f"{date.year}-{date.month:02}-{date.day:02}"
+    return date_as_string > str(datetime.datetime.now().date())
     
 
 def convert_concentration_from_ngbyul_to_nm(concentration: float, molecular_weight: float, molecule_count: float) -> float:

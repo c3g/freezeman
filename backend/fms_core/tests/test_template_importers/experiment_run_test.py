@@ -16,7 +16,7 @@ from fms_core.services.project import create_project
 class ExperimentRunInfiniumTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v3_10_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_Infinium_24_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "EQ00539851"
@@ -201,7 +201,7 @@ class ExperimentRunInfiniumTestCase(TestCase):
 class ExperimentRunMGITestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v3_10_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_MGI_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERWITHSAMPLETESTMGI"
@@ -292,7 +292,7 @@ class ExperimentRunMGITestCase(TestCase):
 class ExperimentRunIlluminaTestCase(TestCase):
     def setUp(self) -> None:
         self.importer = ExperimentRunImporter()
-        self.file = APP_DATA_ROOT / "Experiment_run_illumina_v3_14_0.xlsx"
+        self.file = APP_DATA_ROOT / "Experiment_run_illumina_v4_1_0.xlsx"
         ContentType.objects.clear_cache()
 
         self.container_barcode = "CONTAINERWITHSAMPLETESTILLUMINA"

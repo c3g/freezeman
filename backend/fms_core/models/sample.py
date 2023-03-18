@@ -22,7 +22,7 @@ from .derived_sample import DerivedSample
 from .derived_by_sample import DerivedBySample
 from .biosample import Biosample
 
-from ._constants import STANDARD_NAME_FIELD_LENGTH
+from ._constants import STANDARD_NAME_FIELD_LENGTH, SINGLE_STRANDED, DOUBLE_STRANDED, SampleType
 from ._utils import add_error as _add_error
 from ._validators import name_validator
 
@@ -61,6 +61,10 @@ class Sample(TrackedModel):
     @property
     def is_depleted(self) -> str:
         return "yes" if self.depleted else "no"
+
+    @property
+    def is_kind_extracted(self) -> bool:
+        return self.derived_samples.first().sample_kind.is_extracted
 
     @property
     def is_pool(self) -> bool:
@@ -141,6 +145,38 @@ class Sample(TrackedModel):
     def quantity_in_ng(self) -> Decimal:
         return self.concentration * self.volume if self.concentration is not None else None
 
+    @property
+    def library_size(self) -> Decimal:
+        return self.derived_samples.first().library.library_size if not self.is_pool and self.is_library else None
+
+    @property
+    def strandedness(self) -> Optional[str]:
+        if self.is_pool: # Pools may contain multiple strandedness
+            return None
+        elif self.is_library:  # Library strandedness is defined during preparation
+            return self.derived_samples.first().library.strandedness
+        elif self.derived_samples.first().biosample.kind.same == "DNA": # Default strandedness of a DNA sample
+            return DOUBLE_STRANDED
+        elif self.derived_samples.first().biosample.kind.same == "RNA": # Default strandedness of an RNA sample
+            return SINGLE_STRANDED
+        else: # Otherwise it is likely a non-extracted sample.
+            return None
+
+    def matches_sample_type(self, sample_type: SampleType):
+        if sample_type == SampleType.ANY:
+            return True
+        elif sample_type == SampleType.UNEXTRACTED_SAMPLE:
+            return not self.is_kind_extracted
+        elif sample_type == SampleType.EXTRACTED_SAMPLE:
+            return self.is_kind_extracted and not self.is_library
+        elif sample_type == SampleType.SAMPLE:
+            return not self.is_library
+        elif sample_type == SampleType.LIBRARY:
+            return self.is_library
+        elif sample_type == SampleType.POOLED_LIBRARY:
+            return self.is_library and self.is_pool
+        else:
+            return False
 
     # Representations
 
@@ -170,6 +206,10 @@ class Sample(TrackedModel):
         # Check volume value
         if self.volume is not None and self.volume < Decimal("0"):
             add_error("volume", "Current volume must be positive.")
+
+        # Set depleted when volume = 0
+        if self.volume is not None and self.volume == Decimal("0"):
+            self.depleted = True
 
         # Make sure the creation date is not in the future 
         if is_date_or_time_after_today(self.creation_date):
