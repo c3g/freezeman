@@ -6,7 +6,7 @@ from datetime import datetime
 from fms_core.template_importer.importers import TransferImporter
 from fms_core.tests.test_template_importers._utils import load_template, APP_DATA_ROOT
 
-from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage, Protocol, Process
+from fms_core.models import Sample, Container, SampleKind, ProcessMeasurement, SampleLineage, Protocol, Process, Coordinate
 
 from fms_core.services.container import get_or_create_container
 from fms_core.services.sample import create_full_sample, pool_samples
@@ -22,6 +22,11 @@ class TransferTestCase(TestCase):
 
     def prefill_data(self):
         sample_kind_DNA, _ = SampleKind.objects.get_or_create(name='DNA')
+
+        self.coord_A01 = Coordinate.objects.get(name="A01")
+        self.coord_A02 = Coordinate.objects.get(name="A02")
+        self.coord_A03 = Coordinate.objects.get(name="A03")
+        self.coord_H08 = Coordinate.objects.get(name="H08")
 
         samples_info = [
             {'name': 'sample1transfer', 'volume': 400, 'container_barcode': 'Transfer_container_source_1', 'coordinates': 'A01'},
@@ -54,13 +59,13 @@ class TransferTestCase(TestCase):
         # Create objects for the pooling test
         samples_to_pool_info = [
             {
-                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinates="A01"),
+                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinate=self.coord_A01),
                 'Volume Used': decimal.Decimal(20.0),
                 'Source Depleted': False,
                 'Comment': ''
              },
             {
-                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinates="A02"),
+                'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinate=self.coord_A02),
                 'Volume Used': decimal.Decimal(5.0),
                 'Source Depleted': False,
                 'Comment': '',
@@ -90,13 +95,13 @@ class TransferTestCase(TestCase):
         self.assertEqual(result['valid'], True)
 
         # Custom tests for each template
-        ss1 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A01")
+        ss1 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinate=self.coord_A01)
         self.assertEqual(ss1.volume, 200)
         self.assertFalse(ss1.depleted)
-        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A01").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A01).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss1).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss1).exists())
-        cs1 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A01")
+        cs1 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A01)
         sl1 = SampleLineage.objects.get(parent=ss1)
         pm1 = ProcessMeasurement.objects.get(source_sample=ss1)
         process1 = pm1.process
@@ -110,14 +115,14 @@ class TransferTestCase(TestCase):
         self.assertEqual(cs1.creation_date, pm1.execution_date)
         self.assertEqual(cs1.creation_date, datetime.strptime("2021-10-10", "%Y-%m-%d").date())
 
-        ss2 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A02")
+        ss2 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinate=self.coord_A02)
         self.assertEqual(ss2.volume, 300)
         self.assertFalse(ss2.depleted)
         self.assertTrue(Container.objects.filter(barcode="Transfer_container_dest_2", name="NewContainer").exists())
         self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_2").exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss2).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss2).exists())
-        cs2 = Sample.objects.get(container__barcode="Transfer_container_dest_2", container__coordinates="H08")
+        cs2 = Sample.objects.get(container__barcode="Transfer_container_dest_2", container__coordinate=self.coord_H08)
         sl2 = SampleLineage.objects.get(parent=ss2)
         pm2 = ProcessMeasurement.objects.get(source_sample=ss2)
         process2 = pm2.process
@@ -132,13 +137,13 @@ class TransferTestCase(TestCase):
         self.assertEqual(cs2.creation_date, pm2.execution_date)
         self.assertEqual(cs2.creation_date, datetime.strptime("2021-09-02", "%Y-%m-%d").date())
 
-        ss3 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinates="A03")
+        ss3 = Sample.objects.get(container__barcode="Transfer_container_source_1", coordinate=self.coord_A03)
         self.assertEqual(ss3.volume, 0)
         self.assertTrue(ss3.depleted)
-        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A02").exists())
+        self.assertTrue(Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A02).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=ss3).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=ss3).exists())
-        cs3 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A02", container__coordinates="A01")
+        cs3 = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A02, container__coordinate=self.coord_A01)
         sl3 = SampleLineage.objects.get(parent=ss3)
         pm3 = ProcessMeasurement.objects.get(source_sample=ss3)
         process3 = pm3.process
@@ -158,11 +163,11 @@ class TransferTestCase(TestCase):
         self.assertEqual(pool.volume, 15)
         self.assertFalse(pool.depleted)
         self.assertTrue(
-            Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinates="A03").exists())
+            Sample.objects.filter(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A03).exists())
         self.assertTrue(SampleLineage.objects.filter(parent=pool).exists())
         self.assertTrue(ProcessMeasurement.objects.filter(source_sample=pool).exists())
-        pool_transferred = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinates="A03",
-                                              container__coordinates="A01")
+        pool_transferred = Sample.objects.get(container__barcode="Transfer_container_dest_1", coordinate=self.coord_A03,
+                                              container__coordinate=self.coord_A01)
         sl4 = SampleLineage.objects.get(parent=pool)
         pm4 = ProcessMeasurement.objects.get(source_sample=pool)
         process4 = pm4.process

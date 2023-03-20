@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from datetime import date
-from fms_core.models import LibraryType, Library, DerivedBySample, LibrarySelection
+from fms_core.models import LibraryType, Library, DerivedBySample, LibrarySelection, Coordinate
 
 from fms_core.services.sample import inherit_derived_sample, _process_sample
 
@@ -256,10 +256,11 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
             sample_source.volume = sample_source.volume - volume_used
             sample_source.save()
 
+            coordinate_destination = Coordinate.objects.get(name=coordinates_destination) if coordinates_destination is not None else None
             # Might need to take this outside the combined function to make this function more generic.
             sample_destination_data = dict(
                 container_id=container_destination.id,
-                coordinates=coordinates_destination if coordinates_destination else "",
+                coordinate_id=coordinate_destination.id if coordinate_destination is not None else None,
                 creation_date=execution_date,
                 concentration=None,
                 volume=volume_destination,
@@ -319,7 +320,8 @@ def _inherit_library(process, new_library_info, sample_source, container_destina
                                                                                    workflow)
             errors.extend(errors_process)
             warnings.extend(warnings_process)
-
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates_destination} are not valid (Coordinates format example: A01).")
         except Exception as e:
             errors.append(e)
 

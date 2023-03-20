@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { Container, FetchedObject, Index, Individual, ItemsByID, Project, Sample, User } from '../../models/frontend_models'
-import { selectContainersByID, selectIndicesByID, selectIndividualsByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withIndex, withIndividual, withProject, withSample, withUser } from '../../utils/withItem'
+import { Coordinate, Container, FetchedObject, Index, Individual, ItemsByID, Project, Sample, User } from '../../models/frontend_models'
+import { selectCoordinatesByID, selectContainersByID, selectIndicesByID, selectIndividualsByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withCoordinate, withContainer, withIndex, withIndividual, withProject, withSample, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -86,7 +86,7 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends Fetche
 	return WithItemRenderComponent
 }
 
-
+export const WithCoordinateRenderComponent = WithItemRenderComponentFactory<typeof withCoordinate, Coordinate>(withCoordinate, selectCoordinatesByID)
 export const WithContainerRenderComponent = WithItemRenderComponentFactory<typeof withContainer, Container>(withContainer, selectContainersByID)
 export const WithIndexRenderComponent = WithItemRenderComponentFactory<typeof withIndex, Index>(withIndex, selectIndicesByID)
 export const WithIndividualRenderComponent = WithItemRenderComponentFactory<typeof withIndividual, Individual>(withIndividual, selectIndividualsByID)

@@ -36,6 +36,7 @@ import api, { withToken } from "../../../utils/api";
 import {
   withContainer,
   withSample,
+  withCoordinate,
   withIndividual,
   withProcessMeasurement,
   withIndex
@@ -86,6 +87,7 @@ const mapStateToProps = state => ({
   indicesByID: state.indices.itemsByID,
   usersByID: state.users.itemsByID,
   projectsByID: state.projects.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
 });
 
 const actionCreators = { getSample, listVersions };
@@ -101,6 +103,7 @@ const SampleDetailsContent = ({
   indicesByID,
   usersByID,
   projectsByID,
+  coordinatesByID,
   getSample,
   listVersions
 }) => {
@@ -239,7 +242,9 @@ const SampleDetailsContent = ({
                 </Link>
               }
             </Descriptions.Item>
-            <Descriptions.Item label="Coordinates">{sample.coordinates || "—"}</Descriptions.Item>
+            <Descriptions.Item label="Coordinates">
+              {(sample.coordinate && withCoordinate(coordinatesByID, sample.coordinate, coordinate => coordinate.name, "Loading...")) || "—"}
+            </Descriptions.Item>
             <Descriptions.Item label="QC Flag">
               {flags.quantity !== null && flags.quality !== null
                 ? <QCFlag flags={flags} />

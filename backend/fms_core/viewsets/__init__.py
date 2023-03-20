@@ -35,6 +35,7 @@ from .sample_next_step import SampleNextStepViewSet
 from .step import StepViewSet
 from .sample_next_step_by_study import SampleNextStepByStudyViewSet
 from .step_history import StepHistoryViewSet
+from .coordinate import CoordinateViewSet
 
 __all__ = [
     "ContainerViewSet",
@@ -74,4 +75,5 @@ __all__ = [
     "StepViewSet",
     "SampleNextStepByStudyViewSet",
     "StepHistoryViewSet",
+    "CoordinateViewSet",
 ]

@@ -15,7 +15,7 @@ import api, {withToken}  from "../../utils/api"
 import {listTable, setFilter, setFilterOption, clearFilters, setSortBy, clearSortBy} from "../../modules/libraries/actions";
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withIndex} from "../../utils/withItem";
+import {withContainer, withCoordinate, withIndex} from "../../utils/withItem";
 import {LIBRARY_FILTERS} from "../filters/descriptions";
 import getFilterProps from "../filters/getFilterProps";
 import getNFilters from "../filters/getNFilters";
@@ -23,7 +23,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 import {TOGGLE_OPTIONS} from "../../constants.js"
 
-const getTableColumns = (containersByID, indicesByID, projectsByID, toggleOption) => [
+const getTableColumns = (containersByID, indicesByID, projectsByID, coordinatesByID, toggleOption) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -74,8 +74,9 @@ const getTableColumns = (containersByID, indicesByID, projectsByID, toggleOption
     },
     {
       title: "Coords",
-      dataIndex: "coordinates",
+      dataIndex: "coordinate__name",
       sorter: true,
+      render: (_, library) => (library.coordinate && withCoordinate(coordinatesByID, library.coordinate, coordinate => coordinate.name, "loading...")),
       width: 70,
     },
     {
@@ -187,6 +188,7 @@ const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
   projectsByID: state.projects.itemsByID,
   indicesByID: state.indices.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
   sortBy: state.samples.sortBy,
 });
 
@@ -205,6 +207,7 @@ const LibrariesListContent = ({
   containersByID,
   projectsByID,
   indicesByID,
+  coordinatesByID,
   sortBy,
   listTable,
   setFilter,
@@ -230,7 +233,7 @@ const LibrariesListContent = ({
   }
   // Show both libraries and pools as default
   const [toggleOption, setToggleOption] = useState(getCurrentToggleOption());
-  const [columns, setColumns] = useState(getTableColumns(containersByID, indicesByID, projectsByID, toggleOption));
+  const [columns, setColumns] = useState(getTableColumns(containersByID, indicesByID, projectsByID, coordinatesByID, toggleOption));
 
   const listExport = () =>
     withToken(token, api.libraries.listExport)
@@ -247,7 +250,7 @@ const LibrariesListContent = ({
   // Listen to the changes in toggle to get new columns and set filters accordingly
   useEffect(() => {
     // Get the new columns depending on the new option
-    setColumns(getTableColumns(containersByID, indicesByID, projectsByID, toggleOption))
+    setColumns(getTableColumns(containersByID, indicesByID, projectsByID, coordinatesByID, toggleOption))
 
     // Only apply filters if the new selected option is different from the current one
     if (getCurrentToggleOption() !== toggleOption){

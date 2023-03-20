@@ -23,7 +23,7 @@ class SampleTest(TestCase):
         self.assertEqual(sample.container_kind, "tube")
         self.assertEqual(sample.container_name, "TestTube01")
         self.assertIsNone(sample.container_location)
-        self.assertEqual(sample.context_sensitive_coordinates, "")
+        self.assertIsNone(sample.context_sensitive_coordinates)
         self.assertIsNone(sample.source_depleted)  # Source depleted is invalid here - not an extracted sample
         self.assertEqual(sample.comment, "This is a sample.")
 
@@ -42,7 +42,7 @@ class SampleTest(TestCase):
                     # Should not be able to create a sample in the same place
                     Sample.objects.create(**create_sample(container=plate_container, coordinates="A11", name="test_sample_02"))
                 except ValidationError as e:
-                    self.assertIn("container", e.message_dict)
+                    self.assertIn("coordinate", e.message_dict)
                     raise e
 
         self.assertEqual(Sample.objects.count(), 2)

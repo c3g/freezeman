@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ..utils import RE_SEPARATOR
 
-from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata
+from fms_core.models import Sample, Container, Biosample, DerivedSample, DerivedBySample, SampleMetadata, Coordinate
 from fms_core.serializers import SampleSerializer, SampleExportSerializer
 
 from fms_core.template_importer.importers import SampleSubmissionImporter, SampleUpdateImporter, SampleQCImporter, SampleMetadataImporter, SamplePoolingImporter
@@ -67,7 +67,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         **_sample_filterset_fields,
     }
 
-    filter_class = SampleFilter
+    filterset_class = SampleFilter
 
     template_action_list = [
         {
@@ -186,7 +186,7 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         biosample_data = dict(
             **(dict(collection_site=full_sample_data['collection_site']) if full_sample_data['collection_site'] is not None else dict()),
             **(dict(individual_id=full_sample_data['individual']) if full_sample_data['individual'] is not None else dict()),
-            **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else dict()),
+            **(dict(alias=full_sample_data['alias']) if full_sample_data['alias'] is not None else dict(alias=full_sample_data['name'])),
         )
 
         try:
@@ -202,16 +202,17 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
 
             derived_sample = DerivedSample.objects.create(**derived_sample_data)
 
+            if full_sample_data['coordinate'] is not None and not Coordinate.objects.filter(id=full_sample_data['coordinate']).exists():
+                raise ValidationError({"coordinate": "Coordinates do not exist."})
+
             sample_data = dict(
                 name=full_sample_data['name'],
                 volume=full_sample_data['volume'],
                 creation_date=full_sample_data['creation_date'],
                 container_id=full_sample_data['container'],
                 **(dict(comment=full_sample_data['comment']) if full_sample_data['comment'] is not None else dict()),
-                **(dict(coordinates=full_sample_data['coordinates']) if full_sample_data[
-                                                                            'coordinates'] is not None else dict()),
-                **(dict(concentration=full_sample_data['concentration']) if full_sample_data[
-                                                                                'concentration'] is not None else dict()),
+                **(dict(coordinate_id=full_sample_data['coordinate']) if full_sample_data['coordinate'] is not None else dict()),
+                **(dict(concentration=full_sample_data['concentration']) if full_sample_data['concentration'] is not None else dict()),
             )
 
             sample = Sample.objects.create(**sample_data)
@@ -235,13 +236,16 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
     def update(self, request, *args, **kwargs):
         full_sample = request.data
 
+        if full_sample['coordinate'] is not None and not Coordinate.objects.filter(id=full_sample['coordinate']).exists():
+            raise ValidationError({"coordinate": "Coordinates do not exist."})
+
         sample_data = dict(
             name=full_sample['name'],
             volume=full_sample['volume'],
             creation_date=full_sample['creation_date'],
             container_id=full_sample['container'],
+            coordinate_id=full_sample['coordinate'],
             **(dict(comment=full_sample['comment']) if full_sample['comment'] is not None else dict()),
-            **(dict(coordinates=full_sample['coordinates']) if full_sample['coordinates'] is not None else dict()),
             **(dict(concentration=full_sample['concentration']) if full_sample['concentration'] is not None else dict()),
         )
 
@@ -367,14 +371,15 @@ class SampleViewSet(viewsets.ModelViewSet, TemplateActionsMixin, TemplatePrefill
         search_input = _request.GET.get("q")
         is_exact_match = _request.GET.get("exact_match") == 'true'
 
-        if is_exact_match:
-            query = Q(name=search_input)
-            query.add(Q(id=search_input), Q.OR)
-        else:
-            query = Q(name__icontains=search_input)
-            query.add(Q(id__icontains=search_input), Q.OR)
+        if search_input:
+            if is_exact_match:
+                query = Q(name=search_input)
+                query.add(Q(id=search_input), Q.OR)
+            else:
+                query = Q(name__icontains=search_input)
+                query.add(Q(id__icontains=search_input), Q.OR)
+            self.queryset = self.get_queryset().filter(query)            
 
-        self.queryset = self.get_queryset().filter(query)
         serialized_data, count = self.fetch_data()
         return Response({"results": serialized_data, "count": count})
 

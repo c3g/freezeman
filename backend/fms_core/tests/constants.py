@@ -1,22 +1,24 @@
-from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample, Taxon
+from ..models import Individual, Biosample, DerivedSample, DerivedBySample, Sample, Taxon, Coordinate
 import datetime
 
-def create_container(barcode, location=None, coordinates="", kind="tube rack 8x12", name='TestRack001'):
+def create_container(barcode, location=None, coordinates=None, kind="tube rack 8x12", name='TestRack001'):
+    coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
     return dict(
         kind=kind,
         name=name,
         barcode=barcode,
-        coordinates=coordinates,
+        coordinate=coordinate,
         location=location,
         comment=''
     )
 
-def create_sample_container(kind, name, barcode, coordinates='', location=None):
+def create_sample_container(kind, name, barcode, coordinates=None, location=None):
+    coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
     return dict(
         kind=kind,
         name=name,
         barcode=barcode,
-        coordinates=coordinates,
+        coordinate=coordinate,
         location=location,
         comment=''
     )
@@ -37,28 +39,30 @@ def create_derivedsample(biosample, sample_kind, **kwargs):
         **kwargs
     }
 
-def create_sample(container, coordinates='', **kwargs):
+def create_sample(container, coordinates=None, **kwargs):
+    coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
     return {
         "name": 'test_sample_01',
         "volume": 5000,
         "container": container,
-        "coordinates": coordinates,
+        "coordinate": coordinate,
         "creation_date": datetime.datetime.today(),
         "comment": "",
         **kwargs
     }
 
-def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates="", tissue_source=None, concentration=None):
+def create_fullsample(name, alias, volume, individual, sample_kind, container, coordinates=None, tissue_source=None, concentration=None):
     biosample = Biosample.objects.create(individual=individual, alias=alias if alias else name, collection_site="Site1")
     derivedsample = DerivedSample.objects.create(biosample=biosample,
                                                  sample_kind=sample_kind,
                                                  experimental_group=["EG01"],
                                                  tissue_source=tissue_source)
+    coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
     sample = Sample.objects.create(name=name,
                                    volume=volume,
                                    concentration=concentration,
                                    container=container,
-                                   coordinates=coordinates,
+                                   coordinate=coordinate,
                                    creation_date=datetime.datetime.today())
     derivedbysample = DerivedBySample.objects.create(derived_sample=derivedsample, sample=sample, volume_ratio=1)
     return sample

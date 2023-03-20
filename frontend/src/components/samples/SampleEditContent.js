@@ -29,6 +29,9 @@ import { requiredRules, nameRules } from "../../constants";
 const searchSamples = (token, input) =>
   withToken(token, api.samples.search)(input).then(res => res.data.results)
 
+const searchCoordinates = (token, input, options) =>
+  withToken(token, api.coordinates.search)(input, options).then(res => res.data.results)
+
 const searchContainers = (token, input, options) =>
   withToken(token, api.containers.search)(input, { sample_holding: true, ...options }).then(res => res.data.results)
 
@@ -77,7 +80,6 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     })
   }
 
-
   /*
    * Sample Kind autocomplete
    */
@@ -113,6 +115,18 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   }
 
   /*
+    * Coordinate autocomplete
+    */
+
+  const [coordinateOptions, setCoordinateOptions] = useState([]);
+  const onFocusCoordinate = ev => { onSearchCoordinate(ev.target.value) }
+  const onSearchCoordinate = (input, options) => {
+    searchCoordinates(token, input, options).then(coordinates => {
+      setCoordinateOptions(coordinates.map(Options.renderCoordinate))
+    })
+  }
+
+  /*
    * Sample autocomplete
    */
 
@@ -142,6 +156,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, { exact_match: true })
     onSearchContainer(newData.container, { exact_match: true })
+    onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
@@ -185,6 +200,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
   const isTissueEnabled = formData?.sample_kind && sampleKind(formData?.sample_kind).is_extracted
+  const isCoordRequired = formData?.container
 
   return (
     <>
@@ -204,7 +220,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Form.Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
             <Input />
           </Form.Item>
-          <Form.Item label="Alias" {...props("alias")}>
+          <Form.Item label="Alias" {...props("alias")} extra="Defaults to the name if left empty.">
             <Input />
           </Form.Item>
           <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
@@ -243,8 +259,16 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onFocus={onFocusContainer}
             />
           </Form.Item>
-          <Form.Item label="Coordinates" {...props("coordinates")}>
-            <Input />
+          <Form.Item label="Coordinates" {...props("coordinate")}>
+          <Select
+              showSearch
+              allowClear
+              disabled={!isCoordRequired}
+              filterOption={false}
+              options={coordinateOptions}
+              onSearch={onSearchCoordinate}
+              onFocus={onFocusCoordinate}
+            />
           </Form.Item>
           <Form.Item label="Depleted" {...props("depleted")} valuePropName="checked">
             <Switch />
@@ -261,7 +285,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
           <Form.Item
             label="Conc. (ng/µL)"
             {...props("concentration")}
-            extra="Concentration in ng/µL. Required for nucleic acid samples."
+            extra="Concentration in ng/µL."
           >
             <InputNumber step={0.001} />
           </Form.Item>
@@ -317,6 +341,9 @@ function deserialize(values) {
     return undefined
   const newValues = { ...values }
 
+  if (!newValues.alias)
+    newValues.alias = null
+
   if (!newValues.tissue_source)
     newValues.tissue_source = null
 
@@ -326,13 +353,18 @@ function deserialize(values) {
   if (newValues.container)
     newValues.container = Number(newValues.container)
 
+  if (newValues.coordinate)
+    newValues.coordinate = Number(newValues.coordinate)
+
   if (newValues.sample_kind)
     newValues.sample_kind = Number(newValues.sample_kind)
 
   if (newValues.experimental_group === null)
     newValues.experimental_group = []
+
   if (newValues.creation_date)
     newValues.creation_date = moment(newValues.creation_date, 'YYYY-MM-DD')
+
   return newValues
 }
 
@@ -341,6 +373,9 @@ function serialize(values) {
 
   if (newValues.creation_date)
     newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')
+
+  if (!newValues.alias)
+    newValues.alias = null
 
   if (!newValues.tissue_source)
     newValues.tissue_source = null
@@ -353,6 +388,9 @@ function serialize(values) {
 
   if (newValues.container)
     newValues.container = Number(newValues.container)
+
+  if (!newValues.coordinate)
+    newValues.coordinate = null
 
   if (!newValues.comment)
     newValues.comment = ''

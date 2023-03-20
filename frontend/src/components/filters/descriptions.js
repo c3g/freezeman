@@ -49,9 +49,9 @@ export const SAMPLE_FILTERS = {
     label: "Projects ID",
     mode: "multiple",
   },
-  coordinates: {
+  coordinate__name: {
     type: FILTER_TYPE.INPUT,
-    key: "coordinates",
+    key: "coordinate__name",
     label: "Coordinates",
   },
   volume: {
@@ -179,9 +179,9 @@ export const CONTAINER_FILTERS = {
     mode: "multiple",
     placeholder: "All",
   },
-  coordinates: {
+  coordinate__name: {
     type: FILTER_TYPE.INPUT,
-    key: "coordinates",
+    key: "coordinate__name",
     label: "Coordinates",
   },
   location: {
@@ -447,9 +447,9 @@ export const LIBRARY_FILTERS = {
     recursive: true,
     batch: true,
   },
-  coordinates: {
+  coordinate__name: {
     type: FILTER_TYPE.INPUT,
-    key: "coordinates",
+    key: "coordinate__name",
     label: "Coordinates",
   },
   derived_samples__library__library_type__name: {

@@ -7,7 +7,7 @@ import { FilterDescription } from '../../../models/paged_items'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import SampleKindTag from '../../SampleKindTag'
-import { WithContainerRenderComponent, WithIndividualRenderComponent } from '../WithItemRenderComponent'
+import { WithContainerRenderComponent, WithIndividualRenderComponent, WithCoordinateRenderComponent } from '../WithItemRenderComponent'
 
 /*
 	Defines a set of Ant Table column descriptors for sample fields. Each column
@@ -139,7 +139,19 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 	[SampleColumnID.COORDINATES]: {
 		columnID: SampleColumnID.COORDINATES,
 		title: 'Coords',
-		dataIndex: ['sample', 'coordinates'],
+		dataIndex: ['sample', 'coordinate'],
+    render: (_, { sample }) => {
+			return (
+				sample &&
+				sample.coordinate && (
+					<WithCoordinateRenderComponent
+						objectID={sample.coordinate}
+						placeholder={<span>loading...</span>}
+						render={(coordinate) => <span>{coordinate.name}</span>}
+					/>
+				)
+			)
+		},
 	},
 
 	[SampleColumnID.VOLUME]: {
@@ -292,7 +304,7 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.INDIVIDUAL]: 'sample__derived_samples__biosample__individual__name',
 	[SampleColumnID.CONTAINER_NAME]: 'sample__container__name',
 	[SampleColumnID.CONTAINER_BARCODE]: 'sample__container__barcode',
-	[SampleColumnID.COORDINATES]: 'sample__coordinates',
+	[SampleColumnID.COORDINATES]: 'sample__coordinate__name',
 	[SampleColumnID.VOLUME]: 'sample__volume',
 	[SampleColumnID.CONCENTRATION]: 'sample__concentration',
 	[SampleColumnID.CREATION_DATE]: 'sample__creation_date',

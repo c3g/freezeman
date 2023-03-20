@@ -32,7 +32,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         "sample__coordinates",
     }
 
-    filter_class = SampleNextStepFilter
+    filterset_class = SampleNextStepFilter
 
     queryset = queryset.annotate(
         qc_flag=Case(

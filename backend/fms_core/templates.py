@@ -95,7 +95,7 @@ EXPERIMENT_INFINIUM_TEMPLATE = {
   "prefill info": [
       ("Samples", "Source Sample Name", "name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinates", "coordinates"),],
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),],
 }
 
 EXPERIMENT_MGI_TEMPLATE = {
@@ -107,7 +107,7 @@ EXPERIMENT_MGI_TEMPLATE = {
   "prefill info": [
       ("Samples", "Source Sample Name", "name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinates", "coordinates"),],
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),],
 }
 
 EXPERIMENT_ILLUMINA_TEMPLATE = {
@@ -119,7 +119,7 @@ EXPERIMENT_ILLUMINA_TEMPLATE = {
   "prefill info": [
       ("Samples", "Source Sample Name", "name", "name"),
       ("Samples", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Source Container Coordinates", "coordinates", "coordinates"),],
+      ("Samples", "Source Container Coordinates", "coordinate__name", "coordinates"),],
 }
 
 INDEX_CREATION_TEMPLATE = {
@@ -161,7 +161,7 @@ LIBRARY_CAPTURE_TEMPLATE = {
   "prefill info": [
       ("Library", "Library Name", "name", "name"),
       ("Library", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Source Container Coordinates", "coordinates", "coordinates"),],
+      ("Library", "Source Container Coordinates", "coordinate__name", "coordinates"),],
 }
 
 LIBRARY_CONVERSION_TEMPLATE = {
@@ -192,7 +192,7 @@ LIBRARY_CONVERSION_TEMPLATE = {
   "prefill info": [
       ("Library", "Library Source Name", "name", "name"),
       ("Library", "Library Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Library Source Container Coordinates", "coordinates", "coordinates"),
+      ("Library", "Library Source Container Coordinates", "coordinate__name", "coordinates"),
       ("Library", "Library Source Concentration (ng/uL)", "concentration", "concentration"),
       ("Library", "Library Size (bp)", "derived_samples__library__library_size", "library_size"),
 
@@ -227,7 +227,7 @@ LIBRARY_PREPARATION_TEMPLATE = {
   "prefill info": [
       ("Library", "Sample Name", "name", "name"),
       ("Library", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Library", "Sample Container Coordinates", "coordinates", "coordinates"),],
+      ("Library", "Sample Container Coordinates", "coordinate__name", "coordinates"),],
 }
 
 LIBRARY_QC_TEMPLATE = {
@@ -248,7 +248,7 @@ LIBRARY_QC_TEMPLATE = {
   "prefill info": [
     ("LibraryQC", "Library Name", "name", "name"),
     ("LibraryQC", "Library Container Barcode", "container__barcode", "container_barcode"),
-    ("LibraryQC", "Library Container Coord", "coordinates", "coordinates"),
+    ("LibraryQC", "Library Container Coord", "coordinate__name", "coordinates"),
     ("LibraryQC", "Initial Volume (uL)", "volume", "volume"),
     ("LibraryQC", "Strandedness", "sample_strandedness", "strandedness"),
     ],
@@ -273,7 +273,7 @@ NORMALIZATION_TEMPLATE = {
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Normalization", "Source Container Coord", "coordinates", "coordinates"),
+      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
       ("Normalization", "Initial Conc. (ng/uL)", "concentration", "concentration"),
   ],
 }
@@ -304,7 +304,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
   "prefill info": [
       ("Normalization", "Sample Name", "name", "name"),
       ("Normalization", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("Normalization", "Source Container Coord", "coordinates", "coordinates"),
+      ("Normalization", "Source Container Coord", "coordinate__name", "coordinates"),
   ],
 }
 
@@ -321,7 +321,7 @@ SAMPLE_METADATA_TEMPLATE = {
   "prefill info": [
       ("Metadata", "Sample Name", "name", "name"),
       ("Metadata", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Metadata", "Sample Container Coordinates", "coordinates", "coordinates"),
+      ("Metadata", "Sample Container Coordinates", "coordinate__name", "coordinates"),
   ],
 }
 
@@ -350,7 +350,7 @@ SAMPLE_POOLING_TEMPLATE = {
   "prefill info": [
       ("SamplesToPool", "Source Sample Name", "name", "name"),
       ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("SamplesToPool", "Source Container Coord", "coordinates", "coordinates"),],
+      ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates"),],
 }
 
 SAMPLE_SUBMISSION_TEMPLATE = {
@@ -393,7 +393,7 @@ SAMPLE_UPDATE_TEMPLATE = {
   "prefill info": [
       ("SampleUpdate", "Sample Name", "name", "name"),
       ("SampleUpdate", "Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleUpdate", "Coord (if plate)", "coordinates", "coordinates"),],
+      ("SampleUpdate", "Coord (if plate)", "coordinate__name", "coordinates"),],
 }
 
 SAMPLE_QC_TEMPLATE = {
@@ -414,7 +414,7 @@ SAMPLE_QC_TEMPLATE = {
   "prefill info": [
       ("SampleQC", "Sample Name", "name", "name"),
       ("SampleQC", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleQC", "Sample Container Coord", "coordinates", "coordinates"),
+      ("SampleQC", "Sample Container Coord", "coordinate__name", "coordinates"),
       ("SampleQC", "Initial Volume (uL)", "volume", "volume"),],
 }
 
@@ -436,7 +436,7 @@ SAMPLE_EXTRACTION_TEMPLATE = {
   "prefill info": [
       ("ExtractionTemplate", "Source Sample Name", "name", "name"),
       ("ExtractionTemplate", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("ExtractionTemplate", "Source Container Coord", "coordinates", "coordinates"),],
+      ("ExtractionTemplate", "Source Container Coord", "coordinate__name", "coordinates"),],
 }
 
 SAMPLE_TRANSFER_TEMPLATE = {
@@ -457,7 +457,7 @@ SAMPLE_TRANSFER_TEMPLATE = {
   "prefill info": [
       ("SampleTransfer", "Source Sample Name", "name", "name"),
       ("SampleTransfer", "Source Container Barcode", "container__barcode", "container_barcode"),
-      ("SampleTransfer", "Source Container Coord", "coordinates", "coordinates"),],
+      ("SampleTransfer", "Source Container Coord", "coordinate__name", "coordinates"),],
 }
 
 SAMPLE_SELECTION_QPCR_TEMPLATE = {
@@ -477,7 +477,7 @@ SAMPLE_SELECTION_QPCR_TEMPLATE = {
   "prefill info": [
       ("Samples", "Sample Name", "name", "name"),
       ("Samples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("Samples", "Sample Container Coord", "coordinates", "coordinates"),],
+      ("Samples", "Sample Container Coord", "coordinate__name", "coordinates"),],
 }
 
 PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
@@ -493,5 +493,5 @@ PROJECT_STUDY_LINK_SAMPLES_TEMPLATE = {
   "prefill info": [
       ("ProjectLinkSamples", "Sample Name", "name", "name"),
       ("ProjectLinkSamples", "Sample Container Barcode", "container__barcode", "container_barcode"),
-      ("ProjectLinkSamples", "Sample Container Coord", "coordinates", "coordinates"),],
+      ("ProjectLinkSamples", "Sample Container Coord", "coordinate__name", "coordinates"),],
 }

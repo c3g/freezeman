@@ -36,6 +36,12 @@ const api = {
       get("/containers/search/", { q, parent, sample_holding, exact_match }),
   },
 
+  coordinates: {
+    get: coordinateId => get(`/coordinates/${coordinateId}/`),
+    list: (options, abort) => get("/coordinates/", options, { abort }),
+    search: (q, options) => get("/coordinates/search/", { q, ...options }),
+  },
+
   datasets: {
     get: id => get(`/datasets/${id}/`),
     list: (options, abort) => get("/datasets/", options, { abort }),
