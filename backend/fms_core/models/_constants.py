@@ -6,6 +6,7 @@ STANDARD_NAME_FIELD_LENGTH = 200
 STANDARD_COORDINATE_NAME_FIELD_LENGTH = 10 # Leaving extra length for eventual containers with large number of positions
 STANDARD_FILE_PATH_LENGTH = 4096
 STANDARD_SEQUENCE_FIELD_LENGTH = 500
+STANDARD_STRING_FIELD_LENGTH = 1000
 PROJECT_STATUS_CHOICES = ["Open", "Closed"]
 DOUBLE_STRANDED = 'Double stranded'
 SINGLE_STRANDED = 'Single stranded'
@@ -20,6 +21,11 @@ class ReleaseStatus(models.IntegerChoices):
     AVAILABLE = 0
     RELEASED = 1
     BLOCKED = 2
+
+class ValidationStatus(models.IntegerChoices):
+    AVAILABLE = 0
+    PASSED = 1
+    FAILED = 2
 
 class SampleType(models.TextChoices):
     ANY = "ANY", "Any"
