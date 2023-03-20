@@ -204,14 +204,16 @@ export const UNDEFINED_FILTER_KEY = 'UNDEFINED_FILTER_KEY'
 // Initializes the sample KIND options with the sample kinds in the redux store.
 function getSampleKindOptions() {
 	const sampleKinds = selectSampleKindsByID(store.getState())
-	const options = Object.values(sampleKinds).map((sampleKind) => {
-		return {
-			label: sampleKind.name,
-			value: sampleKind.name
-
-		}
-	})
-	return options
+	if (sampleKinds) {
+		const options = Object.values(sampleKinds).map((sampleKind) => {
+			return {
+				label: sampleKind.name,
+				value: sampleKind.name
+	
+			}
+		})
+		return options
+	}return []
 }
 
 export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription } = {
