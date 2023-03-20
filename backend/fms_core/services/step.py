@@ -61,7 +61,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
                         match = (template_step_specification.upper() == step_specification.value.upper())
                     else:
                         match = False
-                        errors.append(f"The specification field [{step_specification.column_name}] is empty.")
+                        errors.append(f"Association to candidate step {candidate_step.name}: the specification field [{step_specification.column_name}] is empty.")
                     if step_specification.sheet_name == sample_sheet_name:
                         sample_sheet_matches[row_id].append(match)
                     else:
