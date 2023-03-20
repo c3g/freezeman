@@ -1,21 +1,13 @@
-import { FMSId, FMSSampleNextStepByStudy } from "./fms_api_models"
-import { Study, Workflow } from "./frontend_models"
+import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory } from "../../models/fms_api_models"
+import { Study, Workflow } from "../../models/frontend_models"
+import { StudySampleList, StudySampleStep } from "./models"
 
-export interface StudySampleList {
-	sampleList: FMSId[]
-	steps: StudySampleStep[]
-}
 
-export interface StudySampleStep {
-	stepID:	FMSId					// step ID
-	stepName: string				// step name
-  	stepOrderID: FMSId      // step order ID
-	stepOrder: number				// step order
-	protocolID: FMSId				// protocol ID
-	samples: FMSId[]				// List of samples at step
-}
-
-export function buildStudySamplesFromWorkflow(study: Study, workflow: Workflow, sampleNextStepsByStudy: FMSSampleNextStepByStudy[]) : StudySampleList {
+export function buildStudySamplesFromWorkflow(
+	study: Study, 
+	workflow: Workflow, 
+	sampleNextStepsByStudy: FMSSampleNextStepByStudy[],
+	completedSamplesByStudy: FMSStepHistory[]) : StudySampleList {
 	const sampleList : FMSId[] = []
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
@@ -25,10 +17,11 @@ export function buildStudySamplesFromWorkflow(study: Study, workflow: Workflow, 
 			const step : StudySampleStep = {
 				stepID: stepOrder.step_id,
 				stepName: stepOrder.step_name,
-        stepOrderID: stepOrder.id,
+        		stepOrderID: stepOrder.id,
 				stepOrder: stepOrder.order,
 				protocolID: stepOrder.protocol_id,
-				samples: []
+				samples: [],
+				completedSamples: []
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
@@ -47,6 +40,14 @@ export function buildStudySamplesFromWorkflow(study: Study, workflow: Workflow, 
 		}
 	})
 
+	completedSamplesByStudy.forEach(completedSample => {
+		const step = stepMap.get(completedSample.step_order)
+		if (step) {
+			step.completedSamples.push(completedSample.sample)
+			sampleList.push(completedSample.sample)
+		}
+	})
+
 	// Return the steps in the step order
 	const steps = Array.from(stepMap.values()).sort((a, b) => a.stepOrder - b.stepOrder)
 
@@ -55,5 +56,3 @@ export function buildStudySamplesFromWorkflow(study: Study, workflow: Workflow, 
 		steps
 	}
 }
-
-

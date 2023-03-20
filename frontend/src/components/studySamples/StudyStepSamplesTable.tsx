@@ -1,7 +1,7 @@
 import React from 'react'
 import { useAppSelector } from '../../hooks'
 import { Protocol } from '../../models/frontend_models'
-import { StudySampleStep } from '../../models/study_samples'
+import { StudySampleStep } from '../../modules/studySamples/models'
 import { selectProtocolsByID, selectStepsByID } from '../../selectors'
 import { getColumnsForStep } from '../shared/WorkflowSamplesTable/ColumnSets'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
@@ -9,10 +9,11 @@ import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamples
 
 
 interface StudyStepSamplesTableProps {
-	step: StudySampleStep
+	step: StudySampleStep,
+	showCompleted: boolean
 }
 
-function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
+function StudyStepSamplesTable({step, showCompleted} : StudyStepSamplesTableProps) {
 
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
@@ -27,10 +28,12 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 	}
 
 	const columns = getColumnsForStep(stepDefinition, protocol)
+
+	const samplesToDisplay = showCompleted ? step.completedSamples : step.samples
 	
 	return (
 		<WorkflowSamplesTable
-			sampleIDs={step.samples ?? []}
+			sampleIDs={samplesToDisplay ?? []}
 			columns={columns}
 		/>
 	)

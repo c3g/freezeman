@@ -234,6 +234,10 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  stepHistory: {
+    getCompletedSamplesForStudy: (studyId) => get('/step-histories/', {study__id__in: studyId}),
+  },
+
   steps: {
     list: (options, abort) => get('/steps/', options, { abort} ),
   },

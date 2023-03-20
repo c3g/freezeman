@@ -1,11 +1,11 @@
-import { FMSSample, FMSSampleNextStepByStudy } from '../../models/fms_api_models'
-import { buildStudySamplesFromWorkflow } from '../../models/study_samples'
+import { FMSSample, FMSSampleNextStepByStudy, FMSStepHistory } from '../../models/fms_api_models'
 import { selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
 import { list as listSamples } from '../samples/actions'
 import { list as listLibraries } from '../libraries/actions'
+import { buildStudySamplesFromWorkflow } from './services'
 
 export const GET_STUDY_SAMPLES = createNetworkActionTypes('STUDY_SAMPLES.GET_STUDY_SAMPLES')
 export const FLUSH_STUDY_SAMPLES = 'STUDY_SAMPLES.FLUSH_STUDY_SAMPLES'
@@ -43,10 +43,23 @@ export const getStudySamples = (studyID : number) => {
 
 		// Get the study samples
 		try {
-			const response = await dispatch(api.sampleNextStepByStudy.getStudySamples(studyID))
-			if (response.data.results) {
-				const sampleNextStepsByStudy = response.data.results as FMSSampleNextStepByStudy[]
-				const studySamples = buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy)
+			// TODO - better error handling
+			// Get samples that are waiting to be processed by a step
+			let sampleNextStepsByStudy : FMSSampleNextStepByStudy[] | undefined
+			const sampleNextStepResponse = await dispatch(api.sampleNextStepByStudy.getStudySamples(studyID))
+			if (sampleNextStepResponse.data.results) {
+				sampleNextStepsByStudy = sampleNextStepResponse.data.results as FMSSampleNextStepByStudy[]
+			}
+
+			// Get samples that have completed the process at a step
+			let completedSamplesByStudy : FMSStepHistory[] | undefined
+			const sampleHistoryResponse = await dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID))
+			if (sampleHistoryResponse.data.results) {
+				completedSamplesByStudy = sampleHistoryResponse.data.results as FMSStepHistory[]
+			}
+
+			if (sampleNextStepsByStudy && completedSamplesByStudy) {
+				const studySamples = buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy, completedSamplesByStudy)
 
 				// Fetch the study samples
 				if (studySamples.sampleList.length > 0) {

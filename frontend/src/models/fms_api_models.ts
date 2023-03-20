@@ -251,6 +251,13 @@ export interface FMSStep extends FMSTrackedModel {
     step_specifications: FMSStepSpecification[]
 }
 
+export interface FMSStepHistory extends FMSTrackedModel {
+    study: FMSId
+    step_order: number
+    process_measurement: FMSId
+    sample: FMSId
+}
+
 export interface FMSStepSpecification extends FMSTrackedModel {
     display_name: string
     sheet_name: string

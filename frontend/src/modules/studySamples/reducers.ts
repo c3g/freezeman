@@ -1,7 +1,7 @@
 import { AnyAction } from "redux";
-import { StudySampleList } from "../../models/study_samples";
 import { FetchedState } from "../common";
 import STUDY_SAMPLES from './actions'
+import { StudySampleList } from "./models"
 
 /* 
 	The studySamples state is used by the study details page to list the

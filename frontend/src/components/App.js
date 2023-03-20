@@ -153,9 +153,9 @@ const App = ({userID, usersByID, logOut, get}) => {
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
-  const tokenAccess = useAppSelector(selectAuthTokenAccess)
 
   useEffect(() => {
+
     async function loadInitialData() {
       await dispatch(fetchInitialData())
       dispatch(setAppInitialized())
@@ -164,7 +164,8 @@ const App = ({userID, usersByID, logOut, get}) => {
     loadInitialData()
     const interval = setInterval(() => {
       dispatch(fetchSummariesData())
-      if (tokenAccess) {
+      const checkAccess = useAppSelector(selectAuthTokenAccess)
+      if (checkAccess) {
         dispatch(refreshLabwork())
       }
     }, 30000);
