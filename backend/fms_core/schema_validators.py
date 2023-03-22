@@ -107,6 +107,7 @@ RUN_PROCESSING_SCHEMA = {
     "properties": {
         "run": {"type": "string"},
         "lane": {"type": "string", "pattern": str(r"^([1-9][0-9]*|0)$")},
+        "run_metrics_report_url": {"type": "string"},
         "readsets": {
             "type": "object",
             "patternProperties": {
@@ -130,8 +131,62 @@ RUN_PROCESSING_SCHEMA = {
                 },
             },
         },
+        "run_validation": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sample": {"type": "string"},
+                    "derived_sample_id": {"type": "integer"},
+                    "index": {
+                        "type": "object",
+                        "properties": {
+                            "pct_on_index_in_lane": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_of_the_lane": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_perfect_barcode": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pct_one_mismatch_barcode": {"type": "number", "minimum": 0, "maximum": 100},
+                            "pf_clusters": {"type": "integer"},
+                            "yield": {"type": "integer"},
+                            "mean_quality_score": {"type": "number"},
+                            "pct_q30_bases": {"type": "number", "minimum": 0, "maximum": 100},
+                        },
+                    },
+                    "qc": {
+                        "type": "object",
+                        "properties": {
+                            "avg_qual": {"type": "number"},
+                            "duplicate_rate": {"type": "number", "minimum": 0, "maximum": 100},
+                            "nb_reads": {"type": "integer"},
+                            "nb_bases": {"type": "integer"},
+                        },
+                    },
+                    "blast": {
+                        "type": "object",
+                        "properties": {
+                            "1st_hit": {"type": "string"},
+                            "2nd_hit": {"type": "string"},
+                            "3rd_hit": {"type": "string"},
+                        },
+                    },
+                    "alignment": {
+                        "type": "object",
+                        "properties": {
+                            "chimeras": {"type": "number"},
+                            "average_aligned_insert_size": {"type": "number"},
+                            "pf_read_alignment_rate": {"type": "number", "minimum": 0, "maximum": 100},
+                            "inferred_sex": {"type": "string"},
+                            "adapter_dimers": {"type": "integer"},
+                            "mean_coverage": {"type": "number"},
+                            "aligned_dup_rate": {"type": "number", "minimum": 0, "maximum": 100},
+                        },
+                    },
+                },
+                "required": ["sample", "derived_sample_id", "index", "qc", "blast", "alignment"]
+            },
+            "minItems": 1,
+        }
     },
-    "required": ["run", "lane", "readsets"],
+    "required": ["run", "lane", "run_metrics_report_url", "readsets", "run_validation"],
 }
 
 RUN_PROCESSING_VALIDATOR = JsonSchemaValidator(RUN_PROCESSING_SCHEMA, formats=["date-time"])

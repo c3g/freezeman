@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models._constants import ReleaseStatus
+from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 def create_dataset(external_project_id: str, run_name: str, lane: int, replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
@@ -95,3 +96,64 @@ def create_dataset_file(dataset: Dataset,
 
     return (dataset_file, errors, warnings)
 
+def ingest_run_validation_report(report_json):
+    """
+    Ingest information from a json formated report submitted at the end of the run processing.
+    The information provided pertaining to the data delivery (FASTQ and BAM file path)
+    and run validation (metrics tied to the run) are stored in freezeman.
+    
+    Args:
+        `report_json`: Content of the report in a valid json format.
+
+    Returns:
+        Tuple with the following content:
+        `datasets`: Datasets objects created from the content of the report.
+        `dataset_files`: Datasets_files created from the content of the report.
+        `errors`: Errors generated during the processing.
+        `warnings`: Warnings generated during the processing.
+    """
+    datasets = {}
+    dataset_files = []
+    errors = []
+    warnings = []
+
+    for error in RUN_PROCESSING_VALIDATOR.validator.iter_errors(report_json):
+        if error.path[0] == "lane":
+            errors.append(f'Lane must be a positive integer (e.g. "0", "1", ..., .etc). It was given "{report_json["lane"]}".')
+        else:
+            path = "".join(f'["{p}"]' for p in error.path)
+            msg = f"{path}: {error.message}" if error.path else error.message
+            errors.append(msg)
+    if errors:
+        return (datasets, dataset_files, errors, warnings)
+
+    for readset in report_json["readsets"].values():
+        external_project_id = readset["barcodes"][0]["PROJECT"]
+        run_name = report_json["run"]
+        lane = int(report_json["lane"])
+        dataset_key = (external_project_id, run_name, lane)
+        if dataset_key not in datasets:
+            dataset, errors, warnings = create_dataset(external_project_id=external_project_id, run_name=run_name, lane=lane, replace=True)
+        if errors:
+            return (datasets, dataset_files, errors, warnings)
+        else:
+            datasets[dataset_key] = dataset
+
+        dataset = datasets[dataset_key]
+
+        for key in readset:
+            if key not in ["sample_name", "barcodes"] and readset[key]:
+                dataset_file, newerrors, newwarnings = create_dataset_file(
+                    dataset=dataset,
+                    file_path=readset[key],
+                    sample_name=readset["sample_name"],
+                )
+                errors.extend(newerrors)
+                warnings.extend(newwarnings)
+
+                if errors:
+                    return (datasets, dataset_files, errors, warnings)
+                else:
+                    dataset_files.append(dataset_file)
+    
+    return (datasets, dataset_files, errors, warnings)
