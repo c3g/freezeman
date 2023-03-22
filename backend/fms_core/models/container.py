@@ -29,8 +29,8 @@ class Container(TrackedModel):
     kind = models.CharField(max_length=30,
                             choices=CONTAINER_KIND_CHOICES,
                             help_text="What kind of container this is. Dictates the coordinate system and other container-specific properties.")
-    name = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH,
-                            help_text="Unique name for the container.",
+    name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH,
+                            help_text="Name for the container.",
                             validators=[name_validator])
     barcode = models.CharField(unique=True, max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Unique container barcode.",
                                validators=[container_barcode_validator])

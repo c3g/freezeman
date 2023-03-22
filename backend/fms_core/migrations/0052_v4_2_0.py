@@ -100,4 +100,9 @@ class Migration(migrations.Migration):
             model_name='sample',
             name='coordinates',
         ),
+        migrations.AlterField(
+            model_name='container',
+            name='name',
+            field=models.CharField(help_text='Name for the container.', max_length=200, validators=[django.core.validators.RegexValidator(re.compile('^[a-zA-Z0-9.\\-_]{1,200}$'))]),
+        ),
     ]
