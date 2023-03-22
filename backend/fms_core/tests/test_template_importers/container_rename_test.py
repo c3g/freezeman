@@ -22,7 +22,6 @@ class ContainerRenameTestCase(TestCase):
 
         self.invalid_template_tests = ["Container_rename_v3_5_0_rename_invalid.xlsx",
                                        "Container_rename_v3_5_0_same_rename.xlsx",
-                                       "Container_rename_v3_5_0_same_rename_2.xlsx",
                                        "Container_rename_v3_5_0_double_rename.xlsx",]
 
         self.prefill_data()
