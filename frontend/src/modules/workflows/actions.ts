@@ -1,9 +1,9 @@
 import { ObjectId } from "../../models/frontend_models";
-import { createNetworkActionTypes, networkAction } from "../../utils/actions";
+import { networkAction } from "../../utils/actions";
 import api from "../../utils/api";
+import { GET, LIST } from "./reducers"
 
-export const GET = createNetworkActionTypes("WORKFLOWS.GET");
-export const LIST = createNetworkActionTypes("WORKFLOWS.LIST");
+
 
 export const get = (id : ObjectId )=> async (dispatch, getState) => {
     const workflow = getState().workflows.itemsByID[id];

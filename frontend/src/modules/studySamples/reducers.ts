@@ -1,7 +1,16 @@
 import { AnyAction } from "redux";
-import { FetchedState } from "../common";
-import STUDY_SAMPLES from './actions'
+import { createNetworkActionTypes } from "../../utils/actions"
+import { FetchedState } from "../common"
 import { StudySampleList } from "./models"
+
+// Define action types in the reducer to avoid a circular dependency between
+// the redux store ('store') and the actions. store.ts imports all reducers.
+// If an action needs to import store, but the reducer imports from the action file
+// then we end up with a circular dependency and the app fails to load with a webpack
+// module error.
+export const GET_STUDY_SAMPLES = createNetworkActionTypes('STUDY_SAMPLES.GET_STUDY_SAMPLES')
+export const FLUSH_STUDY_SAMPLES = 'STUDY_SAMPLES.FLUSH_STUDY_SAMPLES'
+export const SET_HIDE_EMPTY_STEPS = 'STUDY_SAMPLES.SET_HIDE_EMPTY_STEPS'
 
 /* 
 	The studySamples state is used by the study details page to list the
@@ -39,7 +48,7 @@ export const studySamples = (
 	action: AnyAction
 ) : StudySamplesState => {
 	switch(action.type) {
-		case STUDY_SAMPLES.GET_STUDY_SAMPLES.REQUEST: {
+		case GET_STUDY_SAMPLES.REQUEST: {
 			const studyID = action.meta.studyID
 			return {
 				...state,
@@ -52,7 +61,7 @@ export const studySamples = (
 			}
 		}
 
-		case STUDY_SAMPLES.GET_STUDY_SAMPLES.RECEIVE: {
+		case GET_STUDY_SAMPLES.RECEIVE: {
 			const studyID = action.meta.studyID
 			return {
 				...state,
@@ -66,7 +75,7 @@ export const studySamples = (
 			}
 		}
 
-		case STUDY_SAMPLES.GET_STUDY_SAMPLES.ERROR: {
+		case GET_STUDY_SAMPLES.ERROR: {
 			const studyID = action.meta.studyID
 			const studySamples = state.studySamplesById[studyID]
 			if (studySamples) {
@@ -84,7 +93,7 @@ export const studySamples = (
 			}
 			break
 		}
-		case STUDY_SAMPLES.FLUSH_STUDY_SAMPLES: {
+		case FLUSH_STUDY_SAMPLES: {
 			const newState = {
 				...state
 			}
@@ -92,7 +101,7 @@ export const studySamples = (
 			return newState
 		}
 
-		case STUDY_SAMPLES.SET_HIDE_EMPTY_STEPS: {
+		case SET_HIDE_EMPTY_STEPS: {
 			return {
 				...state,
 				hideEmptySteps: action.hideEmptySteps

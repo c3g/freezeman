@@ -246,6 +246,7 @@ const api = {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
+    list: (options, abort) => get('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies', { project__id: projectId})
   },
 

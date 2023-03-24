@@ -10,7 +10,8 @@
     "build-dev": "webpack --mode development",
     "lint": "eslint . --ext .ts,.tsx",
     "start": "webpack-dev-server --mode development",
-    "dev": "npm run lint --quiet && npm run start"
+    "dev": "npm run lint --quiet && npm run check && npm run start",
+    "check": "npx tsc -p ./.tsconfig"
   },
   "repository": {
     "type": "git",

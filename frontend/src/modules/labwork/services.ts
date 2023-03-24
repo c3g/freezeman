@@ -1,6 +1,6 @@
 import { FMSId, FMSLabworkSummary, WorkflowStep } from "../../models/fms_api_models"
 import { Workflow } from "../../models/frontend_models"
-import { LabworkStepGroup, LabworkSummary, LabworkSummaryProtocol, LabworkSummaryStep } from "../../models/labwork_summary"
+import { LabworkStepGroup, LabworkSummary, LabworkSummaryProtocol, LabworkSummaryStep } from "./models"
 
 
 let sortedProtocols: FMSId[] = []

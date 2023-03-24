@@ -1,8 +1,10 @@
 import { merge } from 'object-path-immutable'
+import { createNetworkActionTypes } from '../../utils/actions'
 
 import { indexByID } from '../../utils/objects'
 
-import WORKFLOWS from './actions'
+export const GET = createNetworkActionTypes("WORKFLOWS.GET");
+export const LIST = createNetworkActionTypes("WORKFLOWS.LIST");
 
 export const workflows = (
 	state = {
@@ -17,21 +19,21 @@ export const workflows = (
 	action
 ) => {
 	switch (action.type) {
-		case WORKFLOWS.GET.REQUEST:
+		case GET.REQUEST:
 			return merge(state, ['itemsByID', action.meta.id], { id: action.meta.id, isFetching: true })
-		case WORKFLOWS.GET.RECEIVE:
+		case GET.RECEIVE:
 			return merge(state, ['itemsByID', action.meta.id], { ...action.data, isFetching: false })
-		case WORKFLOWS.GET.ERROR:
+		case GET.ERROR:
 			return merge(state, ['itemsByID', action.meta.id], { error: action.error, isFetching: false, didFail: true })
 
-		case WORKFLOWS.LIST.REQUEST:
+		case LIST.REQUEST:
 			return { ...state, isFetching: true }
-		case WORKFLOWS.LIST.RECEIVE: {
+		case LIST.RECEIVE: {
 			const results = action.data.results.map(preprocess)
 			const itemsByID = merge(state.itemsByID, [], indexByID(results))
 			return { ...state, itemsByID, isFetching: false, error: undefined }
 		}
-		case WORKFLOWS.LIST.ERROR:
+		case LIST.ERROR:
 			return { ...state, isFetching: false, error: action.error }
 
 		default:

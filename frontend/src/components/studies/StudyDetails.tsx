@@ -1,4 +1,4 @@
-import { Descriptions, Typography } from 'antd'
+import { Descriptions, Space, Spin, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Study, Workflow } from '../../models/frontend_models'
@@ -51,11 +51,13 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                     setStudySamples(studyState.data)
                 }
             } else {
-                dispatch(getStudySamples(studyId))
+                if (study && workflow) {
+                    dispatch(getStudySamples(studyId))
+                }
             }
         }
 
-    }, [studiesById, workflowsById, projectsById, studySamplesState])
+    }, [studiesById, workflowsById, projectsById, studySamplesState, study, workflow])
 
     useEffect(() => {
         return () => {
@@ -81,11 +83,15 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
             </Descriptions>
-            { studySamples && 
+            { studySamples ? 
                 <StudySamples studySamples={studySamples}/>
+                :
+                <Space align='baseline'>
+                    <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
+                    { !studySamples && <Spin spinning={true}/> }
+                </Space>
             }
         </>
-        
     )
 }
 

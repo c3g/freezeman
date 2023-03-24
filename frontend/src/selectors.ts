@@ -1,4 +1,4 @@
-import { Index, ItemsByID, Library, Project, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
+import { Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
 import { StudySamplesByID } from "./modules/studySamples/reducers"
@@ -31,8 +31,11 @@ export const selectLabworkSummaryState = (state: RootState) => state.labworkSumm
 export const selectLibrariesByID = (state: RootState) => state.libraries.itemsByID as ItemsByID<Library>
 export const selectLibraryTemplateActions = (state: RootState) => state.libraryTemplateActions
 export const selectPageSize = (state: RootState) => state.pagination.pageSize
+export const selectProcessesByID = (state: RootState) => state.processes.itemsByID as ItemsByID<Process>
+export const selectProcessMeasurementsByID = (state: RootState) => state.processMeasurements.itemsByID as ItemsByID<ProcessMeasurement>
 export const selectProcessMeasurementTemplateActions = (state: RootState) => state.processMeasurementTemplateActions
 export const selectProjectsByID = (state: RootState) => state.projects.itemsByID as ItemsByID<Project>
+export const selectPropertyValuesByID = (state: RootState) => state.propertyValues.itemsByID as ItemsByID<PropertyValue>
 export const selectProtocolsByID = (state: RootState) => state.protocols.itemsByID as ItemsByID<Protocol>
 export const selectReferenceGenomesByID = (state: RootState) => state.referenceGenomes.itemsByID as ItemsByID<ReferenceGenome>
 export const selectSamplesByID = (state: RootState) => state.samples.itemsByID as ItemsByID<Sample>

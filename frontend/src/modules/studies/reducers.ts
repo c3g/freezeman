@@ -1,10 +1,17 @@
 import { merge } from 'object-path-immutable'
 import { ItemsByID, Study } from '../../models/frontend_models'
+import { createNetworkActionTypes } from '../../utils/actions'
 import { indexByID } from '../../utils/objects'
 
 import { resetTable } from '../../utils/reducers'
 
 import STUDIES from './actions'
+
+export const GET = createNetworkActionTypes('STUDIES.GET')
+export const ADD = createNetworkActionTypes('STUDIES.ADD')
+export const UPDATE = createNetworkActionTypes('STUDIES.UPDATE')
+export const LIST = createNetworkActionTypes('STUDIES.LIST')
+export const LIST_PROJECT_STUDIES = createNetworkActionTypes('STUDIES.LIST_PROJECT_STUDIES')
 
 
 interface StudiesState {

@@ -9,11 +9,11 @@ import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamples
 
 
 interface StudyStepSamplesTableProps {
-	step: StudySampleStep,
-	showCompleted: boolean
+	step: StudySampleStep
 }
 
-function StudyStepSamplesTable({step, showCompleted} : StudyStepSamplesTableProps) {
+
+function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 
 	const protocolsByID = useAppSelector(selectProtocolsByID)
 	const stepsByID = useAppSelector(selectStepsByID)
@@ -27,13 +27,11 @@ function StudyStepSamplesTable({step, showCompleted} : StudyStepSamplesTableProp
 		return null
 	}
 
-	const columns = getColumnsForStep(stepDefinition, protocol)
-
-	const samplesToDisplay = showCompleted ? step.completedSamples : step.samples
+	const columns = getColumnsForStep(stepDefinition, protocol)	
 	
 	return (
 		<WorkflowSamplesTable
-			sampleIDs={samplesToDisplay ?? []}
+			sampleIDs={step.samples ?? []}
 			columns={columns}
 		/>
 	)

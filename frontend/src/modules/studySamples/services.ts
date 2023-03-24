@@ -1,13 +1,80 @@
 import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory } from "../../models/fms_api_models"
-import { Study, Workflow } from "../../models/frontend_models"
-import { StudySampleList, StudySampleStep } from "./models"
+import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
+import store from "../../store"
+import api from "../../utils/api"
+import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
+import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
+enum StudySamplesErrorCode {
+	DEPENDENCY_NOT_FOUND,
+	DEPENDENCY_NOT_READY,
+	FETCH_ERROR
+}
 
-export function buildStudySamplesFromWorkflow(
+export class StudySamplesError extends Error {
+
+	constructor(public readonly code: StudySamplesErrorCode, message: string) {
+		super(message)
+	}
+}
+
+export async function loadStudySamples(studyID: FMSId) {
+	
+	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
+	if(! study) {
+		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_FOUND, `Study "${studyID}" not found.`)
+	}
+	if (study.isFetching) {
+		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, 'Cannot load study samples - study is still fetching.')
+	}
+
+	const workflow = (await fetchWorkflows([study.workflow_id])).find(wf => wf.id === study.workflow_id)
+	if(! workflow) {
+		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_FOUND, `Workflow "${study.workflow_id}" not found.`)
+	}
+	if (workflow.isFetching) {
+		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, `Cannot load study samples - workflow is still fetching`)
+	}
+	
+	// Get the study samples
+	// Get samples that are waiting to be processed by a step
+	let sampleNextStepsByStudy : FMSSampleNextStepByStudy[] | undefined
+	const sampleNextStepResponse = await store.dispatch(api.sampleNextStepByStudy.getStudySamples(studyID))
+	if (sampleNextStepResponse.data.results) {
+		sampleNextStepsByStudy = sampleNextStepResponse.data.results as FMSSampleNextStepByStudy[]
+	} else {
+		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch study samples')
+	}
+
+	// Get samples that have completed the process at a step
+	let completedSamplesByStudy : FMSStepHistory[] | undefined
+	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID))
+	if (sampleHistoryResponse.data.results) {
+		completedSamplesByStudy = sampleHistoryResponse.data.results as FMSStepHistory[]
+	} else {
+		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch completed samples for study')
+	}
+
+	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy, completedSamplesByStudy)
+
+	// Fetch the study samples
+	if (studySamples.sampleList.length > 0) {
+
+		const samples = await fetchSamples(studySamples.sampleList)
+		if (samples.length > 0) {
+			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
+			await fetchLibrariesForSamples(sampleIDs)
+		}
+	}
+	return studySamples
+}
+
+export async function buildStudySamplesFromWorkflow(
 	study: Study, 
 	workflow: Workflow, 
 	sampleNextStepsByStudy: FMSSampleNextStepByStudy[],
-	completedSamplesByStudy: FMSStepHistory[]) : StudySampleList {
+	completedSamplesByStudy: FMSStepHistory[]) : Promise<StudySampleList> {
+
 	const sampleList : FMSId[] = []
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
@@ -21,7 +88,7 @@ export function buildStudySamplesFromWorkflow(
 				stepOrder: stepOrder.order,
 				protocolID: stepOrder.protocol_id,
 				samples: [],
-				completedSamples: []
+				completed: []
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
@@ -40,11 +107,41 @@ export function buildStudySamplesFromWorkflow(
 		}
 	})
 
-	completedSamplesByStudy.forEach(completedSample => {
-		const step = stepMap.get(completedSample.step_order)
+	// Get the process measurements for the completed samples
+	const processMeasurementIDs = completedSamplesByStudy.map(completed => completed.process_measurement)
+	const processMeasurements = await fetchProcessMeasurements(processMeasurementIDs)
+	const processMeasurementsByID = createItemsByID(processMeasurements)
+
+	// Get the processes for the completed samples
+	const processIDs = processMeasurements.map(pm => pm.process)
+	const processes = await fetchProcesses(processIDs)
+	const processesByID = createItemsByID(processes)
+
+	// Get the user ID's for the processes
+	const userIDs = processes.map(process => process.created_by)
+	const users = await fetchUsers(userIDs)
+	const usersByID = createItemsByID(users)
+
+	completedSamplesByStudy.forEach(stepHistory => {
+		const step = stepMap.get(stepHistory.step_order)
 		if (step) {
-			step.completedSamples.push(completedSample.sample)
-			sampleList.push(completedSample.sample)
+			const processMeasurement = processMeasurementsByID[stepHistory.process_measurement]
+			const process = processMeasurement ? processesByID[processMeasurement.process] : undefined
+			const user = process && process.created_by ? usersByID[process.created_by] : undefined
+			
+			const completedSample : CompletedStudySample = {
+				id: stepHistory.id,
+				sampleID: stepHistory.sample,
+				generatedSampleID: processMeasurement?.child_sample,
+				processID: processMeasurement?.process,
+				processMeasurementID: stepHistory.process_measurement,
+				executionDate: processMeasurement?.execution_date,
+				executedBy: user?.username,
+				comment: processMeasurement?.comment
+			}
+			step.completed.push(completedSample)
+
+			sampleList.push(stepHistory.sample)
 		}
 	})
 
