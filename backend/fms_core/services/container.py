@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.core.exceptions import ValidationError
-from fms_core.models import Container, Sample
+from fms_core.models import Container, Sample, Coordinate
 
 from ..containers import CONTAINER_KIND_SPECS
 from ..coordinates import CoordinateError
@@ -88,7 +88,7 @@ def is_container_valid_destination(barcode, coordinates=None, kind=None, name=No
                     container_spec.validate_and_normalize_coordinates(coordinates)
                 except CoordinateError as err:
                     errors.append(f"Sample coordinates {coordinates} are not valid for container kind {kind}.")
-                if container and Sample.objects.filter(container=container, coordinates=coordinates).exists():
+                if container and Sample.objects.filter(container=container, coordinate__name=coordinates).exists():
                     errors.append(f"Container coordinates {barcode}@{coordinates} already contain a sample.")
     else:
         errors.append(f"Barcode is required for any container.")
@@ -98,25 +98,26 @@ def is_container_valid_destination(barcode, coordinates=None, kind=None, name=No
 
     return (is_valid, errors, warnings)
 
-def get_or_create_container(barcode,
-                            kind=None, name=None, coordinates=None,
-                            container_parent=None, creation_comment=None):
+def get_or_create_container(barcode, kind=None, name=None, coordinates=None, container_parent=None, creation_comment=None):
     container = None
     created_entity = False
     errors = []
     warnings = []
 
     if barcode:
+        try:
+            coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
+        except Coordinate.DoesNotExist as err:
+            errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
         container_data = dict(
             **(dict(location=container_parent) if container_parent else dict()),
             **(dict(barcode=barcode) if barcode is not None else dict()),
             **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
-            **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+            **(dict(coordinate=coordinate) if coordinate is not None else dict()),
             **(dict(kind=kind) if kind is not None else dict()),
         )
 
         #TODO: check sample or container creation templates where only barcode OR name is required
-
         comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
 
         try:
@@ -150,8 +151,7 @@ def get_or_create_container(barcode,
 
     return (container, created_entity, errors, warnings)
 
-def create_container(barcode, kind,
-                     name=None, coordinates=None, container_parent=None, creation_comment=None):
+def create_container(barcode, kind, name=None, coordinates=None, container_parent=None, creation_comment=None):
     container = None
     errors = []
     warnings = []
@@ -160,13 +160,18 @@ def create_container(barcode, kind,
         if Container.objects.filter(barcode=barcode).exists():
             errors.append(f"Container with barcode {barcode} already exists.")
         else:
+            try:
+                coordinate = Coordinate.objects.get(name=coordinates) if coordinates is not None else None
+            except Coordinate.DoesNotExist as err:
+                errors.append(f"Provided coordinates {coordinates} are not valid (Coordinates format example: A01).")
             container_data = dict(
                 **(dict(location=container_parent) if container_parent else dict()),
                 **(dict(barcode=barcode) if barcode is not None else dict()),
                 **(dict(name=name) if name is not None else dict(name=barcode)), # By default, a container name will be his barcode
-                **(dict(coordinates=coordinates) if coordinates is not None else dict()),
+                **(dict(coordinate=coordinate) if coordinate is not None else dict()),
                 **(dict(kind=kind) if kind is not None else dict()),
             )
+
             comment = creation_comment or (f"Automatically generated on {datetime.utcnow().isoformat()}Z")
 
             if container_parent and CONTAINER_KIND_SPECS[container_parent.kind].requires_coordinates and not coordinates:
@@ -226,8 +231,14 @@ def move_container(container_to_move, destination_barcode,
         errors.append(f"Container {container_to_move.name } already is at container {destination_barcode} at coodinates {destination_coordinates}.")
         return (container_to_move, errors, warnings)
 
+    try:
+        destination_coordinate = Coordinate.objects.get(name=destination_coordinates) if destination_coordinates is not None else None
+    except Coordinate.DoesNotExist as err:
+        errors.append(f"Provided coordinates {destination_coordinates} are not valid (Coordinates format example: A01).")
+        return (container_to_move, errors, warnings)
+
     container_to_move.location = destination_container
-    container_to_move.coordinates = destination_coordinates if destination_coordinates else ""
+    container_to_move.coordinate = destination_coordinate if destination_coordinate is not None else None
     container_to_move.update_comment = update_comment
 
     try:

@@ -1,23 +1,30 @@
 from django.test import TestCase
 
 from fms_core.services import container, sample
-from fms_core.models import Container, SampleKind
+from fms_core.models import Container, SampleKind, Coordinate
 
-TEST_CONTAINERS = {"BARCODECONTAINER1": {"name":"CONTAINER1", "kind": "freezer rack 7x4", "location": "", "coordinates": ""},
-                   "BARCODECONTAINER2": {"name":"CONTAINER2", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinates": "A01"},
-                   "BARCODECONTAINER3": {"name":"CONTAINER3", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A01"},
-                   "BARCODECONTAINER8": {"name":"CONTAINER8", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinates": "A02"},
-                   "BARCODECONTAINER9": {"name":"CONTAINER9", "kind": "96-well plate", "location": "BARCODECONTAINER1", "coordinates": "A03"},}
 
-TEST_CONTAINERS_CREATION = {"BARCODECONTAINER4": {"name":"CONTAINER4", "kind": "tube", "location": "", "coordinates": ""},
-                            "BARCODECONTAINER5": {"name":"CONTAINER5", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A02"},
-                            "BARCODECONTAINER6": {"name":"CONTAINER6", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A03"},
-                            "BARCODECONTAINER7": {"name":"CONTAINER7", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": ""},}
 
 class ContainerServicesTestCase(TestCase):
     def setUp(self) -> None:
+        # Initialize coordinates
+        self.coord_A01 = Coordinate.objects.get(name="A01")
+        self.coord_A02 = Coordinate.objects.get(name="A02")
+        self.coord_A03 = Coordinate.objects.get(name="A03")
+
+        self.TEST_CONTAINERS = {"BARCODECONTAINER1": {"name":"CONTAINER1", "kind": "freezer rack 7x4", "location": "", "coordinate": None},
+                                "BARCODECONTAINER2": {"name":"CONTAINER2", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinate": self.coord_A01},
+                                "BARCODECONTAINER3": {"name":"CONTAINER3", "kind": "tube", "location": "BARCODECONTAINER2", "coordinate": self.coord_A01},
+                                "BARCODECONTAINER8": {"name":"CONTAINER8", "kind": "tube rack 8x12", "location": "BARCODECONTAINER1", "coordinate": self.coord_A02},
+                                "BARCODECONTAINER9": {"name":"CONTAINER9", "kind": "96-well plate", "location": "BARCODECONTAINER1", "coordinate": self.coord_A03},}
+
+        self.TEST_CONTAINERS_CREATION = {"BARCODECONTAINER4": {"name":"CONTAINER4", "kind": "tube", "location": "", "coordinates": None},
+                                         "BARCODECONTAINER5": {"name":"CONTAINER5", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A02"},
+                                         "BARCODECONTAINER6": {"name":"CONTAINER6", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": "A03"},
+                                         "BARCODECONTAINER7": {"name":"CONTAINER7", "kind": "tube", "location": "BARCODECONTAINER2", "coordinates": None},}
+
         # Initialize test containers
-        for barcode, container in TEST_CONTAINERS.items():
+        for barcode, container in self.TEST_CONTAINERS.items():
             if container["location"]:
                 location = Container.objects.get(barcode=container["location"])
             else:
@@ -26,7 +33,7 @@ class ContainerServicesTestCase(TestCase):
                                      name=container["name"],
                                      kind=container["kind"],
                                      location=location,
-                                     coordinates=container["coordinates"])
+                                     coordinate=container["coordinate"])
         plate_container = Container.objects.get(barcode="BARCODECONTAINER9")
         sample_kind_dna, _ = SampleKind.objects.get_or_create(name="DNA")
         sample.create_full_sample(name="MrSample",
@@ -62,9 +69,9 @@ class ContainerServicesTestCase(TestCase):
         # Test create container
         test_create_barcode = "BARCODECONTAINER4"
         testCreationBarcode1, created, error, warning = container.get_or_create_container(barcode=test_create_barcode,
-                                                                                         kind=TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
-                                                                                         name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                                         creation_comment="Test get_or_create")
+                                                                                          kind=self.TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
+                                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                                          creation_comment="Test get_or_create")
         self.assertEqual(testCreationBarcode1.barcode, test_create_barcode)
         self.assertEqual(testCreationBarcode1.comment, "Test get_or_create")
         self.assertEqual(created, True)
@@ -72,12 +79,12 @@ class ContainerServicesTestCase(TestCase):
         self.assertEqual(warning, [])
         # Test create container without enough information
         test_create_barcode = "BARCODECONTAINER5"
-        location = Container.objects.get(barcode=TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
+        location = Container.objects.get(barcode=self.TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
         testCreationBarcode2, created, error, warning = container.get_or_create_container(barcode=test_create_barcode,
-                                                                                         name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                                         coordinates=TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
-                                                                                         container_parent=location,
-                                                                                         creation_comment="Test get_or_create")
+                                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                                          coordinates=self.TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
+                                                                                          container_parent=location,
+                                                                                          creation_comment="Test get_or_create")
         self.assertEqual(testCreationBarcode2, None)
         self.assertEqual(created, False)
         self.assertEqual(len(error), 1)
@@ -86,9 +93,9 @@ class ContainerServicesTestCase(TestCase):
         test_create_barcode = "BARCODECONTAINER4"
         wrong_kind = "96-well plate"
         testCreationBarcode3, created, error, warning = container.get_or_create_container(barcode=test_create_barcode,
-                                                                                         kind=wrong_kind,
-                                                                                         name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                                         creation_comment="Test get_or_create")
+                                                                                          kind=wrong_kind,
+                                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                                          creation_comment="Test get_or_create")
         self.assertEqual(testCreationBarcode3, None)
         self.assertEqual(created, False)
         self.assertEqual(len(error), 1)
@@ -97,11 +104,11 @@ class ContainerServicesTestCase(TestCase):
     def test_create_container(self):
         # Test create container
         test_create_barcode = "BARCODECONTAINER6"
-        location = Container.objects.get(barcode=TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
+        location = Container.objects.get(barcode=self.TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
         testCreationBarcode1, error, warning = container.create_container(barcode=test_create_barcode,
-                                                                          kind=TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
-                                                                          name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                          coordinates=TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
+                                                                          kind=self.TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
+                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                          coordinates=self.TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
                                                                           container_parent=location,
                                                                           creation_comment="Test create.")
         self.assertEqual(testCreationBarcode1.barcode, test_create_barcode)
@@ -111,11 +118,11 @@ class ContainerServicesTestCase(TestCase):
 
         # Test create existing container
         test_create_barcode = "BARCODECONTAINER6"
-        location = Container.objects.get(barcode=TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
+        location = Container.objects.get(barcode=self.TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
         testCreationBarcode2, error, warning = container.create_container(barcode=test_create_barcode,
-                                                                          kind=TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
-                                                                          name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                          coordinates=TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
+                                                                          kind=self.TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
+                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                          coordinates=self.TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
                                                                           container_parent=location,
                                                                           creation_comment="Test create existing.")
         self.assertEqual(testCreationBarcode2, None)
@@ -124,11 +131,11 @@ class ContainerServicesTestCase(TestCase):
 
         # Test create container without coordinates
         test_create_barcode = "BARCODECONTAINER7"
-        location = Container.objects.get(barcode=TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
+        location = Container.objects.get(barcode=self.TEST_CONTAINERS_CREATION[test_create_barcode]["location"])
         testCreationBarcode3, error, warning = container.create_container(barcode=test_create_barcode,
-                                                                          kind=TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
-                                                                          name=TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
-                                                                          coordinates=TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
+                                                                          kind=self.TEST_CONTAINERS_CREATION[test_create_barcode]["kind"],
+                                                                          name=self.TEST_CONTAINERS_CREATION[test_create_barcode]["name"],
+                                                                          coordinates=self.TEST_CONTAINERS_CREATION[test_create_barcode]["coordinates"],
                                                                           container_parent=location,
                                                                           creation_comment="Test create without coordinates.")
         self.assertEqual(testCreationBarcode3, None)

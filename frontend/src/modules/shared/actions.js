@@ -3,6 +3,7 @@ import Indices from "../indices/actions";
 import Individuals from "../individuals/actions";
 import Users from "../users/actions";
 import Groups from "../groups";
+import Coordinates from "../coordinates/actions"
 import Samples from "../samples/actions";
 import Libraries from "../libraries/actions";
 import LibraryTypes from "../libraryTypes/actions";
@@ -27,6 +28,7 @@ export const fetchInitialData = () => async (dispatch, getState) => {
 
     // Higher priority
     await Promise.allSettled([
+        Coordinates.list,
         Containers.listKinds,
         Containers.summary,
         ExperimentRuns.listInstruments,

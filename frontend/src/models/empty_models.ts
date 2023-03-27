@@ -7,7 +7,7 @@ export const container = {
     kind: null,
     name: "",
     barcode: "",
-    coordinates: "",
+    coordinate: null,
     comment: "",
     update_comment: "",
     location: null, 
@@ -27,7 +27,7 @@ export const container = {
     tissue_source: null,
     creation_date: null, // date
     comment: "", // string(200)
-    coordinates: "", // string(10)
+    coordinate: null, // coordinate.id
     individual: null, // individual.id
     container: null, // container.id
     extracted_from: null, // sample.id

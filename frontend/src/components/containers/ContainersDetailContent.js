@@ -11,7 +11,7 @@ import PageContent from "../PageContent";
 import EditButton from "../EditButton";
 import TrackingFieldsContent from "../TrackingFieldsContent";
 import { get, listParents } from "../../modules/containers/actions";
-import { withContainer } from "../../utils/withItem";
+import { withContainer, withCoordinate } from "../../utils/withItem";
 import ExperimentRunsListSection from "../shared/ExperimentRunsListSection";
 import useHashURL from "../../hooks/useHashURL";
 
@@ -32,6 +32,7 @@ const tabStyle = {
 
 const mapStateToProps = state => ({
   containersByID: state.containers.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
   containerKindsByID: state.containerKinds.itemsByID,
 });
 
@@ -39,6 +40,7 @@ const actionCreators = { get, listParents };
 
 const ContainersDetailContent = ({
   containersByID,
+  coordinatesByID,
   containerKindsByID,
   get,
   listParents
@@ -87,7 +89,7 @@ const ContainersDetailContent = ({
                     {withContainer(containersByID, container.location, container => container.barcode, "Loading...")}
                   </Link>
                   : "—"}
-                {container.coordinates && ` at ${container.coordinates}`}
+                {container.coordinate && ` at ${withCoordinate(coordinatesByID, container.coordinate, coordinate => coordinate.name, "Loading...")}`}
               </Descriptions.Item>
               <Descriptions.Item label="Kind">{container.kind}</Descriptions.Item>
               <Descriptions.Item label="Comment" span={3}>{container.comment}</Descriptions.Item>

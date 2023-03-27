@@ -57,10 +57,10 @@ class NormalizationplanningTestCase(TestCase):
                                                 library_size=150)
 
         containers_info = [
-            {'barcode': 'PARENT_RACK_NORM', 'name': 'PARENT_RACK_NORM', 'kind': 'tube rack 8x12', 'location': None, 'coordinates': '',},
-            {'barcode': 'SRC_PLATE_NORM', 'name': 'SRC_PLATE_NORM', 'kind': '96-well plate', 'location': None, 'coordinates': '',},
-            {'barcode': 'DST_PLATE_NORM_1', 'name': 'DST_PLATE_NORM_1', 'kind': '96-well plate', 'location': None, 'coordinates': '',},
-            {'barcode': 'DST_PLATE_NORM_2', 'name': 'DST_PLATE_NORM_2', 'kind': '96-well plate', 'location': None, 'coordinates': '',},
+            {'barcode': 'PARENT_RACK_NORM', 'name': 'PARENT_RACK_NORM', 'kind': 'tube rack 8x12', 'location': None, 'coordinates': None,},
+            {'barcode': 'SRC_PLATE_NORM', 'name': 'SRC_PLATE_NORM', 'kind': '96-well plate', 'location': None, 'coordinates': None,},
+            {'barcode': 'DST_PLATE_NORM_1', 'name': 'DST_PLATE_NORM_1', 'kind': '96-well plate', 'location': None, 'coordinates': None,},
+            {'barcode': 'DST_PLATE_NORM_2', 'name': 'DST_PLATE_NORM_2', 'kind': '96-well plate', 'location': None, 'coordinates': None,},
             {'barcode': 'SRC_TUBE_NORM_1', 'name': 'SRC_TUBE_NORM_1', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'E01',},
             {'barcode': 'SRC_TUBE_NORM_2', 'name': 'SRC_TUBE_NORM_2', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'F01',},
             {'barcode': 'SRC_TUBE_NORM_3', 'name': 'SRC_TUBE_NORM_3', 'kind': 'tube', 'location': 'PARENT_RACK_NORM', 'coordinates': 'G01',},
@@ -73,9 +73,9 @@ class NormalizationplanningTestCase(TestCase):
             {'name': 'Sample4NormPlanning', 'volume': 100, 'conc.': 60, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A01', 'library': libraries[0]},
             {'name': 'Sample5NormPlanning', 'volume': 100, 'conc.': 40, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A02', 'library': libraries[1]},
             {'name': 'Sample6NormPlanning', 'volume': 100, 'conc.': 80, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'A03', 'library': libraries[2]},
-            {'name': 'Sample7NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_1', 'coordinates': '', 'library': None},
-            {'name': 'Sample8NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_2', 'coordinates': '', 'library': None},
-            {'name': 'Sample9NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_3', 'coordinates': '', 'library': None},
+            {'name': 'Sample7NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_TUBE_NORM_1', 'coordinates': None, 'library': None},
+            {'name': 'Sample8NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_TUBE_NORM_2', 'coordinates': None, 'library': None},
+            {'name': 'Sample9NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_TUBE_NORM_3', 'coordinates': None, 'library': None},
             {'name': 'Sample10NormPlanning', 'volume': 100, 'conc.': 25, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D01', 'library': None},
             {'name': 'Sample11NormPlanning', 'volume': 100, 'conc.': 50, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D02', 'library': None},
             {'name': 'Sample12NormPlanning', 'volume': 100, 'conc.': 10, 'container_barcode': 'SRC_PLATE_NORM', 'coordinates': 'D03', 'library': None},

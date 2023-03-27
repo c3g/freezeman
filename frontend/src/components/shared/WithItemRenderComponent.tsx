@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { FMSTrackedModel } from '../../models/fms_api_models'
-import { Container, Index, Individual, ItemsByID, Process, Project, Sample, User } from '../../models/frontend_models'
-import { selectContainersByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
-import { createWithItem, withContainer, withIndex, withIndividual, withProcess, withProject, withSample, withUser } from '../../utils/withItem'
+import { Container, Coordinate, Index, Individual, ItemsByID, Process, Project, Sample, User } from '../../models/frontend_models'
+import { selectContainersByID, selectCoordinatesByID, selectIndicesByID, selectIndividualsByID, selectProcessesByID, selectProjectsByID, selectSamplesByID, selectUsersByID } from '../../selectors'
+import { createWithItem, withContainer, withCoordinate, withIndex, withIndividual, withProcess, withProject, withSample, withUser } from '../../utils/withItem'
 
 /**
  * WithItemRenderComponent
@@ -89,7 +89,7 @@ function WithItemRenderComponentFactory<W extends WithItemFunc, T extends FMSTra
 	return WithItemRenderComponent
 }
 
-
+export const WithCoordinateRenderComponent = WithItemRenderComponentFactory<typeof withCoordinate, Coordinate>(withCoordinate, selectCoordinatesByID)
 export const WithContainerRenderComponent = WithItemRenderComponentFactory<typeof withContainer, Container>(withContainer, selectContainersByID)
 export const WithIndexRenderComponent = WithItemRenderComponentFactory<typeof withIndex, Index>(withIndex, selectIndicesByID)
 export const WithIndividualRenderComponent = WithItemRenderComponentFactory<typeof withIndividual, Individual>(withIndividual, selectIndividualsByID)

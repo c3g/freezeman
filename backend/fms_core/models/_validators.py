@@ -7,7 +7,8 @@ __all__ = ["name_validator",
            "container_barcode_validator",
            "email_validator",
            "metadata_name_validator",
-           "study_letter_validator"]
+           "study_letter_validator",
+           "coordinate_name_validator"]
 
 # Names should only contain a-z, A-Z, 0-9, ., -, _
 # Barcodes can contain any character
@@ -20,3 +21,4 @@ sequence_validator = RegexValidator(re.compile("^[ATCGU]{0,500}$"))
 metadata_name_validator = RegexValidator(regex=re.compile(r"^(?!.*__)[a-zA-Z0-9.\-_]{1,200}$"),
                                          message="Only alphanumeric characters, periods, dashes and underscores are allowed when naming metadata fields. Note that double underscores i.e '__' are not allowed.")
 study_letter_validator = RegexValidator(re.compile(r"^[A-Z]$"))
+coordinate_name_validator = RegexValidator(re.compile(r"^[A-Z]+[0-9]+$"))

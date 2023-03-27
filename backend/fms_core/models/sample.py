@@ -17,6 +17,7 @@ from ..utils import str_cast_and_normalize, float_to_decimal, is_date_or_time_af
 
 from .tracked_model import TrackedModel
 from .container import Container
+from .coordinate import Coordinate
 from .project import Project
 from .derived_sample import DerivedSample
 from .derived_by_sample import DerivedBySample
@@ -41,7 +42,7 @@ class Sample(TrackedModel):
     creation_date = models.DateField(help_text="Date of the sample reception or extraction.")
     container = models.ForeignKey(Container, on_delete=models.PROTECT, related_name="samples", limit_choices_to={"kind__in": SAMPLE_CONTAINER_KINDS},
                                   help_text="Container in which the sample is placed.")
-    coordinates = models.CharField(max_length=10, blank=True,
+    coordinate = models.ForeignKey(Coordinate, null=True, blank=True, on_delete=models.PROTECT, related_name="samples", 
                                    help_text="Coordinates of the sample in a sample holding container. Only applicable for "
                                              "containers that directly store samples with coordinates, e.g. plates.")
     comment = models.TextField(blank=True, help_text="Other relevant information about the biosample.")
@@ -56,7 +57,13 @@ class Sample(TrackedModel):
     derived_samples = models.ManyToManyField("DerivedSample", blank=True, through="DerivedBySample", symmetrical=False, related_name="samples")
 
     class Meta:
-        unique_together = ("container", "coordinates")
+        constraints = [
+            models.UniqueConstraint(fields=["container", "coordinate"], name="sample_container_coordinate_key")
+        ]
+
+    @property
+    def coordinates(self) -> str:
+        return self.coordinate.name if self.coordinate is not None else None
 
     @property
     def is_depleted(self) -> str:
@@ -102,7 +109,7 @@ class Sample(TrackedModel):
 
     @property
     def context_sensitive_coordinates(self) -> str:
-        return self.coordinates if self.coordinates else (self.container.coordinates if self.container else "")
+        return self.coordinates if self.coordinates is not None else (self.container.coordinates if self.container else None)
 
     # Computed properties for lineage
     @property
@@ -182,7 +189,7 @@ class Sample(TrackedModel):
 
     def __str__(self):
         return f"{self.name} {'extracted, ' if self.extracted_from else ''}" \
-               f"({self.container}{f' at {self.coordinates }' if self.coordinates else ''})"
+               f"({self.container}{f' at {self.coordinates}' if self.coordinates is not None else ''})"
 
     # ORM Methods
 
@@ -225,10 +232,17 @@ class Sample(TrackedModel):
 
             #  - Validate coordinates against parent container spec
             if not errors.get("container"):
-                try:
-                    self.coordinates = parent_spec.validate_and_normalize_coordinates(self.coordinates)
-                except CoordinateError as e:
-                    add_error("container", str(e))
+                if parent_spec.requires_coordinates:
+                    if self.coordinate is not None:
+                        # Validate coordinates against parent container spec (coordinate exists but might not belong to that spec).
+                        try:
+                            parent_spec.validate_and_normalize_coordinates(self.coordinate.name)
+                        except CoordinateError as e:
+                            add_error("coordinate", str(e))
+                    else:
+                        add_error("container", f"Parent container of kind {self.container.kind} requires coordinates.")
+                elif self.coordinate is not None:
+                    add_error("container", f"Parent container of kind {self.container.kind} does not require coordinates.")   
 
             # TODO: This isn't performant for bulk ingestion
             # - Check for coordinate overlap with existing child containers of the parent
@@ -241,7 +255,7 @@ class Sample(TrackedModel):
                 try:
                     check_coordinate_overlap(self.container.samples, self, self.container, obj_type="sample")
                 except CoordinateError as e:
-                    add_error("container", str(e))
+                    add_error("coordinate", str(e))
                 except Sample.DoesNotExist:
                     # Fine, the coordinates are free to use.
                     pass

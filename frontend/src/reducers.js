@@ -85,6 +85,7 @@ import shouldIgnoreError from "./utils/shouldIgnoreError";
 import { studies } from "./modules/studies/reducers";
 import { labworkSummary } from "./modules/labwork/reducers";
 import { studySamples } from "./modules/studySamples/reducers";
+import {coordinates} from "./modules/coordinates/reducers"
 import { labworkSteps, sampleNextStepTemplateActions } from "./modules/labworkSteps/reducers";
 import { steps } from './modules/steps/reducers'
 
@@ -149,6 +150,7 @@ const allReducers = combineReducers({
   workflows,
   labworkSummary,
   studySamples,
+  coordinates,
   labworkSteps,
   sampleNextStepTemplateActions,
   steps,

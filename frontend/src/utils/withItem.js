@@ -9,6 +9,7 @@ import Index from "../modules/indices/actions.js"
 import Library from "../modules/libraries/actions.js"
 import Taxon from "../modules/taxons/actions.js"
 import ReferenceGenome from "../modules/referenceGenomes/actions.js"
+import Coordinate from "../modules/coordinates/actions.js"
 
 import {networkAction} from "./actions";
 import api from ".//api"
@@ -99,6 +100,7 @@ export const withIndex = createWithItem(Index, api.indices)
 export const withLibrary = createWithItem(Library, api.libraries)
 export const withTaxon = createWithItem(Taxon, api.taxons)
 export const withReferenceGenome = createWithItem(ReferenceGenome, api.referenceGenomes)
+export const withCoordinate = createWithItem(Coordinate, api.coordinates)
 
 export default {
   withContainer,
@@ -113,4 +115,5 @@ export default {
   withLibrary,
   withTaxon,
   withReferenceGenome,
+  withCoordinate,
 };

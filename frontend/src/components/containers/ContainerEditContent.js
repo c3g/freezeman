@@ -18,6 +18,10 @@ const searchContainers = (token, input, options) =>
   withToken(token, api.containers.search)(input, options)
     .then(res => res.data.results)
 
+const searchCoordinates = (token, input, options) =>
+  withToken(token, api.coordinates.search)(input, options)
+    .then(res => res.data.results)
+
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   containerKinds: state.containerKinds.items,
@@ -46,6 +50,18 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
   }
 
   /*
+    * Coordinate autocomplete
+    */
+
+  const [coordinateOptions, setCoordinateOptions] = useState([]);
+  const onFocusCoordinate = ev => { onSearchCoordinate(ev.target.value) }
+  const onSearchCoordinate = (input, options) => {
+    searchCoordinates(token, input, options).then(coordinates => {
+      setCoordinateOptions(coordinates.map(Options.renderCoordinate))
+    })
+  }
+
+  /*
    * Form Data submission
    */
 
@@ -61,6 +77,7 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
   useEffect(() => {
     const newData = deserialize(containerValue)
     onSearchLocation(newData.location, { exact_match: true })
+    onSearchCoordinate(newData.coordinate, { exact_match: true })
   }, [containerValue])
 
   const onValuesChange = (values) => {
@@ -97,6 +114,8 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
       validateStatus: 'error',
       help: formErrors[name],
     }
+
+  const isCoordRequired = formData?.location
 
   return (
     <>
@@ -141,13 +160,16 @@ const ContainerEditContent = ({ token, containerKinds, containersByID, add, upda
                 onFocus={onFocusLocation}
               />
             </Item>
-            <Item
-              label="@"
-              {...props("coordinates")}
-              className="ContainerEditContent__coordinates"
-              style={{ width: 'calc(40% - 1em)' }}
-            >
-              <Input placeholder="Coordinates" />
+            <Item label="@" {...props("coordinate")} style={{ display: 'inline-block', width: '38%'}}>
+              <Select
+                showSearch
+                allowClear
+                disabled={!isCoordRequired}
+                filterOption={false}
+                options={coordinateOptions}
+                onSearch={onSearchCoordinate}
+                onFocus={onFocusCoordinate}
+              />
             </Item>
           </Item>
           <Item label="Comment" {...props("comment")}>
@@ -192,11 +214,19 @@ function deserialize(values) {
   if (!values)
     return undefined
   const newValues = { ...values }
+
+  if (newValues.coordinate)
+    newValues.coordinate = Number(newValues.coordinate)
+  
   return newValues
 }
 
 function serialize(values) {
   const newValues = { ...values }
+
+  if (!newValues.coordinate)
+    newValues.coordinate = null
+
   return newValues
 }
 

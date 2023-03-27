@@ -13,7 +13,7 @@ import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "..
 import api, {withToken}  from "../../utils/api"
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withSample} from "../../utils/withItem";
+import {withContainer, withSample, withCoordinate} from "../../utils/withItem";
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
@@ -24,7 +24,7 @@ import FiltersWarning from "../filters/FiltersWarning";
 
 const CONTAINER_KIND_SHOW_SAMPLE = ["tube"]
 
-const getTableColumns = (samplesByID, containersByID, containerKinds) => [
+const getTableColumns = (samplesByID, containersByID, coordinatesByID, containerKinds) => [
     {
       title: "ID",
       dataIndex: "id",
@@ -85,8 +85,9 @@ const getTableColumns = (samplesByID, containersByID, containerKinds) => [
     },
     {
       title: "Coord.",
-      dataIndex: "coordinates",
+      dataIndex: "coordinate__name",
       sorter: true,
+      render: (_, container) => (container.coordinate && withCoordinate(coordinatesByID, container.coordinate, coordinate => coordinate.name, "loading...")),
     },
   ];
 
@@ -104,6 +105,7 @@ const mapStateToProps = state => ({
   totalCount: state.containers.totalCount,
   isFetching: state.containers.isFetching,
   samplesByID: state.samples.itemsByID,
+  coordinatesByID: state.coordinates.itemsByID,
 });
 
 const actionCreators = {listTable, setFilter, setFilterOption, clearFilters, setSortBy};
@@ -114,6 +116,7 @@ const ContainersListContent = ({
   containersByID,
   containerKinds,
   samplesByID,
+  coordinatesByID,
   sortBy,
   filters,
   actions,
@@ -138,7 +141,7 @@ const ContainersListContent = ({
       (mergedListQueryParams(CONTAINER_FILTERS, filters, sortBy), template)
       .then(response => response)
 
-  const columns = getTableColumns(samplesByID, containersByID, containerKinds)
+  const columns = getTableColumns(samplesByID, containersByID, coordinatesByID, containerKinds)
     .map(c => Object.assign(c, getFilterProps(
       c,
       CONTAINER_FILTERS,

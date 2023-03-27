@@ -52,13 +52,19 @@ export interface FMSContainer extends FMSTrackedModel {
     kind: string                        // The type of container (eg. 96-well-plate)
     name: string                        // Container name
     barcode: string                     // Container barcode
-    coordinates: string                 // Coordinates of this container in it's parent container (eg "A01")
+    coordinate: FMSId                   // ID of the coordinates of this container in it's parent container (eg "A01")
     comment: string                     // User comment
     update_comment: string              // User update comment
     location?: FMSId                    // ID of parent container (if any)
     children: FMSId[]                   // ID's of child containers, contained by this container
     samples: FMSId[]                    // ID's of samples contained in the container
     experiment_run?: FMSId              // Experiment run associate with the container (if any)
+}
+
+export interface FMSCoordinate extends FMSTrackedModel {
+  name: string                       // Coordinates
+  column: number                     // Column ordinal starting at 0
+  row: number                        // Row ordinal starting at 0
 }
 
 export interface FMSImportedFile {
@@ -112,7 +118,7 @@ export interface FMSLibrary extends FMSTrackedModel {
     concentration_nm?: number           // Concentration in nanomolar
     quantity_ng?: number                // Quantity in nanograms
     container: FMSId                    // Container ID
-    coordinates: string                 // Coords in container
+    coordinate: FMSId                   // Coords ID of position in container
     is_pool: boolean                    // Pool flag (false for plain sample)
     project: FMSId                      // Project ID
     creation_date: string               // Date library was created (YYYY-MM-DD)
@@ -245,7 +251,7 @@ export interface FMSSample extends FMSTrackedModel {
     extracted_from?: FMSId              // If extraction, ID of original sample
     individual?: FMSId                  // Individual ID, if any
     container: FMSId                    // Container holding sample
-    coordinates: string                 // Coordinates in container, if applicable
+    coordinate: FMSId                   // Coordinate ID of position in container, if applicable
     sample_kind: FMSId                  // Sample kind ID
     is_library: boolean                 // Library flag
     is_pool: boolean                    // Pool flag
@@ -350,8 +356,7 @@ export interface FMSWorkflow extends FMSTrackedModel {
 export interface WorkflowStep {         // Not a tracked model - just a simple serialized object
     id: FMSId                           // Step Order ID
     order: number                       // Step order value
-    step_id : FMSId                     // Step ID
+    step_id: FMSId                     // Step ID
     step_name: string                   // Step name
     protocol_id:    FMSId               // ID of protocol associated with step
 }
-
