@@ -31,7 +31,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// Set the currently selected template to the first template available, not already set.
+	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if(!selectedTemplate) {
 			if (stepSamples.prefill.templates.length > 0) {
@@ -41,7 +41,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
-	}, [stepSamples])
+	}, [stepSamples, selectedTemplate])
 
 	const handleSetFilter = useCallback(
 		(filterKey: string, value: FilterValue, description: FilterDescription) => {
@@ -49,7 +49,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				return
 			}
 			dispatch(setFilter(step.id, description, value))
-		}, []
+		}, [step, dispatch]
 	)
 
 	const handleSetFilterOptions = useCallback(
@@ -59,18 +59,18 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}
 			dispatch(setFilterOptions(step.id, description, {[property]: value}))
 		}
-	, [])
+	, [step, dispatch])
 		
 	const handleSetSortBy = useCallback(
 		(sortBy: SortBy) => {
 			dispatch(setSortBy(step.id, sortBy))
 		}
-	, [])
+	, [step, dispatch])
 
 	const isRefreshing = stepSamples.pagedItems.isFetching
 	const handleRefresh = useCallback(
 		() => {dispatch(refreshSamplesAtStep(step.id))}	
-	, [])
+	, [step, dispatch])
 
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
@@ -88,7 +88,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				}
 			}
 		}
-	, [])
+	, [step, selectedTemplate, dispatch])
 
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
@@ -100,7 +100,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				navigate(selectedTemplate.submissionURL)
 			}
 		}
-	, [])
+	, [step, selectedTemplate, navigate, dispatch])
 
 	// When the user selects or deselects samples in the table, the table gives us the new selection.
 	// The selection, however, only covers the page of samples that are currently displayed in the table.
@@ -137,7 +137,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}, [] as FMSId[])
 			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
 			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-		}, []),
+		}, [step, stepSamples, dispatch]),
 	}
 
 	const canClearSelection = stepSamples.selectedSamples.length !== 0
@@ -145,7 +145,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		() => {
 			dispatch(clearSelectedSamples(step.id))
 		}
-	, [])
+	, [step, dispatch])
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
@@ -162,14 +162,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		(pageNumber: number) => {
 			dispatch(loadSamplesAtStep(step.id, pageNumber))
 		}
-	, [])
+	, [step, dispatch])
 
 	const handlePageSize = useCallback(
 		(pageSize: number) => {
 			dispatch(setPageSize(pageSize))
 			dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
 		}
-	, [])
+	, [step, stepSamples, dispatch])
 
 	const pagination: PaginationParameters = {
 		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,

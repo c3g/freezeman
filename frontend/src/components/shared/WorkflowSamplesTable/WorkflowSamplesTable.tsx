@@ -66,7 +66,7 @@ function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys
 			setFilter, 
 			setFilterOptions)
 		return mergedColumns
-	}, [filterDefinitions, filterKeys, filters])
+	}, [columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions])
 
 
 	let rowSelection: TableRowSelection<SampleAndLibrary> | undefined = undefined
