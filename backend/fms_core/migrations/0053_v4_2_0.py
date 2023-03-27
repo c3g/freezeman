@@ -46,8 +46,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplerunmetric_creation', to=settings.AUTH_USER_MODEL)),
                 ('dataset_file', models.ForeignKey(help_text='The dataset for the sample run.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.datasetfile')),
-                ('derived_sample', models.ForeignKey(help_text='Derived sample for the run metric.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.derivedsample')),
-                ('experiment_run', models.ForeignKey(help_text='Experiment run for the sample metric.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.experimentrun')),
+                ('experiment_run', models.ForeignKey(null=True, blank=True, help_text='Experiment run for the sample metric.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.experimentrun')),
                 ('metric', models.ForeignKey(help_text='Metric for the sample run.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.metric')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplerunmetric_modification', to=settings.AUTH_USER_MODEL)),
             ],
@@ -79,10 +78,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='samplerunmetric',
-            constraint=models.UniqueConstraint(fields=('derived_sample_id', 'experiment_run_id', 'dataset_file_id', 'metric_id'), name='Samplerunmetric_derivedsampleid_experimentrunid_datasetfileid_metricid_key'),
-        ),
-        migrations.AddConstraint(
-            model_name='metric',
-            constraint=models.UniqueConstraint(fields=('name', 'metric_group_id'), name='Metric_name_metricgroupid_key'),
+            constraint=models.UniqueConstraint(fields=('experiment_run_id', 'dataset_file_id', 'metric_id'), name='Samplerunmetric_derivedsampleid_experimentrunid_datasetfileid_metricid_key'),
         ),
     ]

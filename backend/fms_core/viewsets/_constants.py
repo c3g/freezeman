@@ -240,6 +240,8 @@ _dataset_file_filterset_fields: FiltersetFields = {
     "sample_name": CATEGORICAL_FILTERS_LOOSE,
     "release_status": CATEGORICAL_FILTERS,
     "release_status_timestamp": DATE_FILTERS,
+    "validation_status": CATEGORICAL_FILTERS,
+    "validation_status_timestamp": DATE_FILTERS,
 }
 
 _pooled_sample_filterset_fields: FiltersetFields = {

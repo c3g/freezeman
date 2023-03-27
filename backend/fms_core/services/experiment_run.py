@@ -13,6 +13,27 @@ from .process import create_process
 from .property_value import create_process_properties
 from .sample import transfer_sample
 
+def get_experiment_run(name):
+    """
+    Get an existing experiment run object using its unique name.
+
+    Args:
+        `name`: Experiment run name
+
+    Returns:
+        Tuple with the experiment run object if found (None otherwise), the errors and the warnings.
+    """
+    experiment_run = None
+    errors = []
+    warnings = []
+    try:
+        experiment_run = ExperimentRun.objects.get(name=name)
+    except ExperimentRun.DoesNotExist as e:
+        errors.append(f"No experiment run named {name} could be found.")
+    
+    return experiment_run, errors, warnings
+
+
 def create_experiment_run(experiment_run_name,
                           run_type_obj,
                           instrument_obj,

@@ -16,14 +16,13 @@ __all__ = ["SampleRunMetric"]
 
 @reversion.register()
 class SampleRunMetric(TrackedModel):
-    derived_sample = models.ForeignKey(DerivedSample, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Derived sample for the run metric.")
-    experiment_run = models.ForeignKey(ExperimentRun, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metric.")
+    experiment_run = models.ForeignKey(ExperimentRun, null=True, blank=True, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Experiment run for the sample metric.")
     dataset_file = models.ForeignKey(DatasetFile, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="The dataset for the sample run.")
     metric = models.ForeignKey(Metric, on_delete=models.PROTECT, related_name="sample_run_metrics", help_text="Metric for the sample run.")
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["derived_sample_id", "experiment_run_id", "dataset_file_id", "metric_id"], name="Samplerunmetric_derivedsampleid_experimentrunid_datasetfileid_metricid_key")
+            models.UniqueConstraint(fields=["experiment_run_id", "dataset_file_id", "metric_id"], name="Samplerunmetric_derivedsampleid_experimentrunid_datasetfileid_metricid_key")
         ]
 
     def clean(self):

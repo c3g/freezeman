@@ -16,14 +16,9 @@ __all__ = ["Metric"]
 @reversion.register()
 class Metric(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name for a metric.")
-    metric_group = models.ForeignKey(MetricGroup, on_delete=models.PROTECT, related_name="metrics", help_text="The metric group.")
+    metric_group = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Grouping of metrics by categories.")
     value_numeric = models.DecimalField(null=True, blank=True, max_digits=40, decimal_places=15, help_text="Metric numerical value.")
     value_string = models.CharField(null=True, blank=True, max_length=STANDARD_STRING_FIELD_LENGTH, help_text="Metric string value.")
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["name", "metric_group_id"], name="Metric_name_metricgroupid_key")
-        ]
 
     def __str__(self):
         return self.name

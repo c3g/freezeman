@@ -137,7 +137,6 @@ RUN_PROCESSING_SCHEMA = {
                 "type": "object",
                 "properties": {
                     "sample": {"type": "string"},
-                    "derived_sample_id": {"type": "integer"},
                     "index": {
                         "type": "object",
                         "properties": {
@@ -181,7 +180,7 @@ RUN_PROCESSING_SCHEMA = {
                         },
                     },
                 },
-                "required": ["sample", "derived_sample_id", "index", "qc", "blast", "alignment"]
+                "required": ["sample", "index", "qc", "blast", "alignment"]
             },
             "minItems": 1,
         }

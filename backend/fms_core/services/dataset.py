@@ -3,11 +3,15 @@ from django.db.models import Q
 
 from datetime import datetime, date
 from typing import Any, Dict, List, Optional, Tuple, Union
+from collections import defaultdict
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models._constants import ReleaseStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
+
+from fms_core.services.experiment_run import get_experiment_run
+from fms_core.services.metric import create_sample_run_metrics
 
 def create_dataset(external_project_id: str, run_name: str, lane: int, replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
@@ -114,6 +118,7 @@ def ingest_run_validation_report(report_json):
     """
     datasets = {}
     dataset_files = []
+    dataset_files_by_readset = defaultdict(list)
     errors = []
     warnings = []
 
@@ -154,6 +159,19 @@ def ingest_run_validation_report(report_json):
                 if errors:
                     return (datasets, dataset_files, errors, warnings)
                 else:
+                    dataset_files_by_readset[key].append(dataset_file)
                     dataset_files.append(dataset_file)
-    
+
+        # Get the experiment run object related to the run name
+        experiment_run_obj, newerrors, _ = get_experiment_run(run_name)
+        warnings.extend(newerrors)  # Downgrade error on experiment run to warnings. This may change once Freezeman only accept Freezeman runs.
+
+        for run_validation in report_json["run_validation"]:
+            for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
+                _, newerrors, newwarnings = create_sample_run_metrics(dataset_file=dataset_file,
+                                                                      run_validation_data=run_validation,
+                                                                      experiment_run=experiment_run_obj,)
+                errors.extend(newerrors)
+                warnings.extend(newwarnings)
+
     return (datasets, dataset_files, errors, warnings)
