@@ -7,9 +7,16 @@
     "strict": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "sourceMaps": true
+    "sourceMap": true,
+    "jsx": "preserve",
+    "noImplicitAny": false
   },
   "include": [
-    "src"
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
   ]
 }
