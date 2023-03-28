@@ -1,4 +1,4 @@
-import { FMSId, FMSLabworkSummary, WorkflowStep } from "../../models/fms_api_models"
+import { FMSId, FMSLabworkSummary } from "../../models/fms_api_models"
 import { Workflow } from "../../models/frontend_models"
 import { LabworkStepGroup, LabworkSummary, LabworkSummaryProtocol, LabworkSummaryStep } from "../../models/labwork_summary"
 
@@ -96,6 +96,7 @@ export function processFMSLabworkSummary(
 	// If we haven't built the sorted protocol list yet, then build it. It's
 	// expensive so it should only be done once.
 	if (sortedProtocols.length === 0) {
+		// sortedProtocols = getSortedProtocolsFromWorkflows(workflows)
 		sortedProtocols = getSortedProtocolsFromWorkflows(workflows)
 	}
 	result.protocols = result.protocols.sort((a, b) => {
@@ -176,96 +177,93 @@ export function findChangedStepsInSummary(oldSummary: LabworkSummary, newSummary
 }
 
 /**
- * Figure out the sorting for order for all of the protocols used in the workflows.
- * We look compare each protocol to all the other protocols in the workflow to figure
- * out which ones it usually follows, and which ones it usually preceeds. * 
- * @param protocols 
+ * Compute the sorting order for the protocols in the labwork view based on
+ * the order in which they normally appear in workflows.
+ * 
+ * Algorithm:
+ * 
+ * All workflows end with an experiment (sequencing) step. Protocols are sorted
+ * based on how far from the end of each workflow they are used. For example, Extraction is
+ * usually the furthest from the end (since it is normally the first step in a worklow
+ * if it used), followed by Sample QC then Library Preparation.
+ * 
+ * The function goes through every workflow and every step in each workflow. For each
+ * step's protocol, it computes the distance from the end of the workflow that the step
+ * appears, expressed as a percentage of the workflow length. The distances for each
+ * protocol are averaged over the number of occurences of the protocol across all workflows.
+ * 
+ * Protocols closer to the end of the workflow are weighted more heavily than protocols
+ * near the beginning. Some protocols are used multiple times in the same workflow, and
+ * can appear at several positions (especially Normalization). Giving more weight to
+ * the protocol when it appears near the end of the workflow produces a more 'natural'
+ * result.
+ * 
  * @param workflows 
- * @returns 
+ * @returns FMSId[]  Sorted list of protocols
  */
 function getSortedProtocolsFromWorkflows(workflows: Workflow[]): FMSId[] {
 
-	// Sorting has to scan all steps across all workflows. To avoid doing this more than once,
-	// we gather information about where in each workflow a protocol is used. The map key is
-	// the protocol id, and one entry is created for each step that is found using that protocol.
-	// It's gnarly code! Sorry, but my first implementation had to traverse the workflows several times.
-	type ProtocolEntry = {
-		workflowID: FMSId
-		stepOrder: number
-		numSteps: number
-		step: WorkflowStep
+	type StepOccurence = {
+		protocolID: FMSId,
+		distanceFromEnd: number,
+		numOccurences: number,
+		averageDistanceFromEnd: number
 	}
 
-	const workflowOccurences = new Map<FMSId, ProtocolEntry[]>()
+	const stepMap = new Map<FMSId, StepOccurence>()
+
+	// Step positions are aligned with the end of the longest workflow. If the longest length
+	// is 15 then the sequencing steps all have 15 as their position.
+	const longestWorkflowNumberOfSteps = workflows.reduce((acc, wf) => Math.max(acc, wf.steps_order.length), 0)
 
 	workflows.forEach(workflow => {
+		const numSteps = workflow.steps_order.length
 		workflow.steps_order.forEach(step => {
-			const entry : ProtocolEntry = {
-				workflowID: workflow.id,
-				stepOrder: step.order,
-				numSteps: workflow.steps_order.length,
-				step: step
+			let occurence = stepMap.get(step.protocol_id)
+			if (!occurence) {
+				occurence = {
+					protocolID: step.protocol_id,
+					distanceFromEnd: 0,
+					numOccurences: 0,
+					averageDistanceFromEnd: 0
+				}
+				stepMap.set(step.protocol_id, occurence)
 			}
-			const list = workflowOccurences.get(step.protocol_id)
-			if (list) {
-				list.push(entry)
-			} else {
-				workflowOccurences.set(step.protocol_id, [entry])
-			}
+			
+			// Align the end of this workflow with the end of the longest workflow.
+			// Compute the position of the step relative to the longest workflow.
+			const workflowOffset = longestWorkflowNumberOfSteps - numSteps
+			const position = step.order + workflowOffset// longestWorkflowNumberOfSteps - (numSteps - step.order)
+
+			// Express the distance as a percentage of the workflow length. Cube the distance to
+			// put more weight on protocols that appear near the end of the workflow. This pushes
+			// Normalization to the bottom of the list, even though it is used early in workflows
+			// for samples, and late in workflows for libraries.
+			const EXPONENT = 3
+			occurence.distanceFromEnd += Math.pow(position, EXPONENT) / longestWorkflowNumberOfSteps
+
+			// Keep track of how many occurences of the protocol there are to compute an
+			// average distance.
+			occurence.numOccurences++
 		})
 	})
 
-	
-	function compareProtocolPositionsInWorkflows(protocolID_A: FMSId, protocolID_B: FMSId) {
-		const entriesA = workflowOccurences.get(protocolID_A)
-		const entriesB = workflowOccurences.get(protocolID_B)
-
-		let numBefore = 0
-		let numAfter = 0
-
-		// Compare the position of protocol A with the position of protocol B in each
-		// workflow that contains the two. Count the number of times that A appears after
-		// B in the workflow, and the number of time A appears before B. Use that to decide
-		// if A is normally before or after B in the sort order.
-		if (entriesA && entriesB) {
-			for(const entryA of entriesA) {
-				// The same protocol can appear multiple times, so we have to check each instance
-				// of B in the workflow
-				const allBEntriesInWorkflow = entriesB.filter(entry => entry.workflowID === entryA.workflowID)
-				allBEntriesInWorkflow.forEach(entryB => {
-					if (entryA.stepOrder < entryB.stepOrder) {
-						numBefore++
-					} else {
-						numAfter++
-					}
-				})
-			}
-
-			// If numBefore and numberAfter are both zero then there was no case where both A and B
-			// are used in the same workflow, so we can't compare their positions in the workflow.
-			// Instead, compute an average "distance" for A and B. This is the step order divided by
-			// the number of steps in the workflow, averaged over all workflows the protocol appears in.
-			// The idea is to figure out if the protocol appears near the beginning of workflows or near
-			// the end. Without this, rarely used protocols tend to end up at the top of the list 
-			// (eg DBNSEQ Preparation).
-			if (numBefore === 0 && numAfter === 0 && entriesA.length > 0 && entriesB.length > 0) {
-				const distanceA = entriesA.reduce((acc, entry) => {
-					return acc + (entry.stepOrder / entry.numSteps)
-				}, 0) / entriesA.length
-				const distanceB = entriesB.reduce((acc, entry) => {
-					return acc + (entry.stepOrder / entry.numSteps)
-				}, 0) / entriesB.length
-
-				return distanceA - distanceB
-			} else {
-				return numAfter - numBefore
-			}
-		}
-		return 0
+	// Compute the average distances
+	for (const occurence of stepMap.values()) {
+		occurence.averageDistanceFromEnd = occurence.distanceFromEnd / occurence.numOccurences
 	}
 
-	const protocolIDs = [...workflowOccurences.keys()]
-	const sortedProtocolIDs = protocolIDs.sort(compareProtocolPositionsInWorkflows)
+	// Sort by average distance, with the higher distances sorted to the top of the list (Extraction).
+	const sortedOccurences = [...stepMap.values()].sort((a, b) => {
+		if (a.averageDistanceFromEnd > b.averageDistanceFromEnd) {
+			return +1
+		} else if (a.averageDistanceFromEnd < b.averageDistanceFromEnd) {
+			return -1
+		}
+		return 0
+	})
 
+	// Finally, output an array of protocol ID's in the sorted order.
+	const sortedProtocolIDs = sortedOccurences.map(occ => occ.protocolID)
 	return sortedProtocolIDs
 }
