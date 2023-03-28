@@ -7,13 +7,20 @@ from collections import defaultdict
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
+from fms_core.models.sample_run_metric import SampleRunMetric
 from fms_core.models._constants import ReleaseStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from fms_core.services.experiment_run import get_experiment_run
 from fms_core.services.metric import create_sample_run_metrics
 
-def create_dataset(external_project_id: str, run_name: str, lane: int, replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
+from fms_core.utils import blank_str_to_none
+
+def create_dataset(external_project_id: str,
+                   run_name: str,
+                   lane: int,
+                   metric_report_url: str,
+                   replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
     Create a new dataset and return it. If an dataset exists already with the same natural key (external_project_id, run_name and lane),
     two options exist.
@@ -24,6 +31,7 @@ def create_dataset(external_project_id: str, run_name: str, lane: int, replace: 
         `external_project_id`: The project id from the external system that generate projects.
         `run_name`: The name or id of the experiment run.
         `lane`: The lane (coordinate) on the experiment container.
+        `metric_report_url`: The URL to the run processing report.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
     Returns:
@@ -46,10 +54,16 @@ def create_dataset(external_project_id: str, run_name: str, lane: int, replace: 
 
         dataset_list = Dataset.objects.filter(**kwargs)
         if not dataset_list:  # There is no dataset with this signature
-            dataset = Dataset.objects.create(**kwargs)
+            dataset = Dataset.objects.create(**kwargs, metric_report_url=blank_str_to_none(metric_report_url))
         elif replace:  # There is already a dataset with this signature but we replace it's content.
             dataset = dataset_list.first()
-            for dataset_file in DatasetFile.objects.filter(dataset=dataset):
+            dataset.metric_report_url = blank_str_to_none(metric_report_url) # Replace the report which should have changed
+            dataset.save()
+            for dataset_file in DatasetFile.objects.filter(dataset=dataset).all():
+                for sample_run_metric in SampleRunMetric.objects.filter(dataset_file=dataset_file).all():
+                    metric = sample_run_metric.metric
+                    sample_run_metric.delete()
+                    metric.delete()
                 dataset_file.delete()
         else:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "

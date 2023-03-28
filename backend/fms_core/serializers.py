@@ -521,7 +521,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ("id", "external_project_id", "run_name", "lane", "files", "released_status_count", "latest_release_update")
+        fields = ("id", "external_project_id", "run_name", "lane", "metric_report_url", "files", "released_status_count", "latest_release_update")
 
     def get_released_status_count(self, obj):
         return DatasetFile.objects.filter(dataset=obj.id, release_status=ReleaseStatus.RELEASED).count()
@@ -533,7 +533,7 @@ class DatasetFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DatasetFile
-        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp")
+        fields = ("id", "dataset", "file_path", "sample_name", "release_status", "release_status_timestamp", "validation_status", "validation_status_timestamp")
 
 class PooledSampleSerializer(serializers.Serializer):
     ''' Serializes a DerivedBySample object, representing a pooled sample. 
