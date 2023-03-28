@@ -53,6 +53,9 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
     }, [studiesById, workflowsById, projectsById, studySamplesState, study, workflow])
 
     useEffect(() => {
+        // The effect ensure that whenever the study samples state changes we display
+        // the most recent state. The state will change if changes in labwork are detected
+        // and the study samples are refreshed.
         const studyState = studySamplesState[studyId]
         if (studyState) {
             if (!studyState.isFetching) {
