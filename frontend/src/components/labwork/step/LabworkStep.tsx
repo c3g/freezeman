@@ -17,6 +17,7 @@ import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '..
 import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 import { setPageSize } from '../../../modules/pagination'
 import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
+import RefreshButton from '../../RefreshButton'
 
 const { Text } = Typography
 
@@ -143,7 +144,11 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		<Space>
 			<Button type='primary' disabled={!canPrefill} onClick={handlePrefillTemplate} title='Download a prefilled template with the selected samples'>Prefill Template</Button>
 			<Button type='default' disabled={!canSubmit} onClick={handleSubmitTemplate} title='Submit a prefilled template'>Submit Template</Button>
-			<Button icon={<SyncOutlined spin={isRefreshing}/>}title='Refresh the list of samples' disabled={isRefreshing} onClick={() => handleRefresh()}>Refresh</Button>
+			<RefreshButton 
+				refreshing={isRefreshing}
+				onRefresh={handleRefresh}
+				title='Refresh the list of samples'
+			/>
 		</Space>
 	)
 

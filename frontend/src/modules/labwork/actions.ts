@@ -54,6 +54,7 @@ export const refreshLabwork = () => {
 	// summary and refreshing the summary. This action exists in case we need
 	// a different behaviour for refreshing in the future.
 	return async (dispatch, getState) => {
+		let labworkChanged = false
 		const oldState = selectLabworkSummaryState(getState())
 		
 		await dispatch(refreshLabworkSummary())
@@ -65,11 +66,11 @@ export const refreshLabwork = () => {
 			// 
 			const changedSteps = findChangedStepsInSummary(oldState.summary, newState.summary)
 			if (changedSteps.length > 0) {
-				// Here we would update the step samples redux states, if there are any.
-				// dispatch(refreshSamplesAtStep())
+				labworkChanged = true
 				changedSteps.forEach(stepID => dispatch(refreshSamplesAtStep(stepID)))
 			}
 		}
+		return labworkChanged
  	}
 }
 

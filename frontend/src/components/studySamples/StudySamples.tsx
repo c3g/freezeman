@@ -1,10 +1,11 @@
 import { Collapse, Space, Switch, Tabs, Typography } from 'antd'
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { setHideEmptySteps } from '../../modules/studySamples/actions'
 import { StudySampleList, StudySampleStep } from '../../modules/studySamples/models'
 import { selectHideEmptySteps } from '../../selectors'
+import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
 
@@ -12,31 +13,53 @@ const { Text, Title } = Typography
 
 interface StudySamplesProps {
 	studySamples: StudySampleList
+	refreshSamples: () => void
 }
 
-function StudySamples({ studySamples }: StudySamplesProps) {
+function StudySamples({ studySamples, refreshSamples }: StudySamplesProps) {
 	const dispatch = useAppDispatch()
 	const hideEmptySteps = useAppSelector(selectHideEmptySteps)
+	const [refreshing, setRefreshing] = useState<boolean>(false)
 
 	let renderedSteps = [...studySamples.steps]
 	if (hideEmptySteps) {
-		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0)
+		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0 || step.completed.length > 0)
 	}
 
 	const handleHideEmptySteps = useCallback((hide: boolean) => {
 		dispatch(setHideEmptySteps(hide))
-	}, [])
+	}, [dispatch])
+
+	function handleRefresh() {
+		setRefreshing(true)
+		refreshSamples()
+	}
+
+	useEffect(() => {
+		if (refreshing) {
+			setRefreshing(false)
+		}
+	}, [studySamples])
 
 	return (
 		<>
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingRight: '0.5rem' }}>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
 				<Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
 				<Space>
 					<Text>Hide empty steps</Text>
-					<Switch checked={hideEmptySteps} onChange={handleHideEmptySteps}></Switch>
+					<Switch 
+						checked={hideEmptySteps}
+						onChange={handleHideEmptySteps}
+						title='Hide steps for which there are no ready or completed samples'
+					/>
+					<RefreshButton
+						refreshing={refreshing}
+						onRefresh={handleRefresh}
+						title={'Update with the latest state of the samples in the lab'}
+					/>
 				</Space>
 			</div>
-			<Collapse>
+			<Collapse bordered={true}>
 				{renderedSteps.map((step) => {
 					const hasSamples = step.samples.length > 0 || step.completed.length > 0
 					const totalSampleCount = step.samples.length + step.completed.length
@@ -60,6 +83,7 @@ function StudySamples({ studySamples }: StudySamplesProps) {
 									</Space>
 								</>
 							}
+							style={{backgroundColor: 'white'}}
 						>
 							{hasSamples ? (
 								<SamplesTabs step={step}/>
@@ -85,10 +109,10 @@ function SamplesTabs({step}: SampleTabContainerProps) {
 
 	return (
 		<Tabs defaultActiveKey='ready' tabBarExtraContent={goToLab} size='small'>
-			<Tabs.TabPane tab={readyTab} key='ready' disabled={step.samples.length === 0}>
+			<Tabs.TabPane tab={readyTab} key='ready'>
 				<StudyStepSamplesTable step={step}/>
 			</Tabs.TabPane>
-			<Tabs.TabPane tab={completedTab} key='completed' disabled={step.completed.length === 0}>
+			<Tabs.TabPane tab={completedTab} key='completed'>
 				<CompletedSamplesTable completedSamples={step.completed}/>
 			</Tabs.TabPane>
 		</Tabs>

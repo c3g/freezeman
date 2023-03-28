@@ -1,4 +1,5 @@
 import { FMSId } from '../../models/fms_api_models'
+import { selectStudySamplesByID } from '../../selectors'
 import { AppDispatch, RootState } from '../../store'
 import { FLUSH_STUDY_SAMPLES, GET_STUDY_SAMPLES, SET_HIDE_EMPTY_STEPS } from './reducers'
 import { loadStudySamples } from './services'
@@ -14,6 +15,19 @@ export function getStudySamples(studyID : FMSId) {
 			}
 		} catch(err) {
 			dispatch({type: GET_STUDY_SAMPLES.ERROR, error: err, meta: {studyID}})
+		}
+	}
+}
+
+export function refreshStudySamples(studyID: FMSId) {
+	return getStudySamples(studyID)
+}
+
+export function refreshAllStudySamples() {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const studySamplesByID = selectStudySamplesByID(getState())
+		for(const studyID in studySamplesByID) {
+			dispatch(refreshStudySamples(Number.parseInt(studyID)))
 		}
 	}
 }

@@ -1,9 +1,9 @@
 import { Descriptions, Space, Spin, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { Study, Workflow } from '../../models/frontend_models'
 import { get as getStudy } from '../../modules/studies/actions'
-import { flushStudySamples, getStudySamples } from '../../modules/studySamples/actions'
+import { flushStudySamples, getStudySamples, refreshStudySamples } from '../../modules/studySamples/actions'
 import { StudySampleList } from '../../modules/studySamples/models'
 import { get as getWorkflow } from '../../modules/workflows/actions'
 import { selectProjectsByID, selectStudiesByID, selectStudySamplesByID, selectWorkflowsByID } from '../../selectors'
@@ -39,31 +39,37 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 setWorkflow(workflowInstance)
             } else {
                 dispatch(getWorkflow(studyInstance.workflow_id))
+                return
             }
         } else {
             dispatch(getStudy(studyId))
+            return
         }
 
-        if (!studySamples) {
-            const studyState = studySamplesState[studyId]
-            if (studyState) {
-                if (!studyState.isFetching) {
-                    setStudySamples(studyState.data)
-                }
-            } else {
-                if (study && workflow) {
-                    dispatch(getStudySamples(studyId))
-                }
-            }
-        }
-
+        const studyState = studySamplesState[studyId]
+        if (!studyState && study && workflow) {
+            dispatch(getStudySamples(studyId))
+        } 
     }, [studiesById, workflowsById, projectsById, studySamplesState, study, workflow])
+
+    useEffect(() => {
+        const studyState = studySamplesState[studyId]
+        if (studyState) {
+            if (!studyState.isFetching) {
+                setStudySamples(studyState.data)
+            }
+        } 
+    }, [studySamplesState])
 
     useEffect(() => {
         return () => {
             dispatch(flushStudySamples(studyId))
         }
     }, [studyId])
+
+    const refreshSamples = useCallback(() => {
+        dispatch(refreshStudySamples(studyId))
+    }, [studyId, dispatch])
 
     function getStepWithOrder(order?: number) {
         if (order && study && workflow) {
@@ -84,8 +90,10 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
             </Descriptions>
             { studySamples ? 
-                <StudySamples studySamples={studySamples}/>
+                <StudySamples studySamples={studySamples} refreshSamples={refreshSamples}/>
                 :
+                // Display the "Samples" title with a spinner until data is ready.
+                // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)
                 <Space align='baseline'>
                     <Title level={4} style={{ marginTop: '1.5rem' }}>Samples</Title>
                     { !studySamples && <Spin spinning={true}/> }

@@ -1,0 +1,11 @@
+Workflow,Steps,,,,,,,,,,,
+PCR-free Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,"Library Preparation (PCR-free, Illumina)",Normalization (Sample),Sample QC,Extraction (DNA),,,,
+PCR-enriched Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,"Library Preparation (PCR-enriched, Illumina)",Normalization (Sample),Sample QC,Extraction (DNA),,,,
+WGBS Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,"Library Preparation (WGBS, Illumina)",Normalization (Sample),Sample QC,Extraction (DNA),,,,
+RNASeq Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,"Library Preparation (RNASeq, Illumina)",Normalization (Sample),Sample QC,Extraction (RNA),,,,
+miRNA Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,"Library Preparation (miRNA, Illumina)",Normalization (Sample),Sample QC,Extraction (RNA),,,,
+PCR-free DNBSEQ,Experiment Run DNBSEQ,Pooling,Normalization (Library),Library QC,"Library Preparation (PCR-free, DNBSEQ)",Normalization (Sample),Sample QC,Extraction (DNA),,,,
+PCR-enriched Capture Exome Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,Library Capture (Exome),Pooling,Normalization (Library),Library QC,"Library Preparation (PCR-enriched, Illumina)",Normalization (Sample),Sample QC,Extraction (DNA)
+WGBS Capture MCC Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,Library Capture (MCC),Pooling,Normalization (Library),Library QC,"Library Preparation (WGBS, Illumina)",Normalization (Sample),Sample QC,Extraction (DNA)
+Ready-to-Sequence Illumina,Experiment Run Illumina,Pooling,Normalization (Library),Library QC,,,,,,,,
+Ready-to-Sequence Conversion DNBSEQ,Experiment Run DNBSEQ,Pooling,Normalization (Library),Library QC,Library Conversion (DNBSEQ),Library QC,,,,,,

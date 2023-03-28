@@ -1,5 +1,5 @@
 import { Pagination, Table, TableProps } from 'antd'
-import { RowSelectMethod, TableRowSelection } from 'antd/lib/table/interface'
+import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useState } from 'react'
 import { useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
@@ -34,7 +34,6 @@ interface WorkflowSamplesTableProps {
 	}
 }
 
-// TODO port StudySamples component to use this table.
 function WorkflowSamplesTable({sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection} : WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const [tableColumns, setTableColumns] = useState<IdentifiedTableColumnType<SampleAndLibrary>[]>()

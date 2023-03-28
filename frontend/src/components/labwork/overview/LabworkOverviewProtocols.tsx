@@ -1,10 +1,9 @@
-import { SyncOutlined } from '@ant-design/icons'
-import { Button, Collapse, Space, Switch, Typography } from 'antd'
+import { Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
-import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useAppDispatch } from '../../../hooks'
 import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
 import { LabworkSummary } from '../../../modules/labwork/models'
-import { selectWorkflowsByID } from '../../../selectors'
+import RefreshButton from '../../RefreshButton'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
 const { Title } = Typography
@@ -17,30 +16,39 @@ interface LabworkProtocolsProps {
 
 const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: LabworkProtocolsProps) => {
 	const dispatch = useAppDispatch()
-	const workflowsByID = useAppSelector(selectWorkflowsByID)
 
 	// If hideEmptyProtocols is true then we filter the protocol list to include
 	// only protocols with a count greater than zero.
 	let protocols = summary.protocols
 
-	const workflows = Object.values(workflowsByID)
-
 	if (hideEmptyProtocols) {
 		protocols = protocols.filter(protocol => protocol.count > 0)
 	}
 
+	function handleHideEmptyProtocols(hide: boolean) {
+		dispatch(setHideEmptyProtocols(hide))
+	}
+
+	function handleLabworkRefresh() {
+		dispatch(refreshLabwork())
+	}
+ 
 	return (
 		<>
 			<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
 				<Title level={2}>Protocols</Title>
 				<Space>
-					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
-					<Button icon={<SyncOutlined spin={refreshing}/>} disabled={refreshing} onClick={
-						() => {
-							// Refreshes labwork and step samples states
-							dispatch(refreshLabwork())
-						}
-					} title='Update with the latest state of the samples in the lab'>Refresh</Button>
+					<Switch 
+						checkedChildren={'Show all'} 
+						unCheckedChildren={'Hide Empty'} 
+						checked={hideEmptyProtocols} 
+						onChange={handleHideEmptyProtocols}
+					/>
+					<RefreshButton 
+						refreshing={refreshing} 
+						onRefresh={handleLabworkRefresh}
+						title='Update with the latest state of the samples in the lab'
+					/>
 				</Space>
 			</div>
 			<Collapse>

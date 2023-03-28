@@ -39,7 +39,7 @@ const PROCESS_ID : CompletedSampleColumn = {
 }
 
 const PROCESS_MEASUREMENT_ID : CompletedSampleColumn = {
-	title: 'Measurement ID',
+	title: 'Sample Process ID',
 	dataIndex: 'processMeasurementID',
 	render: (measurementID) => <Link to={`/process-measurements/${measurementID}`}>{measurementID}</Link>
 }
