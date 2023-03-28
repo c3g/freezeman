@@ -50,7 +50,7 @@ const EXECUTION_DATE: CompletedSampleColumn = {
 }
 
 const USER: CompletedSampleColumn = {
-	title: 'User',
+	title: 'Submitted By',
 	dataIndex: 'executedBy',
 }
 
