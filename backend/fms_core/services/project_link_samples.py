@@ -25,7 +25,7 @@ def create_link(sample=None, project=None):
         else:
             if derived_sample.project is not None:
                 warnings.append(f"[Sample {sample.name}] is already associated to another project [{derived_sample.project.name}]. "
-                                f"All currently linked studies will be removed from sample.")
+                                f"Sample will be removed from all currently linked studies.")
                 # remove all previous study linked to the sample for this project
                 for study in derived_sample.project.studies.all():
                     _, dequeue_errors, dequeue_warnings = dequeue_sample_from_all_steps_study_workflow(sample, study)
