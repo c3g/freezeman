@@ -8,7 +8,7 @@ from collections import defaultdict
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
 from fms_core.models.sample_run_metric import SampleRunMetric
-from fms_core.models._constants import ReleaseStatus
+from fms_core.models._constants import ReleaseStatus, ValidationStatus
 from fms_core.schema_validators import RUN_PROCESSING_VALIDATOR
 
 from fms_core.services.experiment_run import get_experiment_run
@@ -51,7 +51,6 @@ def create_dataset(external_project_id: str,
             run_name=run_name,
             lane=lane,
         )
-
         dataset_list = Dataset.objects.filter(**kwargs)
         if not dataset_list:  # There is no dataset with this signature
             dataset = Dataset.objects.create(**kwargs, metric_report_url=blank_str_to_none(metric_report_url))
@@ -77,6 +76,7 @@ def create_dataset(external_project_id: str,
 def create_dataset_file(dataset: Dataset,
                         file_path: str,
                         sample_name: str,
+                        validation_status: int = ValidationStatus.AVAILABLE,
                         release_status: int = ReleaseStatus.AVAILABLE
                         ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
@@ -86,6 +86,7 @@ def create_dataset_file(dataset: Dataset,
         `dataset`: The dataset to which the file is related.
         `file_path`: The path to the file on disk.
         `sample_name`: The name of the sample for which the file was created.
+        `validation_status`: The validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
         `release_status`: The release status of the file (choices : Available - 0 (default), Released - 1, Blocked - 2).
 
     Returns:
@@ -98,6 +99,9 @@ def create_dataset_file(dataset: Dataset,
     if release_status not in [value for value, _ in ReleaseStatus.choices]:
         errors.append(f"The release status can only be {' or '.join([f'{value} ({name})' for value, name in ReleaseStatus.choices])}.")
 
+    if validation_status not in [value for value, _ in ValidationStatus.choices]:
+        errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
+
     if errors:
         return (dataset_file, errors, warnings)
 
@@ -106,6 +110,8 @@ def create_dataset_file(dataset: Dataset,
             dataset=dataset,
             file_path=file_path,
             sample_name=sample_name,
+            validation_status=validation_status,
+            validation_status_timestamp=None,
             release_status=release_status,
             release_status_timestamp=None
         )
@@ -146,13 +152,18 @@ def ingest_run_validation_report(report_json):
     if errors:
         return (datasets, dataset_files, errors, warnings)
 
-    for readset in report_json["readsets"].values():
+    for readset_key, readset in report_json["readsets"].items():
         external_project_id = readset["barcodes"][0]["PROJECT"]
         run_name = report_json["run"]
         lane = int(report_json["lane"])
+        metric_report_url = report_json["run_metrics_report_url"]
         dataset_key = (external_project_id, run_name, lane)
         if dataset_key not in datasets:
-            dataset, errors, warnings = create_dataset(external_project_id=external_project_id, run_name=run_name, lane=lane, replace=True)
+            dataset, errors, warnings = create_dataset(external_project_id=external_project_id,
+                                                       run_name=run_name,
+                                                       lane=lane,
+                                                       metric_report_url=metric_report_url,
+                                                       replace=True)
         if errors:
             return (datasets, dataset_files, errors, warnings)
         else:
@@ -173,19 +184,19 @@ def ingest_run_validation_report(report_json):
                 if errors:
                     return (datasets, dataset_files, errors, warnings)
                 else:
-                    dataset_files_by_readset[key].append(dataset_file)
+                    dataset_files_by_readset[readset_key].append(dataset_file)
                     dataset_files.append(dataset_file)
 
         # Get the experiment run object related to the run name
         experiment_run_obj, newerrors, _ = get_experiment_run(run_name)
         warnings.extend(newerrors)  # Downgrade error on experiment run to warnings. This may change once Freezeman only accept Freezeman runs.
 
-        for run_validation in report_json["run_validation"]:
-            for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
-                _, newerrors, newwarnings = create_sample_run_metrics(dataset_file=dataset_file,
-                                                                      run_validation_data=run_validation,
-                                                                      experiment_run=experiment_run_obj,)
-                errors.extend(newerrors)
-                warnings.extend(newwarnings)
+    for run_validation in report_json["run_validation"]:
+        for dataset_file in dataset_files_by_readset[run_validation["sample"]]:
+            _, newerrors, newwarnings = create_sample_run_metrics(dataset_file=dataset_file,
+                                                                  run_validation_data=run_validation,
+                                                                  experiment_run=experiment_run_obj,)
+            errors.extend(newerrors)
+            warnings.extend(newwarnings)
 
     return (datasets, dataset_files, errors, warnings)

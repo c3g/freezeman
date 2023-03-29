@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from decimal import Decimal
+
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.metric import Metric
 from fms_core.models.experiment_run import ExperimentRun
@@ -65,19 +67,21 @@ def create_sample_run_metrics(dataset_file, run_validation_data, experiment_run 
                 if not errors:
                     if value == "null" or value == "N/A":  # Replace string empty values
                         value = None
-
+                    if value_type is VALUE_TYPE_NUMERIC and value is not None:
+                        value = str(value).strip(' "')
                     metric_data = dict(
                         name=metric,
                         metric_group=metric_group,
                         **(dict(value_numeric=value) if value_type is VALUE_TYPE_NUMERIC else dict()),
                         **(dict(value_string=value) if value_type is VALUE_TYPE_STRING else dict()),
                     )
-
+                    metric_obj = None
                     try:
                         metric_obj = Metric.objects.create(**metric_data)
                     except Exception as err:
                         errors.append(err)
 
+                    sample_run_metric = None
                     try:
                         sample_run_metric = SampleRunMetric.objects.create(dataset_file=dataset_file,
                                                                            experiment_run=experiment_run,

@@ -33,9 +33,6 @@ class Dataset(TrackedModel):
         except Exception:
             errors["LaneError"] = f"Lane must be a positive integer, and yet it was given {self.lane}."
       
-        if Dataset.objects.filter(external_project_id__iexact=self.external_project_id, run_name__iexact=self.run_name, lane=self.lane).exists():
-            errors["ExistingError"] = f"There's already a dataset with identical external project id '{self.external_project_id}', run name '{self.run_name}' and lane '{self.lane}'"
-
         if errors:
             raise ValidationError(errors)
 

@@ -153,10 +153,10 @@ RUN_PROCESSING_SCHEMA = {
                     "qc": {
                         "type": "object",
                         "properties": {
-                            "avg_qual": {"type": "number"},
-                            "duplicate_rate": {"type": "number", "minimum": 0, "maximum": 100},
-                            "nb_reads": {"type": "integer"},
-                            "nb_bases": {"type": "integer"},
+                            "avg_qual": {"type": "string"},
+                            "duplicate_rate": {"type": "string"},
+                            "nb_reads": {"type": "string"},
+                            "nb_bases": {"type": "string"},
                         },
                     },
                     "blast": {
@@ -170,13 +170,13 @@ RUN_PROCESSING_SCHEMA = {
                     "alignment": {
                         "type": "object",
                         "properties": {
-                            "chimeras": {"type": "number"},
-                            "average_aligned_insert_size": {"type": "number"},
-                            "pf_read_alignment_rate": {"type": "number", "minimum": 0, "maximum": 100},
-                            "inferred_sex": {"type": "string"},
-                            "adapter_dimers": {"type": "integer"},
-                            "mean_coverage": {"type": "number"},
-                            "aligned_dup_rate": {"type": "number", "minimum": 0, "maximum": 100},
+                            "chimeras": {"type": ["number", "null"]},
+                            "average_aligned_insert_size": {"type": ["number", "null"]},
+                            "pf_read_alignment_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+                            "inferred_sex": {"type": ["string", "null"]},
+                            "adapter_dimers": {"type": ["integer", "null"]},
+                            "mean_coverage": {"type": ["number", "null"]},
+                            "aligned_dup_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
                         },
                     },
                 },

@@ -3,7 +3,6 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from .metric_group import MetricGroup
 from .tracked_model import TrackedModel
 
 from ._constants import STANDARD_NAME_FIELD_LENGTH, STANDARD_STRING_FIELD_LENGTH
@@ -17,7 +16,7 @@ __all__ = ["Metric"]
 class Metric(TrackedModel):
     name = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Name for a metric.")
     metric_group = models.CharField(max_length=STANDARD_NAME_FIELD_LENGTH, help_text="Grouping of metrics by categories.")
-    value_numeric = models.DecimalField(null=True, blank=True, max_digits=40, decimal_places=15, help_text="Metric numerical value.")
+    value_numeric = models.DecimalField(null=True, blank=True, max_digits=40, decimal_places=20, help_text="Metric numerical value.")
     value_string = models.CharField(null=True, blank=True, max_length=STANDARD_STRING_FIELD_LENGTH, help_text="Metric string value.")
 
     def __str__(self):

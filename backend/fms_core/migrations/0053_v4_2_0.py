@@ -32,7 +32,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
                 ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
                 ('name', models.CharField(help_text='Name for a metric.', max_length=200)),
-                ('value_numeric', models.DecimalField(blank=True, decimal_places=15, help_text='Metric numerical value.', max_digits=40, null=True)),
+                ('metric_group', models.CharField(help_text='Grouping of metrics by categories.', max_length=200)),
+                ('value_numeric', models.DecimalField(blank=True, decimal_places=20, help_text='Metric numerical value.', max_digits=40, null=True)),
                 ('value_string', models.CharField(blank=True, help_text='Metric string value.', max_length=1000, null=True)),
                 ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_metric_creation', to=settings.AUTH_USER_MODEL)),
             ],
@@ -50,26 +51,6 @@ class Migration(migrations.Migration):
                 ('metric', models.ForeignKey(help_text='Metric for the sample run.', on_delete=django.db.models.deletion.PROTECT, related_name='sample_run_metrics', to='fms_core.metric')),
                 ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_samplerunmetric_modification', to=settings.AUTH_USER_MODEL)),
             ],
-        ),
-        migrations.CreateModel(
-            name='MetricGroup',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Date the instance was created.')),
-                ('updated_at', models.DateTimeField(auto_now=True, help_text='Date the instance was modified.')),
-                ('deleted', models.BooleanField(default=False, help_text='Whether this instance has been deleted.')),
-                ('name', models.CharField(help_text='Name for a grouping of metrics.', max_length=200)),
-                ('created_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_metricgroup_creation', to=settings.AUTH_USER_MODEL)),
-                ('updated_by', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.PROTECT, related_name='fms_core_metricgroup_modification', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.AddField(
-            model_name='metric',
-            name='metric_group',
-            field=models.ForeignKey(help_text='The metric group.', on_delete=django.db.models.deletion.PROTECT, related_name='metrics', to='fms_core.metricgroup'),
         ),
         migrations.AddField(
             model_name='metric',
