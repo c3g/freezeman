@@ -2,10 +2,14 @@ import { Protocol, Step } from '../../../models/frontend_models'
 import { ProtocolNames } from '../../../models/protocols'
 import { getStepSpecificationValue } from '../../../modules/steps/services'
 import { LibraryColumn, LIBRARY_COLUMN_DEFINITIONS as LIBRARY_COLUMNS, ObjectWithLibrary } from './LibraryTableColumns'
-import { IdentifiedTableColumnType, ObjectWithSample, SampleColumn, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
+import { IdentifiedTableColumnType, ObjectWithSample, SampleColumn, SampleColumnID, SAMPLE_COLUMN_DEFINITIONS as SAMPLE_COLUMNS } from './SampleTableColumns'
 
 export interface SampleAndLibrary extends ObjectWithSample, ObjectWithLibrary {}
 
+
+export function getColumnsForStudySamplesStep(step: Step, protocol: Protocol) {
+	return getColumnsForStep(step, protocol).filter(column => column.columnID !== SampleColumnID.PROJECT)
+}
 
 /*
 	Returns the default set of columns that should be used to display samples/libraries
@@ -15,6 +19,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.KIND,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
@@ -28,6 +33,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const PRE_QC_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.KIND,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
@@ -40,6 +46,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const DEFAULT_LIBRARY_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		LIBRARY_COLUMNS.LIBRARY_TYPE,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
@@ -55,6 +62,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const PRE_QC_LIBRARY_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		LIBRARY_COLUMNS.LIBRARY_TYPE,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
@@ -68,6 +76,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const EXPERIMENT_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
 		SAMPLE_COLUMNS.COORDINATES,

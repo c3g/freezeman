@@ -4,6 +4,7 @@ import { Protocol } from '../../models/frontend_models'
 import { StudySampleStep } from '../../modules/studySamples/models'
 import { selectProtocolsByID, selectStepsByID } from '../../selectors'
 import { getColumnsForStep } from '../shared/WorkflowSamplesTable/ColumnSets'
+import { SampleColumnID } from '../shared/WorkflowSamplesTable/SampleTableColumns'
 import WorkflowSamplesTable from '../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
 
@@ -27,7 +28,9 @@ function StudyStepSamplesTable({step} : StudyStepSamplesTableProps) {
 		return null
 	}
 
-	const columns = getColumnsForStep(stepDefinition, protocol)	
+	// Same columns as labwork, but we don't want the Project column, since the user
+	// is already in the project details page.
+	const columns = getColumnsForStep(stepDefinition, protocol).filter(col => col.columnID !== SampleColumnID.PROJECT)
 	
 	return (
 		<WorkflowSamplesTable

@@ -7,7 +7,7 @@ import { FilterDescription } from '../../../models/paged_items'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import SampleKindTag from '../../SampleKindTag'
-import { WithContainerRenderComponent, WithIndividualRenderComponent, WithCoordinateRenderComponent } from '../WithItemRenderComponent'
+import { WithContainerRenderComponent, WithIndividualRenderComponent, WithCoordinateRenderComponent, WithProjectRenderComponent } from '../WithItemRenderComponent'
 
 /*
 	Defines a set of Ant Table column descriptors for sample fields. Each column
@@ -42,9 +42,11 @@ export enum SampleColumnID {
 	QC_FLAG = 'QC_FLAG',
 	CREATION_DATE = 'CREATION_DATE',
 	DEPLETED = 'DEPLETED',
+	PROJECT = 'PROJECT',
 }
 
 export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn } = {
+
 	[SampleColumnID.ID]: {
 		columnID: SampleColumnID.ID,
 		title: 'ID',
@@ -198,6 +200,21 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 		dataIndex: ['sample', 'depleted'],
 		render: (depleted) => <Depletion depleted={depleted} />,
 	},
+
+	[SampleColumnID.PROJECT]: {
+		columnID: SampleColumnID.PROJECT,
+		title: 'Project',
+		dataIndex: ['sample', 'project'],
+		render: (projectID) => 
+			projectID && (
+				<WithProjectRenderComponent 
+					objectID={projectID}
+					render={
+						(project) => <Link to={`/projects/${project.id}`}>{project.name}</Link>
+					}
+				/>
+			)
+	},
 }
 
 /**
@@ -291,6 +308,11 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 			{ label: 'Failed', value: 'false' },
 		],
 	},
+	[SampleColumnID.PROJECT]: {
+		type: FILTER_TYPE.INPUT,
+		key: UNDEFINED_FILTER_KEY,
+		label: 'Project',
+	}
 }
 
 /**
@@ -310,4 +332,5 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.CREATION_DATE]: 'sample__creation_date',
 	[SampleColumnID.DEPLETED]: 'sample__depleted',
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
+	[SampleColumnID.PROJECT]: 'sample__derived_samples__project__name',
 }
