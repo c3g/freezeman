@@ -14,9 +14,7 @@ import PageContent from '../PageContent'
 import StudyEditForm from './StudyEditForm'
 
 
-interface EditStudyContentProps {
-	action: 'ADD' | 'EDIT'
-}
+
 
 interface AlertError {
 	message: string
@@ -28,9 +26,14 @@ export function createStudyTabKey(studyId : number) {
 	return `study-${studyId}`
 }
 
-const StudyEditContent = ({ action }: EditStudyContentProps) => {
+interface StudyEditContentProps {
+	action: 'ADD' | 'EDIT'
+}
+
+const StudyEditContent = ({ action }: StudyEditContentProps) => {
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
+	const projectId = useIDParam('id')
 
 	const [alertError, setAlertError] = useState<AlertError>()
 	const [apiError, setApiError] = useState<ApiError>()
@@ -39,12 +42,6 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 	const isCreating = action === 'ADD'
 	
 	const projectsById : ItemsByID<Project> = useSelector(selectProjectsByID)
-
-
-	const projectId = useIDParam('id')
-	if (!projectId) {
-		return null
-	}
 	
 	useEffect(() => {
 		if (projectId) {
@@ -57,8 +54,6 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 		}
 	}, [projectId, projectsById])
 
-	
-
 	const workflowsByID = useSelector(selectWorkflowsByID)
 	const workflows = Object.values(workflowsByID) as Workflow[]
 
@@ -66,7 +61,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 	if (isCreating) {
 		title = 'Create a Study'
 	} else {
-		title = `Edit ${'a Study'}` // TODO: display study name
+		title = `Edit ${'a Study'}`
 	}
 
 	async function handleFormSubmit(workflow?: Workflow, stepRange?: WorkflowStepRange) {
@@ -82,7 +77,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 					setApiError(undefined)
 					if (studyData?.id) {
 						// Navigate to the study page
-						const url = `/projects/${projectId}#${createStudyTabKey(studyData.id)}`
+						const url = `/projects/${project.id}#${createStudyTabKey(studyData.id)}`
 						navigate(url)
 					}
 				}).catch((err) => {
@@ -98,7 +93,7 @@ const StudyEditContent = ({ action }: EditStudyContentProps) => {
 				console.log(result)
 			}
 		} else {
-			// TODO handle study update
+			// This is where we will handle editing an existing study.
 		}
 	}
 

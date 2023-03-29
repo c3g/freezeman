@@ -44,12 +44,26 @@ export interface ItemsByID<T extends FMSTrackedModel> {
 	[key: FMSId]: T
 }
 
+/**
+ * Generates an ItemsByID object from an array of model objects.
+ * @param items Array of model objects
+ * @returns ItemsByID
+ */
 export function createItemsByID<T extends FMSTrackedModel>(items: T[]) : ItemsByID<T> {
 	const itemsByID : ItemsByID<T> = {}
 	items.forEach(item => {
 		itemsByID[item.id] = item
 	})
 	return itemsByID
+}
+
+/**
+ * Gets all of the items from an ItemsByID object, as an array.
+ * @param itemsByID An ItemsByID object
+ * @returns The array of items contained in the ItemsByID object
+ */
+export function getAllItems<T extends FMSTrackedModel>(itemsByID: ItemsByID<T>) : T[] {
+	return Object.values(itemsByID) as T[]
 }
 
 export type ObjectId = FMSId

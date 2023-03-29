@@ -1,4 +1,4 @@
-import { selectLabworkSummaryState, selectProtocolsByID, selectWorkflowsByID } from '../../selectors'
+import { selectLabworkSummaryState, selectWorkflowsByID } from '../../selectors'
 import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
 import { refreshSamplesAtStep } from '../labworkSteps/actions'

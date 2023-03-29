@@ -57,13 +57,13 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
             }
         }
 
-    }, [studiesById, workflowsById, projectsById, studySamplesState])
+    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, studySamples, dispatch])
 
     useEffect(() => {
         return () => {
             dispatch(flushStudySamples(studyId))
         }
-    }, [studyId])
+    }, [studyId, dispatch])
 
     function getStepWithOrder(order?: number) {
         if (order && study && workflow) {

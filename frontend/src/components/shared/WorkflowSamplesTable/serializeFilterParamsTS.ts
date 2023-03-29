@@ -42,9 +42,9 @@ export default function serializeFilterParamsWithDescriptions(filters: FilterSet
 			case FILTER_TYPE.SELECT: {
 				key = description.mode === 'multiple' ? key + '__in' : key
 				if (isStringArrayFilterValue(value)) {
-					params[key] = [...(value.join(','))]
+					params[key] = value.join(',')
 				} else if (isStringFilterValue(value)) {
-					params[key] = [value]
+					params[key] = value
 				}
 				break
 			}

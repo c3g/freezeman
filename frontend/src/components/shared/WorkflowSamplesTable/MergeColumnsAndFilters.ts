@@ -42,6 +42,14 @@ export function addFiltersToColumns<T>(
 
 			const filterValue = filters[key]
 
+			// If the filter has a function to generate options dynamically then call it.
+			if (filter.dynamicOptions) {
+				filter = {
+					...filter,
+					options: filter.dynamicOptions()
+				}
+			}
+
 			const props = getFilterPropsForDescription(column, filter, filterValue, setFilter, setFilterOption)
 
 			return {

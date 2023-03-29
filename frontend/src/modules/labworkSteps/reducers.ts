@@ -3,7 +3,7 @@ import { clearFiltersReducer, setFilterOptionsReducer, setFilterReducer } from '
 import { FMSId } from '../../models/fms_api_models'
 import { createItemsByID, SampleNextStep } from '../../models/frontend_models'
 import { templateActionsReducerFactory } from '../../utils/templateActions'
-import { CLEAR_FILTERS, CLEAR_SELECTION_CHANGED_MESSAGE, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from './actions'
+import { CLEAR_FILTERS, FLUSH_SAMPLES_AT_STEP, INIT_SAMPLES_AT_STEP, LIST, LIST_TEMPLATE_ACTIONS, SET_FILTER, SET_FILTER_OPTION, SET_SELECTED_SAMPLES, SET_SORT_BY, SHOW_SELECTION_CHANGED_MESSAGE } from './actions'
 import { LabworkStepSamples, LabworkStepsState } from './models'
 
 const INTIAL_STATE: LabworkStepsState = {
