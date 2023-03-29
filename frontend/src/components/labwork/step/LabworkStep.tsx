@@ -1,6 +1,6 @@
 import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
 import { Alert, Button, Select, Space, Tabs, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
@@ -32,7 +32,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const dispatch = useAppDispatch()
 	const navigate = useNavigate()
 
-	// Set the currently selected template to the first template available, not already set.
+	// Set the currently selected template to the first template available, if not already set.
 	useEffect(() => {
 		if(!selectedTemplate) {
 			if (stepSamples.prefill.templates.length > 0) {
@@ -42,57 +42,66 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				console.error('No templates are associated with step!')
 			}
 		}
-	}, [stepSamples])
+	}, [stepSamples, selectedTemplate])
 
-	function handleSetFilter(filterKey: string, value: FilterValue, description: FilterDescription) {
-		if(typeof description === 'undefined') {
-			return
+	const handleSetFilter = useCallback(
+		(filterKey: string, value: FilterValue, description: FilterDescription) => {
+			if(typeof description === 'undefined') {
+				return
+			}
+			dispatch(setFilter(step.id, description, value))
+		}, [step, dispatch]
+	)
+
+	const handleSetFilterOptions = useCallback(
+		(filterKey: string, property: string, value: boolean, description: FilterDescription) => {
+			if(typeof description === 'undefined') {
+				return
+			}
+			dispatch(setFilterOptions(step.id, description, {[property]: value}))
 		}
-		dispatch(setFilter(step.id, description, value))
-	}
-
-	function handleSetFilterOptions(filterKey: string, property: string, value: boolean, description: FilterDescription) {
-		if(typeof description === 'undefined') {
-			return
+	, [step, dispatch])
+		
+	const handleSetSortBy = useCallback(
+		(sortBy: SortBy) => {
+			dispatch(setSortBy(step.id, sortBy))
 		}
-		dispatch(setFilterOptions(step.id, description, {[property]: value}))
-	}
-
-	function handleSetSortBy(sortBy: SortBy) {
-		dispatch(setSortBy(step.id, sortBy))
-	}
+	, [step, dispatch])
 
 	const isRefreshing = stepSamples.pagedItems.isFetching
-	function handleRefresh() {
-		dispatch(refreshSamplesAtStep(step.id))
-	}
+	const handleRefresh = useCallback(
+		() => {dispatch(refreshSamplesAtStep(step.id))}	
+	, [step, dispatch])
 
 	// Handle the prefill template button
 	const canPrefill = selectedTemplate && stepSamples.selectedSamples.length > 0
 
-	async function handlePrefillTemplate() {
-		// Generate a prefilled template containing the list of selected values.		
-		if (selectedTemplate) {
-			try {
-				const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
-				if (result) {
-					downloadFromFile(result.filename, result.data)
+	const handlePrefillTemplate = useCallback(
+		async () => {
+			if (selectedTemplate) {
+				try {
+					const result = await dispatch(requestPrefilledTemplate(selectedTemplate.id, step.id))
+					if (result) {
+						downloadFromFile(result.filename, result.data)
+					}
+				} catch(err) {
+					console.error(err)
 				}
-			} catch(err) {
-				console.error(err)
 			}
 		}
-	}
-	
+	, [step, selectedTemplate, dispatch])
+
 	// Submit Template handler
 	const canSubmit = selectedTemplate && selectedTemplate.submissionURL
 
-	function handleSubmitTemplate() {
-		dispatch(flushSamplesAtStep(step.id))
-		if (selectedTemplate && selectedTemplate.submissionURL) {
-			navigate(selectedTemplate.submissionURL)
+	const handleSubmitTemplate = useCallback(
+		() => {
+			dispatch(flushSamplesAtStep(step.id))
+			if (selectedTemplate && selectedTemplate.submissionURL) {
+				navigate(selectedTemplate.submissionURL)
+			}
 		}
-	}
+	, [step, selectedTemplate, navigate, dispatch])
 
 	// When the user selects or deselects samples in the table, the table gives us the new selection.
 	// The selection, however, only covers the page of samples that are currently displayed in the table.
@@ -120,7 +129,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	// Selection handler for sample selection checkboxes
 	const selectionProps = {
 		selectedSampleIDs: stepSamples.selectedSamples,
-		onSelectionChanged: (selectedSamples) => {
+		onSelectionChanged: useCallback((selectedSamples) => {
 			const displayedSelection = selectedSamples.reduce((acc, selected) => {
 				if (selected.sample) {
 					acc.push(selected.sample.id)
@@ -129,13 +138,15 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 			}, [] as FMSId[])
 			const mergedSelection = mergeSelectionChange(stepSamples.selectedSamples, stepSamples.displayedSamples, displayedSelection)
 			dispatch(updateSelectedSamplesAtStep(step.id, mergedSelection))
-		},
+		}, [step, stepSamples, dispatch]),
 	}
 
 	const canClearSelection = stepSamples.selectedSamples.length !== 0
-	function handleClearSelection() {
-		dispatch(clearSelectedSamples(step.id))
-	}
+	const handleClearSelection = useCallback(
+		() => {
+			dispatch(clearSelectedSamples(step.id))
+		}
+	, [step, dispatch])
 
 	// Display the number of selected samples in the tab title
 	const selectedTabTitle = `Selection (${stepSamples.selectedSamples.length} ${stepSamples.selectedSamples.length === 1 ? "sample" : "samples"} selected)`
@@ -152,14 +163,18 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		</Space>
 	)
 
-	function handlePageNumber(pageNumber: number) {
-		dispatch(loadSamplesAtStep(step.id, pageNumber))
-	}
+	const handlePageNumber = useCallback(
+		(pageNumber: number) => {
+			dispatch(loadSamplesAtStep(step.id, pageNumber))
+		}
+	, [step, dispatch])
 
-	function handlePageSize(pageSize: number) {
-		dispatch(setPageSize(pageSize))
-		dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
-	}
+	const handlePageSize = useCallback(
+		(pageSize: number) => {
+			dispatch(setPageSize(pageSize))
+			dispatch(loadSamplesAtStep(step.id, stepSamples.pagedItems.page?.pageNumber ?? 1))
+		}
+	, [step, stepSamples, dispatch])
 
 	const pagination: PaginationParameters = {
 		pageNumber: stepSamples.pagedItems.page?.pageNumber ?? 1,
@@ -168,6 +183,20 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 		onChangePageNumber: handlePageNumber,
 		onChangePageSize: handlePageSize
 	}
+
+	// Memoizing these cuts down on table re-renders. Without it, the samples tables render 6 times
+	// when they are initially visible.
+	const columnsForStep = useMemo(() => {
+		return getColumnsForStep(step, protocol)
+	}, [step, protocol])
+
+	const filterDefinitions = useMemo(() => {
+		return {...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS}
+	}, [])
+
+	const filterKeys = useMemo(() => {
+		return {...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}
+	}, [])
 
 	return (
 		<>
@@ -204,9 +233,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.displayedSamples} 
-							columns={getColumnsForStep(step, protocol)}
-							filterDefinitions={{...SAMPLE_COLUMN_FILTERS, ...LIBRARY_COLUMN_FILTERS}}
-							filterKeys={{...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}}
+							columns={columnsForStep}
+							filterDefinitions={filterDefinitions}
+							filterKeys={filterKeys}
 							filters={stepSamples.pagedItems.filters}
 							setFilter={handleSetFilter}
 							setFilterOptions={handleSetFilterOptions}
@@ -230,7 +259,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.selectedSamples}
-							columns={getColumnsForStep(step, protocol)}
+							columns={columnsForStep}
 							filterDefinitions={{}}
 							filterKeys={{}}
 							filters={{}}

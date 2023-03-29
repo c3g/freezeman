@@ -50,7 +50,7 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         if (!studyState && study && workflow) {
             dispatch(getStudySamples(studyId))
         } 
-    }, [studiesById, workflowsById, projectsById, studySamplesState, study, workflow])
+    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, study, workflow, dispatch])
 
     useEffect(() => {
         // The effect ensure that whenever the study samples state changes we display
@@ -62,13 +62,13 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 setStudySamples(studyState.data)
             }
         } 
-    }, [studySamplesState])
+    }, [studyId, studiesById, workflowsById, projectsById, studySamplesState, studySamples, dispatch])
 
     useEffect(() => {
         return () => {
             dispatch(flushStudySamples(studyId))
         }
-    }, [studyId])
+    }, [studyId, dispatch])
 
     const refreshSamples = useCallback(() => {
         dispatch(refreshStudySamples(studyId))

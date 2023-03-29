@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { FILTER_TYPE } from '../../../constants'
 import { Sample } from '../../../models/frontend_models'
 import { FilterDescription } from '../../../models/paged_items'
+import { selectSampleKindsByID } from '../../../selectors'
+import store from '../../../store'
 import { Depletion } from '../../Depletion'
 import { QCFlag } from '../../QCFlag'
 import SampleKindTag from '../../SampleKindTag'
@@ -228,6 +230,21 @@ export const SAMPLE_COLUMN_DEFINITIONS: { [key in SampleColumnID]: SampleColumn 
 
 export const UNDEFINED_FILTER_KEY = 'UNDEFINED_FILTER_KEY'
 
+// Initializes the sample KIND options with the sample kinds in the redux store.
+function getSampleKindOptions() {
+	const sampleKinds = selectSampleKindsByID(store.getState())
+	if (sampleKinds) {
+		const options = Object.values(sampleKinds).map((sampleKind) => {
+			return {
+				label: sampleKind.name,
+				value: sampleKind.name
+	
+			}
+		})
+		return options
+	}return []
+}
+
 export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription } = {
 	// Object keys map to column "columnID" properties, to match columns to filters.
 	[SampleColumnID.ID]: {
@@ -241,6 +258,7 @@ export const SAMPLE_COLUMN_FILTERS: { [key in SampleColumnID]: FilterDescription
 		label: 'Type',
 		mode: 'multiple',
 		placeholder: 'All',
+		dynamicOptions: getSampleKindOptions
 	},
 	[SampleColumnID.NAME]: {
 		type: FILTER_TYPE.INPUT,

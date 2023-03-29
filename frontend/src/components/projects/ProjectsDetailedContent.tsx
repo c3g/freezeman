@@ -1,14 +1,13 @@
 import { Button, Tabs } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import useHashURL from '../../hooks/useHashURL'
-import { Project, Study } from '../../models/frontend_models'
+import { getAllItems, Project, Study } from '../../models/frontend_models'
 
 import { useIDParam } from '../../hooks/useIDParams'
 import { listProjectStudies } from '../../modules/studies/actions'
 import { selectProjectsByID, selectStudiesByID } from '../../selectors'
-import { withProject } from '../../utils/withItem'
 import AppPageHeader from '../AppPageHeader'
 import EditButton from '../EditButton'
 import PageContent from '../PageContent'
@@ -16,46 +15,56 @@ import StudyDetails from '../studies/StudyDetails'
 import { createStudyTabKey } from '../studies/StudyEditContent'
 import ProjectOverview from './ProjectOverview'
 import ProjectsAssociatedSamples from './ProjectsAssociatedSamples'
+import { get as getProject } from '../../modules/projects/actions'
 
 const { TabPane } = Tabs
 
-
-const ProjectsDetailedContent = () => {
-	const navigate = useNavigate()
+const ProjectsDetailedContentRoute = () => {
+	const projectID = useIDParam('id')
 	const dispatch = useAppDispatch()
 	const projectsByID = useAppSelector(selectProjectsByID)
-	const studiesById = useAppSelector(selectStudiesByID)
+	const studiesByID = useAppSelector(selectStudiesByID)
+
 	const [project, setProject] = useState<Project>()
-	const [isLoading, setIsLoading] = useState<boolean>(true)
+	const [studies, setStudies] = useState<Study[]>([])
 
-	const projectID = useIDParam('id')
-	if (!projectID) {
-		return null
-	}
-	
+	useEffect(() => {
+		if (projectID) {
+			const foundProject = projectsByID[projectID]
+			if (foundProject) {
+				setProject(foundProject)
+			} else {
+				dispatch(getProject(projectID))
+			}
+		}
+	}, [projectID, projectsByID, dispatch])
+
+	useEffect(() => {
+		if (project) {
+			dispatch(listProjectStudies(project.id))
+		}
+	}, [project, dispatch])
+
+	useEffect(() => {
+		if (project) {
+			const studies = getAllItems(studiesByID).filter(study => study.project_id === project.id)
+			setStudies(studies)
+		}
+	}, [project, studiesByID])
+
+
+	return project && <ProjectsDetailedContent project={project} studies={studies}/>
+}
+
+interface ProjectsDetailedContentProps {
+	project: Project
+	studies: Study[]
+}
+
+const ProjectsDetailedContent = ({project, studies} : ProjectsDetailedContentProps) => {
+	const navigate = useNavigate()
+
 	const [activeKey, setActiveKey] = useHashURL('overview')
-
-	useEffect(() => {
-		const result = withProject(projectsByID, `${projectID}`, project => project)
-		if (result) {
-			setProject(result)
-			setIsLoading(false)
-		}
-	}, [projectID, projectsByID])
-
-	useEffect(() => {
-		dispatch(listProjectStudies(projectID))
-	}, [projectID])
-
-	// Get the studies owned by this project
-	// const studies = Object.values(studiesById).filter(study => study.project_id === id)
-	const studies: Study[] = []
-	for(const key in studiesById) {
-		const study = studiesById[key]
-		if (study.project_id === projectID) {
-			studies.push(study)
-		}
-	}
 
 	const tabsStyle = {
 		marginTop: 8,
@@ -69,15 +78,19 @@ const ProjectsDetailedContent = () => {
 
 	const title = `Project ${project ? project.name : ''}`
 
+	const handleAddStudy = useCallback(() => {
+		navigate(`/projects/${`${project.id}`}/study/add`)
+	}, [project, navigate])
+
 	// Clicking the Add Study button navigates the user to the study creation form
-	const addStudyButton = <Button onClick={() => {navigate(`/projects/${`${projectID}`}/study/add`)}}>Add Study</Button>
+	const addStudyButton = <Button onClick={handleAddStudy}>Add Study</Button>
 
 	return (
 		<>
-			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${projectID}`}/update`} />} />
+			<AppPageHeader title={title} extra={<EditButton url={`/projects/${`${project.id}`}/update`} />} />
 
 			{project && (
-				<PageContent loading={isLoading} style={undefined}>
+				<PageContent loading={false} style={undefined}>
 					{ project && 
 						<Tabs activeKey={activeKey} onChange={setActiveKey} size="large" type="card" style={tabsStyle} tabBarExtraContent={addStudyButton}>
 							<TabPane tab="Overview" key="overview" style={tabStyle}>
@@ -101,4 +114,4 @@ const ProjectsDetailedContent = () => {
 	)
 }
 
-export default ProjectsDetailedContent
+export default ProjectsDetailedContentRoute

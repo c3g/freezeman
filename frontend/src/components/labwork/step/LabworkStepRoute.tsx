@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '../../../hooks'
+import { useIDParam } from '../../../hooks/useIDParams'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { initSamplesAtStep } from '../../../modules/labworkSteps/actions'
 import { LabworkStepSamples } from '../../../modules/labworkSteps/models'
@@ -12,8 +12,10 @@ import LabworkStep from './LabworkStep'
 	LabworkStepRoute is responsible for loading all of the labwork step samples
 	data. Once loaded, it renders a LabworkStep component to display the data.
 */
+
+
 const LabworkStepRoute = () => {
-	const stepIDParam = useParams().stepID
+	const stepID = useIDParam('stepID')
 	const appInitialized = useAppSelector(selectAppInitialzed)
 	const labworkStepsState = useAppSelector(selectLabworkStepsState)
 	const protocolsByID = useAppSelector(selectProtocolsByID)
@@ -24,15 +26,8 @@ const LabworkStepRoute = () => {
 	const [protocol, setProtocol] = useState<Protocol>()
 	const [labworkStepSamples, setLabworkStepSamples] = useState<LabworkStepSamples>()
 
-	// Bail if the step ID is missing from the URL - there's a problem.
-	if(!stepIDParam) {
-		console.error(`stepID parameter is missing from step page url`)
-		return null
-	}
-	const stepID = parseInt(stepIDParam)
-
 	useEffect(() => {
-		if (appInitialized) {
+		if (stepID && appInitialized) {
 			if(! step) {
 				const foundStep = stepsByID[stepID]
 				if(foundStep) {
@@ -40,7 +35,7 @@ const LabworkStepRoute = () => {
 				}
 			}
 		}
-	}, [appInitialized, stepsByID])
+	}, [appInitialized, stepsByID, stepID, step])
 
 	useEffect(() => {
 		if(step && !protocol) {
@@ -49,18 +44,18 @@ const LabworkStepRoute = () => {
 				setProtocol(foundProtocol)
 			}
 		}
-	}, [step, protocolsByID])
+	}, [step, protocolsByID, protocol])
 	
 	useEffect(() => {
 		if(step && protocol) {
-			const foundLabwork = labworkStepsState.steps[stepID]
+			const foundLabwork = labworkStepsState.steps[step.id]
 			if(foundLabwork) {
 				setLabworkStepSamples(foundLabwork)
 			} else {
-				dispatch(initSamplesAtStep(stepID))
+				dispatch(initSamplesAtStep(step.id))
 			}
 		}
-	}, [step, protocol, labworkStepsState])
+	}, [step, protocol, labworkStepsState, dispatch])
 
 	return (
 		step && protocol && labworkStepSamples ?
