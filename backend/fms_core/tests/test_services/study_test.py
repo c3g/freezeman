@@ -3,7 +3,7 @@ from django.test import TestCase
 from fms_core.services.study import get_study, create_study
 from fms_core.models import Workflow, Project, Study
 
-class PlatformServicesTestCase(TestCase):
+class StudyServicesTestCase(TestCase):
     def setUp(self) -> None:
         self.workflow = Workflow.objects.get(name="PCR-free Illumina")
         self.project = Project.objects.create(name="TestStudy")
@@ -53,7 +53,7 @@ class PlatformServicesTestCase(TestCase):
         """
           Test to create an invalid (end > num_steps) study B of project TestStudy 
         """
-        study, errors, warnings = create_study(self.project, self.workflow, self.start, 9)
+        study, errors, warnings = create_study(self.project, self.workflow, self.start, 10)
         self.assertEqual(study, None)
         self.assertEqual(errors['step_range'], ['The end step cannot be after the last step of the workflow.'])
         self.assertEqual(warnings, {})
