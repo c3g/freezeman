@@ -1,7 +1,7 @@
 import { AnyAction } from "redux"
 import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers"
 import { createNetworkActionTypes } from "../../utils/actions"
-import { StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./models"
+import { StudySampleStep, StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./models"
 
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
@@ -9,6 +9,7 @@ import { StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./model
 // then we end up with a circular dependency and the app fails to load with a webpack
 // module error.
 export const GET_STUDY_SAMPLES = createNetworkActionTypes('STUDY_SAMPLES.GET_STUDY_SAMPLES')
+export const SET_REFRESHED_STEP_SAMPLES = 'STUDY_SAMPLES.SET_REFRESHED_STEP_SAMPLES'
 export const FLUSH_STUDY_SAMPLES = 'STUDY_SAMPLES.FLUSH_STUDY_SAMPLES'
 export const SET_HIDE_EMPTY_STEPS = 'STUDY_SAMPLES.SET_HIDE_EMPTY_STEPS'
 
@@ -20,7 +21,6 @@ export const SET_STUDY_STEP_FILTER = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_FILTER_OPTIONS = 'STUDY_SAMPLES.SET_STUDY_STEP_FILTER_OPTION'
 export const REMOVE_STUDY_STEP_FILTER = 'STUDY_SAMPLES.REMOVE_STUDY_STEP_FILTER'
 export const SET_STUDY_STEP_SORT_ORDER = 'STUDY_SAMPLES.SET_STUDY_STEP_SORT_ORDER'
-
 
 /* 
 	The studySamples state is used by the study details page to list the
@@ -97,6 +97,46 @@ export const studySamples = (
 			}
 			break
 		}
+
+		case SET_REFRESHED_STEP_SAMPLES: {
+			const { studyID, stepID, sampleIDs} = action
+			// Find the study
+			const studySamples = state.studySamplesByID[studyID]
+			if (studySamples.data) {
+				// Find the step in the study
+				const stepIndex = studySamples.data.steps.findIndex(step => step.stepID === stepID)
+				if (stepIndex !== -1) {
+					const step = studySamples.data.steps[stepIndex]
+
+					// Create a new step instance with the refreshed sample list
+					const refreshedStep : StudySampleStep = {
+						...step,
+						samples: sampleIDs
+					}
+					
+					// Replace the old step by the new step in the study steps array
+					const refreshedSteps = [...studySamples.data.steps]
+					refreshedSteps.splice(stepIndex, 1, refreshedStep)
+
+
+					// Create a new study instance with the updated samples
+					const refreshedStudySamples = {
+						...studySamples,
+						steps: refreshedSteps
+					}
+
+					return {
+						...state,
+						studySamplesByID: {
+							...state.studySamplesByID,
+							[studyID]: refreshedStudySamples
+						}
+					}
+				}
+			}
+			break
+		}
+
 		case FLUSH_STUDY_SAMPLES: {
 			const newState = {
 				...state

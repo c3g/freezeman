@@ -2,12 +2,6 @@ import { FMSId } from "../../models/fms_api_models"
 import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
 
-
-export interface StudySampleList {
-	sampleList: FMSId[]
-	steps: StudySampleStep[]
-}
-
 export interface CompletedStudySample {
 	id: FMSId							// StepHistory ID 
 	sampleID: FMSId
@@ -28,6 +22,12 @@ export interface StudySampleStep {
 	samples: FMSId[]					// List of samples at step
 	completed: CompletedStudySample[]	// Sample history for samples completed at the step
 }
+
+export interface StudySampleList {
+	steps: StudySampleStep[]
+}
+
+export type StudySamplesByID = {[key: number] : FetchedState<StudySampleList>}
 
 // UX settings for study samples page, used to keep track of
 // the expanded/collapsed state of steps, the 'ready' vs. 'completed'
@@ -51,7 +51,6 @@ export interface StudyUXSettings {
 	readonly stepSettings: {[key : FMSId] : StudyUXStepSettings}	// key: step ID
 }
 
-export type StudySamplesByID = {[key: number] : FetchedState<StudySampleList>}
 export type StudySettingsByID = {[key: number] : StudyUXSettings}
 
 // Complete study samples state

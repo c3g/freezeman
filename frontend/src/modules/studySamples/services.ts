@@ -1,5 +1,7 @@
+import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
 import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory } from "../../models/fms_api_models"
 import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
+import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
 import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
@@ -36,19 +38,24 @@ export async function loadStudySamples(studyID: FMSId) {
 		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, `Cannot load study samples - workflow is still fetching`)
 	}
 	
-	// Get samples that are waiting to be processed by a step. Force sorting by plate and then by coordinate.
-	let sampleNextStepsByStudy : FMSSampleNextStepByStudy[] | undefined
-	const options = {
-		limit: 10000,
-		ordering: 'step_order__order,sample_next_step__sample__container__barcode,sample_next_step__sample__coordinate__column,sample_next_step__sample__coordinate__row'
-	}
-	const sampleNextStepResponse = await store.dispatch(api.sampleNextStepByStudy.getStudySamples(studyID, options))
-	if (sampleNextStepResponse.data.results) {
-		sampleNextStepsByStudy = sampleNextStepResponse.data.results as FMSSampleNextStepByStudy[]
-	} else {
+	// Each step has its own samples table, with its own filters and sort order, so
+	// we have to request samples for each step separately. Create one request per step.
+	
+	const requests = workflow.steps_order.map(step => {
+		return fetchSamplesAtStep(studyID, step.step_id)
+	})
+
+	// Create a map object with step ID as key and list of SampleNextSteps as values.
+	const groupedSampleNextSteps = {}
+	try {
+		const steps = await Promise.all(requests)
+		for (const step of steps) {
+			groupedSampleNextSteps[step.stepID] = step.sampleNextSteps
+		}
+	} catch(err) {
 		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch study samples')
 	}
-
+	
 	// Get samples that have completed the process at a step
 	let completedSamplesByStudy : FMSStepHistory[] | undefined
 	const sampleHistoryResponse = await store.dispatch(api.stepHistory.getCompletedSamplesForStudy(studyID))
@@ -58,57 +65,73 @@ export async function loadStudySamples(studyID: FMSId) {
 		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch completed samples for study')
 	}
 
-	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy, completedSamplesByStudy)
+	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy)
 
 	// Fetch the study samples
-	if (studySamples.sampleList.length > 0) {
-
-		const samples = await fetchSamples(studySamples.sampleList)
+	const sampleList = listSamplesInStudy(studySamples)
+	if (sampleList.length > 0) {
+		const samples = await fetchSamples(sampleList)
 		if (samples.length > 0) {
 			const sampleIDs = samples.filter(sample => sample.is_library).map(sample => sample.id)
 			await fetchLibrariesForSamples(sampleIDs)
 		}
 	}
-	return studySamples
+	return {
+		steps: studySamples.steps
+	}
+}
+
+function listSamplesInStudy(study: StudySampleList) {
+	const samples = new Set<FMSId>()
+	for (const step of study.steps) {
+		const samplesInStep = listSamplesInStep(step)
+		for (const sample of samplesInStep) {
+			samples.add(sample)
+		}
+	}
+	return [...samples]
+}
+
+function listSamplesInStep(step: StudySampleStep) {
+	const samples = new Set<FMSId>(step.samples)
+	for(const completed of step.completed) {
+		samples.add(completed.sampleID)
+	}
+	return [...samples.values()]
 }
 
 export async function buildStudySamplesFromWorkflow(
 	study: Study, 
 	workflow: Workflow, 
-	sampleNextStepsByStudy: FMSSampleNextStepByStudy[],
+	sampleNextStepsByStep: {[key: FMSId] : FMSSampleNextStepByStudy[]},
 	completedSamplesByStudy: FMSStepHistory[]) : Promise<StudySampleList> {
 
-	const sampleList : FMSId[] = []
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
 	// Create the list of study steps from the workflow, starting and ending at the steps defined in the study.
 	workflow.steps_order.forEach(stepOrder => {
 		if (stepOrder.order >= study.start && stepOrder.order <= study.end) {
+
+			// Get the list of sample-next-steps retrieved for this step, and set
+			// the list of samples for the step.
+			const sampleNextSteps = sampleNextStepsByStep[stepOrder.step_id]
+			if (!sampleNextSteps) {
+				throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, `Study samples for step ${stepOrder.step_id} not retrieved.`)
+			}
+			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
+
 			const step : StudySampleStep = {
 				stepID: stepOrder.step_id,
 				stepName: stepOrder.step_name,
         		stepOrderID: stepOrder.id,
 				stepOrder: stepOrder.order,
 				protocolID: stepOrder.protocol_id,
-				samples: [],
+				samples,
 				completed: []
 			}
 			stepMap.set(step.stepOrderID, step)
 		}
 	}) 
-
-	// Insert the sample ID's into the steps
-	sampleNextStepsByStudy.forEach(sampleNextStepByStudy => {
-		// Add the sample ID to the study samples step.
-		// If the step doesn't exist in the workflow then ignore the sample next step.
-		const step = stepMap.get(sampleNextStepByStudy.step_order)
-		if (step) {
-			step.samples.push(sampleNextStepByStudy.sample)
-			sampleList.push(sampleNextStepByStudy.sample)
-		} else {
-			console.warn(`A study sample was ignored (ID: ${sampleNextStepByStudy.sample}). It is at step order (ID: ${sampleNextStepByStudy.step_order}) which is not in the study's ${workflow.name} workflow.`)
-		}
-	})
 
 	// Get the process measurements for the completed samples
 	const processMeasurementIDs = completedSamplesByStudy.map(completed => completed.process_measurement)
@@ -143,8 +166,6 @@ export async function buildStudySamplesFromWorkflow(
 				comment: processMeasurement?.comment
 			}
 			step.completed.push(completedSample)
-
-			sampleList.push(stepHistory.sample)
 		}
 	})
 
@@ -152,7 +173,32 @@ export async function buildStudySamplesFromWorkflow(
 	const steps = Array.from(stepMap.values()).sort((a, b) => a.stepOrder - b.stepOrder)
 
 	return {
-		sampleList,
 		steps
 	}
+}
+
+export async function fetchSamplesAtStep(studyID: FMSId, stepID: FMSId) {
+
+	const studySettingsByID = selectStudySettingsByID(store.getState())
+
+	// Get the current set of filters and sort order from UX settings for study and step
+	let options = {}
+	const settings = studySettingsByID[studyID]?.stepSettings[stepID]
+	if (settings) {
+		const serializedFilters = settings.filters ? serializeFilterParamsWithDescriptions(settings.filters) : {}
+		const ordering = settings.sortBy ? serializeSortByParams(settings.sortBy) : undefined
+		options = {ordering, ...serializedFilters}
+	}
+
+	return store.dispatch(api.sampleNextStepByStudy.getStudySamplesForStep(studyID, stepID, options))
+		.then(response => {
+			if (response.data?.results) {
+				return {
+					stepID: stepID,
+					sampleNextSteps: response.data.results as FMSSampleNextStepByStudy[]
+				}
+			} else {
+				throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch study samples - no data in response.')
+			}
+		})
 }

@@ -76,6 +76,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0 || step.completed.length > 0)
 	}
 
+	console.log('STUDY SAMPLE RENDERING')
+
 	return (
 		<>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -96,7 +98,6 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
-					const hasSamples = step.samples.length > 0 || step.completed.length > 0
 					const totalSampleCount = step.samples.length + step.completed.length
 					const countString = `${step.completed.length} / ${totalSampleCount}`
 
@@ -120,11 +121,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 							}
 							style={{backgroundColor: 'white'}}
 						>
-							{hasSamples ? (
-								<SamplesTabs studyID={studyID} step={step} settings={uxSettings?.stepSettings[step.stepID]}/>
-							) : (
-								<Text style={{ margin: '1rem', lineHeight: '2rem'}}>No samples are at this step</Text>
-							)}
+							<SamplesTabs studyID={studyID} step={step} settings={uxSettings?.stepSettings[step.stepID]}/>
 						</Collapse.Panel>
 					)
 				})}
@@ -152,7 +149,7 @@ function SamplesTabs({studyID, step, settings}: SampleTabContainerProps) {
 	return (
 		<Tabs defaultActiveKey='ready' activeKey={settings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
 			<Tabs.TabPane tab={readyTab} key='ready'>
-				<StudyStepSamplesTable step={step}/>
+				<StudyStepSamplesTable studyID={studyID} step={step} settings={settings}/>
 			</Tabs.TabPane>
 			<Tabs.TabPane tab={completedTab} key='completed'>
 				<CompletedSamplesTable completedSamples={step.completed}/>
