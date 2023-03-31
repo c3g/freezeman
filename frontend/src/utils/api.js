@@ -231,7 +231,7 @@ const api = {
   },
 
   sampleNextStepByStudy: {
-    getStudySamples: (studyId) => get('/sample-next-step-by-study/', {study__id__in : studyId}),
+    getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
 

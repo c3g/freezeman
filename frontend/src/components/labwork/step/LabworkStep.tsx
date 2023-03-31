@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
+import { InfoCircleOutlined } from '@ant-design/icons'
 import { Alert, Button, Select, Space, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'

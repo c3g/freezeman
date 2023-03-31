@@ -36,10 +36,13 @@ export async function loadStudySamples(studyID: FMSId) {
 		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, `Cannot load study samples - workflow is still fetching`)
 	}
 	
-	// Get the study samples
-	// Get samples that are waiting to be processed by a step
+	// Get samples that are waiting to be processed by a step. Force sorting by plate and then by coordinate.
 	let sampleNextStepsByStudy : FMSSampleNextStepByStudy[] | undefined
-	const sampleNextStepResponse = await store.dispatch(api.sampleNextStepByStudy.getStudySamples(studyID))
+	const options = {
+		limit: 10000,
+		ordering: 'step_order__order,sample_next_step__sample__container__barcode,sample_next_step__sample__coordinate__column,sample_next_step__sample__coordinate__row'
+	}
+	const sampleNextStepResponse = await store.dispatch(api.sampleNextStepByStudy.getStudySamples(studyID, options))
 	if (sampleNextStepResponse.data.results) {
 		sampleNextStepsByStudy = sampleNextStepResponse.data.results as FMSSampleNextStepByStudy[]
 	} else {

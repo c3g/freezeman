@@ -9,6 +9,7 @@ from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core.models import SampleNextStepByStudy, Sample, Study
 from fms_core.services.sample_next_step import dequeue_sample_from_specific_step_study_workflow
 from fms_core.serializers import SampleNextStepByStudySerializer
+from ._utils import _list_keys
 
 class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     queryset = SampleNextStepByStudy.objects.select_related("sample_next_step").select_related("step_order").all()
@@ -17,6 +18,9 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
 
     filterset_fields = {
         **_sample_next_step_by_study_filterset_fields
+    }
+    ordering_fields = {
+        *_list_keys( _sample_next_step_by_study_filterset_fields),
     }
 
     def destroy(self, request, pk=None):
