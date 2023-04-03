@@ -332,8 +332,8 @@ SAMPLE_POOLING_TEMPLATE = {
   "sheets info": [
       {
           "name": "Pools",
-          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Robot Destination Container", "Robot Destination Coord",
-                      "Destination Container Name", "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
+          "headers": ["Pool Name", "Destination Container Barcode", "Destination Container Coord", "Destination Container Name",
+                      "Destination Container Kind", "Destination Parent Container Barcode", "Destination Parent Container Coord",
                       "Seq Instrument Type", "Pooling Date (YYYY-MM-DD)", "Comment"],
           "stitch_column": "Pool Name",
           'batch': True,
@@ -341,7 +341,7 @@ SAMPLE_POOLING_TEMPLATE = {
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Robot Source Container", "Robot Source Coord", "Source Depleted", "Volume Used (uL)", "Comment", "Workflow Action"],
+                      "Source Depleted", "Volume Used (uL)", "Pool Ratio", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
       },
@@ -349,7 +349,7 @@ SAMPLE_POOLING_TEMPLATE = {
           "name": "LabInput",
           "headers": ["Sample Name", "Technician Library Name", "Library Type",  "Index Name", "Sequencing Type", "Volume (uL)", "LibQC Name",
                       "Plate Barcode (Library)", "Well Coord", "Concentration (qPCR in nM)", "Library Size (bp)", "Pool Barcode", "Pool Name",
-                      "Pool Proportion", "Loading Conc. (pM)", "PhiX", "Final Pool Volume (uL)", "Volume Library Used"],
+                      "Pool Proportion", "Loading Conc. (pM)", "PhiX", "Final Pool Volume (uL)", "Volume Library Used (uL)"],
       }
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]

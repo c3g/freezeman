@@ -102,6 +102,50 @@ def insert_transfer_into_workflows(apps, schema_editor):
                                                               updated_by_id=admin_user_id)
                     reversion.add_to_revision(new_step_order)
 
+def remove_library_normalization_from_workflows(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Replace Normalization + Pooling steps by a single normalization and pooling step in workflows.")
+        reversion.set_user(admin_user)
+
+        # Rename Pooling step to better explain the role.
+        pooling_step = Step.objects.get(name="Pooling")
+        pooling_step.name = "Normalization and Pooling"
+        pooling_step.save()
+        reversion.add_to_revision(pooling_step)
+
+        for workflow in Workflow.objects.all():
+            order_shift = 0
+            last_step_order = None
+            for step_order in StepOrder.objects.filter(workflow_id=workflow.id).order_by("order"):
+                last_step_order = step_order
+                if step_order.next_step_order is not None and step_order.next_step_order.step.name == "Normalization (Library)":
+                    # Change the current step order by the twice remote step order
+                    removed_step_order = step_order.next_step_order
+                    step_order.next_step_order = step_order.next_step_order.next_step_order
+                    step_order.order += order_shift
+                    step_order.save()
+                    reversion.add_to_revision(step_order)
+                    removed_step_order.delete() # Remove Normalization (Library) step order
+                    order_shift -= 1
+                elif order_shift < 0 and step_order.step.name != "Normalization (Library)":
+                    step_order.order += order_shift
+                    step_order.save()
+                    reversion.add_to_revision(step_order)
+            if last_step_order.step.name == "Normalization (Library)":
+                last_step_order.delete() # Remove Normalization (Library) step order
+
+        # Remove the unused Normalization (Library) step
+        normalization_step = Step.objects.get(name="Normalization (Library)")
+        for specification in normalization_step.step_specifications.all():
+            specification.delete()
+        normalization_step.delete()
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -159,6 +203,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(
             insert_transfer_into_workflows,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            remove_library_normalization_from_workflows,
             reverse_code=migrations.RunPython.noop,
         ),
     ]
