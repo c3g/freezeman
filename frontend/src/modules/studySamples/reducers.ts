@@ -1,7 +1,7 @@
 import { AnyAction } from "redux"
 import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers"
 import { createNetworkActionTypes } from "../../utils/actions"
-import { StudySampleStep, StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./models"
+import { StudySampleList, StudySampleStep, StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./models"
 
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
@@ -120,7 +120,7 @@ export const studySamples = (
 
 
 					// Create a new study instance with the updated samples
-					const refreshedStudySamples = {
+					const refreshedStudySamples: StudySampleList = {
 						...studySamples,
 						steps: refreshedSteps
 					}
@@ -129,7 +129,10 @@ export const studySamples = (
 						...state,
 						studySamplesByID: {
 							...state.studySamplesByID,
-							[studyID]: refreshedStudySamples
+							[studyID]: {
+								...state.studySamplesByID[studyID],
+								data: refreshedStudySamples
+							}
 						}
 					}
 				}
