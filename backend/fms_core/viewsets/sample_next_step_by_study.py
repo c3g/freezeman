@@ -4,6 +4,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
+from fms_core.models.step_order import StepOrder
+
+from fms_core.models.workflow import Workflow
 
 from ._constants import _sample_next_step_by_study_filterset_fields
 from fms_core.models import SampleNextStepByStudy, Sample, Study
@@ -41,3 +44,24 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
             return Response(data={"details": removed}, status=status.HTTP_200_OK)
         else:
             return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
+
+    """
+    Returns the number of samples at each step of a study workflow. A dictionary is returned where
+    the key is a step order ID and the value is the count of the number of samples queued at that step.
+
+    Args:
+    study__id__in: The study ID
+
+    Returns:
+    Dictionary of step order ID / sample count pairs, one for each step in the study workflow.
+    """
+    @action(detail=False, methods=["get"])    
+    def summary(self, request):
+        study_id = request.GET.get('study__id__in')
+        study = Study.objects.get(pk=study_id)
+        step_orders = StepOrder.objects.filter(workflow=study.workflow)
+        counts = dict()
+        for step_order in step_orders:
+            count = SampleNextStepByStudy.objects.filter(study=study_id, step_order=step_order).count()
+            counts[step_order.id] = count
+        return Response(counts)

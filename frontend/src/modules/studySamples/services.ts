@@ -37,7 +37,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	if (workflow.isFetching) {
 		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, `Cannot load study samples - workflow is still fetching`)
 	}
-	
+
 	// Each step has its own samples table, with its own filters and sort order, so
 	// we have to request samples for each step separately. Create one request per step.
 	
@@ -65,7 +65,13 @@ export async function loadStudySamples(studyID: FMSId) {
 		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch completed samples for study')
 	}
 
-	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy)
+	// Get the total sample counts for queued samples and completed samples, for display in the UX.
+	const sampleCountResponse = await store.dispatch(api.sampleNextStepByStudy.countStudySamples(studyID))
+	const sampleCounts = sampleCountResponse.data
+	const completedSampleCountResponse = await store.dispatch(api.stepHistory.countStudySamples(studyID))
+	const completedSampleCounts = completedSampleCountResponse.data
+
+	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy, sampleCounts, completedSampleCounts)
 
 	// Fetch the study samples
 	const sampleList = listSamplesInStudy(studySamples)
@@ -104,7 +110,10 @@ export async function buildStudySamplesFromWorkflow(
 	study: Study, 
 	workflow: Workflow, 
 	sampleNextStepsByStep: {[key: FMSId] : FMSSampleNextStepByStudy[]},
-	completedSamplesByStudy: FMSStepHistory[]) : Promise<StudySampleList> {
+	completedSamplesByStudy: FMSStepHistory[],
+	sampleCounts: {[key : string]: number},
+	completedSampleCounts: {[key: string]: number},
+	) : Promise<StudySampleList> {
 
 	const stepMap = new Map<FMSId, StudySampleStep>()
 
@@ -126,7 +135,9 @@ export async function buildStudySamplesFromWorkflow(
         		stepOrderID: stepOrder.id,
 				stepOrder: stepOrder.order,
 				protocolID: stepOrder.protocol_id,
+				sampleCount: sampleCounts[stepOrder.id],
 				samples,
+				completedCount: completedSampleCounts[stepOrder.id],
 				completed: []
 			}
 			stepMap.set(step.stepOrderID, step)

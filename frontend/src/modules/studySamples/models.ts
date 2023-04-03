@@ -19,7 +19,9 @@ export interface StudySampleStep {
 	readonly stepOrderID: FMSId      			// step order ID
 	readonly stepOrder: number					// step order
 	readonly protocolID: FMSId					// protocol ID
-	readonly samples: FMSId[]					// List of samples at step
+	readonly sampleCount: number				// Total number of samples ready for processing, regardless of filters
+	readonly samples: FMSId[]					// List of (filtered) samples at step
+	readonly completedCount: number				// Total number of completed samples, regardless of filters
 	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
 }
 

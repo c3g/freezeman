@@ -98,8 +98,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 			</div>
 			<Collapse bordered={true} onChange={handleExpand} activeKey={expandedPanelKeys}>
 				{renderedSteps.map((step) => {
-					const totalSampleCount = step.samples.length + step.completed.length
-					const countString = `${step.completed.length} / ${totalSampleCount}`
+					const countString = `${step.completedCount} / ${step.sampleCount + step.completedCount}`
+					const countTitle = `${step.completedCount} of ${step.sampleCount + step.completedCount} samples are completed`
 
 					return (
 						<Collapse.Panel
@@ -113,7 +113,7 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 							extra={
 								<>
 									<Space>
-										<Title level={4} style={{ margin: '0' }}>
+										<Title level={4} style={{ margin: '0' }} title={countTitle}>
 											{countString}
 										</Title>
 									</Space>
@@ -138,8 +138,8 @@ interface SampleTabContainerProps {
 function SamplesTabs({studyID, step, settings}: SampleTabContainerProps) {
 	const dispatch = useAppDispatch()
 
-	const readyTab = `Ready for Processing (${step.samples.length})`
-	const completedTab = `Completed (${step.completed.length})`
+	const readyTab = `Ready for Processing (${step.sampleCount})`
+	const completedTab = `Completed (${step.completedCount})`
 	const goToLab = <Link style={{marginRight: '1rem'}} to={`/lab-work/step/${step.stepID}`}>{'Go to Processing'}</Link>
 
 	function handleTabSelection(activeKey: string) {
