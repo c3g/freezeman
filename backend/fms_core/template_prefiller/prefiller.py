@@ -54,7 +54,9 @@ def PrefillTemplateFromDict(template, rows_dicts):
             header_offset = find_worksheet_header_offset(current_sheet, sheet_info['headers'])
             for j, entry in enumerate(rows_dicts[i]):
                 for header_index, template_column in enumerate(sheet_info['headers']):
-                    current_sheet.cell(row=header_offset + j, column=header_index + 1).value = entry.get(template_column, None)
+                    value = entry.get(template_column, None)
+                    if value is not None:
+                        current_sheet.cell(row=header_offset + j, column=header_index + 1).value = value
         workbook.save(out_stream)
         return out_stream.getvalue()
     except Exception as e:

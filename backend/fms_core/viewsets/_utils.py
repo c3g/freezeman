@@ -272,7 +272,7 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         # Create the dictionnary used for prefilling using template definition and step specs. Tolerate templates with 2 sheets max.
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
-        # Dictionary to indentify the sample sheet and the batch sheet
+        # Dictionary to identify the sample sheet and the batch sheet
         dict_batch_sheet = {sheet["batch"]: sheet["name"] for sheet in template["sheets info"]}
         # Dictionary to map a sheet to its stitch column
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
