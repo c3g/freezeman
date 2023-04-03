@@ -1,7 +1,9 @@
-import { AnyAction } from "redux"
-import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from "../../components/shared/WorkflowSamplesTable/FilterReducers"
-import { createNetworkActionTypes } from "../../utils/actions"
-import { StudySampleList, StudySampleStep, StudySamplesState, StudyUXSettings, StudyUXStepSettings } from "./models"
+import { produce } from 'immer'
+import { WritableDraft } from 'immer/dist/types/types-external'
+import { AnyAction } from 'redux'
+import { removeFilterReducer, setFilterOptionsReducer, setFilterReducer } from '../../components/shared/WorkflowSamplesTable/FilterReducers'
+import { createNetworkActionTypes } from '../../utils/actions'
+import { StudySamplesState, StudyUXSettings } from './models'
 
 // Define action types in the reducer to avoid a circular dependency between
 // the redux store ('store') and the actions. store.ts imports all reducers.
@@ -40,146 +42,98 @@ export const SET_STUDY_STEP_SORT_ORDER = 'STUDY_SAMPLES.SET_STUDY_STEP_SORT_ORDE
 	no samples in the study details page.
 */
 
-
-const INITIAL_STATE : StudySamplesState = {
+const INITIAL_STATE: StudySamplesState = {
 	studySamplesByID: {},
 	hideEmptySteps: false,
-	studySettingsByID: {}
+	studySettingsByID: {},
 }
 
-export const studySamples = (
-	state: StudySamplesState = INITIAL_STATE,
-	action: AnyAction
-) : StudySamplesState => {
-	switch(action.type) {
+export function studySamples(inputState: StudySamplesState = INITIAL_STATE, action: AnyAction) {
+	// NOTE: This reducer uses 'immer' to simplify the reducer code. It makes the
+	// reducer code much easier to understand and maintain. Immer passes a mutable
+	// copy of the state to the reducer, so the reducer can simply mutate the state,
+	// rather than creating copies of everything. Immer takes care of updating redux with
+	// only the parts of the state that have been mutated.
+	return produce(inputState, (draft) => {
+		return studySamplesReducer(draft, action)
+	})
+}
+
+export const studySamplesReducer = (state: WritableDraft<StudySamplesState>, action: AnyAction): StudySamplesState => {
+	switch (action.type) {
 		case GET_STUDY_SAMPLES.REQUEST: {
-			const studyID = action.meta.studyID
-			return {
-				...state,
-				studySamplesByID: {
-					...state.studySamplesByID, 
-					[studyID] : {
-						isFetching: true
-					}
-				}
-			}
-		}
-
-		case GET_STUDY_SAMPLES.RECEIVE: {
-			const studyID = action.meta.studyID
-			return {
-				...state,
-				studySamplesByID: {
-					...state.studySamplesByID,
-					[studyID] : {
-						isFetching: false,
-						data: action.meta.studySamples
-					}
-				}
-			}
-		}
-
-		case GET_STUDY_SAMPLES.ERROR: {
-			const studyID = action.meta.studyID
-			const studySamples = state.studySamplesByID[studyID]
-			if (studySamples) {
-				return {
-					...state,
-					studySamplesByID: {
-						...state.studySamplesByID,
-						[studyID] : {
-							...studySamples,
-							isFetching: false,
-							error: action.error
-						}
-					}
+			const { studyID } = action.meta
+			if (state.studySamplesByID[studyID]) {
+				state.studySamplesByID[studyID].isFetching = true
+			} else {
+				// Study state gets created on first REQUEST call
+				state.studySamplesByID[studyID] = {
+					isFetching: true,
 				}
 			}
 			break
 		}
 
-		case SET_REFRESHED_STEP_SAMPLES: {
-			const { studyID, stepID, sampleIDs} = action
-			// Find the study
+		case GET_STUDY_SAMPLES.RECEIVE: {
+			const { studyID, studySamples } = action.meta
+			if (state.studySamplesByID[studyID]) {
+				state.studySamplesByID[studyID].isFetching = false
+				state.studySamplesByID[studyID].data = studySamples
+			}
+			break
+		}
+
+		case GET_STUDY_SAMPLES.ERROR: {
+			const { studyID } = action.meta
+			const { error } = action
+
 			const studySamples = state.studySamplesByID[studyID]
-			if (studySamples.data) {
-				// Find the step in the study
-				const stepIndex = studySamples.data.steps.findIndex(step => step.stepID === stepID)
-				if (stepIndex !== -1) {
-					const step = studySamples.data.steps[stepIndex]
+			if (studySamples) {
+				studySamples.isFetching = false
+				studySamples.error = error
+			}
+			break
+		}
 
-					// Create a new step instance with the refreshed sample list
-					const refreshedStep : StudySampleStep = {
-						...step,
-						samples: sampleIDs
-					}
-					
-					// Replace the old step by the new step in the study steps array
-					const refreshedSteps = [...studySamples.data.steps]
-					refreshedSteps.splice(stepIndex, 1, refreshedStep)
-
-
-					// Create a new study instance with the updated samples
-					const refreshedStudySamples: StudySampleList = {
-						...studySamples,
-						steps: refreshedSteps
-					}
-
-					return {
-						...state,
-						studySamplesByID: {
-							...state.studySamplesByID,
-							[studyID]: {
-								...state.studySamplesByID[studyID],
-								data: refreshedStudySamples
-							}
-						}
-					}
+		case SET_REFRESHED_STEP_SAMPLES: {
+			const { studyID, stepID, sampleIDs } = action
+			const studySamples = state.studySamplesByID[studyID]
+			if (studySamples?.data?.steps) {
+				const step = studySamples.data.steps.find((step) => step.stepID === stepID)
+				if (step) {
+					step.samples = sampleIDs
 				}
 			}
 			break
 		}
 
 		case FLUSH_STUDY_SAMPLES: {
-			const newState = {
-				...state
-			}
-			delete newState.studySamplesByID[action.studyID]
-			return newState
+			const { studyID } = action
+			delete state.studySamplesByID[studyID]
+			break
 		}
 
 		case SET_HIDE_EMPTY_STEPS: {
-			return {
-				...state,
-				hideEmptySteps: action.hideEmptySteps
-			}
+			const { hideEmptySteps } = action
+			state.hideEmptySteps = hideEmptySteps ?? false
+			break
 		}
 
 		// Create a new instance of settings for a study if the settings don't already exist.
 		case INIT_STUDY_SAMPLES_SETTINGS: {
 			const { studyID, stepIDs } = action
-			if (studyID && !state.studySettingsByID[studyID]) {
 
-				const stepSettings = {}
-				for(const stepID of stepIDs) {
-					const settings: StudyUXStepSettings = {
-						stepID
-					}
-					stepSettings[stepID] = settings
+			if (!state.studySettingsByID[studyID]) {
+				const studyUXSettings: StudyUXSettings = {
+					studyID,
+					stepSettings: {},
 				}
-
-				return {
-					...state,
-					studySettingsByID: {
-						...state.studySettingsByID,
-						[studyID]: {
-							studyID,
-							stepSettings
-						}
+				for (const stepID of stepIDs) {
+					studyUXSettings.stepSettings[stepID] = {
+						stepID,
 					}
 				}
-			} else {
-				return state
+				state.studySettingsByID[studyID] = studyUXSettings
 			}
 			break
 		}
@@ -190,121 +144,67 @@ export const studySamples = (
 			// of each step.
 			const { studyID, stepIDs } = action
 
-			if (state.studySettingsByID[studyID]) {
-				const studySettings: StudyUXSettings = {
-					...state.studySettingsByID[studyID],
-					stepSettings: {...state.studySettingsByID[studyID].stepSettings}
-				}
-
-				for (const stepID in studySettings.stepSettings) {
-					let stepSettings: StudyUXStepSettings
-					if (studySettings.stepSettings[stepID]) {
-						stepSettings = studySettings.stepSettings[stepID]
+			const study = state.studySettingsByID[studyID]
+			if (study) {
+				for (const stepID in study.stepSettings) {
+					const step = study.stepSettings[stepID]
+					if (step) {
 						const isExpanded = (stepIDs as number[]).includes(parseInt(stepID))
-						if (stepSettings.expanded !== isExpanded) {
-							stepSettings = {
-								...stepSettings,
-								expanded: isExpanded
-							}
-						}
-						studySettings.stepSettings[stepID] = stepSettings
-					} 
-				}			
-
-				return {
-					...state,
-					studySettingsByID: {
-						...state.studySettingsByID,
-						[studyID]: studySettings
+						step.expanded = isExpanded
 					}
 				}
 			}
 			break
 		}
-		case SET_STUDY_STEP_SAMPLES_TAB: 
-		case SET_STUDY_STEP_FILTER: 
-		case SET_STUDY_STEP_FILTER_OPTIONS: 
-		case REMOVE_STUDY_STEP_FILTER:
+		case SET_STUDY_STEP_SAMPLES_TAB: {
+			const { studyID, stepID, selectedSamplesTab } = action
+
+			if (selectedSamplesTab === 'ready' || selectedSamplesTab === 'completed') {
+				const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+				if (step) {
+					step.selectedSamplesTab = selectedSamplesTab
+				}
+			}
+			break
+		}
+		case SET_STUDY_STEP_FILTER: {
+			const { studyID, stepID, description, value } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			if (step) {
+				step.filters = setFilterReducer(step.filters ?? {}, description, value)
+			}
+			break
+		}
+
+		case SET_STUDY_STEP_FILTER_OPTIONS: {
+			const { studyID, stepID, description, options } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			if (step) {
+				step.filters = setFilterOptionsReducer(step.filters ?? {}, description, options)
+			}
+			break
+		}
+
+		case REMOVE_STUDY_STEP_FILTER: {
+			const { studyID, stepID, description } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			if (step) {
+				step.filters = removeFilterReducer(step.filters ?? {}, description)
+			}
+			break
+		}
+
 		case SET_STUDY_STEP_SORT_ORDER: {
-			return studyUXSettingsReducer(state, action)
+			const { studyID, stepID, sortBy } = action
+			const step = state.studySettingsByID[studyID]?.stepSettings[stepID]
+			if (step) {
+				step.sortBy = {
+					key: sortBy.key,
+					order: sortBy.order,
+				}
+			}
+			break
 		}
 	}
-	return state
-}
-
-function studyUXSettingsReducer(state: StudySamplesState, action: AnyAction) {
-	const { studyID, stepID } = action 
-	if (studyID && stepID) {
-		// StudyUXSettings objects are created on demand
-		const studyUXSettings = state.studySettingsByID[studyID]
-		let stepUXSettings: StudyUXStepSettings = studyUXSettings.stepSettings[stepID]
-
-		switch(action.type) {
-			case SET_STUDY_STEP_SAMPLES_TAB: {
-				const { selectedSamplesTab } = action
-				if (selectedSamplesTab === 'ready' || selectedSamplesTab === 'completed') {
-					stepUXSettings = {
-						...stepUXSettings,
-						selectedSamplesTab
-					}
-				}
-				break
-			}
-
-			case SET_STUDY_STEP_FILTER: {
-				const { description, value} = action
-				stepUXSettings = {
-					...stepUXSettings,
-					filters: setFilterReducer(stepUXSettings.filters ?? {}, description, value)
-				}
-				break
-			}
-
-			case SET_STUDY_STEP_FILTER_OPTIONS: {
-				const { description, options } = action
-				stepUXSettings = {
-					...stepUXSettings,
-					filters: setFilterOptionsReducer(stepUXSettings.filters ?? {}, description, options)
-				}
-				break
-			}
-
-			case REMOVE_STUDY_STEP_FILTER: {
-				const { description } = action
-				stepUXSettings = {
-					...stepUXSettings,
-					filters: removeFilterReducer(stepUXSettings.filters ?? {}, description)
-				}
-				break
-			}
-
-			case SET_STUDY_STEP_SORT_ORDER: {
-				const { sortBy } = action
-				stepUXSettings = {
-					...stepUXSettings,
-					sortBy: {
-						key: sortBy?.key,
-						order: sortBy?.order
-					}
-				}
-				break
-			}
-		}
-
-		return {
-			...state,
-			studySettingsByID: {
-				...state.studySettingsByID,
-				[studyID]: {
-					...studyUXSettings,
-					stepSettings: {
-						...studyUXSettings.stepSettings,
-						[stepID]: stepUXSettings
-					}
-				}
-			}
-		}
-	}
-	
 	return state
 }

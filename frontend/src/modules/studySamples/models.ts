@@ -3,31 +3,31 @@ import { FilterSet, SortBy } from "../../models/paged_items"
 import { FetchedState } from "../common"
 
 export interface CompletedStudySample {
-	id: FMSId							// StepHistory ID 
-	sampleID: FMSId
-	generatedSampleID?: FMSId
-	processID?: FMSId
-	processMeasurementID?: FMSId
-	executionDate?: string
-	executedBy?: string
-	comment?: string
+	readonly id: FMSId							// StepHistory ID 
+	readonly sampleID: FMSId
+	readonly generatedSampleID?: FMSId
+	readonly processID?: FMSId
+	readonly processMeasurementID?: FMSId
+	readonly executionDate?: string
+	readonly executedBy?: string
+	readonly comment?: string
 }
 
 export interface StudySampleStep {
-	stepID:	FMSId						// step ID
-	stepName: string					// step name
-  	stepOrderID: FMSId      			// step order ID
-	stepOrder: number					// step order
-	protocolID: FMSId					// protocol ID
-	samples: FMSId[]					// List of samples at step
-	completed: CompletedStudySample[]	// Sample history for samples completed at the step
+	readonly stepID:	FMSId						// step ID
+	readonly stepName: string					// step name
+	readonly stepOrderID: FMSId      			// step order ID
+	readonly stepOrder: number					// step order
+	readonly protocolID: FMSId					// protocol ID
+	readonly samples: FMSId[]					// List of samples at step
+	readonly completed: CompletedStudySample[]	// Sample history for samples completed at the step
 }
 
 export interface StudySampleList {
-	steps: StudySampleStep[]
+	readonly steps: StudySampleStep[]
 }
 
-export type StudySamplesByID = {[key: number] : FetchedState<StudySampleList>}
+export type StudySamplesByID = {[key: number] : Readonly<FetchedState<StudySampleList>>}
 
 // UX settings for study samples page, used to keep track of
 // the expanded/collapsed state of steps, the 'ready' vs. 'completed'
