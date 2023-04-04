@@ -76,8 +76,6 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 		renderedSteps = renderedSteps.filter((step) => step.samples.length > 0 || step.completed.length > 0)
 	}
 
-	console.log('STUDY SAMPLE RENDERING')
-
 	return (
 		<>
 			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>

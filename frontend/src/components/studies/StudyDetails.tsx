@@ -59,7 +59,6 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
         const studyState = studySamplesState[studyId]
         if (studyState) {
             if (!studyState.isFetching) {
-                console.log('STUDY SAMPLES UPDATED')
                 setStudySamples(studyState.data)
             }
         } 
