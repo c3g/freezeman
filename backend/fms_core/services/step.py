@@ -50,6 +50,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
         return matching_dict, errors, warnings
     else:
         work_dict = {}
+        first_pass = True # To prevent duplicated error reporting.
         for candidate_step in candidate_steps:
             sample_sheet_matches = defaultdict(list)
             stiched_matches = defaultdict(list)
@@ -61,7 +62,8 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
                         match = (template_step_specification.upper() == step_specification.value.upper())
                     else:
                         match = False
-                        errors.append(f"The specification field [{step_specification.column_name}] is empty.")
+                        if first_pass:
+                            errors.append(f"The specification field [{step_specification.column_name}] is empty.")
                     if step_specification.sheet_name == sample_sheet_name:
                         sample_sheet_matches[row_id].append(match)
                     else:
@@ -71,6 +73,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
                         else:
                             errors.append(f"Template data not expected to have to be stitched.")
             work_dict[candidate_step] = {row_id: sample_sheet_matches[row_id] + stiched_matches[row_id_to_stitch_dict.get(row_id, "Stitching not required")] for row_id, _ in enumerate(template_sheets[sample_sheet_name].rows)}
+            first_pass = False
         # build the return dict from work dict
         for candidate_step, rows in work_dict.items():
             for row_id, matches in rows.items():
