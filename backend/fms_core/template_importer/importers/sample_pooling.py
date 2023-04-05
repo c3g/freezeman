@@ -45,6 +45,7 @@ class SamplePoolingImporter(GenericImporter):
                   "pool_name": pool_name,
                 },
                 "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
+                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]), 
                 "comment": str_cast_and_normalize(row_data["Comment"]),
                 "workflow":
                     {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),

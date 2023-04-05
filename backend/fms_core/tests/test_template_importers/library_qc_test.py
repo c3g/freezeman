@@ -257,12 +257,14 @@ class LibraryQCTestCase(TestCase):
             {
                 'Source Sample': library4,
                 'Volume Used': Decimal(50.0),
+                'Volume In Pool': Decimal(50.0),
                 'Source Depleted': False,
                 'Comment': ''
             },
             {
                 'Source Sample': library5,
                 'Volume Used': Decimal(50.0),
+                'Volume In Pool': Decimal(50.0),
                 'Source Depleted': False,
                 'Comment': '',
             }

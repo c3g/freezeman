@@ -7,7 +7,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
     def __init__(self):
         super().__init__()
 
-    def process_row_inner(self, source_sample, pool, volume_used, comment, workflow):
+    def process_row_inner(self, source_sample, pool, volume_used, volume_in_pool, comment, workflow):
 
         sample, self.errors["source_sample"], self.warnings["source_sample"] = get_sample_from_container(barcode=source_sample["barcode"],coordinates=source_sample["coordinates"])
 
@@ -18,9 +18,15 @@ class SamplesToPoolRowHandler(GenericRowHandler):
         if volume_used is None:
             self.errors["volume_used"] = f"Volume used is required."
         elif volume_used <= 0:
-            self.errors["volume_used"] = f"Volume used ({volume_used}) is invalid."
+            self.errors["volume_used"] = f"Volume used ({volume_used}) is invalid. It must be greater than 0."
         elif sample and sample.volume < volume_used:
             self.errors["volume_used"] = f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample.volume} uL)."
+
+        if volume_in_pool is None:
+            self.errors["volume_in_pool"] = (f"Volume In Pool is required."
+                                             f"It provides the final normalized volume used for pooling. May be equal to Volume used if not diluted.")
+        elif volume_in_pool <= 0:
+            self.errors["volume_in_pool"] = f"Volume in pool ({volume_in_pool}) is invalid. It must be greater than 0."
 
         # Ensure concentration related information is present for library, but do not enforce the quality control. Might have information provided at reception.
         if sample and sample.is_library and sample.concentration is None:
@@ -47,6 +53,7 @@ class SamplesToPoolRowHandler(GenericRowHandler):
             "Source Container Coordinate": source_sample["coordinates"],
             "Source Depleted": source_sample["depleted"],
             "Volume Used": volume_used,
+            "Volume In Pool": volume_in_pool,
             "Comment": comment,
             "Workflow": workflow,
         }
