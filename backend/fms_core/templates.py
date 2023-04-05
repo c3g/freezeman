@@ -280,7 +280,7 @@ NORMALIZATION_TEMPLATE = {
 
 NORMALIZATION_PLANNING_TEMPLATE = {
   "identity": {"description": "Template to perform normalization planning",
-               "file": static("submission_templates/Normalization_planning_v3_13_0.xlsx"),
+               "file": static("submission_templates/Normalization_planning_v4_2_0.xlsx"),
                "protocol": "Normalization"},
   "sheets info": [
       {
@@ -289,15 +289,7 @@ NORMALIZATION_PLANNING_TEMPLATE = {
                     'Destination Container Barcode', 'Destination Container Coord', 'Destination Container Name', 'Destination Container Kind',
                     'Destination Parent Container Barcode', 'Destination Parent Container Coord', 'Norm. NA Quantity (ng)',
                     'Norm. Conc. (ng/uL)', 'Norm. Conc. (nM)', 'Final Volume (uL)', 'Pool Name', 'Pooled Volume (uL)'],
-        'stitch_column': 'Pool Name',
         'batch': False,
-      },
-      {
-        'name': 'Pools',
-        'headers': ['Pool Name', 'Pool Container Barcode', 'Pool Container Coord', 'Pool Container Name', 'Pool Container Kind',
-                    'Pool Parent Container Barcode', 'Pool Parent Container Coord', 'Seq Instrument Type'],
-        'stitch_column': 'Pool Name',
-        'batch': True,
       },
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -327,7 +319,7 @@ SAMPLE_METADATA_TEMPLATE = {
 
 SAMPLE_POOLING_TEMPLATE = {
   "identity": {"description": "Template to pool samples and libraries",
-               "file": static("submission_templates/Sample_pooling_v4_1_0.xlsx"),
+               "file": static("submission_templates/Sample_pooling_v4_2_0.xlsx"),
                "protocol": "Sample Pooling"},
   "sheets info": [
       {
@@ -341,7 +333,7 @@ SAMPLE_POOLING_TEMPLATE = {
       {
           "name": "SamplesToPool",
           "headers": ["Pool Name", "Source Sample Name", "Source Container Barcode",  "Source Container Coord",
-                      "Source Depleted", "Volume Used (uL)", "Pool Ratio", "Volume In Pool (uL)", "Comment", "Workflow Action"],
+                      "Source Depleted", "Volume Used (uL)", "Volume In Pool (uL)", "Comment", "Workflow Action"],
           "stitch_column": "Pool Name",
           'batch': False,
       },
