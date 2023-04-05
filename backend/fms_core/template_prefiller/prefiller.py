@@ -24,7 +24,7 @@ def PrefillTemplate(template_path, template_info, queryset):
         current_sheet = workbook[sheet_name]
         for i, entry in enumerate(queryset.values(*sheet_dict["queryset_column_list"])):
             for prefill_sheet_name, template_column, queryset_column, _ in template_info["prefill info"]:
-                if prefill_sheet_name == sheet_name:
+                if prefill_sheet_name == sheet_name and queryset_column is not None:
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
             
     workbook.save(out_stream)

@@ -350,6 +350,8 @@ SAMPLE_POOLING_TEMPLATE = {
           "headers": ["Sample Name", "Technician Library Name", "Library Type",  "Index Name", "Sequencing Type", "Volume (uL)", "LibQC Name",
                       "Plate Barcode (Library)", "Well Coord", "Concentration (qPCR in nM)", "Library Size (bp)", "Pool Barcode", "Pool Name",
                       "Pool Proportion", "Loading Conc. (pM)", "PhiX", "Final Pool Volume (uL)", "Volume Library Used (uL)"],
+          "stitch_column": "Pool Name",
+          'batch': False, # Should be ignored (only one valid sample sheet)
       }
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
@@ -357,15 +359,15 @@ SAMPLE_POOLING_TEMPLATE = {
       ("SamplesToPool", "Source Sample Name", "name", "name"),
       ("SamplesToPool", "Source Container Barcode", "container__barcode", "container_barcode"),
       ("SamplesToPool", "Source Container Coord", "coordinate__name", "coordinates"),
-      ("LabInput", "Sample Name", None, "name"),
+      ("LabInput", "Sample Name", "name", "name"),
       ("LabInput", "Library Type", None, "derived_sample_not_pool__library__library_type"),
       ("LabInput", "Index Name", None, "derived_sample_not_pool__library__index__name"),
-      ("LabInput", "Volume (uL)", None, "container_barcode"),
-      ("LabInput", "LibQC Name", None, "container_name"),
-      ("LabInput", "Plate Barcode (Library)", None, "container_barcode"),
-      ("LabInput", "Well Coord", None, "container__coordinate__name"),
-      ("LabInput", "Concentration (qPCR in nM)", None, "container_barcode"),
-      ("LabInput", "Library Size (bp)", None, "derived_sample_not_pool__library__library_size"),],
+      ("LabInput", "Volume (uL)", "volume", "volume"),
+      ("LabInput", "LibQC Name", "container__name", "container_name"),
+      ("LabInput", "Plate Barcode (Library)", "container__barcode", "container_barcode"),
+      ("LabInput", "Well Coord", "coordinate__name", "coordinates"),
+      ("LabInput", "Concentration (qPCR in nM)", None, "concentration_as_nm"),
+      ("LabInput", "Library Size (bp)", None, "library_size"),],
 
 }
 
