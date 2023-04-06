@@ -142,6 +142,6 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 		}
 	}
 
-	// Return a copy of the array.
-	return [...columnsForStep]
+	// Clone the columns on return
+	return columnsForStep.map(column => {return {...column}})
 }

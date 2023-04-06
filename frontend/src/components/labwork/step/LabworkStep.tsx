@@ -1,23 +1,23 @@
-import { InfoCircleOutlined, SyncOutlined } from '@ant-design/icons'
+import { InfoCircleOutlined } from '@ant-design/icons'
 import { Alert, Button, Select, Space, Tabs, Typography } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import { useAppDispatch } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { Protocol, Step } from '../../../models/frontend_models'
 import { FilterDescription, FilterValue, SortBy } from '../../../models/paged_items'
-import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
-import { LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import { clearSelectedSamples, flushSamplesAtStep, loadSamplesAtStep, refreshSamplesAtStep, requestPrefilledTemplate, setFilter, setFilterOptions, setSelectedSamplesSortDirection, setSortBy, showSelectionChangedMessage, updateSelectedSamplesAtStep } from '../../../modules/labworkSteps/actions'
+import { CoordinateSortDirection, LabworkPrefilledTemplateDescriptor, LabworkStepSamples } from '../../../modules/labworkSteps/models'
+import { setPageSize } from '../../../modules/pagination'
 import { downloadFromFile } from '../../../utils/download'
 import AppPageHeader from '../../AppPageHeader'
 import PageContent from '../../PageContent'
-import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
-import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
-import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
-import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
-import { setPageSize } from '../../../modules/pagination'
-import { DEFAULT_PAGINATION_LIMIT } from '../../../config'
 import RefreshButton from '../../RefreshButton'
+import { getColumnsForStep } from '../../shared/WorkflowSamplesTable/ColumnSets'
+import { LIBRARY_COLUMN_FILTERS, SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS } from '../../shared/WorkflowSamplesTable/LibraryTableColumns'
+import { SAMPLE_COLUMN_FILTERS, SAMPLE_NEXT_STEP_FILTER_KEYS, SampleColumnID } from '../../shared/WorkflowSamplesTable/SampleTableColumns'
+import WorkflowSamplesTable, { PaginationParameters } from '../../shared/WorkflowSamplesTable/WorkflowSamplesTable'
 
 const { Text } = Typography
 
@@ -65,8 +65,9 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const handleSetSortBy = useCallback(
 		(sortBy: SortBy) => {
 			dispatch(setSortBy(step.id, sortBy))
-		}
-	, [step, dispatch])
+		},
+		[step, dispatch]
+	)
 
 	const isRefreshing = stepSamples.pagedItems.isFetching
 	const handleRefresh = useCallback(
@@ -186,7 +187,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 
 	// Memoizing these cuts down on table re-renders. Without it, the samples tables render 6 times
 	// when they are initially visible.
-	const columnsForStep = useMemo(() => {
+	const columnsForSamples = useMemo(() => {
 		return getColumnsForStep(step, protocol)
 	}, [step, protocol])
 
@@ -197,6 +198,33 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 	const filterKeys = useMemo(() => {
 		return {...SAMPLE_NEXT_STEP_FILTER_KEYS, ...SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS}
 	}, [])
+
+	// Selected samples are sorted in a pre-defined order (by plate then by coordinate),
+	// but we allow the user to sort by row/column or by column/row, so the Coordinates
+	// column gets a sorter to switch between the two.
+	const columnsForSelection = useMemo(() => {
+		const columns = getColumnsForStep(step, protocol)
+		const coordinateColumn = columns.find(column => column.columnID === SampleColumnID.COORDINATES)
+		if (coordinateColumn) {
+			coordinateColumn.key = coordinateColumn.columnID	// A key needs to be defined for sorting callback to be called, but isn't used otherwise.
+			coordinateColumn.sorter = true
+			coordinateColumn.showSorterTooltip = {
+				title: 'Sort by column or by row'
+			}
+			coordinateColumn.sortDirections = ['ascend', 'descend', 'ascend']	// This is the way Ant suggests disabling the 'undefined' sort order.
+		}
+		return columns
+	}, [step, protocol])
+
+	// Callback to switch between row/column and column/row coordinate sorting
+	const handleCoordinateSortDirection = useCallback((sortBy: SortBy) => {
+		if (sortBy.order) {
+			const direction: CoordinateSortDirection = sortBy.order === 'ascend' ? 'column' : 'row'
+			dispatch(setSelectedSamplesSortDirection(step.id, direction))
+		}
+	}, [dispatch, step])
+
+	
 
 	return (
 		<>
@@ -233,7 +261,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.displayedSamples} 
-							columns={columnsForStep}
+							columns={columnsForSamples}
 							filterDefinitions={filterDefinitions}
 							filterKeys={filterKeys}
 							filters={stepSamples.pagedItems.filters}
@@ -259,13 +287,14 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable 
 							sampleIDs={stepSamples.selectedSamples}
-							columns={columnsForStep}
+							columns={columnsForSelection}
 							filterDefinitions={{}}
 							filterKeys={{}}
 							filters={{}}
 							setFilter={() => {/*NOOP*/}}
 							setFilterOptions={() => {/*NOOP*/}}
 							selection={selectionProps}
+							setSortBy={handleCoordinateSortDirection}
 						/>
 						<Space><InfoCircleOutlined/><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
 					</Tabs.TabPane>
