@@ -50,7 +50,7 @@ class PoolsRowHandler(GenericRowHandler):
                 # Add a warning if the concentration of the libraries are not within a tolerance
                 TOLERANCE = 1 # Tolerance can be tweaked to be more or less permissive
                 for sample_tested in samples_info:
-                    concentrations = [((sample["Source Sample"].concentration * sample["Volume Used"]) / sample[["Volume In Pool"]]) for sample in samples_info if sample["Source Sample"].id != sample_tested["Source Sample"].id]
+                    concentrations = [((sample["Source Sample"].concentration * sample["Volume Used"]) / sample["Volume In Pool"]) for sample in samples_info if sample["Source Sample"].id != sample_tested["Source Sample"].id]
                     avg_concentration = sum(concentrations) / len(concentrations)
                     tested_concentration = (sample_tested["Source Sample"].concentration * sample_tested["Volume Used"]) / sample_tested["Volume In Pool"]
                     if abs(tested_concentration - avg_concentration) > TOLERANCE:
