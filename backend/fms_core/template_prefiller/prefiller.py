@@ -46,7 +46,7 @@ def PrefillTemplateFromDict(template, rows_dicts):
     template_path = os.path.join(settings.STATIC_ROOT, filename)
     out_stream = BytesIO()
     workbook = load_workbook(filename=template_path)
-    
+
     # Populate template
     try:
         for i, sheet_info in enumerate(template["sheets info"]):
