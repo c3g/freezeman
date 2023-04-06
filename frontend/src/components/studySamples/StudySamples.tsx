@@ -22,7 +22,7 @@ function StudySamples({ studySamples, hideEmptySteps }: StudySamplesProps) {
 				{renderedSteps.map((step) => {
 					const hasSamples = step.samples.length > 0
 					return (
-						<Collapse.Panel key={step.stepOrderID} header={<Link to={`/lab-work/step/${step.stepID}`}>{step.stepName}</Link>} extra={<Title level={4} style={{margin: '0'}}>{step.samples.length}</Title>}>
+						<Collapse.Panel key={step.stepOrderID} header={<><span>{step.stepOrder+": "}</span><Link to={`/lab-work/step/${step.stepID}`}>{step.stepName}</Link></>} extra={<Title level={4} style={{margin: '0'}}>{step.samples.length}</Title>}>
 							{hasSamples ? (
 								<StudyStepSamplesTable step={step} />
 							) : (
