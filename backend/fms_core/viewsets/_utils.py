@@ -273,7 +273,8 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
         dict_sheets_rows_dicts = {sheet["name"]: [] for sheet in template["sheets info"]} # Initialize each sheet list
 
         # Dictionary to identify the sample sheet and the batch sheet
-        dict_batch_sheet = {sheet["batch"]: sheet["name"] for sheet in template["sheets info"]}
+        dict_batch_sheet = {sheet.get("batch"): sheet["name"] for sheet in template["sheets info"] if sheet.get("batch", None) is not None}
+        extra_sheet_list = [sheet["name"] for sheet in template["sheets info"] if sheet.get("batch", None) is None]
         # Dictionary to map a sheet to its stitch column
         dict_stitch = {sheet["name"]: sheet.get("stitch_column", None) for sheet in template["sheets info"]}
 
@@ -302,8 +303,11 @@ class TemplatePrefillsLabWorkMixin(TemplatePrefillsWithDictMixin):
                         new_step = True
             if new_step:
                 step_dict[step.id] = step
-            # Append current rows to the dict
+            # Append current rows to the dict for the sample sheet
             dict_sheets_rows_dicts[dict_batch_sheet[False]].append(sample_row_dict)
+            # Append current rows to the dict for the extra sheets
+            for sheet_name in extra_sheet_list:
+                dict_sheets_rows_dicts[sheet_name].append(sample_row_dict) # make sure there is no duplicate in column name or this would cause issues
             if batch_row_dict:
                 dict_sheets_rows_dicts[dict_batch_sheet[True]].append(batch_row_dict)
 
