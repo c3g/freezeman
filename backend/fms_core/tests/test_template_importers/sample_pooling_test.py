@@ -12,7 +12,7 @@ from fms_core.models import SampleKind, Protocol, Process, ProcessMeasurement, I
 from fms_core.models._constants import DOUBLE_STRANDED
 
 from fms_core.services.container import create_container
-from fms_core.services.index import get_or_create_index_set, create_index
+from fms_core.services.index import get_or_create_index_set, create_index, create_indices_3prime_by_sequence, create_indices_5prime_by_sequence
 from fms_core.services.library import create_library, get_library_type
 from fms_core.services.platform import get_platform
 from fms_core.services.sample import create_full_sample
@@ -47,8 +47,17 @@ class SamplePoolingTestCase(TestCase):
         # index
         index_set, _, _, _ = get_or_create_index_set("PoolTestSet")
         self.index_1, _, _ = create_index(index_name="PoolLibIndex1", index_structure="TruSeqLT", index_set=index_set)
+        create_indices_3prime_by_sequence(self.index_1, ["ACGTTTAGAC"])
+        create_indices_5prime_by_sequence(self.index_1, ["GCGCCCAGAC"])
         self.index_2, _, _ = create_index(index_name="PoolLibIndex2", index_structure="TruSeqLT", index_set=index_set)
+        create_indices_3prime_by_sequence(self.index_2, ["ACGTATGGAC"])
+        create_indices_5prime_by_sequence(self.index_2, ["GCGCCCAGAC"])
         self.index_3, _, _ = create_index(index_name="PoolLibIndex3", index_structure="TruSeqLT", index_set=index_set)
+        create_indices_3prime_by_sequence(self.index_3, ["CTGTATGGAC"])
+        create_indices_5prime_by_sequence(self.index_3, ["GCGCCCAGAC"])
+        self.index_4, _, _ = create_index(index_name="PoolLibIndex4", index_structure="TruSeqLT", index_set=index_set)
+        create_indices_3prime_by_sequence(self.index_4, ["ATGTATGGAC"])
+        create_indices_5prime_by_sequence(self.index_4, ["GCGCCCAGAC"])
 
         # library type
         library_type, _, _ = get_library_type(name="PCR-free")
@@ -59,7 +68,7 @@ class SamplePoolingTestCase(TestCase):
         self.library_1, _, _ = create_library(index=self.index_1, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
         self.library_2, _, _ = create_library(index=self.index_2, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
         self.library_3, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED, library_size=150)
-        self.library_4, _, _ = create_library(index=self.index_3, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
+        self.library_4, _, _ = create_library(index=self.index_4, library_type=library_type, platform=platform, strandedness=DOUBLE_STRANDED)
 
         self.same_individual = Individual.objects.create(**create_individual(individual_name="Bobinouille"))
         self.different_individual = Individual.objects.create(**create_individual(individual_name="Bobinoodle"))

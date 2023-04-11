@@ -343,7 +343,6 @@ SAMPLE_POOLING_TEMPLATE = {
                       "Plate Barcode (Library)", "Well Coord", "Concentration (qPCR in nM)", "Library Size (bp)", "Pool Barcode", "Pool Name",
                       "Pool Proportion", "Loading Conc. (pM)", "PhiX", "Final Pool Volume (uL)", "Volume Library Used (uL)"],
           "stitch_column": "Pool Name",
-          'batch': False, # Should be ignored (only one valid sample sheet)
       }
   ],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
