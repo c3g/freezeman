@@ -6,6 +6,8 @@ from rest_framework.decorators import action
 from fms_core.models import StepHistory, Study, StepOrder
 from fms_core.serializers import StepHistorySerializer
 
+from django.db.models import Count
+
 from ._constants import _stephistory_filterset_fields
 
 class StepHistoryViewSet(viewsets.ModelViewSet):
@@ -18,23 +20,45 @@ class StepHistoryViewSet(viewsets.ModelViewSet):
     }
 
     """
-    Returns the number of completed samples for each step in a study's workflow.
-    The counts are returned as a dictionary, where the key is a step order ID and
-    the value is the count.
+    Retrieve the numbers of completed samples for the steps of a study's workflow.
 
+    Studies can be specified using the study__id__in query parameter. If omitted then the
+    endpoint will return counts for all studies.
+
+    For each study, a data structure is returned containing the study ID and an array
+    of steps. For each step we return the StepOrder ID, it's order, the step name, and
+    the number of samples that have completed that step. Steps are only returned if there
+    are one or more completed samples, and are omitted otherwise.
+    
     Args:
-    study__id__in: Study ID query parameters
+    study__id__in: Study ID query parameters (optional)
 
     Returns:
-    A dictionary of step order ID / sample count pairs.
+    An array of studies, where each study contains a list of steps with a sample count.
     """
     @action(detail=False, methods=["get"])    
-    def summary(self, request):
+    def summary_by_study(self, request):
         study_id = request.GET.get('study__id__in')
-        study = Study.objects.get(pk=study_id)
-        step_orders = StepOrder.objects.filter(workflow=study.workflow)
-        counts = dict()
-        for step_order in step_orders:
-            count = StepHistory.objects.filter(study=study_id, step_order=step_order).count()
-            counts[step_order.id] = count
-        return Response(counts)
+
+        historyQuery = StepHistory.objects.all()
+        if study_id is not None:
+            historyQuery = historyQuery.filter(study__id = study_id)
+
+        counted = historyQuery.values('study__id', 'step_order', 'step_order__order', 'step_order__step__name').annotate(count=Count('step_order')).order_by('study__id', 'step_order__order')
+
+        studies = dict()
+        for group in counted:
+            studyID = group['study__id']
+            if studyID not in studies:
+                studies[studyID] = {
+                    "study_id": studyID,
+                    "steps": []
+                }
+            studies[studyID]['steps'].append({
+                'step_order_id': group['step_order'],
+                'order': group['step_order__order'],
+                'step_name': group['step_order__step__name'],
+                'count': group['count']
+            })
+
+        return Response(studies.values())

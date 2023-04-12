@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
+from django.db.models import Count
 from fms_core.models.step_order import StepOrder
 
 from fms_core.models.workflow import Workflow
@@ -45,23 +46,49 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         else:
             return HttpResponseBadRequest(errors or f"Missing sample-next-step-by-study ID to delete.")
 
-    """
-    Returns the number of samples at each step of a study workflow. A dictionary is returned where
-    the key is a step order ID and the value is the count of the number of samples queued at that step.
-
-    Args:
-    study__id__in: The study ID
-
-    Returns:
-    Dictionary of step order ID / sample count pairs, one for each step in the study workflow.
-    """
+   
     @action(detail=False, methods=["get"])    
-    def summary(self, request):
+    def summary_by_study(self, request):
+        """
+        Returns the number of samples queued at each step for either a single study or for all
+        studies. 
+        
+        The endpoint returns an array of objects. Each object contains a study ID and a list
+        of steps, where each step includes a count of the number of samples queued.
+
+        For each step, the step order ID, order, step name and count is returned.
+
+        The endpoint only returns steps that have at least one sample queued - steps
+        with zero samples are omitted from the results.
+
+        Args:
+        study__id__in: The study ID (optional)
+
+        Returns:
+        Dictionary of step order ID / sample count pairs, one for each step in the study workflow.
+        """
+       
         study_id = request.GET.get('study__id__in')
-        study = Study.objects.get(pk=study_id)
-        step_orders = StepOrder.objects.filter(workflow=study.workflow)
-        counts = dict()
-        for step_order in step_orders:
-            count = SampleNextStepByStudy.objects.filter(study=study_id, step_order=step_order).count()
-            counts[step_order.id] = count
-        return Response(counts)
+    
+        samplesInStudy = SampleNextStepByStudy.objects.all()
+        if study_id is not None:
+            samplesInStudy = samplesInStudy.filter(study__id=study_id)
+       
+        counted = samplesInStudy.values('study__id', 'step_order', 'step_order__order', 'step_order__step__name').annotate(count=Count('step_order')).order_by('study__id', 'step_order__order')
+
+        studies = dict()
+        for group in counted:
+            studyID = group['study__id']
+            if studyID not in studies:
+                studies[studyID] = {
+                    "study_id": studyID,
+                    "steps": []
+                }
+            studies[studyID]['steps'].append({
+                'step_order_id': group['step_order'],
+                'order': group['step_order__order'],
+                'step_name': group['step_order__step__name'],
+                'count': group['count']
+            })
+
+        return Response(studies.values())

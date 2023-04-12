@@ -1,5 +1,5 @@
 import serializeFilterParamsWithDescriptions, { serializeSortByParams } from "../../components/shared/WorkflowSamplesTable/serializeFilterParamsTS"
-import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory } from "../../models/fms_api_models"
+import { FMSSampleNextStepByStudy, FMSId, FMSStepHistory, FMSStudySamplesCounts } from "../../models/fms_api_models"
 import { createItemsByID, Study, Workflow } from "../../models/frontend_models"
 import { selectStudySettingsByID } from "../../selectors"
 import store from "../../store"
@@ -66,10 +66,18 @@ export async function loadStudySamples(studyID: FMSId) {
 	}
 
 	// Get the total sample counts for queued samples and completed samples, for display in the UX.
+	let sampleCounts : FMSStudySamplesCounts | undefined = undefined
 	const sampleCountResponse = await store.dispatch(api.sampleNextStepByStudy.countStudySamples(studyID))
-	const sampleCounts = sampleCountResponse.data
+	if (sampleCountResponse.data.length > 0) {
+		sampleCounts = sampleCountResponse.data[0] as FMSStudySamplesCounts
+	}
+	
+
+	let completedSampleCounts : FMSStudySamplesCounts | undefined = undefined
 	const completedSampleCountResponse = await store.dispatch(api.stepHistory.countStudySamples(studyID))
-	const completedSampleCounts = completedSampleCountResponse.data
+	if (completedSampleCountResponse.data.length > 0) {
+		completedSampleCounts = completedSampleCountResponse.data[0]
+	}
 
 	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, groupedSampleNextSteps, completedSamplesByStudy, sampleCounts, completedSampleCounts)
 
@@ -111,8 +119,8 @@ export async function buildStudySamplesFromWorkflow(
 	workflow: Workflow, 
 	sampleNextStepsByStep: {[key: FMSId] : FMSSampleNextStepByStudy[]},
 	completedSamplesByStudy: FMSStepHistory[],
-	sampleCounts: {[key : string]: number},
-	completedSampleCounts: {[key: string]: number},
+	sampleCounts: FMSStudySamplesCounts | undefined,
+	completedSampleCounts: FMSStudySamplesCounts | undefined,
 	) : Promise<StudySampleList> {
 
 	const stepMap = new Map<FMSId, StudySampleStep>()
@@ -129,15 +137,20 @@ export async function buildStudySamplesFromWorkflow(
 			}
 			const samples = sampleNextSteps.map(nextStep => nextStep.sample)
 
+			// Find the sample count for this step, if it is there. The backend returns nothing
+			// if there are zero samples for a step.
+			const sampleCountStep = sampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
+			const completedStep = completedSampleCounts?.steps.find(s => s.step_order_id === stepOrder.id)
+
 			const step : StudySampleStep = {
 				stepID: stepOrder.step_id,
 				stepName: stepOrder.step_name,
         		stepOrderID: stepOrder.id,
 				stepOrder: stepOrder.order,
 				protocolID: stepOrder.protocol_id,
-				sampleCount: sampleCounts[stepOrder.id],
+				sampleCount: sampleCountStep ? sampleCountStep.count : 0,
 				samples,
-				completedCount: completedSampleCounts[stepOrder.id],
+				completedCount: completedStep ? completedStep.count : 0, 
 				completed: []
 			}
 			stepMap.set(step.stepOrderID, step)

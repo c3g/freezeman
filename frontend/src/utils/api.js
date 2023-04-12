@@ -233,7 +233,7 @@ const api = {
   sampleNextStepByStudy: {
     getStudySamples: (studyId, options) => get('/sample-next-step-by-study/', {...options, study__id__in : studyId}),
     getStudySamplesForStep: (studyId, stepId, options) => get(`/sample-next-step-by-study/`, {...options, study__id__in : studyId, step_order__step__id__in : stepId }),
-    countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary/`, {...options, study__id__in: studyId}),
+    countStudySamples: (studyId, options) => get(`/sample-next-step-by-study/summary_by_study/`, {...options, study__id__in: studyId}),
     remove: sampleNextStepByStudyId => remove(`/sample-step-step-by-study/${sampleNextStepByStudyId}/`)
   },
 
@@ -244,7 +244,7 @@ const api = {
 
   stepHistory: {
     getCompletedSamplesForStudy: (studyId) => get('/step-histories/', {study__id__in: studyId}),
-    countStudySamples: (studyId) => get(`/step-histories/summary/`, {study__id__in: studyId})
+    countStudySamples: (studyId) => get(`/step-histories/summary_by_study/`, {study__id__in: studyId})
   },
 
   steps: {
