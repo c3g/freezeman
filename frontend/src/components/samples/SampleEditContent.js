@@ -276,7 +276,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
             />
           </Item>
           <Item label="Depleted" {...props("depleted")} valuePropName="checked">
-            <Switch />
+            <Switch/>
           </Item>
           {isAdding &&
             <Item
@@ -376,6 +376,12 @@ function deserialize(values) {
 function serializeFormData(form) {
   var newValues = EMPTY_SAMPLE;
 
+  if (form.getFieldValue("collection_site"))
+    newValues.collection_site = form.getFieldValue("collection_site")
+
+  if (form.getFieldValue("depleted") != null || form.getFieldValue("depleted") != undefined)
+    newValues.depleted = form.getFieldValue("depleted")
+
   if (!form.getFieldValue("comment"))
     newValues.comment = ''
 
@@ -419,8 +425,8 @@ function serializeFormData(form) {
 
   newValues.volume = form.getFieldValue("volume")
   newValues.name = form.getFieldValue("name")
-  newValues.collection_site = form.getFieldValue("collection_site")
-  newValues.depleted = form.getFieldValue("depleted");
+
+
 
   return newValues
 }
