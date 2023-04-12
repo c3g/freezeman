@@ -14,6 +14,7 @@ import {
   Space,
   Switch,
 } from "antd";
+const { Item } = Form
 const { TextArea } = Input
 
 import AppPageHeader from "../AppPageHeader";
@@ -40,7 +41,7 @@ const searchIndividuals = (token, input, options) =>
 
 const listCollectionSites = (token, input) =>
   withToken(token, api.samples.listCollectionSites)(input).then(res => res.data)
-    
+
 const mapStateToProps = state => ({
   token: state.auth.tokens.access,
   samplesByID: state.samples.itemsByID,
@@ -55,6 +56,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const isAdding = id === undefined
 
   const sample = samplesByID[id];
+
 
   /*
    * Collection site autocomplete
@@ -138,17 +140,12 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     })
   }
 
-  /*
-   * Form Data submission
-   */
-
-  const [formData, setFormData] = useState(deserialize(isAdding ? EMPTY_SAMPLE : sample))
+  const [form] = Form.useForm()
   const [formErrors, setFormErrors] = useState({})
+  /*
+     * Form Data submission
+     */
 
-  if (!isAdding && formData === undefined && sample !== undefined) {
-    const newData = deserialize(sample)
-    setFormData(newData)
-  }
 
   const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
@@ -160,12 +157,21 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     onSearchSampleKind(newData.sample_kind)
   }, [sampleValue])
 
+  const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
+
   const onValuesChange = (values) => {
-    setFormData(deserialize({ ...formData, ...values }))
+    if (values["sample_kind"]) {
+      if (!sampleKind(values["sample_kind"]).is_extracted) {
+        form.setFieldValue('tissue_source', '')
+        setisTissueEnabled(false)
+      } else {
+        setisTissueEnabled(true)
+      }
+    }
   }
 
   const onSubmit = () => {
-    const data = serialize(formData)
+    const data = serializeFormData(form)
     const action =
       isAdding ?
         add(data).then(sample => { history(`/samples/${sample.id}`) }) :
@@ -197,10 +203,9 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       help: formErrors[name],
     }
 
-  const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
-  const isTissueEnabled = formData?.sample_kind && sampleKind(formData?.sample_kind).is_extracted
-  const isCoordRequired = formData?.container
+  const [isTissueEnabled, setisTissueEnabled] = useState(form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted)
+  const isCoordRequired = form.getFieldValue('container')
 
   return (
     <>
@@ -209,28 +214,28 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       />
       <PageContent>
         <Form
+          form={form}
           key={sample ? 'with-sample' : 'without-sample'}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 14 }}
           layout="horizontal"
-          initialValues={formData}
           onValuesChange={onValuesChange}
           onFinish={onSubmit}
         >
-          <Form.Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
+          <Item label="Name" {...props("name")} rules={requiredRules.concat(nameRules)}>
             <Input />
-          </Form.Item>
-          <Form.Item label="Alias" {...props("alias")} extra="Defaults to the name if left empty.">
+          </Item>
+          <Item label="Alias" {...props("alias")} extra="Defaults to the name if left empty.">
             <Input />
-          </Form.Item>
-          <Form.Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
+          </Item>
+          <Item label="Sample Kind" {...props("sample_kind")} rules={requiredRules}>
             <Select
               options={sampleKindOptions}
               onSearch={onSearchSampleKind}
               onFocus={onFocusSampleKind}
             />
-          </Form.Item>
-          <Form.Item label="Tissue Source" {...props("tissue_source")}>
+          </Item>
+          <Item label="Tissue Source" {...props("tissue_source")}>
             <Select
               allowClear
               disabled={!isTissueEnabled}
@@ -238,8 +243,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onSearch={onSearchTissueSource}
               onFocus={onFocusTissueSource}
             />
-          </Form.Item>
-          <Form.Item label="Individual" {...props("individual")}>
+          </Item>
+          <Item label="Individual" {...props("individual")}>
             <Select
               showSearch
               allowClear
@@ -248,8 +253,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onSearch={onSearchIndividual}
               onFocus={onFocusIndividual}
             />
-          </Form.Item>
-          <Form.Item label="Container" {...props("container")} rules={requiredRules}>
+          </Item>
+          <Item label="Container" {...props("container")} rules={requiredRules}>
             <Select
               showSearch
               allowClear
@@ -258,9 +263,9 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onSearch={onSearchContainer}
               onFocus={onFocusContainer}
             />
-          </Form.Item>
-          <Form.Item label="Coordinates" {...props("coordinate")}>
-          <Select
+          </Item>
+          <Item label="Coordinates" {...props("coordinate")}>
+            <Select
               showSearch
               allowClear
               disabled={!isCoordRequired}
@@ -269,42 +274,42 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               onSearch={onSearchCoordinate}
               onFocus={onFocusCoordinate}
             />
-          </Form.Item>
-          <Form.Item label="Depleted" {...props("depleted")} valuePropName="checked">
+          </Item>
+          <Item label="Depleted" {...props("depleted")} valuePropName="checked">
             <Switch />
-          </Form.Item>
+          </Item>
           {isAdding &&
-            <Form.Item
+            <Item
               label="Vol. (µL)"
               {...props("volume")}
               rules={requiredRules}
             >
               <InputNumber step={0.001} />
-            </Form.Item>
+            </Item>
           }
-          <Form.Item
+          <Item
             label="Conc. (ng/µL)"
             {...props("concentration")}
             extra="Concentration in ng/µL."
           >
             <InputNumber step={0.001} />
-          </Form.Item>
-          <Form.Item label="Exp. Group" {...props("experimental_group")}>
+          </Item>
+          <Item label="Exp. Group" {...props("experimental_group")}>
             <Select mode="tags" />
-          </Form.Item>
-          <Form.Item label="Collection Site" {...props("collection_site")}>
+          </Item>
+          <Item label="Collection Site" {...props("collection_site")}>
             <AutoComplete
               options={siteOptions}
               onSearch={onSearchSite}
               onFocus={onFocusSite}
             />
-          </Form.Item>
-          <Form.Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
+          </Item>
+          <Item label="Reception/Creation" {...props("creation_date")} rules={requiredRules}>
             <DatePicker />
-          </Form.Item>
-          <Form.Item label="Comment" {...props("comment")}>
+          </Item>
+          <Item label="Comment" {...props("comment")}>
             <TextArea />
-          </Form.Item>
+          </Item>
           {formErrors?.non_field_errors &&
             <Alert
               showIcon
@@ -322,14 +327,14 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
               }
             />
           }
-          <Form.Item>
+          <Item>
             <Space>
               <Button type="primary" htmlType="submit">
                 Submit
               </Button>
               <Button onClick={onCancel}>Cancel</Button>
             </Space>
-          </Form.Item>
+          </Item>
         </Form>
       </PageContent>
     </>
@@ -368,32 +373,54 @@ function deserialize(values) {
   return newValues
 }
 
-function serialize(values) {
-  const newValues = { ...values }
+function serializeFormData(form) {
+  var newValues = EMPTY_SAMPLE;
 
-  if (newValues.creation_date)
-    newValues.creation_date = newValues.creation_date.format('YYYY-MM-DD')
+  if (!form.getFieldValue("comment"))
+    newValues.comment = ''
 
-  if (!newValues.alias)
-    newValues.alias = null
-
-  if (!newValues.tissue_source)
-    newValues.tissue_source = null
-
-  if (!newValues.individual)
-    newValues.individual = ''
-
-  if (newValues.concentration === '')
+  if (!form.getFieldValue("concentration"))
     newValues.concentration = null
 
-  if (newValues.container)
-    newValues.container = Number(newValues.container)
+  if (form.getFieldValue("experimental_group"))
+    newValues.experimental_group = []
 
-  if (!newValues.coordinate)
+  if (form.getFieldValue("creation_date"))
+    newValues.creation_date = form.getFieldValue("creation_date").format('YYYY-MM-DD')
+
+  if (!form.getFieldValue("alias")) {
+    newValues.alias = form.getFieldValue("name")
+  }
+
+  if (!form.getFieldValue("tissue_source")) {
+    newValues.tissue_source = null
+  } else {
+    newValues.tissue_source = form.getFieldValue("tissue_source")
+  }
+
+  if (form.getFieldValue("container")) {
+    newValues.container = Number(form.getFieldValue("container"))
+  }
+
+  if (form.getFieldValue("sample_kind"))
+    newValues.sample_kind = Number(form.getFieldValue("sample_kind"))
+
+  if (!form.getFieldValue("individual")) {
+    newValues.individual = null
+  } else {
+    newValues.individual = Number(form.getFieldValue("individual"))
+  }
+
+  if (!form.getFieldValue("coordinate")) {
     newValues.coordinate = null
+  } else {
+    newValues.coordinate = Number(form.getFieldValue("coordinate"))
+  }
 
-  if (!newValues.comment)
-    newValues.comment = ''
+  newValues.volume = form.getFieldValue("volume")
+  newValues.name = form.getFieldValue("name")
+  newValues.collection_site = form.getFieldValue("collection_site")
+  newValues.depleted = form.getFieldValue("depleted");
 
   return newValues
 }
