@@ -70,7 +70,8 @@ function StudySamples({ studySamples, refreshSamples }: StudySamplesProps) {
 							key={step.stepOrderID}
 							header={
 								<Space align="baseline">
-									<Title level={5}>{step.stepName}</Title>
+									<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
+									<Text>{step.stepName}</Text>
 								</Space>
 							}
 							showArrow={true}
@@ -85,6 +86,7 @@ function StudySamples({ studySamples, refreshSamples }: StudySamplesProps) {
 							}
 							style={{backgroundColor: 'white'}}
 						>
+						
 							{hasSamples ? (
 								<SamplesTabs step={step}/>
 							) : (
