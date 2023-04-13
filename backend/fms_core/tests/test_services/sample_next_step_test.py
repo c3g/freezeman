@@ -13,7 +13,7 @@ from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 move_sample_to_next_step,
                                                 dequeue_sample_from_all_study_workflows_matching_step,
                                                 execute_workflow_action)
-from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
+from fms_core._constants import WorkflowAction
 
 class SampleNextStepServicesTestCase(TestCase):
     def setUp(self):
@@ -187,7 +187,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                 source_sample=sample_in,
                                                                 execution_date=datetime.date(2021, 1, 10),
                                                                 volume_used=10)
-        move_sample_to_next_step(step, sample_in, process_measurement)
+        move_sample_to_next_step(step, sample_in, process_measurement, WorkflowAction.NEXT_STEP)
 
         has_completed, errors, warnings = has_sample_completed_study(sample_in, study)
         self.assertTrue(has_completed)
@@ -225,7 +225,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                 source_sample=sample_in,
                                                                 execution_date=datetime.date(2021, 1, 10),
                                                                 volume_used=10)
-        move_sample_to_next_step(step, sample_in, process_measurement)
+        move_sample_to_next_step(step, sample_in, process_measurement, WorkflowAction.NEXT_STEP)
 
         has_completed, errors, warnings = has_sample_completed_study(sample_in, study)
         self.assertFalse(has_completed)
@@ -273,7 +273,7 @@ class SampleNextStepServicesTestCase(TestCase):
 
         old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
         old_sample_to_study_workflow_2, _, _ = queue_sample_to_study_workflow(sample_in, study_C)
-        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in, process_measurement)
+        new_sample_next_steps, errors, warnings = move_sample_to_next_step(step, sample_in, process_measurement, WorkflowAction.NEXT_STEP)
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
         self.assertIsNotNone(new_sample_next_steps)
@@ -396,7 +396,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                   volume_used=5000)
 
         old_sample_to_study_workflow_1, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
-        errors, warnings = execute_workflow_action(workflow_action=NEXT_STEP,
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.NEXT_STEP.label,
                                                    step=step_1,
                                                    current_sample=sample_in,
                                                    process_measurement=process_measurement_1,
@@ -412,7 +412,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                                                   source_sample=sample_out,
                                                                   execution_date=datetime.date(2021, 1, 10),
                                                                   volume_used=2)
-        errors, warnings = execute_workflow_action(workflow_action=DEQUEUE_SAMPLE,
+        errors, warnings = execute_workflow_action(workflow_action=WorkflowAction.DEQUEUE_SAMPLE.label,
                                                    step=step_2,
                                                    current_sample=sample_out,
                                                    process_measurement=process_measurement_2)
