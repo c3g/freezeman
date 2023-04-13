@@ -5,6 +5,7 @@ from fms_core.templates import SAMPLE_TRANSFER_TEMPLATE
 from .._utils import (float_to_decimal_and_none, input_to_date_and_none)
 from datetime import datetime
 from fms_core.utils import str_cast_and_normalize, str_cast_and_normalize_lower
+from fms_core.services.step import get_step_from_template
 
 class TransferImporter(GenericImporter):
     SHEETS_INFO = SAMPLE_TRANSFER_TEMPLATE["sheets info"]
@@ -15,13 +16,20 @@ class TransferImporter(GenericImporter):
 
 
     def initialize_data_for_template(self):
-        self.preloaded_data = {'process': None}
+        #Get protocol for Transfer
+        protocol = Protocol.objects.get(name='Transfer')
+
+        self.preloaded_data = {'process': None, 'protocol': protocol}
 
         self.preloaded_data['process'] = Process.objects.create(protocol=Protocol.objects.get(name="Transfer"),
                                                                 comment="Sample Transfer (imported from template)")
 
     def import_template_inner(self):
         sheet = self.sheets['SampleTransfer']
+
+        # Identify for each row of the matching workflow step
+        step_by_row_id, errors, warnings = get_step_from_template(self.preloaded_data['protocol'], self.sheets, self.SHEETS_INFO)
+        self.base_errors.extend(errors)
 
         # Add the template to the process
         if self.imported_file is not None:
@@ -58,10 +66,16 @@ class TransferImporter(GenericImporter):
                 'process': self.preloaded_data['process']
             }
 
+            workflow = {
+                'step_action': str_cast_and_normalize(row_data['Workflow Action']),
+                'step': step_by_row_id[row_id]
+            }
+
             transfer_kwargs = dict(
                 source_sample=source_sample,
                 resulting_sample=resulting_sample,
                 process_measurement=process_measurement,
+                workflow=workflow,
             )
 
             (result, _) = self.handle_row(

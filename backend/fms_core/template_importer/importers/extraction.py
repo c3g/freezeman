@@ -44,6 +44,7 @@ class ExtractionImporter(GenericImporter):
             concentration_decimal = float_to_decimal_and_none(row_data['Conc. (ng/uL)'])
             extraction_date = input_to_date_and_none(row_data['Extraction Date'])
             sample_kind = str_cast_and_normalize(row_data['Extraction Type'])
+            sample_kind_obj = self.preloaded_data['sample_kinds'][sample_kind] if sample_kind is not None else None
 
             source_sample = {
                 'coordinates': str_cast_and_normalize(row_data['Source Container Coord']),
@@ -56,7 +57,7 @@ class ExtractionImporter(GenericImporter):
                 'volume': volume_decimal,
                 'concentration': concentration_decimal,
                 'creation_date': extraction_date,
-                'kind': self.preloaded_data['sample_kinds'][sample_kind],
+                'kind': sample_kind_obj,
                 'container': {
                     'barcode': str_cast_and_normalize(row_data['Destination Container Barcode']),
                     'name': str_cast_and_normalize(row_data['Destination Container Name']),
