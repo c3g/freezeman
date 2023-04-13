@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from fms_core.models import StepHistory, Protocol, Step, StepOrder,Workflow, Project, Study, Container, Sample, Process, ProcessMeasurement
 from fms_core.tests.constants import create_sample, create_sample_container
+from fms_core._constants import WorkflowAction
 
 class StepHistoryTest(TestCase):
     def setUp(self):
@@ -48,16 +49,19 @@ class StepHistoryTest(TestCase):
         self.assertEqual(step_history.step_order.step.name, "Extraction (test)")
         self.assertEqual(step_history.study.letter, "A")
         self.assertEqual(step_history.process_measurement.source_sample, self.source_sample)
+        self.assertEqual(step_history.workflow_action, WorkflowAction.NEXT_STEP)
 
     def test_step_history_duplicate(self):
         step_history = StepHistory.objects.create(study=self.study,
                                                   step_order=self.step_order_1,
-                                                  process_measurement=self.process_measurement)
+                                                  process_measurement=self.process_measurement,
+                                                  workflow_action=WorkflowAction.NEXT_STEP)
         with self.assertRaises(ValidationError):
             try:
                 step_history_duplicate = StepHistory.objects.create(study=self.study,
                                                                     step_order=self.step_order_1,
-                                                                    process_measurement=self.process_measurement)
+                                                                    process_measurement=self.process_measurement,
+                                                                    workflow_action=WorkflowAction.NEXT_STEP)
             except ValidationError as err:
                 self.assertEqual(err.message_dict["__all__"], ["Step history with this Study, Step order and Process measurement already exists."])
                 raise err

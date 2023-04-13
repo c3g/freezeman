@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from fms_core.models import SampleNextStep, SampleNextStepByStudy, StepOrder, Sample, Study, Step, ProcessMeasurement, StepHistory
-from fms_core.template_importer._constants import NEXT_STEP, DEQUEUE_SAMPLE, IGNORE_WORKFLOW
+from fms_core._constants import WorkflowAction
 from typing import  List, Tuple, Union
 from fms_core.models._constants import SampleType
 
@@ -233,21 +233,24 @@ def has_sample_completed_study(sample_obj: Sample, study_obj: Study) -> Tuple[Un
         except StepOrder.DoesNotExist:
             errors.append(f"No step found for the given order.")
 
-        # If the sample has completed the workflow, the step order should be None
+        # If the sample has completed the workflow, the StepHistory for the last step order in the study should
+        # have a workflow action of NEXT_STEP
         if StepHistory.objects.filter(process_measurement__lineage__child=sample_obj, # for step with child
                                       study=study_obj, 
-                                      step_order=step_order).exists() \
+                                      step_order=step_order,
+                                      workflow_action=WorkflowAction.NEXT_STEP).exists() \
         or StepHistory.objects.filter(process_measurement__lineage__isnull=True,      # for step without child
                                       process_measurement__source_sample=sample_obj,
                                       study=study_obj,
-                                      step_order=step_order).exists():
+                                      step_order=step_order,
+                                      workflow_action=WorkflowAction.NEXT_STEP).exists():
             samples_has_completed = True
         else:
             samples_has_completed = False
 
     return samples_has_completed, errors, warnings
 
-def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
+def move_sample_to_next_step(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, workflow_action: WorkflowAction=WorkflowAction.NEXT_STEP, next_sample: Sample=None, keep_current: bool=False) -> Tuple[Union[List[SampleNextStep], None], List[str], List[str]]:
     """
     Service that move the sample to the next step order in a workflow. The service verifies the SampleNextStep instances that match current_step and current_sample.
     A new SampleNextStep instance is created and returned for each current instance using the next_step_order. The current SampleNextStep instances are removed.
@@ -255,8 +258,9 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
     Args:
         `current_step`: Step instance representing the protocol being executed by the template.
         `current_sample`: Sample instance being processed.
+        `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into StepHistory.
+        `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.NEXT_STEP
         `next_sample`: Sample generated during the current_step. Default to None in which case the current_sample will be the next_sample.
-        `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into study_steporder_by_measurement.
         `keep_current`: Boolean that is true if we are to keep the current sample next step. False by default, indicating removal.
     
     Returns:
@@ -274,6 +278,9 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
     
     if not isinstance(process_measurement, ProcessMeasurement):
         errors.append(f"A valid process measurement instance must be provided.")
+
+    if not isinstance(workflow_action, WorkflowAction):
+        errors.append(f"A valid workflow action instance must be provided.")
 
     if not errors:
         new_sample = next_sample if next_sample is not None else current_sample
@@ -309,10 +316,11 @@ def move_sample_to_next_step(current_step: Step, current_sample: Sample, process
                     except Exception as err:
                         errors.append(f"Failed to create new sample next step instance.")
                 try:
-                    # Create the entry in study_steporder_by_measurement
+                    # Create the entry in StepHistory
                     StepHistory.objects.create(study=study,
                                                step_order=current_step_order,
-                                               process_measurement=process_measurement)
+                                               process_measurement=process_measurement,
+                                               workflow_action=workflow_action)
                 except Exception as err:
                     errors.append(f"Failed to create StepHistory.")
             try:
@@ -373,16 +381,75 @@ def dequeue_sample_from_all_study_workflows_matching_step(sample: Sample, step: 
 
     return removed_count, errors, warnings
 
+def remove_sample_from_workflow(current_step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, workflow_action: WorkflowAction=WorkflowAction.DEQUEUE_SAMPLE):
+    """
+    Service that remove the sample from all study workflows. The service verifies the SampleNextStep instances that match current_step and current_sample.
+    dequeue_sample_from_all_study_workflows_matching_step is called for each one.
+
+    Args:
+        `current_step`: Step instance representing the protocol being executed by the template.
+        `current_sample`: Sample instance being processed.
+        `process_measurement`: Process_measurement related to the step for the current sample. An entry is inserted into StepHistory.
+        `workflow_action`: WorkflowAction that was performed on the sample at the step completion. Defaults to WorkflowAction.DEQUEUE_SAMPLE
+    
+    Returns:
+        Tuple containing the list of new SampleNextStep if any corresponding current SampleNextStep is found or None if an error occurs, errors and warnings.
+    """
+    removed_count = 0
+    errors = []
+    warnings = []
+
+    if not isinstance(current_step, Step):
+        errors.append(f"A valid current step instance must be provided.")
+
+    if not isinstance(current_sample, Sample):
+        errors.append(f"A valid current sample instance must be provided.")
+    
+    if not isinstance(process_measurement, ProcessMeasurement):
+        errors.append(f"A valid process measurement instance must be provided.")
+
+    if not isinstance(workflow_action, WorkflowAction):
+        errors.append(f"A valid workflow action instance must be provided.")
+
+    if not errors:
+
+        current_sample_next_steps = SampleNextStep.objects.filter(sample=current_sample, step=current_step)
+
+        for current_sample_next_step in current_sample_next_steps.all():
+            for sample_next_step_by_study in SampleNextStepByStudy.objects.filter(sample_next_step=current_sample_next_step).all() :
+                study = sample_next_step_by_study.study
+                current_step_order = sample_next_step_by_study.step_order
+                try:
+                    # Create the entry in StepHistory
+                    StepHistory.objects.create(study=study,
+                                               step_order=current_step_order,
+                                               process_measurement=process_measurement,
+                                               workflow_action=workflow_action)
+                except Exception as err:
+                    errors.append(f"Failed to create StepHistory.")
+
+    removed_count, errors_dequeue, warnings_dequeue = dequeue_sample_from_all_study_workflows_matching_step(sample=current_sample,
+                                                                                                            step=current_step)
+    errors.extend(errors_dequeue)
+    warnings.extend(warnings_dequeue)
+
+    # an error will return None, no matching current_sample_next_step will return 0
+    if errors:
+        removed_count = None
+
+    return removed_count, errors, warnings
+
+
 def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sample, process_measurement: ProcessMeasurement, next_sample: Sample=None) -> Tuple[List[str], List[str]]:
     """
     Execute the workflow action listed in the template.
 
     Args:
-        workflow_action: String defining the action to complete on the sample workflow after template submission.
-        step: Step instance defining the current step executed by the template
-        current_sample: Sample instance being processed by the template (input).
-        process_measurement: Process measurement associated to the template recording the sample transition.
-        next_sample: Sample instance being created by the template (output). Defaults to None.
+        `workflow_action`: String defining the action to complete on the sample workflow after template submission.
+        `step`: Step instance defining the current step executed by the template
+        `current_sample`: Sample instance being processed by the template (input).
+        `process_measurement`: Process measurement associated to the template recording the sample transition.
+        `next_sample`: Sample instance being created by the template (output). Defaults to None.
 
     Returns:
         Tuple listing the errors and warnings.
@@ -390,23 +457,27 @@ def execute_workflow_action(workflow_action: str, step: Step, current_sample: Sa
     errors = []
     warnings = []
 
-    if workflow_action == NEXT_STEP:
-        move_sample_to_next_step(current_step=step,
-                                 current_sample=current_sample,
-                                 process_measurement=process_measurement,
-                                 next_sample=next_sample,
-                                 keep_current=False)
-    elif workflow_action == DEQUEUE_SAMPLE:
-        _, errors, warnings = dequeue_sample_from_all_study_workflows_matching_step(sample=current_sample,
-                                                                                    step=step)
-    elif workflow_action == IGNORE_WORKFLOW:
+    if workflow_action == WorkflowAction.NEXT_STEP.label:
+        _, errors, _ = move_sample_to_next_step(current_step=step,
+                                                current_sample=current_sample,
+                                                process_measurement=process_measurement,
+                                                workflow_action=WorkflowAction.NEXT_STEP,
+                                                next_sample=next_sample,
+                                                keep_current=False)
+    elif workflow_action == WorkflowAction.DEQUEUE_SAMPLE.label:
+        _, errors, _ = remove_sample_from_workflow(current_step=step,
+                                                   current_sample=current_sample,
+                                                   process_measurement=process_measurement,
+                                                   workflow_action=WorkflowAction.DEQUEUE_SAMPLE)
+    elif workflow_action == WorkflowAction.IGNORE_WORKFLOW.label:
         warnings.append(f"Sample {current_sample.name} current process will not be recorded as part of a workflow.")
     else:
-        move_sample_to_next_step(current_step=step,
-                                 current_sample=current_sample,
-                                 process_measurement=process_measurement,
-                                 next_sample=next_sample,
-                                 keep_current=False)
+        _, errors, _ = move_sample_to_next_step(current_step=step,
+                                                current_sample=current_sample,
+                                                process_measurement=process_measurement,
+                                                workflow_action=WorkflowAction.NEXT_STEP,
+                                                next_sample=next_sample,
+                                                keep_current=False)
         warnings.append(f"Without explicit action, the current process of sample {current_sample.name} will be recorded as part of its workflow.")
     
     return errors, warnings
