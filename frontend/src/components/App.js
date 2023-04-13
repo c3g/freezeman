@@ -34,12 +34,8 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-<<<<<<< HEAD
-import { fetchInitialData, fetchLabworkSummary, fetchSummariesData } from "../modules/shared/actions";
-=======
 import { refreshLabwork } from "../modules/labwork/actions";
 import { fetchInitialData, fetchSummariesData, fetchStaticData } from "../modules/shared/actions";
->>>>>>> 2218b284 (moving static data fetch into new function)
 import { get } from "../modules/users/actions";
 import { selectAppInitialzed, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";

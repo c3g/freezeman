@@ -68,7 +68,6 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
     ].map(a => dispatch(a())))
 };
 
-<<<<<<< HEAD
 export const fetchLabworkSummary = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
 
@@ -81,10 +80,8 @@ export const fetchLabworkSummary = () => async (dispatch, getState) => {
         dispatch(refreshAllStudySamples())
     }
 }
-=======
 export const fetchStaticData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
->>>>>>> 2218b284 (moving static data fetch into new function)
 
     if (!getState().auth.tokens.access) return;
 
