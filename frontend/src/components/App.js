@@ -34,10 +34,9 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { refreshLabwork } from "../modules/labwork/actions";
-import { fetchInitialData, fetchSummariesData, fetchStaticData } from "../modules/shared/actions";
+import { fetchInitialData, fetchSummariesData, fetchStaticData, fetchLabworkSummary, fetchListedData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
-import { selectAppInitialzed, } from "../selectors";
+import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
  
@@ -153,14 +152,15 @@ const App = ({userID, usersByID, logOut, get}) => {
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
-
+  const token = useAppSelector(selectAuthTokenAccess)
   useEffect(() => {
 
 
     async function loadInitialData() {
       await dispatch(fetchStaticData())
       dispatch(setAppInitialized())
-      await dispatch(fetchInitialData())
+      dispatch(fetchListedData())
+      dispatch(fetchSummariesData())
     }
 
     loadInitialData()
@@ -171,7 +171,7 @@ const App = ({userID, usersByID, logOut, get}) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [token]);
 
   const isLoggedIn = userID !== null;
   const user = usersByID[userID];

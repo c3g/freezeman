@@ -1,16 +1,16 @@
 import jwtDecode from "jwt-decode";
 
 import api from "../../utils/api";
-import {createNetworkActionTypes, networkAction} from "../../utils/actions";
-import {fetchInitialData} from "../shared/actions";
-import {constVal} from "../../utils/functions";
+import { createNetworkActionTypes, networkAction } from "../../utils/actions";
+import { fetchInitialData } from "../shared/actions";
+import { constVal } from "../../utils/functions";
 
 export const LOG_OUT = "AUTH.LOG_OUT";
 
 export const PERFORM_AUTH = createNetworkActionTypes("AUTH.PERFORM");
 export const REFRESH_AUTH_TOKEN = createNetworkActionTypes("AUTH.REFRESH_TOKEN");
 
-export const logOut = () => ({type: LOG_OUT});
+export const logOut = () => ({ type: LOG_OUT });
 
 const decodeUserID = tokens => ({ tokens, currentUserID: jwtDecode(tokens.access).user_id })
 
@@ -18,15 +18,12 @@ export const performAuth = (username, password) => async (dispatch, getState) =>
 
     if (getState().auth.isFetching) return false;
 
-    const authResult =
-        await dispatch(
-            networkAction(
-                PERFORM_AUTH,
-                api.auth.token({username, password}),
-                { transform: decodeUserID }));
+    await dispatch(
+        networkAction(
+            PERFORM_AUTH,
+            api.auth.token({ username, password }),
+            { transform: decodeUserID }));
 
-    if (authResult)
-        await dispatch(fetchInitialData());
 }
 
 export const refreshAuthToken = () => async (dispatch, getState) => {
@@ -62,7 +59,7 @@ export const refreshAuthToken = () => async (dispatch, getState) => {
             networkAction(
                 REFRESH_AUTH_TOKEN,
                 api.auth.tokenRefresh({ refresh: tokens.refresh })
-        ));
+            ));
     } catch (e) {
         // Invalid token, should perform auth instead
         console.error(e);

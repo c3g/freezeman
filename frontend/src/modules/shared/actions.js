@@ -22,35 +22,6 @@ import * as SampleNextStep from '../labworkSteps/actions'
 import { refreshLabwork } from "../labwork/actions";
 import { refreshAllStudySamples } from "../studySamples/actions";
 
-export const fetchInitialData = () => async (dispatch, getState) => {
-    await dispatch(refreshAuthToken())
-
-    if (!getState().auth.tokens.access) return;
-
-    // Higher priority
-    await Promise.allSettled([
-        Containers.summary,
-        Indices.summary,
-        Samples.summary,
-        Libraries.summary,
-        Projects.summary,
-        ProcessMeasurements.summary,
-    ].map(a => dispatch(a())))
-
-    await Promise.allSettled([
-        Containers.listTable,
-        ExperimentRuns.listTable,
-        Indices.listTable,
-        Individuals.listTable,
-        Samples.listTable,
-        Libraries.listTable,
-        Projects.listTable,
-        ProcessMeasurements.listTable,
-        Datasets.listTable,
-        DatasetFiles.listTable,
-    ].map(a => dispatch(a())))
-
-}
 
 export const fetchSummariesData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
@@ -132,6 +103,8 @@ export const fetchListedData = () => async (dispatch, getState) => {
         Projects.listTable,
         ProcessMeasurements.listTable,
         Protocols.list,
+        Datasets.listTable,
+        DatasetFiles.listTable,
     ].map(a => dispatch(a())))
 
     // Lower priority - Fetch summaries
