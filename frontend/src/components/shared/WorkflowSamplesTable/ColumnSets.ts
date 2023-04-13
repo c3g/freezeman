@@ -19,6 +19,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const DEFAULT_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.KIND,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.PROJECT,
@@ -33,6 +34,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const PRE_QC_SAMPLE_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.KIND,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.PROJECT,
@@ -46,6 +48,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const DEFAULT_LIBRARY_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		LIBRARY_COLUMNS.LIBRARY_TYPE,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.PROJECT,
@@ -62,6 +65,7 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 
 	const PRE_QC_LIBRARY_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		LIBRARY_COLUMNS.LIBRARY_TYPE,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.PROJECT,
@@ -69,13 +73,13 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 		SAMPLE_COLUMNS.COORDINATES,		
 		LIBRARY_COLUMNS.INDEX_NAME,
 		SAMPLE_COLUMNS.VOLUME,
-		SAMPLE_COLUMNS.CONCENTRATION,
 		SAMPLE_COLUMNS.CREATION_DATE,
 		SAMPLE_COLUMNS.DEPLETED,
 	]
 
 	const EXPERIMENT_COLUMNS = [
 		SAMPLE_COLUMNS.ID,
+		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.NAME,
 		SAMPLE_COLUMNS.PROJECT,
 		SAMPLE_COLUMNS.CONTAINER_BARCODE,
@@ -105,6 +109,10 @@ export function getColumnsForStep(step: Step, protocol: Protocol): IdentifiedTab
 			columnsForStep = DEFAULT_SAMPLE_COLUMNS
 			break
 		}
+    case ProtocolNames.Transfer: {
+      columnsForStep = PRE_QC_LIBRARY_COLUMNS
+			break
+    }
 		case ProtocolNames.Library_Quality_Control: {
 			columnsForStep = PRE_QC_LIBRARY_COLUMNS
 			break

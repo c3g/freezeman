@@ -6,6 +6,8 @@ import re
 from django.contrib.auth.models import User
 import reversion
 
+from fms_core.models._constants import SampleType
+
 ADMIN_USERNAME = 'biobankadmin'
 
 def initialize_coordinates(apps, schema_editor):
@@ -44,6 +46,61 @@ def initialize_coordinates(apps, schema_editor):
     assert Container.objects.exclude(coordinates__exact="").filter(coordinate__isnull=True).count() == 0
     assert Container.objects.filter(coordinates__exact="", coordinate__isnull=False).count() == 0
 
+def insert_transfer_into_workflows(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Protocol = apps.get_model("fms_core", "Protocol")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+        admin_user_id = admin_user.id
+
+        reversion.set_comment(f"Insert a transfer step before each Library QC step.")
+        reversion.set_user(admin_user)
+
+        # Create a generic transfer step
+        protocol = Protocol.objects.get(name="Transfer")
+        step = Step.objects.create(name="Transfer for library QC",
+                                   protocol=protocol,
+                                   expected_sample_type=SampleType.LIBRARY,
+                                   created_by_id=admin_user_id,
+                                   updated_by_id=admin_user_id)
+        reversion.add_to_revision(step)
+
+        for workflow in Workflow.objects.all():
+            order_shift = StepOrder.objects.filter(workflow_id=workflow.id, step__name="Library QC").count()
+            last_step_order = None
+            if order_shift > 0:
+                for step_order in StepOrder.objects.filter(workflow_id=workflow.id).order_by("-order"):
+                    last_step_order = step_order
+                    if step_order.next_step_order is not None and step_order.next_step_order.step.name == "Library QC":
+                        # Create new step_order at the position of the step_order preceding the library QC
+                        new_step_order = StepOrder.objects.create(workflow=workflow,
+                                                                  step=step,
+                                                                  next_step_order=step_order.next_step_order,
+                                                                  order=step_order.order + order_shift,
+                                                                  created_by_id=admin_user_id,
+                                                                  updated_by_id=admin_user_id)
+                        reversion.add_to_revision(new_step_order)
+                        order_shift -= 1
+                        # Change the current step order by the new step order created
+                        step_order.next_step_order = new_step_order
+                        step_order.order += order_shift
+                        step_order.save()
+                        reversion.add_to_revision(step_order)
+                    else:
+                        step_order.order += order_shift
+                        step_order.save()
+                        reversion.add_to_revision(step_order)
+                if last_step_order.step.name == "Library QC":
+                    new_step_order = StepOrder.objects.create(workflow=workflow,
+                                                              step=step,
+                                                              next_step_order=last_step_order,
+                                                              order=1,
+                                                              created_by_id=admin_user_id,
+                                                              updated_by_id=admin_user_id)
+                    reversion.add_to_revision(new_step_order)
 
 class Migration(migrations.Migration):
 
@@ -99,5 +156,9 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='sample',
             name='coordinates',
+        ),
+        migrations.RunPython(
+            insert_transfer_into_workflows,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

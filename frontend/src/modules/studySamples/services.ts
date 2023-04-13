@@ -5,35 +5,23 @@ import api from "../../utils/api"
 import { fetchLibrariesForSamples, fetchProcesses, fetchProcessMeasurements, fetchSamples, fetchStudies, fetchUsers, fetchWorkflows } from "./cache"
 import { CompletedStudySample, StudySampleList, StudySampleStep } from "./models"
 
-enum StudySamplesErrorCode {
-	DEPENDENCY_NOT_FOUND,
-	DEPENDENCY_NOT_READY,
-	FETCH_ERROR
-}
-
-export class StudySamplesError extends Error {
-
-	constructor(public readonly code: StudySamplesErrorCode, message: string) {
-		super(message)
-	}
-}
 
 export async function loadStudySamples(studyID: FMSId) {
 	
 	const study = (await fetchStudies([studyID])).find(obj => obj.id === studyID)
 	if(! study) {
-		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_FOUND, `Study "${studyID}" not found.`)
+		throw new Error(`Study "${studyID}" not found.`)
 	}
 	if (study.isFetching) {
-		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, 'Cannot load study samples - study is still fetching.')
+		throw new Error('Cannot load study samples - study is still fetching.')
 	}
 
 	const workflow = (await fetchWorkflows([study.workflow_id])).find(wf => wf.id === study.workflow_id)
 	if(! workflow) {
-		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_FOUND, `Workflow "${study.workflow_id}" not found.`)
+		throw new Error(`Workflow "${study.workflow_id}" not found.`)
 	}
 	if (workflow.isFetching) {
-		throw new StudySamplesError(StudySamplesErrorCode.DEPENDENCY_NOT_READY, `Cannot load study samples - workflow is still fetching`)
+		throw new Error(`Cannot load study samples - workflow is still fetching`)
 	}
 	
 	// Get the study samples
@@ -43,7 +31,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	if (sampleNextStepResponse.data.results) {
 		sampleNextStepsByStudy = sampleNextStepResponse.data.results as FMSSampleNextStepByStudy[]
 	} else {
-		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch study samples')
+		throw new Error('Failed to fetch study samples')
 	}
 
 	// Get samples that have completed the process at a step
@@ -52,7 +40,7 @@ export async function loadStudySamples(studyID: FMSId) {
 	if (sampleHistoryResponse.data.results) {
 		completedSamplesByStudy = sampleHistoryResponse.data.results as FMSStepHistory[]
 	} else {
-		throw new StudySamplesError(StudySamplesErrorCode.FETCH_ERROR, 'Failed to fetch completed samples for study')
+		throw new Error('Failed to fetch completed samples for study')
 	}
 
 	const studySamples = await buildStudySamplesFromWorkflow(study, workflow, sampleNextStepsByStudy, completedSamplesByStudy)

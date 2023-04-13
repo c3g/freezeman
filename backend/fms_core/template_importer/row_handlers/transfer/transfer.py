@@ -9,7 +9,7 @@ from fms_core.utils import check_truth_like
 
 class TransferRowHandler(GenericRowHandler):
 
-    def process_row_inner(self, source_sample, resulting_sample, process_measurement):
+    def process_row_inner(self, source_sample, resulting_sample, process_measurement, workflow):
         original_sample, self.errors['sample'], self.warnings['sample'] = get_sample_from_container(barcode=source_sample['container']['barcode'],
                                                                                                     coordinates=source_sample['coordinates'])
         
@@ -39,6 +39,7 @@ class TransferRowHandler(GenericRowHandler):
                                                                                                       coordinates_destination=resulting_sample['coordinates'],
                                                                                                       volume_destination=resulting_sample['volume'],
                                                                                                       source_depleted=source_depleted,
-                                                                                                      comment=process_measurement['comment'])
+                                                                                                      comment=process_measurement['comment'],
+                                                                                                      workflow=workflow)
 
 

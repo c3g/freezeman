@@ -250,6 +250,8 @@ def extract_sample(process: Process,
         errors.append(f"Source sample for extraction is required.")
     if not container_destination:
         errors.append(f"Destination container for extraction is required.")
+    if sample_kind_destination is None:
+        errors.append(f"Sample kind of the extracted sample is required.")
 
     if volume_used is None:
         errors.append(f"Volume used is required.")
