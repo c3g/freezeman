@@ -66,7 +66,6 @@ function StudySamples({ studySamples, refreshSamples }: StudySamplesProps) {
 					const countString = `${step.completed.length} / ${totalSampleCount}`
 
 					return (
-<<<<<<< HEAD
 						<Collapse.Panel
 							key={step.stepOrderID}
 							header={
@@ -88,9 +87,6 @@ function StudySamples({ studySamples, refreshSamples }: StudySamplesProps) {
 							style={{backgroundColor: 'white'}}
 						>
 						
-=======
-						<Collapse.Panel key={step.stepOrderID} header={<><Text strong={true} style={{marginRight: '0.5rem', fontSize: '1.1em'}} >{step.stepOrder}</Text><Link to={`/lab-work/step/${step.stepID}`}>{step.stepName}</Link></>} extra={<Title level={4} style={{margin: '0'}}>{step.samples.length}</Title>}>
->>>>>>> labwork-step-number
 							{hasSamples ? (
 								<SamplesTabs step={step}/>
 							) : (
