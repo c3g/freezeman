@@ -51,7 +51,8 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
     def summary_by_study(self, request):
         """
         Returns the number of samples queued at each step for either a single study or for all
-        studies. 
+        studies. Pass a comma-separated list of study id's in a 'study__id__in' query parameter
+        to specify specific studies.
         
         The endpoint returns an array of objects. Each object contains a study ID and a list
         of steps, where each step includes a count of the number of samples queued.
@@ -62,7 +63,6 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
         with zero samples are omitted from the results.
 
         Args:
-        study__id__in: The study ID (optional)
 
         Returns:
         Dictionary of step order ID / sample count pairs, one for each step in the study workflow.
@@ -70,11 +70,11 @@ class SampleNextStepByStudyViewSet(viewsets.ModelViewSet):
        
         study_id = request.GET.get('study__id__in')
     
-        samplesInStudy = SampleNextStepByStudy.objects.all()
+        samples_in_study = SampleNextStepByStudy.objects.all()
         if study_id is not None:
-            samplesInStudy = samplesInStudy.filter(study__id=study_id)
+            samples_in_study = samples_in_study.filter(study__id=study_id)
        
-        counted = samplesInStudy.values('study__id', 'step_order', 'step_order__order', 'step_order__step__name').annotate(count=Count('step_order')).order_by('study__id', 'step_order__order')
+        counted = samples_in_study.values('study__id', 'step_order', 'step_order__order', 'step_order__step__name').annotate(count=Count('step_order')).order_by('study__id', 'step_order__order')
 
         studies = dict()
         for group in counted:
