@@ -352,3 +352,19 @@ export const SAMPLE_NEXT_STEP_FILTER_KEYS: { [key in SampleColumnID]: string } =
 	[SampleColumnID.QC_FLAG]: 'qc_flag',
 	[SampleColumnID.PROJECT]: 'sample__derived_samples__project__name',
 }
+
+export const SAMPLE_NEXT_STEP_BY_STUDY_FILTER_KEYS: { [key in SampleColumnID]: string } = {
+	[SampleColumnID.ID]: 'sample_next_step__sample__id',
+	[SampleColumnID.KIND]: 'sample_next_step__sample__derived_samples__sample_kind__name',
+	[SampleColumnID.NAME]: 'sample_next_step__sample__name',
+	[SampleColumnID.INDIVIDUAL]: 'sample_next_step__sample__derived_samples__biosample__individual__name',
+	[SampleColumnID.CONTAINER_NAME]: 'sample_next_step__sample__container__name',
+	[SampleColumnID.CONTAINER_BARCODE]: 'sample_next_step__sample__container__barcode',
+	[SampleColumnID.COORDINATES]: 'sample_next_step__sample__coordinate__name',
+	[SampleColumnID.VOLUME]: 'sample_next_step__sample__volume',
+	[SampleColumnID.CONCENTRATION]: 'sample_next_step__sample__concentration',
+	[SampleColumnID.CREATION_DATE]: 'sample_next_step__sample__creation_date',
+	[SampleColumnID.DEPLETED]: 'sample_next_step__sample__depleted',
+	[SampleColumnID.QC_FLAG]: 'sample_next_step__qc_flag',
+	[SampleColumnID.PROJECT]: 'sample_next_step__sample__derived_samples__project__name',
+}
