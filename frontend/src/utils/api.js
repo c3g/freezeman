@@ -240,6 +240,10 @@ const api = {
     list: (options, abort) => get("/sequences/", options, { abort }),
   },
 
+  stepHistory: {
+    getCompletedSamplesForStudy: (studyId) => get('/step-histories/', {study__id__in: studyId}),
+  },
+
   steps: {
     list: (options, abort) => get('/steps/', options, { abort} ),
   },
@@ -248,6 +252,7 @@ const api = {
     get: studyId => get(`/studies/${studyId}/`),
     add: study => post("/studies/", study),
     update: study => patch(`/studies/${study.id}/`, study),
+    list: (options, abort) => get('/studies', options, {abort}),
     listProjectStudies: projectId => get('/studies', { project__id: projectId})
   },
 

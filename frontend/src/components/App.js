@@ -34,10 +34,9 @@ import useUserInputExpiration from "../utils/useUserInputExpiration";
 import { useAppDispatch, useAppSelector } from "../hooks";
 import { setAppInitialized } from "../modules/app/actions";
 import { logOut } from "../modules/auth/actions";
-import { refreshLabwork } from "../modules/labwork/actions";
-import { fetchInitialData, fetchSummariesData } from "../modules/shared/actions";
+import { fetchInitialData, fetchLabworkSummary, fetchSummariesData } from "../modules/shared/actions";
 import { get } from "../modules/users/actions";
-import { selectAppInitialzed, selectAuthTokenAccess } from "../selectors";
+import { selectAppInitialzed, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
  
@@ -153,21 +152,22 @@ const App = ({userID, usersByID, logOut, get}) => {
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
-  const tokenAccess = useAppSelector(selectAuthTokenAccess)
 
   useEffect(() => {
+
+
     async function loadInitialData() {
       await dispatch(fetchInitialData())
       dispatch(setAppInitialized())
     }
 
     loadInitialData()
+
     const interval = setInterval(() => {
       dispatch(fetchSummariesData())
-      if (tokenAccess) {
-        dispatch(refreshLabwork())
-      }
+      dispatch(fetchLabworkSummary())
     }, 30000);
+
     return () => clearInterval(interval);
   }, []);
 

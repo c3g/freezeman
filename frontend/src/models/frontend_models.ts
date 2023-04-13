@@ -17,7 +17,10 @@ import {
 	FMSLibraryType,
 	FMSPlatform,
 	FMSPooledSample,
+	FMSProcess,
+	FMSProcessMeasurement,
 	FMSProject,
+	FMSPropertyValue,
 	FMSProtocol,
 	FMSReferenceGenome,
 	FMSSample,
@@ -75,7 +78,10 @@ export interface Library extends Readonly<FMSLibrary>, FetchedObject {}
 export interface LibraryType extends Readonly<FMSLibraryType>, FetchedObject {}
 export interface Platform extends Readonly<FMSPlatform>, FetchedObject {}
 export interface PooledSample extends Readonly<FMSPooledSample>, FetchedObject {}
+export interface Process extends Readonly<FMSProcess>, FetchedObject {}
+export interface ProcessMeasurement extends Readonly<FMSProcessMeasurement>, FetchedObject {}
 export interface Project extends Readonly<FMSProject>, FetchedObject {}
+export interface PropertyValue extends Readonly<FMSPropertyValue>, FetchedObject {}
 export interface Protocol extends Readonly<FMSProtocol>, FetchedObject {}
 export interface ReferenceGenome extends Readonly<FMSReferenceGenome>, FetchedObject {}
 export interface Sample extends Readonly<FMSSample>, FetchedObject {}

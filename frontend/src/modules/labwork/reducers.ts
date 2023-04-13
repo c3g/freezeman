@@ -1,5 +1,5 @@
 import { AnyAction } from "redux"
-import { LabworkSummary } from "../../models/labwork_summary"
+import { LabworkSummary } from "./models"
 import { FLUSH_LABWORK_SUMMARY, GET_LABWORK_SUMMARY, SET_HIDE_EMPTY_PROTOCOLS } from "./actions"
 
 

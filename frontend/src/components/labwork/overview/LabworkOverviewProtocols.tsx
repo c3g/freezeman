@@ -1,9 +1,9 @@
-import { SyncOutlined } from '@ant-design/icons'
-import { Button, Collapse, Space, Switch, Typography } from 'antd'
+import { Collapse, Space, Switch, Typography } from 'antd'
 import React from 'react'
 import { useAppDispatch } from '../../../hooks'
-import { LabworkSummary } from '../../../models/labwork_summary'
 import { refreshLabwork, setHideEmptyProtocols } from '../../../modules/labwork/actions'
+import { LabworkSummary } from '../../../modules/labwork/models'
+import RefreshButton from '../../RefreshButton'
 import LabworkOverviewProtocolPanel from './LabworkOverviewProtocolPanel'
 
 const { Title } = Typography
@@ -25,18 +25,30 @@ const LabworkOverviewProtocols = ({ summary, hideEmptyProtocols, refreshing }: L
 		protocols = protocols.filter(protocol => protocol.count > 0)
 	}
 
+	function handleHideEmptyProtocols(hide: boolean) {
+		dispatch(setHideEmptyProtocols(hide))
+	}
+
+	function handleLabworkRefresh() {
+		dispatch(refreshLabwork())
+	}
+ 
 	return (
 		<>
 			<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
 				<Title level={2}>Protocols</Title>
 				<Space>
-					<Switch checkedChildren={'Show all'} unCheckedChildren={'Hide Empty'} checked={hideEmptyProtocols} onChange={value => dispatch(setHideEmptyProtocols(value))}/>
-					<Button icon={<SyncOutlined spin={refreshing}/>} disabled={refreshing} onClick={
-						() => {
-							// Refreshes labwork and step samples states
-							dispatch(refreshLabwork())
-						}
-					} title='Update with the latest state of the samples in the lab'>Refresh</Button>
+					<Switch 
+						checkedChildren={'Show all'} 
+						unCheckedChildren={'Hide Empty'} 
+						checked={hideEmptyProtocols} 
+						onChange={handleHideEmptyProtocols}
+					/>
+					<RefreshButton 
+						refreshing={refreshing} 
+						onRefresh={handleLabworkRefresh}
+						title='Update with the latest state of the samples in the lab'
+					/>
 				</Space>
 			</div>
 			<Collapse>

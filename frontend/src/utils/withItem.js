@@ -92,6 +92,7 @@ export const withContainer = createWithItem(Container, api.containers)
 export const withSample = createWithItem(Sample, api.samples)
 export const withIndividual = createWithItem(Individual, api.individuals)
 export const withUser = createWithItem(User, api.users)
+export const withProcess = createWithItem(Process, api.processes)
 export const withProcessMeasurement = createWithItem(Process, api.processMeasurements)
 export const withProject = createWithItem(Project, api.projects)
 export const withSequence = createWithItem(Sequence, api.sequences)
@@ -106,6 +107,7 @@ export default {
   withSample,
   withIndividual,
   withUser,
+  withProcess,
   withProcessMeasurement,
   withProject,
   withSequence,

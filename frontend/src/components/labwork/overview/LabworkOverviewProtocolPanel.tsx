@@ -1,5 +1,5 @@
 import React from 'react'
-import { LabworkStepGroup, LabworkSummaryProtocol } from '../../../models/labwork_summary'
+import { LabworkSummaryProtocol, LabworkStepGroup } from '../../../modules/labwork/models'
 import LabworkOverviewStepGroup from './LabworkOverviewStepGroup'
 
 export interface LabworkProtocolPanelProps {

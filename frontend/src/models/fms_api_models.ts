@@ -169,6 +169,27 @@ export interface FMSPooledSample extends FMSTrackedModel {
     strandedness?: string,              // "Double stranded" (for DNA) or "Single stranded" (for RNA)
 }
 
+export interface FMSProcess extends FMSTrackedModel {
+    children_properties: FMSId[]        // ID's of child property values of the process
+    children_processes: FMSId[]         // ID's of child processes
+    parent_process?: FMSId              // Parent process ID, if any
+    protocol: FMSId                     // ID of protocol for process
+    imported_template?: FMSId           // Imported template ID, if any
+}
+
+export interface FMSProcessMeasurement extends FMSTrackedModel {
+    source_sample: FMSId                // Sample that was processed
+    child_sample?: FMSId                // Sample created by process (if any)
+
+    protocol: FMSId                     // Protocol ID
+    process: FMSId                      // Parent process ID
+    properties: FMSId[]                 // ID's of any property values recorded for the sample
+    
+    volume_used?: number                // Volume of sample consumed by process
+    execution_date: string              // Date that sample was processed
+    comment?: string                    // User comment
+}
+
 /**
  * Freezeman project model
  */
@@ -184,6 +205,19 @@ export interface FMSProject extends FMSTrackedModel {
     comment: string                     // Other relevant information about the project
 }
 
+/**
+ * PropertyValue
+ * 
+ * Both Processes and ProcessMeasurements can have properties, and the same model
+ * is shared for both cases.
+ */
+export interface FMSPropertyValue extends FMSTrackedModel {
+    content_type: FMSId                 // An ID to indicate if this is property of a process or of a process measurement
+    object_id: FMSId                    // Either a process ID or a process measurement ID
+    property_name: string               // The name of the property
+    property_type: FMSId                // The property type ID
+    value: any                          // The property value - stored as JSON, so it can be anything
+}
 
 export interface ProtocolPropertyType {             // Subfield of FMSProtocol
     id: FMSId                                       // PropertyType object id
@@ -255,6 +289,13 @@ export interface FMSStep extends FMSTrackedModel {
     name: string
     protocol_id: FMSId
     step_specifications: FMSStepSpecification[]
+}
+
+export interface FMSStepHistory extends FMSTrackedModel {
+    study: FMSId
+    step_order: number
+    process_measurement: FMSId
+    sample: FMSId
 }
 
 export interface FMSStepSpecification extends FMSTrackedModel {

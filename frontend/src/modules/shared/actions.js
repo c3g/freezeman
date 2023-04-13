@@ -19,6 +19,8 @@ import DatasetFiles from "../datasetFiles/actions"
 import Workflows from "../workflows/actions"
 import Steps from '../steps/actions'
 import * as SampleNextStep from '../labworkSteps/actions'
+import { refreshLabwork } from "../labwork/actions";
+import { refreshAllStudySamples } from "../studySamples/actions";
 
 export const fetchInitialData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
@@ -93,6 +95,18 @@ export const fetchSummariesData = () => async (dispatch, getState) => {
     ].map(a => dispatch(a())))
 };
 
+export const fetchLabworkSummary = () => async (dispatch, getState) => {
+    await dispatch(refreshAuthToken())
+
+    if (!getState().auth.tokens.access) {
+        return
+    }
+
+    const labworkChanged = await dispatch(refreshLabwork())
+    if (labworkChanged === true) {
+        dispatch(refreshAllStudySamples())
+    }
+}
 
 export const fetchListedData = () => async (dispatch, getState) => {
     await dispatch(refreshAuthToken())
