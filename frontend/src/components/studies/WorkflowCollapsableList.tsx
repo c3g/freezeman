@@ -21,6 +21,7 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 	}
 
 	function createWorkflowCard(workflow: Workflow) {
+<<<<<<< HEAD
 		const stepNames = workflow.steps_order.map((step) => {
 			return {
 				stepName: step.step_name,
@@ -28,6 +29,9 @@ const WorkflowCollapsableList = ({ workflows, selectedWorkflow, onChange }: Work
 
 			}
 		})
+=======
+		const stepNames = workflow.steps_order.map((step) => step.order+": "+step.step_name)
+>>>>>>> labwork-step-number
 		return (
 			<Collapse accordion>
 				<Collapse.Panel header={workflow.name} key={workflow.name} style={{ width: '100%' }}>
