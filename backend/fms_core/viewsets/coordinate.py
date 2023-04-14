@@ -32,8 +32,7 @@ class CoordinateViewSet(viewsets.ModelViewSet):
                 query = Q(id=search_input)
                 query.add(Q(name=search_input), Q.OR)
             else:
-                query = Q(id__icontains=search_input)
-                query.add(Q(name__startswith=search_input), Q.OR)
+                query = Q(name__icontains=search_input)
             coordinates_data = Coordinate.objects.filter(query)
         else:
             coordinates_data = Coordinate.objects.all()
