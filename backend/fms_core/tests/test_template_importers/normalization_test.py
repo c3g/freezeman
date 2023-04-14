@@ -78,6 +78,7 @@ class NormalizationTestCase(TestCase):
                 'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
                                                     coordinate=self.coord_A01),
                 'Volume Used': Decimal(3.5),
+                'Volume In Pool': Decimal(3.5),
                 'Source Depleted': False,
                 'Comment': ''
             },
@@ -85,6 +86,7 @@ class NormalizationTestCase(TestCase):
                 'Source Sample': Sample.objects.get(container__barcode="POOLING_CONTAINER",
                                                     coordinate=self.coord_A02),
                 'Volume Used': Decimal(5.0),
+                'Volume In Pool': Decimal(5.0),
                 'Source Depleted': False,
                 'Comment': '',
             }

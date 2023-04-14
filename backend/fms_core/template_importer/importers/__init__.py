@@ -35,7 +35,7 @@ __all__ = [
     "ContainerRenameImporter",
     "ContainerMoveImporter",
     "LibraryPreparationImporter",
-    "LibraryConversionImporter"
+    "LibraryConversionImporter",
     "LibraryCaptureImporter",
     "LibraryQCImporter",
     "NormalizationImporter",

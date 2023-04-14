@@ -29,7 +29,7 @@ def get_step_from_template(protocol, template_sheets, template_sheet_definition)
 
     # get sample sheet : the first one that is not a batch sheet
     sample_sheet_list = [sheet["name"] for sheet in template_sheet_definition if not sheet.get("batch", False)]
-    sample_sheet_name = sample_sheet_list.pop() # get only a single name
+    sample_sheet_name = sample_sheet_list.pop(0) # get only a single name, the first listed in the sheet definition
 
     # build stitch column dict from template sheet definition
     if all(sheet.get("stitch_column", False) for sheet in template_sheet_definition):

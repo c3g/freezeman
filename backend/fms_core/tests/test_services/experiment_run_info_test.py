@@ -47,7 +47,7 @@ class ExperimentRunInfoTemplatesTestCase(TestCase):
 
         self.import_template(LibraryQCImporter(), 'Library_QC_v4_1_0.xlsx')
         
-        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_1_0.xlsx')
+        self.import_template(SamplePoolingImporter(), 'Sample_pooling_v4_2_0.xlsx')
 
         self.import_template(LibraryCaptureImporter(), 'Library_capture_v4_1_0.xlsx')
 
