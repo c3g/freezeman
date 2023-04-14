@@ -3,7 +3,9 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from fms_core.models import SampleNextStep, SampleNextStepByStudy, Study, Workflow, Step, StepOrder, Individual, Container, SampleKind, Project, Protocol, Process, ProcessMeasurement
+from fms_core.models import (SampleNextStep, SampleNextStepByStudy, Study, Workflow,
+                             Individual, Container, SampleKind, Project, Protocol,
+                             StepHistory, Step, StepOrder, Process, ProcessMeasurement)
 from fms_core.tests.constants import create_individual, create_fullsample, create_sample_container
 from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 dequeue_sample_from_all_steps_study_workflow,
@@ -12,6 +14,7 @@ from fms_core.services.sample_next_step import (queue_sample_to_study_workflow,
                                                 has_sample_completed_study,
                                                 move_sample_to_next_step,
                                                 dequeue_sample_from_all_study_workflows_matching_step,
+                                                remove_sample_from_workflow,
                                                 execute_workflow_action)
 from fms_core._constants import WorkflowAction
 
@@ -264,7 +267,7 @@ class SampleNextStepServicesTestCase(TestCase):
                                        start=start,
                                        end=end)
 
-        protocol = Protocol.objects.get(name="Library Preparation")
+        protocol = Protocol.objects.get(name="Normalization")
         process = Process.objects.create(protocol=protocol)
         process_measurement = ProcessMeasurement.objects.create(process=process,
                                                                 source_sample=sample_in,
@@ -283,6 +286,8 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertEqual(new_sample_next_steps[1].step.name, "Library Preparation (PCR-enriched, Illumina)")
         self.assertEqual(new_sample_next_steps[1].sample, sample_in)
         self.assertFalse(SampleNextStep.objects.filter(id=old_sample_to_study_workflow_2.id).exists())
+        self.assertEqual(StepHistory.objects.filter(study=study_B, process_measurement__source_sample=sample_in, step_order__step=step).count(), 1)
+        self.assertEqual(StepHistory.objects.filter(study=study_C, process_measurement__source_sample=sample_in, step_order__step=step).count(), 1)
 
 
     def test_move_sample_to_next_step_not_queued(self):
@@ -352,6 +357,71 @@ class SampleNextStepServicesTestCase(TestCase):
         self.assertTrue("does not appear to to be queued" in warnings[0])
         self.assertEqual(count, 0)
 
+    def test_remove_sample_from_workflow(self):
+        container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
+        sample_in = create_fullsample(name="TestSampleRemoved_in",
+                                      alias="TestSampleRemoved_in",
+                                      volume=5000,
+                                      individual=self.valid_individual,
+                                      sample_kind=self.sample_kind_DNA,
+                                      container=container1)
+        
+        step = Step.objects.get(name="Normalization (Sample)")
+        for derived_sample in sample_in.derived_samples.all():
+                derived_sample.project_id = self.project.id
+                derived_sample.save()
+                
+        letter_B = "B"
+        start = 3
+        end = 7
+        study_B = Study.objects.create(letter=letter_B,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_free,
+                                       start=start,
+                                       end=end)
+
+        letter_C = "C"
+        start = 3
+        end = 7
+        study_C = Study.objects.create(letter=letter_C,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_enriched,
+                                       start=start,
+                                       end=end)
+
+        letter_D = "D"
+        start = 4
+        end = 7
+        study_D = Study.objects.create(letter=letter_D,
+                                       project=self.project,
+                                       workflow=self.workflow_pcr_enriched,
+                                       start=start,
+                                       end=end)
+
+        protocol = Protocol.objects.get(name="Normalization")
+        process = Process.objects.create(protocol=protocol)
+        process_measurement = ProcessMeasurement.objects.create(process=process,
+                                                                source_sample=sample_in,
+                                                                execution_date=datetime.date(2021, 1, 10),
+                                                                volume_used=10)
+
+        _, _, _ = queue_sample_to_study_workflow(sample_in, study_B)
+        _, _, _ = queue_sample_to_study_workflow(sample_in, study_C)
+        _, _, _ = queue_sample_to_study_workflow(sample_in, study_D)
+        count_removed, errors, warnings = remove_sample_from_workflow(step, sample_in, process_measurement, WorkflowAction.DEQUEUE_SAMPLE)
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, ['Sample TestSampleRemoved_in is queued to step Normalization (Sample) for 2 studies. You are about to remove it from all study workflows.'])
+        self.assertEqual(count_removed, 2)
+        self.assertEqual(SampleNextStep.objects.filter(sample=sample_in).count(), 1)
+        self.assertEqual(StepHistory.objects.filter(study=study_B,
+                                                    process_measurement__source_sample=sample_in,
+                                                    step_order__step=step,
+                                                    workflow_action=WorkflowAction.DEQUEUE_SAMPLE).count(), 1)
+        self.assertEqual(StepHistory.objects.filter(study=study_C,
+                                                    process_measurement__source_sample=sample_in,
+                                                    step_order__step=step,
+                                                    workflow_action=WorkflowAction.DEQUEUE_SAMPLE).count(), 1)
+
     def test_execute_workflow_action(self):
         container1 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_1', barcode='T123456_1'))
         container2 = Container.objects.create(**create_sample_container(kind='tube', name='TestTube01_2', barcode='T123456_2'))
@@ -404,6 +474,10 @@ class SampleNextStepServicesTestCase(TestCase):
 
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
+        self.assertEqual(StepHistory.objects.filter(study=study_B,
+                                                    process_measurement__source_sample=sample_in,
+                                                    step_order__step=step_1,
+                                                    workflow_action=WorkflowAction.NEXT_STEP).count(), 1)
 
         step_2 = Step.objects.get(name="Sample QC")
         protocol_2 = Protocol.objects.get(name="Sample Quality Control")
@@ -419,3 +493,7 @@ class SampleNextStepServicesTestCase(TestCase):
         
         self.assertEqual(errors, [])
         self.assertEqual(warnings, [])
+        self.assertEqual(StepHistory.objects.filter(study=study_B,
+                                                    process_measurement__source_sample=sample_out,
+                                                    step_order__step=step_2,
+                                                    workflow_action=WorkflowAction.DEQUEUE_SAMPLE).count(), 1)
