@@ -92,8 +92,8 @@ const StudyDetails = ({studyId} : StudyDetailsProps) => {
                 <Descriptions.Item label="Start Step" span={2}>{getStepWithOrder(study?.start)}</Descriptions.Item>
                 <Descriptions.Item label="End Step" span={2}>{getStepWithOrder(study?.end)}</Descriptions.Item>
             </Descriptions>
-            { studySamples ? 
-                <StudySamples studySamples={studySamples} refreshSamples={refreshSamples}/>
+            { study && studySamples ? 
+                <StudySamples studyID={study.id} studySamples={studySamples} refreshSamples={refreshSamples}/>
                 :
                 // Display the "Samples" title with a spinner until data is ready.
                 // Afterward, StudySamples displays the title (along with the Hide Empty Steps button)

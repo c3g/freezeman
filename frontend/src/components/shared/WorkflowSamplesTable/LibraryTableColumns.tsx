@@ -183,3 +183,13 @@ export const SAMPLE_NEXT_STEP_LIBRARY_FILTER_KEYS = {
 	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// annotated property of viewset
 	[LibraryColumnID.LIBRARY_SIZE]: 'sample__derived_samples__library__library_size',
 }
+
+export const SAMPLE_NEXT_STEP_BY_STUDY_LIBRARY_FILTER_KEYS = {
+	[LibraryColumnID.LIBRARY_TYPE]: 'sample_next_step__sample__derived_samples__library__library_type__name',
+	[LibraryColumnID.SELECTION_TARGET]: 'sample_next_step__sample__derived_samples__library__library_selection__target',
+	[LibraryColumnID.INDEX_NAME]: 'sample_next_step__sample__derived_samples__library__index__name',
+	[LibraryColumnID.PLATFORM_NAME]: 'sample_next_step__sample__derived_samples__library__platform__name',
+	[LibraryColumnID.PROJECT_NAME]: 'sample_next_step__sample__derived_samples__project__name',
+	[LibraryColumnID.NA_QUANTITY]: 'quantity_ng',	// TODO annotated property of viewset 
+	[LibraryColumnID.LIBRARY_SIZE]: 'sample_next_step__sample__derived_samples__library__library_size',
+}
