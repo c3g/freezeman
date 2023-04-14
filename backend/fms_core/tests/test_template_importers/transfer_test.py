@@ -61,12 +61,14 @@ class TransferTestCase(TestCase):
             {
                 'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinate=self.coord_A01),
                 'Volume Used': decimal.Decimal(20.0),
+                'Volume In Pool': decimal.Decimal(20.0),
                 'Source Depleted': False,
                 'Comment': ''
              },
             {
                 'Source Sample': Sample.objects.get(container__barcode="Pool_container_source_1", coordinate=self.coord_A02),
                 'Volume Used': decimal.Decimal(5.0),
+                'Volume In Pool': decimal.Decimal(5.0),
                 'Source Depleted': False,
                 'Comment': '',
             }

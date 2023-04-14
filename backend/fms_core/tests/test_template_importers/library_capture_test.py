@@ -143,12 +143,14 @@ class LibraryCaptureTestCase(TestCase):
             {
                 'Source Sample': source_sample_1,
                 'Volume Used': Decimal(100),
+                'Volume In Pool': Decimal(100),
                 'Source Depleted': False,
                 'Comment': ''
             },
             {
                 'Source Sample': source_sample_2,
                 'Volume Used': Decimal(200),
+                'Volume In Pool': Decimal(200),
                 'Source Depleted': False,
                 'Comment': '',
             }
