@@ -1,7 +1,7 @@
 import { Coordinate, Index, ItemsByID, Library, Process, ProcessMeasurement, Project, PropertyValue, Protocol, ReferenceGenome, Sample, SampleKind, Study, Taxon, User, Workflow } from "./models/frontend_models"
 import { LabworkSummaryState } from "./modules/labwork/reducers"
 import { LabworkStepsState } from "./modules/labworkSteps/models"
-import { StudySamplesByID } from "./modules/studySamples/reducers"
+import { StudySamplesByID, StudySettingsByID } from "./modules/studySamples/models"
 import { RootState } from "./store"
 
 /*
@@ -44,7 +44,8 @@ export const selectSamplesByID = (state: RootState) => state.samples.itemsByID a
 export const selectSampleKindsByID = (state: RootState) => state.sampleKinds.itemsByID as ItemsByID<SampleKind>
 export const selectSampleNextStepTemplateActions = (state: RootState) => state.sampleNextStepTemplateActions.items
 export const selectSampleTemplateActions = (state: RootState) => state.sampleTemplateActions
-export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesById as StudySamplesByID
+export const selectStudySamplesByID = (state: RootState) => state.studySamples.studySamplesByID as StudySamplesByID
+export const selectStudySettingsByID = (state: RootState) => state.studySamples.studySettingsByID as StudySettingsByID
 export const selectStepsByID = (state: RootState) => state.steps.itemsByID
 export const selectStudiesByID = (state: RootState) => state.studies.itemsByID as ItemsByID<Study>
 export const selectTaxonsByID = (state: RootState) => state.taxons.itemsByID as ItemsByID<Taxon>
