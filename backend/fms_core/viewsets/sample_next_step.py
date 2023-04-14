@@ -27,9 +27,7 @@ class SampleNextStepViewSet(viewsets.ModelViewSet, TemplateActionsMixin, Templat
         **_sample_next_step_filterset_fields
     }
     ordering_fields = {
-        *_list_keys(_sample_next_step_filterset_fields),
-        "sample__container__barcode",
-        "sample__coordinates",
+        *_list_keys(_sample_next_step_filterset_fields)
     }
 
     filterset_class = SampleNextStepFilter
