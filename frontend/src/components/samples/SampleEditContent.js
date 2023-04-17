@@ -156,7 +156,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
     if (!isAdding)
-      form.setFieldsValue({...newData})
+      form.setFieldsValue({ ...newData })
   }, [sampleValue])
 
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
@@ -169,6 +169,11 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       } else {
         setisTissueEnabled(true)
       }
+    }
+    if (values["container"]) {
+      setIsCoordRequired(true)
+    } else {
+      setIsCoordRequired(false)
     }
   }
 
@@ -207,8 +212,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
 
 
   const [isTissueEnabled, setisTissueEnabled] = useState(form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted)
-  const isCoordRequired = form.getFieldValue('container')
-  console.log("sanokes", sample)
+  const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container'))
+
   return (
     <>
       <AppPageHeader
