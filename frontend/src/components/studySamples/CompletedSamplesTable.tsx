@@ -1,18 +1,31 @@
-import { Table, TableColumnType } from 'antd'
+import { Space, Table, TableColumnType, Typography } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { CompletedStudySample } from "../../modules/studySamples/models"
 import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
+import { StopOutlined } from '@ant-design/icons'
+
+const { Text } = Typography
 
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
 const SOURCE_SAMPLE : CompletedSampleColumn = {
 	title: 'Source Sample',
 	dataIndex: 'sampleID',
-	render: (sampleID) => {
+	render: (sampleID, completedSample) => {
 		return (
 			<WithSampleRenderComponent objectID={sampleID} render={
-				sample => <Link to={`/samples/${sample.id}`}>{sample.name}</Link>
+				sample => <Link to={`/samples/${sample.id}`}>
+					{completedSample.removedFromWorkflow ? 
+						<Space>
+							<StopOutlined style={{color: 'red'}} title='Sample was removed from study'/>
+							<Text strong style={{color: 'red'}} title='Sample was removed from study'>{sample.name}</Text>
+						</Space>
+						
+						:
+						<Text>{sample.name}</Text>
+					}
+				</Link>
 			}/>
 		)
 	}

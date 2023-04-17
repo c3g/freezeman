@@ -175,7 +175,8 @@ export async function buildStudySamplesFromWorkflow(
 				processMeasurementID: stepHistory.process_measurement,
 				executionDate: processMeasurement?.execution_date,
 				executedBy: user?.username,
-				comment: processMeasurement?.comment
+				comment: processMeasurement?.comment,
+				removedFromWorkflow: stepHistory.workflow_action === 'DEQUEUE_SAMPLE'
 			}
 			step.completed.push(completedSample)
 		}

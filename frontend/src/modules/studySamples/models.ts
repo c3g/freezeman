@@ -11,6 +11,7 @@ export interface CompletedStudySample {
 	readonly executionDate?: string
 	readonly executedBy?: string
 	readonly comment?: string
+	readonly removedFromWorkflow: boolean
 }
 
 export interface StudySampleStep {
