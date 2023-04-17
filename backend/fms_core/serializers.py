@@ -750,7 +750,7 @@ class StepHistorySerializer(serializers.ModelSerializer):
     sample = serializers.IntegerField(read_only=True, source='process_measurement.source_sample_id')
     class Meta:
         model = StepHistory
-        fields = ("id", "study", "step_order", "process_measurement", "sample")
+        fields = ("id", "study", "step_order", "process_measurement", "sample", "workflow_action")
 
 class CoordinateSerializer(serializers.ModelSerializer):
     class Meta:
