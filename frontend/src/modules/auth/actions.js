@@ -2,8 +2,7 @@ import jwtDecode from "jwt-decode";
 
 import api from "../../utils/api";
 import { createNetworkActionTypes, networkAction } from "../../utils/actions";
-import { fetchInitialData } from "../shared/actions";
-import { constVal } from "../../utils/functions";
+
 
 export const LOG_OUT = "AUTH.LOG_OUT";
 
