@@ -20,8 +20,8 @@ class ContainerCreationTestCase(TestCase):
 
         # Info for confirmation
         containerInfo1 = {"name": "TubeBox_TestCreation", "barcode": "TubeBox_1", "kind": "tube box 7x7"}
-        containerInfo2 = {"name": "Room_TestCreation", "barcode": "Room_1", "kind": "room"}
-        containerInfo3 = {"name": "Freezer_TestCreation", "barcode": "Freezer_1", "kind": "freezer 3 shelves", "location__barcode": "Room_1"}
+        containerInfo2 = {"name": "Room_TestCreation", "barcode": "Room_1", "kind": "room", "comment": "Room where we put stuff"}
+        containerInfo3 = {"name": "Freezer_TestCreation", "barcode": "Freezer_1", "kind": "freezer 3 shelves", "location__barcode": "Room_1", "comment": "Cold when it is powered"}
         containerInfo4 = {"name": "TubeRack_TestCreation", "barcode": "TubeRack_1", "kind": "tube rack 8x12", "coordinate": coord_A01, "location__barcode": "Freezer_1"}
 
         # Verifications
