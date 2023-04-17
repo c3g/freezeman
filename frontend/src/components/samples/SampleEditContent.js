@@ -215,6 +215,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       <PageContent>
         <Form
           form={form}
+          initialValues={isAdding ? {} : {}}
           key={sample ? 'with-sample' : 'without-sample'}
           labelCol={{ span: 4 }}
           wrapperCol={{ span: 14 }}
@@ -276,7 +277,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
             />
           </Item>
           <Item label="Depleted" {...props("depleted")} valuePropName="checked">
-            <Switch/>
+            <Switch />
           </Item>
           {isAdding &&
             <Item
