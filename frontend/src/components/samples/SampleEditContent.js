@@ -212,7 +212,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
 
 
   const [isTissueEnabled, setisTissueEnabled] = useState(form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted)
-  const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container'))
+  const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container') || !isAdding)
 
   return (
     <>
