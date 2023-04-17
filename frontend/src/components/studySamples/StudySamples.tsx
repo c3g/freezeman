@@ -104,7 +104,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 							key={step.stepID}
 							header={
 								<Space align="baseline">
-									<Title level={5}>{step.stepName}</Title>
+									<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
+									<Text>{step.stepName}</Text>
 								</Space>
 							}
 							showArrow={true}
