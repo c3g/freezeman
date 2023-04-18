@@ -23,7 +23,7 @@ export const templateIcon = t => {
   return undefined;
 };
 
-export const prefillTemplatesToButtonDropdown = (prefillTemplate, totalCount, prefills) => {
+export function PrefilledTemplatesDropdown({prefillTemplate, totalCount, prefills}) {
   const prefillChoiceMenu = (
     <Menu>
       { prefills && prefills.items && prefills.items.map((prefill) =>

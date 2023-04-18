@@ -32,7 +32,7 @@ export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
     </Link>
   );
 
-export const actionDropdown = (urlBase, actions, fullWidth=false) => {
+export function ActionDropdown({urlBase, actions, fullWidth = false}) {
   const history = useNavigate();
   const actionMenu = (
     <Menu>
@@ -56,7 +56,7 @@ export const actionDropdown = (urlBase, actions, fullWidth=false) => {
               <MonitorOutlined />  Available Actions
             </Button>
           </Dropdown>)
-};
+}
 
 export const templateActionsReducerFactory = moduleActions => (
   state = {
