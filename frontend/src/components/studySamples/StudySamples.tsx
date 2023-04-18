@@ -9,7 +9,7 @@ import { selectHideEmptySteps, selectStudySettingsByID } from '../../selectors'
 import RefreshButton from '../RefreshButton'
 import CompletedSamplesTable from './CompletedSamplesTable'
 import StudyStepSamplesTable from './StudyStepSamplesTable'
-import { StopOutlined, WarningOutlined } from '@ant-design/icons'
+import { WarningOutlined } from '@ant-design/icons'
 
 const { Text, Title } = Typography
 
@@ -48,10 +48,8 @@ function StudySamples({ studyID, studySamples, refreshSamples }: StudySamplesPro
 	}
 
 	useEffect(() => {
-		if (refreshing) {
-			setRefreshing(false)
-		}
-	}, [studySamples])
+		setRefreshing(false)
+	}, [studySamples])	// Clear the refreshing flag when studySamples changes
 
 	const handleExpand = useCallback((keys: string | string[]) => {
 		if(Array.isArray(keys)) {
@@ -118,24 +116,18 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	
 	const completedSamples = step.completed.filter(completed => completed.removedFromWorkflow === false)
 	const removedSamples = step.completed.filter(completed => completed.removedFromWorkflow === true)
-	const includesRemovedSamples = removedSamples.length > 0
+	const hasRemovedSamples = removedSamples.length > 0
 
+	const removedTitle = removedSamples.length === 1 ? `1 sample was removed from study` : `${removedSamples.length} samples were removed from study`
 
 	const readyTab = `Ready for Processing (${step.sampleCount})`
-
-	const completedTab = 
-		<>
-			{removedSampleCount > 0 ?
-			<>
-				<Text>{`Completed (${step.completedCount}) (${removedSampleCount} removed)`}</Text>
-				<WarningOutlined style={{color: 'red'}}/>
-			</>
-				 :
-				<Text>{`Completed (${step.completedCount})`}</Text>
-			}
-		</>
-	
-	
+	const completedTab = <Text>{`Completed (${completedSamples.length})`}</Text>
+	const removedTab = 
+		<Space size={'small'}>
+			<Text>{`Removed (${removedSamples.length})`}</Text>
+			<WarningOutlined style={{color: 'red'}} title={removedTitle}/>
+		</Space>
+		
 	const goToLab = <Link style={{marginRight: '1rem'}} to={`/lab-work/step/${step.stepID}`}>{'Go to Processing'}</Link>
 
 	function handleTabSelection(activeKey: string) {
@@ -155,7 +147,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 			extra={
 				<>
 					<Space>
-						{includesRemovedSamples && <WarningOutlined style={{color: 'red'}} title='Samples were removed from study'/>}
+						{hasRemovedSamples && <WarningOutlined style={{color: 'red'}} title={removedTitle}/>}
 						<Title level={4} style={{ margin: '0' }} title={countTitle}>
 							{countString}
 						</Title>
@@ -169,57 +161,16 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 					<StudyStepSamplesTable studyID={studyID} step={step} settings={uxSettings}/>
 				</Tabs.TabPane>
 				<Tabs.TabPane tab={completedTab} key='completed'>
-					<CompletedSamplesTable completedSamples={step.completed}/>
+					<CompletedSamplesTable completedSamples={completedSamples}/>
 				</Tabs.TabPane>
-				<Tabs.TabPane tab={'Removed'} key='removed'>
-					<CompletedSamplesTable completedSamples={step.completed.filter(c => c.removedFromWorkflow === true)}/>
+				{hasRemovedSamples && 
+				<Tabs.TabPane tab={removedTab} key='removed'>
+					<CompletedSamplesTable completedSamples={removedSamples}/>
 				</Tabs.TabPane>
+				}
 			</Tabs>
 		</Collapse.Panel>
 	)
 }
-
-// interface SampleTabContainerProps {
-// 	studyID: FMSId
-// 	step: StudySampleStep
-// 	settings?: StudyUXStepSettings
-// }
-// function SamplesTabs({studyID, step, settings}: SampleTabContainerProps) {
-// 	const dispatch = useAppDispatch()
-
-// 	const includesRemovedSamples = step.completed.some(comp => comp.removedFromWorkflow === true)
-
-// 	const readyTab = `Ready for Processing (${step.sampleCount})`
-
-// 	const completedTab = 
-// 		<>
-// 			{includesRemovedSamples ?
-// 			<>
-// 				<Text>{`Completed (${step.completedCount})`}</Text>
-// 				<WarningOutlined style={{color: 'red'}}/>
-// 			</>
-// 				 :
-// 				<Text>{`Completed (${step.completedCount})`}</Text>
-// 			}
-// 		</>
-	
-	
-// 	const goToLab = <Link style={{marginRight: '1rem'}} to={`/lab-work/step/${step.stepID}`}>{'Go to Processing'}</Link>
-
-// 	function handleTabSelection(activeKey: string) {
-// 		dispatch(setStudyStepSamplesTab(studyID, step.stepID, activeKey as any))
-// 	}
-
-// 	return (
-// 		<Tabs defaultActiveKey='ready' activeKey={settings?.selectedSamplesTab} tabBarExtraContent={goToLab} size='small' onChange={handleTabSelection}>
-// 			<Tabs.TabPane tab={readyTab} key='ready'>
-// 				<StudyStepSamplesTable studyID={studyID} step={step} settings={settings}/>
-// 			</Tabs.TabPane>
-// 			<Tabs.TabPane tab={completedTab} key='completed'>
-// 				<CompletedSamplesTable completedSamples={step.completed}/>
-// 			</Tabs.TabPane>
-// 		</Tabs>
-// 	)
-// }
 
 export default StudySamples
