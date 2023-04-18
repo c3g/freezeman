@@ -147,6 +147,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 			key={step.stepID}
 			header={
 				<Space align="baseline">
+					<Text strong={true} style={{fontSize: 16}}>{step.stepOrder}</Text>
 					<Title level={5}>{step.stepName}</Title>
 				</Space>
 			}
