@@ -1,10 +1,8 @@
-import { Table, TableColumnType, Typography } from 'antd'
+import { Table, TableColumnType } from 'antd'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { CompletedStudySample } from "../../modules/studySamples/models"
 import { WithSampleRenderComponent } from '../shared/WithItemRenderComponent'
-
-const { Text } = Typography
 
 type CompletedSampleColumn = TableColumnType<CompletedStudySample>
 
@@ -14,9 +12,8 @@ const SOURCE_SAMPLE : CompletedSampleColumn = {
 	render: (sampleID) => {
 		return (
 			<WithSampleRenderComponent objectID={sampleID} render={
-				sample => <Link to={`/samples/${sample.id}`}>
-					<Text>{sample.name}</Text>
-				</Link>
+				sample => 
+					<Link to={`/samples/${sample.id}`}>{sample.name}</Link>
 			}/>
 		)
 	}
