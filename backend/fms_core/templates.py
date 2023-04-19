@@ -36,7 +36,7 @@ CONTAINER_CREATION_TEMPLATE = {
       {
           'name': 'ContainerCreation',
           'headers': ['Container Kind', 'Container Name', 'Container Barcode', 'Parent Container Barcode',
-                      'Parent Container Coordinates'],
+                      'Parent Container Coordinates', 'Comment'],
           'batch': False,
       },],
   # prefill_info : [("Template Sheet Name", "Template Column Header", "Queryset Name", "Sample Model Attribute/Property"), ...]
