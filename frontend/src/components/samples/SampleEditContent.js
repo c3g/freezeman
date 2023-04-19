@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import moment from "moment";
 import { connect } from "react-redux";
+import { useAppSelector } from "../../hooks";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Alert,
@@ -24,6 +25,7 @@ import { add, update, listTable, summary } from "../../modules/samples/actions";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, nameRules } from "../../constants";
+import { selectContainerKindsByID, selectContainersByID } from "../../selectors";
 
 // API functions
 
@@ -56,8 +58,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const isAdding = id === undefined
 
   const sample = samplesByID[id];
-
-
+  const containers = useAppSelector(selectContainersByID);
+  const containerKinds = useAppSelector(selectContainerKindsByID);
   /*
    * Collection site autocomplete
    */
@@ -172,7 +174,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       }
     }
     if (key == "container") {
-      if (values[key]) {
+      if (values[key] || containerKinds) {
+        
         setIsCoordRequired(true)
       } else {
         setIsCoordRequired(false)
@@ -182,7 +185,9 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   }
 
   const onSubmit = () => {
-    const data = serializeFormData(form)
+    var data = serializeFormData(form)
+    if (!isAdding)
+      data.id = id
     const action =
       isAdding ?
         add(data).then(sample => { history(`/samples/${sample.id}`) }) :
@@ -393,9 +398,6 @@ function serializeFormData(form) {
   if (form.getFieldValue("depleted") != null || form.getFieldValue("depleted") != undefined)
     newValues.depleted = form.getFieldValue("depleted")
 
-  if (!form.getFieldValue("comment"))
-    newValues.comment = ''
-
   if (!form.getFieldValue("concentration"))
     newValues.concentration = null
 
@@ -405,8 +407,22 @@ function serializeFormData(form) {
   if (form.getFieldValue("creation_date"))
     newValues.creation_date = form.getFieldValue("creation_date").format('YYYY-MM-DD')
 
+  if (!form.getFieldValue("comment")) {
+    newValues.comment = ''
+  } else {
+    newValues.comment = form.getFieldValue("comment")
+  }
+
+  if (!form.getFieldValue("experimental_group")) {
+    newValues.experimental_group = null
+  } else {
+    newValues.experimental_group = form.getFieldValue("experimental_group")
+  }
+
   if (!form.getFieldValue("alias")) {
     newValues.alias = form.getFieldValue("name")
+  } else {
+    newValues.alias = form.getFieldValue("alias")
   }
 
   if (!form.getFieldValue("tissue_source")) {

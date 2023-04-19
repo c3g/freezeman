@@ -24,6 +24,7 @@ export const selectAppInitialzed = (state: RootState) => state.app.initialized
 export const selectAuthState = (state: RootState) => state.auth
 export const selectAuthTokenAccess = (state: RootState) => state.auth?.tokens?.access
 export const selectContainersByID = (state: RootState) => state.containers.itemsByID
+export const selectContainerKindsByID = (state: RootState) => state.containerKinds.itemsByID
 export const selectCoordinatesByID = (state: RootState) => state.coordinates.itemsByID as ItemsByID<Coordinate>
 export const selectHideEmptySteps = (state: RootState) => state.studySamples.hideEmptySteps
 export const selectIndicesByID = (state: RootState) => state.indices.itemsByID as ItemsByID<Index>
