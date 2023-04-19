@@ -150,30 +150,34 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
     const newData = deserialize(sampleValue)
+    if (!isAdding)
+      form.setFieldsValue({ ...newData })
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, { exact_match: true })
     onSearchContainer(newData.container, { exact_match: true })
     onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
-    if (!isAdding)
-      form.setFieldsValue({ ...newData })
   }, [sampleValue])
 
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
 
   const onValuesChange = (values) => {
-    if (values["sample_kind"]) {
-      if (!sampleKind(values["sample_kind"]).is_extracted) {
+    const key = Object.keys(values)[0];
+    if (key == "sample_kind") {
+      if (!sampleKind(values[key]).is_extracted) {
         form.setFieldValue('tissue_source', '')
         setisTissueEnabled(false)
       } else {
         setisTissueEnabled(true)
       }
     }
-    if (values["container"]) {
-      setIsCoordRequired(true)
-    } else {
-      setIsCoordRequired(false)
+    if (key == "container") {
+      if (values[key]) {
+        setIsCoordRequired(true)
+      } else {
+        setIsCoordRequired(false)
+        form.setFieldValue('coordinate', '')
+      }
     }
   }
 
@@ -211,7 +215,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     }
 
 
-  const [isTissueEnabled, setisTissueEnabled] = useState(form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted)
+  const [isTissueEnabled, setisTissueEnabled] = useState((form.getFieldValue('sample_kind') && sampleKind(form.getFieldValue('sample_kind')).is_extracted) || (!isAdding && sampleKind(sample.sample_kind).is_extracted))
   const [isCoordRequired, setIsCoordRequired] = useState(form.getFieldValue('container') || !isAdding)
 
   return (
