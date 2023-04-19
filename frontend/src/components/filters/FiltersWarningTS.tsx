@@ -1,7 +1,7 @@
 import React from "react";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Tooltip, Typography } from "antd";
-import FiltersInfos from "./FiltersInfos";
+import FiltersInfo from "./FiltersInfoTS";
 const { Text } = Typography
 
 interface FiltersWarning {
@@ -10,8 +10,10 @@ interface FiltersWarning {
 }
 
 const FiltersWarning = ({ filters, nFilters }: FiltersWarning) => {
+    if (nFilters === 0)
+        return null
     return (
-        <Tooltip placement={'bottom'} title={<FiltersInfos filters={filters} description={filters.description} />}>
+        <Tooltip placement={'bottom'} title={<FiltersInfo filters={filters}/>}>
             <span style={{ marginRight: '1rem' }}>
                 <Text type="warning"
                     style={{

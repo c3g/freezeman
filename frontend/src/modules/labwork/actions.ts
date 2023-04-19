@@ -1,13 +1,17 @@
+import { DATASET_FILTERS } from '../../components/filters/descriptions'
+import { DEFAULT_PAGINATION_LIMIT } from '../../config'
 import { selectLabworkSummaryState, selectWorkflowsByID } from '../../selectors'
-import { createNetworkActionTypes } from '../../utils/actions'
+import { createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
-import { refreshSamplesAtStep } from '../labworkSteps/actions'
+import serializeFilterParams from '../../utils/serializeFilterParams'
+import serializeSortByParams from '../../utils/serializeSortByParams'
+import { CLEAR_FILTERS, refreshSamplesAtStep } from '../labworkSteps/actions'
 import { findChangedStepsInSummary, processFMSLabworkSummary } from './services'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
+export const LIST_TABLE = createNetworkActionTypes("SAMPLE-NEXT-STEP.LIST_TABLE");
 export const SET_HIDE_EMPTY_PROTOCOLS = 'SAMPLE-NEXT-STEP.SET_HIDE_EMPTY_PROTOCOLS'
 export const FLUSH_LABWORK_SUMMARY = 'SAMPLE-NEXT-STEP.FLUSH_LABWORK_SUMMARY'
-
 
 export const getLabworkSummary = () => async (dispatch, getState) => {
 	const summary = selectLabworkSummaryState(getState())
@@ -15,7 +19,7 @@ export const getLabworkSummary = () => async (dispatch, getState) => {
 		return
 	}
 
-	dispatch({type: GET_LABWORK_SUMMARY.REQUEST})
+	dispatch({ type: GET_LABWORK_SUMMARY.REQUEST })
 
 	const workflows = Object.values(selectWorkflowsByID(getState()))
 
@@ -26,7 +30,7 @@ export const getLabworkSummary = () => async (dispatch, getState) => {
 			type: GET_LABWORK_SUMMARY.RECEIVE,
 			data: summary
 		})
-	} catch(err) {
+	} catch (err) {
 		dispatch({
 			type: GET_LABWORK_SUMMARY.ERROR,
 			error: err
@@ -56,7 +60,7 @@ export const refreshLabwork = () => {
 	return async (dispatch, getState) => {
 		let labworkChanged = false
 		const oldState = selectLabworkSummaryState(getState())
-		
+
 		await dispatch(refreshLabworkSummary())
 
 		const newState = selectLabworkSummaryState(getState())
@@ -71,7 +75,7 @@ export const refreshLabwork = () => {
 			}
 		}
 		return labworkChanged
- 	}
+	}
 }
 
 export const setHideEmptyProtocols = (hide: boolean) => {
@@ -86,6 +90,34 @@ export const flushLabworkSummary = () => {
 		type: FLUSH_LABWORK_SUMMARY
 	}
 }
+
+export const clearFilters = thenList(() => {
+	return {
+		type: CLEAR_FILTERS,
+	}
+});
+// Helper to call list() after another action
+function thenList(fn) {
+	return (...args) => async dispatch => {
+		dispatch(fn(...args))
+		dispatch(listTable(undefined, true))
+	}
+}
+export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
+	const datasets = getState().datasets
+	if (datasets.isFetching && !abort)
+		return
+
+	const limit = getState().pagination.pageSize;
+	const filters = serializeFilterParams(datasets.filters, DATASET_FILTERS)
+	const ordering = serializeSortByParams(datasets.sortBy)
+	const options = { limit, offset, ordering, ...filters }
+
+	return await dispatch(networkAction(LIST_TABLE,
+		api.datasets.list(options, abort),
+		{ meta: { ...options, ignoreError: 'AbortError' } }
+	));
+};
 
 export default {
 	GET_LABWORK_SUMMARY,
