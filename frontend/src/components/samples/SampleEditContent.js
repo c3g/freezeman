@@ -25,7 +25,7 @@ import { add, update, listTable, summary } from "../../modules/samples/actions";
 import { sample as EMPTY_SAMPLE } from "../../models/empty_models";
 import api, { withToken } from "../../utils/api";
 import { requiredRules, nameRules } from "../../constants";
-import { selectContainerKindsByID, selectContainersByID } from "../../selectors";
+import { selectContainerKindsByID } from "../../selectors";
 
 // API functions
 
@@ -58,7 +58,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const isAdding = id === undefined
 
   const sample = samplesByID[id];
-  const containers = useAppSelector(selectContainersByID);
+  const [containers, setContainers] = useState([])
   const containerKinds = useAppSelector(selectContainerKindsByID);
   /*
    * Collection site autocomplete
@@ -114,7 +114,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const onFocusContainer = ev => { onSearchContainer(ev.target.value) }
   const onSearchContainer = (input, options) => {
     searchContainers(token, input, options).then(containers => {
-      setContainerOptions(containers.map(Options.renderContainer))
+      setContainerOptions(containers.map(Options.renderContainer));
+      setContainers(containers);
     })
   }
 
@@ -174,8 +175,8 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       }
     }
     if (key == "container") {
-      if (values[key] || containerKinds) {
-        
+      const container = containers.filter(c => c.id == values[key])[0]
+      if (container && containerKinds[container.kind].coordinate_spec.length > 0) {
         setIsCoordRequired(true)
       } else {
         setIsCoordRequired(false)
