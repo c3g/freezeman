@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 from fms_core.models import Dataset, DatasetFile
-from fms_core.tests.constants import create_dataset, create_dataset_file
 from fms_core.models._constants import ReleaseStatus
 
 class DatasetFileTest(TestCase):
@@ -12,8 +11,8 @@ class DatasetFileTest(TestCase):
         pass
 
     def test_dataset_file(self):
-        dataset = Dataset.objects.create(**create_dataset(external_project_id="project", run_name="run", lane="1"))
-        dataset_file = DatasetFile.objects.create(**create_dataset_file(dataset=dataset, file_path="file_path", sample_name="sample_name"))
+        dataset = Dataset.objects.create(external_project_id="project", run_name="run", lane="1")
+        dataset_file = DatasetFile.objects.create(dataset=dataset, file_path="file_path", sample_name="sample_name")
 
         self.assertEqual(DatasetFile.objects.count(), 1)
         self.assertEqual(dataset_file.dataset, dataset)

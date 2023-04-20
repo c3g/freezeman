@@ -76,7 +76,7 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
         }
       } else {
         // Show the button to launch or relaunch run processing.
-        const isFirstLaunch = !experimentRun.run_processing_launch_date
+        const isFirstLaunch = !experimentRun.run_processing_launch_time
 
         const launchButton = <Button type="primary" onClick={launchRunProcessing}>Launch Run</Button>
         const relaunchButton = <Button style={{background: 'orange'}} onClick={launchRunProcessing}>Relaunch Run</Button>
@@ -93,8 +93,8 @@ const ExperimentRunLaunchCard = ({experimentRun, experimentRunLaunch}) => {
       if (panelIsOpen) {
         return getLaunchPanelContents()
       } else {
-        const launchDate = experimentRun.run_processing_launch_date ?
-          moment(experimentRun.run_processing_launch_date).format("YYYY-MM-DD LT")
+        const launchDate = experimentRun.run_processing_launch_time ?
+          moment(experimentRun.run_processing_launch_time).format("YYYY-MM-DD LT")
           : 'Not launched'
         return (
           <Text>{launchDate}</Text>

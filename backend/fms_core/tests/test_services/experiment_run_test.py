@@ -164,3 +164,43 @@ class ExperimentRunServicesTestCase(TestCase):
         self.assertTrue('instrument: This field cannot be null.' in errors)
         self.assertEqual(warnings, [])
 
+    def test_set_run_processing_start_time(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_start_time(my_experiment_run.name)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNotNone(my_experiment_run.run_processing_start_time)
+        self.assertIsNone(my_experiment_run.run_processing_end_time)
+        self.assertIsNotNone(my_experiment_run.end_time)
+        self.assertEqual(my_experiment_run.run_processing_start_time, my_experiment_run.end_time)
+
+    def test_set_run_processing_end_time(self):
+        my_experiment_run, errors, warnings = experiment_run.create_experiment_run(experiment_run_name=self.experiment_name,
+                                                                                   run_type_obj=self.run_type,
+                                                                                   container_obj=self.container,
+                                                                                   instrument_obj=self.instrument,
+                                                                                   samples_info=self.samples_info,
+                                                                                   process_properties=self.properties,
+                                                                                   start_date=self.start_date)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+
+        my_experiment_run, errors, warnings = experiment_run.set_run_processing_end_time(my_experiment_run.name)
+        
+        self.assertEqual(errors, [])
+        self.assertEqual(warnings, [])
+        self.assertIsNone(my_experiment_run.run_processing_start_time)
+        self.assertIsNotNone(my_experiment_run.run_processing_end_time)
+        self.assertIsNone(my_experiment_run.end_time)

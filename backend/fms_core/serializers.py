@@ -164,7 +164,18 @@ class ExperimentRunExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExperimentRun
-        fields = ('experiment_run_id', 'experiment_run_name', 'run_type', 'instrument', 'container_kind', 'container_name', 'container_barcode', 'start_date', 'run_processing_launch_date')
+        fields = ('experiment_run_id',
+                  'experiment_run_name',
+                  'run_type',
+                  'instrument',
+                  'container_kind',
+                  'container_name',
+                  'container_barcode',
+                  'start_date',
+                  'end_time',
+                  'run_processing_launch_time',
+                  'run_processing_start_time',
+                  'run_processing_end_time',)
 
 
 class RunTypeSerializer(serializers.ModelSerializer):

@@ -1,9 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
+from django.utils import timezone
 
 from datetime import datetime, date
 from typing import Any, Dict, List, Optional, Tuple, Union
 from collections import defaultdict
+
 
 from fms_core.models.dataset_file import DatasetFile
 from fms_core.models.dataset import Dataset
@@ -19,7 +21,6 @@ from fms_core.utils import blank_str_to_none
 def create_dataset(external_project_id: str,
                    run_name: str,
                    lane: int,
-                   metric_report_url: str,
                    replace: bool = False) -> Tuple[Union[Dataset, None], List[str], List[str]]:
     """
     Create a new dataset and return it. If an dataset exists already with the same natural key (external_project_id, run_name and lane),
@@ -31,7 +32,6 @@ def create_dataset(external_project_id: str,
         `external_project_id`: The project id from the external system that generate projects.
         `run_name`: The name or id of the experiment run.
         `lane`: The lane (coordinate) on the experiment container.
-        `metric_report_url`: The URL to the run processing report.
         `replace`: option to replace the files when a dataset is resubmitted (choices : False (default), True).
 
     Returns:
@@ -53,16 +53,14 @@ def create_dataset(external_project_id: str,
         )
         dataset_list = Dataset.objects.filter(**kwargs)
         if not dataset_list:  # There is no dataset with this signature
-            dataset = Dataset.objects.create(**kwargs, metric_report_url=blank_str_to_none(metric_report_url))
+            dataset = Dataset.objects.create(**kwargs)
         elif replace:  # There is already a dataset with this signature but we replace it's content.
+            for sample_run_metric in SampleRunMetric.objects.filter(experiment_run__name=run_name, lane=lane).all(): # Remove metrics related to the dataset
+                metric = sample_run_metric.metric
+                sample_run_metric.delete()
+                metric.delete()
             dataset = dataset_list.first()
-            dataset.metric_report_url = blank_str_to_none(metric_report_url) # Replace the report which should have changed
-            dataset.save()
             for dataset_file in DatasetFile.objects.filter(dataset=dataset).all():
-                for sample_run_metric in SampleRunMetric.objects.filter(dataset_file=dataset_file).all():
-                    metric = sample_run_metric.metric
-                    sample_run_metric.delete()
-                    metric.delete()
                 dataset_file.delete()
         else:  # There is already a dataset with this signature and it is not expected
             errors.append(f"There is already a dataset with external_project_id {kwargs['external_project_id']}, "
@@ -71,13 +69,13 @@ def create_dataset(external_project_id: str,
         # the validation error messages should be readable
         errors.extend(e.messages)
 
-    return (dataset, errors, warnings)
+    return dataset, errors, warnings
 
 def create_dataset_file(dataset: Dataset,
                         file_path: str,
                         sample_name: str,
-                        validation_status: int = ValidationStatus.AVAILABLE,
-                        release_status: int = ReleaseStatus.AVAILABLE
+                        validation_status: ValidationStatus = ValidationStatus.AVAILABLE,
+                        release_status: ReleaseStatus = ReleaseStatus.AVAILABLE
                         ) -> Tuple[Union[DatasetFile, None], List[str], List[str]]:
     """
     Create a new dataset_file and return it. A dataset must be creted beforehand.
@@ -103,7 +101,7 @@ def create_dataset_file(dataset: Dataset,
         errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
 
     if errors:
-        return (dataset_file, errors, warnings)
+        return dataset_file, errors, warnings
 
     try:
         dataset_file = DatasetFile.objects.create(
@@ -111,14 +109,47 @@ def create_dataset_file(dataset: Dataset,
             file_path=file_path,
             sample_name=sample_name,
             validation_status=validation_status,
-            validation_status_timestamp=None,
+            validation_status_timestamp=timezone.now if validation_status != ValidationStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
             release_status=release_status,
-            release_status_timestamp=None
+            release_status_timestamp=timezone.now if release_status != ReleaseStatus.AVAILABLE else None, # Set timestamp if setting Status to non-default
         )
     except ValidationError as e:
         errors.extend(e.messages)
 
-    return (dataset_file, errors, warnings)
+    return dataset_file, errors, warnings
+
+def set_experiment_run_lane_validation_status(run_name: str, lane: int, validation_status: ValidationStatus):
+    """
+    Set validation_status for dataset_files of the given run and lane.
+
+    Args:
+        `run_name`: The unique experiment run name.
+        `lane`: The integer that describe the lane being validated.
+        `validation_status`: The validation status of the file (choices : Available - 0 (default), Passed - 1, Failed - 2).
+    
+    Returns:
+        A tuple of the count of validation status set, errors and warnings
+    """
+    count_status = 0
+    errors = []
+    warnings = []
+
+    timestamp = timezone.now
+    if validation_status not in [value for value, _ in ValidationStatus.choices]:
+        errors.append(f"The validation status can only be {' or '.join([f'{value} ({name})' for value, name in ValidationStatus.choices])}.")
+
+    for dataset in Dataset.objects.filter(run_name=run_name, lane=lane): # May be more than one dataset due to projects
+        for dataset_file in dataset.files.all():
+            dataset_file.validation_status = validation_status
+            dataset_file.validation_status_timestamp = timestamp
+            dataset_file.save()
+            count_status += 1
+    
+    if errors: # Error returns None, while a non-existant run name or lane will return 0.
+        return None, errors, warnings
+
+    return count_status, errors, warnings
+
 
 def ingest_run_validation_report(report_json):
     """

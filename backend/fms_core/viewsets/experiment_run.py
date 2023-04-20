@@ -7,7 +7,11 @@ from django.http import HttpResponseServerError
 
 from fms_core.models import ExperimentRun
 from fms_core.serializers import ExperimentRunSerializer, ExperimentRunExportSerializer
-from fms_core.services.experiment_run import start_experiment_run_processing, get_run_info_for_experiment
+from fms_core.services.experiment_run import (start_experiment_run_processing,
+                                              get_run_info_for_experiment,
+                                              set_run_processing_start_time,
+                                              set_run_processing_end_time)
+from fms_core.services.dataset import  set_experiment_run_lane_validation_status
 
 from ._utils import TemplateActionsMixin, _list_keys
 from ._constants import _experiment_run_filterset_fields
@@ -45,6 +49,42 @@ class ExperimentRunViewSet(viewsets.ModelViewSet, TemplateActionsMixin):
     def list_export(self, _request):
         serializer = self.serializer_export_class(self.filter_queryset(self.get_queryset()), many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def set_run_processing_start_time(self, _request):
+        name = _request.data.get("run_name", None)
+        _, errors, _ = set_run_processing_start_time(name)
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response("Time set successfully.")
+        return response
+    
+    @action(detail=True, methods=["post"])
+    def set_run_processing_end_time(self, _request):
+        run_name = _request.data.get("run_name", None)
+        _, errors, _ = set_run_processing_end_time(run_name)
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        else:
+            response = Response("Time set successfully.")
+        return response
+
+    @action(detail=True, methods=["post"])
+    def set_experiment_run_lane_validation_status(self, _request):
+        run_name = _request.data.get("run_name", None)
+        lane = _request.data.get("lane", None)
+        validation_status = _request.data.get("validation_status", None)
+        count, errors, _ = set_experiment_run_lane_validation_status(run_name=run_name, lane=lane, validation_status=validation_status)
+        
+        if errors:
+            response = HttpResponseServerError("\n".join(errors))
+        elif count == 0:
+            response = Response("No validation status was set.")
+        else:
+            response = Response("Validation status set successfully.")
+        return response
+
 
     @action(detail=True, methods=["patch"])
     def launch_run_processing(self, _request, pk=None):
