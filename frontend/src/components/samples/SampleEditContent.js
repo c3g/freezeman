@@ -153,16 +153,28 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
   const sampleValue = sample || EMPTY_SAMPLE
   useEffect(() => {
     const newData = deserialize(sampleValue)
-    if (!isAdding)
-      form.setFieldsValue({ ...newData })
     onSearchSite(newData.collection_site)
     onSearchIndividual(newData.individual, { exact_match: true })
     onSearchContainer(newData.container, { exact_match: true })
     onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
+    if (!isAdding){
+      form.setFieldsValue({ ...newData })
+      checkContainer(form.getFieldValue("container"))
+    }
   }, [sampleValue])
 
   const sampleKind = (sampleKindID) => sampleKinds.itemsByID[sampleKindID]
+
+  const checkContainer = (containerId) => {
+    const container = containers.filter(c => c.id == containerId)[0]
+    if (container && containerKinds[container.kind].coordinate_spec.length > 0) {
+      setIsCoordRequired(true)
+    } else {
+      setIsCoordRequired(false)
+      form.setFieldValue('coordinate', '')
+    }
+  }
 
   const onValuesChange = (values) => {
     const key = Object.keys(values)[0];
@@ -175,13 +187,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
       }
     }
     if (key == "container") {
-      const container = containers.filter(c => c.id == values[key])[0]
-      if (container && containerKinds[container.kind].coordinate_spec.length > 0) {
-        setIsCoordRequired(true)
-      } else {
-        setIsCoordRequired(false)
-        form.setFieldValue('coordinate', '')
-      }
+      checkContainer(values[key])
     }
   }
 
