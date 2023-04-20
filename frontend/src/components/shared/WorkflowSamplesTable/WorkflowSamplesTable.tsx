@@ -1,7 +1,7 @@
 import { Button, Pagination, Table, TableProps } from 'antd'
 import { TableRowSelection } from 'antd/lib/table/interface'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useAppSelector } from '../../../hooks'
+import { useAppDispatch, useAppSelector } from '../../../hooks'
 import { FMSId } from '../../../models/fms_api_models'
 import { FilterDescriptionSet, FilterKeySet, FilterSet, SetFilterFunc, SetFilterOptionFunc, SetSortByFunc, SortBy } from '../../../models/paged_items'
 import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
@@ -11,7 +11,7 @@ import { IdentifiedTableColumnType } from './SampleTableColumns'
 import SamplesFilters from '../../samples/SamplesFilters'
 import FiltersWarning from '../../filters/FiltersWarningTS'
 import getNFilters from '../../filters/getNFilters'
-import { clearFilters } from '../../../modules/labwork/actions'
+import { clearFilters } from '../../../modules/labworkSteps/actions'
 
 export interface PaginationParameters {
 	pageNumber: number
@@ -24,6 +24,7 @@ export interface PaginationParameters {
 interface WorkflowSamplesTableProps {
 	sampleIDs: FMSId[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
+	hasFilter: boolean,
 	filterDefinitions?: FilterDescriptionSet
 	filterKeys?: FilterKeySet
 	filters?: FilterSet
@@ -38,11 +39,12 @@ interface WorkflowSamplesTableProps {
 	}
 }
 
-function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection }: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter}: WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
-	const nFilters = getNFilters(filters)
+	const nFilters = getNFilters(filters ?? {})
+	const dispatch = useAppDispatch()
 
 	useEffect(() => {
 		const availableSamples = sampleIDs.reduce((acc, sampleID) => {
@@ -103,28 +105,30 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 		}
 	}
 	const localClearFilters = () => {
-		clearFilters()
-		// setToggleOption(TOGGLE_OPTIONS.ALL)
+		dispatch(clearFilters(1))
 	}
 
 	return (
 		<>
 			{tableColumns &&
 				<>
-					<div className='filters-warning-bar'>
-						<SamplesFilters style={{ flex: 1 }} />
-						<FiltersWarning
-							nFilters={nFilters}
-							filters={filters}
-						/>
-						<Button
-							style={{ margin: 6 }}
-							disabled={nFilters === 0}
-							onClick={localClearFilters}
-						>
-							Clear Filters
-						</Button>
-					</div>
+					{
+						hasFilter &&
+						<div className='filters-warning-bar'>
+							<SamplesFilters style={{ flex: 1 }} />
+							<FiltersWarning
+								nFilters={nFilters}
+								filters={filters}
+							/>
+							<Button
+								style={{ margin: 6 }}
+								disabled={nFilters === 0}
+								onClick={localClearFilters}
+							>
+								Clear Filters
+							</Button>
+						</div>
+					}
 					<Table
 						rowSelection={rowSelection}
 						dataSource={samples ?? []}

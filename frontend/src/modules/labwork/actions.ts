@@ -5,7 +5,7 @@ import { createNetworkActionTypes, networkAction } from '../../utils/actions'
 import api from '../../utils/api'
 import serializeFilterParams from '../../utils/serializeFilterParams'
 import serializeSortByParams from '../../utils/serializeSortByParams'
-import { CLEAR_FILTERS, refreshSamplesAtStep } from '../labworkSteps/actions'
+import { refreshSamplesAtStep } from '../labworkSteps/actions'
 import { findChangedStepsInSummary, processFMSLabworkSummary } from './services'
 
 export const GET_LABWORK_SUMMARY = createNetworkActionTypes('SAMPLE-NEXT-STEP.GET_LABWORK_SUMMARY')
@@ -91,18 +91,7 @@ export const flushLabworkSummary = () => {
 	}
 }
 
-export const clearFilters = thenList(() => {
-	return {
-		type: CLEAR_FILTERS,
-	}
-});
-// Helper to call list() after another action
-function thenList(fn) {
-	return (...args) => async dispatch => {
-		dispatch(fn(...args))
-		dispatch(listTable(undefined, true))
-	}
-}
+
 export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
 	const datasets = getState().datasets
 	if (datasets.isFetching && !abort)
