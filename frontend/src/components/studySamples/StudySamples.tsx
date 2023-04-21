@@ -118,7 +118,7 @@ function StepPanel({step, studyID, uxSettings} : StepPanelProps) {
 	const removedSamples = step.completed.filter(completed => completed.removedFromWorkflow === true)
 	const hasRemovedSamples = removedSamples.length > 0
 
-	const removedTitle = removedSamples.length === 1 ? `1 sample was removed from study` : `${removedSamples.length} samples were removed from study`
+	const removedTitle = removedSamples.length === 1 ? `1 sample was removed from study at this step` : `${removedSamples.length} samples were removed from study at this step`
 
 	const readyTab = `Ready for Processing (${step.sampleCount})`
 	const completedTab = <Text>{`Completed (${completedSamples.length})`}</Text>
