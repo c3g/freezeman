@@ -1,10 +1,6 @@
-import { DATASET_FILTERS } from '../../components/filters/descriptions'
-import { DEFAULT_PAGINATION_LIMIT } from '../../config'
 import { selectLabworkSummaryState, selectWorkflowsByID } from '../../selectors'
-import { createNetworkActionTypes, networkAction } from '../../utils/actions'
+import { createNetworkActionTypes } from '../../utils/actions'
 import api from '../../utils/api'
-import serializeFilterParams from '../../utils/serializeFilterParams'
-import serializeSortByParams from '../../utils/serializeSortByParams'
 import { refreshSamplesAtStep } from '../labworkSteps/actions'
 import { findChangedStepsInSummary, processFMSLabworkSummary } from './services'
 
@@ -91,22 +87,6 @@ export const flushLabworkSummary = () => {
 	}
 }
 
-
-export const listTable = ({ offset = 0, limit = DEFAULT_PAGINATION_LIMIT } = {}, abort) => async (dispatch, getState) => {
-	const datasets = getState().datasets
-	if (datasets.isFetching && !abort)
-		return
-
-	const limit = getState().pagination.pageSize;
-	const filters = serializeFilterParams(datasets.filters, DATASET_FILTERS)
-	const ordering = serializeSortByParams(datasets.sortBy)
-	const options = { limit, offset, ordering, ...filters }
-
-	return await dispatch(networkAction(LIST_TABLE,
-		api.datasets.list(options, abort),
-		{ meta: { ...options, ignoreError: 'AbortError' } }
-	));
-};
 
 export default {
 	GET_LABWORK_SUMMARY,
