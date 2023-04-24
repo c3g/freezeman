@@ -408,7 +408,7 @@ function serializeFormData(form) {
   if (!form.getFieldValue("concentration"))
     newValues.concentration = null
 
-  if (form.getFieldValue("experimental_group"))
+  if (!form.getFieldValue("experimental_group"))
     newValues.experimental_group = []
 
   if (form.getFieldValue("creation_date"))
@@ -421,13 +421,13 @@ function serializeFormData(form) {
   }
 
   if (!form.getFieldValue("experimental_group")) {
-    newValues.experimental_group = null
+    newValues.experimental_group = []
   } else {
     newValues.experimental_group = form.getFieldValue("experimental_group")
   }
 
   if (!form.getFieldValue("alias")) {
-    newValues.alias = form.getFieldValue("name")
+    newValues.alias = null
   } else {
     newValues.alias = form.getFieldValue("alias")
   }
@@ -446,7 +446,7 @@ function serializeFormData(form) {
     newValues.sample_kind = Number(form.getFieldValue("sample_kind"))
 
   if (!form.getFieldValue("individual")) {
-    newValues.individual = null
+    newValues.individual = ""
   } else {
     newValues.individual = Number(form.getFieldValue("individual"))
   }
