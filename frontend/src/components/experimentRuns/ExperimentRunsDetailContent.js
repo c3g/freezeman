@@ -13,6 +13,7 @@ import { withContainer } from "../../utils/withItem";
 import ProcessProperties from "../shared/ProcessProperties";
 import ExperimentRunsSamples from "./ExperimentRunsSamples";
 import useHashURL from "../../hooks/useHashURL";
+import ExperimentRunValidation from "./ExperimentRunValidation";
 
 const pageStyle = {
   padding: 0,
@@ -37,7 +38,6 @@ const mapStateToProps = state => ({
   processesByID: state.processes.itemsByID,
   propertyValuesByID: state.propertyValues.itemsByID,
   protocolsByID: state.protocols.itemsByID,
-  propertyValuesByID: state.propertyValues.itemsByID,
 });
 
 const actionCreators = { get, listProcesses, listPropertyValues };
@@ -155,6 +155,10 @@ const ExperimentRunsDetailContent = ({
 
           <TabPane tab={`Samples (${container ? container.samples.length : ''})`} key="samples" style={tabStyle}>
             <ExperimentRunsSamples container={container} experimentRun={experimentRun} />
+          </TabPane>
+
+          <TabPane tab={'Validation'} key='validation' style={tabStyle}>
+            <ExperimentRunValidation experimentRun={experimentRun}/>
           </TabPane>
 
         </Tabs>

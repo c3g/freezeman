@@ -67,6 +67,19 @@ export interface FMSCoordinate extends FMSTrackedModel {
   row: number                        // Row ordinal starting at 0
 }
 
+export interface FMSExperimentRun extends FMSTrackedModel {
+    children_processes: FMSId[]         //Child process ID's
+    container: FMSId                    // Experiment run container (flowcell)
+    instrument: FMSId                   // Sequencer instrument ID
+    instrument_type: string             // Name of instrument type
+    name: string                        // Experiment run name
+    platform: string                    // Platform (ILLUMINA, DBNSEQ, etc.)
+    process: FMSId                      // Process ID
+    run_processing_launch_date?: string // Date when run processing was launched
+    run_type: FMSId                     // RunType ID
+    start_date: string                  // Date when user started run 
+}
+
 export interface FMSImportedFile {
     filename: string,                   // Name of file 
     location: string,                   // Path to file (including file name)
@@ -90,6 +103,12 @@ export interface FMSIndividual extends FMSTrackedModel {
     reference_genome?: FMSId            // Reference Genome ID
     mother?: FMSId                      // Individual ID of mother
     father?: FMSId                      // Individual ID of father
+}
+
+export interface FMSInstrument extends FMSTrackedModel {
+    name: string                        // Name of instrument
+    serial_id: string                   // Instrument serial number
+    type: FMSId                         // ID of instrument type
 }
 
 export interface FMSLabworkSummary {
@@ -238,6 +257,13 @@ export interface FMSReferenceGenome extends FMSTrackedModel {
     refseq_id?: string                  // RefSeq identifier of the reference genome
     taxon_id: FMSId                        // Reference genome used to analyze samples in the study
     size: number                        // Number of base pairs of the reference genome
+}
+
+export interface FMSRunType extends FMSTrackedModel {
+    name: string                        // Name of run type
+    needs_run_processing : boolean      // True if this run type requires run processing
+    platform: FMSId                     // Platform ID
+    protocol: FMSId                     // Experiment run protocol ID
 }
 
 export interface FMSSample extends FMSTrackedModel {
