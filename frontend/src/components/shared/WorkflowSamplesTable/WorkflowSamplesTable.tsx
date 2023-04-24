@@ -8,7 +8,6 @@ import { selectLibrariesByID, selectSamplesByID } from '../../../selectors'
 import { SampleAndLibrary } from './ColumnSets'
 import { addFiltersToColumns } from './MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
-import SamplesFilters from '../../samples/SamplesFilters'
 import FiltersWarning from '../../filters/FiltersWarningTS'
 import getNFilters from '../../filters/getNFilters'
 import { clearFilters } from '../../../modules/labworkSteps/actions'
@@ -25,6 +24,7 @@ interface WorkflowSamplesTableProps {
 	sampleIDs: FMSId[]
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
+	stepNumber: number,
 	filterDefinitions?: FilterDescriptionSet
 	filterKeys?: FilterKeySet
 	filters?: FilterSet
@@ -39,7 +39,7 @@ interface WorkflowSamplesTableProps {
 	}
 }
 
-function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter}: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, stepNumber, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter}: WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
@@ -105,7 +105,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 		}
 	}
 	const localClearFilters = () => {
-		dispatch(clearFilters(1))
+		dispatch(clearFilters(stepNumber))
 	}
 
 	return (
@@ -115,7 +115,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, filterKey
 					{
 						hasFilter &&
 						<div className='filters-warning-bar'>
-							<SamplesFilters style={{ flex: 1 }} />
+							{/* <SamplesFilters style={{ flex: 1 }} /> */}
 							<FiltersWarning
 								nFilters={nFilters}
 								filters={filters}

@@ -232,6 +232,7 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 				}>
 					<Tabs.TabPane tab='Samples' key='samples'>
 						<WorkflowSamplesTable
+							stepNumber={step.id}
 							hasFilter={true}
 							sampleIDs={stepSamples.displayedSamples}
 							columns={columnsForStep}
@@ -259,14 +260,10 @@ const LabworkStep = ({ protocol, step, stepSamples }: LabworkStepPageProps) => {
 						}
 						{/* Selection table does not allow filtering or sorting */}
 						<WorkflowSamplesTable
+							stepNumber={step.id}
 							hasFilter={false}
 							sampleIDs={stepSamples.selectedSamples}
 							columns={columnsForStep}
-							filterDefinitions={{}}
-							filterKeys={{}}
-							filters={{}}
-							setFilter={() => {/*NOOP*/ }}
-							setFilterOptions={() => {/*NOOP*/ }}
 							selection={selectionProps}
 						/>
 						<Space><InfoCircleOutlined /><Text italic>Samples are automatically sorted by container barcode and then by coordinate.</Text></Space>
