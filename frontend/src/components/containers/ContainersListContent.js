@@ -13,7 +13,7 @@ import {listTable, setFilter, setFilterOption, clearFilters, setSortBy} from "..
 import api, {withToken}  from "../../utils/api"
 import {actionDropdown} from "../../utils/templateActions";
 import {prefillTemplatesToButtonDropdown} from "../../utils/prefillTemplates";
-import {withContainer, withSample, withCoordinate} from "../../utils/withItem";
+import { WithContainerRenderComponent, WithCoordinateRenderComponent, WithSampleRenderComponent} from '../shared/WithItemRenderComponent'
 import mergedListQueryParams from "../../utils/mergedListQueryParams";
 
 import {CONTAINER_FILTERS} from "../filters/descriptions";
@@ -51,7 +51,7 @@ const getTableColumns = (samplesByID, containersByID, coordinatesByID, container
             {samples.map((id, i) =>
               <React.Fragment key={id}>
                 <Link to={`/samples/${id}`}>
-                  {withSample(samplesByID, id, sample => sample.name, <span>Loading…</span>)}
+                  <WithSampleRenderComponent objectID={id} placeholder={<span>Loading...</span>} render={sample => sample.name}/>
                 </Link>
                 {i !== samples.length - 1 ? ', ' : ''}
               </React.Fragment>
@@ -74,7 +74,7 @@ const getTableColumns = (samplesByID, containersByID, coordinatesByID, container
       sorter: true,
       render: location => (location &&
         <Link to={`/containers/${location}`}>
-          {withContainer(containersByID, location, container => container.name, "Loading...")}
+          <WithContainerRenderComponent objectID={location} placeholder={"Loading..."} render={container => container.name}/>
         </Link>),
     },
     {
@@ -87,7 +87,7 @@ const getTableColumns = (samplesByID, containersByID, coordinatesByID, container
       title: "Coord.",
       dataIndex: "coordinate__name",
       sorter: true,
-      render: (_, container) => (container.coordinate && withCoordinate(coordinatesByID, container.coordinate, coordinate => coordinate.name, "loading...")),
+      render: (_, container) => container.coordinate && <WithCoordinateRenderComponent objectID={container.coordinate} placeholder={"loading..."} render={coordinate => coordinate.name}/>
     },
   ];
 
