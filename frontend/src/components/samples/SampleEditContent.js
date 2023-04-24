@@ -405,8 +405,11 @@ function serializeFormData(form) {
   if (form.getFieldValue("depleted") != null || form.getFieldValue("depleted") != undefined)
     newValues.depleted = form.getFieldValue("depleted")
 
-  if (!form.getFieldValue("concentration"))
+  if (!form.getFieldValue("concentration")){
     newValues.concentration = null
+  }else{
+    newValues.concentration = form.getFieldValue("concentration")
+  }
 
   if (!form.getFieldValue("experimental_group"))
     newValues.experimental_group = []
