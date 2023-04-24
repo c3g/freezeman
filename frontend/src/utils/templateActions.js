@@ -32,7 +32,7 @@ export const actionsToButtonList = (urlBase, actions, fullWidth=false) =>
     </Link>
   );
 
-export function ActionDropdown({urlBase, actions, fullWidth = false}) {
+export function ActionDropdown({urlBase, actions, fullWidth = true}) {
   const history = useNavigate();
   const actionMenu = (
     <Menu>
@@ -41,7 +41,7 @@ export function ActionDropdown({urlBase, actions, fullWidth = false}) {
             <Button
               icon={actionIcon(a)}
               onClick={() => history(`${urlBase}/actions/${a.id}/`)}
-              {...(fullWidth ? {style:{width:"100%", border:0}} : {style:{border:0}})}
+              {...(fullWidth ? {style:{width:"100%", border:0, textAlign:'left'}} : {style:{border:0}})}
             >
               {a.name}
             </Button>
