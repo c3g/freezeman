@@ -158,7 +158,7 @@ const SampleEditContent = ({ token, samplesByID, sampleKinds, add, update, listT
     onSearchContainer(newData.container, { exact_match: true })
     onSearchCoordinate(newData.coordinate, { exact_match: true })
     onSearchSampleKind(newData.sample_kind)
-    if (!isAdding){
+    if (!isAdding) {
       form.setFieldsValue({ ...newData })
       checkContainer(form.getFieldValue("container"))
     }
@@ -397,7 +397,7 @@ function deserialize(values) {
 }
 
 function serializeFormData(form) {
-  var newValues = EMPTY_SAMPLE;
+  var newValues = { ...EMPTY_SAMPLE };
 
   if (form.getFieldValue("collection_site"))
     newValues.collection_site = form.getFieldValue("collection_site")
