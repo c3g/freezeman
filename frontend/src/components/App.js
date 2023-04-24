@@ -14,6 +14,7 @@ import ContainersPage from "./containers/ContainersPage";
 import DashboardPage from "./DashboardPage";
 import ExperimentRunsPage from "./experimentRuns/ExperimentRunsPage";
 import IndicesPage from "./indices/IndicesPage";
+import TaxonList from "./definitions/TaxonList";
 import IndividualsPage from "./individuals/IndividualsPage";
 import JumpBar from "./JumpBar";
 import LibrariesPage from "./libraries/LibrariesPage";
@@ -39,7 +40,7 @@ import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
- 
+
 
 const { Title } = Typography;
 
@@ -61,7 +62,7 @@ const getMenuItems = (user, logOut) => [
     icon: <LogoutOutlined />,
     text: `Sign Out (${user?.username})`,
     onClick: logOut,
-    style: {marginBottom: '50px'}
+    style: { marginBottom: '50px' }
   },
 ]
 
@@ -126,6 +127,13 @@ const MENU_ITEMS = [
     icon: <AuditOutlined />,
     text: "Users",
   },
+  {
+    text: "Definitions",
+    children: [{
+      url: "/definitions/taxons",
+      text: "Taxons"
+    }]
+  },
 ]
 
 const colorStyle = {
@@ -146,9 +154,9 @@ export const mapStateToProps = state => ({
   usersByID: state.users.itemsByID,
 });
 
-export const actionCreators = {logOut, get};
+export const actionCreators = { logOut, get };
 
-const App = ({userID, usersByID, logOut, get}) => {
+const App = ({ userID, usersByID, logOut, get }) => {
 
   const dispatch = useAppDispatch()
   const isInitialized = useAppSelector(selectAppInitialzed)
@@ -186,10 +194,10 @@ const App = ({userID, usersByID, logOut, get}) => {
   // Logout the user after 12 hours in all cases where the tab stays open
   useUserInputExpiration(logOut, 12 * hour);
 
-  const loadingIcon = <SyncOutlined style={{fontSize: '22px', color: 'white'}} spin/>
+  const loadingIcon = <SyncOutlined style={{ fontSize: '22px', color: 'white' }} spin />
 
   return (
-    <Layout style={{height: "100vh"}}>
+    <Layout style={{ height: "100vh" }}>
       <Layout>
         {isLoggedIn &&
           <Layout.Sider
@@ -199,9 +207,9 @@ const App = ({userID, usersByID, logOut, get}) => {
             breakpoint="md"
             collapsedWidth={80}
             width={224}
-            style={{overflow: 'auto'}}
+            style={{ overflow: 'auto' }}
           >
-            <div style={{display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center'}}>
+            <div style={{ display: 'flex', alignContent: 'baseline', justifyContent: 'left', textAlign: 'center' }}>
               <Title style={titleStyle} className="App__title">
                 <div>
                   <b>F</b><span>reeze</span><b>M</b><span>an</span>
@@ -209,39 +217,39 @@ const App = ({userID, usersByID, logOut, get}) => {
               </Title>
               { // Display a spinner while the initial data is being fetched at startup 
                 !isInitialized &&
-                  <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
-                    <Spin size="small" indicator={loadingIcon}/>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Spin size="small" indicator={loadingIcon} />
+                </div>
               }
             </div>
             {isLoggedIn &&
-                <div className='App__jumpBar'>
-                  <JumpBar />
-                </div>
-              }
-              
+              <div className='App__jumpBar'>
+                <JumpBar />
+              </div>
+            }
+
+            <Menu
+              theme="dark"
+              mode="inline"
+              selectedKeys={matchingMenuKeys(MENU_ITEMS)}
+              style={{ flex: 1 }}
+            >
+              {MENU_ITEMS.map(renderMenuItem)}
+            </Menu>
+            {isLoggedIn &&
               <Menu
                 theme="dark"
                 mode="inline"
-                selectedKeys={matchingMenuKeys(MENU_ITEMS)}
-                style={{flex: 1}}
+                selectedKeys={matchingMenuKeys(menuItems)}
               >
-                  {MENU_ITEMS.map(renderMenuItem)}
+                {menuItems.map(renderMenuItem)}
               </Menu>
-              {isLoggedIn &&
-                <Menu
-                  theme="dark"
-                  mode="inline"
-                  selectedKeys={matchingMenuKeys(menuItems)}
-                >
-                  {menuItems.map(renderMenuItem)}
-                </Menu>
-              }
+            }
           </Layout.Sider>
         }
-        <Layout.Content style={{position: "relative"}}>
+        <Layout.Content style={{ position: "relative" }}>
           <Routes>
-            <Route path="/login/*" element={<LoginPage/>}/>
+            <Route path="/login/*" element={<LoginPage />} />
             <Route path="/dashboard/*" element={
               <PrivateNavigate>
                 <DashboardPage />
@@ -311,13 +319,19 @@ const App = ({userID, usersByID, logOut, get}) => {
               <PrivateNavigate>
                 <About />
               </PrivateNavigate>
-            }/>
+            } />
             <Route path="/datasets/*" element={
               <PrivateNavigate>
-                <DatasetsPage/>
+                <DatasetsPage />
               </PrivateNavigate>
-            }/>
-            <Route path="*" element={<Navigate to="/dashboard" replace />}/>
+            } />
+            <Route path="/definitions/taxons" element={
+              <PrivateNavigate>
+                <TaxonList></TaxonList>
+              </PrivateNavigate>
+            } />
+
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout.Content>
       </Layout>
