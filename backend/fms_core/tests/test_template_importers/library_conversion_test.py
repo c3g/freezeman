@@ -199,12 +199,14 @@ class LibraryConversionTestCase(TestCase):
             {
                 'Source Sample': source_sample_to_pool_1,
                 'Volume Used': Decimal(5.5),
+                'Volume In Pool': Decimal(5.5),
                 'Source Depleted': False,
                 'Comment': ''
             },
             {
                 'Source Sample': source_sample_to_pool_2,
                 'Volume Used': Decimal(4.5),
+                'Volume In Pool': Decimal(4.5),
                 'Source Depleted': False,
                 'Comment': '',
             }

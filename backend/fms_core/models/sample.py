@@ -153,6 +153,14 @@ class Sample(TrackedModel):
         return self.concentration * self.volume if self.concentration is not None else None
 
     @property
+    def index_name(self) -> Optional[str]:
+        return self.derived_samples.first().library.index.name if not self.is_pool and self.is_library else None
+
+    @property
+    def library_type(self) -> Optional[str]:
+        return self.derived_samples.first().library.library_type.name if not self.is_pool and self.is_library else None
+
+    @property
     def library_size(self) -> Decimal:
         return self.derived_samples.first().library.library_size if not self.is_pool and self.is_library else None
 

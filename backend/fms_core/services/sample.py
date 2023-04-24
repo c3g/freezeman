@@ -340,6 +340,7 @@ def pool_samples(process: Process,
                        "Source Container Coordinate",
                        "Source Depleted",
                        "Volume Used",
+                       "Volume In Pool",
                        "Comment",
                        "Workflow"}
                       Workflow contains step_action and step to manage workflow.
@@ -370,19 +371,24 @@ def pool_samples(process: Process,
         errors.append(f"Execution date is not valid.")
     
     if not errors:
-        volume = decimal_rounded_to_precision(Decimal(sum(sample["Volume Used"] for sample in samples_info))) # Calculate the total volume of the pool
+        volume = decimal_rounded_to_precision(Decimal(sum(sample["Volume In Pool"] for sample in samples_info))) # Calculate the total volume of the pool
         for sample in samples_info:
             volume_used = decimal_rounded_to_precision(Decimal(sample["Volume Used"]))
+            volume_in_pool = decimal_rounded_to_precision(Decimal(sample["Volume In Pool"]))
             sample_obj = sample["Source Sample"]
             if volume_used is None:
                 errors.append(f"Volume used is required.")
             else:
                 if volume_used <= 0:
-                    errors.append(f"Volume used ({volume_used}) is invalid.")
+                    errors.append(f"Volume used ({volume_used}) is invalid. Volume used needs to be greater than 0.")
                 if sample_obj and volume_used > sample_obj.volume:
                     errors.append(f"Volume used ({volume_used} uL) exceeds the current volume of the sample ({sample_obj.volume} uL).")
+            if volume_in_pool is None:
+                errors.append(f"Volume in pool is required.")
+            elif volume_in_pool <= 0:
+                    errors.append(f"Volume in pool ({volume_in_pool}) is invalid. Volume in pool needs to be greater than 0.")
 
-            sample["Volume Ratio"] = volume_used / volume # Calculate the volume ratio of each sample in the pool
+            sample["Volume Ratio"] = volume_in_pool / volume # Calculate the volume ratio of each sample in the pool
             sample_obj.volume = sample_obj.volume - volume_used  # Reduce the volume of source samples by the volume used
             if sample["Source Depleted"]:
                 sample_obj.depleted=sample["Source Depleted"]
@@ -425,8 +431,8 @@ def pool_samples(process: Process,
                     else:
                         try:  # catch duplicates integrity errors
                             DerivedBySample.objects.create(sample=sample_destination,
-                                                          derived_sample=derived_sample,
-                                                          volume_ratio=final_volume_ratio)
+                                                           derived_sample=derived_sample,
+                                                           volume_ratio=final_volume_ratio)
                         except Exception as e:
                             errors.append(e)
 

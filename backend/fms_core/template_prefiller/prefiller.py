@@ -24,7 +24,7 @@ def PrefillTemplate(template_path, template_info, queryset):
         current_sheet = workbook[sheet_name]
         for i, entry in enumerate(queryset.values(*sheet_dict["queryset_column_list"])):
             for prefill_sheet_name, template_column, queryset_column, _ in template_info["prefill info"]:
-                if prefill_sheet_name == sheet_name:
+                if prefill_sheet_name == sheet_name and queryset_column is not None:
                     current_sheet.cell(row=sheet_dict["header_offset"] + i, column=sheet_dict["column_offsets"][template_column]).value = entry[queryset_column]
             
     workbook.save(out_stream)
@@ -46,7 +46,7 @@ def PrefillTemplateFromDict(template, rows_dicts):
     template_path = os.path.join(settings.STATIC_ROOT, filename)
     out_stream = BytesIO()
     workbook = load_workbook(filename=template_path)
-    
+
     # Populate template
     try:
         for i, sheet_info in enumerate(template["sheets info"]):
@@ -54,7 +54,9 @@ def PrefillTemplateFromDict(template, rows_dicts):
             header_offset = find_worksheet_header_offset(current_sheet, sheet_info['headers'])
             for j, entry in enumerate(rows_dicts[i]):
                 for header_index, template_column in enumerate(sheet_info['headers']):
-                    current_sheet.cell(row=header_offset + j, column=header_index + 1).value = entry.get(template_column, None)
+                    value = entry.get(template_column, None)
+                    if value is not None:
+                        current_sheet.cell(row=header_offset + j, column=header_index + 1).value = value
         workbook.save(out_stream)
         return out_stream.getvalue()
     except Exception as e:

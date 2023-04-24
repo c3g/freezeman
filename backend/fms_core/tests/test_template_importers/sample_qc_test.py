@@ -68,12 +68,14 @@ class SampleQCTestCase(TestCase):
             {
                 'Source Sample': sample_to_pool_1,
                 'Volume Used': decimal.Decimal(20.0),
+                'Volume In Pool': decimal.Decimal(20.0),
                 'Source Depleted': False,
                 'Comment': ''
             },
             {
                 'Source Sample': sample_to_pool_2,
                 'Volume Used': decimal.Decimal(35.0),
+                'Volume In Pool': decimal.Decimal(35.0),
                 'Source Depleted': False,
                 'Comment': '',
             }

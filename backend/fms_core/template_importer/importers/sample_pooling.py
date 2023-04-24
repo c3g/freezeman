@@ -29,7 +29,7 @@ class SamplePoolingImporter(GenericImporter):
         """
             SamplesToPool SHEET
         """
-        
+
         pool_set = set(row_data["Pool Name"] for row_data in pools_sheet.rows)
         result_list = []
         for i, row_data in enumerate(samplestopool_sheet.rows):
@@ -45,6 +45,7 @@ class SamplePoolingImporter(GenericImporter):
                   "pool_name": pool_name,
                 },
                 "volume_used": float_to_decimal_and_none(row_data["Volume Used (uL)"]),
+                "volume_in_pool": float_to_decimal_and_none(row_data["Volume In Pool (uL)"]), 
                 "comment": str_cast_and_normalize(row_data["Comment"]),
                 "workflow":
                     {"step_action": str_cast_and_normalize(row_data["Workflow Action"]),
@@ -95,6 +96,3 @@ class SamplePoolingImporter(GenericImporter):
                     samples_info=pools_dict.get(str_cast_and_normalize(row_data['Pool Name']), None),
                     **pool_kwargs
                 )
-
-        
-

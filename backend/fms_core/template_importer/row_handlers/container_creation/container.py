@@ -10,7 +10,7 @@ class ContainerRowHandler(GenericRowHandler):
 
     def process_row_inner(self, container, parent_container):
 
-        comment = f"Automatically generated via Container creation Template on {datetime.utcnow().isoformat()}Z"
+        comment = container['comment'] if container['comment'] else f"Automatically generated via Container creation Template on {datetime.utcnow().isoformat()}Z"
 
         # Container related section
 

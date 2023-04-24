@@ -102,6 +102,50 @@ def insert_transfer_into_workflows(apps, schema_editor):
                                                               updated_by_id=admin_user_id)
                     reversion.add_to_revision(new_step_order)
 
+def remove_library_normalization_from_workflows(apps, schema_editor):
+    Step = apps.get_model("fms_core", "Step")
+    Workflow = apps.get_model("fms_core", "Workflow")
+    StepOrder = apps.get_model("fms_core", "StepOrder")
+
+    with reversion.create_revision(manage_manually=True):
+        admin_user = User.objects.get(username=ADMIN_USERNAME)
+
+        reversion.set_comment(f"Replace Normalization + Pooling steps by a single normalization and pooling step in workflows.")
+        reversion.set_user(admin_user)
+
+        # Rename Pooling step to better explain the role.
+        pooling_step = Step.objects.get(name="Pooling")
+        pooling_step.name = "Normalization and Pooling"
+        pooling_step.save()
+        reversion.add_to_revision(pooling_step)
+
+        for workflow in Workflow.objects.all():
+            order_shift = 0
+            last_step_order = None
+            for step_order in StepOrder.objects.filter(workflow_id=workflow.id).order_by("order"):
+                last_step_order = step_order
+                if step_order.next_step_order is not None and step_order.next_step_order.step.name == "Normalization (Library)":
+                    # Change the current step order by the twice remote step order
+                    removed_step_order = step_order.next_step_order
+                    step_order.next_step_order = step_order.next_step_order.next_step_order
+                    step_order.order += order_shift
+                    step_order.save()
+                    reversion.add_to_revision(step_order)
+                    removed_step_order.delete() # Remove Normalization (Library) step order
+                    order_shift -= 1
+                elif order_shift < 0 and step_order.step.name != "Normalization (Library)":
+                    step_order.order += order_shift
+                    step_order.save()
+                    reversion.add_to_revision(step_order)
+            if last_step_order.step.name == "Normalization (Library)":
+                last_step_order.delete() # Remove Normalization (Library) step order
+
+        # Remove the unused Normalization (Library) step
+        normalization_step = Step.objects.get(name="Normalization (Library)")
+        for specification in normalization_step.step_specifications.all():
+            specification.delete()
+        normalization_step.delete()
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -160,5 +204,19 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             insert_transfer_into_workflows,
             reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.RunPython(
+            remove_library_normalization_from_workflows,
+            reverse_code=migrations.RunPython.noop,
+        ),
+        migrations.AlterField(
+            model_name='container',
+            name='kind',
+            field=models.CharField(choices=[('infinium gs 24 beadchip', 'infinium gs 24 beadchip'), ('dnbseq-g400 flowcell', 'dnbseq-g400 flowcell'), ('dnbseq-t7 flowcell', 'dnbseq-t7 flowcell'), ('illumina-novaseq-sp flowcell', 'illumina-novaseq-sp flowcell'), ('illumina-novaseq-s1 flowcell', 'illumina-novaseq-s1 flowcell'), ('illumina-novaseq-s2 flowcell', 'illumina-novaseq-s2 flowcell'), ('illumina-novaseq-s4 flowcell', 'illumina-novaseq-s4 flowcell'), ('illumina-miseq-v2 flowcell', 'illumina-miseq-v2 flowcell'), ('illumina-miseq-v3 flowcell', 'illumina-miseq-v3 flowcell'), ('illumina-miseq-micro flowcell', 'illumina-miseq-micro flowcell'), ('illumina-miseq-nano flowcell', 'illumina-miseq-nano flowcell'), ('illumina-iseq-100 flowcell', 'illumina-iseq-100 flowcell'), ('tube', 'tube'), ('tube strip 2x1', 'tube strip 2x1'), ('tube strip 3x1', 'tube strip 3x1'), ('tube strip 4x1', 'tube strip 4x1'), ('tube strip 5x1', 'tube strip 5x1'), ('tube strip 6x1', 'tube strip 6x1'), ('tube strip 7x1', 'tube strip 7x1'), ('tube strip 8x1', 'tube strip 8x1'), ('96-well plate', '96-well plate'), ('384-well plate', '384-well plate'), ('tube box 3x3', 'tube box 3x3'), ('tube box 6x6', 'tube box 6x6'), ('tube box 7x7', 'tube box 7x7'), ('tube box 8x8', 'tube box 8x8'), ('tube box 9x9', 'tube box 9x9'), ('tube box 10x10', 'tube box 10x10'), ('tube box 21x10', 'tube box 21x10'), ('tube rack 4x6', 'tube rack 4x6'), ('tube rack 8x12', 'tube rack 8x12'), ('box', 'box'), ('drawer', 'drawer'), ('freezer rack 2x4', 'freezer rack 2x4'), ('freezer rack 3x4', 'freezer rack 3x4'), ('freezer rack 4x4', 'freezer rack 4x4'), ('freezer rack 4x6', 'freezer rack 4x6'), ('freezer rack 5x4', 'freezer rack 5x4'), ('freezer rack 6x4', 'freezer rack 6x4'), ('freezer rack 7x4', 'freezer rack 7x4'), ('freezer rack 10x5', 'freezer rack 10x5'), ('freezer rack 8x6', 'freezer rack 8x6'), ('freezer rack 11x6', 'freezer rack 11x6'), ('freezer rack 16x6', 'freezer rack 16x6'), ('freezer rack 11x7', 'freezer rack 11x7'), ('freezer 3 shelves', 'freezer 3 shelves'), ('freezer 4 shelves', 'freezer 4 shelves'), ('freezer 5 shelves', 'freezer 5 shelves'), ('room', 'room')], help_text='What kind of container this is. Dictates the coordinate system and other container-specific properties.', max_length=30),
+        ),
+        migrations.AddField(
+            model_name='stephistory',
+            name='workflow_action',
+            field=models.CharField(choices=[('NEXT_STEP', 'Step complete - Move to next step'), ('DEQUEUE_SAMPLE', 'Sample failed - Remove sample from study workflow'), ('IGNORE_WORKFLOW', 'Ignore workflow - Do not register as part of a workflow')], default='NEXT_STEP', help_text='Workflow action that was performed on the sample after step completion.', max_length=30),
         ),
     ]
