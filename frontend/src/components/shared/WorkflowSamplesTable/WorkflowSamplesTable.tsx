@@ -10,7 +10,7 @@ import { addFiltersToColumns } from './MergeColumnsAndFilters'
 import { IdentifiedTableColumnType } from './SampleTableColumns'
 import FiltersWarning from '../../filters/FiltersWarningTS'
 import getNFilters from '../../filters/getNFilters'
-import { clearFilters } from '../../../modules/labworkSteps/actions'
+
 
 export interface PaginationParameters {
 	pageNumber: number
@@ -25,21 +25,22 @@ interface WorkflowSamplesTableProps {
 	columns: IdentifiedTableColumnType<SampleAndLibrary>[]
 	hasFilter: boolean,
 	stepNumber: number,
-	filterDefinitions?: FilterDescriptionSet
-	filterKeys?: FilterKeySet
-	filters?: FilterSet
-	setFilter?: SetFilterFunc
-	setFilterOptions?: SetFilterOptionFunc
-	sortBy?: SortBy
-	setSortBy?: SetSortByFunc
-	pagination?: PaginationParameters
+	clearFilters?: any,
+	filterDefinitions?: FilterDescriptionSet,
+	filterKeys?: FilterKeySet,
+	filters?: FilterSet,
+	setFilter?: SetFilterFunc,
+	setFilterOptions?: SetFilterOptionFunc,
+	sortBy?: SortBy,
+	setSortBy?: SetSortByFunc,
+	pagination?: PaginationParameters,
 	selection?: {
 		selectedSampleIDs: FMSId[]
 		onSelectionChanged: (selectedSamples: SampleAndLibrary[]) => void
 	}
 }
 
-function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, stepNumber, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter}: WorkflowSamplesTableProps) {
+function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, stepNumber, filterKeys, filters, setFilter, setFilterOptions, sortBy, setSortBy, pagination, selection, hasFilter, clearFilters }: WorkflowSamplesTableProps) {
 	const [samples, setSamples] = useState<SampleAndLibrary[]>([])
 	const samplesByID = useAppSelector(selectSamplesByID)
 	const librariesByID = useAppSelector(selectLibrariesByID)
@@ -104,9 +105,6 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, stepNumbe
 			}
 		}
 	}
-	const localClearFilters = () => {
-		dispatch(clearFilters(stepNumber))
-	}
 
 	return (
 		<>
@@ -123,7 +121,7 @@ function WorkflowSamplesTable({ sampleIDs, columns, filterDefinitions, stepNumbe
 							<Button
 								style={{ margin: 6 }}
 								disabled={nFilters === 0}
-								onClick={localClearFilters}
+								onClick={clearFilters}
 							>
 								Clear Filters
 							</Button>

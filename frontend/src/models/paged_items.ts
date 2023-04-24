@@ -39,7 +39,6 @@ export type SetFilterOptionFunc = (filterKey: string, propertyName: string, valu
 export type FilterValidationFunc = (string) => boolean
 export type SetSortByFunc = (sortBy: SortBy) => void
 
-
 export interface FilterOptions {
 	[key: string]: boolean
 }
