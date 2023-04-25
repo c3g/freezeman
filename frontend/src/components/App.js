@@ -1,6 +1,6 @@
 import {
   AuditOutlined, BarcodeOutlined, DashboardOutlined,
-  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SyncOutlined, TableOutlined,
+  ExperimentOutlined, FileZipOutlined, HddOutlined, InfoCircleOutlined, LogoutOutlined, ProjectOutlined, SettingOutlined, SyncOutlined, TableOutlined,
   TeamOutlined,
   UserOutlined
 } from "@ant-design/icons";
@@ -39,6 +39,7 @@ import { get } from "../modules/users/actions";
 import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
+import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
  
 
 const { Title } = Typography;
@@ -112,14 +113,35 @@ const MENU_ITEMS = [
     text: "Experiments",
   },
   {
-    url: "/indices",
-    icon: <BarcodeOutlined />,
-    text: "Indices",
-  },
-  {
     url: "/datasets",
     icon: <FileZipOutlined />,
     text: "Datasets",
+  },
+  {
+    icon: <SettingOutlined/>,
+    text: "Definitions",
+    children: [
+      {
+        url: "/indices",
+        icon: <BarcodeOutlined />,
+        text: "Indices", 
+      },
+      {
+        url: "/taxons",
+        icon: <BarcodeOutlined />,
+        text: "Taxons", 
+      },
+      {
+        url: "/genomes",
+        icon: <BarcodeOutlined />,
+        text: "Reference Genomes", 
+      },
+      {
+        url: "/workflows",
+        icon: <BarcodeOutlined />,
+        text: "Workflows", 
+      }
+    ]
   },
   {
     url: "/users",
@@ -315,6 +337,23 @@ const App = ({userID, usersByID, logOut, get}) => {
             <Route path="/datasets/*" element={
               <PrivateNavigate>
                 <DatasetsPage/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/workflows/*" element={
+              <PrivateNavigate>
+                <WorkflowDefinitionsRoute/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/taxons/*" element={
+              <PrivateNavigate>
+                {/* Taxons editor not implemented yet */}
+                <DashboardPage/>
+              </PrivateNavigate>
+            }/>
+            <Route path="/genomes/*" element={
+              <PrivateNavigate>
+                {/* Genomes editor not implemented yet */}
+                <DashboardPage/>
               </PrivateNavigate>
             }/>
             <Route path="*" element={<Navigate to="/dashboard" replace />}/>
