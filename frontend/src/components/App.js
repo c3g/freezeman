@@ -40,6 +40,8 @@ import { selectAppInitialzed, selectAuthTokenAccess, } from "../selectors";
 import DatasetsPage from "./datasets/DatasetsPage";
 import LabworkPage from "./labwork/LabworkPage";
 import WorkflowDefinitionsRoute from "./workflows/WorkflowDefinitionsRoute";
+import ReferenceGenomesRoute from "./referenceGenomes/ReferenceGenomesRoute";
+import TaxonsRoute from "./taxons/TaxonsRoute";
  
 
 const { Title } = Typography;
@@ -346,14 +348,12 @@ const App = ({userID, usersByID, logOut, get}) => {
             }/>
             <Route path="/taxons/*" element={
               <PrivateNavigate>
-                {/* Taxons editor not implemented yet */}
-                <DashboardPage/>
+                <TaxonsRoute/>
               </PrivateNavigate>
             }/>
             <Route path="/genomes/*" element={
               <PrivateNavigate>
-                {/* Genomes editor not implemented yet */}
-                <DashboardPage/>
+                <ReferenceGenomesRoute/>
               </PrivateNavigate>
             }/>
             <Route path="*" element={<Navigate to="/dashboard" replace />}/>
