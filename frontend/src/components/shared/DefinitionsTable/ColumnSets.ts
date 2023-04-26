@@ -5,8 +5,8 @@ export function getColumnsForDefinition(definition: string): IdentifiedTableColu
     const DEFAULT_DEFINITIONS = []
     const TAXON_COLUMN_DEFINITIONS = [
         TAXON_COLUMNS.ID,
+        TAXON_COLUMNS.NCBI_ID,
         TAXON_COLUMNS.NAME,
-        TAXON_COLUMNS.NCBI_ID
     ]
 
     let columns: DefinitionColumn[] = DEFAULT_DEFINITIONS;

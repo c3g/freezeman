@@ -5,6 +5,8 @@ import { Table } from 'antd';
 import { IdentifiedTableColumnType } from '../shared/WorkflowSamplesTable/SampleTableColumns';
 import { ObjectWithDefinition } from '../shared/DefinitionsTable/DefinitionTableColumns';
 import { getColumnsForDefinition } from '../shared/DefinitionsTable/ColumnSets';
+import AppPageHeader from '../AppPageHeader';
+import AddButton from '../AddButton';
 
 const DefinitionPage = () => {
 
@@ -28,6 +30,8 @@ const DefinitionPage = () => {
 
     return (
         <>
+            <AppPageHeader title="Taxons" extra={[
+                <AddButton key='add' url="/taxons/add" />,]} />
             <Table
                 dataSource={taxons}
                 columns={columns}>
